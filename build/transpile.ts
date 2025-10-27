@@ -797,7 +797,6 @@ class Transpiler {
             'BorrowInterest': /-> BorrowInterest:/,
             'Bool': /(: (?:List\[)?Bool =)|(-> Bool:)/,
             'Conversion': /-> Conversion:/,
-            'Client': /: Client/,
             'CrossBorrowRate': /-> CrossBorrowRate:/,
             'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
@@ -1633,8 +1632,9 @@ class Transpiler {
                     'OrderSide': 'string',
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
+                    'Client': 'array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|Client)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -1786,10 +1786,11 @@ class Transpiler {
                 php,
                 phpAsync,
             } = this.transpileMethodsToAllLanguages (className, methods)
-            // trim away sync methods from python async
-            // since it already inherits those methods
+            // let python2Filtered: string[] = []
             const python3Async: string[] = []
             if (this.buildPython) {
+                // trim away sync methods from python async
+                // since it already inherits those methods
                 python3.forEach ((line, i, arr) => {
                     if (line.match (/^\s+async def/)) {
                         python3Async.push ('')
@@ -1797,6 +1798,11 @@ class Transpiler {
                         python3Async.push (arr[i+1])
                     }
                 })
+                // TODO: maybe filter the methods with client out of sync
+                // trim away watch and handle methods from python sync
+                // python2Filtered = python2.filter (line => (
+                //     !line.match (/^\s+def handle.*\(.*\: Client,.*\)/)
+                // ))
             }
 
             const pythonDelimiter = '# ' + delimiter + '\n'
