@@ -26,7 +26,7 @@ class arkham extends Exchange {
             'version' => 'v1',
             'rateLimit' => 20 / 3, // 150 req/s
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
@@ -75,7 +75,7 @@ class arkham extends Exchange {
                 '1d' => '24h',
             ),
             'urls' => array(
-                'logo' => '',
+                'logo' => 'https://github.com/user-attachments/assets/5cefdcfb-2c10-445b-835c-fa21317bf5ac',
                 'api' => array(
                     'v1' => 'https://arkm.com/api',
                 ),
