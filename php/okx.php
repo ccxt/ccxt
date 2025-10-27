@@ -1679,6 +1679,12 @@ class okx extends Exchange {
             $baseId = $this->safe_string($parts, 0);
             $quoteId = $this->safe_string($parts, 1);
         }
+        if ((($baseId === '') || ($quoteId === '')) && $spot) { // to fix weird preopen markets
+            $instId = $this->safe_string($market, 'instId', '');
+            $parts = explode('-', $instId);
+            $baseId = $this->safe_string($parts, 0);
+            $quoteId = $this->safe_string($parts, 1);
+        }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
@@ -1710,6 +1716,7 @@ class okx extends Exchange {
         $maxLeverage = $this->safe_string($market, 'lever', '1');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $maxSpotCost = $this->safe_number($market, 'maxMktSz');
+        $status = $this->safe_string($market, 'state');
         return $this->extend($fees, array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1725,7 +1732,7 @@ class okx extends Exchange {
             'swap' => $swap,
             'future' => $future,
             'option' => $option,
-            'active' => true,
+            'active' => $status === 'live',
             'contract' => $contract,
             'linear' => $contract ? ($quoteId === $settleId) : null,
             'inverse' => $contract ? ($baseId === $settleId) : null,
