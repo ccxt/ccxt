@@ -224,7 +224,7 @@ export default class xcoin extends Exchange {
         //        "ts": "1676428445631"
         //    }
         //
-        const data = this.safeDict (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result: Market[] = [];
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
@@ -259,10 +259,10 @@ export default class xcoin extends Exchange {
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': undefined,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': undefined,
+            'settleId': settleId,
             'type': 'spot',
             'spot': (marketType === 'spot'),
             'margin': false,
@@ -270,7 +270,7 @@ export default class xcoin extends Exchange {
             'future': false,
             'option': false,
             'active': (this.safeString (item, 'status') === 'trading'),
-            'contract': false,
+            'contract': (marketType === 'swap'),
             'linear': (subType === 'linear') ? true : undefined,
             'inverse': (subType === 'linear') ? false : undefined,
             'taker': undefined,
