@@ -1229,6 +1229,7 @@ export default class okx extends Exchange {
                     'OPTION': 'OPTION',
                 },
                 'brokerId': '6b9ad766b55dBCDE',
+                'instrumentFamilyDict': {},
             },
             'features': {
                 'default': {
@@ -1659,7 +1660,28 @@ export default class okx extends Exchange {
         //         "state": "live",
         //         "stk": "194000",
         //         "tickSz": "0.0005",
-        //         "uly": "BTC-USD"
+        //         "uly": "BTC-USD",
+        //         "auctionEndTime": "",
+        //         "futureSettlement": false,
+        //         "instFamily": "",
+        //         "instIdCode": "189535",
+        //         "maxIcebergSz": "999999999999999.0000000000000000",
+        //         "maxLmtAmt": "20000000",
+        //         "maxLmtSz": "999999999999999",
+        //         "maxMktAmt": "71000",
+        //         "maxMktSz": "1000000",
+        //         "maxPlatOILmt": "",
+        //         "maxStopSz": "1000000",
+        //         "maxTriggerSz": "999999999999999.0000000000000000",
+        //         "maxTwapSz": "999999999999999.0000000000000000",
+        //         "openType": "fix_price",
+        //         "posLmtAmt": "",
+        //         "posLmtPct": "",
+        //         "preMktSwTime": "",
+        //         "ruleType": "normal",
+        //         "tradeQuoteCcyList": [
+        //             "SGD"
+        //         ],
         //     }
         //
         const id = this.safeString (market, 'instId');
@@ -1713,6 +1735,7 @@ export default class okx extends Exchange {
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxSpotCost = this.safeNumber (market, 'maxMktSz');
+        this.options['instrumentFamilyDict'][symbol] = this.safeString (market, 'instFamily');
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -7943,13 +7966,17 @@ export default class okx extends Exchange {
         if (length > 5) {
             throw new ArgumentsRequired (this.id + ' fetchLeverageTiers(): only 5 symbols at max allowed per request');
         }
-        const markets = this.marketsForSymbols (symbols);
         const families = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            families.push (this.safeString (market['id']);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const family = this.safeString (this.options['instrumentFamilyDict'], symbol);
+            if (family === undefined) {
+                throw new BadSymbol (this.id + ' fetchLeverageTiers(): symbol ' + symbol + ' does not have a corresponding instrument family');
+            }
+            families.push (family);
+        }
         const request = {
-            'instFamily': marketIds.join (','),
+            'instFamily': families.join (','),
         };
         const firstMarket = this.market (symbols[0]);
         let marketType = undefined;
@@ -7960,47 +7987,78 @@ export default class okx extends Exchange {
         request['tdMode'] = (marginMode === 'isolated') ? 'isolated' : 'cross';
         const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
         //
-        // {
-        //     "code": "0",
-        //     "msg": "",
-        //     "data": [
-        //         {
-        //             "baseMaxLoan": "50",
-        //             "imr": "0.1",
-        //             "instId": "BTC-USDT",
-        //             "maxLever": "10",
-        //             "maxSz": "50",
-        //             "minSz": "0",
-        //             "mmr": "0.03",
-        //             "tier": "1",
-        //             ...
-        //         }
-        //     ]
-        // }
+        //    {
+        //        "code": "0",
+        //        "msg": '',
+        //        "data": [
+        //            {
+        //                "baseMaxLoan": "",
+        //                "imr": "0.01",
+        //                "instFamily": "BTC-USDT",
+        //                "instId": "",
+        //                "maxLever": "100",
+        //                "maxSz": "1000",
+        //                "minSz": "0",
+        //                "mmr": "0.004",
+        //                "optMgnFactor": "0",
+        //                "quoteMaxLoan": "",
+        //                "tier": "1",
+        //                "uly": "BTC-USDT"
+        //            },
+        //            {
+        //                "baseMaxLoan": "",
+        //                "imr": "0.015",
+        //                "instFamily": "BTC-USDT",
+        //                "instId": "",
+        //                "maxLever": "66.66",
+        //                "maxSz": "5000",
+        //                "minSz": "1000.01",
+        //                "mmr": "0.005",
+        //                "optMgnFactor": "0",
+        //                "quoteMaxLoan": "",
+        //                "tier": "2",
+        //                "uly": "BTC-USDT"
+        //            },
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseLeverageTiers (data, symbols, 'instId');
+        return this.parseLeverageTiers (data, symbols);
     }
 
-    parseMarketLeverageTiers(info, market: Market = undefined): LeverageTier[] {
-        //
-        // [
-        //     {
-        //         "baseMaxLoan": "50",
-        //         "imr": "0.1",
-        //         "instId": "BTC-USDT",
-        //         "maxLever": "10",
-        //         "maxSz": "50",
-        //         "minSz": "0",
-        //         "mmr": "0.03",
-        //         "tier": "1",
-        //         ...
-        //     }
-        // ]
-        //
+    parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {
+        symbols = this.marketSymbols (symbols);
+        const tiers = {};
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        const noSymbols = (symbols === undefined) || (symbolsLength === 0);
+        const firstItem = this.safeDict (response, 0);
+        const familyRemap = {};
+        for (let j = 0; j < this.symbols.length; j++) {
+            const symbol = this.symbols[j];
+            const instFamilyRaw = this.safeString (firstItem, 'instFamily');
+            const instFamilySaved = this.safeString (this.options['instrumentFamilyDict'], symbol);
+            if (instFamilyRaw === instFamilySaved) {
+                for (let i = 0; i < response.length; i++) {
+                    const item = response[i];
+                    const instFamily = this.safeString (item, 'instFamily');
+                    const id = this.safeString (item, marketIdKey);
+                    const market = this.safeMarket (id, undefined, undefined, 'swap');
+                    const symbol = market['symbol'];
+                    const contract = this.safeBool (market, 'contract', false);
+                    if (contract && (noSymbols || this.inArray (symbol, symbols))) {
+                        tiers[symbol] = this.parseMarketLeverageTiers (item, market);
+                    }
+                }
+            }
+        }
+        return tiers;
+    }
+
+    parseMarketLeverageTiers(rawTiers, market: Market = undefined): LeverageTier[] {
         const tiers = [];
-        for (let i = 0; i < info.length; i++) {
-            const tier = info[i];
+        for (let i = 0; i < rawTiers.length; i++) {
+            const tier = rawTiers[i];
             const marketId = this.safeString(tier, 'instId');
             market = this.safeMarket(marketId, market);
             tiers.push({
