@@ -14,7 +14,7 @@ public partial class arkham : Exchange
             { "version", "v1" },
             { "rateLimit", divide(20, 3) },
             { "certified", false },
-            { "pro", false },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", false },
                 { "spot", true },
@@ -62,7 +62,7 @@ public partial class arkham : Exchange
                 { "1d", "24h" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "" },
+                { "logo", "https://github.com/user-attachments/assets/5cefdcfb-2c10-445b-835c-fa21317bf5ac" },
                 { "api", new Dictionary<string, object>() {
                     { "v1", "https://arkm.com/api" },
                 } },
