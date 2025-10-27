@@ -28,6 +28,9 @@ export default class xcoin extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'fetchTime': true,
+                'fetchMarkets': true,
+                'fetchOrderBook': true,
             },
             'timeframes': {
             },
@@ -158,8 +161,8 @@ export default class xcoin extends Exchange {
 
     /**
      * @method
-     * @name zonda#fetchMarkets
-     * @see https://docs.zondacrypto.exchange/reference/ticker-1
+     * @name xcoin#fetchMarkets
+     * @see https://xcoin.com/docs/coinApi/ticker/get-the-basic-information-of-trading-products
      * @description retrieves data on all markets for zonda
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -311,6 +314,7 @@ export default class xcoin extends Exchange {
      * @method
      * @name xcoin#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://xcoin.com/docs/coinApi/ticker/get-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -328,6 +332,52 @@ export default class xcoin extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.safeInteger (data, 'time');
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://xcoin.com/docs/coinApi/ticker/get-order-book-depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.loc] crypto location, default: us
+     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const id = market['id'];
+        const request: Dict = {
+            'symbol': id,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV1MarketDepth (this.extend (request, params));
+        //
+        //  {
+        //     "code": "0",
+        //     "msg":"success",
+        //     "data": {
+        //       "bids": [
+        //         ["65000","0.1"],
+        //         ["65001","0.1"],
+        //       ],
+        //       "asks": [
+        //         ["65003","0.1"],
+        //         ["65004","0.1"],
+        //       ]
+        //     },
+        //     "lastUpdateId": "5001"
+        //    },
+        //    "ts": "1732158178000"
+        //  }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (response, 'ts');
+        return this.parseOrderBook (data, market['symbol'], timestamp);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
