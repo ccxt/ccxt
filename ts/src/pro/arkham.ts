@@ -402,7 +402,7 @@ export default class arkham extends arkhamRest {
 
     /**
      * @method
-     * @name bitfinex#watchBalance
+     * @name arkham#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://arkm.com/docs#stream/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
