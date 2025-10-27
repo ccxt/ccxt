@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, LeverageTiers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -7925,6 +7925,96 @@ export default class okx extends Exchange {
             depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
         }
         return depositWithdrawFees;
+    }
+
+    /**
+     * @method
+     * @name okx#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-position-tiers
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const length = symbols.length;
+        if (length > 5) {
+            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers(): only 5 symbols at max allowed per request');
+        }
+        const markets = this.marketsForSymbols (symbols);
+        const families = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            families.push (this.safeString (market['id']);
+        const request = {
+            'instFamily': marketIds.join (','),
+        };
+        const firstMarket = this.market (symbols[0]);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', firstMarket, params);
+        request['instType'] = this.convertToInstrumentType (marketType);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverageTiers', params);
+        request['tdMode'] = (marginMode === 'isolated') ? 'isolated' : 'cross';
+        const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg": "",
+        //     "data": [
+        //         {
+        //             "baseMaxLoan": "50",
+        //             "imr": "0.1",
+        //             "instId": "BTC-USDT",
+        //             "maxLever": "10",
+        //             "maxSz": "50",
+        //             "minSz": "0",
+        //             "mmr": "0.03",
+        //             "tier": "1",
+        //             ...
+        //         }
+        //     ]
+        // }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseLeverageTiers (data, symbols, 'instId');
+    }
+
+    parseMarketLeverageTiers(info, market: Market = undefined): LeverageTier[] {
+        //
+        // [
+        //     {
+        //         "baseMaxLoan": "50",
+        //         "imr": "0.1",
+        //         "instId": "BTC-USDT",
+        //         "maxLever": "10",
+        //         "maxSz": "50",
+        //         "minSz": "0",
+        //         "mmr": "0.03",
+        //         "tier": "1",
+        //         ...
+        //     }
+        // ]
+        //
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const tier = info[i];
+            const marketId = this.safeString(tier, 'instId');
+            market = this.safeMarket(marketId, market);
+            tiers.push({
+                'tier': this.safeInteger(tier, 'tier'),
+                'symbol': this.safeSymbol(marketId, market),
+                'currency': market['settle'],
+                'minNotional': this.safeNumber(tier, 'minSz'),
+                'maxNotional': this.safeNumber(tier, 'maxSz'),
+                'maintenanceMarginRate': this.safeNumber(tier, 'mmr'),
+                'maxLeverage': this.safeNumber(tier, 'maxLever'),
+                'info': tier,
+            });
+        }
+        return tiers as LeverageTier[];
     }
 
     /**
