@@ -14,6 +14,26 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetch ticker using standard name",
+                "method": "fetchTicker",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "PENGU/USDC"
+                ],
+                "output": "{\"type\":\"spotMetaAndAssetCtxs\"}"
+            },
+            {
+                "description": "fetch ticker using standard name",
+                "method": "fetchTicker",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "output": "{\"type\":\"spotMetaAndAssetCtxs\"}"
+            }
+        ],
         "createOrderWithTakeProfitAndStopLoss": [
             {
                 "description": "create order with tp and sl",

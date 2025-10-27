@@ -635,5 +635,159 @@
         "tierBased": null,
         "percentage": null,
         "baseName": "HYPE"
+    },
+    "BTC/USDC": {
+        "id": "@142",
+        "lowercaseId": null,
+        "symbol": "BTC/USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": null,
+        "baseId": "10142",
+        "quoteId": "USDC",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0007,
+        "maker": 0.0004,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00001,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "prevDayPx": "113545.0",
+            "dayNtlVlm": "76656563.7398700118",
+            "markPx": "115069.0",
+            "midPx": "115069.5",
+            "circulatingSupply": "20999999.9986603409",
+            "coin": "@142",
+            "totalSupply": "20999999.9986603409",
+            "dayBaseVlm": "667.21773",
+            "tokens": [
+                197,
+                0
+            ],
+            "name": "@142",
+            "index": "142",
+            "isCanonical": false
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "UBTC"
+    },
+    "PENGU/USDC": {
+        "id": "@184",
+        "lowercaseId": null,
+        "symbol": "PENGU/USDC",
+        "base": "PENGU",
+        "quote": "USDC",
+        "settle": null,
+        "baseId": "10184",
+        "quoteId": "USDC",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0007,
+        "maker": 0.0004,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "prevDayPx": "0.022021",
+            "dayNtlVlm": "484876.7670309799",
+            "markPx": "0.021848",
+            "midPx": "0.021827",
+            "circulatingSupply": "184467440736.5701904297",
+            "coin": "@184",
+            "totalSupply": "184467440736.5701904297",
+            "dayBaseVlm": "21731760.7899999991",
+            "tokens": [
+                292,
+                0
+            ],
+            "name": "@184",
+            "index": "184",
+            "isCanonical": false
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "HPENGU"
     }
 }
