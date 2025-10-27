@@ -634,14 +634,21 @@ export default class arkham extends arkhamRest {
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.authenticate ();
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const requestArg = {
             'snapshot': false,
         };
         let isTriggerOrder = false;
         [ isTriggerOrder, params ] = this.handleOptionAndParams (params, 'watchOrders', 'trigger', false);
         const rawChannel = isTriggerOrder ? 'trigger_orders' : 'order_statuses';
-        const messageHash = 'order::' + market['symbol'] + '::' + rawChannel;
+        let messageHash = 'orders';
+        if (symbol !== undefined) {
+            messageHash += '::' + market['symbol'];
+        }
+        messageHash += '::' + rawChannel;
         const orders = await this.subscribe (messageHash, rawChannel, this.extend (requestArg, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -697,6 +704,7 @@ export default class arkham extends arkhamRest {
         orders.append (order);
         client.resolve (orders, 'orders');
         client.resolve (orders, 'order::' + order['symbol'] + '::' + channel);
+        client.resolve (orders, 'order::' + channel);
     }
 
     parseWsOrder (order, market = undefined): Order {
