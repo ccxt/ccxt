@@ -1629,6 +1629,13 @@ public partial class okx : Exchange
             baseId = this.safeString(parts, 0);
             quoteId = this.safeString(parts, 1);
         }
+        if (isTrue(isTrue((isTrue((isEqual(baseId, ""))) || isTrue((isEqual(quoteId, ""))))) && isTrue(spot)))
+        {
+            object instId = this.safeString(market, "instId", "");
+            object parts = ((string)instId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            baseId = this.safeString(parts, 0);
+            quoteId = this.safeString(parts, 1);
+        }
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
@@ -1666,6 +1673,7 @@ public partial class okx : Exchange
         object maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object maxSpotCost = this.safeNumber(market, "maxMktSz");
+        object status = this.safeString(market, "state");
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1681,7 +1689,7 @@ public partial class okx : Exchange
             { "swap", swap },
             { "future", future },
             { "option", option },
-            { "active", true },
+            { "active", isEqual(status, "live") },
             { "contract", contract },
             { "linear", ((bool) isTrue(contract)) ? (isEqual(quoteId, settleId)) : null },
             { "inverse", ((bool) isTrue(contract)) ? (isEqual(baseId, settleId)) : null },
