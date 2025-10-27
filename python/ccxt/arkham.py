@@ -35,7 +35,7 @@ class arkham(Exchange, ImplicitAPI):
             'version': 'v1',
             'rateLimit': 20 / 3,  # 150 req/s
             'certified': False,
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'spot': True,
@@ -84,7 +84,7 @@ class arkham(Exchange, ImplicitAPI):
                 '1d': '24h',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/5cefdcfb-2c10-445b-835c-fa21317bf5ac',
                 'api': {
                     'v1': 'https://arkm.com/api',
                 },
