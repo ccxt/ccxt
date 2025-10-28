@@ -2725,6 +2725,18 @@
         ],
         "fetchAccountPositions": [
             {
+                "description": "fetch accountPositions using v2",
+                "method": "fetchAccountPositions",
+                "url": "https://papi.binance.com/papi/v2/um/account?timestamp=1761645071513&recvWindow=10000&signature=36c55ff1cbc7609dc42073c7c4b53be76503ef5f777e7a640bd9750f81f46ec0",
+                "input": [
+                    null,
+                    {
+                        "papi": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch Account Positions - linear",
                 "method": "fetchAccountPositions",
                 "url": "https://fapi.binance.com/fapi/v3/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
