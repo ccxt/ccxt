@@ -126,9 +126,10 @@ public partial class apex : ccxt.apex
         //                 "v": "0.001",
         //                 "p": "16578.50",
         //                 "L": "PlusTick",
-        //                 "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
+        //                 "i": "20f43950-d8dd-5b31-9112-a178eb6023ef",
         //                 "BT": false
-        //             }
+        //             },
+        //             // sorted by newest first
         //         ]
         //     }
         //
@@ -146,9 +147,11 @@ public partial class apex : ccxt.apex
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        for (object j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
+        object length = getArrayLength(trades);
+        for (object j = 0; isLessThan(j, length); postFixIncrement(ref j))
         {
-            object parsed = this.parseWsTrade(getValue(trades, j), market);
+            object index = subtract(subtract(length, j), 1);
+            object parsed = this.parseWsTrade(getValue(trades, index), market);
             callDynamically(stored, "append", new object[] {parsed});
         }
         object messageHash = add(add("trade", ":"), symbol);
@@ -919,7 +922,7 @@ public partial class apex : ccxt.apex
         object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
         object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -1052,6 +1055,7 @@ public partial class apex : ccxt.apex
             { "recentlyTrade", this.handleTrades },
             { "pong", this.handlePong },
             { "auth", this.handleAuthenticate },
+            { "ping", this.handlePing },
         };
         object exacMethod = this.safeValue(methods, topic);
         if (isTrue(!isEqual(exacMethod, null)))
@@ -1080,11 +1084,31 @@ public partial class apex : ccxt.apex
 
     public override object ping(WebSocketClient client)
     {
-        object timeStamp = ((object)this.milliseconds()).ToString();
+        object timeStamp = this.milliseconds();
+        client.lastPong = timeStamp;
         return new Dictionary<string, object>() {
-            { "args", new List<object>() {timeStamp} },
+            { "args", new List<object> {((object)timeStamp).ToString()} },
             { "op", "ping" },
         };
+    }
+
+    public async virtual Task pong(WebSocketClient client, object message)
+    {
+        //
+        //     {"op": "ping", "args": ["1761069137485"]}
+        //
+        object timeStamp = this.milliseconds();
+        try
+        {
+            await client.send(new Dictionary<string, object>() {
+                { "args", new List<object> {((object)timeStamp).ToString()} },
+                { "op", "pong" },
+            });
+        } catch(Exception e)
+        {
+            var error = new NetworkError(add(add(this.id, " handlePing failed with error "), this.json(e)));
+            ((WebSocketClient)client).reset(error);
+        }
     }
 
     public virtual object handlePong(WebSocketClient client, object message)
@@ -1101,6 +1125,11 @@ public partial class apex : ccxt.apex
         //
         client.lastPong = this.safeInteger(message, "pong");
         return message;
+    }
+
+    public virtual void handlePing(WebSocketClient client, object message)
+    {
+        this.spawn(this.pong, new object[] { client, message});
     }
 
     public virtual void handleAccount(WebSocketClient client, object message)

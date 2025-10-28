@@ -1530,7 +1530,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -2021,7 +2021,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple $orders at the same time
@@ -2034,11 +2034,13 @@ class bitfinex extends Exchange {
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
+            $numericIds = array();
             for ($i = 0; $i < count($ids); $i++) {
-                $ids[$i] = $this->parse_to_numeric($ids[$i]);
+                // $numericIds[$i] = $this->parse_to_numeric($ids[$i]);
+                $numericIds[] = $this->parse_to_numeric($ids[$i]);
             }
             $request = array(
-                'id' => $ids,
+                'id' => $numericIds,
             );
             $market = null;
             if ($symbol !== null) {

@@ -682,7 +682,7 @@ export default class upbit extends upbitRest {
         };
         const methodName = this.safeString(message, 'type');
         const method = this.safeValue(methods, methodName);
-        if (method) {
+        if (method !== undefined) {
             method.call(this, client, message);
         }
     }

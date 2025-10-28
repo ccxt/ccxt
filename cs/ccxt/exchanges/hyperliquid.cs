@@ -210,6 +210,20 @@ public partial class hyperliquid : Exchange
                 { "sandboxMode", false },
                 { "defaultSlippage", 0.05 },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
+                { "spotCurrencyMapping", new Dictionary<string, object>() {
+                    { "UDZ", "2Z" },
+                    { "UBONK", "BONK" },
+                    { "UBTC", "BTC" },
+                    { "UETH", "ETH" },
+                    { "UFART", "FARTCOIN" },
+                    { "HPENGU", "PENGU" },
+                    { "UPUMP", "PUMP" },
+                    { "USOL", "SOL" },
+                    { "UUUSPX", "SPX" },
+                    { "USDT0", "USDT" },
+                    { "XAUT0", "XAUT" },
+                    { "UXPL", "XPL" },
+                } },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -615,9 +629,13 @@ public partial class hyperliquid : Exchange
             object quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, new Dictionary<string, object>() {});
             object baseName = this.safeString(baseTokenInfo, "name");
             object quoteId = this.safeString(quoteTokenInfo, "name");
-            object bs = this.safeCurrencyCode(baseName);
-            object quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
+            // do spot currency mapping
+            object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
+            object mappedBaseName = this.safeString(spotCurrencyMapping, baseName, baseName);
+            object mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
+            object mappedBase = this.safeCurrencyCode(mappedBaseName);
+            object mappedQuote = this.safeCurrencyCode(mappedQuoteId);
+            object mappedSymbol = add(add(mappedBase, "/"), mappedQuote);
             object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             object amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
@@ -631,11 +649,11 @@ public partial class hyperliquid : Exchange
             object pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             object baseId = this.numberToString(add(index, 10000));
-            ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            object entry = new Dictionary<string, object>() {
                 { "id", marketName },
-                { "symbol", symbol },
-                { "base", bs },
-                { "quote", quote },
+                { "symbol", mappedSymbol },
+                { "base", mappedBase },
+                { "quote", mappedQuote },
                 { "settle", null },
                 { "baseId", baseId },
                 { "baseName", baseName },
@@ -683,7 +701,19 @@ public partial class hyperliquid : Exchange
                 } },
                 { "created", null },
                 { "info", this.extend(extraData, market) },
-            }));
+            };
+            ((IList<object>)markets).Add(this.safeMarketStructure(entry));
+            // backward support
+            object bs = this.safeCurrencyCode(baseName);
+            object quote = this.safeCurrencyCode(quoteId);
+            object symbol = add(add(bs, "/"), quote);
+            if (isTrue(!isEqual(symbol, mappedSymbol)))
+            {
+                ((IDictionary<string,object>)entry)["symbol"] = symbol;
+                ((IDictionary<string,object>)entry)["base"] = mappedBase;
+                ((IDictionary<string,object>)entry)["quote"] = mappedQuote;
+                ((IList<object>)markets).Add(this.safeMarketStructure(entry));
+            }
         }
         return markets;
     }
@@ -1172,6 +1202,10 @@ public partial class hyperliquid : Exchange
                 // optimization if limit is provided
                 object timeframeInMilliseconds = multiply(this.parseTimeframe(timeframe), 1000);
                 since = this.sum(until, multiply(multiply(timeframeInMilliseconds, limit), -1));
+                if (isTrue(isLessThan(since, 0)))
+                {
+                    since = 0;
+                }
                 useTail = false;
             } else
             {
@@ -1631,7 +1665,21 @@ public partial class hyperliquid : Exchange
         object responseObj = this.safeDict(response, "response", new Dictionary<string, object>() {});
         object data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
         object statuses = this.safeList(data, "statuses", new List<object>() {});
-        return this.parseOrders(statuses, null);
+        object ordersToBeParsed = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+        {
+            object order = getValue(statuses, i);
+            if (isTrue(isEqual(order, "waitingForTrigger")))
+            {
+                ((IList<object>)ordersToBeParsed).Add(new Dictionary<string, object>() {
+                    { "status", order },
+                }); // tp/sl orders can return a string like "waitingForTrigger",
+            } else
+            {
+                ((IList<object>)ordersToBeParsed).Add(order);
+            }
+        }
+        return this.parseOrders(ordersToBeParsed, null);
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1775,10 +1823,10 @@ public partial class hyperliquid : Exchange
             {
                 // grouping opposed orders for sl/tp
                 object stopLossOrderTriggerPrice = this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice"});
-                object stopLossOrderType = this.safeString(stopLoss, "type");
+                object stopLossOrderType = this.safeString(stopLoss, "type", "limit");
                 object stopLossOrderLimitPrice = this.safeStringN(stopLoss, new List<object>() {"price", "stopLossPrice"}, stopLossOrderTriggerPrice);
                 object takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice"});
-                object takeProfitOrderType = this.safeString(takeProfit, "type");
+                object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
                 object takeProfitOrderLimitPrice = this.safeStringN(takeProfit, new List<object>() {"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice);
                 grouping = "normalTpsl";
                 orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});
@@ -1875,7 +1923,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -3470,10 +3518,6 @@ public partial class hyperliquid : Exchange
                 { "nonce", nonce },
                 { "signature", transferSig },
             };
-            if (isTrue(!isEqual(vaultAddress, null)))
-            {
-                ((IDictionary<string,object>)transferRequest)["vaultAddress"] = vaultAddress;
-            }
             object transferResponse = await this.privatePostExchange(transferRequest);
             return transferResponse;
         }
@@ -3913,6 +3957,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.vaultAddress] vault address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
@@ -3934,6 +3979,10 @@ public partial class hyperliquid : Exchange
         object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
+            if (isTrue(isEqual(since, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchDeposits requires since while until is set")) ;
+            }
             ((IDictionary<string,object>)request)["endTime"] = until;
             parameters = this.omit(parameters, new List<object>() {"until"});
         }
@@ -3952,7 +4001,30 @@ public partial class hyperliquid : Exchange
         // ]
         //
         object records = this.extractTypeFromDelta(response);
-        object deposits = this.filterByArray(records, "type", new List<object>() {"deposit"}, false);
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
+        object deposits = new List<object>() {};
+        if (isTrue(!isEqual(vaultAddress, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(records)); postFixIncrement(ref i))
+            {
+                object record = getValue(records, i);
+                if (isTrue(isEqual(getValue(record, "type"), "vaultDeposit")))
+                {
+                    object delta = this.safeDict(record, "delta");
+                    if (isTrue(isEqual(getValue(delta, "vault"), add("0x", vaultAddress))))
+                    {
+                        ((IList<object>)deposits).Add(record);
+                    }
+                }
+            }
+        } else
+        {
+            deposits = this.filterByArray(records, "type", new List<object>() {"deposit"}, false);
+        }
         return this.parseTransactions(deposits, null, since, limit);
     }
 
@@ -3966,6 +4038,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.vaultAddress] vault address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
@@ -4005,7 +4078,30 @@ public partial class hyperliquid : Exchange
         // ]
         //
         object records = this.extractTypeFromDelta(response);
-        object withdrawals = this.filterByArray(records, "type", new List<object>() {"withdraw"}, false);
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
+        object withdrawals = new List<object>() {};
+        if (isTrue(!isEqual(vaultAddress, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(records)); postFixIncrement(ref i))
+            {
+                object record = getValue(records, i);
+                if (isTrue(isEqual(getValue(record, "type"), "vaultWithdraw")))
+                {
+                    object delta = this.safeDict(record, "delta");
+                    if (isTrue(isEqual(getValue(delta, "vault"), add("0x", vaultAddress))))
+                    {
+                        ((IList<object>)withdrawals).Add(record);
+                    }
+                }
+            }
+        } else
+        {
+            withdrawals = this.filterByArray(records, "type", new List<object>() {"withdraw"}, false);
+        }
         return this.parseTransactions(withdrawals, null, since, limit);
     }
 

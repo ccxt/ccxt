@@ -3,6 +3,75 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "create order with tp and sl",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "input": [
+                    "HYPE/USDC:USDC",
+                    "market",
+                    "buy",
+                    1,
+                    39,
+                    30,
+                    10
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "order",
+                        "data": {
+                            "statuses": [
+                                {
+                                    "filled": {
+                                        "totalSz": "1.0",
+                                        "avgPx": "39.9351",
+                                        "oid": "211341310459"
+                                    }
+                                },
+                                "waitingForTrigger",
+                                "waitingForTrigger"
+                            ]
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "filled": {
+                            "totalSz": "1.0",
+                            "avgPx": "39.9351",
+                            "oid": "211341310459"
+                        }
+                    },
+                    "id": "211341310459",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": 1,
+                    "cost": null,
+                    "average": 39.9351,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

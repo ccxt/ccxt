@@ -1914,7 +1914,13 @@ class woo(Exchange, ImplicitAPI):
         #         "positionSide": "BOTH"
         #     }
         #
-        timestamp = self.safe_timestamp(order, 'createdTime')
+        timestamp = None
+        timestrampString = self.safe_string(order, 'createdTime')
+        if timestrampString is not None:
+            if timestrampString.find('.') >= 0:
+                timestamp = self.safe_timestamp(order, 'createdTime')  # algo orders
+            else:
+                timestamp = self.safe_integer(order, 'createdTime')  # regular orders
         if timestamp is None:
             timestamp = self.safe_integer(order, 'timestamp')
         orderId = self.safe_string_2(order, 'orderId', 'algoOrderId')
@@ -1934,7 +1940,13 @@ class woo(Exchange, ImplicitAPI):
         fee = self.safe_number(order, 'totalFee')
         feeCurrency = self.safe_string(order, 'feeAsset')
         triggerPrice = self.safe_number(order, 'triggerPrice')
-        lastUpdateTimestamp = self.safe_timestamp(order, 'updatedTime')
+        lastUpdateTimestampString = self.safe_string(order, 'updatedTime')
+        lastUpdateTimestamp = None
+        if lastUpdateTimestampString is not None:
+            if lastUpdateTimestampString.find('.') >= 0:
+                lastUpdateTimestamp = self.safe_timestamp(order, 'updatedTime')  # algo orders
+            else:
+                lastUpdateTimestamp = self.safe_integer(order, 'updatedTime')  # regular orders
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -2026,7 +2038,7 @@ class woo(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://developer.woox.io/api-reference/endpoint/public_data/klineHistory

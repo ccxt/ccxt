@@ -428,7 +428,7 @@ public partial class digifinex : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
             {
                 object networkEntry = getValue(networkEntries, j);
-                object networkId = this.safeString(networkEntry, "chain");
+                object networkId = this.safeString2(networkEntry, "chain", "currency");
                 object networkCode = this.networkIdToCode(networkId);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
@@ -2079,7 +2079,7 @@ public partial class digifinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
