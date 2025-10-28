@@ -1,0 +1,103 @@
+{
+    "exchange": "xcoin",
+    "skipKeys": [
+        "guid"
+    ],
+    "outputType": "json",
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "default",
+                "method": "fetchTime",
+                "url": "https://api.xcoin.com/api/v1/market/time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "default",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.xcoin.com/api/v1/market/fundingRate/history?symbol=BTC-USDT-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "default",
+                "method": "fetchFundingRates",
+                "url": "https://api.xcoin.com/api/v1/market/fundingRate",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "+symbol +tiemframe +since +limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1m&symbol=BTC-USDT-27MAR26&limit=2&startTime=1740000000000",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    1740000000000,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "default",
+                "method": "fetchTickers",
+                "url": "https://api.xcoin.com/api/v1/market/ticker/24hr?businessType=spot",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "+symbol +limit",
+                "method": "fetchTrades",
+                "url": "https://api.xcoin.com/api/v1/market/trade?symbol=BTC-USDT-27MAR26&limit=2",
+                "input": [
+                    "BTC/USDT",
+                    1740000000000,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "+symbol +limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.xcoin.com/api/v1/market/depth?symbol=BTC-USDT-27MAR26&limit=2",
+                "input": [
+                    "BTC/USDT",
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "default",
+                "method": "fetchMarkets",
+                "url": "https://api.xcoin.com/api/v2/public/symbols",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "default",
+                "method": "fetchMarkets",
+                "url": "https://api.xcoin.com/api/v2/public/symbols",
+                "input": [],
+                "output": null
+            }
+        ],
+        
+    }
+}
