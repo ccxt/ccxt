@@ -855,7 +855,7 @@ export default class dydx extends Exchange {
         if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
             return [ this.walletAddress, params ];
         }
-        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');
+        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the walletAddress set');
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1300,7 +1300,7 @@ export default class dydx extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
-        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        const timeInForce = this.safeStringUpper (params, 'timeInForce', 'GTT');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
         const amountStr = this.amountToPrecision (symbol, amount);
         const priceStr = this.priceToPrecision (symbol, price);
@@ -1328,9 +1328,6 @@ export default class dydx extends Exchange {
                 timeInForceNumber = 1;
             }
         } else if (orderType === 'LIMIT') {
-            if (timeInForce === undefined) {
-                throw new ArgumentsRequired (this.id + ' timeInForce should be specified for limit order.');
-            }
             if (timeInForce === 'GTT') {
                 // long-term
                 orderFlag = 64;
