@@ -738,7 +738,8 @@ export default class xcoin extends Exchange {
         //        "ts": "1761627696000"
         //    }
         //
-        return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
+        const data = this.safeList (response, 'data', []);
+        return this.parseFundingRateHistories (data, market, since, limit) as FundingRateHistory[];
     }
 
     parseFundingRateHistory (contract, market: Market = undefined) {
