@@ -22,7 +22,7 @@ export default class toobit extends Exchange {
             'version': 'v1',
             'rateLimit': 20, // 50 requests per second
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,

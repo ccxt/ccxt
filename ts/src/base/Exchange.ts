@@ -189,9 +189,7 @@ let SignMode = undefined;
  * @class Exchange
  */
 export default class Exchange {
-    options: {
-        [key: string]: any;
-    };
+    options: Dict;
 
     isSandboxModeEnabled: boolean = false;
 
@@ -236,7 +234,7 @@ export default class Exchange {
     headers: Dictionary<string> = {};
     returnResponseHeaders: boolean = false;
     origin: string = '*';  // CORS origin
-    MAX_VALUE: Num = Number.MAX_VALUE;
+    MAX_VALUE: number = Number.MAX_VALUE;
     //
     agent: any = undefined;  // maintained for backwards compatibility
     nodeHttpModuleLoaded: boolean = false;
@@ -376,16 +374,16 @@ export default class Exchange {
     };
 
     markets_by_id: Dictionary<any> = undefined;
-    symbols: string[] = undefined;
-    ids: string[] = undefined;
+    symbols: Strings = undefined;
+    ids: Strings = undefined;
     currencies: Currencies = {};
 
     baseCurrencies: Dictionary<CurrencyInterface> = undefined;
     quoteCurrencies: Dictionary<CurrencyInterface> = undefined;
     currencies_by_id: Dictionary<CurrencyInterface> = undefined;
-    codes: string[] = undefined;
+    codes: Strings = undefined;
 
-    reloadingMarkets: boolean = undefined;
+    reloadingMarkets: Bool = undefined;
     marketsLoading: Promise<Dictionary<Market>> = undefined;
 
     accounts: Account[] = undefined;
@@ -395,8 +393,8 @@ export default class Exchange {
 
     hostname: Str = undefined;
 
-    precisionMode: Num = undefined;
-    paddingMode: Num = undefined;
+    precisionMode: Int = undefined;
+    paddingMode: Int = undefined;
 
     exceptions: Dictionary<string> = {};
     timeframes: Dictionary<number | string> = {};
@@ -407,7 +405,7 @@ export default class Exchange {
 
     name: Str = undefined;
 
-    lastRestRequestTimestamp: number;
+    lastRestRequestTimestamp: int;
 
     targetAccount: string = undefined;
 

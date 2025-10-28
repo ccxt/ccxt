@@ -1009,7 +1009,8 @@ class deribit(ccxt.async_support.deribit):
         if future is None:
             self.check_required_credentials()
             requestId = self.request_id()
-            signature = self.hmac(self.encode(timeString + '\n' + nonce + '\n'), self.encode(self.secret), hashlib.sha256)
+            lineBreak = "\n"  # eslint-disable-line quotes
+            signature = self.hmac(self.encode(timeString + lineBreak + nonce + lineBreak), self.encode(self.secret), hashlib.sha256)
             request: dict = {
                 'jsonrpc': '2.0',
                 'id': requestId,

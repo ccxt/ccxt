@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.11'
+__version__ = '4.5.13'
 
 # ----------------------------------------------------------------------------
 
@@ -59,6 +59,7 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
+from ccxt.pro.arkham import arkham                                        # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
 from ccxt.pro.backpack import backpack                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
@@ -133,6 +134,7 @@ from ccxt.pro.xt import xt                                                # noqa
 exchanges = [
     'alpaca',
     'apex',
+    'arkham',
     'ascendex',
     'backpack',
     'bequant',
