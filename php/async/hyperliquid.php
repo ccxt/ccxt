@@ -1183,6 +1183,9 @@ class hyperliquid extends Exchange {
                     // optimization if $limit is provided
                     $timeframeInMilliseconds = $this->parse_timeframe($timeframe) * 1000;
                     $since = $this->sum($until, $timeframeInMilliseconds * $limit * -1);
+                    if ($since < 0) {
+                        $since = 0;
+                    }
                     $useTail = false;
                 } else {
                     $since = 0;
