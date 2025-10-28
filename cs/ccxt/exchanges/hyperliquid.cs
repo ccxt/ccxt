@@ -1202,6 +1202,10 @@ public partial class hyperliquid : Exchange
                 // optimization if limit is provided
                 object timeframeInMilliseconds = multiply(this.parseTimeframe(timeframe), 1000);
                 since = this.sum(until, multiply(multiply(timeframeInMilliseconds, limit), -1));
+                if (isTrue(isLessThan(since, 0)))
+                {
+                    since = 0;
+                }
                 useTail = false;
             } else
             {
