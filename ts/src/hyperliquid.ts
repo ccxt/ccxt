@@ -2912,8 +2912,9 @@ export default class hyperliquid extends Exchange {
         }
         const rawUnrealizedPnl = this.safeString (entry, 'unrealizedPnl');
         const absRawUnrealizedPnl = Precise.stringAbs (rawUnrealizedPnl);
-        const initialMargin = this.safeString (entry, 'marginUsed');
-        const percentage = Precise.stringMul (Precise.stringDiv (absRawUnrealizedPnl, initialMargin), '100');
+        const marginUsed = this.safeString (entry, 'marginUsed');
+        const initialMargin = Precise.stringSub (marginUsed, rawUnrealizedPnl);
+        const percentage = Precise.stringMul (Precise.stringDiv (absRawUnrealizedPnl, marginUsed), '100');
         return this.safePosition ({
             'info': position,
             'id': undefined,
