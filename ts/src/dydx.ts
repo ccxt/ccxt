@@ -1305,11 +1305,11 @@ export default class dydx extends Exchange {
         const amountStr = this.amountToPrecision (symbol, amount);
         const priceStr = this.priceToPrecision (symbol, price);
         const marketInfo = this.safeDict (market, 'info');
-        const atomicResolution = Precise.stringNeg (marketInfo['atomicResolution']);
-        const quantumScale = this.pow ('10', atomicResolution);
+        const atomicResolution = marketInfo['atomicResolution'];
+        const quantumScale = this.pow ('10', Precise.stringNeg (atomicResolution));
         const quantums = Precise.stringMul (amountStr, quantumScale);
         const quantumConversionExponent = marketInfo['quantumConversionExponent'];
-        const priceScale = this.pow ('10', Precise.stringAdd (atomicResolution, Precise.stringAdd (quantumConversionExponent, '6')));
+        const priceScale = this.pow ('10', Precise.stringSub (Precise.stringSub (atomicResolution, quantumConversionExponent), '-6'));
         const subticks = Precise.stringMul (priceStr, priceScale);
         let clientMetadata = 0;
         let conditionalType = 0;
