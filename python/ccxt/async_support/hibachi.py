@@ -1219,12 +1219,12 @@ class hibachi(Exchange, ImplicitAPI):
             return self.hmac(message, self.encode(privateKey), hashlib.sha256, 'hex')
         else:
             # For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-            hash = self.hash(self.encode(message), 'sha256', 'hex')
+            hash = self.hash(message, 'sha256', 'hex')
             signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
             r = signature['r']
             s = signature['s']
-            v = signature['v']
-            return r.rjust(64, '0') + s.rjust(64, '0') + self.int_to_base16(v).rjust(2, '0')
+            v = self.int_to_base16(signature['v'])
+            return r.rjust(64, '0') + s.rjust(64, '0') + v.rjust(2, '0')
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -1401,7 +1401,7 @@ class hibachi(Exchange, ImplicitAPI):
         # ]
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
          https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac

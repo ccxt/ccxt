@@ -230,10 +230,11 @@ public partial class binance : Exchange
                     { "private", "https://api.binance.com/api/v3" },
                     { "v1", "https://api.binance.com/api/v1" },
                     { "papi", "https://papi.binance.com/papi/v1" },
+                    { "papiV2", "https://papi.binance.com/papi/v2" },
                 } },
                 { "www", "https://www.binance.com" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://accounts.binance.com/en/register?ref=D7YA7CLY" },
+                    { "url", "https://accounts.binance.com/register?ref=CCXTCOM" },
                     { "discount", 0.1 },
                 } },
                 { "doc", new List<object>() {"https://developers.binance.com/en"} },
@@ -1260,6 +1261,11 @@ public partial class binance : Exchange
                         { "margin/allOpenOrders", 5 },
                         { "margin/orderList", 2 },
                         { "listenKey", 0.2 },
+                    } },
+                } },
+                { "papiV2", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "um/account", 1 },
                     } },
                 } },
             } },
@@ -8177,7 +8183,7 @@ public partial class binance : Exchange
      * @param {int[]} [params.recvWindow]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -11408,7 +11414,7 @@ public partial class binance : Exchange
         {
             if (isTrue(isPortfolioMargin))
             {
-                response = await this.papiGetUmAccount(parameters);
+                response = await ((Task<object>)callDynamically(this, "papiV2GetUmAccount", new object[] { parameters }));
             } else
             {
                 object useV2 = null;
@@ -12565,7 +12571,7 @@ public partial class binance : Exchange
             {
                 throw new AuthenticationError ((string)add(this.id, " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "eapiPrivate")))) || isTrue((isTrue(isEqual(api, "sapi")) && isTrue(!isEqual(path, "system/status"))))) || isTrue((isEqual(api, "sapiV2")))) || isTrue((isEqual(api, "sapiV3")))) || isTrue((isEqual(api, "sapiV4")))) || isTrue((isEqual(api, "dapiPrivate")))) || isTrue((isEqual(api, "dapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivate")))) || isTrue((isEqual(api, "fapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivateV3")))) || isTrue((isTrue(isEqual(api, "papi")) && isTrue(!isEqual(path, "ping"))))))
+        } else if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "eapiPrivate")))) || isTrue((isTrue(isEqual(api, "sapi")) && isTrue(!isEqual(path, "system/status"))))) || isTrue((isEqual(api, "sapiV2")))) || isTrue((isEqual(api, "sapiV3")))) || isTrue((isEqual(api, "sapiV4")))) || isTrue((isEqual(api, "dapiPrivate")))) || isTrue((isEqual(api, "dapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivate")))) || isTrue((isEqual(api, "fapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivateV3")))) || isTrue((isTrue(isEqual(api, "papiV2")) || isTrue(isTrue(isEqual(api, "papi")) && isTrue(!isEqual(path, "ping")))))))
         {
             this.checkRequiredCredentials();
             if (isTrue(isTrue(isTrue((isGreaterThan(getIndexOf(url, "testnet.binancefuture.com"), -1))) && isTrue(this.isSandboxModeEnabled)) && isTrue((!isTrue(this.safeBool(this.options, "disableFuturesSandboxWarning"))))))

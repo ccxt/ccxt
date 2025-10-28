@@ -84,7 +84,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         url = self.urls['api']['ws']
         messageHash = 'challenge'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             request: dict = {

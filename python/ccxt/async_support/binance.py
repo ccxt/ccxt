@@ -265,10 +265,11 @@ class binance(Exchange, ImplicitAPI):
                     'private': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
                     'papi': 'https://papi.binance.com/papi/v1',
+                    'papiV2': 'https://papi.binance.com/papi/v2',
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
-                    'url': 'https://accounts.binance.com/en/register?ref=D7YA7CLY',
+                    'url': 'https://accounts.binance.com/register?ref=CCXTCOM',
                     'discount': 0.1,
                 },
                 'doc': [
@@ -1211,6 +1212,11 @@ class binance(Exchange, ImplicitAPI):
                         'margin/allOpenOrders': 5,
                         'margin/orderList': 2,
                         'listenKey': 0.2,
+                    },
+                },
+                'papiV2': {
+                    'get': {
+                        'um/account': 1,
                     },
                 },
             },
@@ -4513,7 +4519,7 @@ class binance(Exchange, ImplicitAPI):
             self.safe_number_2(ohlcv, volumeIndex, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -10291,7 +10297,7 @@ class binance(Exchange, ImplicitAPI):
         response = None
         if self.is_linear(type, subType):
             if isPortfolioMargin:
-                response = await self.papiGetUmAccount(params)
+                response = await self.papiV2GetUmAccount(params)
             else:
                 useV2 = None
                 useV2, params = self.handle_option_and_params(params, 'fetchAccountPositions', 'useV2', False)
@@ -11257,7 +11263,7 @@ class binance(Exchange, ImplicitAPI):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'fapiPrivateV3') or (api == 'papi' and path != 'ping'):
+        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'fapiPrivateV3') or (api == 'papiV2' or api == 'papi' and path != 'ping'):
             self.check_required_credentials()
             if (url.find('testnet.binancefuture.com') > -1) and self.isSandboxModeEnabled and (not self.safe_bool(self.options, 'disableFuturesSandboxWarning')):
                 raise NotSupported(self.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.')

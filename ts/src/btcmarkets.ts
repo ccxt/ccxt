@@ -660,7 +660,7 @@ export default class btcmarkets extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1027,13 +1027,15 @@ export default class btcmarkets extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = parseInt (ids[i]);
+            // numericIds[i] = parseInt (ids[i]);
+            numericIds.push (parseInt (ids[i]));
         }
         const request: Dict = {
-            'ids': ids,
+            'ids': numericIds,
         };
         const response = await this.privateDeleteBatchordersIds (this.extend (request, params));
         //

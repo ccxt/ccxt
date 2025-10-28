@@ -5,7 +5,7 @@ import apexRest from '../apex.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Trade, Dict, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
 import { OHLCV, Order, Position, Str } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
@@ -437,7 +437,7 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
@@ -848,7 +848,7 @@ export default class apex extends apexRest {
         const signature = this.hmac (this.encode (messageString), this.encode (this.stringToBase64 (this.secret)), sha256, 'base64');
         const messageHash = 'authenticated';
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             // auth sign
@@ -968,6 +968,7 @@ export default class apex extends apexRest {
             'recentlyTrade': this.handleTrades,
             'pong': this.handlePong,
             'auth': this.handleAuthenticate,
+            'ping': this.handlePing,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
@@ -991,12 +992,25 @@ export default class apex extends apexRest {
     }
 
     ping (client: Client) {
-        const timeStamp = this.milliseconds ().toString ();
-        client.lastPong = timeStamp; // server won't send a pong, so we set it here
+        const timeStamp = this.milliseconds ();
+        client.lastPong = timeStamp;
         return {
-            'args': [ timeStamp ],
+            'args': [ timeStamp.toString () ],
             'op': 'ping',
         };
+    }
+
+    async pong (client, message) {
+        //
+        //     {"op": "ping", "args": ["1761069137485"]}
+        //
+        const timeStamp = this.milliseconds ();
+        try {
+            await client.send ({ 'args': [ timeStamp.toString () ], 'op': 'pong' });
+        } catch (e) {
+            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
+            client.reset (error);
+        }
     }
 
     handlePong (client: Client, message) {
@@ -1012,6 +1026,10 @@ export default class apex extends apexRest {
         //
         client.lastPong = this.safeInteger (message, 'pong');
         return message;
+    }
+
+    handlePing (client: Client, message) {
+        this.spawn (this.pong, client, message);
     }
 
     handleAccount (client: Client, message) {

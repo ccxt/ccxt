@@ -235,10 +235,11 @@ class binance extends Exchange {
                     'private' => 'https://api.binance.com/api/v3',
                     'v1' => 'https://api.binance.com/api/v1',
                     'papi' => 'https://papi.binance.com/papi/v1',
+                    'papiV2' => 'https://papi.binance.com/papi/v2',
                 ),
                 'www' => 'https://www.binance.com',
                 'referral' => array(
-                    'url' => 'https://accounts.binance.com/en/register?ref=D7YA7CLY',
+                    'url' => 'https://accounts.binance.com/register?ref=CCXTCOM',
                     'discount' => 0.1,
                 ),
                 'doc' => array(
@@ -1181,6 +1182,11 @@ class binance extends Exchange {
                         'margin/allOpenOrders' => 5,
                         'margin/orderList' => 2,
                         'listenKey' => 0.2,
+                    ),
+                ),
+                'papiV2' => array(
+                    'get' => array(
+                        'um/account' => 1,
                     ),
                 ),
             ),
@@ -4601,7 +4607,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -10809,7 +10815,7 @@ class binance extends Exchange {
         $response = null;
         if ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetUmAccount ($params);
+                $response = $this->papiV2GetUmAccount ($params);
             } else {
                 $useV2 = null;
                 list($useV2, $params) = $this->handle_option_and_params($params, 'fetchAccountPositions', 'useV2', false);
@@ -11866,7 +11872,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papi' && $path !== 'ping')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papiV2' || $api === 'papi' && $path !== 'ping')) {
             $this->check_required_credentials();
             if ((mb_strpos($url, 'testnet.binancefuture.com') > -1) && $this->isSandboxModeEnabled && (!$this->safe_bool($this->options, 'disableFuturesSandboxWarning'))) {
                 throw new NotSupported($this->id . ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');

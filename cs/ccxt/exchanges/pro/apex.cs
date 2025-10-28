@@ -922,7 +922,7 @@ public partial class apex : ccxt.apex
         object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
         object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -1055,6 +1055,7 @@ public partial class apex : ccxt.apex
             { "recentlyTrade", this.handleTrades },
             { "pong", this.handlePong },
             { "auth", this.handleAuthenticate },
+            { "ping", this.handlePing },
         };
         object exacMethod = this.safeValue(methods, topic);
         if (isTrue(!isEqual(exacMethod, null)))
@@ -1083,12 +1084,31 @@ public partial class apex : ccxt.apex
 
     public override object ping(WebSocketClient client)
     {
-        object timeStamp = ((object)this.milliseconds()).ToString();
-        client.lastPong = timeStamp; // server won't send a pong, so we set it here
+        object timeStamp = this.milliseconds();
+        client.lastPong = timeStamp;
         return new Dictionary<string, object>() {
-            { "args", new List<object>() {timeStamp} },
+            { "args", new List<object> {((object)timeStamp).ToString()} },
             { "op", "ping" },
         };
+    }
+
+    public async virtual Task pong(WebSocketClient client, object message)
+    {
+        //
+        //     {"op": "ping", "args": ["1761069137485"]}
+        //
+        object timeStamp = this.milliseconds();
+        try
+        {
+            await client.send(new Dictionary<string, object>() {
+                { "args", new List<object> {((object)timeStamp).ToString()} },
+                { "op", "pong" },
+            });
+        } catch(Exception e)
+        {
+            var error = new NetworkError(add(add(this.id, " handlePing failed with error "), this.json(e)));
+            ((WebSocketClient)client).reset(error);
+        }
     }
 
     public virtual object handlePong(WebSocketClient client, object message)
@@ -1105,6 +1125,11 @@ public partial class apex : ccxt.apex
         //
         client.lastPong = this.safeInteger(message, "pong");
         return message;
+    }
+
+    public virtual void handlePing(WebSocketClient client, object message)
+    {
+        this.spawn(this.pong, new object[] { client, message});
     }
 
     public virtual void handleAccount(WebSocketClient client, object message)

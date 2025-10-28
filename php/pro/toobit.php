@@ -249,14 +249,15 @@ class toobit extends \ccxt\async\toobit {
         //     }
         //
         $marketId = $this->safe_string($message, 'symbol');
-        $symbol = $this->safe_symbol($marketId);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
         if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache ($limit);
         }
         $stored = $this->trades[$symbol];
         $data = $this->safe_list($message, 'data', array());
-        $parsed = $this->parse_ws_trades($data);
+        $parsed = $this->parse_ws_trades($data, $market);
         for ($i = 0; $i < count($parsed); $i++) {
             $trade = $parsed[$i];
             $trade['symbol'] = $symbol;
@@ -1156,7 +1157,7 @@ class toobit extends \ccxt\async\toobit {
         return Async\async(function () use ($params) {
             $client = $this->client($this->get_user_stream_url());
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $this->check_required_credentials();

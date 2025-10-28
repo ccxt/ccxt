@@ -221,6 +221,20 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'sandboxMode': false,
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'spotCurrencyMapping': {
+                    'UDZ': '2Z',
+                    'UBONK': 'BONK',
+                    'UBTC': 'BTC',
+                    'UETH': 'ETH',
+                    'UFART': 'FARTCOIN',
+                    'HPENGU': 'PENGU',
+                    'UPUMP': 'PUMP',
+                    'USOL': 'SOL',
+                    'UUUSPX': 'SPX',
+                    'USDT0': 'USDT',
+                    'XAUT0': 'XAUT',
+                    'UXPL': 'XPL',
+                },
             },
             'features': {
                 'default': {
@@ -606,9 +620,13 @@ class hyperliquid extends hyperliquid$1["default"] {
             const quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, {});
             const baseName = this.safeString(baseTokenInfo, 'name');
             const quoteId = this.safeString(quoteTokenInfo, 'name');
-            const base = this.safeCurrencyCode(baseName);
-            const quote = this.safeCurrencyCode(quoteId);
-            const symbol = base + '/' + quote;
+            // do spot currency mapping
+            const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
+            const mappedBaseName = this.safeString(spotCurrencyMapping, baseName, baseName);
+            const mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
+            const mappedBase = this.safeCurrencyCode(mappedBaseName);
+            const mappedQuote = this.safeCurrencyCode(mappedQuoteId);
+            const mappedSymbol = mappedBase + '/' + mappedQuote;
             const innerBaseTokenInfo = this.safeDict(baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecisionStr = this.safeString(innerBaseTokenInfo, 'szDecimals');
@@ -621,11 +639,11 @@ class hyperliquid extends hyperliquid$1["default"] {
             const pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString(index + 10000);
-            markets.push(this.safeMarketStructure({
+            const entry = {
                 'id': marketName,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
+                'symbol': mappedSymbol,
+                'base': mappedBase,
+                'quote': mappedQuote,
                 'settle': undefined,
                 'baseId': baseId,
                 'baseName': baseName,
@@ -673,7 +691,18 @@ class hyperliquid extends hyperliquid$1["default"] {
                 },
                 'created': undefined,
                 'info': this.extend(extraData, market),
-            }));
+            };
+            markets.push(this.safeMarketStructure(entry));
+            // backward support
+            const base = this.safeCurrencyCode(baseName);
+            const quote = this.safeCurrencyCode(quoteId);
+            const symbol = base + '/' + quote;
+            if (symbol !== mappedSymbol) {
+                entry['symbol'] = symbol;
+                entry['base'] = mappedBase;
+                entry['quote'] = mappedQuote;
+                markets.push(this.safeMarketStructure(entry));
+            }
         }
         return markets;
     }
@@ -1120,6 +1149,9 @@ class hyperliquid extends hyperliquid$1["default"] {
                 // optimization if limit is provided
                 const timeframeInMilliseconds = this.parseTimeframe(timeframe) * 1000;
                 since = this.sum(until, timeframeInMilliseconds * limit * -1);
+                if (since < 0) {
+                    since = 0;
+                }
                 useTail = false;
             }
             else {
@@ -1503,7 +1535,17 @@ class hyperliquid extends hyperliquid$1["default"] {
         const responseObj = this.safeDict(response, 'response', {});
         const data = this.safeDict(responseObj, 'data', {});
         const statuses = this.safeList(data, 'statuses', []);
-        return this.parseOrders(statuses, undefined);
+        const ordersToBeParsed = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const order = statuses[i];
+            if (order === 'waitingForTrigger') {
+                ordersToBeParsed.push({ 'status': order }); // tp/sl orders can return a string like "waitingForTrigger",
+            }
+            else {
+                ordersToBeParsed.push(order);
+            }
+        }
+        return this.parseOrders(ordersToBeParsed, undefined);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
@@ -1629,10 +1671,10 @@ class hyperliquid extends hyperliquid$1["default"] {
             if (isTrigger) {
                 // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeStringN(stopLoss, ['triggerPrice', 'stopPrice']);
-                const stopLossOrderType = this.safeString(stopLoss, 'type');
+                const stopLossOrderType = this.safeString(stopLoss, 'type', 'limit');
                 const stopLossOrderLimitPrice = this.safeStringN(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice);
                 const takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, ['triggerPrice', 'stopPrice']);
-                const takeProfitOrderType = this.safeString(takeProfit, 'type');
+                const takeProfitOrderType = this.safeString(takeProfit, 'type', 'limit');
                 const takeProfitOrderLimitPrice = this.safeStringN(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice);
                 grouping = 'normalTpsl';
                 orderParams = this.omit(orderParams, ['stopLoss', 'takeProfit']);
@@ -3146,9 +3188,6 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'nonce': nonce,
                 'signature': transferSig,
             };
-            if (vaultAddress !== undefined) {
-                transferRequest['vaultAddress'] = vaultAddress;
-            }
             const transferResponse = await this.privatePostExchange(transferRequest);
             return transferResponse;
         }

@@ -1983,11 +1983,13 @@ class bitfinex extends bitfinex$1["default"] {
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         await this.loadMarkets();
+        const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = this.parseToNumeric(ids[i]);
+            // numericIds[i] = this.parseToNumeric (ids[i]);
+            numericIds.push(this.parseToNumeric(ids[i]));
         }
         const request = {
-            'id': ids,
+            'id': numericIds,
         };
         let market = undefined;
         if (symbol !== undefined) {

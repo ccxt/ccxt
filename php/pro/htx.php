@@ -336,7 +336,7 @@ class htx extends \ccxt\async\htx {
         return $message;
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -366,7 +366,7 @@ class htx extends \ccxt\async\htx {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -965,23 +965,39 @@ class htx extends \ccxt\async\htx {
         //
         // spot
         //
+        //     for new $order creation
+        //
         //     {
         //         "action":"push",
         //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         //         "data" => {
+        //             "orderStatus" => "submitted",
+        //             "eventType" => "creation",
+        //             "totalTradeAmount" => 0 // for "submitted" $order $status
+        //             "orderCreateTime" => 1645116048355, // only when `submitted` $status
         //             "orderSource" => "spot-web",
-        //             "orderCreateTime" => 1645116048355,
         //             "accountId" => 44234548,
         //             "orderPrice" => "100",
         //             "orderSize" => "0.05",
         //             "symbol" => "ethusdt",
         //             "type" => "buy-$limit",
         //             "orderId" => "478861479986886",
-        //             "eventType" => "creation",
         //             "clientOrderId" => '',
-        //             "orderStatus" => "submitted"
         //         }
         //     }
+        //
+        //     for $filled $order, additional fields are present:
+        //
+        //             "orderStatus" => "filled",
+        //             "eventType" => "trade",
+        //             "totalTradeAmount" => "5.9892649859",
+        //             "tradePrice" => "0.676669",
+        //             "tradeVolume" => "8.8511",
+        //             "tradeTime" => 1760427775894,
+        //             "aggressor" => false,
+        //             "execAmt" => "8.8511",
+        //             "tradeId" => 100599712781,
+        //             "remainAmt" => "0",
         //
         // spot wrapped trade
         //
@@ -1094,6 +1110,9 @@ class htx extends \ccxt\async\htx {
                     'symbol' => $market['symbol'],
                     'filled' => $this->parse_number($filled),
                     'remaining' => $this->parse_number($remaining),
+                    'price' => $this->safe_number($data, 'orderPrice'),
+                    'amount' => $this->safe_number($data, 'orderSize'),
+                    'info' => $data,
                 );
                 $parsedOrder = $order;
             } else {
@@ -2538,7 +2557,7 @@ class htx extends \ccxt\async\htx {
             $messageHash = 'auth';
             $relativePath = str_replace('wss://' . $hostname, '', $url);
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = $this->ymdhms($this->milliseconds(), 'T');
@@ -2559,7 +2578,7 @@ class htx extends \ccxt\async\htx {
                     );
                 }
                 $signatureParams = $this->keysort($signatureParams);
-                $auth = $this->urlencode($signatureParams);
+                $auth = $this->urlencode($signatureParams, true); // true required in go
                 $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
                 $request = null;

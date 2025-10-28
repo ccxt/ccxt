@@ -190,7 +190,7 @@ func (p *PreciseStruct) Reduce() *PreciseStruct {
 	if difference == 0 {
 		return p
 	}
-	p.Decimals = int(ParseInt(p.Decimals) - difference) // TODO: loss of precsion by converting to int, should be int64
+	p.Decimals = int(ParseInt(p.Decimals) - difference) // TODO: loss of precision by converting to int, should be int64
 	p.integer = new(big.Int)
 	p.integer.SetString(str[:i+1], 10)
 	return p

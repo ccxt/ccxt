@@ -746,7 +746,7 @@ class deribit(ccxt.async_support.deribit):
             cachedOrders.append(orders[i])
         client.resolve(self.orders, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://docs.deribit.com/#chart-trades-instrument_name-resolution
@@ -1009,7 +1009,8 @@ class deribit(ccxt.async_support.deribit):
         if future is None:
             self.check_required_credentials()
             requestId = self.request_id()
-            signature = self.hmac(self.encode(timeString + '\n' + nonce + '\n'), self.encode(self.secret), hashlib.sha256)
+            lineBreak = "\n"  # eslint-disable-line quotes
+            signature = self.hmac(self.encode(timeString + lineBreak + nonce + lineBreak), self.encode(self.secret), hashlib.sha256)
             request: dict = {
                 'jsonrpc': '2.0',
                 'id': requestId,

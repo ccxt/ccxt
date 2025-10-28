@@ -192,7 +192,7 @@ class upbit(ccxt.async_support.upbit):
         orderbook = await self.watch_public(symbol, 'orderbook')
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1s', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1s', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
 
@@ -656,5 +656,5 @@ class upbit(ccxt.async_support.upbit):
         }
         methodName = self.safe_string(message, 'type')
         method = self.safe_value(methods, methodName)
-        if method:
+        if method is not None:
             method(client, message)

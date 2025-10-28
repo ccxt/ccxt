@@ -38,11 +38,12 @@ import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.7';
+const version = '4.5.13';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import alpaca from './src/alpaca.js';
 import apex from './src/apex.js';
+import arkham from './src/arkham.js';
 import ascendex from './src/ascendex.js';
 import backpack from './src/backpack.js';
 import bequant from './src/bequant.js';
@@ -124,7 +125,6 @@ import myokx from './src/myokx.js';
 import ndax from './src/ndax.js';
 import novadax from './src/novadax.js';
 import oceanex from './src/oceanex.js';
-import okcoin from './src/okcoin.js';
 import okx from './src/okx.js';
 import okxus from './src/okxus.js';
 import onetrading from './src/onetrading.js';
@@ -150,6 +150,7 @@ import zonda from './src/zonda.js';
 // pro exchanges
 import alpacaPro from './src/pro/alpaca.js';
 import apexPro from './src/pro/apex.js';
+import arkhamPro from './src/pro/arkham.js';
 import ascendexPro from './src/pro/ascendex.js';
 import backpackPro from './src/pro/backpack.js';
 import bequantPro from './src/pro/bequant.js';
@@ -205,7 +206,6 @@ import mexcPro from './src/pro/mexc.js';
 import modetradePro from './src/pro/modetrade.js';
 import myokxPro from './src/pro/myokx.js';
 import ndaxPro from './src/pro/ndax.js';
-import okcoinPro from './src/pro/okcoin.js';
 import okxPro from './src/pro/okx.js';
 import okxusPro from './src/pro/okxus.js';
 import onetradingPro from './src/pro/onetrading.js';
@@ -224,6 +224,7 @@ import xtPro from './src/pro/xt.js';
 const exchanges = {
     'alpaca': alpaca,
     'apex': apex,
+    'arkham': arkham,
     'ascendex': ascendex,
     'backpack': backpack,
     'bequant': bequant,
@@ -305,7 +306,6 @@ const exchanges = {
     'ndax': ndax,
     'novadax': novadax,
     'oceanex': oceanex,
-    'okcoin': okcoin,
     'okx': okx,
     'okxus': okxus,
     'onetrading': onetrading,
@@ -332,6 +332,7 @@ const exchanges = {
 const pro = {
     'alpaca': alpacaPro,
     'apex': apexPro,
+    'arkham': arkhamPro,
     'ascendex': ascendexPro,
     'backpack': backpackPro,
     'bequant': bequantPro,
@@ -387,7 +388,6 @@ const pro = {
     'modetrade': modetradePro,
     'myokx': myokxPro,
     'ndax': ndaxPro,
-    'okcoin': okcoinPro,
     'okx': okxPro,
     'okxus': okxusPro,
     'onetrading': onetradingPro,
@@ -416,6 +416,6 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const ccxt = Object.assign({ version, Exchange, Precise, 'exchanges': Object.keys(exchanges), 'pro': pro }, exchanges, functions, errors);
-export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, alpaca, apex, ascendex, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincatch, coincheck, coinex, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, cryptomus, defx, delta, deribit, derive, digifinex, exmo, fmfwio, foxbit, gate, gateio, gemini, hashkey, hibachi, hitbtc, hollaex, htx, huobi, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, luno, mercado, mexc, modetrade, myokx, ndax, novadax, oceanex, okcoin, okx, okxus, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, probit, timex, tokocrypto, toobit, upbit, wavesexchange, whitebit, woo, woofipro, xt, yobit, zaif, zonda, };
+export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, alpaca, apex, arkham, ascendex, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincatch, coincheck, coinex, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, cryptomus, defx, delta, deribit, derive, digifinex, exmo, fmfwio, foxbit, gate, gateio, gemini, hashkey, hibachi, hitbtc, hollaex, htx, huobi, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, luno, mercado, mexc, modetrade, myokx, ndax, novadax, oceanex, okx, okxus, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, probit, timex, tokocrypto, toobit, upbit, wavesexchange, whitebit, woo, woofipro, xt, yobit, zaif, zonda, };
 export default ccxt;
 //-----------------------------------------------------------------------------

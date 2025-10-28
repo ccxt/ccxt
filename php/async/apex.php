@@ -35,6 +35,7 @@ class apex extends Exchange {
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => false,
                 'cancelOrder' => true,
@@ -53,10 +54,14 @@ class apex extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledAndClosedOrders' => false,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrders' => false,
@@ -72,6 +77,7 @@ class apex extends Exchange {
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -90,6 +96,8 @@ class apex extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -107,6 +115,7 @@ class apex extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransfer' => true,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
@@ -808,7 +817,7 @@ class apex extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market

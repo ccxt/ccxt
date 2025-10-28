@@ -5,6 +5,34 @@
     ],
     "outputType": "json",
     "methods": {
+        "setMarginMode": [
+            {
+                "description": "cross",
+                "method": "setMarginMode",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=-5&leverage=5",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT",
+                    {
+                        "leverage": 5
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "isolated",
+                "method": "setMarginMode",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=5&leverage=5",
+                "input": [
+                    "isolated",
+                    "BTC/USDT:USDT",
+                    {
+                        "leverage": 5
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

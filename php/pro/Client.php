@@ -85,6 +85,13 @@ class Client {
         return $future;
     }
 
+    public function reusable_future($message_hash) {
+        return $this->future($message_hash);  // only used in go
+    }
+
+    public function reusableFuture($message_hash) {
+        return $this->future($message_hash);  // only used in go
+    }
     public function resolve($result, $message_hash) {
         if ($this->verbose && ($message_hash === null)) {
             $this->log(date('c'), 'resolve received null messageHash');

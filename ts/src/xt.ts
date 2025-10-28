@@ -337,7 +337,7 @@ export default class xt extends Exchange {
                             'user/account/api-key': 1,
                         },
                         'delete': {
-                            'user/account/{apikeyId}': 1,
+                            'user/account/{apiKeyId}': 1,
                         },
                     },
                 },
@@ -1402,7 +1402,7 @@ export default class xt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);

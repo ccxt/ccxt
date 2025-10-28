@@ -669,7 +669,7 @@ class phemex extends \ccxt\async\phemex {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1177,6 +1177,10 @@ class phemex extends \ccxt\async\phemex {
                 $parsedOrders[] = $parsedOrder;
             }
         } else {
+            $messageLength = count($message);
+            if ($messageLength === 0) {
+                return;
+            }
             for ($i = 0; $i < count($message); $i++) {
                 $update = $message[$i];
                 $action = $this->safe_string($update, 'action');

@@ -1457,7 +1457,7 @@ public partial class kucoin : Exchange
                 object networkCodeNew = this.networkIdToCode(this.safeString(chain, "chainId"), this.safeString(currency, "code"));
                 ((IDictionary<string,object>)getValue(resultNew, "networks"))[(string)networkCodeNew] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
-                        { "fee", this.safeNumber(chain, "withdrawMinFee") },
+                        { "fee", this.safeNumber2(chain, "withdrawalMinFee", "withdrawMinFee") },
                         { "percentage", false },
                     } },
                     { "deposit", new Dictionary<string, object>() {

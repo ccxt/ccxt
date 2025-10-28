@@ -116,7 +116,7 @@ export default class mexc extends mexcRest {
         //         "symbol": "BTC_USDT",
         //         "data": {
         //             "symbol": "BTC_USDT",
-        //             "lastPrice": 76376.2,
+        //             "lastPrice": 76376.1,
         //             "riseFallRate": -0.0006,
         //             "fairPrice": 76374.4,
         //             "indexPrice": 76385.8,
@@ -563,7 +563,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -879,6 +879,7 @@ export default class mexc extends mexcRest {
         }
         const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
+        let shouldReturn = false;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
@@ -896,7 +897,11 @@ export default class mexc extends mexcRest {
         } catch (e) {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
-            return;
+            // return;
+            shouldReturn = true;
+        }
+        if (shouldReturn) {
+            return; // go requirement
         }
         client.resolve (storedOrderBook, messageHash);
     }
@@ -1008,14 +1013,16 @@ export default class mexc extends mexcRest {
         // swap
         //     {
         //         "symbol": "BTC_USDT",
-        //         "data": {
-        //             "p": 27307.3,
-        //             "v": 5,
-        //             "T": 2,
-        //             "O": 3,
-        //             "M": 1,
-        //             "t": 1680055941870
-        //         },
+        //         "data": [
+        //            {
+        //                "p": 114350.4,
+        //                "v": 4,
+        //                "T": 2,
+        //                "O": 3,
+        //                "M": 2,
+        //                "t": 1760368563597
+        //            }
+        //         ],
         //         "channel": "push.deal",
         //         "ts": 1680055941870
         //     }
@@ -1030,8 +1037,11 @@ export default class mexc extends mexcRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const d = this.safeDictN (message, [ 'd', 'data', 'publicAggreDeals' ]);
-        const trades = this.safeList2 (d, 'deals', 'dealsList', [ d ]);
+        const d = this.safeDictN (message, [ 'd', 'publicAggreDeals' ]);
+        let trades = this.safeList2 (d, 'deals', 'dealsList', [ d ]);
+        if (d === undefined) {
+            trades = this.safeList (message, 'data', []);
+        }
         for (let j = 0; j < trades.length; j++) {
             let parsedTrade = undefined;
             if (market['spot']) {
@@ -1722,7 +1732,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];

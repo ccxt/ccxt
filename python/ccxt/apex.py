@@ -41,6 +41,7 @@ class apex(Exchange, ImplicitAPI):
                 'addMargin': False,
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelAllOrdersAfter': False,
                 'cancelOrder': True,
@@ -59,10 +60,14 @@ class apex(Exchange, ImplicitAPI):
                 'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchAccounts': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledAndClosedOrders': False,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrders': False,
@@ -78,6 +83,7 @@ class apex(Exchange, ImplicitAPI):
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -96,6 +102,8 @@ class apex(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -113,6 +121,7 @@ class apex(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchTransfer': True,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
@@ -784,7 +793,7 @@ class apex(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

@@ -12,7 +12,7 @@ public partial class okx : Exchange
             { "name", "OKX" },
             { "countries", new List<object>() {"CN", "US"} },
             { "version", "v5" },
-            { "rateLimit", multiply(100, 1.03) },
+            { "rateLimit", multiply(100, 1.1) },
             { "pro", true },
             { "certified", true },
             { "has", new Dictionary<string, object>() {
@@ -173,7 +173,7 @@ public partial class okx : Exchange
                 { "doc", "https://www.okx.com/docs-v5/en/" },
                 { "fees", "https://www.okx.com/pages/products/fees.html" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.okx.com/join/CCXT2023" },
+                    { "url", "https://www.okx.com/join/CCXTCOM" },
                     { "discount", 0.2 },
                 } },
                 { "test", new Dictionary<string, object>() {
@@ -1197,7 +1197,8 @@ public partial class okx : Exchange
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 300 },
-                        { "historical", 100 },
+                        { "mark", 100 },
+                        { "index", 100 },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
@@ -1222,6 +1223,33 @@ public partial class okx : Exchange
                         { "extends", "default" },
                     } },
                 } },
+            } },
+            { "currencies", new Dictionary<string, object>() {
+                { "USD", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "USD" },
+                    { "code", "USD" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "EUR", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "EUR" },
+                    { "code", "EUR" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "AED", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "AED" },
+                    { "code", "AED" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "GBP", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "GBP" },
+                    { "code", "GBP" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "AUD", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "AUD" },
+                    { "code", "AUD" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "AE", "AET" },
@@ -1601,6 +1629,13 @@ public partial class okx : Exchange
             baseId = this.safeString(parts, 0);
             quoteId = this.safeString(parts, 1);
         }
+        if (isTrue(isTrue((isTrue((isEqual(baseId, ""))) || isTrue((isEqual(quoteId, ""))))) && isTrue(spot)))
+        {
+            object instId = this.safeString(market, "instId", "");
+            object parts = ((string)instId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            baseId = this.safeString(parts, 0);
+            quoteId = this.safeString(parts, 1);
+        }
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
@@ -1638,6 +1673,7 @@ public partial class okx : Exchange
         object maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object maxSpotCost = this.safeNumber(market, "maxMktSz");
+        object status = this.safeString(market, "state");
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1653,7 +1689,7 @@ public partial class okx : Exchange
             { "swap", swap },
             { "future", future },
             { "option", option },
-            { "active", true },
+            { "active", isEqual(status, "live") },
             { "contract", contract },
             { "linear", ((bool) isTrue(contract)) ? (isEqual(quoteId, settleId)) : null },
             { "inverse", ((bool) isTrue(contract)) ? (isEqual(baseId, settleId)) : null },
@@ -2466,17 +2502,19 @@ public partial class okx : Exchange
         {
             return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 200);
         }
-        object price = this.safeString(parameters, "price");
+        object priceType = this.safeString(parameters, "price");
+        object isMarkOrIndex = this.inArray(priceType, new List<object>() {"mark", "index"});
         parameters = this.omit(parameters, "price");
         object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object timezone = this.safeString(options, "timezone", "UTC");
         object limitIsUndefined = (isEqual(limit, null));
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100; // default 100, max 100
+            limit = 100; // default 100, max 300
         } else
         {
-            limit = mathMin(limit, 300); // max 100
+            object maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
+            limit = mathMin(limit, maxLimit);
         }
         object duration = this.parseTimeframe(timeframe);
         object bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2499,8 +2537,8 @@ public partial class okx : Exchange
             if (isTrue(isLessThan(since, historyBorder)))
             {
                 defaultType = "HistoryCandles";
-                object maxLimit = ((bool) isTrue((!isEqual(price, null)))) ? 100 : 300;
-                limit = mathMin(limit, maxLimit); // max 300 for historical endpoint
+                object maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300;
+                limit = mathMin(limit, maxLimit);
             }
             object startTime = mathMax(subtract(since, 1), 0);
             ((IDictionary<string,object>)request)["before"] = startTime;
@@ -2517,7 +2555,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "type");
         object isHistoryCandles = (isEqual(type, "HistoryCandles"));
         object response = null;
-        if (isTrue(isEqual(price, "mark")))
+        if (isTrue(isEqual(priceType, "mark")))
         {
             if (isTrue(isHistoryCandles))
             {
@@ -2526,7 +2564,7 @@ public partial class okx : Exchange
             {
                 response = await this.publicGetMarketMarkPriceCandles(this.extend(request, parameters));
             }
-        } else if (isTrue(isEqual(price, "index")))
+        } else if (isTrue(isEqual(priceType, "index")))
         {
             ((IDictionary<string,object>)request)["instId"] = getValue(getValue(market, "info"), "instFamily"); // okx index candles require instFamily instead of instId
             if (isTrue(isHistoryCandles))
@@ -3719,7 +3757,7 @@ public partial class okx : Exchange
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         parameters ??= new Dictionary<string, object>();
