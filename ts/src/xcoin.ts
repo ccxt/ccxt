@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, FundingRates, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -250,8 +250,7 @@ export default class xcoin extends Exchange {
         const data = this.safeList (response, 'data', []);
         const result: Market[] = [];
         for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const market = this.parseMarket (item);
+            const market = this.parseMarket (data[i]);
             result.push (market);
         }
         return result;
@@ -618,7 +617,7 @@ export default class xcoin extends Exchange {
         //        "ts": "1761588974866"
         //    }
         //
-        const data = this.safeList (response, 'data');
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -631,6 +630,67 @@ export default class xcoin extends Exchange {
             this.safeNumber (ohlcv, 4),
             this.safeNumber (ohlcv, 7),
         ];
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @see https://xcoin.com/docs/coinApi/ticker/get-current-funding-rate
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+     */
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetV1MarketFundingRate (params);
+        //
+        //    {
+        //        "code": "0",
+        //        "msg": "success",
+        //        "data": [
+        //            {
+        //                "symbol": "TRUMP-USDT-PERP",
+        //                "fundingRate": "-0.000146",
+        //                "fundingTime": "1761638400000",
+        //                "fundingInterval": "8",
+        //                "upperFundingRate": "0.03",
+        //                "lowerFundingRate": "-0.03"
+        //            },
+        //        ],
+        //        "ts": "1761627696000"
+        //    }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseFundingRates (data, symbols);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const fundingRate = this.safeNumber (contract, 'fundingRate');
+        const nextFundingRateTimestamp = this.safeInteger (contract, 'fundingTime');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': this.safeNumber (contract, 'markPrice'),
+            'indexPrice': this.safeNumber (contract, 'indexPrice'),
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': undefined,
+            'nextFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'nextFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'nextFundingDatetime': undefined,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+            'interval': undefined,
+        } as FundingRate;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
