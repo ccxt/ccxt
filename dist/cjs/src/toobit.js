@@ -23,7 +23,7 @@ class toobit extends toobit$1["default"] {
             'version': 'v1',
             'rateLimit': 20,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
