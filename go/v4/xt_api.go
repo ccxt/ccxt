@@ -615,6 +615,6 @@ func (this *XtCore) PrivateUserPutUserAccountApiKey(args ...interface{}) <-chan 
 	return this.callEndpointAsync("privateUserPutUserAccountApiKey", args...)
 }
 
-func (this *XtCore) PrivateUserDeleteUserAccountApikeyId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserDeleteUserAccountApikeyId", args...)
+func (this *XtCore) PrivateUserDeleteUserAccountApiKeyId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUserDeleteUserAccountApiKeyId", args...)
 }

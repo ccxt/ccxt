@@ -13,6 +13,7 @@
 - API Spec by Exchange
 	- [alpaca](exchanges/alpaca.md)
 	- [apex](exchanges/apex.md)
+	- [arkham](exchanges/arkham.md)
 	- [ascendex](exchanges/ascendex.md)
 	- [backpack](exchanges/backpack.md)
 	- [bigone](exchanges/bigone.md)

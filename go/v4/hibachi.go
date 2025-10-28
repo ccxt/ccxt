@@ -1489,12 +1489,12 @@ func (this *HibachiCore) SignMessage(message interface{}, privateKey interface{}
 		return this.Hmac(message, this.Encode(privateKey), sha256, "hex")
 	} else {
 		// For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-		var hash interface{} = this.Hash(this.Encode(message), sha256, "hex")
+		var hash interface{} = this.Hash(message, sha256, "hex")
 		var signature interface{} = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 		var r interface{} = GetValue(signature, "r")
 		var s interface{} = GetValue(signature, "s")
-		var v interface{} = GetValue(signature, "v")
-		return Add(Add(PadStart(r, 64, "0"), PadStart(s, 64, "0")), PadStart(this.IntToBase16(v), 2, "0"))
+		var v interface{} = this.IntToBase16(GetValue(signature, "v"))
+		return Add(Add(PadStart(r, 64, "0"), PadStart(s, 64, "0")), PadStart(v, 2, "0"))
 	}
 }
 

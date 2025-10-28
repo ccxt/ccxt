@@ -453,8 +453,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             assetObject = spotAssets[i]
             marketId = self.safe_string(assetObject, 'coin')
             market = self.safe_market(marketId, None, None, 'spot')
+            symbol = market['symbol']
             ticker = self.parse_ws_ticker(assetObject, market)
             parsedTickers.append(ticker)
+            self.tickers[symbol] = ticker
         # perpetuals
         meta = self.safe_dict(rawData, 'meta', {})
         universe = self.safe_list(meta, 'universe', [])
@@ -466,7 +468,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             )
             id = data['name'] + '/USDC:USDC'
             market = self.safe_market(id, None, None, 'swap')
+            symbol = market['symbol']
             ticker = self.parse_ws_ticker(data, market)
+            self.tickers[symbol] = ticker
             parsedTickers.append(ticker)
         tickers = self.index_by(parsedTickers, 'symbol')
         client.resolve(tickers, 'tickers')

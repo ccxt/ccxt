@@ -225,6 +225,20 @@ class hyperliquid extends Exchange {
                 'sandboxMode' => false,
                 'defaultSlippage' => 0.05,
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
+                'spotCurrencyMapping' => array(
+                    'UDZ' => '2Z',
+                    'UBONK' => 'BONK',
+                    'UBTC' => 'BTC',
+                    'UETH' => 'ETH',
+                    'UFART' => 'FARTCOIN',
+                    'HPENGU' => 'PENGU',
+                    'UPUMP' => 'PUMP',
+                    'USOL' => 'SOL',
+                    'UUUSPX' => 'SPX',
+                    'USDT0' => 'USDT',
+                    'XAUT0' => 'XAUT',
+                    'UXPL' => 'XPL',
+                ),
             ),
             'features' => array(
                 'default' => array(
@@ -622,9 +636,13 @@ class hyperliquid extends Exchange {
                 $quoteTokenInfo = $this->safe_dict($tokens, $quoteTokenPos, array());
                 $baseName = $this->safe_string($baseTokenInfo, 'name');
                 $quoteId = $this->safe_string($quoteTokenInfo, 'name');
-                $base = $this->safe_currency_code($baseName);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
+                // do spot currency mapping
+                $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+                $mappedBaseName = $this->safe_string($spotCurrencyMapping, $baseName, $baseName);
+                $mappedQuoteId = $this->safe_string($spotCurrencyMapping, $quoteId, $quoteId);
+                $mappedBase = $this->safe_currency_code($mappedBaseName);
+                $mappedQuote = $this->safe_currency_code($mappedQuoteId);
+                $mappedSymbol = $mappedBase . '/' . $mappedQuote;
                 $innerBaseTokenInfo = $this->safe_dict($baseTokenInfo, 'spec', $baseTokenInfo);
                 // $innerQuoteTokenInfo = $this->safe_dict($quoteTokenInfo, 'spec', $quoteTokenInfo);
                 $amountPrecisionStr = $this->safe_string($innerBaseTokenInfo, 'szDecimals');
@@ -637,11 +655,11 @@ class hyperliquid extends Exchange {
                 $pricePrecisionStr = $this->number_to_string($pricePrecision);
                 // $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($innerQuoteTokenInfo, 'szDecimals')));
                 $baseId = $this->number_to_string($index + 10000);
-                $markets[] = $this->safe_market_structure(array(
+                $entry = array(
                     'id' => $marketName,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
+                    'symbol' => $mappedSymbol,
+                    'base' => $mappedBase,
+                    'quote' => $mappedQuote,
                     'settle' => null,
                     'baseId' => $baseId,
                     'baseName' => $baseName,
@@ -689,7 +707,18 @@ class hyperliquid extends Exchange {
                     ),
                     'created' => null,
                     'info' => $this->extend($extraData, $market),
-                ));
+                );
+                $markets[] = $this->safe_market_structure($entry);
+                // backward support
+                $base = $this->safe_currency_code($baseName);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+                if ($symbol !== $mappedSymbol) {
+                    $entry['symbol'] = $symbol;
+                    $entry['base'] = $mappedBase;
+                    $entry['quote'] = $mappedQuote;
+                    $markets[] = $this->safe_market_structure($entry);
+                }
             }
             return $markets;
         }) ();
@@ -1532,11 +1561,11 @@ class hyperliquid extends Exchange {
             /**
              * create a list of trade $orders
              *
-             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-$order
              *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             Async\await($this->handle_builder_fee_approval());
@@ -1562,7 +1591,16 @@ class hyperliquid extends Exchange {
             $responseObj = $this->safe_dict($response, 'response', array());
             $data = $this->safe_dict($responseObj, 'data', array());
             $statuses = $this->safe_list($data, 'statuses', array());
-            return $this->parse_orders($statuses, null);
+            $ordersToBeParsed = array();
+            for ($i = 0; $i < count($statuses); $i++) {
+                $order = $statuses[$i];
+                if ($order === 'waitingForTrigger') {
+                    $ordersToBeParsed[] = array( 'status' => $order ); // tp/sl $orders can return a string like "waitingForTrigger",
+                } else {
+                    $ordersToBeParsed[] = $order;
+                }
+            }
+            return $this->parse_orders($ordersToBeParsed, null);
         }) ();
     }
 
@@ -1686,10 +1724,10 @@ class hyperliquid extends Exchange {
             if ($isTrigger) {
                 // $grouping opposed $orders for sl/tp
                 $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
-                $stopLossOrderType = $this->safe_string($stopLoss, 'type');
+                $stopLossOrderType = $this->safe_string($stopLoss, 'type', 'limit');
                 $stopLossOrderLimitPrice = $this->safe_string_n($stopLoss, array( 'price', 'stopLossPrice' ), $stopLossOrderTriggerPrice);
                 $takeProfitOrderTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
-                $takeProfitOrderType = $this->safe_string($takeProfit, 'type');
+                $takeProfitOrderType = $this->safe_string($takeProfit, 'type', 'limit');
                 $takeProfitOrderLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
                 $grouping = 'normalTpsl';
                 $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));

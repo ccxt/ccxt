@@ -127,6 +127,7 @@ interface Exchange {
     privateGetV5PreUpgradeAssetSettlementRecord(params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountWalletBalance(params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountBorrowHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetV5AccountInstrumentsInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountCollateralInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetCoinGreeks(params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountFeeRate(params?: {}): Promise<implicitReturnType>;
@@ -156,6 +157,7 @@ interface Exchange {
     privateGetV5AssetDepositQueryAddress(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetDepositQuerySubMemberAddress(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetCoinQueryInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetV5AssetWithdrawQueryAddress(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetWithdrawQueryRecord(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetWithdrawWithdrawableAmount(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetWithdrawVaspList(params?: {}): Promise<implicitReturnType>;
@@ -170,6 +172,10 @@ interface Exchange {
     privateGetV5SpotLeverTokenOrderRecord(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeInterestRateHistory(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeState(params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotMarginTradeMaxBorrowable(params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotMarginTradePositionTiers(params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotMarginTradeCoinstate(params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotMarginTradeRepaymentAvailableAmount(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeAccount(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeOrders(params?: {}): Promise<implicitReturnType>;
@@ -274,6 +280,8 @@ interface Exchange {
     privatePostV5AccountSetHedgingMode(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpModify(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpReset(params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountBorrow(params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountRepay(params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetExchangeQuoteApply(params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetExchangeConvertExecute(params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetTransferInterTransfer(params?: {}): Promise<implicitReturnType>;

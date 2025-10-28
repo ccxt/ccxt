@@ -210,6 +210,20 @@ public partial class hyperliquid : Exchange
                 { "sandboxMode", false },
                 { "defaultSlippage", 0.05 },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
+                { "spotCurrencyMapping", new Dictionary<string, object>() {
+                    { "UDZ", "2Z" },
+                    { "UBONK", "BONK" },
+                    { "UBTC", "BTC" },
+                    { "UETH", "ETH" },
+                    { "UFART", "FARTCOIN" },
+                    { "HPENGU", "PENGU" },
+                    { "UPUMP", "PUMP" },
+                    { "USOL", "SOL" },
+                    { "UUUSPX", "SPX" },
+                    { "USDT0", "USDT" },
+                    { "XAUT0", "XAUT" },
+                    { "UXPL", "XPL" },
+                } },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -615,9 +629,13 @@ public partial class hyperliquid : Exchange
             object quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, new Dictionary<string, object>() {});
             object baseName = this.safeString(baseTokenInfo, "name");
             object quoteId = this.safeString(quoteTokenInfo, "name");
-            object bs = this.safeCurrencyCode(baseName);
-            object quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
+            // do spot currency mapping
+            object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
+            object mappedBaseName = this.safeString(spotCurrencyMapping, baseName, baseName);
+            object mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
+            object mappedBase = this.safeCurrencyCode(mappedBaseName);
+            object mappedQuote = this.safeCurrencyCode(mappedQuoteId);
+            object mappedSymbol = add(add(mappedBase, "/"), mappedQuote);
             object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             object amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
@@ -631,11 +649,11 @@ public partial class hyperliquid : Exchange
             object pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             object baseId = this.numberToString(add(index, 10000));
-            ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            object entry = new Dictionary<string, object>() {
                 { "id", marketName },
-                { "symbol", symbol },
-                { "base", bs },
-                { "quote", quote },
+                { "symbol", mappedSymbol },
+                { "base", mappedBase },
+                { "quote", mappedQuote },
                 { "settle", null },
                 { "baseId", baseId },
                 { "baseName", baseName },
@@ -683,7 +701,19 @@ public partial class hyperliquid : Exchange
                 } },
                 { "created", null },
                 { "info", this.extend(extraData, market) },
-            }));
+            };
+            ((IList<object>)markets).Add(this.safeMarketStructure(entry));
+            // backward support
+            object bs = this.safeCurrencyCode(baseName);
+            object quote = this.safeCurrencyCode(quoteId);
+            object symbol = add(add(bs, "/"), quote);
+            if (isTrue(!isEqual(symbol, mappedSymbol)))
+            {
+                ((IDictionary<string,object>)entry)["symbol"] = symbol;
+                ((IDictionary<string,object>)entry)["base"] = mappedBase;
+                ((IDictionary<string,object>)entry)["quote"] = mappedQuote;
+                ((IList<object>)markets).Add(this.safeMarketStructure(entry));
+            }
         }
         return markets;
     }
@@ -1631,7 +1661,21 @@ public partial class hyperliquid : Exchange
         object responseObj = this.safeDict(response, "response", new Dictionary<string, object>() {});
         object data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
         object statuses = this.safeList(data, "statuses", new List<object>() {});
-        return this.parseOrders(statuses, null);
+        object ordersToBeParsed = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+        {
+            object order = getValue(statuses, i);
+            if (isTrue(isEqual(order, "waitingForTrigger")))
+            {
+                ((IList<object>)ordersToBeParsed).Add(new Dictionary<string, object>() {
+                    { "status", order },
+                }); // tp/sl orders can return a string like "waitingForTrigger",
+            } else
+            {
+                ((IList<object>)ordersToBeParsed).Add(order);
+            }
+        }
+        return this.parseOrders(ordersToBeParsed, null);
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1775,10 +1819,10 @@ public partial class hyperliquid : Exchange
             {
                 // grouping opposed orders for sl/tp
                 object stopLossOrderTriggerPrice = this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice"});
-                object stopLossOrderType = this.safeString(stopLoss, "type");
+                object stopLossOrderType = this.safeString(stopLoss, "type", "limit");
                 object stopLossOrderLimitPrice = this.safeStringN(stopLoss, new List<object>() {"price", "stopLossPrice"}, stopLossOrderTriggerPrice);
                 object takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice"});
-                object takeProfitOrderType = this.safeString(takeProfit, "type");
+                object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
                 object takeProfitOrderLimitPrice = this.safeStringN(takeProfit, new List<object>() {"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice);
                 grouping = "normalTpsl";
                 orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});

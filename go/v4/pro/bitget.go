@@ -3206,7 +3206,9 @@ func  (this *BitgetCore) HandleOrderBookUnSubscription(client interface{}, messa
         ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
     }
     error := ccxt.UnsubscribeError(ccxt.Add(ccxt.Add(this.Id, " orderbook "), symbol))
-    client.(ccxt.ClientInterface).Reject(error, subMessageHash)
+    if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subMessageHash)) {
+        client.(ccxt.ClientInterface).Reject(error, subMessageHash)
+    }
     client.(ccxt.ClientInterface).Resolve(true, messageHash)
 }
 func  (this *BitgetCore) HandleTradesUnSubscription(client interface{}, message interface{})  {
@@ -3231,7 +3233,9 @@ func  (this *BitgetCore) HandleTradesUnSubscription(client interface{}, message 
         ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
     }
     error := ccxt.UnsubscribeError(ccxt.Add(ccxt.Add(this.Id, " trades "), symbol))
-    client.(ccxt.ClientInterface).Reject(error, subMessageHash)
+    if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subMessageHash)) {
+        client.(ccxt.ClientInterface).Reject(error, subMessageHash)
+    }
     client.(ccxt.ClientInterface).Resolve(true, messageHash)
 }
 func  (this *BitgetCore) HandleTickerUnSubscription(client interface{}, message interface{})  {
@@ -3256,7 +3260,9 @@ func  (this *BitgetCore) HandleTickerUnSubscription(client interface{}, message 
         ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
     }
     error := ccxt.UnsubscribeError(ccxt.Add(ccxt.Add(this.Id, " ticker "), symbol))
-    client.(ccxt.ClientInterface).Reject(error, subMessageHash)
+    if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subMessageHash)) {
+        client.(ccxt.ClientInterface).Reject(error, subMessageHash)
+    }
     client.(ccxt.ClientInterface).Resolve(true, messageHash)
 }
 func  (this *BitgetCore) HandleOHLCVUnSubscription(client interface{}, message interface{})  {
