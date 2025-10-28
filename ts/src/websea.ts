@@ -278,11 +278,11 @@ export default class websea extends Exchange {
                         'openApi/entrust/orderTrade': 1, // 现货订单成交记录
                         'openApi/entrust/historyDetail': 1, // 历史订单详情
                         'openApi/wallet/detail': 1, // 钱包详情
-                        'openApi/futures/entrust/add': 1, // 期货下单
                         'openApi/futures/entrust/orderDetail': 1, // 期货订单详情
                         'openApi/futures/position/detail': 1, // 期货持仓详情
                         'openApi/futures/position/setLeverage': 1, // 期货设置杠杆
                         'openApi/contract/cancel': 1, // 合约取消订单
+                        'openApi/contract/add': 1, // 合约下单
                     },
                 },
             },

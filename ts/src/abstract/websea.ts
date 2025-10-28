@@ -40,11 +40,11 @@ interface Exchange {
     privatePostOpenApiEntrustOrderTrade (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustHistoryDetail (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiWalletDetail (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenApiFuturesEntrustAdd (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiFuturesEntrustOrderDetail (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiFuturesPositionDetail (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiFuturesPositionSetLeverage (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiContractCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenApiContractAdd (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
