@@ -2184,16 +2184,16 @@ class binance(ccxt.async_support.binance):
 
     def sign_params(self, params={}):
         self.check_required_credentials()
-        extendedParams = self.extend({
-            'timestamp': self.nonce(),
-            'apiKey': self.apiKey,
-        }, params)
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
         if defaultRecvWindow is not None:
             params['recvWindow'] = defaultRecvWindow
         recvWindow = self.safe_integer(params, 'recvWindow')
         if recvWindow is not None:
             params['recvWindow'] = recvWindow
+        extendedParams = self.extend({
+            'timestamp': self.nonce(),
+            'apiKey': self.apiKey,
+        }, params)
         extendedParams = self.keysort(extendedParams)
         query = self.urlencode(extendedParams)
         signature = None
