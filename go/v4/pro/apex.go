@@ -1214,6 +1214,7 @@ func  (this *ApexCore) HandleMessage(client interface{}, message interface{})  {
         "recentlyTrade": this.HandleTrades,
         "pong": this.HandlePong,
         "auth": this.HandleAuthenticate,
+        "ping": this.HandlePing,
     }
     var exacMethod interface{} = this.SafeValue(methods, topic)
     if ccxt.IsTrue(!ccxt.IsEqual(exacMethod, nil)) {
@@ -1243,6 +1244,46 @@ func  (this *ApexCore) Ping(client interface{}) interface{}  {
         "op": "ping",
     }
 }
+func  (this *ApexCore) Pong(client interface{}, message interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    //
+            //     {"op": "ping", "args": ["1761069137485"]}
+            //
+            var timeStamp interface{} = this.Milliseconds()
+            
+                {
+                     func(this *ApexCore) (ret_ interface{}) {
+            		    defer func() {
+                            if e := recover(); e != nil {
+                                if e == "break" {
+                                    return
+                                }
+                                ret_ = func(this *ApexCore) interface{} {
+                                    // catch block:
+                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " handlePing failed with error "), this.Json(e)))
+                    client.(ccxt.ClientInterface).Reset(error)
+                                    return nil
+                                }(this)
+                            }
+                        }()
+            		    // try block:
+                        
+                    retRes100812 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
+                        "args": []interface{}{ccxt.ToString(timeStamp)},
+                        "op": "pong",
+                    }))
+                    ccxt.PanicOnError(retRes100812)
+            		    return nil
+            	    }(this)
+                
+                    }
+                return nil
+            }()
+            return ch
+        }
 func  (this *ApexCore) HandlePong(client interface{}, message interface{}) interface{}  {
     //
     //   {
@@ -1256,6 +1297,9 @@ func  (this *ApexCore) HandlePong(client interface{}, message interface{}) inter
     //
     client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong"))
     return message
+}
+func  (this *ApexCore) HandlePing(client interface{}, message interface{})  {
+    this.Spawn(this.Pong, client, message)
 }
 func  (this *ApexCore) HandleAccount(client interface{}, message interface{})  {
     var contents interface{} = this.SafeDict(message, "contents", map[string]interface{} {})

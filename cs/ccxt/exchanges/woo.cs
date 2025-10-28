@@ -1938,7 +1938,18 @@ public partial class woo : Exchange
         //         "positionSide": "BOTH"
         //     }
         //
-        object timestamp = this.safeTimestamp(order, "createdTime");
+        object timestamp = null;
+        object timestrampString = this.safeString(order, "createdTime");
+        if (isTrue(!isEqual(timestrampString, null)))
+        {
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(timestrampString, "."), 0)))
+            {
+                timestamp = this.safeTimestamp(order, "createdTime"); // algo orders
+            } else
+            {
+                timestamp = this.safeInteger(order, "createdTime"); // regular orders
+            }
+        }
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger(order, "timestamp");
@@ -1960,7 +1971,18 @@ public partial class woo : Exchange
         object fee = this.safeNumber(order, "totalFee");
         object feeCurrency = this.safeString(order, "feeAsset");
         object triggerPrice = this.safeNumber(order, "triggerPrice");
-        object lastUpdateTimestamp = this.safeTimestamp(order, "updatedTime");
+        object lastUpdateTimestampString = this.safeString(order, "updatedTime");
+        object lastUpdateTimestamp = null;
+        if (isTrue(!isEqual(lastUpdateTimestampString, null)))
+        {
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(lastUpdateTimestampString, "."), 0)))
+            {
+                lastUpdateTimestamp = this.safeTimestamp(order, "updatedTime"); // algo orders
+            } else
+            {
+                lastUpdateTimestamp = this.safeInteger(order, "updatedTime"); // regular orders
+            }
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },

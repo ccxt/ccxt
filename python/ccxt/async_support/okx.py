@@ -209,7 +209,7 @@ class okx(Exchange, ImplicitAPI):
                 'referral': {
                     # old reflink 0% discount https://www.okx.com/join/1888677
                     # new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    'url': 'https://www.okx.com/join/CCXT2023',
+                    'url': 'https://www.okx.com/join/CCXTCOM',
                     'discount': 0.2,
                 },
                 'test': {
@@ -1354,6 +1354,13 @@ class okx(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'currencies': {
+                'USD': self.safe_currency_structure({'id': 'USD', 'code': 'USD', 'precision': self.parse_number('0.0001')}),
+                'EUR': self.safe_currency_structure({'id': 'EUR', 'code': 'EUR', 'precision': self.parse_number('0.0001')}),
+                'AED': self.safe_currency_structure({'id': 'AED', 'code': 'AED', 'precision': self.parse_number('0.0001')}),
+                'GBP': self.safe_currency_structure({'id': 'GBP', 'code': 'GBP', 'precision': self.parse_number('0.0001')}),
+                'AUD': self.safe_currency_structure({'id': 'AUD', 'code': 'AUD', 'precision': self.parse_number('0.0001')}),
+            },
             'commonCurrencies': {
                 # the exchange refers to ERC20 version of Aeternity(AEToken)
                 'AE': 'AET',  # https://github.com/ccxt/ccxt/issues/4981
@@ -1679,6 +1686,11 @@ class okx(Exchange, ImplicitAPI):
             parts = underlying.split('-')
             baseId = self.safe_string(parts, 0)
             quoteId = self.safe_string(parts, 1)
+        if ((baseId == '') or (quoteId == '')) and spot:  # to fix weird preopen markets
+            instId = self.safe_string(market, 'instId', '')
+            parts = instId.split('-')
+            baseId = self.safe_string(parts, 0)
+            quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
@@ -1705,6 +1717,7 @@ class okx(Exchange, ImplicitAPI):
         maxLeverage = self.safe_string(market, 'lever', '1')
         maxLeverage = Precise.string_max(maxLeverage, '1')
         maxSpotCost = self.safe_number(market, 'maxMktSz')
+        status = self.safe_string(market, 'state')
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -1720,7 +1733,7 @@ class okx(Exchange, ImplicitAPI):
             'swap': swap,
             'future': future,
             'option': option,
-            'active': True,
+            'active': status == 'live',
             'contract': contract,
             'linear': (quoteId == settleId) if contract else None,
             'inverse': (baseId == settleId) if contract else None,

@@ -377,6 +377,7 @@ class coincatch extends Exchange {
                     'ChilizChain' => 'ChilizChain', // todo check
                     'StellarLumens' => 'XLM', // todo check
                     'CronosChain' => 'CRO', // todo check
+                    'Optimism' => 'Optimism',
                 ),
             ),
             'features' => array(

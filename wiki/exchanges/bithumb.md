@@ -21,6 +21,8 @@
 * [watchTickers](#watchtickers)
 * [watchOrderBook](#watchorderbook)
 * [watchTrades](#watchtrades)
+* [watchBalance](#watchbalance)
+* [watchOrders](#watchorders)
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -379,5 +381,49 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 bithumb.watchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="watchBalance" id="watchbalance"></a>
+
+### watchBalance{docsify-ignore}
+watch balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>bithumb</code>](#bithumb)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+
+**See**: https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bithumb.watchBalance ([params])
+```
+
+
+<a name="watchOrders" id="watchorders"></a>
+
+### watchOrders{docsify-ignore}
+watches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>bithumb</code>](#bithumb)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.codes | <code>Array&lt;string&gt;</code> | No | market codes to filter orders |
+
+
+```javascript
+bithumb.watchOrders (symbol[, since, limit, params])
 ```
 

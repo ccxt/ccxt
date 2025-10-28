@@ -61,10 +61,16 @@ function createExchangeDynamicFile(exchanges: string[], ws = false) {
     const imports = ws ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : ''
     const prefix = ws ? 'ccxt.' : '';
 
-    const caseStatements = exchanges.map(exchange => `    case "${exchange}":
+    const caseStatements = exchanges.map(exchange => {
+        const statement = `    case "${exchange}":
             ${exchange}Itf := New${capitalizeFirstLetter(exchange)}Core()
             ${exchange}Itf.Init(exchangeArgs)
-            return ${exchange}Itf, true`).join('\n');
+            return ${exchange}Itf, true`;
+        if (!ws) {
+            return statement;
+        }
+        return fs.existsSync('./ts/src/pro/' + exchange + '.ts') ? statement : '';
+        }).join('\n');
 
 const ExchangeStatement = `
     case "Exchange":
@@ -145,9 +151,10 @@ function createWsExchangeTypedInterfaceFile(exchanges: string[]) {
             '}'
         ].join('\n');
 
-    const caseStatements = exchanges.map(exchange => `       case "${exchange}":
+    const caseStatements = exchanges.map(exchange => {
+        return fs.existsSync('./ts/src/pro/' + exchange + '.ts') ? `       case "${exchange}":
            itf := New${capitalizeFirstLetter(exchange)}(options)
-           return itf`).join('\n    ');
+           return itf` : ''}).join('\n    ');
 
     const template = `
 package ccxtpro
@@ -178,7 +185,8 @@ function transpileAndGenerateAPI(exchanges: string[]) {
     execSync.execSync(`tsx ./build/generateImplicitAPI.ts`, { stdio: 'inherit' });
     for (const exchange of exchanges) {
         execSync.execSync(`tsx ./build/goTranspiler.ts ${exchange}`, { stdio: 'inherit' });
-        if (WS_SUPPORT) {
+        const WS_EXISTED = fs.existsSync('./ts/src/pro/' + exchange + '.ts');
+        if (WS_SUPPORT && WS_EXISTED) {
             execSync.execSync(`tsx ./build/goTranspiler.ts ${exchange} --ws`, { stdio: 'inherit' });
         }
     }
@@ -186,12 +194,13 @@ function transpileAndGenerateAPI(exchanges: string[]) {
 }
 
 function main() {
-    const args = process.argv.slice(2);
+    const argsRaw = process.argv.slice(2);
 
-    if (args.length < 1) {
+    if (argsRaw.length < 1) {
         console.error("Usage: tsx granular-go-build.ts <exchange1> <exchange2> ...");
         process.exit(1);
     }
+    const args = [...new Set(argsRaw)];
     transpileAndGenerateAPI(args)
     foldersToSearch.forEach(folder => deleteFilesRecursively(folder, args));
     createExchangeDynamicFile(args);

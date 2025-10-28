@@ -173,7 +173,7 @@ public partial class okx : Exchange
                 { "doc", "https://www.okx.com/docs-v5/en/" },
                 { "fees", "https://www.okx.com/pages/products/fees.html" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.okx.com/join/CCXT2023" },
+                    { "url", "https://www.okx.com/join/CCXTCOM" },
                     { "discount", 0.2 },
                 } },
                 { "test", new Dictionary<string, object>() {
@@ -1224,6 +1224,33 @@ public partial class okx : Exchange
                     } },
                 } },
             } },
+            { "currencies", new Dictionary<string, object>() {
+                { "USD", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "USD" },
+                    { "code", "USD" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "EUR", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "EUR" },
+                    { "code", "EUR" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "AED", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "AED" },
+                    { "code", "AED" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "GBP", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "GBP" },
+                    { "code", "GBP" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "AUD", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "AUD" },
+                    { "code", "AUD" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "AE", "AET" },
                 { "WIN", "WINTOKEN" },
@@ -1602,6 +1629,13 @@ public partial class okx : Exchange
             baseId = this.safeString(parts, 0);
             quoteId = this.safeString(parts, 1);
         }
+        if (isTrue(isTrue((isTrue((isEqual(baseId, ""))) || isTrue((isEqual(quoteId, ""))))) && isTrue(spot)))
+        {
+            object instId = this.safeString(market, "instId", "");
+            object parts = ((string)instId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            baseId = this.safeString(parts, 0);
+            quoteId = this.safeString(parts, 1);
+        }
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
@@ -1639,6 +1673,7 @@ public partial class okx : Exchange
         object maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object maxSpotCost = this.safeNumber(market, "maxMktSz");
+        object status = this.safeString(market, "state");
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1654,7 +1689,7 @@ public partial class okx : Exchange
             { "swap", swap },
             { "future", future },
             { "option", option },
-            { "active", true },
+            { "active", isEqual(status, "live") },
             { "contract", contract },
             { "linear", ((bool) isTrue(contract)) ? (isEqual(quoteId, settleId)) : null },
             { "inverse", ((bool) isTrue(contract)) ? (isEqual(baseId, settleId)) : null },
