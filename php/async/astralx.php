@@ -437,7 +437,7 @@ class astralx extends Exchange {
                     'maxLeverage' => $maxLeverage, // 添加最大杠杆信息
                     'limits' => array(
                         'amount' => array(
-                            'min' => $this->safe_number($market, 'minTradeQuantity') * $contractSize,
+                            'min' => $this->safe_number($market, 'minTradeQuantity'),
                             'max' => null,
                         ),
                         'price' => array(
@@ -451,7 +451,7 @@ class astralx extends Exchange {
                         'leverage' => $leverageLimits,
                     ),
                     'precision' => array(
-                        'amount' => $this->safe_number($market, 'basePrecision') * $contractSize,
+                        'amount' => $this->safe_number($market, 'basePrecision'),
                         'price' => $this->safe_number($market, 'quotePrecision'),
                         'cost' => null,
                         'base' => null,
@@ -938,12 +938,12 @@ class astralx extends Exchange {
             } elseif ($apiType === 'LIMIT') {
                 $priceType = 'INPUT';
             }
-            $quantityInContracts = $this->parse_number($this->amount_to_precision($symbol, $amount)) / $market['contractSize'];
+            $quantityInContracts = $this->amount_to_precision($symbol, $amount);
             $request = array(
                 'symbol' => $market['id'],
                 'side' => $apiSide,
                 'orderType' => 'LIMIT',
-                'quantity' => $this->parse_to_int((int) round($quantityInContracts)),
+                'quantity' => $quantityInContracts,
                 'priceType' => $priceType, // 默认输入价格类型
                 'leverage' => '10',     // 默认10倍杠杆
                 'timeInForce' => 'GTC', // 默认取消前有效
@@ -993,12 +993,12 @@ class astralx extends Exchange {
             } elseif ($apiType === 'LIMIT') {
                 $priceType = 'INPUT';
             }
-            $quantityInContracts = $this->parse_number($this->amount_to_precision($symbol, $amount)) / $market['contractSize'];
+            $quantityInContracts = $this->amount_to_precision($symbol, $amount);
             $request = array(
                 'symbol' => $market['id'],
                 'side' => $apiSide,
                 'orderType' => 'LIMIT',
-                'quantity' => $this->parse_to_int((int) round($quantityInContracts)),
+                'quantity' => $quantityInContracts,
                 'priceType' => $priceType, // 默认输入价格类型
                 'leverage' => '10',     // 默认10倍杠杆
                 'timeInForce' => 'GTC', // 默认取消前有效
@@ -1268,16 +1268,15 @@ class astralx extends Exchange {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'time');
         $price = $this->safe_number($order, 'price');
-        // 需要将$origQty乘以contractSize来还原实际数量（API返回的是合约张数）
+        // $origQty 合约张数
         $origQtyString = $this->safe_string($order, 'origQty');
         $amount = null;
         if ($origQtyString !== null) {
             $origQty = $this->parse_number($origQtyString);
-            $calculatedAmount = $origQty * $market['contractSize'];
             // 获取市场的最小数量精度
             $minAmount = $this->safe_number($market['precision'], 'amount', 0.001);
-            if ($calculatedAmount >= $minAmount) {
-                $amount = $this->parse_number($this->amount_to_precision($symbol, $calculatedAmount));
+            if ($origQty >= $minAmount) {
+                $amount = $this->parse_number($this->amount_to_precision($symbol, $origQty));
             } else {
                 $amount = 0; // 如果小于最小精度，设置为0
             }
@@ -1286,11 +1285,10 @@ class astralx extends Exchange {
         $filled = null;
         if ($executedQtyString !== null) {
             $executedQty = $this->parse_number($executedQtyString);
-            $calculatedFilled = $executedQty * $market['contractSize'];
             // 获取市场的最小数量精度
             $minAmount = $this->safe_number($market['precision'], 'amount', 0.001);
-            if ($calculatedFilled >= $minAmount) {
-                $filled = $this->parse_number($this->amount_to_precision($symbol, $calculatedFilled));
+            if ($executedQty >= $minAmount) {
+                $filled = $this->parse_number($this->amount_to_precision($symbol, $executedQty));
             } else {
                 $filled = 0; // 如果小于最小精度，设置为0
             }

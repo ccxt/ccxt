@@ -426,7 +426,7 @@ class astralx(Exchange, ImplicitAPI):
                 'maxLeverage': maxLeverage,  # 添加最大杠杆信息
                 'limits': {
                     'amount': {
-                        'min': self.safe_number(market, 'minTradeQuantity') * contractSize,
+                        'min': self.safe_number(market, 'minTradeQuantity'),
                         'max': None,
                     },
                     'price': {
@@ -440,7 +440,7 @@ class astralx(Exchange, ImplicitAPI):
                     'leverage': leverageLimits,
                 },
                 'precision': {
-                    'amount': self.safe_number(market, 'basePrecision') * contractSize,
+                    'amount': self.safe_number(market, 'basePrecision'),
                     'price': self.safe_number(market, 'quotePrecision'),
                     'cost': None,
                     'base': None,
@@ -871,12 +871,12 @@ class astralx(Exchange, ImplicitAPI):
             priceType = 'MARKET'
         elif apiType == 'LIMIT':
             priceType = 'INPUT'
-        quantityInContracts = self.parse_number(self.amount_to_precision(symbol, amount)) / market['contractSize']
+        quantityInContracts = self.amount_to_precision(symbol, amount)
         request = {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': self.parse_to_int(int(round(quantityInContracts))),
+            'quantity': quantityInContracts,
             'priceType': priceType,  # 默认输入价格类型
             'leverage': '10',     # 默认10倍杠杆
             'timeInForce': 'GTC',  # 默认取消前有效
@@ -919,12 +919,12 @@ class astralx(Exchange, ImplicitAPI):
             priceType = 'MARKET'
         elif apiType == 'LIMIT':
             priceType = 'INPUT'
-        quantityInContracts = self.parse_number(self.amount_to_precision(symbol, amount)) / market['contractSize']
+        quantityInContracts = self.amount_to_precision(symbol, amount)
         request = {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': self.parse_to_int(int(round(quantityInContracts))),
+            'quantity': quantityInContracts,
             'priceType': priceType,  # 默认输入价格类型
             'leverage': '10',     # 默认10倍杠杆
             'timeInForce': 'GTC',  # 默认取消前有效
@@ -1155,27 +1155,25 @@ class astralx(Exchange, ImplicitAPI):
         symbol = market['symbol']
         timestamp = self.safe_integer(order, 'time')
         price = self.safe_number(order, 'price')
-        # 需要将origQty乘以contractSize来还原实际数量（API返回的是合约张数）
+        # origQty 合约张数
         origQtyString = self.safe_string(order, 'origQty')
         amount = None
         if origQtyString is not None:
             origQty = self.parse_number(origQtyString)
-            calculatedAmount = origQty * market['contractSize']
             # 获取市场的最小数量精度
             minAmount = self.safe_number(market['precision'], 'amount', 0.001)
-            if calculatedAmount >= minAmount:
-                amount = self.parse_number(self.amount_to_precision(symbol, calculatedAmount))
+            if origQty >= minAmount:
+                amount = self.parse_number(self.amount_to_precision(symbol, origQty))
             else:
                 amount = 0  # 如果小于最小精度，设置为0
         executedQtyString = self.safe_string(order, 'executedQty')
         filled = None
         if executedQtyString is not None:
             executedQty = self.parse_number(executedQtyString)
-            calculatedFilled = executedQty * market['contractSize']
             # 获取市场的最小数量精度
             minAmount = self.safe_number(market['precision'], 'amount', 0.001)
-            if calculatedFilled >= minAmount:
-                filled = self.parse_number(self.amount_to_precision(symbol, calculatedFilled))
+            if executedQty >= minAmount:
+                filled = self.parse_number(self.amount_to_precision(symbol, executedQty))
             else:
                 filled = 0  # 如果小于最小精度，设置为0
         remaining = None

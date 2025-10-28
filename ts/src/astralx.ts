@@ -442,7 +442,7 @@ export default class astralx extends Exchange {
                 'maxLeverage': maxLeverage, // 添加最大杠杆信息
                 'limits': {
                     'amount': {
-                        'min': this.safeNumber (market, 'minTradeQuantity') * contractSize,
+                        'min': this.safeNumber (market, 'minTradeQuantity'),
                         'max': undefined,
                     },
                     'price': {
@@ -456,7 +456,7 @@ export default class astralx extends Exchange {
                     'leverage': leverageLimits,
                 },
                 'precision': {
-                    'amount': this.safeNumber (market, 'basePrecision') * contractSize,
+                    'amount': this.safeNumber (market, 'basePrecision'),
                     'price': this.safeNumber (market, 'quotePrecision'),
                     'cost': undefined,
                     'base': undefined,
@@ -951,12 +951,12 @@ export default class astralx extends Exchange {
         } else if (apiType === 'LIMIT') {
             priceType = 'INPUT';
         }
-        const quantityInContracts = this.parseNumber (this.amountToPrecision (symbol, amount)) / market['contractSize'];
+        const quantityInContracts = this.amountToPrecision (symbol, amount);
         const request = {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': this.parseToInt (Math.round (quantityInContracts)),
+            'quantity': quantityInContracts,
             'priceType': priceType, // 默认输入价格类型
             'leverage': '10',     // 默认10倍杠杆
             'timeInForce': 'GTC', // 默认取消前有效
@@ -1006,12 +1006,12 @@ export default class astralx extends Exchange {
         } else if (apiType === 'LIMIT') {
             priceType = 'INPUT';
         }
-        const quantityInContracts = this.parseNumber (this.amountToPrecision (symbol, amount)) / market['contractSize'];
+        const quantityInContracts = this.amountToPrecision (symbol, amount);
         const request = {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': this.parseToInt (Math.round (quantityInContracts)),
+            'quantity': quantityInContracts,
             'priceType': priceType, // 默认输入价格类型
             'leverage': '10',     // 默认10倍杠杆
             'timeInForce': 'GTC', // 默认取消前有效
@@ -1284,16 +1284,15 @@ export default class astralx extends Exchange {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'time');
         const price = this.safeNumber (order, 'price');
-        // 需要将origQty乘以contractSize来还原实际数量（API返回的是合约张数）
+        // origQty 合约张数
         const origQtyString = this.safeString (order, 'origQty');
         let amount = undefined;
         if (origQtyString !== undefined) {
             const origQty = this.parseNumber (origQtyString);
-            const calculatedAmount = origQty * market['contractSize'];
             // 获取市场的最小数量精度
             const minAmount = this.safeNumber (market['precision'], 'amount', 0.001);
-            if (calculatedAmount >= minAmount) {
-                amount = this.parseNumber (this.amountToPrecision (symbol, calculatedAmount));
+            if (origQty >= minAmount) {
+                amount = this.parseNumber (this.amountToPrecision (symbol, origQty));
             } else {
                 amount = 0; // 如果小于最小精度，设置为0
             }
@@ -1302,11 +1301,10 @@ export default class astralx extends Exchange {
         let filled = undefined;
         if (executedQtyString !== undefined) {
             const executedQty = this.parseNumber (executedQtyString);
-            const calculatedFilled = executedQty * market['contractSize'];
             // 获取市场的最小数量精度
             const minAmount = this.safeNumber (market['precision'], 'amount', 0.001);
-            if (calculatedFilled >= minAmount) {
-                filled = this.parseNumber (this.amountToPrecision (symbol, calculatedFilled));
+            if (executedQty >= minAmount) {
+                filled = this.parseNumber (this.amountToPrecision (symbol, executedQty));
             } else {
                 filled = 0; // 如果小于最小精度，设置为0
             }
