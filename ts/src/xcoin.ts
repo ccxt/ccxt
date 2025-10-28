@@ -754,6 +754,52 @@ export default class xcoin extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name xcoin#fetchCrossBorrowRates
+     * @description fetch the borrow interest rates of all currencies
+     * @see https://xcoin.com/docs/coinApi/ticker/get-margin-interest-rates
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     */
+    async fetchCrossBorrowRates (params = {}): Promise<CrossBorrowRates> {
+        await this.loadMarkets ();
+        const response = await this.publicGetV1PublicBaseRates (params);
+        //
+        //    {
+        //        "code": "0",
+        //        "msg": "success",
+        //        "data": [
+        //            {
+        //                "currency": "USDT",
+        //                "borrowed": "1030.197645707887976309",
+        //                "remainingQuota": "279325.425680997126775253",
+        //                "rate": "0.04158911"
+        //            },
+        //        ],
+        //        "ts": "1676428445631"
+        //    }
+        //
+        const data = this.safeList (response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            rates.push (this.parseBorrowRate (data[i]));
+        }
+        return rates as any;
+    }
+
+    parseBorrowRate (info, currency: Currency = undefined) {
+        const timestamp = this.safeInteger (info, 'ts');
+        return {
+            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
+            'rate': this.safeNumber (info, 'rate'),
+            'period': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
         if (api === 'public') {
