@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, CrossBorrowRates, FundingRates, FundingRate, FundingRateHistory, Currencies } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, CrossBorrowRates, FundingRates, FundingRate, FundingRateHistory, Currencies, Account } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -964,6 +964,144 @@ export default class xcoin extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://xcoin.com/docs/coinApi/funding-account/get-funding-account-transaction-history
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined, max is 2500
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 100) as LedgerEntry[];
+        }
+        let currency = undefined;
+        let request: Dict = {};
+        if (since !== undefined) {
+            request['beginTime'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetV1AssetBill (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "accountName": "hongliang01",
+        //                 "accountType": "funding",
+        //                 "amount": "-112",
+        //                 "balance": "499764779.013",
+        //                 "billId": "1918143117886697473",
+        //                 "cid": "174575858798300",
+        //                 "createTime": "1746098331000",
+        //                 "currency": "USDT",
+        //                 "id": "1918143117886697473",
+        //                 "pid": "1916476554095833090",
+        //                 "transactionId": "1918143117610061824",
+        //                 "uid": "174575858790600",
+        //                 "actionType": "21",
+        //                 "updateTime": "1746098331000"
+        //             },
+        //         ],
+        //         "msg":"success",
+        //         "ts": 1747824336306
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseLedger (data, currency, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        const currencyId = this.safeString (item, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        const timestamp = this.safeInteger (item, 'createTime');
+        const after = this.safeNumber (item, 'balance');
+        const amountRaw = this.safeString2 (item, 'size', 'amount');
+        const amount = this.parseNumber (Precise.stringAbs (amountRaw));
+        let direction = 'in';
+        if (amountRaw.indexOf ('-') >= 0) {
+            direction = 'out';
+        }
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': undefined,
+            'referenceId': this.safeString (item, 'transactionId'),
+            'referenceAccount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'amount': amount,
+            'before': undefined,
+            'after': after,
+            'status': undefined,
+            'fee': undefined,
+        }, currency) as LedgerEntry;
+    }
+
+    parseLedgerEntryType (typeId: string): string {
+        const ledgerTypes: Dict = {
+            '1': 'transfer',
+            '2': 'transfer',
+            '3': 'borrow',
+            '4': 'repayment',
+            '5': 'trade',
+            '6': 'trade',
+            '7': 'trade',
+            '8': 'trade',
+            '9': 'repayment',
+            '10': 'repayment',
+            '11': 'repayment',
+            '12': 'repayment',
+            // 13 Forced swap outgoing amount
+            // 14 Forced swap incoming amount
+            '15': 'fee',
+            '16': 'interest',
+            '17': 'realized_pnl',
+            '18': 'funding',
+            '19': 'liquidation',
+            '20': 'liquidation',
+            '21': 'deposit',
+            '22': 'withdrawal',
+            '23': 'transfer',
+            '24': 'transfer',
+            '25': 'transfer',
+            '26': 'transfer',
+            // 27 Flexible products subscription
+            // 28 Flexible products redemption
+            '29': 'interest',
+            '30': 'fee',
+            '31': 'airdrop',
+            '32': 'rebate',
+            '33': 'other',
+            '34': 'bonus',
+            '35': 'trial_fund',
+            '36': 'compensation',
+            '37': 'gas_fee',
+            '38': 'failed_recharge_credited',
+            '99': 'other',
+        };
+        return this.safeString (ledgerTypes, typeId, typeId);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
