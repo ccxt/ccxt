@@ -1813,7 +1813,6 @@ func IsNil(x interface{}) bool {
 	if x == nil {
 		return true
 	}
-	return false
 
 	// switch val := x.(type){
 	// case interface{}:
@@ -1822,15 +1821,15 @@ func IsNil(x interface{}) bool {
 
 	// }
 
-	// value := reflect.ValueOf(x)
-	// kind := value.Kind()
+	value := reflect.ValueOf(x)
+	kind := value.Kind()
 
-	// switch kind {
-	// case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
-	// 	return value.IsNil()
-	// default:
-	// 	return false
-	// }
+	switch kind {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
+		return value.IsNil()
+	default:
+		return false
+	}
 }
 
 func GetArg(v []interface{}, index int, def interface{}) interface{} {
@@ -1852,10 +1851,9 @@ func GetArg(v []interface{}, index int, def interface{}) interface{} {
 		}
 	}
 
-	// do we need this??
-	// if IsNil(val) { // check  https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
-	// 	return def
-	// }
+	if IsNil(val) { // check  https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
+		return def
+	}
 
 	return val
 }
@@ -2412,7 +2410,7 @@ func ParseJSON(input interface{}) interface{} {
 	if err != nil {
 		return nil
 	}
-	convertNumbers(result) //convert json.Number to int64
+	convertNumbers(result) // convert json.Number to int64
 	return result
 }
 
