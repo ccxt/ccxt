@@ -5,6 +5,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "default",
+                "method": "fetchBalance",
+                "url": "https://api.xcoin.com/api/v1/asset/balances",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",

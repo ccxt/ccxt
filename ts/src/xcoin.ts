@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, FundingRates, FundingRate, FundingRateHistory, Currencies } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, CrossBorrowRates, FundingRates, FundingRate, FundingRateHistory, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -352,7 +352,7 @@ export default class xcoin extends Exchange {
         //        "code": "0",
         //        "data": [
         //            {
-        //                "accountName": "CCXT_testing",
+        //                "accountName": "test123",
         //                "pid": "1981204053820035072",
         //                "uid": "176118985582700",
         //                "cid": "176118985590600",
@@ -909,6 +909,61 @@ export default class xcoin extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://xcoin.com/docs/coinApi/funding-account/get-funding-account-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const response = await this.privateGetV1AssetBalances (params);
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "accountName": "test123",
+        //                "pid": "1981204053820035072",
+        //                "uid": "176118985582700",
+        //                "cid": "176118985590600",
+        //                "currency": "USDT",
+        //                "accountType": "funding",
+        //                "balance": "100",
+        //                "freeze": "0",
+        //                "equity": "100",
+        //                "withdrawAble": "100"
+        //            }
+        //        ],
+        //        "msg": "Success",
+        //        "ts": "1761655079854",
+        //        "traceId": "671ca9e68d04f29edb756d25917b2d49"
+        //    }
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response): Balances {
+        const timestamp = this.safeInteger (response, 'ts');
+        const result: Dict = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const balances = this.safeList (response, 'data', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balanceRaw = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balanceRaw, 'currency'));
+            const account = this.account ();
+            account['free'] = this.safeString (balanceRaw, 'balance');
+            account['used'] = this.safeString (balanceRaw, 'freeze');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

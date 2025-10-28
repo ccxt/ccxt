@@ -3,6 +3,71 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "default",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "accountName": "CCXT_testing",
+                            "pid": "1981204053820035072",
+                            "uid": "176118985582700",
+                            "cid": "176118985590600",
+                            "currency": "USDT",
+                            "accountType": "funding",
+                            "balance": "100",
+                            "freeze": "0",
+                            "equity": "100",
+                            "withdrawAble": "100"
+                        }
+                    ],
+                    "msg": "Success",
+                    "ts": "1761655308640",
+                    "traceId": "4446f900eae63c4ea8118c25fbe747bb"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "accountName": "CCXT_testing",
+                                "pid": "1981204053820035072",
+                                "uid": "176118985582700",
+                                "cid": "176118985590600",
+                                "currency": "USDT",
+                                "accountType": "funding",
+                                "balance": "100",
+                                "freeze": "0",
+                                "equity": "100",
+                                "withdrawAble": "100"
+                            }
+                        ],
+                        "msg": "Success",
+                        "ts": "1761655308640",
+                        "traceId": "4446f900eae63c4ea8118c25fbe747bb"
+                    },
+                    "timestamp": 1761655308640,
+                    "datetime": "2025-10-28T12:41:48.640Z",
+                    "USDT": {
+                        "free": 100,
+                        "used": 0,
+                        "total": 100
+                    },
+                    "free": {
+                        "USDT": 100
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 100
+                    }
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
