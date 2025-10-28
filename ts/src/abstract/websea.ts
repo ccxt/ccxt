@@ -30,8 +30,6 @@ interface Exchange {
     privateGetOpenApiEntrustHistoryList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiEntrustCurrentList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiEntrustStatus (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenApiFuturesEntrustOrderList (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenApiFuturesPositionList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiContractWalletListFull (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiContractPosition (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustAdd (params?: {}): Promise<implicitReturnType>;
@@ -40,9 +38,6 @@ interface Exchange {
     privatePostOpenApiEntrustOrderTrade (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustHistoryDetail (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiWalletDetail (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenApiFuturesEntrustOrderDetail (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenApiFuturesPositionDetail (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenApiFuturesPositionSetLeverage (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiContractCancel (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiContractAdd (params?: {}): Promise<implicitReturnType>;
 }
