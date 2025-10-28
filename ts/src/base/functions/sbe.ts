@@ -71,7 +71,9 @@ export function parseSbeSchema (schemaPath: string): SbeSchema {
     };
 
     // Parse primitive types
-    const typeRegex = /<type\s+name="([^"]+)"\s+primitiveType="([^"]+)"(?:\s+length="(\d+)")?\s*\/>/g;
+    // Updated regex to handle both self-closing tags and tags with content (descriptions)
+    // Matches: <type name="X" primitiveType="Y" /> or <type name="X" primitiveType="Y" description="..."/>
+    const typeRegex = /<type\s+name="([^"]+)"[^>]*primitiveType="([^"]+)"[^>]*(?:length="(\d+)")?[^>]*\/?>/gs;
     let typeMatch;
     while ((typeMatch = typeRegex.exec(xml)) !== null) {
         const [, name, primitiveType, length] = typeMatch;

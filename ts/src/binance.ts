@@ -5102,6 +5102,7 @@ export default class binance extends Exchange {
             };
         });
         // Reuse existing parseTrades function to ensure consistent trade structure
+        return normalizedTrades;
         return this.parseTrades (normalizedTrades, market);
     }
 
@@ -5219,9 +5220,8 @@ export default class binance extends Exchange {
         const useSbe = this.safeBool (this.options, 'useSbe', false);
         const sbeSchemaId = this.safeInteger (this.options, 'sbeSchemaId', 3);
         const sbeSchemaVersion = this.safeInteger (this.options, 'sbeSchemaVersion', 1);
-        const isSpotTrades = market['spot'] && method === 'publicGetTrades';
         let response = undefined;
-        if (useSbe) {
+        if (useSbe && market['spot']) {
             // Use SBE for spot trades endpoint /api/v3/trades
             const sbeHeaders = {
                 'Accept': 'application/sbe',
@@ -5318,7 +5318,8 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        const trades =  this.parseTrades (response, market, since, limit);
+        return trades;
     }
 
     /**
