@@ -2846,10 +2846,6 @@ func  (this *BinanceCore) SignParams(optionalArgs ...interface{}) interface{}  {
     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.CheckRequiredCredentials()
-    var extendedParams interface{} = this.Extend(map[string]interface{} {
-        "timestamp": this.Nonce(),
-        "apiKey": this.ApiKey,
-    }, params)
     var defaultRecvWindow interface{} = this.SafeInteger(this.Options, "recvWindow")
     if ccxt.IsTrue(!ccxt.IsEqual(defaultRecvWindow, nil)) {
         ccxt.AddElementToObject(params, "recvWindow", defaultRecvWindow)
@@ -2858,6 +2854,10 @@ func  (this *BinanceCore) SignParams(optionalArgs ...interface{}) interface{}  {
     if ccxt.IsTrue(!ccxt.IsEqual(recvWindow, nil)) {
         ccxt.AddElementToObject(params, "recvWindow", recvWindow)
     }
+    var extendedParams interface{} = this.Extend(map[string]interface{} {
+        "timestamp": this.Nonce(),
+        "apiKey": this.ApiKey,
+    }, params)
     extendedParams = this.Keysort(extendedParams)
     var query interface{} = this.Urlencode(extendedParams)
     var signature interface{} = nil
