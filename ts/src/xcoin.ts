@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, FundingRates, FundingRate } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, FundingRates, FundingRate, FundingRateHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -691,6 +691,66 @@ export default class xcoin extends Exchange {
             'fundingDatetime': this.iso8601 (nextFundingRateTimestamp),
             'interval': undefined,
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://xcoin.com/docs/coinApi/ticker/get-funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+        }
+        const market = this.market (symbol);
+        let request: Dict = {
+            'symbol': market['id'],
+        };
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since !== undefined) {
+            request['beginTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV1MarketFundingRateHistory (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "msg": "success",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC-USDT-PERP",
+        //                "fundingRate": "0.000062171216727901",
+        //                "fundingTime": "1761609600000",
+        //                "markPrice": "114056.3"
+        //            },
+        //        ],
+        //        "ts": "1761627696000"
+        //    }
+        //
+        return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
+    }
+
+    parseFundingRateHistory (contract, market: Market = undefined) {
+        const marketId = this.safeString (contract, 'symbol');
+        const timestamp = this.safeInteger (contract, 'fundingTime');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
