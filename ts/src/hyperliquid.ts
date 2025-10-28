@@ -7,7 +7,7 @@ import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/fun
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -351,6 +351,34 @@ export default class hyperliquid extends Exchange {
     setSandboxMode (enabled) {
         super.setSandboxMode (enabled);
         this.options['sandboxMode'] = enabled;
+    }
+
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+        if (marketId !== undefined) {
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+                const markets = this.markets_by_id[marketId];
+                const numMarkets = markets.length;
+                if (numMarkets === 1) {
+                    return markets[0];
+                } else {
+                    if (numMarkets > 2) {
+                        throw new ExchangeError (this.id + ' safeMarket() found more than two markets with the same market id ' + marketId);
+                    }
+                    const firstMarket = markets[0];
+                    const secondMarket = markets[1];
+                    if (this.safeString (firstMarket, 'type') !== this.safeString (secondMarket, 'type')) {
+                        throw new ExchangeError (this.id + ' safeMarket() found two different market types with the same market id ' + marketId);
+                    }
+                    const baseCurrency = this.safeString (firstMarket, 'baseName');
+                    const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
+                    if (baseCurrency in spotCurrencyMapping) {
+                        return secondMarket;
+                    }
+                    return firstMarket;
+                }
+            }
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
     /**
