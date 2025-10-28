@@ -1165,6 +1165,9 @@ export default class hyperliquid extends Exchange {
                 // optimization if limit is provided
                 const timeframeInMilliseconds = this.parseTimeframe (timeframe) * 1000;
                 since = this.sum (until, timeframeInMilliseconds * limit * -1);
+                if (since < 0) {
+                    since = 0;
+                }
                 useTail = false;
             } else {
                 since = 0;
