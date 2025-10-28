@@ -1,3 +1,36 @@
+<a id="v4.5.13"></a>
+# [v4.5.13](https://github.com/ccxt/ccxt/releases/tag/v4.5.13) - 2025-10-27
+
+## What's Changed
+* feat(bybit): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27121](https://github.com/ccxt/ccxt/pull/27121)
+* fix(hibachi): sign by [@sc0Vu](https://github.com/sc0Vu) in [#27119](https://github.com/ccxt/ccxt/pull/27119)
+* fix(okx): add AUD fiat fallback currency by [@simbesh](https://github.com/simbesh) in [#27125](https://github.com/ccxt/ccxt/pull/27125)
+* feat(krakenfutures): parseFundingRate, add funding rate caps by [@Dan-krm](https://github.com/Dan-krm) in [#27117](https://github.com/ccxt/ccxt/pull/27117)
+* feat(bitmart): parseFundingRate, add fundingTimestamp by [@Dan-krm](https://github.com/Dan-krm) in [#27127](https://github.com/ccxt/ccxt/pull/27127)
+* fix(bitmart): futuresMessages parsing by [@carlosmiei](https://github.com/carlosmiei) in [#27128](https://github.com/ccxt/ccxt/pull/27128)
+* fix(toobit): ws trade marketid by [@ttodua](https://github.com/ttodua) in [#27131](https://github.com/ccxt/ccxt/pull/27131)
+* fix(defx): parseFundingRate, divide by 100 by [@Dan-krm](https://github.com/Dan-krm) in [#27126](https://github.com/ccxt/ccxt/pull/27126)
+* fix(c#): toArray support concurrentDict by [@carlosmiei](https://github.com/carlosmiei) in [#27130](https://github.com/ccxt/ccxt/pull/27130)
+* chore(bitrue): skip inactive by [@ttodua](https://github.com/ttodua) in [#27134](https://github.com/ccxt/ccxt/pull/27134)
+* chore(bigone): negative open  ^ by [@ttodua](https://github.com/ttodua) in [#27135](https://github.com/ccxt/ccxt/pull/27135)
+* fix(hyperliquid): place order with tp/sl through createOrderWithTakeP… by [@carlosmiei](https://github.com/carlosmiei) in [#27132](https://github.com/ccxt/ccxt/pull/27132)
+* fix(upbit): decompress binary messages in c# by [@carlosmiei](https://github.com/carlosmiei) in [#27136](https://github.com/ccxt/ccxt/pull/27136)
+* fix(deribit): ws auth in PHP by [@carlosmiei](https://github.com/carlosmiei) in [#27145](https://github.com/ccxt/ccxt/pull/27145)
+* feat(bithumb): Implement new private WebSocket API by [@irresi](https://github.com/irresi) in [#27138](https://github.com/ccxt/ccxt/pull/27138)
+* okx parseMarket fixes by [@ndubel](https://github.com/ndubel) in [#27149](https://github.com/ccxt/ccxt/pull/27149)
+* feat(arkham):  new exchange integration by [@ttodua](https://github.com/ttodua) in [#26494](https://github.com/ccxt/ccxt/pull/26494)
+* feat(hyperliquid): update fetchSpotMarkets, add spot currencies mapping by [@sc0Vu](https://github.com/sc0Vu) in [#27147](https://github.com/ccxt/ccxt/pull/27147)
+* fix(arkham): docs by [@carlosmiei](https://github.com/carlosmiei) in [#27150](https://github.com/ccxt/ccxt/pull/27150)
+* Go [bugfix]: Deadlock in WebSocket Client's LastPong Lock Mechanism [#27133](https://github.com/ccxt/ccxt/issues/27133) by [@Fiboniak](https://github.com/Fiboniak) in [#27139](https://github.com/ccxt/ccxt/pull/27139)
+
+## New Contributors
+* [@Fiboniak](https://github.com/Fiboniak) made their first contribution in [#27139](https://github.com/ccxt/ccxt/pull/27139)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.12...v4.5.13
+
+[Changes][v4.5.13]
+
+
 <a id="v4.5.12"></a>
 # [v4.5.12](https://github.com/ccxt/ccxt/releases/tag/v4.5.12) - 2025-10-22
 
@@ -10634,6 +10667,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.13]: https://github.com/ccxt/ccxt/compare/v4.5.12...v4.5.13
 [v4.5.12]: https://github.com/ccxt/ccxt/compare/v4.5.11...v4.5.12
 [v4.5.11]: https://github.com/ccxt/ccxt/compare/v4.5.10...v4.5.11
 [v4.5.10]: https://github.com/ccxt/ccxt/compare/v4.5.9...v4.5.10

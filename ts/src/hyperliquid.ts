@@ -222,6 +222,20 @@ export default class hyperliquid extends Exchange {
                 'sandboxMode': false,
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'spotCurrencyMapping': {
+                    'UDZ': '2Z',
+                    'UBONK': 'BONK',
+                    'UBTC': 'BTC',
+                    'UETH': 'ETH',
+                    'UFART': 'FARTCOIN',
+                    'HPENGU': 'PENGU',
+                    'UPUMP': 'PUMP',
+                    'USOL': 'SOL',
+                    'UUUSPX': 'SPX',
+                    'USDT0': 'USDT',
+                    'XAUT0': 'XAUT',
+                    'UXPL': 'XPL',
+                },
             },
             'features': {
                 'default': {
@@ -614,9 +628,13 @@ export default class hyperliquid extends Exchange {
             const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
             const baseName = this.safeString (baseTokenInfo, 'name');
             const quoteId = this.safeString (quoteTokenInfo, 'name');
-            const base = this.safeCurrencyCode (baseName);
-            const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            // do spot currency mapping
+            const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
+            const mappedBaseName = this.safeString (spotCurrencyMapping, baseName, baseName);
+            const mappedQuoteId = this.safeString (spotCurrencyMapping, quoteId, quoteId);
+            const mappedBase = this.safeCurrencyCode (mappedBaseName);
+            const mappedQuote = this.safeCurrencyCode (mappedQuoteId);
+            const mappedSymbol = mappedBase + '/' + mappedQuote;
             const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecisionStr = this.safeString (innerBaseTokenInfo, 'szDecimals');
@@ -629,11 +647,11 @@ export default class hyperliquid extends Exchange {
             const pricePrecisionStr = this.numberToString (pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (index + 10000);
-            markets.push (this.safeMarketStructure ({
+            const entry = {
                 'id': marketName,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
+                'symbol': mappedSymbol,
+                'base': mappedBase,
+                'quote': mappedQuote,
                 'settle': undefined,
                 'baseId': baseId,
                 'baseName': baseName,
@@ -681,7 +699,18 @@ export default class hyperliquid extends Exchange {
                 },
                 'created': undefined,
                 'info': this.extend (extraData, market),
-            }));
+            };
+            markets.push (this.safeMarketStructure (entry));
+            // backward support
+            const base = this.safeCurrencyCode (baseName);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            if (symbol !== mappedSymbol) {
+                entry['symbol'] = symbol;
+                entry['base'] = mappedBase;
+                entry['quote'] = mappedQuote;
+                markets.push (this.safeMarketStructure (entry));
+            }
         }
         return markets;
     }
@@ -1136,6 +1165,9 @@ export default class hyperliquid extends Exchange {
                 // optimization if limit is provided
                 const timeframeInMilliseconds = this.parseTimeframe (timeframe) * 1000;
                 since = this.sum (until, timeframeInMilliseconds * limit * -1);
+                if (since < 0) {
+                    since = 0;
+                }
                 useTail = false;
             } else {
                 since = 0;

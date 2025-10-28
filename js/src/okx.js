@@ -1679,6 +1679,12 @@ export default class okx extends Exchange {
             baseId = this.safeString(parts, 0);
             quoteId = this.safeString(parts, 1);
         }
+        if (((baseId === '') || (quoteId === '')) && spot) { // to fix weird preopen markets
+            const instId = this.safeString(market, 'instId', '');
+            const parts = instId.split('-');
+            baseId = this.safeString(parts, 0);
+            quoteId = this.safeString(parts, 1);
+        }
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = base + '/' + quote;
@@ -1711,6 +1717,7 @@ export default class okx extends Exchange {
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise.stringMax(maxLeverage, '1');
         const maxSpotCost = this.safeNumber(market, 'maxMktSz');
+        const status = this.safeString(market, 'state');
         return this.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -1726,7 +1733,7 @@ export default class okx extends Exchange {
             'swap': swap,
             'future': future,
             'option': option,
-            'active': true,
+            'active': status === 'live',
             'contract': contract,
             'linear': contract ? (quoteId === settleId) : undefined,
             'inverse': contract ? (baseId === settleId) : undefined,

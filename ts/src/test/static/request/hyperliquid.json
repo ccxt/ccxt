@@ -716,6 +716,26 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "fetch ohlcv  using standard name",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "BTC/USDC",
+                    "1h"
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"@142\",\"interval\":\"1h\",\"startTime\":0,\"endTime\":1761578683994}}"
+            },
+            {
+                "description": "fetch ohlcv  using standard name",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "PENGU/USDC",
+                    "1h"
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"@184\",\"interval\":\"1h\",\"startTime\":0,\"endTime\":1761578639495}}"
+            },
+            {
                 "description": "fetch ohlcv  with kilo pair",
                 "method": "fetchOHLCV",
                 "url": "https://api.hyperliquid.xyz/info",

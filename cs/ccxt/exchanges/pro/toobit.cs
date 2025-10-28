@@ -253,7 +253,8 @@ public partial class toobit : ccxt.toobit
         //     }
         //
         object marketId = this.safeString(message, "symbol");
-        object symbol = this.safeSymbol(marketId);
+        object market = this.safeMarket(marketId);
+        object symbol = getValue(market, "symbol");
         if (!isTrue((inOp(this.trades, symbol))))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -261,7 +262,7 @@ public partial class toobit : ccxt.toobit
         }
         object stored = getValue(this.trades, symbol);
         object data = this.safeList(message, "data", new List<object>() {});
-        object parsed = this.parseWsTrades(data);
+        object parsed = this.parseWsTrades(data, market);
         for (object i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
         {
             object trade = getValue(parsed, i);
