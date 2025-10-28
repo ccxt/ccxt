@@ -2247,17 +2247,8 @@ class websea extends websea$1["default"] {
                 }
             }
             else {
-                // POST请求：现货API使用表单提交，合约API使用JSON
-                if (finalPath.indexOf('contract') >= 0) {
-                    // 合约API使用JSON
-                    body = this.json(query);
-                    headers['Content-Type'] = 'application/json';
-                }
-                else {
-                    // 现货API使用表单提交
-                    body = this.urlencode(query);
-                    headers['Content-Type'] = 'application/x-www-form-urlencoded';
-                }
+                body = this.urlencode(query);
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         }
         else {

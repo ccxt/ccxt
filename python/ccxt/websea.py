@@ -2039,15 +2039,8 @@ class websea(Exchange, ImplicitAPI):
                     queryString = self.urlencode(query)
                     url += '?' + queryString
             else:
-                # POST请求：现货API使用表单提交，合约API使用JSON
-                if finalPath.find('contract') >= 0:
-                    # 合约API使用JSON
-                    body = self.json(query)
-                    headers['Content-Type'] = 'application/json'
-                else:
-                    # 现货API使用表单提交
-                    body = self.urlencode(query)
-                    headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                body = self.urlencode(query)
+                headers['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
             # 公共API请求
             if query:
