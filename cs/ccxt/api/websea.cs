@@ -56,44 +56,34 @@ public partial class websea : Exchange
         return await this.callAsync ("publicGetOpenApiMarketPrecision",parameters);
     }
 
-    public async Task<object> contractGetOpenApiContractSymbols (object parameters = null)
+    public async Task<object> publicGetOpenApiContractSymbols (object parameters = null)
     {
-        return await this.callAsync ("contractGetOpenApiContractSymbols",parameters);
+        return await this.callAsync ("publicGetOpenApiContractSymbols",parameters);
     }
 
-    public async Task<object> contractGetOpenApiContractPrecision (object parameters = null)
+    public async Task<object> publicGetOpenApiContractPrecision (object parameters = null)
     {
-        return await this.callAsync ("contractGetOpenApiContractPrecision",parameters);
+        return await this.callAsync ("publicGetOpenApiContractPrecision",parameters);
     }
 
-    public async Task<object> contractGetOpenApiContractTrade (object parameters = null)
+    public async Task<object> publicGetOpenApiContractTrade (object parameters = null)
     {
-        return await this.callAsync ("contractGetOpenApiContractTrade",parameters);
+        return await this.callAsync ("publicGetOpenApiContractTrade",parameters);
     }
 
-    public async Task<object> contractGetOpenApiContractDepth (object parameters = null)
+    public async Task<object> publicGetOpenApiContractDepth (object parameters = null)
     {
-        return await this.callAsync ("contractGetOpenApiContractDepth",parameters);
+        return await this.callAsync ("publicGetOpenApiContractDepth",parameters);
     }
 
-    public async Task<object> contractGetOpenApiContractKline (object parameters = null)
+    public async Task<object> publicGetOpenApiContractKline (object parameters = null)
     {
-        return await this.callAsync ("contractGetOpenApiContractKline",parameters);
+        return await this.callAsync ("publicGetOpenApiContractKline",parameters);
     }
 
-    public async Task<object> contractGetOpenApiContract24kline (object parameters = null)
+    public async Task<object> publicGetOpenApiContract24kline (object parameters = null)
     {
-        return await this.callAsync ("contractGetOpenApiContract24kline",parameters);
-    }
-
-    public async Task<object> contractGetOpenApiContractCurrentList (object parameters = null)
-    {
-        return await this.callAsync ("contractGetOpenApiContractCurrentList",parameters);
-    }
-
-    public async Task<object> contractGetOpenApiContractGetOrderDetail (object parameters = null)
-    {
-        return await this.callAsync ("contractGetOpenApiContractGetOrderDetail",parameters);
+        return await this.callAsync ("publicGetOpenApiContract24kline",parameters);
     }
 
     public async Task<object> privateGetOpenApiWalletList (object parameters = null)
@@ -116,16 +106,6 @@ public partial class websea : Exchange
         return await this.callAsync ("privateGetOpenApiEntrustStatus",parameters);
     }
 
-    public async Task<object> privateGetOpenApiFuturesEntrustOrderList (object parameters = null)
-    {
-        return await this.callAsync ("privateGetOpenApiFuturesEntrustOrderList",parameters);
-    }
-
-    public async Task<object> privateGetOpenApiFuturesPositionList (object parameters = null)
-    {
-        return await this.callAsync ("privateGetOpenApiFuturesPositionList",parameters);
-    }
-
     public async Task<object> privateGetOpenApiContractWalletListFull (object parameters = null)
     {
         return await this.callAsync ("privateGetOpenApiContractWalletListFull",parameters);
@@ -134,6 +114,16 @@ public partial class websea : Exchange
     public async Task<object> privateGetOpenApiContractPosition (object parameters = null)
     {
         return await this.callAsync ("privateGetOpenApiContractPosition",parameters);
+    }
+
+    public async Task<object> privateGetOpenApiContractCurrentList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenApiContractCurrentList",parameters);
+    }
+
+    public async Task<object> privateGetOpenApiContractGetOrderDetail (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenApiContractGetOrderDetail",parameters);
     }
 
     public async Task<object> privatePostOpenApiEntrustAdd (object parameters = null)
@@ -166,29 +156,14 @@ public partial class websea : Exchange
         return await this.callAsync ("privatePostOpenApiWalletDetail",parameters);
     }
 
-    public async Task<object> privatePostOpenApiFuturesEntrustAdd (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOpenApiFuturesEntrustAdd",parameters);
-    }
-
-    public async Task<object> privatePostOpenApiFuturesEntrustOrderDetail (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOpenApiFuturesEntrustOrderDetail",parameters);
-    }
-
-    public async Task<object> privatePostOpenApiFuturesPositionDetail (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOpenApiFuturesPositionDetail",parameters);
-    }
-
-    public async Task<object> privatePostOpenApiFuturesPositionSetLeverage (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOpenApiFuturesPositionSetLeverage",parameters);
-    }
-
     public async Task<object> privatePostOpenApiContractCancel (object parameters = null)
     {
         return await this.callAsync ("privatePostOpenApiContractCancel",parameters);
+    }
+
+    public async Task<object> privatePostOpenApiContractAdd (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenApiContractAdd",parameters);
     }
 
 }

@@ -5,7 +5,6 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [setLeverage](#setleverage)
 * [parseOrders](#parseorders)
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
@@ -24,28 +23,6 @@
 * [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
-
-<a name="setLeverage" id="setleverage"></a>
-
-### setLeverage{docsify-ignore}
-set the level of leverage for a market
-
-**Kind**: instance method of [<code>websea</code>](#websea)  
-**Returns**: <code>object</code> - response from the exchange
-
-**See**: https://webseaex.github.io/zh/#futures-trading-position-set-leverage  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| leverage | <code>float</code> | Yes | the rate of leverage |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-websea.setLeverage (leverage, symbol[, params])
-```
-
 
 <a name="parseOrders" id="parseorders"></a>
 

@@ -6392,7 +6392,6 @@ set the level of leverage for a market
 * [phemex](/exchanges/phemex.md#phemexsetleverage)
 * [poloniex](/exchanges/poloniex.md#poloniexsetleverage)
 * [toobit](/exchanges/toobit.md#toobitsetleverage)
-* [websea](/exchanges/websea.md#webseasetleverage)
 * [whitebit](/exchanges/whitebit.md#whitebitsetleverage)
 * [woo](/exchanges/woo.md#woosetleverage)
 * [woofipro](/exchanges/woofipro.md#woofiprosetleverage)

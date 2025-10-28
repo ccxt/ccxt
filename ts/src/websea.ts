@@ -210,11 +210,8 @@ export default class websea extends Exchange {
             'urls': {
                 'logo': 'https://webseaex.github.io/favicon.ico',
                 'api': {
-                    'rest': 'https://oapi.websea.com',
-                    'contract': 'https://coapi.websea.com',
-                },
-                'test': {
-                    'rest': 'https://oapi.websea.com',
+                    'spot': 'https://oapi.websea.com',
+                    'swap': 'https://coapi.websea.com',
                 },
                 'www': 'https://www.websea.com',
                 'doc': [
@@ -246,18 +243,12 @@ export default class websea extends Exchange {
                         'openApi/market/24kline': 1, // 24小时K线数据
                         'openApi/market/24kline-list': 1, // 24小时市场列表
                         'openApi/market/precision': 1, // 交易对精度
-                    },
-                },
-                'contract': {
-                    'get': {
                         'openApi/contract/symbols': 1, // 合约交易对列表
                         'openApi/contract/precision': 1, // 合约交易对精度
                         'openApi/contract/trade': 1, // 合约交易记录
                         'openApi/contract/depth': 1, // 合约市场深度
                         'openApi/contract/kline': 1, // 合约K线数据
                         'openApi/contract/24kline': 1, // 合约24小时K线数据
-                        'openApi/contract/currentList': 1, // 合约当前委托列表
-                        'openApi/contract/getOrderDetail': 1, // 合约订单详情
                     },
                 },
                 'private': {
@@ -268,6 +259,8 @@ export default class websea extends Exchange {
                         'openApi/entrust/status': 1, // 现货订单详情（查询委托详情）
                         'openApi/contract/walletList/full': 1, // 全仓资产列表
                         'openApi/contract/position': 1, // 合约持仓查询
+                        'openApi/contract/currentList': 1, // 合约当前委托列表
+                        'openApi/contract/getOrderDetail': 1, // 合约订单详情
                     },
                     'post': {
                         'openApi/entrust/add': 1, // 现货下单
@@ -810,8 +803,8 @@ export default class websea extends Exchange {
             // 合约市场：并发请求symbols和precision接口
             try {
                 const promises = [
-                    this.contractGetOpenApiContractSymbols (params),
-                    this.contractGetOpenApiContractPrecision (params),
+                    this.publicGetOpenApiContractSymbols (params),
+                    this.publicGetOpenApiContractPrecision (params),
                 ];
                 const [ symbolsResponse, precisionResponse ] = await Promise.all (promises);
                 const symbolsList = this.safeValue (symbolsResponse, 'result', []);
@@ -1215,7 +1208,7 @@ export default class websea extends Exchange {
         let response = null;  // 预先初始化，避免代码生成问题
         if (market['type'] === 'swap') {
             // 合约市场使用合约API
-            response = await this.contractGetOpenApiContract24kline (this.extend (request, params));
+            response = await this.publicGetOpenApiContract24kline (this.extend (request, params));
         } else {
             // 现货市场使用现货API
             response = await this.publicGetOpenApiMarket24kline (this.extend (request, params));
@@ -1251,7 +1244,7 @@ export default class websea extends Exchange {
         // 并发获取现货和合约市场的ticker数据
         const promises = [
             this.publicGetOpenApiMarket24kline (params),
-            this.contractGetOpenApiContract24kline (params),
+            this.publicGetOpenApiContract24kline (params),
         ];
         const [ spotResponse, swapResponse ] = await Promise.all (promises);
         const spotResult = this.safeValue (spotResponse, 'result', []);
@@ -2074,7 +2067,7 @@ export default class websea extends Exchange {
         if (marketType === 'swap') {
             // 合约订单详情 - 使用GET方法和正确的端点
             request['order_id'] = id;
-            response = await this.contractGetOpenApiContractGetOrderDetail (this.extend (request, query));
+            response = await this.privateGetOpenApiContractGetOrderDetail (this.extend (request, query));
         } else {
             // 现货订单详情 - 使用GET方法和正确的端点
             request['order_sn'] = id;
@@ -2159,7 +2152,7 @@ export default class websea extends Exchange {
         let response = undefined;
         if (marketType === 'swap') {
             // 期货当前订单列表
-            response = await this.contractGetOpenApiContractCurrentList (this.extend (request, query));
+            response = await this.privateGetOpenApiContractCurrentList (this.extend (request, query));
         } else if (marketType === 'spot') {
             // 现货当前委托列表 - 使用正确的API端点
             response = await this.privateGetOpenApiEntrustCurrentList (this.extend (request, query));
@@ -2247,15 +2240,15 @@ export default class websea extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'];
+        let url = this.urls['api']['spot'];
         const finalPath = path;
         // Determine the correct API endpoint URL based on the final path
-        if (api === 'contract' || (api === 'private' && finalPath.indexOf ('contract') >= 0)) {
-            url = this.urls['api']['contract'];
+        if (finalPath.indexOf ('contract') >= 0) {
+            url = this.urls['api']['swap'];
         }
         url += '/' + finalPath;
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'private' || api === 'contract') {  // Also handle contract API as private
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             // Websea API签名要求：timestamp_5random格式
             const timestamp = this.seconds ().toString ();
@@ -2291,7 +2284,7 @@ export default class websea extends Exchange {
                 }
             } else {
                 // POST请求：现货API使用表单提交，合约API使用JSON
-                if (api === 'contract') {
+                if (finalPath.indexOf ('contract') >= 0) {
                     // 合约API使用JSON
                     body = this.json (query);
                     headers['Content-Type'] = 'application/json';

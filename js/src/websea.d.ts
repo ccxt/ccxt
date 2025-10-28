@@ -6,7 +6,6 @@ import type { Int, OHLCV, Order, OrderSide, OrderType, Str, Trade, Balances, Tic
  */
 export default class websea extends Exchange {
     describe(): any;
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): any;
     parseOrders(orders: object, market?: Market, since?: Int, limit?: Int, params?: {}): Order[];

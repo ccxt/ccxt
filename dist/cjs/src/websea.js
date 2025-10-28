@@ -191,11 +191,8 @@ class websea extends websea$1["default"] {
             'urls': {
                 'logo': 'https://webseaex.github.io/favicon.ico',
                 'api': {
-                    'rest': 'https://oapi.websea.com',
-                    'contract': 'https://coapi.websea.com',
-                },
-                'test': {
-                    'rest': 'https://oapi.websea.com',
+                    'spot': 'https://oapi.websea.com',
+                    'swap': 'https://coapi.websea.com',
                 },
                 'www': 'https://www.websea.com',
                 'doc': [
@@ -226,19 +223,13 @@ class websea extends websea$1["default"] {
                         'openApi/market/kline': 1,
                         'openApi/market/24kline': 1,
                         'openApi/market/24kline-list': 1,
-                        'openApi/market/precision': 1, // 交易对精度
-                    },
-                },
-                'contract': {
-                    'get': {
+                        'openApi/market/precision': 1,
                         'openApi/contract/symbols': 1,
                         'openApi/contract/precision': 1,
                         'openApi/contract/trade': 1,
                         'openApi/contract/depth': 1,
                         'openApi/contract/kline': 1,
-                        'openApi/contract/24kline': 1,
-                        'openApi/contract/currentList': 1,
-                        'openApi/contract/getOrderDetail': 1, // 合约订单详情
+                        'openApi/contract/24kline': 1, // 合约24小时K线数据
                     },
                 },
                 'private': {
@@ -247,10 +238,10 @@ class websea extends websea$1["default"] {
                         'openApi/entrust/historyList': 1,
                         'openApi/entrust/currentList': 1,
                         'openApi/entrust/status': 1,
-                        'openApi/futures/entrust/orderList': 1,
-                        'openApi/futures/position/list': 1,
                         'openApi/contract/walletList/full': 1,
-                        'openApi/contract/position': 1, // 合约持仓查询
+                        'openApi/contract/position': 1,
+                        'openApi/contract/currentList': 1,
+                        'openApi/contract/getOrderDetail': 1, // 合约订单详情
                     },
                     'post': {
                         'openApi/entrust/add': 1,
@@ -259,11 +250,8 @@ class websea extends websea$1["default"] {
                         'openApi/entrust/orderTrade': 1,
                         'openApi/entrust/historyDetail': 1,
                         'openApi/wallet/detail': 1,
-                        'openApi/futures/entrust/add': 1,
-                        'openApi/futures/entrust/orderDetail': 1,
-                        'openApi/futures/position/detail': 1,
-                        'openApi/futures/position/setLeverage': 1,
-                        'openApi/contract/cancel': 1, // 合约取消订单
+                        'openApi/contract/cancel': 1,
+                        'openApi/contract/add': 1, // 合约下单
                     },
                 },
             },
@@ -338,28 +326,6 @@ class websea extends websea$1["default"] {
             },
         });
     }
-    async setLeverage(leverage, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name websea#setLeverage
-         * @description set the level of leverage for a market
-         * @see https://webseaex.github.io/zh/#futures-trading-position-set-leverage
-         * @param {float} leverage the rate of leverage
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} response from the exchange
-         */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        if (market['type'] !== 'swap') {
-            throw new errors.BadSymbol(this.id + ' setLeverage() supports swap contracts only');
-        }
-        const request = {
-            'symbol': market['id'],
-            'leverage': leverage,
-        };
-        return await this.privatePostOpenApiFuturesPositionSetLeverage(this.extend(request, params));
-    }
     parseOrder(order, market = undefined) {
         //
         // Spot current orders: openApi/entrust/currentList
@@ -378,7 +344,7 @@ class websea extends websea$1["default"] {
         //         "status": 1
         //     }
         //
-        // Futures current orders: openApi/contract/currentList
+        // contract current orders: openApi/contract/currentList
         //     {
         //         "order_id": "BG5000181583375122413SZXEIX",
         //         "ctime": 1576746253,
@@ -412,9 +378,9 @@ class websea extends websea$1["default"] {
         }
         market = resolvedMarket;
         const symbol = market['symbol'];
-        // Get order ID - prefer order_sn for spot, order_id for futures
+        // Get order ID - prefer order_sn for spot, order_id for contract
         const id = this.safeString2(order, 'order_sn', 'order_id');
-        // Parse timestamp - spot uses string format, futures uses timestamp
+        // Parse timestamp - spot uses string format, contract uses timestamp
         let timestamp = undefined;
         const ctimeString = this.safeString(order, 'ctime');
         if (ctimeString !== undefined && ctimeString.length > 0) {
@@ -485,7 +451,7 @@ class websea extends websea$1["default"] {
         if (side === undefined) {
             const typeValue = this.safeString(order, 'type');
             if (typeValue !== undefined) {
-                // For futures: type may be like "buy-limit", "sell-market"
+                // For contract: type may be like "buy-limit", "sell-market"
                 if (typeValue.startsWith('buy')) {
                     side = 'buy';
                 }
@@ -497,7 +463,7 @@ class websea extends websea$1["default"] {
         // Determine order type
         let type = this.safeString(order, 'type');
         if (type !== undefined) {
-            // For futures: type is like "buy-limit", "sell-market", etc
+            // For contract: type is like "buy-limit", "sell-market", etc
             if (type.indexOf('-') >= 0) {
                 if (type.indexOf('-limit') >= 0) {
                     type = 'limit';
@@ -545,7 +511,7 @@ class websea extends websea$1["default"] {
         }
         // Average price
         const average = this.safeNumber(order, 'deal_price');
-        // Extract other fields for futures orders
+        // Extract other fields for contract orders
         const leverage = this.safeInteger(order, 'lever_rate');
         const triggerPrice = this.safeNumber(order, 'trigger_price');
         const stopLossPrice = this.safeNumber(order, 'stop_loss_price');
@@ -617,7 +583,7 @@ class websea extends websea$1["default"] {
             return 'canceled'; // 撤销中
         }
         else if (status === '3') {
-            // Futures market status values: 1=挂单中, 2=部分成交, 3=已成交, 4=撤销中, 5=部分撤销, 6=已撤销
+            // contract market status values: 1=挂单中, 2=部分成交, 3=已成交, 4=撤销中, 5=部分撤销, 6=已撤销
             return 'closed'; // 已成交
         }
         else if (status === '5') {
@@ -833,8 +799,8 @@ class websea extends websea$1["default"] {
             // 合约市场：并发请求symbols和precision接口
             try {
                 const promises = [
-                    this.contractGetOpenApiContractSymbols(params),
-                    this.contractGetOpenApiContractPrecision(params),
+                    this.publicGetOpenApiContractSymbols(params),
+                    this.publicGetOpenApiContractPrecision(params),
                 ];
                 const [symbolsResponse, precisionResponse] = await Promise.all(promises);
                 const symbolsList = this.safeValue(symbolsResponse, 'result', []);
@@ -1233,7 +1199,7 @@ class websea extends websea$1["default"] {
         let response = null; // 预先初始化，避免代码生成问题
         if (market['type'] === 'swap') {
             // 合约市场使用合约API
-            response = await this.contractGetOpenApiContract24kline(this.extend(request, params));
+            response = await this.publicGetOpenApiContract24kline(this.extend(request, params));
         }
         else {
             // 现货市场使用现货API
@@ -1270,7 +1236,7 @@ class websea extends websea$1["default"] {
         // 并发获取现货和合约市场的ticker数据
         const promises = [
             this.publicGetOpenApiMarket24kline(params),
-            this.contractGetOpenApiContract24kline(params),
+            this.publicGetOpenApiContract24kline(params),
         ];
         const [spotResponse, swapResponse] = await Promise.all(promises);
         const spotResult = this.safeValue(spotResponse, 'result', []);
@@ -1881,7 +1847,7 @@ class websea extends websea$1["default"] {
             // 移除已处理的参数
             const cleanParams = this.omit(marginQuery, ['reduceOnly', 'leverage', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
             // 合约下单
-            response = await this.privatePostOpenApiFuturesEntrustAdd(this.extend(request, cleanParams));
+            response = await this.privatePostOpenApiContractAdd(this.extend(request, cleanParams));
             orderIdField = 'order_id'; // 合约使用order_id
         }
         else {
@@ -2086,7 +2052,7 @@ class websea extends websea$1["default"] {
         if (marketType === 'swap') {
             // 合约订单详情 - 使用GET方法和正确的端点
             request['order_id'] = id;
-            response = await this.contractGetOpenApiContractGetOrderDetail(this.extend(request, query));
+            response = await this.privateGetOpenApiContractGetOrderDetail(this.extend(request, query));
         }
         else {
             // 现货订单详情 - 使用GET方法和正确的端点
@@ -2171,7 +2137,7 @@ class websea extends websea$1["default"] {
         let response = undefined;
         if (marketType === 'swap') {
             // 期货当前订单列表
-            response = await this.contractGetOpenApiContractCurrentList(this.extend(request, query));
+            response = await this.privateGetOpenApiContractCurrentList(this.extend(request, query));
         }
         else if (marketType === 'spot') {
             // 现货当前委托列表 - 使用正确的API端点
@@ -2260,40 +2226,15 @@ class websea extends websea$1["default"] {
         return this.parseOrders(filteredResult, undefined, since, limit, params);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'];
-        let finalPath = path;
-        // For Websea, map futures-related paths to contract paths
-        if (path.indexOf('futures/entrust/orderList') >= 0) {
-            finalPath = 'openApi/contract/currentList';
-        }
-        else if (path.indexOf('entrust/currentList') >= 0) {
-            finalPath = 'openApi/entrust/currentList';
-        }
-        else if (path.indexOf('futures/entrust/add') >= 0) {
-            finalPath = 'openApi/contract/add';
-        }
-        else if (path.indexOf('futures/entrust/cancel') >= 0) {
-            finalPath = 'openApi/contract/cancel';
-        }
-        else if (path.indexOf('futures/entrust/orderDetail') >= 0) {
-            finalPath = 'openApi/contract/getOrderDetail';
-        }
-        else if (path.indexOf('futures/position/list') >= 0) {
-            finalPath = 'openApi/contract/position';
-        }
-        else if (path.indexOf('futures/position/detail') >= 0) {
-            finalPath = 'openApi/contract/position';
-        }
-        else if (path.indexOf('futures/position/setLeverage') >= 0) {
-            finalPath = 'openApi/contract/setLeverage';
-        }
+        let url = this.urls['api']['spot'];
+        const finalPath = path;
         // Determine the correct API endpoint URL based on the final path
-        if (api === 'contract' || (api === 'private' && (finalPath.indexOf('futures') >= 0 || finalPath.indexOf('contract') >= 0))) {
-            url = this.urls['api']['contract'];
+        if (finalPath.indexOf('contract') >= 0) {
+            url = this.urls['api']['swap'];
         }
         url += '/' + finalPath;
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'private' || api === 'contract') { // Also handle contract API as private
+        if (api === 'private') {
             this.checkRequiredCredentials();
             // Websea API签名要求：timestamp_5random格式
             const timestamp = this.seconds().toString();
@@ -2330,7 +2271,7 @@ class websea extends websea$1["default"] {
             }
             else {
                 // POST请求：现货API使用表单提交，合约API使用JSON
-                if (api === 'contract') {
+                if (finalPath.indexOf('contract') >= 0) {
                     // 合约API使用JSON
                     body = this.json(query);
                     headers['Content-Type'] = 'application/json';

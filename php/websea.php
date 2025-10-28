@@ -186,11 +186,8 @@ class websea extends Exchange {
             'urls' => array(
                 'logo' => 'https://webseaex.github.io/favicon.ico',
                 'api' => array(
-                    'rest' => 'https://oapi.websea.com',
-                    'contract' => 'https://coapi.websea.com',
-                ),
-                'test' => array(
-                    'rest' => 'https://oapi.websea.com',
+                    'spot' => 'https://oapi.websea.com',
+                    'swap' => 'https://coapi.websea.com',
                 ),
                 'www' => 'https://www.websea.com',
                 'doc' => array(
@@ -222,18 +219,12 @@ class websea extends Exchange {
                         'openApi/market/24kline' => 1, // 24小时K线数据
                         'openApi/market/24kline-list' => 1, // 24小时市场列表
                         'openApi/market/precision' => 1, // 交易对精度
-                    ),
-                ),
-                'contract' => array(
-                    'get' => array(
                         'openApi/contract/symbols' => 1, // 合约交易对列表
                         'openApi/contract/precision' => 1, // 合约交易对精度
                         'openApi/contract/trade' => 1, // 合约交易记录
                         'openApi/contract/depth' => 1, // 合约市场深度
                         'openApi/contract/kline' => 1, // 合约K线数据
                         'openApi/contract/24kline' => 1, // 合约24小时K线数据
-                        'openApi/contract/currentList' => 1, // 合约当前委托列表
-                        'openApi/contract/getOrderDetail' => 1, // 合约订单详情
                     ),
                 ),
                 'private' => array(
@@ -242,10 +233,10 @@ class websea extends Exchange {
                         'openApi/entrust/historyList' => 1, // 历史订单列表 - 已完成订单
                         'openApi/entrust/currentList' => 1, // 现货当前委托列表
                         'openApi/entrust/status' => 1, // 现货订单详情（查询委托详情）
-                        'openApi/futures/entrust/orderList' => 1, // 期货当前订单列表
-                        'openApi/futures/position/list' => 1, // 期货持仓列表
                         'openApi/contract/walletList/full' => 1, // 全仓资产列表
                         'openApi/contract/position' => 1, // 合约持仓查询
+                        'openApi/contract/currentList' => 1, // 合约当前委托列表
+                        'openApi/contract/getOrderDetail' => 1, // 合约订单详情
                     ),
                     'post' => array(
                         'openApi/entrust/add' => 1, // 现货下单
@@ -254,11 +245,8 @@ class websea extends Exchange {
                         'openApi/entrust/orderTrade' => 1, // 现货订单成交记录
                         'openApi/entrust/historyDetail' => 1, // 历史订单详情
                         'openApi/wallet/detail' => 1, // 钱包详情
-                        'openApi/futures/entrust/add' => 1, // 期货下单
-                        'openApi/futures/entrust/orderDetail' => 1, // 期货订单详情
-                        'openApi/futures/position/detail' => 1, // 期货持仓详情
-                        'openApi/futures/position/setLeverage' => 1, // 期货设置杠杆
                         'openApi/contract/cancel' => 1, // 合约取消订单
+                        'openApi/contract/add' => 1, // 合约下单
                     ),
                 ),
             ),
@@ -334,27 +322,6 @@ class websea extends Exchange {
         ));
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
-        /**
-         * set the level of $leverage for a $market
-         * @see https://webseaex.github.io/zh/#futures-trading-position-set-$leverage
-         * @param {float} $leverage the rate of $leverage
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} response from the exchange
-         */
-        $this->load_markets();
-        $market = $this->market($symbol);
-        if ($market['type'] !== 'swap') {
-            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'leverage' => $leverage,
-        );
-        return $this->privatePostOpenApiFuturesPositionSetLeverage ($this->extend($request, $params));
-    }
-
     public function parse_order($order, ?array $market = null): array {
         //
         // Spot current orders => openApi/entrust/currentList
@@ -373,7 +340,7 @@ class websea extends Exchange {
         //         "status" => 1
         //     }
         //
-        // Futures current orders => openApi/contract/currentList
+        // contract current orders => openApi/contract/currentList
         //     {
         //         "order_id" => "BG5000181583375122413SZXEIX",
         //         "ctime" => 1576746253,
@@ -406,9 +373,9 @@ class websea extends Exchange {
         }
         $market = $resolvedMarket;
         $symbol = $market['symbol'];
-        // Get $order ID - prefer order_sn for spot, order_id for futures
+        // Get $order ID - prefer order_sn for spot, order_id for contract
         $id = $this->safe_string_2($order, 'order_sn', 'order_id');
-        // Parse $timestamp - spot uses string format, futures uses $timestamp
+        // Parse $timestamp - spot uses string format, contract uses $timestamp
         $timestamp = null;
         $ctimeString = $this->safe_string($order, 'ctime');
         if ($ctimeString !== null && strlen($ctimeString) > 0) {
@@ -475,7 +442,7 @@ class websea extends Exchange {
         if ($side === null) {
             $typeValue = $this->safe_string($order, 'type');
             if ($typeValue !== null) {
-                // For futures => $type may be like "buy-limit", "sell-$market"
+                // For contract => $type may be like "buy-limit", "sell-$market"
                 if (str_starts_with($typeValue, 'buy')) {
                     $side = 'buy';
                 } elseif (str_starts_with($typeValue, 'sell')) {
@@ -486,7 +453,7 @@ class websea extends Exchange {
         // Determine $order $type
         $type = $this->safe_string($order, 'type');
         if ($type !== null) {
-            // For futures => $type is like "buy-limit", "sell-$market", etc
+            // For contract => $type is like "buy-limit", "sell-$market", etc
             if (mb_strpos($type, '-') !== false) {
                 if (mb_strpos($type, '-limit') !== false) {
                     $type = 'limit';
@@ -529,7 +496,7 @@ class websea extends Exchange {
         }
         // Average $price
         $average = $this->safe_number($order, 'deal_price');
-        // Extract other fields for futures orders
+        // Extract other fields for contract orders
         $leverage = $this->safe_integer($order, 'lever_rate');
         $triggerPrice = $this->safe_number($order, 'trigger_price');
         $stopLossPrice = $this->safe_number($order, 'stop_loss_price');
@@ -598,7 +565,7 @@ class websea extends Exchange {
         } elseif ($status === '4') {
             return 'canceled';  // 撤销中
         } elseif ($status === '3') {
-            // Futures market $status values => 1=挂单中, 2=部分成交, 3=已成交, 4=撤销中, 5=部分撤销, 6=已撤销
+            // contract market $status values => 1=挂单中, 2=部分成交, 3=已成交, 4=撤销中, 5=部分撤销, 6=已撤销
             return 'closed';  // 已成交
         } elseif ($status === '5') {
             return 'canceled';  // 部分撤销
@@ -808,8 +775,8 @@ class websea extends Exchange {
             // 合约市场：并发请求symbols和$precision接口
             try {
                 $promises = array(
-                    $this->contractGetOpenApiContractSymbols ($params),
-                    $this->contractGetOpenApiContractPrecision ($params),
+                    $this->publicGetOpenApiContractSymbols ($params),
+                    $this->publicGetOpenApiContractPrecision ($params),
                 );
                 list($symbolsResponse, $precisionResponse) = $promises;
                 $symbolsList = $this->safe_value($symbolsResponse, 'result', array());
@@ -1207,7 +1174,7 @@ class websea extends Exchange {
         $response = null;  // 预先初始化，避免代码生成问题
         if ($market['type'] === 'swap') {
             // 合约市场使用合约API
-            $response = $this->contractGetOpenApiContract24kline ($this->extend($request, $params));
+            $response = $this->publicGetOpenApiContract24kline ($this->extend($request, $params));
         } else {
             // 现货市场使用现货API
             $response = $this->publicGetOpenApiMarket24kline ($this->extend($request, $params));
@@ -1241,7 +1208,7 @@ class websea extends Exchange {
         // 并发获取现货和合约市场的$ticker数据
         $promises = array(
             $this->publicGetOpenApiMarket24kline ($params),
-            $this->contractGetOpenApiContract24kline ($params),
+            $this->publicGetOpenApiContract24kline ($params),
         );
         list($spotResponse, $swapResponse) = $promises;
         $spotResult = $this->safe_value($spotResponse, 'result', array());
@@ -1845,7 +1812,7 @@ class websea extends Exchange {
             // 移除已处理的参数
             $cleanParams = $this->omit($marginQuery, array( 'reduceOnly', 'leverage', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
             // 合约下单
-            $response = $this->privatePostOpenApiFuturesEntrustAdd ($this->extend($request, $cleanParams));
+            $response = $this->privatePostOpenApiContractAdd ($this->extend($request, $cleanParams));
             $orderIdField = 'order_id'; // 合约使用order_id
         } else {
             // 现货下单
@@ -2044,7 +2011,7 @@ class websea extends Exchange {
         if ($marketType === 'swap') {
             // 合约订单详情 - 使用GET方法和正确的端点
             $request['order_id'] = $id;
-            $response = $this->contractGetOpenApiContractGetOrderDetail ($this->extend($request, $query));
+            $response = $this->privateGetOpenApiContractGetOrderDetail ($this->extend($request, $query));
         } else {
             // 现货订单详情 - 使用GET方法和正确的端点
             $request['order_sn'] = $id;
@@ -2127,7 +2094,7 @@ class websea extends Exchange {
         $response = null;
         if ($marketType === 'swap') {
             // 期货当前订单列表
-            $response = $this->contractGetOpenApiContractCurrentList ($this->extend($request, $query));
+            $response = $this->privateGetOpenApiContractCurrentList ($this->extend($request, $query));
         } elseif ($marketType === 'spot') {
             // 现货当前委托列表 - 使用正确的API端点
             $response = $this->privateGetOpenApiEntrustCurrentList ($this->extend($request, $query));
@@ -2213,33 +2180,15 @@ class websea extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api']['rest'];
+        $url = $this->urls['api']['spot'];
         $finalPath = $path;
-        // For Websea, map futures-related paths to contract paths
-        if (mb_strpos($path, 'futures/entrust/orderList') !== false) {
-            $finalPath = 'openApi/contract/currentList';
-        } elseif (mb_strpos($path, 'entrust/currentList') !== false) {
-            $finalPath = 'openApi/entrust/currentList';
-        } elseif (mb_strpos($path, 'futures/entrust/add') !== false) {
-            $finalPath = 'openApi/contract/add';
-        } elseif (mb_strpos($path, 'futures/entrust/cancel') !== false) {
-            $finalPath = 'openApi/contract/cancel';
-        } elseif (mb_strpos($path, 'futures/entrust/orderDetail') !== false) {
-            $finalPath = 'openApi/contract/getOrderDetail';
-        } elseif (mb_strpos($path, 'futures/position/list') !== false) {
-            $finalPath = 'openApi/contract/position';
-        } elseif (mb_strpos($path, 'futures/position/detail') !== false) {
-            $finalPath = 'openApi/contract/position';
-        } elseif (mb_strpos($path, 'futures/position/setLeverage') !== false) {
-            $finalPath = 'openApi/contract/setLeverage';
-        }
         // Determine the correct API endpoint URL based on the final $path
-        if ($api === 'contract' || ($api === 'private' && (mb_strpos($finalPath, 'futures') !== false || mb_strpos($finalPath, 'contract') !== false))) {
-            $url = $this->urls['api']['contract'];
+        if (mb_strpos($finalPath, 'contract') !== false) {
+            $url = $this->urls['api']['swap'];
         }
         $url .= '/' . $finalPath;
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'private' || $api === 'contract') {  // Also handle contract API
+        if ($api === 'private') {
             $this->check_required_credentials();
             // Websea API签名要求：timestamp_5random格式
             $timestamp = (string) $this->seconds();
@@ -2275,7 +2224,7 @@ class websea extends Exchange {
                 }
             } else {
                 // POST请求：现货API使用表单提交，合约API使用JSON
-                if ($api === 'contract') {
+                if (mb_strpos($finalPath, 'contract') !== false) {
                     // 合约API使用JSON
                     $body = $this->json($query);
                     $headers['Content-Type'] = 'application/json';

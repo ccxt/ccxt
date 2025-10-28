@@ -10,33 +10,28 @@ interface Exchange {
     publicGetOpenApiMarket24kline(params?: {}): Promise<implicitReturnType>;
     publicGetOpenApiMarket24klineList(params?: {}): Promise<implicitReturnType>;
     publicGetOpenApiMarketPrecision(params?: {}): Promise<implicitReturnType>;
-    contractGetOpenApiContractSymbols(params?: {}): Promise<implicitReturnType>;
-    contractGetOpenApiContractPrecision(params?: {}): Promise<implicitReturnType>;
-    contractGetOpenApiContractTrade(params?: {}): Promise<implicitReturnType>;
-    contractGetOpenApiContractDepth(params?: {}): Promise<implicitReturnType>;
-    contractGetOpenApiContractKline(params?: {}): Promise<implicitReturnType>;
-    contractGetOpenApiContract24kline(params?: {}): Promise<implicitReturnType>;
-    contractGetOpenApiContractCurrentList(params?: {}): Promise<implicitReturnType>;
-    contractGetOpenApiContractGetOrderDetail(params?: {}): Promise<implicitReturnType>;
+    publicGetOpenApiContractSymbols(params?: {}): Promise<implicitReturnType>;
+    publicGetOpenApiContractPrecision(params?: {}): Promise<implicitReturnType>;
+    publicGetOpenApiContractTrade(params?: {}): Promise<implicitReturnType>;
+    publicGetOpenApiContractDepth(params?: {}): Promise<implicitReturnType>;
+    publicGetOpenApiContractKline(params?: {}): Promise<implicitReturnType>;
+    publicGetOpenApiContract24kline(params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiWalletList(params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiEntrustHistoryList(params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiEntrustCurrentList(params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiEntrustStatus(params?: {}): Promise<implicitReturnType>;
-    privateGetOpenApiFuturesEntrustOrderList(params?: {}): Promise<implicitReturnType>;
-    privateGetOpenApiFuturesPositionList(params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiContractWalletListFull(params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiContractPosition(params?: {}): Promise<implicitReturnType>;
+    privateGetOpenApiContractCurrentList(params?: {}): Promise<implicitReturnType>;
+    privateGetOpenApiContractGetOrderDetail(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustAdd(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustCancel(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustOrderDetail(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustOrderTrade(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustHistoryDetail(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiWalletDetail(params?: {}): Promise<implicitReturnType>;
-    privatePostOpenApiFuturesEntrustAdd(params?: {}): Promise<implicitReturnType>;
-    privatePostOpenApiFuturesEntrustOrderDetail(params?: {}): Promise<implicitReturnType>;
-    privatePostOpenApiFuturesPositionDetail(params?: {}): Promise<implicitReturnType>;
-    privatePostOpenApiFuturesPositionSetLeverage(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiContractCancel(params?: {}): Promise<implicitReturnType>;
+    privatePostOpenApiContractAdd(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

@@ -34,29 +34,23 @@ abstract class websea extends \ccxt\Exchange {
     public function public_get_openapi_market_precision($params = array()) {
         return $this->request('openApi/market/precision', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contract_get_openapi_contract_symbols($params = array()) {
-        return $this->request('openApi/contract/symbols', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_contract_symbols($params = array()) {
+        return $this->request('openApi/contract/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contract_get_openapi_contract_precision($params = array()) {
-        return $this->request('openApi/contract/precision', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_contract_precision($params = array()) {
+        return $this->request('openApi/contract/precision', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contract_get_openapi_contract_trade($params = array()) {
-        return $this->request('openApi/contract/trade', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_contract_trade($params = array()) {
+        return $this->request('openApi/contract/trade', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contract_get_openapi_contract_depth($params = array()) {
-        return $this->request('openApi/contract/depth', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_contract_depth($params = array()) {
+        return $this->request('openApi/contract/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contract_get_openapi_contract_kline($params = array()) {
-        return $this->request('openApi/contract/kline', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_contract_kline($params = array()) {
+        return $this->request('openApi/contract/kline', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contract_get_openapi_contract_24kline($params = array()) {
-        return $this->request('openApi/contract/24kline', 'contract', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_get_openapi_contract_currentlist($params = array()) {
-        return $this->request('openApi/contract/currentList', 'contract', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contract_get_openapi_contract_getorderdetail($params = array()) {
-        return $this->request('openApi/contract/getOrderDetail', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_contract_24kline($params = array()) {
+        return $this->request('openApi/contract/24kline', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_openapi_wallet_list($params = array()) {
         return $this->request('openApi/wallet/list', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -70,17 +64,17 @@ abstract class websea extends \ccxt\Exchange {
     public function private_get_openapi_entrust_status($params = array()) {
         return $this->request('openApi/entrust/status', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_openapi_futures_entrust_orderlist($params = array()) {
-        return $this->request('openApi/futures/entrust/orderList', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function private_get_openapi_futures_position_list($params = array()) {
-        return $this->request('openApi/futures/position/list', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function private_get_openapi_contract_walletlist_full($params = array()) {
         return $this->request('openApi/contract/walletList/full', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_openapi_contract_position($params = array()) {
         return $this->request('openApi/contract/position', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_openapi_contract_currentlist($params = array()) {
+        return $this->request('openApi/contract/currentList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_openapi_contract_getorderdetail($params = array()) {
+        return $this->request('openApi/contract/getOrderDetail', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_post_openapi_entrust_add($params = array()) {
         return $this->request('openApi/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -100,20 +94,11 @@ abstract class websea extends \ccxt\Exchange {
     public function private_post_openapi_wallet_detail($params = array()) {
         return $this->request('openApi/wallet/detail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_openapi_futures_entrust_add($params = array()) {
-        return $this->request('openApi/futures/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function private_post_openapi_futures_entrust_orderdetail($params = array()) {
-        return $this->request('openApi/futures/entrust/orderDetail', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function private_post_openapi_futures_position_detail($params = array()) {
-        return $this->request('openApi/futures/position/detail', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function private_post_openapi_futures_position_setleverage($params = array()) {
-        return $this->request('openApi/futures/position/setLeverage', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
     public function private_post_openapi_contract_cancel($params = array()) {
         return $this->request('openApi/contract/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_contract_add($params = array()) {
+        return $this->request('openApi/contract/add', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function publicGetOpenApiMarketSymbols($params = array()) {
         return $this->request('openApi/market/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -142,29 +127,23 @@ abstract class websea extends \ccxt\Exchange {
     public function publicGetOpenApiMarketPrecision($params = array()) {
         return $this->request('openApi/market/precision', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contractGetOpenApiContractSymbols($params = array()) {
-        return $this->request('openApi/contract/symbols', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiContractSymbols($params = array()) {
+        return $this->request('openApi/contract/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contractGetOpenApiContractPrecision($params = array()) {
-        return $this->request('openApi/contract/precision', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiContractPrecision($params = array()) {
+        return $this->request('openApi/contract/precision', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contractGetOpenApiContractTrade($params = array()) {
-        return $this->request('openApi/contract/trade', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiContractTrade($params = array()) {
+        return $this->request('openApi/contract/trade', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contractGetOpenApiContractDepth($params = array()) {
-        return $this->request('openApi/contract/depth', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiContractDepth($params = array()) {
+        return $this->request('openApi/contract/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contractGetOpenApiContractKline($params = array()) {
-        return $this->request('openApi/contract/kline', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiContractKline($params = array()) {
+        return $this->request('openApi/contract/kline', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function contractGetOpenApiContract24kline($params = array()) {
-        return $this->request('openApi/contract/24kline', 'contract', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractGetOpenApiContractCurrentList($params = array()) {
-        return $this->request('openApi/contract/currentList', 'contract', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function contractGetOpenApiContractGetOrderDetail($params = array()) {
-        return $this->request('openApi/contract/getOrderDetail', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiContract24kline($params = array()) {
+        return $this->request('openApi/contract/24kline', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetOpenApiWalletList($params = array()) {
         return $this->request('openApi/wallet/list', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -178,17 +157,17 @@ abstract class websea extends \ccxt\Exchange {
     public function privateGetOpenApiEntrustStatus($params = array()) {
         return $this->request('openApi/entrust/status', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetOpenApiFuturesEntrustOrderList($params = array()) {
-        return $this->request('openApi/futures/entrust/orderList', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function privateGetOpenApiFuturesPositionList($params = array()) {
-        return $this->request('openApi/futures/position/list', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function privateGetOpenApiContractWalletListFull($params = array()) {
         return $this->request('openApi/contract/walletList/full', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetOpenApiContractPosition($params = array()) {
         return $this->request('openApi/contract/position', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetOpenApiContractCurrentList($params = array()) {
+        return $this->request('openApi/contract/currentList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetOpenApiContractGetOrderDetail($params = array()) {
+        return $this->request('openApi/contract/getOrderDetail', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostOpenApiEntrustAdd($params = array()) {
         return $this->request('openApi/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -208,19 +187,10 @@ abstract class websea extends \ccxt\Exchange {
     public function privatePostOpenApiWalletDetail($params = array()) {
         return $this->request('openApi/wallet/detail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostOpenApiFuturesEntrustAdd($params = array()) {
-        return $this->request('openApi/futures/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function privatePostOpenApiFuturesEntrustOrderDetail($params = array()) {
-        return $this->request('openApi/futures/entrust/orderDetail', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function privatePostOpenApiFuturesPositionDetail($params = array()) {
-        return $this->request('openApi/futures/position/detail', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function privatePostOpenApiFuturesPositionSetLeverage($params = array()) {
-        return $this->request('openApi/futures/position/setLeverage', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
     public function privatePostOpenApiContractCancel($params = array()) {
         return $this->request('openApi/contract/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenApiContractAdd($params = array()) {
+        return $this->request('openApi/contract/add', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }
