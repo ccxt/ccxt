@@ -1897,7 +1897,7 @@ export default class websea extends Exchange {
             // 移除已处理的参数
             const cleanParams = this.omit (marginQuery, [ 'reduceOnly', 'leverage', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
             // 合约下单
-            response = await this.privatePostOpenApiFuturesEntrustAdd (this.extend (request, cleanParams));
+            response = await this.privatePostOpenApiContractAdd (this.extend (request, cleanParams));
             orderIdField = 'order_id'; // 合约使用order_id
         } else {
             // 现货下单
