@@ -46,7 +46,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.deepcoin.com/deepcoin/trade/cancel-order",
                 "input": [
-                    1001441400627435,
+                    "1001441400627435",
                     "ETH/USDT"
                 ],
                 "output": "{\"instId\":\"ETH-USDT\",\"ordId\":1001441400627435}"
