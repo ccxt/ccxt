@@ -5,8 +5,8 @@ import Exchange from './abstract/xcoin.js';
 import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, FundingRates, FundingRate, FundingRateHistory } from './base/types.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, FundingRates, FundingRate, FundingRateHistory, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -28,11 +28,15 @@ export default class xcoin extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'fetchCurrencies': true,
                 'fetchTime': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchOHLCV': true,
+                'fetchFundingRates': true,
+                'fetchFundingRateHistory': true,
+                'fetchCrossBorrowRates': true,
             },
             'hostname': 'xcoin.com',
             'urls': {
@@ -297,7 +301,7 @@ export default class xcoin extends Exchange {
             'inverse': (subType === 'linear') ? false : undefined,
             'taker': undefined,
             'maker': undefined,
-            'contractSize': this.safeNumber (item, 'ctVal'),
+            'contractSize': this.safeNumberOmitZero (item, 'ctVal'),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
             'optionType': undefined,
@@ -327,6 +331,113 @@ export default class xcoin extends Exchange {
             'created': this.safeInteger (item, 'onlineTime'),
             'info': item,
         };
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://xcoin.com/docs/coinApi/funding-account/get-currency-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        // private endpoint
+        if (!this.checkRequiredCredentials (false)) {
+            return {};
+        }
+        const response = await this.privateGetV1AssetCurrencies (params);
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "accountName": "CCXT_testing",
+        //                "pid": "1981204053820035072",
+        //                "uid": "176118985582700",
+        //                "cid": "176118985590600",
+        //                "currency": "SOL",
+        //                "name": "Solana",
+        //                "icon": "https://static.xcoin.com/1932683099083247616",
+        //                "traderAuth": true,
+        //                "depositAuth": true,
+        //                "withdrawAuth": true,
+        //                "haircut": "",
+        //                "currencyPrecision": "8",
+        //                "maxLeverage": "",
+        //                "chains": [
+        //                    {
+        //                        "chainType": "sol",
+        //                        "minDep": "0.00099",
+        //                        "minWd": "0.11",
+        //                        "maxWd": "10000",
+        //                        "withdrawFee": "0.001",
+        //                        "depositAuth": true,
+        //                        "withdrawAuth": true
+        //                    }
+        //                ]
+        //            }
+        //        ],
+        //        "msg": "Success",
+        //        "ts": "1761644584108",
+        //        "traceId": "7cd27fb2914b9eb97f733a745807bb6b"
+        //    }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result: Dict = {};
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const currencyId = this.safeString (currency, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const networks: Dict = {};
+            const chains = currency['chains'];
+            const chainsLength = chains.length;
+            for (let j = 0; j < chainsLength; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'chainType');
+                const networkCode = this.networkIdToCode (networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool (chain, 'depositAuth'),
+                    'withdraw': this.safeBool (chain, 'withdrawAuth'),
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'minWd'),
+                            'max': this.safeNumber (chain, 'maxWd'),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'minDep'),
+                            'max': undefined,
+                        },
+                    },
+                    'info': chain,
+                };
+            }
+            result[code] = this.safeCurrencyStructure ({
+                'info': chains,
+                'code': code,
+                'id': currencyId,
+                'name': this.safeString (currency, 'name'),
+                'active': undefined,
+                'deposit': this.safeBool (currency, 'depositAuth'),
+                'withdraw': this.safeBool (currency, 'withdrawAuth'),
+                'fee': undefined,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'currencyPrecision'))),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'type': undefined, // atm only crypto
+                'networks': networks,
+            });
+        }
+        return result;
     }
 
     /**
@@ -802,22 +913,30 @@ export default class xcoin extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
-        if (api === 'public') {
-            const query = this.omit (params, this.extractParams (path));
-            url += '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        url += '/' + this.implodeParams (path, params);
+        let queryStr = '';
+        if (method === 'GET') {
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+                queryStr = this.urlencode (query);
+                url += '?' + queryStr;
             }
-        } else {
+        }
+        if (api === 'private') {
             this.checkRequiredCredentials ();
-            body = this.urlencode (this.extend ({
-                'method': path,
-                'moment': this.nonce (),
-            }, params));
+            const timestamp = this.milliseconds ();
+            let bodyStr = '';
+            if (method === 'POST') {
+                body = this.json (params);
+                bodyStr = body;
+            }
+            const preHash = timestamp.toString () + method.toUpperCase () + '/' + path + queryStr + bodyStr;
+            const signature = this.hmac (this.encode (preHash), this.encode (this.secret), sha256, 'hex');
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'API-Key': this.apiKey,
-                'API-Hash': this.hmac (this.encode (body), this.encode (this.secret), sha512),
+                'Content-Type': 'application/json',
+                'X-ACCESS-APIKEY': this.apiKey,
+                'X-ACCESS-TIMESTAMP': timestamp,
+                'X-ACCESS-SIGN': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -5,6 +5,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.xcoin.com/api/v1/asset/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchTime": [
             {
                 "description": "default",

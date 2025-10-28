@@ -3,6 +3,117 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "accountName": "CCXT_testing",
+                            "pid": "1981204053820035072",
+                            "uid": "176118985582700",
+                            "cid": "176118985590600",
+                            "currency": "SOL",
+                            "name": "Solana",
+                            "icon": "https://static.xcoin.com/1932683099083247616",
+                            "traderAuth": true,
+                            "depositAuth": true,
+                            "withdrawAuth": true,
+                            "haircut": "",
+                            "currencyPrecision": "8",
+                            "maxLeverage": "",
+                            "chains": [
+                                {
+                                    "chainType": "sol",
+                                    "minDep": "0.00099",
+                                    "minWd": "0.11",
+                                    "maxWd": "10000",
+                                    "withdrawFee": "0.001",
+                                    "depositAuth": true,
+                                    "withdrawAuth": true
+                                }
+                            ]
+                        }
+                    ],
+                    "msg": "Success",
+                    "ts": "1761645196140",
+                    "traceId": "d7729ed7a15fb11c47611291fef39398"
+                },
+                "parsedResponse": {
+                    "SOL": {
+                        "info": [
+                            {
+                                "chainType": "sol",
+                                "minDep": "0.00099",
+                                "minWd": "0.11",
+                                "maxWd": "10000",
+                                "withdrawFee": "0.001",
+                                "depositAuth": true,
+                                "withdrawAuth": true
+                            }
+                        ],
+                        "id": "SOL",
+                        "numericId": null,
+                        "code": "SOL",
+                        "precision": 1e-8,
+                        "type": null,
+                        "name": "Solana",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.001,
+                        "fees": {},
+                        "networks": {
+                            "sol": {
+                                "id": "sol",
+                                "network": "sol",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.001,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.11,
+                                        "max": 10000
+                                    },
+                                    "deposit": {
+                                        "min": 0.00099,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chainType": "sol",
+                                    "minDep": "0.00099",
+                                    "minWd": "0.11",
+                                    "maxWd": "10000",
+                                    "withdrawFee": "0.001",
+                                    "depositAuth": true,
+                                    "withdrawAuth": true
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.00099,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.11,
+                                "max": 10000
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTime": [
             {
                 "description": "default",
