@@ -476,16 +476,6 @@ class websea extends Exchange {
         $price = $this->safe_number_2($order, 'price', 'price_avg');
         $amount = $this->safe_number_2($order, 'number', 'amount');
         $filled = $this->safe_number_2($order, 'deal_number', 'deal_amount');
-        // 合约订单：将张数转换为实际合约数量
-        if ($market !== null && $market['swap']) {
-            $contractSize = $this->safe_number($market, 'contractSize', 1);
-            if ($amount !== null) {
-                $amount = $this->parse_number(Precise::string_mul($this->number_to_string($amount), $this->number_to_string($contractSize)));
-            }
-            if ($filled !== null) {
-                $filled = $this->parse_number(Precise::string_mul($this->number_to_string($filled), $this->number_to_string($contractSize)));
-            }
-        }
         // Calculate $remaining $amount
         $remaining = null;
         if ($amount !== null && $filled !== null) {
@@ -881,7 +871,7 @@ class websea extends Exchange {
             $priceDecimalPlaces = $this->safe_string($precisionData, 'price');
             // 将小数位数转换为tick size：例如 "3" -> 0.001
             if ($amountDecimalPlaces !== null) {
-                $amountPrecision = $this->parse_number($this->parse_precision($amountDecimalPlaces));
+                $amountPrecision = $this->parse_number(Precise::string_div($this->parse_precision($amountDecimalPlaces), (string) $contractSize));
             }
             if ($priceDecimalPlaces !== null) {
                 $pricePrecision = $this->parse_number($this->parse_precision($priceDecimalPlaces));
@@ -894,11 +884,9 @@ class websea extends Exchange {
             if ($minQuantity !== null) {
                 $finalMinAmount = $minQuantity;
             }
-            $finalMinAmount *= $contractSize;
             if ($maxQuantity !== null) {
                 $finalMaxAmount = $maxQuantity;
             }
-            $finalMaxAmount *= $contractSize;
             if ($precisionMinPrice !== null) {
                 $finalMinPrice = $precisionMinPrice;
             }
@@ -1761,17 +1749,7 @@ class websea extends Exchange {
         list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $orderType = ($type === 'limit') ? $side . '-limit' : $side . '-market';
         // 处理$amount
-        $requestAmount = null;
-        if ($marketType === 'swap') {
-            // 合约：将$amount（合约数量）转换为张数
-            $contractSize = $this->safe_number($market, 'contractSize', 1);
-            $amountString = $this->number_to_string($amount);
-            $numContracts = Precise::string_div($amountString, $this->number_to_string($contractSize));
-            $requestAmount = $this->parse_to_int($numContracts);
-        } else {
-            // 现货：直接使用$amount
-            $requestAmount = $this->amount_to_precision($symbol, $amount);
-        }
+        $requestAmount = $this->amount_to_precision($symbol, $amount);
         $request = array(
             'symbol' => $market['id'],
             'type' => $orderType,

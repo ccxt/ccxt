@@ -467,13 +467,6 @@ class websea(Exchange, ImplicitAPI):
         price = self.safe_number_2(order, 'price', 'price_avg')
         amount = self.safe_number_2(order, 'number', 'amount')
         filled = self.safe_number_2(order, 'deal_number', 'deal_amount')
-        # 合约订单：将张数转换为实际合约数量
-        if market is not None and market['swap']:
-            contractSize = self.safe_number(market, 'contractSize', 1)
-            if amount is not None:
-                amount = self.parse_number(Precise.string_mul(self.number_to_string(amount), self.number_to_string(contractSize)))
-            if filled is not None:
-                filled = self.parse_number(Precise.string_mul(self.number_to_string(filled), self.number_to_string(contractSize)))
         # Calculate remaining amount
         remaining = None
         if amount is not None and filled is not None:
@@ -816,7 +809,7 @@ class websea(Exchange, ImplicitAPI):
             priceDecimalPlaces = self.safe_string(precisionData, 'price')
             # 将小数位数转换为tick size：例如 "3" -> 0.001
             if amountDecimalPlaces is not None:
-                amountPrecision = self.parse_number(self.parse_precision(amountDecimalPlaces))
+                amountPrecision = self.parse_number(Precise.string_div(self.parse_precision(amountDecimalPlaces), str(contractSize)))
             if priceDecimalPlaces is not None:
                 pricePrecision = self.parse_number(self.parse_precision(priceDecimalPlaces))
             # 使用precision中的min/max值（优先级更高）
@@ -826,10 +819,8 @@ class websea(Exchange, ImplicitAPI):
             precisionMaxPrice = self.safe_number(precisionData, 'maxPrice')
             if minQuantity is not None:
                 finalMinAmount = minQuantity
-            finalMinAmount *= contractSize
             if maxQuantity is not None:
                 finalMaxAmount = maxQuantity
-            finalMaxAmount *= contractSize
             if precisionMinPrice is not None:
                 finalMinPrice = precisionMinPrice
             if precisionMaxPrice is not None:
@@ -1637,16 +1628,7 @@ class websea(Exchange, ImplicitAPI):
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
         orderType = side + '-limit' if (type == 'limit') else side + '-market'
         # 处理amount
-        requestAmount = None
-        if marketType == 'swap':
-            # 合约：将amount（合约数量）转换为张数
-            contractSize = self.safe_number(market, 'contractSize', 1)
-            amountString = self.number_to_string(amount)
-            numContracts = Precise.string_div(amountString, self.number_to_string(contractSize))
-            requestAmount = self.parse_to_int(numContracts)
-        else:
-            # 现货：直接使用amount
-            requestAmount = self.amount_to_precision(symbol, amount)
+        requestAmount = self.amount_to_precision(symbol, amount)
         request: dict = {
             'symbol': market['id'],
             'type': orderType,

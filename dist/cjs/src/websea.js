@@ -488,18 +488,8 @@ class websea extends websea$1["default"] {
         }
         // Price and amount
         const price = this.safeNumber2(order, 'price', 'price_avg');
-        let amount = this.safeNumber2(order, 'number', 'amount');
-        let filled = this.safeNumber2(order, 'deal_number', 'deal_amount');
-        // 合约订单：将张数转换为实际合约数量
-        if (market !== undefined && market['swap']) {
-            const contractSize = this.safeNumber(market, 'contractSize', 1);
-            if (amount !== undefined) {
-                amount = this.parseNumber(Precise["default"].stringMul(this.numberToString(amount), this.numberToString(contractSize)));
-            }
-            if (filled !== undefined) {
-                filled = this.parseNumber(Precise["default"].stringMul(this.numberToString(filled), this.numberToString(contractSize)));
-            }
-        }
+        const amount = this.safeNumber2(order, 'number', 'amount');
+        const filled = this.safeNumber2(order, 'deal_number', 'deal_amount');
         // Calculate remaining amount
         let remaining = undefined;
         if (amount !== undefined && filled !== undefined) {
@@ -905,7 +895,7 @@ class websea extends websea$1["default"] {
             const priceDecimalPlaces = this.safeString(precisionData, 'price');
             // 将小数位数转换为tick size：例如 "3" -> 0.001
             if (amountDecimalPlaces !== undefined) {
-                amountPrecision = this.parseNumber(this.parsePrecision(amountDecimalPlaces));
+                amountPrecision = this.parseNumber(Precise["default"].stringDiv(this.parsePrecision(amountDecimalPlaces), contractSize.toString()));
             }
             if (priceDecimalPlaces !== undefined) {
                 pricePrecision = this.parseNumber(this.parsePrecision(priceDecimalPlaces));
@@ -918,11 +908,9 @@ class websea extends websea$1["default"] {
             if (minQuantity !== undefined) {
                 finalMinAmount = minQuantity;
             }
-            finalMinAmount *= contractSize;
             if (maxQuantity !== undefined) {
                 finalMaxAmount = maxQuantity;
             }
-            finalMaxAmount *= contractSize;
             if (precisionMinPrice !== undefined) {
                 finalMinPrice = precisionMinPrice;
             }
@@ -1795,18 +1783,7 @@ class websea extends websea$1["default"] {
         const [marketType, query] = this.handleMarketTypeAndParams('createOrder', market, params);
         const orderType = (type === 'limit') ? side + '-limit' : side + '-market';
         // 处理amount
-        let requestAmount = undefined;
-        if (marketType === 'swap') {
-            // 合约：将amount（合约数量）转换为张数
-            const contractSize = this.safeNumber(market, 'contractSize', 1);
-            const amountString = this.numberToString(amount);
-            const numContracts = Precise["default"].stringDiv(amountString, this.numberToString(contractSize));
-            requestAmount = this.parseToInt(numContracts);
-        }
-        else {
-            // 现货：直接使用amount
-            requestAmount = this.amountToPrecision(symbol, amount);
-        }
+        const requestAmount = this.amountToPrecision(symbol, amount);
         const request = {
             'symbol': market['id'],
             'type': orderType,
