@@ -10826,7 +10826,7 @@ export default class binance extends Exchange {
         let response = undefined;
         if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
-                response = await this.papiGetUmAccount (params);
+                response = await this.papiV2GetUmAccount (params);
             } else {
                 let useV2 = undefined;
                 [ useV2, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'useV2', false);
