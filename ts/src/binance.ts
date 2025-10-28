@@ -1091,7 +1091,7 @@ export default class binance extends Exchange {
                         'cm/openOrder': 1,
                         'cm/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'cm/allOrders': 20,
-                        'conditional/openOrder': 1,
+                        'um/conditional/openOrder': 1,
                         'um/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'um/conditional/orderHistory': 1,
                         'um/conditional/allOrders': { 'cost': 1, 'noSymbol': 40 },
