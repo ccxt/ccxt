@@ -14,7 +14,7 @@ public partial class toobit : Exchange
             { "version", "v1" },
             { "rateLimit", 20 },
             { "certified", false },
-            { "pro", false },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
