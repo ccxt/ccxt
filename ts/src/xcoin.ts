@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xcoin.js';
-import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied, BadRequest } from './base/errors.js';
+import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -93,7 +93,7 @@ export default class xcoin extends Exchange {
                         'v1/account/availableBalance': 1,
                         'v1/history/bill': 1,
                         'v1/account/interest/history': 1,
-                        'v1/asset/account/info': 1,
+                        'v1/asset/account/info': 1, // todo: fetchAccount new method
                         'v1/asset/balances': 1,
                         'v1/asset/bill': 1,
                         'v1/asset/currencies': 1,
@@ -1102,6 +1102,59 @@ export default class xcoin extends Exchange {
             '99': 'other',
         };
         return this.safeString (ledgerTypes, typeId, typeId);
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://xcoin.com/docs/coinApi/funding-account/deposit/get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress(): params["network"] is required.');
+        }
+        const response = await this.privateGetV1AssetDepositAddress (this.extend (request, params));
+        //
+        // {
+        //     "code": 0,
+        //     "data": {
+        //         "accountName": "hl04",
+        //         "addressDeposit": "rsQbUpy1cfGdetwqabbJ8asKXeoY1G3h1N",
+        //         "chainType": "XRP",
+        //         "cid": "174575859872200",
+        //         "currency": "XRP",
+        //         "memo": "401145838",
+        //         "pid": "1916476600090570754",
+        //         "uid": "174575859864400"
+        //     },
+        //     "msg":"success",
+        //     "ts": 1747824336306
+        // }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositEntry, currency: Currency = undefined): DepositAddress {
+        const currencyId = this.safeString (depositEntry, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        return {
+            'info': depositEntry,
+            'currency': currency['code'],
+            'network': this.networkIdToCode (this.safeString (depositEntry, 'chainType')),
+            'address': this.safeString (depositEntry, 'addressDeposit'),
+            'tag': this.safeString (depositEntry, 'memo'),
+        } as DepositAddress;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
