@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, CrossBorrowRates, FundingRates, FundingRate, FundingRateHistory, Currencies, Account } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, CrossBorrowRates, FundingRates, FundingRate, FundingRateHistory, Currencies, Account, BorrowInterest, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -37,6 +37,12 @@ export default class xcoin extends Exchange {
                 'fetchFundingRates': true,
                 'fetchFundingRateHistory': true,
                 'fetchCrossBorrowRates': true,
+                'fetchBorrowInterest': true,
+                'fetchBalance': true,
+                'fetchLedger': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchPositions': true,
             },
             'hostname': 'xcoin.com',
             'urls': {
@@ -613,7 +619,6 @@ export default class xcoin extends Exchange {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -816,6 +821,7 @@ export default class xcoin extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1062,32 +1068,66 @@ export default class xcoin extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.privateGetV1AssetBill (this.extend (request, params));
-        //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "accountName": "hongliang01",
-        //                 "accountType": "funding",
-        //                 "amount": "-112",
-        //                 "balance": "499764779.013",
-        //                 "billId": "1918143117886697473",
-        //                 "cid": "174575858798300",
-        //                 "createTime": "1746098331000",
-        //                 "currency": "USDT",
-        //                 "id": "1918143117886697473",
-        //                 "pid": "1916476554095833090",
-        //                 "transactionId": "1918143117610061824",
-        //                 "uid": "174575858790600",
-        //                 "actionType": "21",
-        //                 "updateTime": "1746098331000"
-        //             },
-        //         ],
-        //         "msg":"success",
-        //         "ts": 1747824336306
-        //     }
-        //
+        let defaultAccount = undefined;
+        [ defaultAccount, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'defaultAccount');
+        let response = undefined;
+        if (defaultAccount === 'funding') {
+            response = await this.privateGetV1AssetBill (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             {
+            //                 "accountName": "hongliang01",
+            //                 "accountType": "funding",
+            //                 "amount": "-112",
+            //                 "balance": "499764779.013",
+            //                 "billId": "1918143117886697473",
+            //                 "cid": "174575858798300",
+            //                 "createTime": "1746098331000",
+            //                 "currency": "USDT",
+            //                 "id": "1918143117886697473",
+            //                 "pid": "1916476554095833090",
+            //                 "transactionId": "1918143117610061824",
+            //                 "uid": "174575858790600",
+            //                 "actionType": "21",
+            //                 "updateTime": "1746098331000"
+            //             },
+            //         ],
+            //         "msg":"success",
+            //         "ts": 1747824336306
+            //     }
+            //
+        } else {
+            response = await this.privateGetV1HistoryBill (this.extend (request, params));
+            //
+            // {
+            //     "code": "0",
+            //     "msg":"success",
+            //     "data": [
+            //         {
+            //             "accountName": "1915030377665978370",
+            //             "id": "6755399451247615",
+            //             "businessType": "none",
+            //             "symbol": "",
+            //             "actionType": "3",
+            //             "currency": "BTC",
+            //             "qty": "0.000000045812491",
+            //             "actionId": "6755399451247615",
+            //             "transactionId": "1371472019211829250",
+            //             "tradeId": "0",
+            //             "lever": "0",
+            //             "side": null,
+            //             "createTime": "1747026010146",
+            //             "pid": "1915030377665978370",
+            //             "cid": "174541379399500",
+            //             "uid": "174541379390800"
+            //         },
+            //     ],
+            //     "ts": "1747030934883"
+            // }
+            //
+        }
         const data = this.safeList (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
@@ -1095,28 +1135,21 @@ export default class xcoin extends Exchange {
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         const currencyId = this.safeString (item, 'currency');
         currency = this.safeCurrency (currencyId, currency);
-        const timestamp = this.safeInteger (item, 'createTime');
-        const after = this.safeNumber (item, 'balance');
-        const amountRaw = this.safeString2 (item, 'size', 'amount');
-        const amount = this.parseNumber (Precise.stringAbs (amountRaw));
-        let direction = 'in';
-        if (amountRaw.indexOf ('-') >= 0) {
-            direction = 'out';
-        }
+        const timestamp = this.safeInteger (item, 'updateTime');
         return this.safeLedgerEntry ({
             'info': item,
             'id': this.safeString (item, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'direction': direction,
+            'direction': undefined,
             'account': undefined,
             'referenceId': this.safeString (item, 'transactionId'),
             'referenceAccount': undefined,
             'type': undefined,
             'currency': currency['code'],
-            'amount': amount,
+            'amount': this.safeNumber2 (item, 'amount', 'qty'),
             'before': undefined,
-            'after': after,
+            'after': undefined,
             'status': undefined,
             'fee': undefined,
         }, currency) as LedgerEntry;
@@ -1346,6 +1379,158 @@ export default class xcoin extends Exchange {
             'fail': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchBorrowInterest
+     * @description fetch the interest owed by the user for borrowing currency for margin trading
+     * @see https://xcoin.com/docs/coinApi/trading-account-information/asset-information/get-borrowing-interest-history
+     * @param {string} [code] unified currency code
+     * @param {string} [symbol] unified market symbol when fetch interest in isolated markets
+     * @param {int} [since] the earliest time in ms to fetch borrrow interest for
+     * @param {int} [limit] the maximum number of structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the borrow interest in a portfolio margin account
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     */
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
+        await this.loadMarkets ();
+        let request: Dict = {};
+        if (since !== undefined) {
+            request['beginTime'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV1AccountInterestHistory (this.extend (request, params));
+        //
+        // {
+        //     {
+        //         "code": "0",
+        //         "msg":"success",
+        //         "data": [
+        //             {
+        //                 "id": 1232343213,
+        //                 "currency": "BTC",
+        //                 "interestTime": "1747206121000",
+        //                 "interest": "-0.00000129972997738",
+        //                 "interestRate": "0.01138529",
+        //                 "interestBearingBorrowSize": "0",
+        //                 "borrowAmount": "1.000030267288672843",
+        //                 "freeBorrowedAmount": "0",
+        //                 "accountName": "hongliang01",
+        //                 "pid": "1917239173600325633",
+        //                 "cid": "174594041187401",
+        //                 "uid": "174594041178400"
+        //             },
+        //     ],
+        //         "ts": "1747207316831"
+        // }
+        //
+        const data = this.safeList (response, 'data', []);
+        const interest = this.parseBorrowInterests (data, undefined);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
+        const timestamp = this.safeInteger (info, 'interestTime');
+        return {
+            'info': info,
+            'symbol': undefined,
+            'currency': this.safeCurrencyCode (this.safeString (info, 'data')),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'interestRate'),
+            'amountBorrowed': this.safeNumber (info, 'borrowAmount'),
+            'marginMode': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        } as BorrowInterest;
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchPositions
+     * @description fetch all open positions
+     * @see https://xcoin.com/docs/coinApi/trading-account-information/position-information/get-trading-account-positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const response = await this.privateGetV2TradePositions (params);
+        //
+        // {
+        //     "code": "0",
+        //     "msg":"success",
+        //     "data": [
+        //         {
+        //             "accountName": "hongliang02",
+        //             "positionId": "15762598695810131",
+        //             "businessType": "linear_perpetual",
+        //             "symbol": "BTC-USDT-PERP",
+        //             "positionQty": "-2",
+        //             "avgPrice": "93921.6",
+        //             "takeProfit": "96000",
+        //             "stopLoss": "85000",
+        //             "upl": "0.662",
+        //             "lever": 1,
+        //             "liquidationPrice": "1400633.1709273944765165",
+        //             "markPrice": "93888.5",
+        //             "im": "1877.77",
+        //             "indexPrice": "93877.2",
+        //             "createTime": 1746532093181,
+        //             "updateTime": 1746532093181,
+        //             "pid": "1917181674366382082",
+        //             "cid": "174575858798300",
+        //             "uid": "174575858790600"
+        //         }
+        //     ],
+        //     "ts": "1746533365670"
+        // }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (position, 'createTime');
+        const quantity = this.safeString (position, 'positionQty');
+        let side: Str = undefined;
+        if (quantity !== undefined) {
+            side = Precise.stringGe (quantity, '0') ? 'long' : 'short';
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'positionId'),
+            'symbol': symbol,
+            'entryPrice': this.safeString (position, 'avgPrice'),
+            'markPrice': this.safeString (position, 'markPrice'),
+            'indexPrice': this.safeString (position, 'indexPrice'),
+            'notional': undefined,
+            'collateral': undefined,
+            'unrealizedPnl': this.safeString (position, 'upl'),
+            'side': side,
+            'contracts': Precise.stringAbs (quantity),
+            'contractSize': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'hedged': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': this.safeString (position, 'im'),
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber (position, 'lever'),
+            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'marginRatio': undefined,
+            'marginMode': undefined,
+            'percentage': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
