@@ -3551,7 +3551,7 @@ class binance extends binance$1["default"] {
         else if (this.isInverse(type, subType)) {
             type = 'delivery';
         }
-        params = this.extend(params, { 'type': type, 'symbol': symbol }); // needed inside authenticate for isolated margin
+        params = this.extend(params, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
         await this.authenticate(params);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
@@ -4230,7 +4230,7 @@ class binance extends binance$1["default"] {
             messageHash += ':' + symbol;
             params = this.extend(params, { 'type': market['type'], 'symbol': symbol });
         }
-        await this.authenticate(params);
+        await this.authenticate(this.extend({ 'type': type, 'subType': subType }, params));
         let urlType = type; // we don't change type because the listening key is different
         if (type === 'margin') {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
