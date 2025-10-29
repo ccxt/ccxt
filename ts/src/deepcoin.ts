@@ -1020,7 +1020,8 @@ export default class deepcoin extends Exchange {
         if (codes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list with one currency code');
         }
-        if (codes.length !== 1) {
+        const length = codes.length;
+        if (length !== 1) {
             throw new NotSupported (this.id + ' fetchDepositAddresses requires a list with one currency code');
         }
         const code = codes[0];
