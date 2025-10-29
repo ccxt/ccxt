@@ -3,6 +3,35 @@
     "skipKeys": [ ],
     "outputType": "json",
     "methods": {
+        "editOrder": [
+            {
+                "description": "edit order price",
+                "method": "editOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/replace-order",
+                "input": [
+                    1001111669001356,
+                    null,
+                    null,
+                    null,
+                    null,
+                    0.02
+                ],
+                "output": "{\"OrderSysID\":1001111669001356,\"price\":\"0.02\"}"
+            },
+            {
+                "description": "edit order amount",
+                "method": "editOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/replace-order",
+                "input": [
+                    1001111669001356,
+                    null,
+                    null,
+                    null,
+                    25
+                ],
+                "output": "{\"OrderSysID\":1001111669001356,\"volume\":\"25\"}"
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "Fetch funding rate history",
