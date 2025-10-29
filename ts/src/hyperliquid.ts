@@ -353,6 +353,28 @@ export default class hyperliquid extends Exchange {
         this.options['sandboxMode'] = enabled;
     }
 
+    market (symbol: string): MarketInterface {
+        if (this.markets === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        if (symbol in this.markets) {
+            const market = this.markets[symbol];
+            if (market['spot']) {
+                const baseName = this.safeString (market, 'baseName');
+                const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
+                if (baseName in spotCurrencyMapping) {
+                    const unifiedBaseName = this.safeString (spotCurrencyMapping, baseName);
+                    const quote = this.safeString (market, 'quote');
+                    const newSymbol = this.safeCurrencyCode (unifiedBaseName) + '/' + quote;
+                    if (newSymbol in this.markets) {
+                        return this.markets[newSymbol];
+                    }
+                }
+            }
+        }
+        return super.market (symbol);
+    }
+
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
@@ -369,7 +391,7 @@ export default class hyperliquid extends Exchange {
                     if (this.safeString (firstMarket, 'type') !== this.safeString (secondMarket, 'type')) {
                         throw new ExchangeError (this.id + ' safeMarket() found two different market types with the same market id ' + marketId);
                     }
-                    const baseCurrency = this.safeString (firstMarket, 'baseName');
+                    const baseCurrency = this.safeString (firstMarket, 'base');
                     const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
                     if (baseCurrency in spotCurrencyMapping) {
                         return secondMarket;
@@ -732,12 +754,14 @@ export default class hyperliquid extends Exchange {
             // backward support
             const base = this.safeCurrencyCode (baseName);
             const quote = this.safeCurrencyCode (quoteId);
+            const newEntry = this.extend ({}, entry);
             const symbol = base + '/' + quote;
             if (symbol !== mappedSymbol) {
-                entry['symbol'] = symbol;
-                entry['base'] = mappedBase;
-                entry['quote'] = mappedQuote;
-                markets.push (this.safeMarketStructure (entry));
+                newEntry['symbol'] = symbol;
+                newEntry['base'] = base;
+                newEntry['quote'] = quote;
+                newEntry['baseName'] = baseName;
+                markets.push (this.safeMarketStructure (newEntry));
             }
         }
         return markets;
