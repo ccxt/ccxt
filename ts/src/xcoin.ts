@@ -1157,6 +1157,134 @@ export default class xcoin extends Exchange {
         } as DepositAddress;
     }
 
+    /**
+     * @method
+     * @name xcoin#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://xcoin.com/docs/coinApi/funding-account/deposit/get-deposit-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposit structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchTransactionsHelper ('INCOMING', code, since, limit, params);
+    }
+
+    async fetchTransactionsHelper (type, code, since, limit, params) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request: Dict = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetV1AssetDepositRecord (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //            {
+        //                 "accountName": "hl04",
+        //                 "amount": "24381.9837",
+        //                 "chainType": "eth",
+        //                 "cid": "174575859872200",
+        //                 "createTime": "1747818768080",
+        //                 "currency": "USDT",
+        //                 "depositFee": "",
+        //                 "depositId": "1925117560689778690",
+        //                 "fromAddress": "0xe76eccc60b21fd89b27c253796a4d2358f0fa989",
+        //                 "hash": "0x56413470ed7dcb33ed377566055701c7e0e48da7e831974d5c14e370316e1c8c",
+        //                 "memo": "",
+        //                 "pid": "1916476600090570754",
+        //                 "status": "success",
+        //                 "toAddress": "0x432960397a1175e4c1100b0e4beb4a7562769d7a",
+        //                 "uid": "174575859864400",
+        //                 "updateTime": "1747823275000"
+        //             }
+        //         ],
+        //         "msg":"success",
+        //         "ts": 1747824336306
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // deposit
+        //
+        //            {
+        //                 "accountName": "hl04",
+        //                 "amount": "24381.9837",
+        //                 "chainType": "eth",
+        //                 "cid": "174575859872200",
+        //                 "createTime": "1747818768080",
+        //                 "currency": "USDT",
+        //                 "depositFee": "",
+        //                 "depositId": "1925117560689778690",
+        //                 "fromAddress": "0xe76eccc60b21fd89b27c253796a4d2358f0fa989",
+        //                 "hash": "0x56413470ed7dcb33ed377566055701c7e0e48da7e831974d5c14e370316e1c8c",
+        //                 "memo": "",
+        //                 "pid": "1916476600090570754",
+        //                 "status": "success",
+        //                 "toAddress": "0x432960397a1175e4c1100b0e4beb4a7562769d7a",
+        //                 "uid": "174575859864400",
+        //                 "updateTime": "1747823275000"
+        //             }
+        //
+        let depositOrWithdrawal: Str = undefined;
+        if ('depositId' in transaction) {
+            depositOrWithdrawal = 'deposit';
+        } else if ('withdraw_id' in transaction) {
+            depositOrWithdrawal = 'withdrawal';
+        }
+        const timestamp = this.safeInteger (transaction, 'createTime');
+        const currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        const depositFee = this.safeNumber (transaction, 'depositFee');
+        let fee = undefined;
+        if (depositFee !== undefined) {
+            fee = {
+                'cost': depositFee,
+                'currency': currency['code'],
+            };
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'depositId'),
+            'currency': currency['code'],
+            'amount': this.safeNumber (transaction, 'amount'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'chainType')),
+            'address': undefined,
+            'addressFrom': this.safeString (transaction, 'fromAddress'),
+            'addressTo': this.safeString (transaction, 'toAddress'),
+            'tag': this.safeString (transaction, 'memo'),
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'type': depositOrWithdrawal,
+            'updated': undefined,
+            'txid': this.safeString (transaction, 'hash'),
+            'internal': undefined,
+            'comment': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        } as Transaction;
+    }
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
+            'success': 'ok',
+            'toBeVerified': 'pending',
+            'fail': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
         const query = this.omit (params, this.extractParams (path));
