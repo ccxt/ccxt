@@ -372,7 +372,8 @@ export default class hyperliquid extends Exchange {
                 }
             }
         }
-        return super.market (symbol);
+        const res = super.market (symbol);
+        return res;
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
