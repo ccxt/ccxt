@@ -3,6 +3,32 @@
     "skipKeys": [ ],
     "outputType": "json",
     "methods": {
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders for market",
+                "method": "fetchClosedOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/orders-history?instId=ETH-USDT&instType=SPOT&limit=1&state=filled",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetch canceled orders for market",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/orders-history?instId=ETH-USDT&instType=SPOT&limit=1&state=canceled",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
         "editOrder": [
             {
                 "description": "edit order price",
@@ -92,18 +118,29 @@
                 "output": null
             }
         ],
-        "fetchClosedOrders": [
+        "fetchCanceledAndClosedOrders": [
             {
-                "description": "Fetch closed orders",
-                "method": "fetchClosedOrders",
-                "url": "https://api.deepcoin.com/deepcoin/trade/orders-history?instId=ETH-USDT&instType=SPOT&state=filled",
+                "description": "fetch canceled and closed orders for market",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/orders-history?instId=ETH-USDT&instType=SPOT&limit=1",
                 "input": [
-                    "ETH/USDT"
+                    "ETH/USDT",
+                    null,
+                    1
                 ],
                 "output": null
-            }
-        ],
-        "fetchCanceledAndClosedOrders": [
+            },
+            {
+                "description": "fetch canceled and closed orders for market",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/orders-history?instId=ETH-USDT&instType=SPOT&limit=1",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            },
             {
                 "description": "Fetch canceled and closed orders",
                 "method": "fetchCanceledAndClosedOrders",
