@@ -3000,8 +3000,14 @@ class hyperliquid extends Exchange {
         }
         $rawUnrealizedPnl = $this->safe_string($entry, 'unrealizedPnl');
         $absRawUnrealizedPnl = Precise::string_abs($rawUnrealizedPnl);
-        $initialMargin = $this->safe_string($entry, 'marginUsed');
-        $percentage = Precise::string_mul(Precise::string_div($absRawUnrealizedPnl, $initialMargin), '100');
+        $marginUsed = $this->safe_string($entry, 'marginUsed');
+        $initialMargin = null;
+        if ($isIsolated) {
+            $initialMargin = Precise::string_sub($marginUsed, $rawUnrealizedPnl);
+        } else {
+            $initialMargin = $marginUsed;
+        }
+        $percentage = Precise::string_mul(Precise::string_div($absRawUnrealizedPnl, $marginUsed), '100');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -3017,7 +3023,7 @@ class hyperliquid extends Exchange {
             'markPrice' => null,
             'notional' => $this->safe_number($entry, 'positionValue'),
             'leverage' => $this->safe_number($leverage, 'value'),
-            'collateral' => $this->safe_number($entry, 'marginUsed'),
+            'collateral' => $this->parse_number($marginUsed),
             'initialMargin' => $this->parse_number($initialMargin),
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
