@@ -11,8 +11,8 @@
                 "input": [
                     1001111677169084,
                     "DOGE/USDT:USDT",
-                    null,
-                    null,
+                    "limit",
+                    "buy",
                     25,
                     0.02
                 ],
