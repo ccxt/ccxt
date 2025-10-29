@@ -986,7 +986,7 @@
                         "notional": 68.98,
                         "leverage": 20,
                         "collateral": 3.449,
-                        "initialMargin": 23.19797,
+                        "initialMargin": 3.449,
                         "maintenanceMargin": null,
                         "initialMarginPercentage": null,
                         "maintenanceMarginPercentage": null,
