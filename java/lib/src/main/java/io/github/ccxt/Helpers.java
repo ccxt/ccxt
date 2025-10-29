@@ -1,4 +1,4 @@
-package org.example;
+package io.github.ccxt;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
