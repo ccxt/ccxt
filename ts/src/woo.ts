@@ -186,7 +186,6 @@ export default class woo extends Exchange {
                             'client/order/{client_order_id}': 1,
                             'orders': 1,
                             'client/trade/{tid}': 1,
-                            'order/{oid}/trades': 1,
                             'client/trades': 1,
                             'client/hist_trades': 1,
                             'staking/yield_history': 1,
