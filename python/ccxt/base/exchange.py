@@ -1902,7 +1902,10 @@ class Exchange(object):
 
     def retrieve_dydx_credentials(self, entropy):
         mnemo = Mnemonic("english")
-        mnemonic = mnemo.to_mnemonic(self.base16_to_binary(entropy))
+        if ' ' in entropy:
+            mnemonic = entropy
+        else:
+            mnemonic = mnemo.to_mnemonic(self.base16_to_binary(entropy))
         seed = mnemo.to_seed(mnemonic)
         keyPair = Bip44.FromSeed(seed).DeriveDefaultPath()
         privateKey = keyPair.PrivateKey().Raw().ToBytes()

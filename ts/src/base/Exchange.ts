@@ -51,7 +51,7 @@ import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { exportMnemonicAndPrivateKey } from '../static_dependencies/dydx-v4-client/onboarding.js';
+import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 
 const {
@@ -1707,7 +1707,13 @@ export default class Exchange {
     }
 
     retrieveDydxCredentials (entropy: string): object {
-        const credentials = exportMnemonicAndPrivateKey (this.base16ToBinary (entropy));
+        let credentials = undefined;
+        if (entropy.indexOf (' ') > 0) {
+            credentials = deriveHDKeyFromMnemonic (entropy);
+            credentials['mnemonic'] = entropy;
+            return credentials;
+        }
+        credentials = exportMnemonicAndPrivateKey (this.base16ToBinary (entropy));
         return credentials;
     }
 

@@ -236,6 +236,7 @@ export default class dydx extends Exchange {
                 'privateKey': false,
             },
             'options': {
+                'mnemonic': undefined, // specify mnemonic
                 'chainName': 'dydx-mainnet-1',
                 'chainId': 1,
                 'sandboxMode': false,
@@ -1237,8 +1238,11 @@ export default class dydx extends Exchange {
         if (credentials !== undefined) {
             return credentials;
         }
-        const signature = this.signOnboardingAction ();
-        const entropy = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
+        let entropy = this.safeString (this.options, 'mnemonic');
+        if (entropy === undefined) {
+            const signature = this.signOnboardingAction ();
+            entropy = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
+        }
         credentials = this.retrieveDydxCredentials (entropy);
         credentials['privateKey'] = this.binaryToBase16 (credentials['privateKey']);
         credentials['publicKey'] = this.binaryToBase16 (credentials['publicKey']);
