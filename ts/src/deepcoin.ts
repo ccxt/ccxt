@@ -59,6 +59,7 @@ export default class deepcoin extends Exchange {
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': true,
@@ -194,7 +195,7 @@ export default class deepcoin extends Exchange {
                     'post': {
                         'deepcoin/account/set-leverage': 5, // done
                         'deepcoin/trade/order': 5, // done
-                        'deepcoin/trade/replace-order': 5,
+                        'deepcoin/trade/replace-order': 5, // done
                         'deepcoin/trade/cancel-order': 5, // done
                         'deepcoin/trade/batch-cancel-order': 5,
                         'deepcoin/trade/cancel-trigger-order': 1 / 6, // done
@@ -1870,6 +1871,54 @@ export default class deepcoin extends Exchange {
         return this.parseOrders (data, market);
     }
 
+    /**
+     * @method
+     * @name deepcoin#editOrder
+     * @description edit a trade order
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/replaceOrder
+     * @param {string} id cancel order id
+     * @param {string} [symbol] unified symbol of the market to create an order in (not used in deepcoin editOrder)
+     * @param {string} [type] 'market' or 'limit' (not used in deepcoin editOrder)
+     * @param {string} [side] 'buy' or 'sell' (not used in deepcoin editOrder)
+     * @param {float} [amount] how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'OrderSysID': id,
+        };
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (market['spot']) {
+                throw new NotSupported (this.id + ' editOrder() is not supported for spot markets');
+            }
+            symbol = market['symbol'];
+        }
+        if (price !== undefined) {
+            if (symbol !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else {
+                request['price'] = this.numberToString (price);
+            }
+        }
+        if (amount !== undefined) {
+            if (symbol !== undefined) {
+                request['volume'] = this.amountToPrecision (symbol, amount);
+            } else {
+                request['volume'] = this.numberToString (amount);
+            }
+        }
+        const response = await this.privatePostDeepcoinTradeReplaceOrder (this.extend (request, params));
+        //
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
@@ -2533,10 +2582,14 @@ export default class deepcoin extends Exchange {
         const data = this.safeDict (response, 'data', {});
         let msg = this.safeString (response, 'msg');
         const messageCode = this.safeString (response, 'code');
-        const sCode = this.safeString (data, 'sCode');
+        let sCode = this.safeString (data, 'sCode');
         const sMsg = this.safeString (data, 'sMsg');
+        const errorCode = this.safeString (data, 'errorCode');
         if ((msg !== undefined) && (msg === '') && (sMsg !== undefined)) {
             msg = sMsg;
+        }
+        if ((sCode === undefined) && (errorCode !== undefined)) {
+            sCode = errorCode;
         }
         const feedback = this.id + ' ' + body;
         if ((code !== 200) || (messageCode !== '0') || (sCode !== undefined && sCode !== '0')) {
