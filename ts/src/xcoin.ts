@@ -1658,6 +1658,177 @@ export default class xcoin extends Exchange {
         } as MarginMode;
     }
 
+    /**
+     * @method
+     * @name xcoin#createOrder
+     * @description create a trade order
+     * @see https://xcoin.com/docs/coinApi/trading/regular-trading/place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
+     * @param {bool} [params.postOnly] true to place a post only order
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
+     * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
+     * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
+     * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
+     * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+     * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
+     * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
+     * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const isTrigger = this.safeNumber2 (params, 'triggerPrice', 'stopPrice') !== undefined;
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privatePostTradeOrder (request);
+        } else {
+            response = await this.privatePostV2TradeOrder (request);
+        }
+        return this.parseOrder (response, market);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        const market = this.market (symbol);
+        let request: Dict = {
+            'instId': market['id'],
+            'side': side.toLowerCase (),
+            'qty': this.amountToPrecision (symbol, amount),
+            // 'marketUnit': todo
+        };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const cost = this.safeNumber (params, 'cost');
+        if (cost !== undefined) {
+            request['marketUnit'] = 'quote_currency';
+        }
+        const isMarketOrder = type === 'market';
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
+        if (postOnly) {
+            request['orderType'] = 'post_only';
+        } else {
+            request['orderType'] = type;
+        }
+        const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
+        if (timeInForce !== 'GTC' && !postOnly) {
+            request['timeInForce'] = timeInForce.toLowerCase ();
+        }
+        const isReduceOnly = this.safeBool (params, 'reduceOnly');
+        if (!market['spot'] || isReduceOnly) {
+            request['reduceOnly'] = true;
+        }
+        // trigger: todo
+        // const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice' ]);
+        // const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        // const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const stopLossDefined = (stopLoss !== undefined);
+        const takeProfit = this.safeDict (params, 'takeProfit');
+        const takeProfitDefined = (takeProfit !== undefined);
+        if (stopLossDefined || takeProfitDefined) {
+            const typeMap = {
+                'last': 'last_price',
+                'index': 'index_price',
+                'mark': 'mark_price',
+            };
+            const tpslOrder: Dict = {};
+            // stop-loss
+            if (stopLossDefined) {
+                tpslOrder['stopLoss'] = this.safeNumber (stopLoss, 'triggerPrice');
+                const triggerPriceTypeSl = this.safeString (stopLoss, 'triggerPriceType');
+                if (triggerPriceTypeSl !== undefined) {
+                    tpslOrder['stopLossType'] = this.safeString (typeMap, triggerPriceTypeSl);
+                }
+                const limitPriceSl = this.safeNumber (stopLoss, 'price');
+                if (limitPriceSl !== undefined) {
+                    tpslOrder['slOrderType'] = 'limit';
+                    tpslOrder['slLimitPrice'] = this.priceToPrecision (symbol, limitPriceSl);
+                }
+            }
+            // take-profit
+            if (takeProfitDefined) {
+                tpslOrder['takeProfit'] = this.safeNumber (takeProfit, 'triggerPrice');
+                const triggerPriceTypeTp = this.safeString (takeProfit, 'triggerPriceType');
+                if (triggerPriceTypeTp !== undefined) {
+                    tpslOrder['takeProfitType'] = this.safeString (typeMap, triggerPriceTypeTp);
+                }
+                const limitPriceTp = this.safeNumber (takeProfit, 'price');
+                if (limitPriceTp !== undefined) {
+                    tpslOrder['tpOrderType'] = 'limit';
+                    tpslOrder['tpLimitPrice'] = this.priceToPrecision (symbol, limitPriceTp);
+                }
+            }
+            request['tpslOrder'] = tpslOrder;
+        }
+
+        // algo order details
+        if (trigger) {
+            request['ordType'] = 'trigger';
+            request['triggerPx'] = this.priceToPrecision (symbol, triggerPrice);
+            request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision (symbol, price);
+        } else if (conditional) {
+            request['ordType'] = 'conditional';
+            const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
+            // if TP and SL are sent together
+            // as ordType 'conditional' only stop-loss order will be applied
+            // tpOrdKind is 'condition' which is the default
+            if (twoWayCondition) {
+                request['ordType'] = 'oco';
+            }
+            if (side === 'sell') {
+                request = this.omit (request, 'tgtCcy');
+            }
+            if (this.safeString (request, 'tdMode') === 'cash') {
+                // for some reason tdMode = cash throws
+                // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
+                request['tdMode'] = marginMode;
+            }
+            if (takeProfitPrice !== undefined) {
+                request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
+                let tpOrdPxReq = '-1';
+                if (tpOrdPx !== undefined) {
+                    tpOrdPxReq = this.priceToPrecision (symbol, tpOrdPx);
+                }
+                request['tpOrdPx'] = tpOrdPxReq;
+                request['tpTriggerPxType'] = tpTriggerPxType;
+            }
+            if (stopLossPrice !== undefined) {
+                request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
+                let slOrdPxReq = '-1';
+                if (slOrdPx !== undefined) {
+                    slOrdPxReq = this.priceToPrecision (symbol, slOrdPx);
+                }
+                request['slOrdPx'] = slOrdPxReq;
+                request['slTriggerPxType'] = slTriggerPxType;
+            }
+        }
+        if (clientOrderId === undefined) {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                request['clOrdId'] = brokerId + this.uuid16 ();
+                request['tag'] = brokerId;
+            }
+        } else {
+            request['clOrdId'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
+        }
+        return this.extend (request, params);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
         const query = this.omit (params, this.extractParams (path));
