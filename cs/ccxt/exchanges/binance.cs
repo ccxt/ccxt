@@ -11414,7 +11414,7 @@ public partial class binance : Exchange
         {
             if (isTrue(isPortfolioMargin))
             {
-                response = await ((Task<object>)callDynamically(this, "papiV2GetUmAccount", new object[] { parameters }));
+                response = await this.papiV2GetUmAccount(parameters);
             } else
             {
                 object useV2 = null;
