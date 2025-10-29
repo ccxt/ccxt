@@ -34,7 +34,7 @@ class toobit(Exchange, ImplicitAPI):
             'version': 'v1',
             'rateLimit': 20,  # 50 requests per second
             'certified': False,
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,

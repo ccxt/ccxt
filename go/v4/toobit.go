@@ -21,7 +21,7 @@ func (this *ToobitCore) Describe() interface{} {
 		"version":   "v1",
 		"rateLimit": 20,
 		"certified": false,
-		"pro":       false,
+		"pro":       true,
 		"has": map[string]interface{}{
 			"CORS":                    nil,
 			"spot":                    true,

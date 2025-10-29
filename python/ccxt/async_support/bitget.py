@@ -103,7 +103,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingInterval': True,
-                'fetchFundingIntervals': False,
+                'fetchFundingIntervals': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -8061,6 +8061,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: *contract only* 'linear', 'inverse'
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+        :param str [params.method]: either(default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
         :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
         """
         await self.load_markets()
@@ -8071,43 +8072,81 @@ class bitget(Exchange, ImplicitAPI):
         request: dict = {}
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
+        method = 'publicMixGetV2MixMarketTickers'
+        method, params = self.handle_option_and_params(params, 'fetchFundingRates', 'method', method)
+        response = None
         request['productType'] = productType
-        response = await self.publicMixGetV2MixMarketTickers(self.extend(request, params))
-        # {
-        #     "code": "00000",
-        #     "msg": "success",
-        #     "requestTime": 1700533773477,
-        #     "data": [
-        #         {
-        #             "symbol": "BTCUSD",
-        #             "lastPr": "29904.5",
-        #             "askPr": "29904.5",
-        #             "bidPr": "29903.5",
-        #             "bidSz": "0.5091",
-        #             "askSz": "2.2694",
-        #             "high24h": "0",
-        #             "low24h": "0",
-        #             "ts": "1695794271400",
-        #             "change24h": "0",
-        #             "baseVolume": "0",
-        #             "quoteVolume": "0",
-        #             "usdtVolume": "0",
-        #             "openUtc": "0",
-        #             "changeUtc24h": "0",
-        #             "indexPrice": "29132.353333",
-        #             "fundingRate": "-0.0007",
-        #             "holdingAmount": "125.6844",
-        #             "deliveryStartTime": null,
-        #             "deliveryTime": null,
-        #             "deliveryStatus": "delivery_normal",
-        #             "open24h": "0",
-        #             "markPrice": "12345"
-        #         },
-        #     ]
-        # }
+        if method == 'publicMixGetV2MixMarketTickers':
+            # {
+            #     "code": "00000",
+            #     "msg": "success",
+            #     "requestTime": 1700533773477,
+            #     "data": [
+            #         {
+            #             "symbol": "BTCUSD",
+            #             "lastPr": "29904.5",
+            #             "askPr": "29904.5",
+            #             "bidPr": "29903.5",
+            #             "bidSz": "0.5091",
+            #             "askSz": "2.2694",
+            #             "high24h": "0",
+            #             "low24h": "0",
+            #             "ts": "1695794271400",
+            #             "change24h": "0",
+            #             "baseVolume": "0",
+            #             "quoteVolume": "0",
+            #             "usdtVolume": "0",
+            #             "openUtc": "0",
+            #             "changeUtc24h": "0",
+            #             "indexPrice": "29132.353333",
+            #             "fundingRate": "-0.0007",
+            #             "holdingAmount": "125.6844",
+            #             "deliveryStartTime": null,
+            #             "deliveryTime": null,
+            #             "deliveryStatus": "delivery_normal",
+            #             "open24h": "0",
+            #             "markPrice": "12345"
+            #         },
+            #     ]
+            # }
+            response = await self.publicMixGetV2MixMarketTickers(self.extend(request, params))
+        elif method == 'publicMixGetV2MixMarketCurrentFundRate':
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime":1761659449917,
+            #         "data":[
+            #             {
+            #                 "symbol": "BTCUSDT",
+            #                 "fundingRate": "-0.000024",
+            #                 "fundingRateInterval": "8",
+            #                 "nextUpdate": "1761667200000",
+            #                 "minFundingRate": "-0.003",
+            #                 "maxFundingRate": "0.003"
+            #             }
+            #         ]
+            #     }
+            #
+            response = await self.publicMixGetV2MixMarketCurrentFundRate(self.extend(request, params))
         symbols = self.market_symbols(symbols)
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbols)
+
+    async def fetch_funding_intervals(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetch the funding rate interval for multiple markets
+
+        https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.productType]: 'USDT-FUTURES'(default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        params = self.extend({'method': 'publicMixGetV2MixMarketCurrentFundRate'}, params)
+        return await self.fetch_funding_rates(symbols, params)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

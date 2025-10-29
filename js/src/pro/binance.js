@@ -2323,10 +2323,6 @@ export default class binance extends binanceRest {
     }
     signParams(params = {}) {
         this.checkRequiredCredentials();
-        let extendedParams = this.extend({
-            'timestamp': this.nonce(),
-            'apiKey': this.apiKey,
-        }, params);
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
         if (defaultRecvWindow !== undefined) {
             params['recvWindow'] = defaultRecvWindow;
@@ -2335,6 +2331,10 @@ export default class binance extends binanceRest {
         if (recvWindow !== undefined) {
             params['recvWindow'] = recvWindow;
         }
+        let extendedParams = this.extend({
+            'timestamp': this.nonce(),
+            'apiKey': this.apiKey,
+        }, params);
         extendedParams = this.keysort(extendedParams);
         const query = this.urlencode(extendedParams);
         let signature = undefined;

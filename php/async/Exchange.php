@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.11';
+$version = '4.5.13';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.11';
+    const VERSION = '4.5.13';
 
     public $browser;
     public $marketsLoading = null;

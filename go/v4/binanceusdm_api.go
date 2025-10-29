@@ -3070,3 +3070,7 @@ func (this *BinanceusdmCore) PapiDeleteMarginOrderList(args ...interface{}) <-ch
 func (this *BinanceusdmCore) PapiDeleteListenKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("papiDeleteListenKey", args...)
 }
+
+func (this *BinanceusdmCore) PapiV2GetUmAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiV2GetUmAccount", args...)
+}

@@ -944,6 +944,7 @@ class apex extends apex$1["default"] {
             'recentlyTrade': this.handleTrades,
             'pong': this.handlePong,
             'auth': this.handleAuthenticate,
+            'ping': this.handlePing,
         };
         const exacMethod = this.safeValue(methods, topic);
         if (exacMethod !== undefined) {
@@ -973,6 +974,19 @@ class apex extends apex$1["default"] {
             'op': 'ping',
         };
     }
+    async pong(client, message) {
+        //
+        //     {"op": "ping", "args": ["1761069137485"]}
+        //
+        const timeStamp = this.milliseconds();
+        try {
+            await client.send({ 'args': [timeStamp.toString()], 'op': 'pong' });
+        }
+        catch (e) {
+            const error = new errors.NetworkError(this.id + ' handlePing failed with error ' + this.json(e));
+            client.reset(error);
+        }
+    }
     handlePong(client, message) {
         //
         //   {
@@ -986,6 +1000,9 @@ class apex extends apex$1["default"] {
         //
         client.lastPong = this.safeInteger(message, 'pong');
         return message;
+    }
+    handlePing(client, message) {
+        this.spawn(this.pong, client, message);
     }
     handleAccount(client, message) {
         const contents = this.safeDict(message, 'contents', {});

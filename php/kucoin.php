@@ -122,6 +122,7 @@ class kucoin extends Exchange {
                     'webExchange' => 'https://kucoin.com/_api',
                     'broker' => 'https://api-broker.kucoin.com',
                     'earn' => 'https://api.kucoin.com',
+                    'uta' => 'https://api.kucoin.com',
                 ),
                 'www' => 'https://www.kucoin.com',
                 'doc' => array(
@@ -162,6 +163,7 @@ class kucoin extends Exchange {
                         'mark-price/all-symbols' => 3,
                         'margin/config' => 25, // 25SW
                         'announcements' => 20, // 20W
+                        'margin/collateralRatio' => 10,
                     ),
                     'post' => array(
                         // ws
@@ -243,6 +245,9 @@ class kucoin extends Exchange {
                         'purchase/orders' => 10, // 10SW
                         // broker
                         'broker/api/rebase/download' => 3,
+                        'broker/queryMyCommission' => 3,
+                        'broker/queryUser' => 3,
+                        'broker/queryDetailByUid' => 3,
                         'migrate/user/account/status' => 3,
                         // affiliate
                         'affiliate/inviter/statistics' => 30,
@@ -365,6 +370,8 @@ class kucoin extends Exchange {
                         'margin/maxWithdrawMargin' => 15, // 10FW
                         'contracts/risk-limit/{symbol}' => 7.5, // 5FW
                         'funding-history' => 7.5, // 5FW
+                        'copy-trade/futures/get-max-open-size' => 6, // 4FW
+                        'copy-trade/futures/position/margin/max-withdraw-margin' => 15, // 10FW
                     ),
                     'post' => array(
                         // funding
@@ -378,6 +385,17 @@ class kucoin extends Exchange {
                         'margin/withdrawMargin' => 15, // 10FW
                         'position/margin/deposit-margin' => 6, // 4FW
                         'position/risk-limit-level/change' => 6, // 4FW
+                        'copy-trade/futures/orders' => 3, // 2FW
+                        'copy-trade/futures/orders/test' => 3, // 2FW
+                        'copy-trade/futures/st-orders' => 3, // 2FW
+                        'copy-trade/futures/position/margin/deposit-margin' => 6, // 4FW
+                        'copy-trade/futures/position/margin/withdraw-margin' => 15, // 10FW
+                        'copy-trade/futures/position/risk-limit-level/change' => 3, // 2FW
+                        'copy-trade/futures/position/margin/auto-deposit-status' => 6, // 4FW
+                        'copy-trade/futures/position/changeMarginMode' => 3, // 2FW
+                        'copy-trade/futures/position/changeCrossUserLeverage' => 3, // 2FW
+                        'copy-trade/getCrossModeMarginRequirement' => 4.5, // 3FW
+                        'copy-trade/position/switchPositionMode' => 3, // 2FW
                         // ws
                         'bullet-private' => 15, // 10FW
                     ),
@@ -386,6 +404,8 @@ class kucoin extends Exchange {
                         'orders/client-order/{clientOid}' => 1.5, // 1FW
                         'orders' => 45, // 30FW
                         'stopOrders' => 22.5, // 15FW
+                        'copy-trade/futures/orders' => 1.5, // 1FW
+                        'copy-trade/futures/orders/client-order' => 1.5, // 1FW
                     ),
                 ),
                 'webExchange' => array(
@@ -431,6 +451,21 @@ class kucoin extends Exchange {
                     ),
                     'delete' => array(
                         'earn/orders' => 7.5, // 5EW
+                    ),
+                ),
+                'uta' => array(
+                    'get' => array(
+                        'market/announcement' => 20,
+                        'market/currency' => 3,
+                        'market/instrument' => 4,
+                        'market/ticker' => 15,
+                        'market/orderbook' => 3,
+                        'market/trade' => 3,
+                        'market/kline' => 3,
+                        'market/funding-rate' => 2,
+                        'market/funding-rate-history' => 5,
+                        'market/cross-config' => 25,
+                        'market/server/status' => 3,
                     ),
                 ),
             ),
@@ -5072,6 +5107,9 @@ class kucoin extends Exchange {
         }
         if ($api === 'earn') {
             $endpoint = '/api/v1/' . $this->implode_params($path, $params);
+        }
+        if ($api === 'uta') {
+            $endpoint = '/api/ua/v1/' . $this->implode_params($path, $params);
         }
         $query = $this->omit($params, $this->extract_params($path));
         $endpart = '';
