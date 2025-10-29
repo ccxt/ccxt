@@ -1876,9 +1876,6 @@ class websea extends Exchange {
             $request = array(
                 'order_ids' => $id,
             );
-            if ($symbol !== null) {
-                $request['symbol'] = $market['id'];
-            }
             $response = null;
             if ($marketType === 'swap') {
                 // 合约取消订单

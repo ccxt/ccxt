@@ -1896,9 +1896,6 @@ export default class websea extends Exchange {
         const request: Dict = {
             'order_ids': id,
         };
-        if (symbol !== undefined) {
-            request['symbol'] = market['id'];
-        }
         let response = undefined;
         if (marketType === 'swap') {
             // 合约取消订单

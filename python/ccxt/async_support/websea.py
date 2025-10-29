@@ -1714,8 +1714,6 @@ class websea(Exchange, ImplicitAPI):
         request: dict = {
             'order_ids': id,
         }
-        if symbol is not None:
-            request['symbol'] = market['id']
         response = None
         if marketType == 'swap':
             # 合约取消订单
