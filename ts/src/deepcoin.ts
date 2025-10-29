@@ -34,8 +34,8 @@ export default class deepcoin extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
-                'cancelOrder': false,
-                'cancelOrders': false,
+                'cancelOrder': true,
+                'cancelOrders': true,
                 'cancelWithdraw': false,
                 'closePosition': true,
                 'createConvertTrade': false,
@@ -197,7 +197,7 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/order': 5, // done
                         'deepcoin/trade/replace-order': 5, // done
                         'deepcoin/trade/cancel-order': 5, // done
-                        'deepcoin/trade/batch-cancel-order': 5,
+                        'deepcoin/trade/batch-cancel-order': 5, // done
                         'deepcoin/trade/cancel-trigger-order': 1 / 6, // done
                         'deepcoin/trade/swap/cancel-all': 5, // done
                         'deepcoin/trade/trigger-order': 5,
@@ -1913,10 +1913,35 @@ export default class deepcoin extends Exchange {
             }
         }
         const response = await this.privatePostDeepcoinTradeReplaceOrder (this.extend (request, params));
-        //
-        //
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#cancelOrders
+     * @description cancel multiple orders
+     * @see
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (market['spot']) {
+                throw new NotSupported (this.id + ' cancelOrders() is not supported for spot markets');
+            }
+        }
+        const request: Dict = {
+            'OrderSysIDs': ids,
+        };
+        const response = await this.privatePostDeepcoinTradeBatchCancelOrder (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2584,14 +2609,21 @@ export default class deepcoin extends Exchange {
         const messageCode = this.safeString (response, 'code');
         let sCode = this.safeString (data, 'sCode');
         const sMsg = this.safeString (data, 'sMsg');
-        const errorCode = this.safeString (data, 'errorCode');
+        let errorCode = this.safeString (data, 'errorCode');
         if ((msg !== undefined) && (msg === '') && (sMsg !== undefined)) {
             msg = sMsg;
         }
+        const errorList = this.safeList (data, 'errorList');
+        if (errorList !== undefined) {
+            for (let i = 0; i < errorList.length; i++) {
+                const entry = this.safeDict (errorList, i, {});
+                errorCode = this.safeString (entry, 'errorCode');
+            }
+        }
+        const feedback = this.id + ' ' + body;
         if ((sCode === undefined) && (errorCode !== undefined)) {
             sCode = errorCode;
         }
-        const feedback = this.id + ' ' + body;
         if ((code !== 200) || (messageCode !== '0') || (sCode !== undefined && sCode !== '0')) {
             this.throwExactlyMatchedException (this.exceptions['exact'], messageCode, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], sCode, feedback);
