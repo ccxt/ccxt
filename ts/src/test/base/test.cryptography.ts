@@ -42,22 +42,22 @@ function testCryptography () {
 
     // ---------------------------------------------------------------------------------------------------------------------
 
-    // Commented secp256k1 as python coincurve is non deterministic
 
-    // const privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a';
-
-    // assert (equals (ecdsa ('1a', privateKey, secp256k1, sha256), {
-    //     'r': '23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f',
-    //     's': '317963fcac18e4ec9f7921b97d7ea0c82a873dd6299cbfb6af016e08ef5ed667',
-    //     'v': 0,
-    // }));
+    const privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a';
 
 
-    // assert (equals (ecdsa (privateKey, privateKey, secp256k1, undefined), {
-    //     'r': 'b84a36a6fbabd5277ede578448b93d48e70b38efb5b15b1d4e2a298accf938b1',
-    //     's': '66ebfb8221cda925526e699a59cd221bb4cc84bdc563024b1802c4d9e1d8bbe9',
-    //     'v': 1,
-    // }));
+    assert (equals (ecdsa ('1a', privateKey, secp256k1, sha256), {
+        'r': '23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f',
+        's': '317963fcac18e4ec9f7921b97d7ea0c82a873dd6299cbfb6af016e08ef5ed667',
+        'v': 0,
+    }));
+
+
+    assert (equals (ecdsa (privateKey, privateKey, secp256k1, undefined), {
+        'r': 'b84a36a6fbabd5277ede578448b93d48e70b38efb5b15b1d4e2a298accf938b1',
+        's': '66ebfb8221cda925526e699a59cd221bb4cc84bdc563024b1802c4d9e1d8bbe9',
+        'v': 1,
+    }));
 
     // ---------------------------------------------------------------------------------------------------------------------
 
