@@ -1708,9 +1708,6 @@ export default class xcoin extends Exchange {
             'qty': this.amountToPrecision (symbol, amount),
             // 'marketUnit': todo
         };
-        if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
         const cost = this.safeNumber (params, 'cost');
         if (cost !== undefined) {
             request['marketUnit'] = 'quote_currency';
@@ -1731,27 +1728,29 @@ export default class xcoin extends Exchange {
         if (!market['spot'] || isReduceOnly) {
             request['reduceOnly'] = true;
         }
-        // trigger: todo
-        // const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice' ]);
-        // const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
-        // const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const triggerPriceTypes = {
+            'last': 'last_price',
+            'index': 'index_price',
+            'mark': 'mark_price',
+        };
+        // trigger
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice' ]);
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const isConditional = (triggerPrice !== undefined) || (takeProfitPrice !== undefined) || (stopLossPrice !== undefined);
+        const conditionalPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
         const stopLoss = this.safeDict (params, 'stopLoss');
         const stopLossDefined = (stopLoss !== undefined);
         const takeProfit = this.safeDict (params, 'takeProfit');
         const takeProfitDefined = (takeProfit !== undefined);
         if (stopLossDefined || takeProfitDefined) {
-            const typeMap = {
-                'last': 'last_price',
-                'index': 'index_price',
-                'mark': 'mark_price',
-            };
             const tpslOrder: Dict = {};
             // stop-loss
             if (stopLossDefined) {
                 tpslOrder['stopLoss'] = this.safeNumber (stopLoss, 'triggerPrice');
                 const triggerPriceTypeSl = this.safeString (stopLoss, 'triggerPriceType');
                 if (triggerPriceTypeSl !== undefined) {
-                    tpslOrder['stopLossType'] = this.safeString (typeMap, triggerPriceTypeSl);
+                    tpslOrder['stopLossType'] = this.safeString (triggerPriceTypes, triggerPriceTypeSl);
                 }
                 const limitPriceSl = this.safeNumber (stopLoss, 'price');
                 if (limitPriceSl !== undefined) {
@@ -1764,7 +1763,7 @@ export default class xcoin extends Exchange {
                 tpslOrder['takeProfit'] = this.safeNumber (takeProfit, 'triggerPrice');
                 const triggerPriceTypeTp = this.safeString (takeProfit, 'triggerPriceType');
                 if (triggerPriceTypeTp !== undefined) {
-                    tpslOrder['takeProfitType'] = this.safeString (typeMap, triggerPriceTypeTp);
+                    tpslOrder['takeProfitType'] = this.safeString (triggerPriceTypes, triggerPriceTypeTp);
                 }
                 const limitPriceTp = this.safeNumber (takeProfit, 'price');
                 if (limitPriceTp !== undefined) {
@@ -1774,57 +1773,39 @@ export default class xcoin extends Exchange {
             }
             request['tpslOrder'] = tpslOrder;
         }
-
-        // algo order details
-        if (trigger) {
-            request['ordType'] = 'trigger';
-            request['triggerPx'] = this.priceToPrecision (symbol, triggerPrice);
-            request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision (symbol, price);
-        } else if (conditional) {
-            request['ordType'] = 'conditional';
-            const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
-            // if TP and SL are sent together
-            // as ordType 'conditional' only stop-loss order will be applied
-            // tpOrdKind is 'condition' which is the default
-            if (twoWayCondition) {
-                request['ordType'] = 'oco';
+        // trigger order
+        if (isConditional) {
+            request['complexType'] = 'trigger';
+            const directionMap = {
+                'ascending': 'rising',
+                'descending': 'falling',
+            };
+            const triggerOrder = {};
+            const triggerPriceType = this.safeString (params, 'triggerPriceType');
+            if (triggerPriceType !== undefined) {
+                triggerOrder['triggerPriceType'] = this.safeString (triggerPriceTypes, triggerPriceType);
             }
-            if (side === 'sell') {
-                request = this.omit (request, 'tgtCcy');
-            }
-            if (this.safeString (request, 'tdMode') === 'cash') {
-                // for some reason tdMode = cash throws
-                // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
-                request['tdMode'] = marginMode;
-            }
-            if (takeProfitPrice !== undefined) {
-                request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
-                let tpOrdPxReq = '-1';
-                if (tpOrdPx !== undefined) {
-                    tpOrdPxReq = this.priceToPrecision (symbol, tpOrdPx);
+            const triggerDirection = this.safeString (params, 'triggerDirection');
+            if (triggerPrice !== undefined) {
+                if (triggerDirection === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a "triggerDirection" parameter for trigger orders');
                 }
-                request['tpOrdPx'] = tpOrdPxReq;
-                request['tpTriggerPxType'] = tpTriggerPxType;
-            }
-            if (stopLossPrice !== undefined) {
-                request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
-                let slOrdPxReq = '-1';
-                if (slOrdPx !== undefined) {
-                    slOrdPxReq = this.priceToPrecision (symbol, slOrdPx);
+                triggerOrder['triggerDirection'] = this.safeString (directionMap, triggerDirection);
+            } else {
+                if (stopLossPrice !== undefined) {
+                    triggerOrder['triggerDirection'] = (side === 'buy') ? 'falling' : 'rising';
+                } else if (takeProfitPrice !== undefined) {
+                    triggerOrder['triggerDirection'] = (side === 'buy') ? 'rising' : 'falling';
                 }
-                request['slOrdPx'] = slOrdPxReq;
-                request['slTriggerPxType'] = slTriggerPxType;
             }
-        }
-        if (clientOrderId === undefined) {
-            const brokerId = this.safeString (this.options, 'brokerId');
-            if (brokerId !== undefined) {
-                request['clOrdId'] = brokerId + this.uuid16 ();
-                request['tag'] = brokerId;
+            request['triggerPrice'] = this.priceToPrecision (symbol, conditionalPrice);
+            if (type === 'limit') {
+                request['triggerOrderPrice'] = this.priceToPrecision (symbol, price);
             }
         } else {
-            request['clOrdId'] = clientOrderId;
-            params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
+            if (type === 'limit') {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
         }
         return this.extend (request, params);
     }
