@@ -1638,7 +1638,8 @@ export default class deepcoin extends Exchange {
         };
         const response = await this.privateGetDeepcoinTradeOrderByID (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
-        if (data.length === 0) {
+        const length = data.length;
+        if (length === 0) {
             return undefined;
         }
         const entry = this.safeDict (data, 0, {});
