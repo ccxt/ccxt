@@ -1,6 +1,6 @@
 {
     "exchange": "deepcoin",
-    "skipKeys": [ ],
+    "skipKeys": [ "OrderSysID" ],
     "outputType": "json",
     "methods": {
         "editOrder": [
@@ -16,7 +16,7 @@
                     25,
                     0.02
                 ],
-                "output": "{\"OrderSysID\":\"1001111677169084\",\"price\":\"0.02\",\"volume\":\"25\"}"
+                "output": "{\"OrderSysID\":1001111677169084,\"price\":\"0.02\",\"volume\":\"25\"}"
             }
         ],
         "fetchClosedOrders": [
