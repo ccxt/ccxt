@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, CrossBorrowRates, FundingRates, FundingRate, FundingRateHistory, Currencies, Account, BorrowInterest, Position } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, CrossBorrowRates, FundingRates, FundingRate, FundingRateHistory, Currencies, Account, BorrowInterest, Position, Leverage, MarginMode } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -43,6 +43,9 @@ export default class xcoin extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchPositions': true,
+                'setLeverage': true,
+                'fetchLeverage': true,
+                'setMarginMode': true,
             },
             'hostname': 'xcoin.com',
             'urls': {
@@ -1531,6 +1534,128 @@ export default class xcoin extends Exchange {
             'marginMode': undefined,
             'percentage': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name xcoin#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://xcoin.com/docs/coinApi/trading-account-information/position-information/set-leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'leverage': leverage,
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privatePostV1TradeLever (this.extend (request, params));
+        //
+        // {
+        //     "accountName": "hongliang01",
+        //     "currency": "BTC",
+        //     "lever": 3
+        // }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://xcoin.com/docs/coinApi/trading-account-information/position-information/get-current-leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetV1TradeLever (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg":"success",
+        //     "data": {
+        //         "accountName": "hongliang01",
+        //         "symbol": "",
+        //         "currency": "BTC",
+        //         "lever": 10,
+        //         "pid": "1916476472910884866",
+        //         "cid": "174575857047300",
+        //         "uid": "174575857039400"
+        //     },
+        //     "ts": "1745927621737"
+        // }
+        //
+        return this.parseLeverage (response, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': undefined,
+            'longLeverage': this.safeInteger (leverage, 'lever'),
+            'shortLeverage': this.safeInteger (leverage, 'lever'),
+        } as Leverage;
+    }
+
+    /**
+     * @method
+     * @name xcoin#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://xcoin.com/docs/coinApi/trading-account-information/position-information/set-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const modes = {
+            'cross': 'multi_currency',
+        };
+        const request = {
+            'marginMode': this.safeString (modes, marginMode, marginMode),
+        };
+        const response = await this.privatePostV1AccountMarginModeSet (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg": "success",
+        //     "data": {
+        //         "accountName": "1915650018593001474",
+        //         "accountMode": "multi_currency"
+        //     },
+        //     "ts": "1760422532889"
+        // }
+        //
+        return this.parseMarginMode (response, undefined) as any;
+    }
+
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        const marketId = this.safeString (marginMode, 'symbol');
+        const marginType = this.safeString (marginMode, 'accountMode');
+        const margin = (marginType === 'multi_currency') ? 'cross' : marginType;
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': margin,
+        } as MarginMode;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
