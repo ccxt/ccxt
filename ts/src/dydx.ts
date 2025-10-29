@@ -236,6 +236,7 @@ export default class dydx extends Exchange {
                 'privateKey': false,
             },
             'options': {
+                'mnemonic': undefined, // specify mnemonic
                 'chainName': 'dydx-mainnet-1',
                 'chainId': 1,
                 'sandboxMode': false,
@@ -1237,8 +1238,11 @@ export default class dydx extends Exchange {
         if (credentials !== undefined) {
             return credentials;
         }
-        const signature = this.signOnboardingAction ();
-        const entropy = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
+        let entropy = this.safeString (this.options, 'mnemonic');
+        if (entropy === undefined) {
+            const signature = this.signOnboardingAction ();
+            entropy = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
+        }
         credentials = this.retrieveDydxCredentials (entropy);
         credentials['privateKey'] = this.binaryToBase16 (credentials['privateKey']);
         credentials['publicKey'] = this.binaryToBase16 (credentials['publicKey']);
@@ -1305,11 +1309,11 @@ export default class dydx extends Exchange {
         const amountStr = this.amountToPrecision (symbol, amount);
         const priceStr = this.priceToPrecision (symbol, price);
         const marketInfo = this.safeDict (market, 'info');
-        const atomicResolution = Precise.stringNeg (marketInfo['atomicResolution']);
-        const quantumScale = this.pow ('10', atomicResolution);
+        const atomicResolution = marketInfo['atomicResolution'];
+        const quantumScale = this.pow ('10', Precise.stringNeg (atomicResolution));
         const quantums = Precise.stringMul (amountStr, quantumScale);
         const quantumConversionExponent = marketInfo['quantumConversionExponent'];
-        const priceScale = this.pow ('10', Precise.stringAdd (atomicResolution, Precise.stringAdd (quantumConversionExponent, '6')));
+        const priceScale = this.pow ('10', Precise.stringSub (Precise.stringSub (atomicResolution, quantumConversionExponent), '-6'));
         const subticks = Precise.stringMul (priceStr, priceScale);
         let clientMetadata = 0;
         let conditionalType = 0;
@@ -1373,7 +1377,7 @@ export default class dydx extends Exchange {
             goodTillBlockTime = this.seconds () + goodTillBlockTimeInSeconds;
         }
         const sideNumber = (orderSide === 'BUY') ? 1 : 2;
-        const defaultClientOrderId = this.randNumber (10);
+        const defaultClientOrderId = this.randNumber (9); // 2**32 - 1 is 10 digits, but it may overflow with 10
         const clientOrderId = this.safeInteger (params, 'clientOrderId', defaultClientOrderId);
         const orderPayload = {
             'order': {
