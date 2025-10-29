@@ -49,7 +49,7 @@
                     "1001441400627435",
                     "ETH/USDT"
                 ],
-                "output": "{\"instId\":\"ETH-USDT\",\"ordId\":1001441400627435}"
+                "output": "{\"instId\":\"ETH-USDT\",\"ordId\":\"1001441400627435\"}"
             }
         ],
         "fetchOpenOrders": [
