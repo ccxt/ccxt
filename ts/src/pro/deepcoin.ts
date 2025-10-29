@@ -86,7 +86,8 @@ export default class deepcoin extends deepcoinRest {
     ping (client: Client) {
         const url = client.url;
         if (url.indexOf ('private') >= 0) {
-            client.lastPong = this.milliseconds (); // prevent automatic disconnects on private channel
+            client.lastPong = this.milliseconds ();
+            // prevent automatic disconnects on private channel
         }
         return 'ping';
     }
