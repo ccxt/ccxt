@@ -213,7 +213,6 @@ export default class woo extends Exchange {
                             'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
                             'asset/ltv': 30,
-                            'asset/withdraw': 30,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#token-withdraw
                             'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
@@ -3015,17 +3014,33 @@ export default class woo extends Exchange {
         if (tag !== undefined) {
             request['extra'] = tag;
         }
-        let specialNetworkId: Str = undefined;
-        [ specialNetworkId, params ] = this.getDedicatedNetworkId (currency, params);
-        request['token'] = specialNetworkId;
-        const response = await this.v1PrivatePostAssetWithdraw (this.extend (request, params));
+        const network = this.safeString (params, 'network');
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter for ' + code);
+        }
+        params = this.omit (params, 'network');
+        request['token'] = currency['id'];
+        request['network'] = network;
+        const response = await this.v3PrivatePostAssetWalletWithdraw (this.extend (request, params));
         //
         //     {
         //         "success": true,
         //         "withdraw_id": "20200119145703654"
         //     }
         //
-        return this.parseTransaction (response, currency);
+        const data = this.safeDict (response, 'data', {});
+        const transactionData = this.extend (data, {
+            'id': this.safeString (data, 'withdrawId'),
+            'timestamp': this.safeInteger (response, 'timestamp'),
+            'currency': code,
+            'amount': amount,
+            'addressTo': address,
+            'tag': tag,
+            'network': network,
+            'type': 'withdrawal',
+            'status': 'pending',
+        });
+        return this.parseTransaction (transactionData, currency);
     }
 
     /**
