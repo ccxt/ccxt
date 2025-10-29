@@ -517,7 +517,7 @@ public class Helpers {
         }
     }
 
-    public boolean inOp(Object obj, Object key) { return InOp(obj, key); }
+    public static boolean inOp(Object obj, Object key) { return InOp(obj, key); }
 
     public static boolean InOp(Object obj, Object key) {
         if (obj == null || key == null) return false;

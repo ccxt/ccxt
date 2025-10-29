@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.Locale;
+
 
 import io.github.ccxt.base.Crypto;
 import io.github.ccxt.base.Encode;
@@ -126,6 +130,9 @@ public class Exchange {
     public Object wsSocksProxy = null;
     public Object ws_socks_proxy = null;
 
+    public Object httpsProxyCallback = null;
+    public Object https_proxy_callback = null;
+    public Object proxyUrlCallback = null;
     public Object socksProxyCallback = null;
     public Object socks_proxy_callback = null;
     public Object httpProxyCallback = null;
@@ -426,7 +433,7 @@ public class Exchange {
         return SafeMethods.SafeValue(obj, key, defaultValue);
     }
 
-    public Object safeValueN(Object obj, java.util.List<Object> keys, Object... defaultValue) {
+    public Object safeValueN(Object obj, Object keys, Object... defaultValue) {
         return SafeMethods.SafeValueN(obj, keys, defaultValue);
     }
 
@@ -435,7 +442,7 @@ public class Exchange {
         return SafeMethods.SafeString(obj, key, defaultValue);
     }
 
-    public String safeStringN(Object obj, java.util.List<Object> keys, Object... defaultValue) {
+    public String safeStringN(Object obj, Object keys, Object... defaultValue) {
         return SafeMethods.SafeStringN(obj, keys, defaultValue);
     }
 
@@ -444,7 +451,7 @@ public class Exchange {
         return SafeMethods.SafeInteger(obj, key, defaultValue);
     }
 
-    public Long safeIntegerN(Object obj, java.util.List<Object> keys, Object... defaultValue) {
+    public Long safeIntegerN(Object obj, Object keys, Object... defaultValue) {
         return SafeMethods.SafeIntegerN(obj, keys, defaultValue);
     }
 
@@ -453,7 +460,7 @@ public class Exchange {
     // public Double safeNumber(Object obj, Object key, Object... defaultValue) {
     //     return (Double) SafeMethods.SafeNumber(obj, key, defaultValue);
     // }
-    public Object safeNumberN(Object obj, java.util.List<Object> keys, Object... defaultValue) {
+    public Object safeNumberN(Object obj, Object keys, Object... defaultValue) {
         return SafeMethods.SafeNumberN(obj, keys, defaultValue);
     }
 
@@ -710,6 +717,45 @@ public class Exchange {
         }
 
         return amount * scale;
+    }
+
+    public static Double parseNumber(Object value) {
+        return parseNumber(value, null);
+    }
+
+    public static Double parseNumber(Object value, Double defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
+        }
+
+        if (value instanceof Boolean) {
+            return (Boolean) value ? 1.0 : 0.0;
+        }
+
+        if (value instanceof String) {
+            String s = ((String) value).trim();
+            if (s.isEmpty()) {
+                return defaultValue;
+            }
+            try {
+                return Double.parseDouble(s);
+            } catch (NumberFormatException ex) {
+                try {
+                    NumberFormat nf = NumberFormat.getInstance(Locale.US);
+                    nf.setGroupingUsed(true); // allow "1,234.56"
+                    Number n = nf.parse(s);
+                    return n.doubleValue();
+                } catch (ParseException ignored) {
+                    return defaultValue;
+                }
+            }
+        }
+
+        return defaultValue;
     }
 
     // ------------------------------------------------------------------------
