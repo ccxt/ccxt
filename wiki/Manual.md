@@ -4442,6 +4442,11 @@ Most of methods returning orders within ccxt unified API will yield an order str
         'cost': 0.0009,           // the fee amount in that currency
         'rate': 0.002,            // the fee rate (if available)
     },
+    'triggerPrice': 10000,         // price that will be the order trigger
+    'stopLossPrice': 50000,
+    'takeProfitPrice': 150000,
+    'reduceOnly': false,
+    'postOnly': false,
     'info': { ... },              // the original unparsed order structure as is
 }
 ```
