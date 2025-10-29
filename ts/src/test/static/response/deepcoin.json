@@ -3,6 +3,62 @@
     "skipKeys": [ ],
     "options": {},
     "methods": {
+        "editOrder": [
+            {
+                "description": "edit order amount and price",
+                "method": "editOrder",
+                "input": [
+                    1001111677169084,
+                    "DOGE/USDT:USDT",
+                    null,
+                    null,
+                    25,
+                    0.02
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "errorCode": "0",
+                        "errorMsg": "",
+                        "ordId": "1001111677169084"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "1001111677169084",
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "side": null,
+                    "price": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "info": {
+                        "errorCode": "0",
+                        "errorMsg": "",
+                        "ordId": "1001111677169084"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
         "fetchClosedOrders": [
             {
                 "description": "fetch closed orders for market",
@@ -394,115 +450,6 @@
                         "stopPrice": null
                     }
                 ]
-            }
-        ],
-        "editOrder": [
-            {
-                "description": "edit order price",
-                "method": "editOrder",
-                "input": [
-                    1001111669001356,
-                    null,
-                    null,
-                    null,
-                    null,
-                    0.02
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "",
-                    "data": {
-                        "errorCode": "0",
-                        "errorMsg": "",
-                        "ordId": "1001111669001356"
-                    }
-                },
-                "parsedResponse": {
-                    "id": "1001111669001356",
-                    "clientOrderId": null,
-                    "datetime": null,
-                    "timestamp": null,
-                    "lastTradeTimestamp": null,
-                    "lastUpdateTimestamp": null,
-                    "status": null,
-                    "symbol": null,
-                    "type": null,
-                    "timeInForce": null,
-                    "side": null,
-                    "price": null,
-                    "average": null,
-                    "amount": null,
-                    "filled": null,
-                    "remaining": null,
-                    "triggerPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null,
-                    "cost": null,
-                    "trades": [],
-                    "fee": null,
-                    "reduceOnly": null,
-                    "postOnly": null,
-                    "info": {
-                        "errorCode": "0",
-                        "errorMsg": "",
-                        "ordId": "1001111669001356"
-                    },
-                    "fees": [],
-                    "stopPrice": null
-                }
-            },
-            {
-                "description": "edit order amount",
-                "method": "editOrder",
-                "input": [
-                    1001111669001356,
-                    null,
-                    null,
-                    null,
-                    25
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "",
-                    "data": {
-                        "errorCode": "0",
-                        "errorMsg": "",
-                        "ordId": "1001111669001356"
-                    }
-                },
-                "parsedResponse": {
-                    "id": "1001111669001356",
-                    "clientOrderId": null,
-                    "datetime": null,
-                    "timestamp": null,
-                    "lastTradeTimestamp": null,
-                    "lastUpdateTimestamp": null,
-                    "status": null,
-                    "symbol": null,
-                    "type": null,
-                    "timeInForce": null,
-                    "side": null,
-                    "price": null,
-                    "average": null,
-                    "amount": null,
-                    "filled": null,
-                    "remaining": null,
-                    "triggerPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null,
-                    "cost": null,
-                    "trades": [],
-                    "fee": null,
-                    "reduceOnly": null,
-                    "postOnly": null,
-                    "info": {
-                        "errorCode": "0",
-                        "errorMsg": "",
-                        "ordId": "1001111669001356"
-                    },
-                    "fees": [],
-                    "stopPrice": null
-                }
             }
         ],
         "fetchFundingRateHistory": [
