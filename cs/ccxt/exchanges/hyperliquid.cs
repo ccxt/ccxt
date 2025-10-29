@@ -3204,8 +3204,16 @@ public partial class hyperliquid : Exchange
         }
         object rawUnrealizedPnl = this.safeString(entry, "unrealizedPnl");
         object absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
-        object initialMargin = this.safeString(entry, "marginUsed");
-        object percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, initialMargin), "100");
+        object marginUsed = this.safeString(entry, "marginUsed");
+        object initialMargin = null;
+        if (isTrue(isIsolated))
+        {
+            initialMargin = Precise.stringSub(marginUsed, rawUnrealizedPnl);
+        } else
+        {
+            initialMargin = marginUsed;
+        }
+        object percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, marginUsed), "100");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3221,7 +3229,7 @@ public partial class hyperliquid : Exchange
             { "markPrice", null },
             { "notional", this.safeNumber(entry, "positionValue") },
             { "leverage", this.safeNumber(leverage, "value") },
-            { "collateral", this.safeNumber(entry, "marginUsed") },
+            { "collateral", this.parseNumber(marginUsed) },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
