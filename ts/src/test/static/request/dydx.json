@@ -6,6 +6,21 @@
     "disabledGO": true,
     "outputType": "json",
     "methods": {
+        "createOrder": [
+            {
+                "description": "create order",
+                "method": "createOrder",
+                "url": "https://dydx-ops-rpc.kingnodes.com/broadcast_tx_sync?tx=0x0aa1010a710a202f6479647870726f746f636f6c2e636c6f622e4d7367506c6163654f72646572124d0a4b0a380a2d0a2b6479647831757061357465646d777133303475326b753970777a6a7771306c75367a32733474736c78727a15c94e771a18402009100118c0843d2080b4c4c32135ea3f0269fa7f2b0a252f6479647870726f746f636f6c2e6163636f756e74706c75732e5478457874656e73696f6e12020a00125d0a550a460a1f2f636f736d6f732e63727970746f2e736563703235366b312e5075624b657912230a210251b7b6bee2352eb4a12d5985b72b297c23654d7ee82ed9e2805e241f96d9825212040a020801189786a386a333120410c0843d1a4073a1f2dfa56a153ac01d37f8bc398bb410b6017e3c22fa8805a3ea7209fe6fb852975367cf5dd70e43907a89ef393b6720fd5dd2ab63194e94640637719b1a0b",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    90
+                ],
+                "output": null
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",
