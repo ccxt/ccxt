@@ -1380,7 +1380,7 @@ export default class dydx extends Exchange {
             goodTillBlockTime = this.seconds () + goodTillBlockTimeInSeconds;
         }
         const sideNumber = (orderSide === 'BUY') ? 1 : 2;
-        const defaultClientOrderId = this.randNumber (10);
+        const defaultClientOrderId = this.randNumber (9); // 2**32 - 1 is 10 digits, but it may overflow with 10
         const clientOrderId = this.safeInteger (params, 'clientOrderId', defaultClientOrderId);
         const orderPayload = {
             'order': {
