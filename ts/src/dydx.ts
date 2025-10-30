@@ -236,7 +236,7 @@ export default class dydx extends Exchange {
                 'privateKey': false,
             },
             'options': {
-                'mnemonic': undefined, // specify mnemonic
+                'mnemonic': undefined, // specify mnemonic, copy secret phrase from UI
                 'chainName': 'dydx-mainnet-1',
                 'chainId': 1,
                 'sandboxMode': false,
@@ -1364,7 +1364,7 @@ export default class dydx extends Exchange {
         const latestBlockHeight = this.safeInteger (params, 'latestBlockHeight');
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         let goodTillBlockTime = undefined;
-        const goodTillBlockTimeInSeconds = this.safeInteger (params, 'goodTillBlockTimeInSeconds', 60); // default is 60 seconds
+        const goodTillBlockTimeInSeconds = this.safeInteger (params, 'goodTillBlockTimeInSeconds', 2592000); // default is 30 days
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
@@ -1442,14 +1442,15 @@ export default class dydx extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] "GTT", "IOC", or "PO"
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
-     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
-     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.stopLossPrice] price for a stoploss order
+     * @param {float} [params.takeProfitPrice] price for a takeprofit order
      * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
+     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -1494,6 +1495,9 @@ export default class dydx extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @param {float} [params.orderFlags] orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
+     * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
+     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
