@@ -173,8 +173,8 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/funding-rate': 5, // not unified
                         'deepcoin/trade/fund-rate/current-funding-rate': 5, // done
                         'deepcoin/trade/fund-rate/history': 5, // done
-                        'deepcoin/trade/trigger-orders-pending': 5,
-                        'deepcoin/trade/trigger-orders-history': 5,
+                        'deepcoin/trade/trigger-orders-pending': 5, // done
+                        'deepcoin/trade/trigger-orders-history': 5, // done
                         'deepcoin/copytrading/support-contracts': 5, // not unified
                         'deepcoin/copytrading/leader-position': 5, // not unified
                         'deepcoin/copytrading/estimate-profit': 5, // not unified
@@ -200,7 +200,7 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/batch-cancel-order': 5, // done
                         'deepcoin/trade/cancel-trigger-order': 1 / 6, // done
                         'deepcoin/trade/swap/cancel-all': 5, // done
-                        'deepcoin/trade/trigger-order': 5,
+                        'deepcoin/trade/trigger-order': 5, // done
                         'deepcoin/trade/batch-close-position': 5, // done
                         'deepcoin/trade/replace-order-sltp': 5,
                         'deepcoin/trade/close-position-by-ids': 5, // done
@@ -1480,11 +1480,69 @@ export default class deepcoin extends Exchange {
     }
 
     createTriggerOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name deepcoin#createTriggerOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin orders
+         * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
+         */
         const market = this.market (symbol);
-        // todo finish implementation
         const request: Dict = {
             'instId': market['id'],
+            'productGroup': this.getProductGroupFromMarket (market),
+            'sz': this.amountToPrecision (symbol, amount),
+            'side': side,
+            // 'posSide': 'long', // 'long' or 'short' - required when product type is SWAP
+            // 'price': price,
+            // 'isCrossMargin': 1, // 1 for cross margin, 0 for isolated margin
+            'orderType': type,
+            // 'triggerPrice': triggerPrice,
+            // 'mrgPosition': 'merge', // 'merge' or 'split', the default is 'merge' - required when product type is SWAP
+            // 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
         };
+        const triggerPrice = this.safeString (params, 'triggerPrice');
+        request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else if (type === 'limit') {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit trigger orders');
+        }
+        let marginMode = 'cross';
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, marginMode);
+        let isCrossMargin = 1;
+        if (marginMode === 'isolated') {
+            isCrossMargin = 0;
+        }
+        request['isCrossMargin'] = isCrossMargin;
+        request['tdMode'] = marginMode;
+        if (market['swap']) {
+            const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+            params = this.omit (params, 'reduceOnly');
+            if (reduceOnly) {
+                if (side === 'buy') {
+                    request['posSide'] = 'short';
+                } else if (side === 'sell') {
+                    request['posSide'] = 'long';
+                }
+            } else {
+                if (side === 'buy') {
+                    request['posSide'] = 'long';
+                } else if (side === 'sell') {
+                    request['posSide'] = 'short';
+                }
+            }
+        }
+        let mrgPosition = 'merge';
+        [ mrgPosition, params ] = this.handleOptionAndParams (params, 'createOrder', 'mrgPosition', mrgPosition);
+        request['mrgPosition'] = mrgPosition;
         return this.extend (request, params);
     }
 
@@ -1656,11 +1714,15 @@ export default class deepcoin extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
+     * @param {bool} [params.trigger] whether to fetch trigger/algo orders (default false)
+     * @param {string} [params.type] *non trigger orders only* 'spot' or 'swap', the market type for the orders
+     * @param {string} [params.state] *non trigger orders only* 'canceled' or 'filled', the order state to filter by
+     * @param {string} [params.OrderType] *trigger orders only* 'limit' or 'market'
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
+        const trigger = this.safeBool (params, 'trigger', false);
         let methodName = 'fetchCanceledAndClosedOrders';
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         let market: Market = undefined;
@@ -1675,8 +1737,93 @@ export default class deepcoin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
+        let response = undefined;
+        if (trigger) {
+            if (methodName !== 'fetchCanceledAndClosedOrders') {
+                throw new BadRequest (this.id + ' ' + methodName + '() does not support trigger orders');
+            }
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders');
+            }
+            params = this.omit (params, 'trigger');
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "",
+            //         "data": [
+            //             {
+            //                 "instType": "SWAP",
+            //                 "instId": "DOGE-USDT-SWAP",
+            //                 "ordId": "1001110510915416",
+            //                 "px": "0",
+            //                 "sz": "76",
+            //                 "triggerPx": "0",
+            //                 "triggerPxType": "last",
+            //                 "ordType": "TPSL",
+            //                 "side": "sell",
+            //                 "posSide": "long",
+            //                 "tdMode": "cross",
+            //                 "lever": "2",
+            //                 "triggerTime": "0",
+            //                 "uTime": "1761059366000",
+            //                 "cTime": "1761059218",
+            //                 "errorCode": "0",
+            //                 "errorMsg": ""
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.privateGetDeepcoinTradeTriggerOrdersHistory (this.extend (request, params));
+        } else {
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "",
+            //         "data": [
+            //             {
+            //                 "instType": "SPOT",
+            //                 "instId": "ETH-USDT",
+            //                 "tgtCcy": "",
+            //                 "ccy": "",
+            //                 "ordId": "1001434573319675",
+            //                 "clOrdId": "",
+            //                 "tag": "",
+            //                 "px": "4056.620000000000",
+            //                 "sz": "0.004000",
+            //                 "pnl": "0.000000",
+            //                 "ordType": "market",
+            //                 "side": "buy",
+            //                 "posSide": "",
+            //                 "tdMode": "cash",
+            //                 "accFillSz": "0.004000",
+            //                 "fillPx": "",
+            //                 "tradeId": "",
+            //                 "fillSz": "0.004000",
+            //                 "fillTime": "1760619119000",
+            //                 "avgPx": "",
+            //                 "state": "filled",
+            //                 "lever": "1.000000",
+            //                 "tpTriggerPx": "",
+            //                 "tpTriggerPxType": "",
+            //                 "tpOrdPx": "",
+            //                 "slTriggerPx": "",
+            //                 "slTriggerPxType": "",
+            //                 "slOrdPx": "",
+            //                 "feeCcy": "USDT",
+            //                 "fee": "0.000004",
+            //                 "rebateCcy": "",
+            //                 "source": "",
+            //                 "rebate": "",
+            //                 "category": "normal",
+            //                 "uTime": "1760619119000",
+            //                 "cTime": "1760619119000"
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.privateGetDeepcoinTradeOrdersHistory (this.extend (request, params));
+        }
         // todo handle with since, until and pagination
-        const response = await this.privateGetDeepcoinTradeOrdersHistory (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
@@ -1728,7 +1875,9 @@ export default class deepcoin extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.index] pagination index, default is 1
+     * @param {bool} [params.trigger] whether to fetch trigger/algo orders (default false)
+     * @param {int} [params.index] *non trigger orders only* pagination index, default is 1
+     * @param {string} [params.orderType] *trigger orders only* 'limit' or 'market'
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1740,60 +1889,99 @@ export default class deepcoin extends Exchange {
         const index = this.safeInteger (params, 'index', 1); // todo add pagination handling
         const request: Dict = {
             'instId': market['id'],
-            'index': index,
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 30, max 100
+            request['limit'] = limit;
         }
-        const response = await this.privateGetDeepcoinTradeV2OrdersPending (this.extend (request, params));
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "",
-        //         "data": [
-        //             {
-        //                 "instType": "SPOT",
-        //                 "instId": "ETH-USDT",
-        //                 "tgtCcy": "",
-        //                 "ccy": "",
-        //                 "ordId": "1001435158096314",
-        //                 "clOrdId": "",
-        //                 "tag": "",
-        //                 "px": "1000.000000000000",
-        //                 "sz": "0.004000",
-        //                 "pnl": "0.000000",
-        //                 "ordType": "limit",
-        //                 "side": "buy",
-        //                 "posSide": "",
-        //                 "tdMode": "cash",
-        //                 "accFillSz": "0.000000",
-        //                 "fillPx": "",
-        //                 "tradeId": "",
-        //                 "fillSz": "0.000000",
-        //                 "fillTime": "1760695267000",
-        //                 "avgPx": "",
-        //                 "state": "live",
-        //                 "lever": "1",
-        //                 "tpTriggerPx": "",
-        //                 "tpTriggerPxType": "",
-        //                 "tpOrdPx": "",
-        //                 "slTriggerPx": "",
-        //                 "slTriggerPxType": "",
-        //                 "slOrdPx": "",
-        //                 "feeCcy": "USDT",
-        //                 "fee": "0.000000",
-        //                 "rebateCcy": "",
-        //                 "source": "",
-        //                 "rebate": "",
-        //                 "category": "normal",
-        //                 "uTime": "1760695267000",
-        //                 "cTime": "1760695267000"
-        //             }
-        //         ]
-        //     }
-        //
+        const trigger = this.safeBool (params, 'trigger', false);
+        let response = undefined;
+        if (trigger) {
+            params = this.omit (params, 'trigger');
+            request['instType'] = this.convertToInstrumentType (market['type']);
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "",
+            //         "data": [
+            //             {
+            //                 "instType": "SPOT",
+            //                 "instId": "DOGE-USDT",
+            //                 "ordId": "1001442305797142",
+            //                 "triggerPx": "0.01",
+            //                 "ordPx": "0.01",
+            //                 "sz": "20",
+            //                 "ordType": "",
+            //                 "side": "buy",
+            //                 "posSide": "",
+            //                 "tdMode": "cash",
+            //                 "triggerOrderType": "Conditional",
+            //                 "triggerPxType": "last",
+            //                 "lever": "",
+            //                 "slPrice": "",
+            //                 "slTriggerPrice": "",
+            //                 "tpPrice": "",
+            //                 "tpTriggerPrice": "",
+            //                 "closeSLTriggerPrice": "",
+            //                 "closeTPTriggerPrice": "",
+            //                 "cTime": "1761814167000",
+            //                 "uTime": "1761814167000"
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.privateGetDeepcoinTradeTriggerOrdersPending (this.extend (request, params));
+        } else {
+            request['index'] = index;
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "",
+            //         "data": [
+            //             {
+            //                 "instType": "SPOT",
+            //                 "instId": "ETH-USDT",
+            //                 "tgtCcy": "",
+            //                 "ccy": "",
+            //                 "ordId": "1001435158096314",
+            //                 "clOrdId": "",
+            //                 "tag": "",
+            //                 "px": "1000.000000000000",
+            //                 "sz": "0.004000",
+            //                 "pnl": "0.000000",
+            //                 "ordType": "limit",
+            //                 "side": "buy",
+            //                 "posSide": "",
+            //                 "tdMode": "cash",
+            //                 "accFillSz": "0.000000",
+            //                 "fillPx": "",
+            //                 "tradeId": "",
+            //                 "fillSz": "0.000000",
+            //                 "fillTime": "1760695267000",
+            //                 "avgPx": "",
+            //                 "state": "live",
+            //                 "lever": "1",
+            //                 "tpTriggerPx": "",
+            //                 "tpTriggerPxType": "",
+            //                 "tpOrdPx": "",
+            //                 "slTriggerPx": "",
+            //                 "slTriggerPxType": "",
+            //                 "slOrdPx": "",
+            //                 "feeCcy": "USDT",
+            //                 "fee": "0.000000",
+            //                 "rebateCcy": "",
+            //                 "source": "",
+            //                 "rebate": "",
+            //                 "category": "normal",
+            //                 "uTime": "1760695267000",
+            //                 "cTime": "1760695267000"
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.privateGetDeepcoinTradeV2OrdersPending (this.extend (request, params));
+        }
         const data = this.safeList (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        return this.parseOrders (data, market, since, limit, { 'status': 'open' });
     }
 
     /**
@@ -1804,7 +1992,7 @@ export default class deepcoin extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] whether the order is a trigger/algo order (default false)
+     * @param {bool} [params.trigger] whether the order is a trigger/algo order (default false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -1837,7 +2025,7 @@ export default class deepcoin extends Exchange {
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
-     * @param {boolean} [params.merged] *swap only* true for merged positions, false for split positions (default true)
+     * @param {bool} [params.merged] *swap only* true for merged positions, false for split positions (default true)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
@@ -1946,6 +2134,7 @@ export default class deepcoin extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
+        // regular order
         //     {
         //         "instType": "SPOT",
         //         "instId": "ETH-USDT",
@@ -1985,9 +2174,38 @@ export default class deepcoin extends Exchange {
         //         "cTime": "1760619119000"
         //     }
         //
+        // trigger order
+        //     {
+        //         "instType": "SPOT",
+        //         "instId": "DOGE-USDT",
+        //         "ordId": "1001442305797142",
+        //         "triggerPx": "0.01",
+        //         "ordPx": "0.01",
+        //         "sz": "20",
+        //         "ordType": "",
+        //         "side": "buy",
+        //         "posSide": "",
+        //         "tdMode": "cash",
+        //         "triggerOrderType": "Conditional",
+        //         "triggerPxType": "last",
+        //         "lever": "",
+        //         "slPrice": "",
+        //         "slTriggerPrice": "",
+        //         "tpPrice": "",
+        //         "tpTriggerPrice": "",
+        //         "closeSLTriggerPrice": "",
+        //         "closeTPTriggerPrice": "",
+        //         "cTime": "1761814167000",
+        //         "uTime": "1761814167000"
+        //     }
+        //
         const marketId = this.safeString (order, 'instId');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (order, 'cTime');
+        let timestamp = this.safeInteger (order, 'cTime');
+        const timestampString = this.safeString (order, 'cTime', '');
+        if (timestampString.length < 13) {
+            timestamp = timestamp * 1000;
+        }
         const state = this.safeString (order, 'state');
         const orderType = this.safeString (order, 'ordType');
         let average = this.safeString (order, 'avgPx');
@@ -2015,12 +2233,12 @@ export default class deepcoin extends Exchange {
             'type': this.parseOrderType (orderType),
             'timeInForce': this.parseOrderTimeInForce (orderType),
             'side': this.safeString (order, 'side'),
-            'price': this.safeString (order, 'px'),
+            'price': this.safeString2 (order, 'px', 'ordPx'),
             'average': average,
             'amount': this.safeString (order, 'sz'),
             'filled': this.safeString (order, 'accFillSz'),
             'remaining': undefined,
-            'triggerPrice': undefined, // todo check for trigger orders
+            'triggerPrice': this.omitZero (this.safeString (order, 'triggerPx')),
             'takeProfitPrice': this.safeString (order, 'tpTriggerPx'),
             'stopLossPrice': this.safeString (order, 'slTriggerPx'),
             'cost': undefined,
@@ -2048,6 +2266,7 @@ export default class deepcoin extends Exchange {
             'market': 'market',
             'post_only': 'limit',
             'ioc': 'market',
+            'TPSL': 'market',
         };
         return this.safeString (types, type, type);
     }
