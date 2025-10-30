@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xcoin.js';
-import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied, BadRequest, ArgumentsRequired } from './base/errors.js';
+import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1689,28 +1689,55 @@ export default class xcoin extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const isTrigger = this.safeNumber2 (params, 'triggerPrice', 'stopPrice') !== undefined;
+        const isTrigger = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]) !== undefined;
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (isTrigger) {
             response = await this.privatePostV2TradeOrderComplex (request);
+            //
+            // {
+            //     "code": "0",
+            //     "msg":"success",
+            //     "data": {
+            //         "accountName": "hongliang01",
+            //         "complexOId": "1369970333708804096",
+            //         "complexClOrdId": "66"
+            //     },
+            //     "ts": "1746667980576"
+            // }
+            //
         } else {
             response = await this.privatePostV2TradeOrder (request);
+            //
+            // {
+            //     "code": "0",
+            //     "msg":"success",
+            //     "data": {
+            //         "orderId": "1322590062927904769"
+            //     },
+            //     "ts": "1732158178000"
+            // }
+            //
         }
         return this.parseOrder (response, market);
     }
 
     /**
      * @method
-     * @name backpack#createOrders
+     * @name xcoin#createOrders
      * @description create a list of trade orders
-     * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
+     * @see https://xcoin.com/docs/coinApi/trading/regular-trading/place-batch-orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
+        for (let i = 0; i < orders.length; i++) {
+            if (this.safeNumber2 (orders[i]['params'], 'triggerPrice', 'stopPrice') !== undefined) {
+                throw new NotSupported (this.id + ' createOrders() does not support conditional orders');
+            }
+        }
         const ordersRequests = this.createOrdersRequest (orders);
         const response = await this.privatePostV2TradeBatchOrder (ordersRequests);
         return this.parseOrders (response);
@@ -1824,6 +1851,95 @@ export default class xcoin extends Exchange {
             }
         }
         return this.extend (request, params);
+    }
+
+    /**
+     * @method
+     * @name xcoin#cancelOrder
+     * @description cancels an open order
+     * @see https://xcoin.com/docs/coinApi/trading/regular-trading/cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        const request: Dict = {
+            'orderId': id,
+        };
+        const response = await this.privatePostV1TradeCancelOrder (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg":"success",
+        //     "data": {
+        //         "orderId": "1322590062927904769"
+        //     },
+        //     "ts": "1732158178000"
+        // }
+        //
+        const data = this.safeDict (response, 'data');
+        return this.parseOrder (data, this.marketOrNull (symbol));
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // cancelOrder
+        //
+        //   - regular
+        //
+        //     {
+        //         "orderId": "1322590062927904769"
+        //     }
+        //
+        //   - trigger
+        //
+        //     {
+        //         "accountName": "hongliang01",
+        //         "complexOId": "1369970333708804096",
+        //         "complexClOrdId": "66"
+        //     }
+        //
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (order, 'ts');
+        return this.safeOrder ({
+            'id': this.safeString2 (order, 'orderId', 'complexOId'),
+            'clientOrderId': this.safeString (order, 'client_order_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimeStamp': undefined,
+            'status': undefined,
+            'symbol': symbol,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'triggerPrice': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        }, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTimeInForce (timeInForce: Str) {
+        const timeInForces: Dict = {
+            'day': 'Day',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
