@@ -1878,20 +1878,37 @@ export default class xcoin extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        const request: Dict = {
-            'orderId': id,
-        };
-        const response = await this.privatePostV1TradeCancelOrder (this.extend (request, params));
-        //
-        // {
-        //     "code": "0",
-        //     "msg":"success",
-        //     "data": {
-        //         "orderId": "1322590062927904769"
-        //     },
-        //     "ts": "1732158178000"
-        // }
-        //
+        const request: Dict = {};
+        const isTrigger = this.safeBool (params, 'isTrigger', false);
+        let response = undefined;
+        if (isTrigger) {
+            request['complexOId'] = id;
+            response = await this.privatePostV1TradeCancelComplex (this.extend (request, params));
+            //
+            // {
+            //     "code": "0",
+            //     "msg":"success",
+            //     "data": {
+            //         "accountName": "hongliang01",
+            //         "complexOId": "1370410319314329600"
+            //     },
+            //     "ts": "1746774086526"
+            // }
+            //
+        } else {
+            request['orderId'] = id;
+            response = await this.privatePostV1TradeCancelOrder (this.extend (request, params));
+            //
+            // {
+            //     "code": "0",
+            //     "msg":"success",
+            //     "data": {
+            //         "orderId": "1322590062927904769"
+            //     },
+            //     "ts": "1732158178000"
+            // }
+            //
+        }
         const data = this.safeDict (response, 'data');
         return this.parseOrder (data, this.marketOrNull (symbol));
     }
@@ -2092,15 +2109,30 @@ export default class xcoin extends Exchange {
         if (market !== undefined) {
             request['symbol'] = market['id'];
         }
-        const response = await this.privatePostV1TradeCancelAllOrder (this.extend (request, params));
-        //
-        // {
-        //     "code": "0",
-        //     "msg":"success",
-        //     "data": null,
-        //     "ts": "1732158178000"
-        // }
-        //
+        let response = undefined;
+        const isTrigger = this.safeBool (params, 'isTrigger', false);
+        if (isTrigger) {
+            request['complexType'] = 'trigger';
+            response = await this.privatePostV1TradeCancelAllOrderComplexs (this.extend (request, params));
+            //
+            // {
+            //     "code": "0",
+            //     "msg":"success",
+            //     "data": "",
+            //     "ts": "1746776571972"
+            // }
+            //
+        } else {
+            response = await this.privatePostV1TradeCancelAllOrder (this.extend (request, params));
+            //
+            // {
+            //     "code": "0",
+            //     "msg":"success",
+            //     "data": null,
+            //     "ts": "1732158178000"
+            // }
+            //
+        }
         return this.parseOrders ([ response ], market);
     }
 
