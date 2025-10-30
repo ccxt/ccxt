@@ -533,7 +533,9 @@ public class Helpers {
         }
     }
 
-    public String slice(Object str2, Object idx1, Object idx2) { return Slice(str2, idx1, idx2); }
+    public static String slice(Object str2, Object idx1, Object idx2) { return Slice(str2, idx1, idx2); }
+
+    // public String slice(Object str2, Object idx1, Object idx2) { return Slice(str2, idx1, idx2); }
 
     public static String Slice(Object str2, Object idx1, Object idx2) {
         if (str2 == null) return null;
@@ -704,5 +706,33 @@ public class Helpers {
 
     private static String typeName(Object o) {
         return (o == null) ? "null" : o.getClass().getName();
+    }
+
+    public static Object opNeg(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof Byte) {
+            byte v = (Byte) value;
+            return (byte) -v;
+        }
+        if (value instanceof Short v) {
+            return (short) -v;
+        }
+        if (value instanceof Integer v) {
+            return -v;
+        }
+        if (value instanceof Long v) {
+            return -v;
+        }
+        if (value instanceof Float v) {
+            return -v;
+        }
+        if (value instanceof Double v) {
+            return -v;
+        }
+
+        return null;
     }
 }
