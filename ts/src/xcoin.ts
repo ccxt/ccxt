@@ -659,21 +659,35 @@ export default class xcoin extends Exchange {
         //
         // fetchTrades
         //
-        //            {
-        //                "id": "1121384806",
-        //                "symbol": "BTC-USDT-PERP",
-        //                "side": "buy",
-        //                "price": "115560.1",
-        //                "qty": "0.0006",
-        //                "time": "1761584074207"
-        //            },
+        //       {
+        //           "id": "1121384806",
+        //           "symbol": "BTC-USDT-PERP",
+        //           "side": "buy",
+        //           "price": "115560.1",
+        //           "qty": "0.0006",
+        //           "time": "1761584074207"
+        //       },
+        //
+        // fetchOrderTrades
+        //
+        //       {
+        //         "orderId": "1308916158820376576",
+        //         "operationType": "create_order",
+        //         "price": "93000",
+        //         "qty": "0.1",
+        //         "createTime": "1732158178000",
+        //         "accountName": "hongliang01",
+        //         "pid": "1917239173600325633",
+        //         "cid": "174594041187401",
+        //         "uid": "174594041178400"
+        //       }
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (trade, 'time');
+        const timestamp = this.safeInteger2 (trade, 'time', 'createTime');
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString2 (trade, 'id', 'orderId'),
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2292,6 +2306,97 @@ export default class xcoin extends Exchange {
         const data = this.safeList (order, 'data', []);
         const firstOrder = this.safeDict (data, 0, {});
         return this.parseOrder (firstOrder);
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://xcoin.com/docs/coinApi/trading/regular-trading/get-order-operation-history
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'orderId': id,
+        };
+        const response = await this.privateGetV2HistoryOrderOperations (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg":"success",
+        //     "data": [
+        //       {
+        //         "orderId": "1308916158820376576",
+        //         "operationType": "create_order",
+        //         "price": "93000",
+        //         "qty": "0.1",
+        //         "createTime": "1732158178000",
+        //         "accountName": "hongliang01",
+        //         "pid": "1917239173600325633",
+        //         "cid": "174594041187401",
+        //         "uid": "174594041178400"
+        //       }
+        //     ],
+        //     "ts": "1732158443301"
+        // }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, undefined, since, limit);
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://xcoin.com/docs/coinApi/trading/regular-trading/get-account-trade-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.marketOrNull (symbol);
+        let request: Dict = {};
+        if (market !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['beginTime'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV2HistoryTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //             "activity_type": "FILL",
+        //             "transaction_time": "2022-12-28T12:19:29.579352Z",
+        //             "type": "fill",
+        //             "price": "67.31",
+        //             "qty": "0.07",
+        //             "side": "sell",
+        //             "symbol": "LTC/USD",
+        //             "leaves_qty": "0",
+        //             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //             "cum_qty": "0.07",
+        //             "order_status": "filled",
+        //             "swap_rate": "1"
+        //         },
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
