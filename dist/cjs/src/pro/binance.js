@@ -2332,7 +2332,7 @@ class binance extends binance$1["default"] {
             'apiKey': this.apiKey,
         }, params);
         extendedParams = this.keysort(extendedParams);
-        const query = this.urlencode(extendedParams);
+        const query = this.rawencode(extendedParams);
         let signature = undefined;
         if (this.secret.indexOf('PRIVATE KEY') > -1) {
             if (this.secret.length > 120) {
