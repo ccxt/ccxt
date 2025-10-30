@@ -109,7 +109,7 @@ public class Helpers {
 
     // NOTE: In C# this used JsonHelper.Deserialize((string)json).
     // In Java, wire up your preferred JSON lib and return Map/List accordingly.
-    public Object parseJson(Object json) {
+    public static Object parseJson(Object json) {
         // placeholder: return the string itself (or plug in Jackson/Gson here)
         return (json instanceof String) ? (String) json : null;
     }
@@ -428,7 +428,7 @@ public class Helpers {
         }
     }
 
-    public CompletableFuture<List<Object>> promiseAll(Object promisesObj) { return PromiseAll(promisesObj); }
+    public static CompletableFuture<List<Object>> promiseAll(Object promisesObj) { return PromiseAll(promisesObj); }
 
     public static CompletableFuture<List<Object>> PromiseAll(Object promisesObj) {
         List<?> promises = (List<?>) promisesObj;
@@ -457,12 +457,6 @@ public class Helpers {
         return (String) value;
     }
 
-    public void throwDynamicException(Object exception, Object message) {
-        Exception ex = NewException((Class<?>) exception, (String) message);
-        // In C#, this constructed but didn't throw; mimic behavior:
-        // If you actually want to throw:
-        // throw ex;
-    }
 
     // This function is the salient bit here
     public Object newException(Object exception, Object message) {
@@ -485,19 +479,39 @@ public class Helpers {
         return bd.doubleValue();
     }
 
-    public static Object callDynamically(Object obj, Object methodName, Object[] args) {
-        if (args == null) args = new Object[]{};
-        if (args.length == 0) {
-            // C# code injected a null arg to help binder; Java doesn't need it.
-            // But to mirror behavior, we won't add a null here.
+    // public static Object callDynamically(Object obj, Object methodName, Object[] args) {
+    //     if (args == null) args = new Object[]{};
+    //     if (args.length == 0) {
+    //         // C# code injected a null arg to help binder; Java doesn't need it.
+    //         // But to mirror behavior, we won't add a null here.
+    //     }
+    //     String name = (String) methodName;
+    //     Method m = findMethod(obj.getClass(), name, args.length);
+    //     try {
+    //         m.setAccessible(true);
+    //         return m.invoke(obj, args);
+    //     } catch (Exception e) {
+    //         throw new RuntimeException(e);
+    //     }
+    // }
+
+
+    public static CompletableFuture<Object> callDynamically(Object obj, Object methodName, Object[] args) {
+        if (args == null) {
+            args = new Object[]{};
         }
+
         String name = (String) methodName;
         Method m = findMethod(obj.getClass(), name, args.length);
+
         try {
             m.setAccessible(true);
-            return m.invoke(obj, args);
+            Object result = m.invoke(obj, args);
+            return CompletableFuture.completedFuture(result);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            CompletableFuture<Object> failed = new CompletableFuture<>();
+            failed.completeExceptionally(e);
+            return failed;
         }
     }
 
@@ -651,6 +665,15 @@ public class Helpers {
         return Float.parseFloat(String.valueOf(o));
     }
 
+    public static String replace(Object baseString, Object search, Object replacement) {
+        if (baseString == null) {
+            return null;
+        }
+        String s     = String.valueOf(baseString);
+        String find  = (search == null) ? "" : String.valueOf(search);
+        String repl  = (replacement == null) ? "" : String.valueOf(replacement);
+        return s.replaceFirst(find, repl); // literal (non-regex) replacement
+    }
 
     public static String replaceAll(Object baseString, Object search, Object replacement) {
         if (baseString == null) {
@@ -735,4 +758,40 @@ public class Helpers {
 
         return null;
     }
+
+    public static void throwDynamicException(Object exception, Object message) {
+    if (exception == null) {
+        throw new RuntimeException(String.valueOf(message));
+    }
+    if (!(exception instanceof Class<?>)) {
+        throw new IllegalArgumentException("exception must be a Class");
+    }
+    Class<?> exClass = (Class<?>) exception;
+    String msg = String.valueOf(message);
+    try {
+        Throwable toThrow;
+        try {
+            var ctorWithMsg = exClass.getDeclaredConstructor(String.class);
+            ctorWithMsg.setAccessible(true);
+            Object exObj = ctorWithMsg.newInstance(msg);
+            if (exObj instanceof Throwable) {
+                toThrow = (Throwable) exObj;
+            } else {
+                toThrow = new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
+            }
+        } catch (NoSuchMethodException innerNoStringCtor) {
+            var defaultCtor = exClass.getDeclaredConstructor();
+            defaultCtor.setAccessible(true);
+            Object exObj = defaultCtor.newInstance();
+            if (exObj instanceof Throwable) {
+                toThrow = (Throwable) exObj;
+            } else {
+                toThrow = new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
+            }
+        }
+        throw toThrow;
+    } catch (Throwable reflectError) {
+        throw new RuntimeException("Failed to throw dynamic exception: " + exClass.getName() + " :: " + msg, reflectError);
+    }
+}
 }
