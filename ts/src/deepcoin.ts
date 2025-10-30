@@ -730,7 +730,6 @@ export default class deepcoin extends Exchange {
         }
         const productGroup = this.getProductGroupFromMarket (market);
         request['productGroup'] = productGroup;
-        params = this.omit (params, 'productGroup');
         const response = await this.publicGetDeepcoinMarketTrades (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
