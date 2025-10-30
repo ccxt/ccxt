@@ -51,7 +51,7 @@ export default class deepcoin extends Exchange {
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': false,
-                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLossOrder': false,
@@ -1414,12 +1414,16 @@ export default class deepcoin extends Exchange {
             request['clOrdId'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
         }
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        let stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const stopLoss = this.safeDict (params, 'stopLoss', {});
+        stopLossPrice = stopLossPrice ? stopLossPrice : this.safeString (stopLoss, 'triggerPrice');
         if (stopLossPrice !== undefined) {
             params = this.omit (params, 'stopLossPrice');
             request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
         }
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        let takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const takeProfit = this.safeDict (params, 'takeProfit', {});
+        takeProfitPrice = takeProfitPrice ? takeProfitPrice : this.safeString (takeProfit, 'triggerPrice');
         if (takeProfitPrice !== undefined) {
             params = this.omit (params, 'takeProfitPrice');
             request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
@@ -2204,7 +2208,7 @@ export default class deepcoin extends Exchange {
         let timestamp = this.safeInteger (order, 'cTime');
         const timestampString = this.safeString (order, 'cTime', '');
         if (timestampString.length < 13) {
-            timestamp = timestamp * 1000;
+            timestamp = this.safeTimestamp (order, 'cTime');
         }
         const state = this.safeString (order, 'state');
         const orderType = this.safeString (order, 'ordType');
