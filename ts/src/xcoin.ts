@@ -1990,6 +1990,33 @@ export default class xcoin extends Exchange {
         return this.parseOrders (response);
     }
 
+    /**
+     * @method
+     * @name xcoin#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://xcoin.com/docs/coinApi/trading/regular-trading/cancel-all-orders
+     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        const market = this.marketOrNull (symbol);
+        if (market !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privatePostV1TradeCancelAllOrder (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg":"success",
+        //     "data": null,
+        //     "ts": "1732158178000"
+        // }
+        //
+        return this.parseOrders ([ response ], market);
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
