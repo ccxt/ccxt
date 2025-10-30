@@ -2195,7 +2195,7 @@ class binance(ccxt.async_support.binance):
             'apiKey': self.apiKey,
         }, params)
         extendedParams = self.keysort(extendedParams)
-        query = self.urlencode(extendedParams)
+        query = self.rawencode(extendedParams)
         signature = None
         if self.secret.find('PRIVATE KEY') > -1:
             if len(self.secret) > 120:

@@ -2336,7 +2336,7 @@ export default class binance extends binanceRest {
             'apiKey': this.apiKey,
         }, params);
         extendedParams = this.keysort(extendedParams);
-        const query = this.urlencode(extendedParams);
+        const query = this.rawencode(extendedParams);
         let signature = undefined;
         if (this.secret.indexOf('PRIVATE KEY') > -1) {
             if (this.secret.length > 120) {

@@ -6313,6 +6313,7 @@ class htx(Exchange, ImplicitAPI):
             'repealed': 'failed',
             'wallet-transfer': 'pending',
             'pre-transfer': 'pending',
+            'verifying': 'pending',
         }
         return self.safe_string(statuses, status, status)
 

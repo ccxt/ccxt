@@ -1065,6 +1065,108 @@
                         "percentage": 11.597564511452594
                     }
                 ]
+            },
+            {
+                "description": "isolated short position",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "HYPE/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "marginSummary": {
+                        "accountValue": "76.206517",
+                        "totalNtlPos": "192.58",
+                        "totalRawUsd": "268.786517",
+                        "totalMarginUsed": "18.564417"
+                    },
+                    "crossMarginSummary": {
+                        "accountValue": "57.6421",
+                        "totalNtlPos": "0.0",
+                        "totalRawUsd": "57.6421",
+                        "totalMarginUsed": "0.0"
+                    },
+                    "crossMaintenanceMarginUsed": "0.0",
+                    "withdrawable": "57.6421",
+                    "assetPositions": [
+                        {
+                            "type": "oneWay",
+                            "position": {
+                                "coin": "HYPE",
+                                "szi": "-4.0",
+                                "leverage": {
+                                    "type": "isolated",
+                                    "value": "10",
+                                    "rawUsd": "211.144417"
+                                },
+                                "entryPx": "47.9932",
+                                "positionValue": "192.58",
+                                "unrealizedPnl": "-0.6071",
+                                "returnOnEquity": "-0.0316242553",
+                                "liquidationPx": "50.2724802381",
+                                "marginUsed": "18.564417",
+                                "maxLeverage": "10",
+                                "cumFunding": {
+                                    "allTime": "0.0",
+                                    "sinceOpen": "0.0",
+                                    "sinceChange": "0.0"
+                                }
+                            }
+                        }
+                    ],
+                    "time": "1761803589961"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "type": "oneWay",
+                            "position": {
+                                "coin": "HYPE",
+                                "szi": "-4.0",
+                                "leverage": {
+                                    "type": "isolated",
+                                    "value": "10",
+                                    "rawUsd": "211.144417"
+                                },
+                                "entryPx": "47.9932",
+                                "positionValue": "192.58",
+                                "unrealizedPnl": "-0.6071",
+                                "returnOnEquity": "-0.0316242553",
+                                "liquidationPx": "50.2724802381",
+                                "marginUsed": "18.564417",
+                                "maxLeverage": "10",
+                                "cumFunding": {
+                                    "allTime": "0.0",
+                                    "sinceOpen": "0.0",
+                                    "sinceChange": "0.0"
+                                }
+                            }
+                        },
+                        "id": null,
+                        "symbol": "HYPE/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": true,
+                        "hedged": null,
+                        "side": "short",
+                        "contracts": 4,
+                        "contractSize": 1,
+                        "entryPrice": 47.9932,
+                        "markPrice": null,
+                        "notional": 192.58,
+                        "leverage": 10,
+                        "collateral": 18.564417,
+                        "initialMargin": 19.171517,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": -0.6071,
+                        "liquidationPrice": 50.2724802381,
+                        "marginMode": "isolated",
+                        "percentage": 3.270234664519764
+                    }
+                ]
             }
         ],
         "fetchOHLCV": [

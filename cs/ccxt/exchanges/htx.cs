@@ -7084,6 +7084,7 @@ public partial class htx : Exchange
             { "repealed", "failed" },
             { "wallet-transfer", "pending" },
             { "pre-transfer", "pending" },
+            { "verifying", "pending" },
         };
         return this.safeString(statuses, status, status);
     }

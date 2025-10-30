@@ -500,6 +500,7 @@ export default class kucoin extends Exchange {
                     'order_not_exist': OrderNotFound,
                     'order_not_exist_or_not_allow_to_cancel': InvalidOrder,
                     'Order size below the minimum requirement.': InvalidOrder,
+                    'Order size increment invalid.': InvalidOrder,
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds,
                     'The amount increment is invalid.': BadRequest,

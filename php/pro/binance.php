@@ -2416,7 +2416,7 @@ class binance extends \ccxt\async\binance {
             'apiKey' => $this->apiKey,
         ), $params);
         $extendedParams = $this->keysort($extendedParams);
-        $query = $this->urlencode($extendedParams);
+        $query = $this->rawencode($extendedParams);
         $signature = null;
         if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
             if (strlen($this->secret) > 120) {

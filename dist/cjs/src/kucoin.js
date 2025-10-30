@@ -499,6 +499,7 @@ class kucoin extends kucoin$1["default"] {
                     'order_not_exist': errors.OrderNotFound,
                     'order_not_exist_or_not_allow_to_cancel': errors.InvalidOrder,
                     'Order size below the minimum requirement.': errors.InvalidOrder,
+                    'Order size increment invalid.': errors.InvalidOrder,
                     'The withdrawal amount is below the minimum requirement.': errors.ExchangeError,
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': errors.InsufficientFunds,
                     'The amount increment is invalid.': errors.BadRequest,
