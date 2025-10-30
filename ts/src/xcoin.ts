@@ -2171,6 +2171,73 @@ export default class xcoin extends Exchange {
 
     /**
      * @method
+     * @name xcoin#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://xcoin.com/docs/coinApi/trading/regular-trading/get-historical-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const market = this.marketOrNull (symbol);
+        let request: Dict = {};
+        if (market !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['beginTime'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV2HistoryOrders (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg":"success",
+        //     "data": [
+        //       {
+        //         "id": "1328700748417994752",
+        //         "businessType": "spot",
+        //         "symbol": "BTC-USDT",
+        //         "orderId": "1328700748417994752",
+        //         "clientOrderId": "1328700748417994752",
+        //         "price": "95836.07",
+        //         "qty": "0.02",
+        //         "quoteQty": "0.02",
+        //         "pnl": "0",
+        //         "orderType": "market",
+        //         "side": "sell",
+        //         "totalFillQty": "0.02",
+        //         "avgPrice": "95836.07",
+        //         "status": "filled",
+        //         "lever": "0",
+        //         "baseFee": "0",
+        //         "quoteFee": "-0.19167214",
+        //         "uid": "173578258816600000",
+        //         "source": "api",
+        //         "cancelSource": "0",
+        //         "cancel uid": "0",
+        //         "reduceOnly": false,
+        //         "timeInForce": "ioc",
+        //         "createTime": "1736828544489",
+        //         "updateTime": "1736828544494"
+        //       }
+        //     ],
+        //     "ts": "1732158443301"
+        // }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name xcoin#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://xcoin.com/docs/coinApi/trading/regular-trading/get-order-information
