@@ -6830,6 +6830,7 @@ class htx extends htx$1["default"] {
             'repealed': 'failed',
             'wallet-transfer': 'pending',
             'pre-transfer': 'pending',
+            'verifying': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
