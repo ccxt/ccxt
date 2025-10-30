@@ -262,8 +262,8 @@ export default class deepcoin extends deepcoinRest {
         const response = this.safeList (message, 'r', []);
         const first = this.safeDict (response, 0, {});
         const data = this.safeDict (first, 'd', {});
-        let marketId = this.safeString (data, 'I');
-        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const rawId = this.safeString (data, 'I');
+        const marketId = rawId.replace ('/', '-'); // replace slash with dash for spot markets
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const parsedTicker = this.parseWsTicker (data, market);
@@ -398,8 +398,8 @@ export default class deepcoin extends deepcoinRest {
         const response = this.safeList (message, 'r', []);
         const first = this.safeDict (response, 0, {});
         const data = this.safeDict (first, 'd', {});
-        let marketId = this.safeString (data, 'I');
-        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const rawId = this.safeString (data, 'I');
+        const marketId = rawId.replace ('/', '-'); // replace slash with dash for spot markets
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         if (!(symbol in this.trades)) {
@@ -572,8 +572,8 @@ export default class deepcoin extends deepcoinRest {
         const response = this.safeList (message, 'r', []);
         const first = this.safeDict (response, 0, {});
         const data = this.safeDict (first, 'd', {});
-        let marketId = this.safeString (data, 'I');
-        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const rawId = this.safeString (data, 'I');
+        const marketId = rawId.replace ('/', '-'); // replace slash with dash for spot markets
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const interval = this.safeString (data, 'P');
@@ -677,8 +677,8 @@ export default class deepcoin extends deepcoinRest {
         const response = this.safeList (message, 'r', []);
         const first = this.safeDict (response, 0, {});
         const data = this.safeDict (first, 'd', {});
-        let marketId = this.safeString (data, 'I');
-        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const rawId = this.safeString (data, 'I');
+        const marketId = rawId.replace ('/', '-'); // replace slash with dash for spot markets
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         if (!(symbol in this.orderbooks)) {
@@ -705,8 +705,8 @@ export default class deepcoin extends deepcoinRest {
         const entries = this.safeList (message, 'r', []);
         const first = this.safeDict (entries, 0, {});
         const data = this.safeDict (first, 'd', {});
-        let marketId = this.safeString (data, 'I');
-        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const rawId = this.safeString (data, 'I');
+        const marketId = rawId.replace ('/', '-'); // replace slash with dash for spot markets
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const orderbook = this.orderbooks[symbol];
@@ -841,8 +841,8 @@ export default class deepcoin extends deepcoinRest {
         const result = this.safeList (message, 'result', []);
         const first = this.safeDict (result, 0, {});
         const data = this.safeDict (first, 'data', {});
-        let marketId = this.safeString (data, 'I');
-        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const rawId = this.safeString (data, 'I');
+        const marketId = rawId.replace ('/', '-'); // replace slash with dash for spot markets
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const messageHash = 'myTrades';
@@ -919,8 +919,8 @@ export default class deepcoin extends deepcoinRest {
         const result = this.safeList (message, 'result', []);
         const first = this.safeDict (result, 0, {});
         const data = this.safeDict (first, 'data', {});
-        let marketId = this.safeString (data, 'I');
-        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const rawId = this.safeString (data, 'I');
+        const marketId = rawId.replace ('/', '-'); // replace slash with dash for spot markets
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const messageHash = 'orders';
@@ -1063,8 +1063,8 @@ export default class deepcoin extends deepcoinRest {
         const result = this.safeList (message, 'result', []);
         const first = this.safeDict (result, 0, {});
         const data = this.safeDict (first, 'data', {});
-        let marketId = this.safeString (data, 'I');
-        marketId = marketId.replace ('/', '-');
+        const rawId = this.safeString (data, 'I');
+        const marketId = rawId.replace ('/', '-'); // replace slash with dash for spot markets
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const messageHash = 'positions';
