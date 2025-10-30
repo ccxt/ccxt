@@ -2324,6 +2324,7 @@ export default class xcoin extends Exchange {
      * @name xcoin#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @see https://xcoin.com/docs/coinApi/trading/regular-trading/get-historical-orders
+     * @see https://xcoin.com/docs/coinApi/trading/complex-order-trading/get-historical-complex-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2345,43 +2346,95 @@ export default class xcoin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV2HistoryOrders (this.extend (request, params));
-        //
-        // {
-        //     "code": "0",
-        //     "msg":"success",
-        //     "data": [
-        //       {
-        //         "id": "1328700748417994752",
-        //         "businessType": "spot",
-        //         "symbol": "BTC-USDT",
-        //         "orderId": "1328700748417994752",
-        //         "clientOrderId": "1328700748417994752",
-        //         "price": "95836.07",
-        //         "qty": "0.02",
-        //         "quoteQty": "0.02",
-        //         "pnl": "0",
-        //         "orderType": "market",
-        //         "side": "sell",
-        //         "totalFillQty": "0.02",
-        //         "avgPrice": "95836.07",
-        //         "status": "filled",
-        //         "lever": "0",
-        //         "baseFee": "0",
-        //         "quoteFee": "-0.19167214",
-        //         "uid": "173578258816600000",
-        //         "source": "api",
-        //         "cancelSource": "0",
-        //         "cancel uid": "0",
-        //         "reduceOnly": false,
-        //         "timeInForce": "ioc",
-        //         "createTime": "1736828544489",
-        //         "updateTime": "1736828544494"
-        //       }
-        //     ],
-        //     "ts": "1732158443301"
-        // }
-        //
+        const isTrigger = this.safeBool (params, 'isTrigger', false);
+        let response = undefined;
+        if (isTrigger) {
+            request['complexType'] = 'trigger';
+            response = await this.privateGetV2HistoryOrderComplexs (this.extend (request, params));
+            //
+            // {
+            //     "code": "0",
+            //     "msg":"success",
+            //     "data": [
+            //         {
+            //             "businessType": "linear_perpetual",
+            //             "symbol": "BTC-USDT-PERP",
+            //             "complexOId": "1369970333708804096",
+            //             "complexClOrdId": "66",
+            //             "side": "buy",
+            //             "complexType": "trigger",
+            //             "qty": "1.000000000000000000",
+            //             "triggerOrder": {
+            //                 "triggerClOrdId": "66",
+            //                 "triggerDirection": "rising",
+            //                 "triggerPriceType": "last_price",
+            //                 "triggerPrice": "100000.00",
+            //                 "triggerOrderType": "limit",
+            //                 "triggerOrderPrice": "110000.00"
+            //             },
+            //             "tpslOrder": {
+            //                 "tpslClOrdId": "88",
+            //                 "tpslMode": "partially_position",
+            //                 "takeProfitType": "last_price",
+            //                 "stopLossType": "last_price",
+            //                 "takeProfit": "120000",
+            //                 "stopLoss": "80000",
+            //                 "tpOrderType": "limit",
+            //                 "slOrderType": "limit",
+            //                 "tpLimitPrice": "110000",
+            //                 "slLimitPrice": "90000"
+            //             },
+            //             "status": "canceled",
+            //             "accountName": "hongliang01",
+            //             "createTime": "1746667980481",
+            //             "updateTime": "1746695701000",
+            //             "pid": "1917239173600325633",
+            //             "cid": "174594041187401",
+            //             "uid": "174594041178400"
+            //         }
+            //     ],
+            //     "ts": "1746765115317"
+            // }
+            //
+        } else {
+            response = await this.privateGetV2HistoryOrders (this.extend (request, params));
+            //
+            // {
+            //     "code": "0",
+            //     "msg":"success",
+            //     "data": [
+            //       {
+            //         "id": "1328700748417994752",
+            //         "businessType": "spot",
+            //         "symbol": "BTC-USDT",
+            //         "orderId": "1328700748417994752",
+            //         "clientOrderId": "1328700748417994752",
+            //         "price": "95836.07",
+            //         "qty": "0.02",
+            //         "quoteQty": "0.02",
+            //         "pnl": "0",
+            //         "orderType": "market",
+            //         "side": "sell",
+            //         "totalFillQty": "0.02",
+            //         "avgPrice": "95836.07",
+            //         "status": "filled",
+            //         "lever": "0",
+            //         "baseFee": "0",
+            //         "quoteFee": "-0.19167214",
+            //         "uid": "173578258816600000",
+            //         "source": "api",
+            //         "cancelSource": "0",
+            //         "cancel uid": "0",
+            //         "reduceOnly": false,
+            //         "timeInForce": "ioc",
+            //         "createTime": "1736828544489",
+            //         "updateTime": "1736828544494"
+            //       }
+            //     ],
+            //     "ts": "1732158443301"
+            // }
+            //
+        }
         const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
