@@ -1677,6 +1677,7 @@ export default class xcoin extends Exchange {
      * @name xcoin#createOrder
      * @description create a trade order
      * @see https://xcoin.com/docs/coinApi/trading/regular-trading/place-order
+     * @see https://xcoin.com/docs/coinApi/trading/complex-order-trading/place-complex-orders
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1872,6 +1873,7 @@ export default class xcoin extends Exchange {
      * @name xcoin#cancelOrder
      * @description cancels an open order
      * @see https://xcoin.com/docs/coinApi/trading/regular-trading/cancel-order
+     * @see https://xcoin.com/docs/coinApi/trading/complex-order-trading/cancel-complex-orders
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1933,6 +1935,8 @@ export default class xcoin extends Exchange {
         //
         // fetchOpenOrders
         //
+        //      regular
+        //
         //         {
         //             "accountName": "hongliang02",
         //             "businessType": "linear_perpetual",
@@ -1979,6 +1983,45 @@ export default class xcoin extends Exchange {
         //             "cid": "174594041187401"
         //         }
         //
+        //     trigger
+        //
+        //         {
+        //             "businessType": "linear_perpetual",
+        //             "symbol": "BTC-USDT-PERP",
+        //             "complexOId": "1369970333708804096",
+        //             "complexClOrdId": "66",
+        //             "side": "buy",
+        //             "complexType": "trigger",
+        //             "qty": "1.000000000000000000",
+        //             "triggerOrder": {
+        //                 "triggerClOrdId": "66",
+        //                 "triggerDirection": "rising",
+        //                 "triggerPriceType": "last_price",
+        //                 "triggerPrice": "100000.00",
+        //                 "triggerOrderType": "limit",
+        //                 "triggerOrderPrice": "110000.00"
+        //             },
+        //             "tpslOrder": {
+        //                 "tpslClOrdId": "88",
+        //                 "tpslMode": "partially_position",
+        //                 "takeProfitType": "last_price",
+        //                 "stopLossType": "last_price",
+        //                 "takeProfit": "120000",
+        //                 "stopLoss": "80000",
+        //                 "tpOrderType": "limit",
+        //                 "slOrderType": "limit",
+        //                 "tpLimitPrice": "110000",
+        //                 "slLimitPrice": "90000"
+        //             },
+        //             "status": "live",
+        //             "accountName": "hongliang01",
+        //             "createTime": "1746667980481",
+        //             "updateTime": "1746667980000",
+        //             "pid": "1917239173600325633",
+        //             "cid": "174594041187401",
+        //             "uid": "174594041178400"
+        //         }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -1998,6 +2041,13 @@ export default class xcoin extends Exchange {
                 'currency': market['quote'],
             };
         }
+        let price = this.safeString (order, 'price');
+        const triggerOrder = this.safeDict (order, 'triggerOrder');
+        let triggerPrice = undefined;
+        if (triggerOrder !== undefined) {
+            triggerPrice = this.safeString (triggerOrder, 'triggerPrice');
+            price = this.safeString (triggerOrder, 'triggerOrderPrice');
+        }
         return this.safeOrder ({
             'id': this.safeString2 (order, 'orderId', 'complexOId'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
@@ -2011,8 +2061,8 @@ export default class xcoin extends Exchange {
             'postOnly': (orderTypeRaw === 'post_only'),
             'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'side': this.safeString (order, 'side'),
-            'price': this.safeString (order, 'price'),
-            'triggerPrice': undefined,
+            'price': price,
+            'triggerPrice': triggerPrice,
             'cost': undefined,
             'average': this.safeString (order, 'avgPrice'),
             'amount': this.safeString (order, 'qty'),
@@ -2032,6 +2082,7 @@ export default class xcoin extends Exchange {
             'partially_canceled': 'canceled',
             'canceled': 'canceled',
             'filled': 'closed',
+            'live': 'open',
         };
         return this.safeString (statuses, status, status);
     }
@@ -2098,6 +2149,7 @@ export default class xcoin extends Exchange {
      * @name xcoin#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://xcoin.com/docs/coinApi/trading/regular-trading/cancel-all-orders
+     * @see https://xcoin.com/docs/coinApi/trading/complex-order-trading/cancel-all-strategy-orders
      * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2141,6 +2193,7 @@ export default class xcoin extends Exchange {
      * @name xcoin#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://xcoin.com/docs/coinApi/trading/regular-trading/get-current-open-orders
+     * @see https://xcoin.com/docs/coinApi/trading/complex-order-trading/get-current-complex-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -2154,63 +2207,114 @@ export default class xcoin extends Exchange {
         if (market !== undefined) {
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetV2TradeOpenOrders (this.extend (request, params));
-        //
-        // {
-        //     "code": "0",
-        //     "msg":"success",
-        //     "data": [
-        //         {
-        //             "accountName": "hongliang02",
-        //             "businessType": "linear_perpetual",
-        //             "symbol": "ETH-USDT-PERP",
-        //             "orderId": "1369615474164670464",
-        //             "clientOrderId": "1369615474164670464",
-        //             "price": "1800",
-        //             "qty": "100",
-        //             "pnl": "",
-        //             "orderType": "limit",
-        //             "side": "buy",
-        //             "totalFillQty": "50",
-        //             "avgPrice": "1800",
-        //             "status": "partially_filled",
-        //             "lever": 1,
-        //             "baseFee": "",
-        //             "quoteFee": "-0.45",
-        //             "uid": "174594041178400",
-        //             "source": "web",
-        //             "category": "normal",
-        //             "reduceOnly": false,
-        //             "timeInForce": "gtc",
-        //             "createTime": 1746583375274,
-        //             "updateTime": 1746584491397,
-        //             "tpslOrder": {
-        //                 "quoteId": "",
-        //                 "quote": false,
-        //                 "mmpGroup": "",
-        //                 "quoteSetId": ""
-        //             },
-        //             "eventId": "1",
-        //             "parentOrderId": "",
-        //             "tpslOrder": {
-        //                 "tpslClOrdId": null,
-        //                 "tpslMode": null,
-        //                 "takeProfitType": "last_price",
-        //                 "stopLossType": "last_price",
-        //                 "takeProfit": "1900",
-        //                 "stopLoss": "1600",
-        //                 "tpOrderType": "market",
-        //                 "slOrderType": "market",
-        //                 "tpLimitPrice": null,
-        //                 "slLimitPrice": null
-        //             },
-        //             "pid": "1919735713887760385",
-        //             "cid": "174594041187401"
-        //         }
-        //     ],
-        //     "ts": "1746586573969"
-        // }
-        //
+        let response = undefined;
+        const isTrigger = this.safeBool (params, 'isTrigger', false);
+        if (isTrigger) {
+            response = await this.privateGetV2TradeOpenOrderComplex (this.extend (request, params));
+            //
+            // {
+            //     "code": "0",
+            //     "msg":"success",
+            //     "data": [
+            //         {
+            //             "businessType": "linear_perpetual",
+            //             "symbol": "BTC-USDT-PERP",
+            //             "complexOId": "1369970333708804096",
+            //             "complexClOrdId": "66",
+            //             "side": "buy",
+            //             "complexType": "trigger",
+            //             "qty": "1.000000000000000000",
+            //             "triggerOrder": {
+            //                 "triggerClOrdId": "66",
+            //                 "triggerDirection": "rising",
+            //                 "triggerPriceType": "last_price",
+            //                 "triggerPrice": "100000.00",
+            //                 "triggerOrderType": "limit",
+            //                 "triggerOrderPrice": "110000.00"
+            //             },
+            //             "tpslOrder": {
+            //                 "tpslClOrdId": "88",
+            //                 "tpslMode": "partially_position",
+            //                 "takeProfitType": "last_price",
+            //                 "stopLossType": "last_price",
+            //                 "takeProfit": "120000",
+            //                 "stopLoss": "80000",
+            //                 "tpOrderType": "limit",
+            //                 "slOrderType": "limit",
+            //                 "tpLimitPrice": "110000",
+            //                 "slLimitPrice": "90000"
+            //             },
+            //             "status": "live",
+            //             "accountName": "hongliang01",
+            //             "createTime": "1746667980481",
+            //             "updateTime": "1746667980000",
+            //             "pid": "1917239173600325633",
+            //             "cid": "174594041187401",
+            //             "uid": "174594041178400"
+            //         }
+            //     ],
+            //     "ts": "1746668693663"
+            // }
+            //
+        } else {
+            response = await this.privateGetV2TradeOpenOrders (this.extend (request, params));
+            //
+            // {
+            //     "code": "0",
+            //     "msg":"success",
+            //     "data": [
+            //         {
+            //             "accountName": "hongliang02",
+            //             "businessType": "linear_perpetual",
+            //             "symbol": "ETH-USDT-PERP",
+            //             "orderId": "1369615474164670464",
+            //             "clientOrderId": "1369615474164670464",
+            //             "price": "1800",
+            //             "qty": "100",
+            //             "pnl": "",
+            //             "orderType": "limit",
+            //             "side": "buy",
+            //             "totalFillQty": "50",
+            //             "avgPrice": "1800",
+            //             "status": "partially_filled",
+            //             "lever": 1,
+            //             "baseFee": "",
+            //             "quoteFee": "-0.45",
+            //             "uid": "174594041178400",
+            //             "source": "web",
+            //             "category": "normal",
+            //             "reduceOnly": false,
+            //             "timeInForce": "gtc",
+            //             "createTime": 1746583375274,
+            //             "updateTime": 1746584491397,
+            //             "tpslOrder": {
+            //                 "quoteId": "",
+            //                 "quote": false,
+            //                 "mmpGroup": "",
+            //                 "quoteSetId": ""
+            //             },
+            //             "eventId": "1",
+            //             "parentOrderId": "",
+            //             "tpslOrder": {
+            //                 "tpslClOrdId": null,
+            //                 "tpslMode": null,
+            //                 "takeProfitType": "last_price",
+            //                 "stopLossType": "last_price",
+            //                 "takeProfit": "1900",
+            //                 "stopLoss": "1600",
+            //                 "tpOrderType": "market",
+            //                 "slOrderType": "market",
+            //                 "tpLimitPrice": null,
+            //                 "slLimitPrice": null
+            //             },
+            //             "pid": "1919735713887760385",
+            //             "cid": "174594041187401"
+            //         }
+            //     ],
+            //     "ts": "1746586573969"
+            // }
+            //
+        }
         const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
