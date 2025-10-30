@@ -1942,6 +1942,55 @@ export default class xcoin extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
+    /**
+     * @method
+     * @name xcoin#cancelOrders
+     * @description cancel multiple orders
+     * @see https://xcoin.com/docs/coinApi/trading/regular-trading/batch-cancel
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orders = [];
+        for (let i = 0; i < ids.length; i++) {
+            const cancelReq = {
+                'orderId': ids[i],
+                'symbol': market['id'],
+            };
+            orders.push (cancelReq);
+        }
+        const request = {
+            'orderReqList': orders,
+        };
+        const response = await this.privatePostV1TradeBatchCancelOrder (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg":"success",
+        //     "data": [
+        //       {
+        //         "orderId": "1322577577491374080",
+        //         "code": "0",
+        //         "msg":"success",
+        //         "ts": "1732158287000"
+        //       },
+        //       {
+        //         "orderId": "1328425322454036480",
+        //         "code": "0",
+        //         "msg":"success",
+        //         "ts": "1732158287000"
+        //       }
+        //     ],
+        //     "ts": "1732158287000"
+        //     }
+        return this.parseOrders (response);
+    }
+
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
         const query = this.omit (params, this.extractParams (path));
