@@ -523,7 +523,7 @@ export default class deepcoin extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
-            limit = 100;
+            limit = 400;
         }
         const request: Dict = {
             'instId': market['id'],
@@ -982,7 +982,7 @@ export default class deepcoin extends Exchange {
             'network': network,
             'addressFrom': undefined,
             'addressTo': undefined,
-            'address': this.safeString (transaction, 'address'), // todo check
+            'address': this.safeString (transaction, 'address'),
             'tagFrom': undefined,
             'tagTo': undefined,
             'tag': undefined,
