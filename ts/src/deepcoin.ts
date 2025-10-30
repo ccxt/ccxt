@@ -150,65 +150,65 @@ export default class deepcoin extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'deepcoin/market/books': 1, // done
-                        'deepcoin/market/candles': 1, // done
-                        'deepcoin/market/instruments': 1, // done
-                        'deepcoin/market/tickers': 1, // done
-                        'deepcoin/market/index-candles': 1, // done
-                        'deepcoin/market/trades': 1, // done
-                        'deepcoin/market/mark-price-candles': 1, // done
-                        'deepcoin/market/step-margin': 5, // not unified
+                        'deepcoin/market/books': 1,
+                        'deepcoin/market/candles': 1,
+                        'deepcoin/market/instruments': 1,
+                        'deepcoin/market/tickers': 1,
+                        'deepcoin/market/index-candles': 1,
+                        'deepcoin/market/trades': 1,
+                        'deepcoin/market/mark-price-candles': 1,
+                        'deepcoin/market/step-margin': 5,
                     },
                 },
                 'private': {
                     'get': {
-                        'deepcoin/account/balances': 5, // done
-                        'deepcoin/account/bills': 5, // done
-                        'deepcoin/account/positions': 5, // done
-                        'deepcoin/trade/fills': 5, // done
-                        'deepcoin/trade/orderByID': 5, // done
-                        'deepcoin/trade/finishOrderByID': 5, // done
-                        'deepcoin/trade/orders-history': 5, // done
-                        'deepcoin/trade/v2/orders-pending': 5, // done
-                        'deepcoin/trade/funding-rate': 5, // not unified
-                        'deepcoin/trade/fund-rate/current-funding-rate': 5, // done
-                        'deepcoin/trade/fund-rate/history': 5, // done
-                        'deepcoin/trade/trigger-orders-pending': 5, // done
-                        'deepcoin/trade/trigger-orders-history': 5, // done
-                        'deepcoin/copytrading/support-contracts': 5, // not unified
-                        'deepcoin/copytrading/leader-position': 5, // not unified
-                        'deepcoin/copytrading/estimate-profit': 5, // not unified
-                        'deepcoin/copytrading/history-profit': 5, // not unified
-                        'deepcoin/copytrading/follower-rank': 5, // not unified
-                        'deepcoin/internal-transfer/support': 5, // not unified
-                        'deepcoin/internal-transfer/history-order': 5, // not unified
-                        'deepcoin/rebate/config': 5, // not unified
-                        'deepcoin/agents/users': 5,  // not unified
-                        'deepcoin/agents/users/rebate-list': 5, // not unified
-                        'deepcoin/agents/users/rebates': 5, // not unified
-                        'deepcoin/asset/deposit-list': 5, // done
-                        'deepcoin/asset/withdraw-list': 5, // done
-                        'deepcoin/asset/recharge-chain-list': 5, // done
-                        'deepcoin/listenkey/acquire': 5, // done
-                        'deepcoin/listenkey/extend': 5, // done
+                        'deepcoin/account/balances': 5,
+                        'deepcoin/account/bills': 5,
+                        'deepcoin/account/positions': 5,
+                        'deepcoin/trade/fills': 5,
+                        'deepcoin/trade/orderByID': 5,
+                        'deepcoin/trade/finishOrderByID': 5,
+                        'deepcoin/trade/orders-history': 5,
+                        'deepcoin/trade/v2/orders-pending': 5,
+                        'deepcoin/trade/funding-rate': 5,
+                        'deepcoin/trade/fund-rate/current-funding-rate': 5,
+                        'deepcoin/trade/fund-rate/history': 5,
+                        'deepcoin/trade/trigger-orders-pending': 5,
+                        'deepcoin/trade/trigger-orders-history': 5,
+                        'deepcoin/copytrading/support-contracts': 5,
+                        'deepcoin/copytrading/leader-position': 5,
+                        'deepcoin/copytrading/estimate-profit': 5,
+                        'deepcoin/copytrading/history-profit': 5,
+                        'deepcoin/copytrading/follower-rank': 5,
+                        'deepcoin/internal-transfer/support': 5,
+                        'deepcoin/internal-transfer/history-order': 5,
+                        'deepcoin/rebate/config': 5,
+                        'deepcoin/agents/users': 5,
+                        'deepcoin/agents/users/rebate-list': 5,
+                        'deepcoin/agents/users/rebates': 5,
+                        'deepcoin/asset/deposit-list': 5,
+                        'deepcoin/asset/withdraw-list': 5,
+                        'deepcoin/asset/recharge-chain-list': 5,
+                        'deepcoin/listenkey/acquire': 5,
+                        'deepcoin/listenkey/extend': 5,
                     },
                     'post': {
-                        'deepcoin/account/set-leverage': 5, // done
-                        'deepcoin/trade/order': 5, // done
-                        'deepcoin/trade/replace-order': 5, // done
-                        'deepcoin/trade/cancel-order': 5, // done
-                        'deepcoin/trade/batch-cancel-order': 5, // done
-                        'deepcoin/trade/cancel-trigger-order': 1 / 6, // done
-                        'deepcoin/trade/swap/cancel-all': 5, // done
-                        'deepcoin/trade/trigger-order': 5, // done
-                        'deepcoin/trade/batch-close-position': 5, // done
+                        'deepcoin/account/set-leverage': 5,
+                        'deepcoin/trade/order': 5,
+                        'deepcoin/trade/replace-order': 5,
+                        'deepcoin/trade/cancel-order': 5,
+                        'deepcoin/trade/batch-cancel-order': 5,
+                        'deepcoin/trade/cancel-trigger-order': 1 / 6,
+                        'deepcoin/trade/swap/cancel-all': 5,
+                        'deepcoin/trade/trigger-order': 5,
+                        'deepcoin/trade/batch-close-position': 5,
                         'deepcoin/trade/replace-order-sltp': 5,
-                        'deepcoin/trade/close-position-by-ids': 5, // done
-                        'deepcoin/copytrading/leader-settings': 5, // not unified
-                        'deepcoin/copytrading/set-contracts': 5, // not unified
-                        'deepcoin/internal-transfer': 5, // not unified
-                        'deepcoin/rebate/config': 5, // not unified
-                        'deepcoin/asset/transfer': 5, // done
+                        'deepcoin/trade/close-position-by-ids': 5,
+                        'deepcoin/copytrading/leader-settings': 5,
+                        'deepcoin/copytrading/set-contracts': 5,
+                        'deepcoin/internal-transfer': 5,
+                        'deepcoin/rebate/config': 5,
+                        'deepcoin/asset/transfer': 5,
                     },
                 },
             },
@@ -274,6 +274,7 @@ export default class deepcoin extends Exchange {
                     '31': InsufficientFunds, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"}}
                     '36': InsufficientFunds, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"}}
                     '44': BadRequest, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
+                    '49': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"49","sMsg":"PriceOutOfUpperLimit:Price\u003eUpperLimitPrice[0.28422]"}}
                     '194': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
                     '195': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
                     '199': BadRequest, // {"code":"0","msg":"","data":{"instId":"","lever":"","mgnMode":"","mrgPosition":"","sCode":"199","sMsg":"LeverageTooHigh:Amount[10000.0]\u003eLeverage[75.1880]"}}
@@ -1418,14 +1419,14 @@ export default class deepcoin extends Exchange {
         const stopLoss = this.safeDict (params, 'stopLoss', {});
         stopLossPrice = stopLossPrice ? stopLossPrice : this.safeString (stopLoss, 'triggerPrice');
         if (stopLossPrice !== undefined) {
-            params = this.omit (params, 'stopLossPrice');
+            params = this.omit (params, [ 'stopLossPrice', 'stopLoss' ]);
             request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
         }
         let takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const takeProfit = this.safeDict (params, 'takeProfit', {});
         takeProfitPrice = takeProfitPrice ? takeProfitPrice : this.safeString (takeProfit, 'triggerPrice');
         if (takeProfitPrice !== undefined) {
-            params = this.omit (params, 'takeProfitPrice');
+            params = this.omit (params, [ 'takeProfitPrice', 'takeProfit' ]);
             request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
         }
         const isMarketOrder = (type === 'market');
@@ -2075,6 +2076,8 @@ export default class deepcoin extends Exchange {
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -2090,21 +2093,39 @@ export default class deepcoin extends Exchange {
             }
             symbol = market['symbol'];
         }
-        if (price !== undefined) {
-            if (symbol !== undefined) {
-                request['price'] = this.priceToPrecision (symbol, price);
-            } else {
-                request['price'] = this.numberToString (price);
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const isTPSL = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
+        let response = undefined;
+        if (isTPSL) {
+            if ((price !== undefined) || (amount !== undefined)) {
+                throw new BadRequest (this.id + ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
             }
-        }
-        if (amount !== undefined) {
-            if (symbol !== undefined) {
-                request['volume'] = this.amountToPrecision (symbol, amount);
-            } else {
-                request['volume'] = this.numberToString (amount);
+            if (stopLossPrice !== undefined) {
+                request['slTriggerPx'] = symbol ? this.priceToPrecision (symbol, stopLossPrice) : this.numberToString (stopLossPrice);
             }
+            if (takeProfitPrice !== undefined) {
+                request['tpTriggerPx'] = symbol ? this.priceToPrecision (symbol, takeProfitPrice) : this.numberToString (takeProfitPrice);
+            }
+            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
+            response = await this.privatePostDeepcoinTradeReplaceOrderSltp (this.extend (request, params));
+        } else {
+            if (price !== undefined) {
+                if (symbol !== undefined) {
+                    request['price'] = this.priceToPrecision (symbol, price);
+                } else {
+                    request['price'] = this.numberToString (price);
+                }
+            }
+            if (amount !== undefined) {
+                if (symbol !== undefined) {
+                    request['volume'] = this.amountToPrecision (symbol, amount);
+                } else {
+                    request['volume'] = this.numberToString (amount);
+                }
+            }
+            response = await this.privatePostDeepcoinTradeReplaceOrder (this.extend (request, params));
         }
-        const response = await this.privatePostDeepcoinTradeReplaceOrder (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
     }
@@ -2243,8 +2264,8 @@ export default class deepcoin extends Exchange {
             'filled': this.safeString (order, 'accFillSz'),
             'remaining': undefined,
             'triggerPrice': this.omitZero (this.safeString (order, 'triggerPx')),
-            'takeProfitPrice': this.safeString (order, 'tpTriggerPx'),
-            'stopLossPrice': this.safeString (order, 'slTriggerPx'),
+            'takeProfitPrice': this.safeString2 (order, 'tpTriggerPx', 'tpTriggerPrice'),
+            'stopLossPrice': this.safeString2 (order, 'slTriggerPx', 'slTriggerPrice'),
             'cost': undefined,
             'trades': undefined, // todo check
             'fee': fee,
