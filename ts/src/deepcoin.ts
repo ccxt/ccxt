@@ -1756,6 +1756,7 @@ export default class deepcoin extends Exchange {
      * @method
      * @name deepcoin#fetchCanceledAndClosedOrders
      * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersHistory
      * @description fetches information on multiple canceled and closed orders made by the user
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1918,6 +1919,7 @@ export default class deepcoin extends Exchange {
      * @name deepcoin#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersPendingV2
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrdersPending
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2111,6 +2113,7 @@ export default class deepcoin extends Exchange {
      * @name deepcoin#editOrder
      * @description edit a trade order
      * @see https://www.deepcoin.com/docs/DeepCoinTrade/replaceOrder
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/replaceTPSL
      * @param {string} id cancel order id
      * @param {string} [symbol] unified symbol of the market to create an order in (not used in deepcoin editOrder)
      * @param {string} [type] 'market' or 'limit' (not used in deepcoin editOrder)
