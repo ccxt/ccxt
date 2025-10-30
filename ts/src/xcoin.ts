@@ -2169,6 +2169,64 @@ export default class xcoin extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name xcoin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://xcoin.com/docs/coinApi/trading/regular-trading/get-order-information
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (this.safeString (params, 'clientOrderId') === undefined) {
+            request['orderId'] = id;
+        }
+        const order = await this.privateGetV2TradeOrderInfo (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg":"success",
+        //     "data": [
+        //       {
+        //         "id": "1328700748417994752",
+        //         "businessType": "spot",
+        //         "symbol": "BTC-USDT",
+        //         "orderId": "1328700748417994752",
+        //         "clientOrderId": "1328700748417994752",
+        //         "price": "95836.07",
+        //         "qty": "0.02",
+        //         "quoteQty": "0.02",
+        //         "pnl": "0",
+        //         "orderType": "market",
+        //         "side": "sell",
+        //         "totalFillQty": "0.02",
+        //         "avgPrice": "95836.07",
+        //         "status": "filled",
+        //         "lever": "0",
+        //         "baseFee": "0",
+        //         "quoteFee": "-0.19167214",
+        //         "uid": "173578258816600000",
+        //         "source": "api",
+        //         "cancelSource": "0",
+        //         "cancel uid": "0",
+        //         "reduceOnly": false,
+        //         "timeInForce": "ioc",
+        //         "createTime": "1736828544489",
+        //         "updateTime": "1736828544494"
+        //       }
+        //     ],
+        //     "ts": "1732158443301"
+        // }
+        //
+        const data = this.safeList (order, 'data', []);
+        const firstOrder = this.safeDict (data, 0, {});
+        return this.parseOrder (firstOrder);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
         const query = this.omit (params, this.extractParams (path));
