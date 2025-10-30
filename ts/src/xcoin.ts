@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, CrossBorrowRates, FundingRates, FundingRate, FundingRateHistory, Currencies, Account, BorrowInterest, Position, Leverage, MarginMode } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, CrossBorrowRates, FundingRates, FundingRate, FundingRateHistory, Currencies, Account, BorrowInterest, Position, Leverage, MarginMode, OrderRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1693,17 +1693,33 @@ export default class xcoin extends Exchange {
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (isTrigger) {
-            response = await this.privatePostTradeOrder (request);
+            response = await this.privatePostV2TradeOrderComplex (request);
         } else {
             response = await this.privatePostV2TradeOrder (request);
         }
         return this.parseOrder (response, market);
     }
 
+    /**
+     * @method
+     * @name backpack#createOrders
+     * @description create a list of trade orders
+     * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const ordersRequests = this.createOrdersRequest (orders);
+        const response = await this.privatePostV2TradeBatchOrder (ordersRequests);
+        return this.parseOrders (response);
+    }
+
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
-        let request: Dict = {
-            'instId': market['id'],
+        const request: Dict = {
+            'symbol': market['id'],
             'side': side.toLowerCase (),
             'qty': this.amountToPrecision (symbol, amount),
             // 'marketUnit': todo
