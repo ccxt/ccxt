@@ -1886,13 +1886,13 @@ export default class xcoin extends Exchange {
         //
         // cancelOrder
         //
-        //   - regular
+        //     regular
         //
         //     {
         //         "orderId": "1322590062927904769"
         //     }
         //
-        //   - trigger
+        //     trigger
         //
         //     {
         //         "accountName": "hongliang01",
@@ -1900,44 +1900,116 @@ export default class xcoin extends Exchange {
         //         "complexClOrdId": "66"
         //     }
         //
+        // fetchOpenOrders
+        //
+        //         {
+        //             "accountName": "hongliang02",
+        //             "businessType": "linear_perpetual",
+        //             "symbol": "ETH-USDT-PERP",
+        //             "orderId": "1369615474164670464",
+        //             "clientOrderId": "1369615474164670464",
+        //             "price": "1800",
+        //             "qty": "100",
+        //             "pnl": "",
+        //             "orderType": "limit",
+        //             "side": "buy",
+        //             "totalFillQty": "50",
+        //             "avgPrice": "1800",
+        //             "status": "partially_filled",
+        //             "lever": 1,
+        //             "baseFee": "",
+        //             "quoteFee": "-0.45",
+        //             "uid": "174594041178400",
+        //             "source": "web",
+        //             "category": "normal",
+        //             "reduceOnly": false,
+        //             "timeInForce": "gtc",
+        //             "createTime": 1746583375274,
+        //             "updateTime": 1746584491397,
+        //             "eventId": "1",
+        //             "parentOrderId": "",
+        //             "tpslOrder": {
+        //                 // "quoteId": "",
+        //                 // "quote": false,
+        //                 // "mmpGroup": "",
+        //                 // "quoteSetId": ""
+        //                 "tpslClOrdId": null,
+        //                 "tpslMode": null,
+        //                 "takeProfitType": "last_price",
+        //                 "stopLossType": "last_price",
+        //                 "takeProfit": "1900",
+        //                 "stopLoss": "1600",
+        //                 "tpOrderType": "market",
+        //                 "slOrderType": "market",
+        //                 "tpLimitPrice": null,
+        //                 "slLimitPrice": null
+        //             },
+        //             "pid": "1919735713887760385",
+        //             "cid": "174594041187401"
+        //         }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger (order, 'ts');
+        const timestamp = this.safeInteger2 (order, 'ts', 'createTime');
+        let orderType: Str = undefined;
+        const orderTypeRaw = this.safeString (order, 'orderType');
+        if (orderTypeRaw === 'post_only') {
+            orderType = 'limit';
+        } else {
+            orderType = orderTypeRaw;
+        }
+        let fee = undefined;
+        const feeRaw = this.safeString (order, 'quoteFee');
+        if (feeRaw !== undefined) {
+            fee = {
+                'cost': Precise.stringAbs (feeRaw),
+                'currency': market['quote'],
+            };
+        }
         return this.safeOrder ({
             'id': this.safeString2 (order, 'orderId', 'complexOId'),
-            'clientOrderId': this.safeString (order, 'client_order_id'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimeStamp': undefined,
-            'status': undefined,
+            'lastTradeTimeStamp': this.safeInteger (order, 'updateTime'),
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': symbol,
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': undefined,
-            'price': undefined,
+            'type': orderType,
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'timeInForce')),
+            'postOnly': (orderTypeRaw === 'post_only'),
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'side': this.safeString (order, 'side'),
+            'price': this.safeString (order, 'price'),
             'triggerPrice': undefined,
             'cost': undefined,
-            'average': undefined,
-            'amount': undefined,
-            'filled': undefined,
+            'average': this.safeString (order, 'avgPrice'),
+            'amount': this.safeString (order, 'qty'),
+            'filled': this.safeString (order, 'totalFillQty'),
             'remaining': undefined,
             'trades': undefined,
-            'fee': undefined,
+            'fee': fee,
             'info': order,
         }, market);
     }
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
+            'untriggered': 'open',
+            'new': 'open',
+            'partially_filled': 'open',
+            'partially_canceled': 'canceled',
+            'canceled': 'canceled',
+            'filled': 'closed',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
-            'day': 'Day',
+            'gtc': 'GTC',
+            'fok': 'FOK',
+            'ioc': 'IOC',
         };
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
@@ -2016,6 +2088,85 @@ export default class xcoin extends Exchange {
         // }
         //
         return this.parseOrders ([ response ], market);
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://xcoin.com/docs/coinApi/trading/regular-trading/get-current-open-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const market = this.marketOrNull (symbol);
+        const request: Dict = {};
+        if (market !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetV2TradeOpenOrders (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg":"success",
+        //     "data": [
+        //         {
+        //             "accountName": "hongliang02",
+        //             "businessType": "linear_perpetual",
+        //             "symbol": "ETH-USDT-PERP",
+        //             "orderId": "1369615474164670464",
+        //             "clientOrderId": "1369615474164670464",
+        //             "price": "1800",
+        //             "qty": "100",
+        //             "pnl": "",
+        //             "orderType": "limit",
+        //             "side": "buy",
+        //             "totalFillQty": "50",
+        //             "avgPrice": "1800",
+        //             "status": "partially_filled",
+        //             "lever": 1,
+        //             "baseFee": "",
+        //             "quoteFee": "-0.45",
+        //             "uid": "174594041178400",
+        //             "source": "web",
+        //             "category": "normal",
+        //             "reduceOnly": false,
+        //             "timeInForce": "gtc",
+        //             "createTime": 1746583375274,
+        //             "updateTime": 1746584491397,
+        //             "tpslOrder": {
+        //                 "quoteId": "",
+        //                 "quote": false,
+        //                 "mmpGroup": "",
+        //                 "quoteSetId": ""
+        //             },
+        //             "eventId": "1",
+        //             "parentOrderId": "",
+        //             "tpslOrder": {
+        //                 "tpslClOrdId": null,
+        //                 "tpslMode": null,
+        //                 "takeProfitType": "last_price",
+        //                 "stopLossType": "last_price",
+        //                 "takeProfit": "1900",
+        //                 "stopLoss": "1600",
+        //                 "tpOrderType": "market",
+        //                 "slOrderType": "market",
+        //                 "tpLimitPrice": null,
+        //                 "slLimitPrice": null
+        //             },
+        //             "pid": "1919735713887760385",
+        //             "cid": "174594041187401"
+        //         }
+        //     ],
+        //     "ts": "1746586573969"
+        // }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
