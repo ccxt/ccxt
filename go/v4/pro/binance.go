@@ -2859,7 +2859,7 @@ func  (this *BinanceCore) SignParams(optionalArgs ...interface{}) interface{}  {
         "apiKey": this.ApiKey,
     }, params)
     extendedParams = this.Keysort(extendedParams)
-    var query interface{} = this.Urlencode(extendedParams)
+    var query interface{} = this.Rawencode(extendedParams)
     var signature interface{} = nil
     if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetIndexOf(this.Secret, "PRIVATE KEY"), ccxt.OpNeg(1))) {
         if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetLength(this.Secret), 120)) {
