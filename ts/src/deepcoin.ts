@@ -234,7 +234,7 @@ export default class deepcoin extends Exchange {
                     'USDC': 'ERC20',
                 },
                 'networks': {
-                    'ERC20': 'ERC20', // todo add more networks
+                    'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'ARB': 'ARBITRUM',
                     'BSC': 'BSC(BEP20)',
@@ -278,6 +278,7 @@ export default class deepcoin extends Exchange {
                     '194': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
                     '195': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
                     '199': BadRequest, // {"code":"0","msg":"","data":{"instId":"","lever":"","mgnMode":"","mrgPosition":"","sCode":"199","sMsg":"LeverageTooHigh:Amount[10000.0]\u003eLeverage[75.1880]"}}
+                    '100010': InsufficientFunds, // {"code":"0","msg":"","data":{"retCode":100010,"retMsg":"Balance is insufficient, please deposit first.","retData":{}}}
                     'unsupportedAction': BadRequest,
                     'localIDNotExist': BadRequest,
                 },
@@ -1280,8 +1281,19 @@ export default class deepcoin extends Exchange {
             'uid': userId,
         };
         const response = await this.privatePostDeepcoinAssetTransfer (this.extend (request, params));
-        // todo check after finding out a userId
-        const transfer = this.parseTransfer (response, currency);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": {
+        //             "retCode": 0,
+        //             "retMsg": "",
+        //             "retData": {}
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
@@ -1290,6 +1302,36 @@ export default class deepcoin extends Exchange {
             transfer['amount'] = amount;
         }
         return transfer;
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "",
+        //         "retData": {}
+        //     }
+        //
+        const status = this.safeString (transfer, 'retCode');
+        const currencyCode = this.safeCurrencyCode (undefined, currency);
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currencyCode,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status: Str): Str {
+        if (status === '0') {
+            return 'ok';
+        }
+        return 'failed';
     }
 
     /**
@@ -1396,7 +1438,7 @@ export default class deepcoin extends Exchange {
         const request: Dict = {
             'instId': market['id'],
             // 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
-            // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin // todo check
+            // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             // 'clOrdId': clientOrderId,
             'side': side,
             'ordType': orderType,
@@ -2267,7 +2309,7 @@ export default class deepcoin extends Exchange {
             'takeProfitPrice': this.safeString2 (order, 'tpTriggerPx', 'tpTriggerPrice'),
             'stopLossPrice': this.safeString2 (order, 'slTriggerPx', 'slTriggerPrice'),
             'cost': undefined,
-            'trades': undefined, // todo check
+            'trades': undefined,
             'fee': fee,
             'reduceOnly': undefined,
             'postOnly': orderType ? (orderType === 'post_only') : undefined,
@@ -2420,7 +2462,7 @@ export default class deepcoin extends Exchange {
             'markPrice': undefined,
             'liquidationPrice': this.safeString (position, 'liqPx'),
             'marginMode': this.safeString (position, 'mgnMode'),
-            'hedged': true, // todo check
+            'hedged': true,
             'maintenanceMargin': this.safeString (position, 'useMargin'),
             'maintenanceMarginPercentage': undefined,
             'initialMargin': undefined,
@@ -2867,6 +2909,10 @@ export default class deepcoin extends Exchange {
         const feedback = this.id + ' ' + body;
         if ((sCode === undefined) && (errorCode !== undefined)) {
             sCode = errorCode;
+        }
+        const retCode = this.safeString (data, 'retCode');
+        if ((sCode === undefined) && (retCode !== undefined)) {
+            sCode = retCode;
         }
         if ((code !== 200) || (messageCode !== '0') || (sCode !== undefined && sCode !== '0')) {
             this.throwExactlyMatchedException (this.exceptions['exact'], messageCode, feedback);
