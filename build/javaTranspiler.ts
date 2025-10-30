@@ -725,7 +725,13 @@ class NewTranspiler {
         // custom transformations needed for Java
         baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1Exchange.$2");
         baseClass = this.regexAll(baseClass, [
-            [/(put\(\s*"\w+", )(this\.\w+)/gm, "$1Exchange.$2"]
+            [/\(Object client, /g, '(Client client, '],
+            [/Object client = (.+)/g, 'Client client = (Client)$1'],
+            [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
+            [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
+
+            // [/(put\(\s*"\w+", )(this\.\w+)/gm, "$1Exchange.$2"],
+            [/public Object setMarketsFromExchange\(Object sourceExchange\)/g, "public Object setMarketsFromExchange(Exchange sourceExchange)"]
         ]);
 
         // // WS fixes
