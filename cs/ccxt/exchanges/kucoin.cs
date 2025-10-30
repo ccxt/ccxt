@@ -457,6 +457,7 @@ public partial class kucoin : Exchange
                     { "order_not_exist", typeof(OrderNotFound) },
                     { "order_not_exist_or_not_allow_to_cancel", typeof(InvalidOrder) },
                     { "Order size below the minimum requirement.", typeof(InvalidOrder) },
+                    { "Order size increment invalid.", typeof(InvalidOrder) },
                     { "The withdrawal amount is below the minimum requirement.", typeof(ExchangeError) },
                     { "Unsuccessful! Exceeded the max. funds out-transfer limit", typeof(InsufficientFunds) },
                     { "The amount increment is invalid.", typeof(BadRequest) },
