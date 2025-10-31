@@ -495,7 +495,7 @@ func (this *Bingx) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, 
  * @name bingx#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
- * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
+ * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20account%20data
  * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
  * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
