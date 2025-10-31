@@ -9,7 +9,7 @@
             {
                 "description": "default",
                 "method": "fetchBalance",
-                "url": "https://api.xcoin.com/api/v1/asset/balances",
+                "url": "https://api.xcoin.com/api/v1/account/balance",
                 "input": [],
                 "output": null
             }
