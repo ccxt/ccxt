@@ -559,7 +559,7 @@ class kraken(ccxt.async_support.kraken):
             stored.append(parsed[i])
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv(self, client: Client, message, subscription):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         "channel": "ohlc",

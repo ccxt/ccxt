@@ -53,6 +53,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchAccounts': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,

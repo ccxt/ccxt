@@ -494,6 +494,7 @@ class kucoin extends Exchange {
                     'order_not_exist' => '\\ccxt\\OrderNotFound', // array("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
                     'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"order_not_exist_or_not_allow_to_cancel")
                     'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"Order size below the minimum requirement.")
+                    'Order size increment invalid.' => '\\ccxt\\InvalidOrder', // array("msg":"Order size increment invalid.","code":"600100")
                     'The withdrawal amount is below the minimum requirement.' => '\\ccxt\\ExchangeError', // array("code":"400100","msg":"The withdrawal amount is below the minimum requirement.")
                     'Unsuccessful! Exceeded the max. funds out-transfer limit' => '\\ccxt\\InsufficientFunds', // array("code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit")
                     'The amount increment is invalid.' => '\\ccxt\\BadRequest',

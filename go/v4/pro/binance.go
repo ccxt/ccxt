@@ -2859,7 +2859,7 @@ func  (this *BinanceCore) SignParams(optionalArgs ...interface{}) interface{}  {
         "apiKey": this.ApiKey,
     }, params)
     extendedParams = this.Keysort(extendedParams)
-    var query interface{} = this.Urlencode(extendedParams)
+    var query interface{} = this.Rawencode(extendedParams)
     var signature interface{} = nil
     if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetIndexOf(this.Secret, "PRIVATE KEY"), ccxt.OpNeg(1))) {
         if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetLength(this.Secret), 120)) {
@@ -4416,6 +4416,7 @@ func  (this *BinanceCore) WatchOrders(optionalArgs ...interface{}) <- chan inter
             params = this.Extend(params, map[string]interface{} {
                 "type": typeVar,
                 "symbol": symbol,
+                "subType": subType,
             }) // needed inside authenticate for isolated margin
         
             retRes35868 := (<-this.Authenticate(params))
@@ -5220,7 +5221,10 @@ func  (this *BinanceCore) WatchMyTrades(optionalArgs ...interface{}) <- chan int
                 })
             }
         
-            retRes42698 := (<-this.Authenticate(params))
+            retRes42698 := (<-this.Authenticate(this.Extend(map[string]interface{} {
+                "type": typeVar,
+                "subType": subType,
+            }, params)))
             ccxt.PanicOnError(retRes42698)
             var urlType interface{} = typeVar // we don't change type because the listening key is different
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin")) {

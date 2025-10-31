@@ -67,12 +67,14 @@ class bitfinex(ccxt.async_support.bitfinex):
         }
         result = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, {'checksum': False})
         checksum = self.safe_bool(self.options, 'checksum', True)
-        if checksum and not client.subscriptions[messageHash]['checksum'] and (channel == 'book'):
-            client.subscriptions[messageHash]['checksum'] = True
-            await client.send({
-                'event': 'conf',
-                'flags': 131072,
-            })
+        if checksum and (channel == 'book'):
+            sub = client.subscriptions[messageHash]
+            if sub and not sub['checksum']:
+                client.subscriptions[messageHash]['checksum'] = True
+                await client.send({
+                    'event': 'conf',
+                    'flags': 131072,
+                })
         return result
 
     async def un_subscribe(self, channel, topic, symbol, params={}):
