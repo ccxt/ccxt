@@ -25,27 +25,181 @@
         }
     },
     "USDT": {
-        "info": null,
+        "info": [
+            {
+                "chainType": "eth",
+                "minDep": "0.01",
+                "minWd": "18",
+                "maxWd": "800000",
+                "withdrawFee": "1.3",
+                "depositAuth": true,
+                "withdrawAuth": true
+            },
+            {
+                "chainType": "trx",
+                "minDep": "0.01",
+                "minWd": "18",
+                "maxWd": "800000",
+                "withdrawFee": "1",
+                "depositAuth": true,
+                "withdrawAuth": true
+            },
+            {
+                "chainType": "sol",
+                "minDep": "0.000001",
+                "minWd": "9",
+                "maxWd": "1000000",
+                "withdrawFee": "0.6",
+                "depositAuth": true,
+                "withdrawAuth": true
+            },
+            {
+                "chainType": "bnb",
+                "minDep": "0.000000000000000001",
+                "minWd": "9.5",
+                "maxWd": "1000000",
+                "withdrawFee": "0.5",
+                "depositAuth": true,
+                "withdrawAuth": true
+            }
+        ],
         "id": "USDT",
         "numericId": null,
         "code": "USDT",
-        "precision": 1e-9,
+        "precision": 0.000001,
         "type": null,
-        "name": null,
-        "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
+        "name": "Tether",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.5,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "eth": {
+                "id": "eth",
+                "network": "eth",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1.3,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 18,
+                        "max": 800000
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "chainType": "eth",
+                    "minDep": "0.01",
+                    "minWd": "18",
+                    "maxWd": "800000",
+                    "withdrawFee": "1.3",
+                    "depositAuth": true,
+                    "withdrawAuth": true
+                }
+            },
+            "trx": {
+                "id": "trx",
+                "network": "trx",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 18,
+                        "max": 800000
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "chainType": "trx",
+                    "minDep": "0.01",
+                    "minWd": "18",
+                    "maxWd": "800000",
+                    "withdrawFee": "1",
+                    "depositAuth": true,
+                    "withdrawAuth": true
+                }
+            },
+            "sol": {
+                "id": "sol",
+                "network": "sol",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.6,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 9,
+                        "max": 1000000
+                    },
+                    "deposit": {
+                        "min": 0.000001,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "chainType": "sol",
+                    "minDep": "0.000001",
+                    "minWd": "9",
+                    "maxWd": "1000000",
+                    "withdrawFee": "0.6",
+                    "depositAuth": true,
+                    "withdrawAuth": true
+                }
+            },
+            "bnb": {
+                "id": "bnb",
+                "network": "bnb",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.5,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 9.5,
+                        "max": 1000000
+                    },
+                    "deposit": {
+                        "min": 1e-18,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "chainType": "bnb",
+                    "minDep": "0.000000000000000001",
+                    "minWd": "9.5",
+                    "maxWd": "1000000",
+                    "withdrawFee": "0.5",
+                    "depositAuth": true,
+                    "withdrawAuth": true
+                }
+            }
+        },
         "limits": {
-            "deposit": {
+            "amount": {
                 "min": null,
                 "max": null
             },
-            "withdraw": {
-                "min": null,
+            "deposit": {
+                "min": 1e-18,
                 "max": null
+            },
+            "withdraw": {
+                "min": 9,
+                "max": 1000000
             }
         }
     },
@@ -96,6 +250,142 @@
             "withdraw": {
                 "min": null,
                 "max": null
+            }
+        }
+    },
+    "TRUMP": {
+        "info": [
+            {
+                "chainType": "sol",
+                "minDep": "0.000001",
+                "minWd": "0.077",
+                "maxWd": "100000",
+                "withdrawFee": "0.096",
+                "depositAuth": true,
+                "withdrawAuth": true
+            }
+        ],
+        "id": "TRUMP",
+        "numericId": null,
+        "code": "TRUMP",
+        "precision": 0.000001,
+        "type": null,
+        "name": "OFFICIAL TRUMP",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.096,
+        "fees": {},
+        "networks": {
+            "sol": {
+                "id": "sol",
+                "network": "sol",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.096,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.077,
+                        "max": 100000
+                    },
+                    "deposit": {
+                        "min": 0.000001,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "chainType": "sol",
+                    "minDep": "0.000001",
+                    "minWd": "0.077",
+                    "maxWd": "100000",
+                    "withdrawFee": "0.096",
+                    "depositAuth": true,
+                    "withdrawAuth": true
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.000001,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.077,
+                "max": 100000
+            }
+        }
+    },
+    "ENA": {
+        "info": [
+            {
+                "chainType": "eth",
+                "minDep": "0.000000000000000001",
+                "minWd": "2.27",
+                "maxWd": "1250000",
+                "withdrawFee": "4.84",
+                "depositAuth": true,
+                "withdrawAuth": true
+            }
+        ],
+        "id": "ENA",
+        "numericId": null,
+        "code": "ENA",
+        "precision": 1e-8,
+        "type": null,
+        "name": "Ethena",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 4.84,
+        "fees": {},
+        "networks": {
+            "eth": {
+                "id": "eth",
+                "network": "eth",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 4.84,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 2.27,
+                        "max": 1250000
+                    },
+                    "deposit": {
+                        "min": 1e-18,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "chainType": "eth",
+                    "minDep": "0.000000000000000001",
+                    "minWd": "2.27",
+                    "maxWd": "1250000",
+                    "withdrawFee": "4.84",
+                    "depositAuth": true,
+                    "withdrawAuth": true
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 1e-18,
+                "max": null
+            },
+            "withdraw": {
+                "min": 2.27,
+                "max": 1250000
             }
         }
     }
