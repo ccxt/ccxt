@@ -374,7 +374,7 @@ public partial class bingx
     /// </summary>
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20account%20data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets"/>  <br/>
     /// <list type="table">
