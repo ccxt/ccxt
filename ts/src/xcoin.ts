@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xcoin.js';
-import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, CrossBorrowRates, FundingRates, FundingRate, FundingRateHistory, Currencies, Account, BorrowInterest, Position, Leverage, MarginMode, OrderRequest } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress, CrossBorrowRates, FundingRates, FundingRate, FundingRateHistory, Currencies, BorrowInterest, Position, Leverage, MarginMode, OrderRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1286,7 +1286,7 @@ export default class xcoin extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('INCOMING', code, since, limit, params);
+        return await this.fetchTransactionsHelper ('deposit', code, since, limit, params);
     }
 
     /**
@@ -1301,7 +1301,7 @@ export default class xcoin extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('OUTGOING', code, since, limit, params);
+        return await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
     }
 
     async fetchTransactionsHelper (type, code, since, limit, params) {
@@ -1312,8 +1312,12 @@ export default class xcoin extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.privateGetV1AssetDepositRecord (this.extend (request, params));
-        const response = await this.privateGetV1AssetWithdrawalRecord (this.extend (request, params));
+        let response = undefined;
+        if (type === 'deposit') {
+            response = await this.privateGetV1AssetDepositRecord (this.extend (request, params));
+        } else {
+            response = await this.privateGetV1AssetWithdrawalRecord (this.extend (request, params));
+        }
         //
         // {
         //   "code": 0,
