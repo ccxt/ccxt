@@ -4,6 +4,12 @@ import (
 	"sync"
 )
 
+type IExchangeFix interface {
+	IExchange
+	GetMarketMaps() ExchangeMarketMaps
+	SetMarketMaps(ExchangeMarketMaps)
+}
+
 type ExchangeMarketMaps struct {
 	MarketsMutex        *sync.Mutex
 	Markets             *sync.Map
