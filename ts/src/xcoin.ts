@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xcoin.js';
-import { BadRequest, ArgumentsRequired, NotSupported, ExchangeError, RateLimitExceeded, PermissionDenied, AuthenticationError, InvalidNonce, RequestTimeout, AccountSuspended, InsufficientFunds, OrderNotFound, InvalidOrder, OperationFailed, OperationRejected, OperationRejected, BadSymbol } from './base/errors.js';
+import { BadRequest, ArgumentsRequired, NotSupported, ExchangeError, RateLimitExceeded, PermissionDenied, AuthenticationError, InvalidNonce, RequestTimeout, AccountSuspended, InsufficientFunds, OrderNotFound, InvalidOrder, OperationFailed, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -20,7 +20,7 @@ export default class xcoin extends Exchange {
             'id': 'xcoin',
             'name': 'XCoin',
             'countries': [ 'HK' ], // Hong Kong
-            'rateLimit': 100,
+            'rateLimit': 10,
             'has': {
                 'CORS': true,
                 'spot': true,
