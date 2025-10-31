@@ -1,9 +1,63 @@
 {
     "exchange": "deepcoin",
-    "skipKeys": [ "OrderSysID" ],
+    "skipKeys": [
+        "OrderSysID",
+        "ordId"
+    ],
     "outputType": "json",
     "methods": {
+        "createTriggerOrder": [
+            {
+                "description": "create trigger order",
+                "method": "createTriggerOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/trigger-order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    20,
+                    null,
+                    0.01
+                ],
+                "output": "{\"instId\":\"DOGE-USDT-SWAP\",\"productGroup\":\"Swap\",\"sz\":\"20\",\"side\":\"buy\",\"orderType\":\"market\",\"triggerPrice\":0.01,\"isCrossMargin\":1,\"tdMode\":\"cross\",\"posSide\":\"long\",\"mrgPosition\":\"merge\"}"
+            }
+        ],
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "create limit order with tpsl",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "url": "https://api.deepcoin.com/deepcoin/trade/order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    20,
+                    0.1,
+                    1,
+                    0.01
+                ],
+                "output": "{\"instId\":\"DOGE-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"slTriggerPx\":\"0.01\",\"tpTriggerPx\":\"1\",\"px\":\"0.1\",\"sz\":\"20\",\"tdMode\":\"cross\",\"mrgPosition\":\"merge\",\"posSide\":\"long\"}"
+            }
+        ],
         "editOrder": [
+            {
+                "description": "edit order takeProfit and stopLoss prices",
+                "method": "editOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/replace-order-sltp",
+                "input": [
+                    1001112132350609,
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    null,
+                    null,
+                    {
+                        "takeProfitPrice": 1.2,
+                        "stopLossPrice": 0.02
+                    }
+                ],
+                "output": "{\"OrderSysID\":1001112132350609,\"slTriggerPx\":\"0.02\",\"tpTriggerPx\":\"1.2\"}"
+            },
             {
                 "description": "edit order amount and price",
                 "method": "editOrder",
@@ -84,6 +138,19 @@
         ],
         "cancelOrder": [
             {
+                "description": "cancel trigger order",
+                "method": "cancelOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/cancel-trigger-order",
+                "input": [
+                    1001112135133243,
+                    "DOGE/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"instId\":\"DOGE-USDT-SWAP\",\"ordId\":1001112135133243}"
+            },
+            {
                 "description": "Cancel order",
                 "method": "cancelOrder",
                 "url": "https://api.deepcoin.com/deepcoin/trade/cancel-order",
@@ -96,6 +163,20 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "fetch open tpsl orders for DOGE/USDT:USDT market",
+                "method": "fetchOpenOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/trigger-orders-pending?instId=DOGE-USDT-SWAP&limit=1&instType=SWAP",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    1,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.deepcoin.com/deepcoin/trade/v2/orders-pending?instId=ETH-USDT&index=1",
@@ -106,6 +187,20 @@
             }
         ],
         "fetchCanceledAndClosedOrders": [
+            {
+                "description": "fetch canceled and closed tpsl orders for DOGE/USDT:USDT market",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/trigger-orders-history?instId=DOGE-USDT-SWAP&instType=SWAP&limit=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    1,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetch canceled and closed orders for market",
                 "method": "fetchCanceledAndClosedOrders",
