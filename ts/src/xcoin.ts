@@ -168,11 +168,15 @@ export default class xcoin extends Exchange {
                 '1M': '1M',
             },
             'options': {
+                'accountsByType': {
+                    'trading': 'trading',
+                    'funding': 'funding',
+                },
                 'fetchTickers': {
                     'method': 'publicGetV1MarketTicker24hr', // publicGetV1MarketTicker24hr, publicGetV1MarketTickerMini
                 },
                 'fetchBalance': {
-                    'defaultAccount': 'trading', // trading, fund
+                    'defaultAccount': 'trading', // trading, funding
                 },
             },
             'features': {
@@ -1472,6 +1476,128 @@ export default class xcoin extends Exchange {
         // }
         //
         return this.parseTransaction (response, currency);
+    }
+
+    /**
+     * @method
+     * @name xcoin#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://xcoin.com/docs/coinApi/funding-account/transfer/internal-transfer-application
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
+     * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        const request: Dict = {
+            'symbol': currency['id'],
+            'currency': this.currencyToPrecision (code, amount),
+            'fromAccountType': this.safeString (accountsByType, fromAccount, fromAccount),
+            'toAccountType': this.safeString (accountsByType, toAccount, toAccount),
+        };
+        const response = await this.privatePostV1AssetTransfer (this.extend (request, params));
+        //
+        // {
+        //     "code": 0,
+        //     "data": true,
+        //     "msg": "0",
+        //     "ts": 1746155931317
+        // }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://xcoin.com/docs/coinApi/funding-account/transfer/get-internal-transfer-history
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
+     * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+     * @param {boolean} [params.paginate] whether to paginate the results (default false)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, params, 100);
+        }
+        let currency = undefined;
+        let request: Dict = {};
+        if (since !== undefined) {
+            request['beginTime'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetV1AssetTransferHistory (this.extend (request, params));
+        //
+        // {
+        //     "code": 0,
+        //     "data": [
+        //         {
+        //             "accountName": "hongliang02",
+        //             "amount": "40000.00000000",
+        //             "cid": "174575858798300",
+        //             "clientTransferId": "1917415666776936448",
+        //             "createTime": "1746410559360",
+        //             "currency": "USDT",
+        //             "fromAccountType": "funding",
+        //             "id": "1917415666776936448",
+        //             "pid": "1917181674366382082",
+        //             "status": "success",
+        //             "toAccountType": "trading",
+        //             "uid": "174575858790600"
+        //         },
+        //     ],
+        //     "msg": "success",
+        //     "ts":"1746410559365"
+        // }
+        //
+        const rows = this.safeList (response, 'data', []);
+        return this.parseTransfers (rows, currency, since, limit);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        const timestamp = this.safeInteger (transfer, 'createTime');
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        const accountsByTypeInverted = this.invertFlatStringDictionary (accountsByType);
+        const fromAccount = this.safeString (transfer, 'fromAccountType');
+        const toAccount = this.safeString (transfer, 'toAccountType');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeString (currency, 'code'),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (accountsByTypeInverted, fromAccount, fromAccount),
+            'toAccount': this.safeString (accountsByTypeInverted, toAccount, toAccount),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
+        };
+    }
+
+    parseTransferStatus (status: Str): Str {
+        const statuses: Dict = {
+            'success': 'ok',
+        };
+        return this.safeString (statuses, status, 'failed');
     }
 
     /**
