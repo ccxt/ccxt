@@ -173,6 +173,9 @@ export default class bingx extends Exchange {
                                 'trade/myTrades': 2,
                                 'user/commissionRate': 5,
                                 'account/balance': 2,
+                                'oco/orderList': 5,
+                                'oco/openOrderList': 5,
+                                'oco/historyOrderList': 5,
                             },
                             'post': {
                                 'trade/order': 2,
@@ -182,6 +185,8 @@ export default class bingx extends Exchange {
                                 'trade/cancelOrders': 5,
                                 'trade/cancelOpenOrders': 5,
                                 'trade/cancelAllAfter': 5,
+                                'oco/order': 5,
+                                'oco/cancel': 5,
                             },
                         },
                     },
@@ -215,6 +220,7 @@ export default class bingx extends Exchange {
                                 'market/historicalTrades': 1,
                                 'market/markPriceKlines': 1,
                                 'trade/multiAssetsRules': 1,
+                                'tradingRules': 1,
                             },
                         },
                         'private': {
@@ -240,6 +246,8 @@ export default class bingx extends Exchange {
                                 'twap/order': 5,
                                 'twap/cancelOrder': 5,
                                 'trade/assetMode': 5,
+                                'trade/reverse': 5,
+                                'trade/autoAddMargin': 5,
                             },
                         },
                     },
@@ -298,6 +306,11 @@ export default class bingx extends Exchange {
                         'public': {
                             'get': {
                                 'quote/klines': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                'user/balance': 2,
                             },
                         },
                     },
@@ -474,6 +487,22 @@ export default class bingx extends Exchange {
                                 'get': {
                                     'transfer/supportCoins': 5,
                                 },
+                            },
+                        },
+                    },
+                },
+                'agent': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'account/inviteAccountList': 5,
+                                'reward/commissionDataList': 5,
+                                'account/inviteRelationCheck': 5,
+                                'asset/depositDetailList': 5,
+                                'reward/third/commissionDataList': 5,
+                                'asset/partnerData': 5,
+                                'commissionDataList/referralCode': 5,
+                                'account/superiorCheck': 5,
                             },
                         },
                     },
