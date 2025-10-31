@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xcoin.js';
-import { BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { BadRequest, ArgumentsRequired, NotSupported, ExchangeError, RateLimitExceeded, PermissionDenied, AuthenticationError, InvalidNonce, RequestTimeout, AccountSuspended, InsufficientFunds, OrderNotFound, InvalidOrder, OperationFailed, OperationRejected, OperationRejected, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -194,6 +194,203 @@ export default class xcoin extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    // Public Error Codes - Client Errors
+                    '10000': BadRequest, // POST request body cannot be empty
+                    '10001': BadRequest, // JSON syntax error
+                    '10002': ExchangeError, // Network error, please contact customer support
+                    '10003': BadRequest, // API has been deprecated or is unavailable
+                    '10004': BadRequest, // Invalid Content-Type, please use "application/JSON"
+                    '10005': RateLimitExceeded, // Request rate too high
+                    '10006': OperationFailed, // System busy, please try again later
+                    '10010': PermissionDenied, // This API requires the APIKey to be bound to an IP
+                    '10101': AuthenticationError, // APIKey does not exist
+                    '10102': InvalidNonce, // Request timestamp expired
+                    '10103': AuthenticationError, // Request header "X-ACCESS-APIKEY" cannot be empty
+                    '10104': AuthenticationError, // Request header "X-ACCESS-SIGN" cannot be empty
+                    '10105': AuthenticationError, // Request header "X-ACCESS-TIMESTAMP" cannot be empty
+                    '10106': BadRequest, // Request header "Content-Type" cannot be empty
+                    '10107': PermissionDenied, // Your IP is not in the APIKey's whitelist
+                    '10110': BadRequest, // Invalid X-ACCESS-TIMESTAMP
+                    '10111': BadRequest, // Invalid Content-Type
+                    '10112': AuthenticationError, // Invalid signature
+                    '10113': BadRequest, // Invalid request method
+                    '10114': PermissionDenied, // APIKey has no permission to call this API
+                    '10115': PermissionDenied, // APIKey is disabled
+                    '10116': PermissionDenied, // Operator associated with APIKey has no permission for this API
+                    '10117': PermissionDenied, // Platform restricts this operation, please contact customer support
+                    '10118': RequestTimeout, // API request timed out
+                    '10119': AccountSuspended, // Account is disabled
+                    '10120': PermissionDenied, // Account permission prohibits this trade
+                    '10121': PermissionDenied, // Account does not support deposits
+                    '10122': PermissionDenied, // Only master account supports withdrawals
+                    '10123': BadRequest, // For member-level APIKey, accountName cannot be empty
+                    '10124': PermissionDenied, // Current APIKey has no permission to operate accountName
+                    '10125': AccountSuspended, // Member is disabled
+                    '11000': BadRequest, // Invalid source
+                    '11001': InvalidNonce, // Session expired. Access denied.
+                    '11002': PermissionDenied, // No permission. Access denied.
+                    '11003': BadRequest, // Request method not supported.
+                    '11004': RateLimitExceeded, // Rate limit exceeded. Please try again later.
+                    '11005': BadRequest, // Invalid field. Please correct it.
+                    '11006': BadRequest, // Required field is missing. Please provide it.
+                    '11007': BadRequest, // Invalid parameters
+                    '11008': BadRequest, // Duplicate request
+                    '11009': OperationRejected, // Field value out of allowed range
+                    '11010': AuthenticationError, // Signature verification failed
+                    '11011': PermissionDenied, // Invalid IP address
+                    '11012': InvalidNonce, // Timestamp expired
+                    // Public Error Codes - Server Errors
+                    '20001': OperationFailed, // Service temporarily unavailable, please try again later
+                    '20002': OperationFailed, // System error, please try again later
+                    '20003': OperationFailed, // System execution exception, please contact customer support
+                    '20004': BadRequest, // Invalid account ID
+                    '20005': BadRequest, // Invalid transfer amount
+                    '20006': InsufficientFunds, // Insufficient transferable balance
+                    '20007': BadRequest, // Duplicate clientId
+                    '20008': InsufficientFunds, // Order failed due to insufficient available balance
+                    '20009': BadSymbol, // Invalid trading pair
+                    '20010': OrderNotFound, // Order not found
+                    '20013': BadRequest, // Leverage must be greater than 0
+                    '20014': BadSymbol, // Invalid trading pair or currency for leverage adjustment
+                    '20015': OperationRejected, // Cannot adjust leverage while there are open orders
+                    '20016': InsufficientFunds, // Insufficient margin
+                    '20017': BadSymbol, // Invalid currency
+                    '20020': OperationRejected, // Max leverage not configured
+                    '20021': OperationRejected, // Default leverage not configured
+                    '20022': OperationRejected, // Cannot disable account when balance is not zero
+                    '20023': OperationFailed, // One-click close Failed
+                    '20025': AccountSuspended, // Account has been disabled
+                    '20026': InvalidOrder, // Cannot place reduce-only order when there is no position
+                    '20027': InvalidOrder, // Cannot place reduce-only order when order direction is the same as position direction
+                    '20028': InvalidOrder, // Cannot place reduce-only order when order size exceeds opposite position size
+                    '20029': InvalidOrder, // Cannot place order when a better-priced order already exists in the same direction
+                    '20030': BadRequest, // Futures order quantity must be a positive integer
+                    '20031': OperationFailed, // Market order system error
+                    '20032': OperationFailed, // Trading not allowed in liquidation state
+                    '20033': PermissionDenied, // Withdrawals only allowed to addresses in address book
+                    '20034': PermissionDenied, // Daily withdrawal limit exceeded
+                    '20035': BadRequest, // Network not supported for withdrawal. Please choose another one.
+                    '20036': PermissionDenied, // Risky address. Please use a different address and try again.
+                    '20037': BadRequest, // Duplicate transfer
+                    '20038': OperationRejected, // Account number not found
+                    '20039': BadRequest, // Withdrawal amount below minimum
+                    '20040': BadRequest, // Unsupported transfer type
+                    '20041': OperationRejected, // Account unavailable
+                    '20042': BadRequest, // qty and price cannot both be empty
+                    '20043': OrderNotFound, // MMP order not found
+                    '20044': BadRequest, // mmpGroup unavailable
+                    '20045': BadRequest, // mmpGroup does not match symbolFamily
+                    '20046': BadRequest, // Duplicate quoteId
+                    '20048': InvalidOrder, // Total order quantity exceeds maximum per order
+                    '20049': OperationRejected, // Trading pair not active
+                    '20050': PermissionDenied, // API transaction restrictions
+                    '20051': OperationFailed, // Symbol price anomaly
+                    '20052': PermissionDenied, // Withdrawals are barred within 24h after users modify MFA details
+                    '20053': OperationRejected, // Open positions or pending orders currently exist
+                    '20054': OperationRejected, // Leverage cannot be adjusted under the portfolio margin mode
+                    '20055': OperationRejected, // This account is part of an account group and cannot switch margin mode independently
+                    '20056': OperationFailed, // Platform risk control alert, please try again later
+                    '20057': OperationFailed, // In a high-risk state, orders that would increase the MMR are prohibited
+                    '20058': OperationFailed, // In a high-risk state, opening new positions is prohibited
+                    // Field Validation Error Codes
+                    '40001': BadRequest, // Required parameter cannot be empty
+                    '40002': BadRequest, // endTime must be greater than startTime
+                    '40003': BadRequest, // endTime must be greater than beginTime
+                    '40004': BadRequest, // endTime - startTime must be less than 30 days
+                    '40005': BadRequest, // endTime - beginTime must be less than 30 days
+                    '40006': BadSymbol, // Symbol is not in tradable status
+                    '40007': BadRequest, // This API businessType does not support the given dictionary value
+                    '40008': OperationRejected, // limit cannot exceed the maximum value for this API
+                    '40009': BadSymbol, // Currency is not listed
+                    '40010': OperationRejected, // Currency does not support lending
+                    '40011': OperationRejected, // Currency lending is restricted on the current platform
+                    '40012': BadRequest, // endId must be greater than or equal to beginId
+                    '40013': OrderNotFound, // Order not found, the order does not exist
+                    '40014': BadRequest, // Only spot instruments are supported
+                    '40015': BadRequest, // Invalid input parameter
+                    '40016': OperationRejected, // Currency does not support deposits via chain
+                    '40017': OperationRejected, // Currency does not support deposits
+                    '40018': BadSymbol, // Currency is a fiat currency and does not support on-chain deposits
+                    '40019': OperationRejected, // Currency does not support transfers
+                    '40020': BadRequest, // baseCurrency and quoteCurrency cannot be the same
+                    // Field Logic Validation Error Codes
+                    '50001': InvalidOrder, // For market order type, price must be empty
+                    '50002': InvalidOrder, // For current orderType, price cannot be empty
+                    '50004': InvalidOrder, // Price cannot be negative
+                    '50005': InvalidOrder, // Invalid marketUnit value, quote_currency is only supported for spot instruments
+                    '50006': InvalidOrder, // For market orders, timeInForce only supports IOC
+                    '50007': InvalidOrder, // Duplicate clientId error
+                    '50008': InvalidOrder, // Spot trading does not support reduce-only orders
+                    '50009': InvalidOrder, // Take-profit price must be higher than order price
+                    '50010': InvalidOrder, // Take-profit price must be lower than order price
+                    '50011': InvalidOrder, // Stop-loss price must be lower than order price
+                    '50012': InvalidOrder, // Stop-loss price must be higher than order price
+                    '50013': InvalidOrder, // For tpOrderType = market, tpLimitPrice must be empty
+                    '50014': InvalidOrder, // For slOrderType = market, slLimitPrice must be empty
+                    '50015': InvalidOrder, // For tpOrderType = limit, tpLimitPrice cannot be empty
+                    '50016': InvalidOrder, // For slOrderType = limit, slLimitPrice cannot be empty
+                    '50017': InvalidOrder, // tpLimitPrice cannot be negative
+                    '50018': InvalidOrder, // slLimitPrice cannot be negative
+                    '50021': OperationRejected, // List limit exceeded
+                    '50022': OperationFailed, // Batch orders partially failed
+                    '50023': OperationFailed, // Batch orders all failed
+                    '50026': OperationRejected, // Order already completed, cancelation failed
+                    '50032': InvalidOrder, // qty must be positive
+                    '50113': InvalidOrder, // post_only orders can only be set to GTC
+                    '50306': OperationRejected, // mmpGroup is frozen, order placement not supported
+                    '50307': BadSymbol, // mmpGroup does not match symbol
+                    '50308': InvalidOrder, // Duplicate quoteId
+                    '50309': InvalidOrder, // ask price must be higher than bid price
+                    '50310': InvalidOrder, // For ask or bid information, at least one of price or qty must be provided
+                    '50312': InvalidOrder, // Each mmpGroup can have only one quote set per symbol
+                    '50313': InvalidOrder, // rejectPostOnly can only be set to true when postOnly = true
+                    '50314': InvalidOrder, // postOnly = true is not allowed when price is empty
+                    '50315': InvalidOrder, // Invalid quote, at least one of ask or bid information must be provided
+                    '50316': OperationRejected, // No more than maximum MMP orders can be submitted at once
+                    // Underlying Parameter Validation Error Codes
+                    '60100': InsufficientFunds, // Insufficient available balance
+                    '60101': OperationFailed, // Your borrowing has exceeded your loan limit
+                    '60102': OperationFailed, // Borrowing exceeds the available amount in the current liquidity pool
+                    '60107': OperationRejected, // Exceeded maximum number of open orders
+                    '60108': InvalidOrder, // Limit order exceeds maximum order amount per order
+                    '60109': InvalidOrder, // Limit order exceeds maximum order quantity per order
+                    '60110': InvalidOrder, // Market order exceeds maximum order amount per order
+                    '60111': InvalidOrder, // Market order exceeds maximum order quantity per order
+                    '60112': InvalidOrder, // Below minimum order quantity per order
+                    '60113': InvalidOrder, // Below minimum order amount per order
+                    '60114': InvalidOrder, // Limit order exceeds maximum price protection
+                    '60115': InvalidOrder, // Limit order is below minimum price protection
+                    '60116': InvalidOrder, // Price decimal places exceed limit
+                    '60117': InvalidOrder, // Quantity decimal places exceed limit
+                    '60126': OperationRejected, // No open positions, reduce-only order not allowed
+                    '60127': InvalidOrder, // Order direction is the same as position direction, reduce-only order not allowed
+                    '60128': InvalidOrder, // Order quantity exceeds opposite position size, reduce-only order not allowed
+                    '60129': OperationRejected, // Existing better price-time priority order in the same direction, order not allowed
+                    '60130': InvalidOrder, // Contract order quantity must be a positive integer
+                    '60131': OperationRejected, // Order exceeds basis rate limit
+                    '60132': OperationFailed, // Abnormal instrument, market order price unavailable
+                    '60134': OperationRejected, // Trading not allowed in liquidation state
+                    '60135': InvalidOrder, // Current leverage exceeds maximum order amount
+                    '60136': BadRequest, // Input price is not a multiple of tickSize
+                    '60137': OperationRejected, // Trading not allowed in ADL state
+                    '60138': OperationRejected, // Currently in [Open Position Restricted] state
+                    '60139': OperationRejected, // Opening position may trigger forced liquidation
+                    '60140': OperationRejected, // Closing position may result in negative equity
+                    '60141': OperationRejected, // Currently in [Close Position Restricted] state
+                    '60142': OperationRejected, // Order price would execute immediately, does not meet post_only condition
+                    '60143': OperationRejected, // Order price cannot be executed, does not meet IOC or FOK condition
+                    '60150': OperationRejected, // Opening positions not allowed within minutes before settlement
+                    '60170': OperationRejected, // Order restricted: placing this order may cause the account-level position limit to be exceeded
+                    '60171': OperationRejected, // Order restricted: placing this order may cause the organization-level aggregated position limit to be exceeded
+                    '60172': OperationRejected, // Order restricted: placing this order may cause the position ratio to exceed the system-wide maximum
+                    '60173': PermissionDenied, // Restricts API trading for opening positions
+                    '60174': PermissionDenied, // Restricts API trading for closing positions
+                    '60175': PermissionDenied, // Restricts API trading
+                    '60176': OperationFailed, // Triggered platform risk control, please try again later
+                    // WebSocket Error Codes
+                    '70100': RequestTimeout, // Heartbeat check timed out, connection disconnected
+                    '70101': InvalidNonce, // accessTimestamp has expired
+                    '70102': PermissionDenied, // WS trading is only supported with account-level API keys
                 },
             },
         });
@@ -2851,6 +3048,14 @@ export default class xcoin extends Exchange {
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
+        }
+        const msg = this.safeString (response, 'msg');
+        const code = this.safeString (response, 'code');
+        if ((code !== '0') || (msg !== 'success')) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
