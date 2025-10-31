@@ -917,14 +917,13 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         const quoteId = 'USDC';
-        let baseName = this.safeString (market, 'name');
-        baseName = baseName.replace (':', '-'); // hip3 markets
+        const baseName = this.safeString (market, 'name');
         const base = this.safeCurrencyCode (baseName);
         const quote = this.safeCurrencyCode (quoteId);
         const baseId = this.safeString (market, 'baseId');
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode (settleId);
-        let symbol = base + '/' + quote;
+        let symbol = base.replace (':', '-') + '/' + quote;
         const contract = true;
         const swap = true;
         if (contract) {
