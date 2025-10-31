@@ -3,7 +3,178 @@
     "skipKeys": [ ],
     "options": {},
     "methods": {
+        "createTriggerOrder": [
+            {
+                "description": "create trigger order",
+                "method": "createTriggerOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    20,
+                    null,
+                    0.01
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "ordId": "1001112135685037",
+                        "clOrdId": "",
+                        "tag": "",
+                        "sCode": "0",
+                        "sMsg": "Success"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "1001112135685037",
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "DOGE/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "side": null,
+                    "price": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "info": {
+                        "ordId": "1001112135685037",
+                        "clOrdId": "",
+                        "tag": "",
+                        "sCode": "0",
+                        "sMsg": "Success"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "create limit order with tpsl",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    20,
+                    0.1,
+                    1,
+                    0.01
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "ordId": "1001112132350609",
+                        "clOrdId": "",
+                        "tag": "",
+                        "sCode": "0",
+                        "sMsg": ""
+                    }
+                },
+                "parsedResponse": {
+                    "id": "1001112132350609",
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "DOGE/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "side": null,
+                    "price": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "info": {
+                        "ordId": "1001112132350609",
+                        "clOrdId": "",
+                        "tag": "",
+                        "sCode": "0",
+                        "sMsg": ""
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
         "editOrder": [
+            {
+                "description": "edit order takeProfit and stopLoss prices",
+                "method": "editOrder",
+                "input": [
+                    1001112132350609,
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    null,
+                    null,
+                    {
+                        "takeProfitPrice": 1.2,
+                        "stopLossPrice": 0.02
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {}
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "side": null,
+                    "price": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "info": {},
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
             {
                 "description": "edit order amount and price",
                 "method": "editOrder",
@@ -322,6 +493,92 @@
             }
         ],
         "fetchCanceledAndClosedOrders": [
+            {
+                "description": "fetch canceled and closed tpsl orders for DOGE/USDT:USDT market",
+                "method": "fetchCanceledAndClosedOrders",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    1,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instType": "SWAP",
+                            "instId": "DOGE-USDT-SWAP",
+                            "ordId": "1001112131763186",
+                            "px": "0",
+                            "sz": "20",
+                            "triggerPx": "0",
+                            "triggerPxType": "last",
+                            "ordType": "TPSL",
+                            "side": "sell",
+                            "posSide": "long",
+                            "tdMode": "cross",
+                            "lever": "2",
+                            "triggerTime": "0",
+                            "uTime": "1761904969000",
+                            "cTime": "1761904842",
+                            "errorCode": "0",
+                            "errorMsg": ""
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1001112131763186",
+                        "clientOrderId": null,
+                        "datetime": "2025-10-31T10:00:42.000Z",
+                        "timestamp": 1761904842000,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1761904969000,
+                        "status": null,
+                        "symbol": "DOGE/USDT:USDT",
+                        "type": "market",
+                        "timeInForce": "TPSL",
+                        "side": "sell",
+                        "price": null,
+                        "average": null,
+                        "amount": 20,
+                        "filled": null,
+                        "remaining": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "cost": null,
+                        "trades": [],
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": false,
+                        "info": {
+                            "instType": "SWAP",
+                            "instId": "DOGE-USDT-SWAP",
+                            "ordId": "1001112131763186",
+                            "px": "0",
+                            "sz": "20",
+                            "triggerPx": "0",
+                            "triggerPxType": "last",
+                            "ordType": "TPSL",
+                            "side": "sell",
+                            "posSide": "long",
+                            "tdMode": "cross",
+                            "lever": "2",
+                            "triggerTime": "0",
+                            "uTime": "1761904969000",
+                            "cTime": "1761904842",
+                            "errorCode": "0",
+                            "errorMsg": ""
+                        },
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            },
             {
                 "description": "fetch canceled and closed orders for market",
                 "method": "fetchCanceledAndClosedOrders",
@@ -647,6 +904,61 @@
         ],
         "cancelOrder": [
             {
+                "description": "cancel trigger order",
+                "method": "cancelOrder",
+                "input": [
+                    1001112135133243,
+                    "DOGE/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "ordId": "1001112135133243",
+                        "clOrdId": "",
+                        "sCode": "0",
+                        "sMsg": ""
+                    }
+                },
+                "parsedResponse": {
+                    "id": "1001112135133243",
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "DOGE/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "side": null,
+                    "price": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "info": {
+                        "ordId": "1001112135133243",
+                        "clOrdId": "",
+                        "sCode": "0",
+                        "sMsg": ""
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "Cancel order",
                 "method": "cancelOrder",
                 "input": [
@@ -700,6 +1012,100 @@
             }
         ],
         "fetchOpenOrders": [
+            {
+                "description": "fetch open tpsl orders for DOGE/USDT:USDT market",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    1,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instType": "SWAP",
+                            "instId": "DOGE-USDT-SWAP",
+                            "ordId": "1001112132350608",
+                            "triggerPx": "0",
+                            "ordPx": "0",
+                            "sz": "20",
+                            "ordType": "",
+                            "side": "sell",
+                            "posSide": "long",
+                            "tdMode": "cross",
+                            "triggerOrderType": "TPSL",
+                            "triggerPxType": "last",
+                            "lever": "2",
+                            "slPrice": "0",
+                            "slTriggerPrice": "0.02",
+                            "tpPrice": "0",
+                            "tpTriggerPrice": "1.2",
+                            "closeSLTriggerPrice": "",
+                            "closeTPTriggerPrice": "",
+                            "cTime": "1761905056000",
+                            "uTime": "1761905471000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1001112132350608",
+                        "clientOrderId": null,
+                        "datetime": "2025-10-31T10:04:16.000Z",
+                        "timestamp": 1761905056000,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1761905471000,
+                        "status": "open",
+                        "symbol": "DOGE/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "side": "sell",
+                        "price": null,
+                        "average": null,
+                        "amount": 20,
+                        "filled": null,
+                        "remaining": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": 1.2,
+                        "stopLossPrice": 0.02,
+                        "cost": null,
+                        "trades": [],
+                        "fee": null,
+                        "reduceOnly": null,
+                        "postOnly": null,
+                        "info": {
+                            "instType": "SWAP",
+                            "instId": "DOGE-USDT-SWAP",
+                            "ordId": "1001112132350608",
+                            "triggerPx": "0",
+                            "ordPx": "0",
+                            "sz": "20",
+                            "ordType": "",
+                            "side": "sell",
+                            "posSide": "long",
+                            "tdMode": "cross",
+                            "triggerOrderType": "TPSL",
+                            "triggerPxType": "last",
+                            "lever": "2",
+                            "slPrice": "0",
+                            "slTriggerPrice": "0.02",
+                            "tpPrice": "0",
+                            "tpTriggerPrice": "1.2",
+                            "closeSLTriggerPrice": "",
+                            "closeTPTriggerPrice": "",
+                            "cTime": "1761905056000",
+                            "uTime": "1761905471000"
+                        },
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            },
             {
                 "description": "Fetch open orders",
                 "method": "fetchOpenOrders",
