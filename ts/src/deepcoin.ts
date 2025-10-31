@@ -1543,7 +1543,7 @@ export default class deepcoin extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
-            'productGroup': this.getProductGroupFromMarket (market),
+            'productGroup': this.capitalize (market['type']),
             'sz': this.amountToPrecision (symbol, amount),
             'side': side,
             // 'posSide': 'long', // 'long' or 'short' - required when product type is SWAP
