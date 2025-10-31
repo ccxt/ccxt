@@ -1285,6 +1285,21 @@ export default class xcoin extends Exchange {
         return await this.fetchTransactionsHelper ('INCOMING', code, since, limit, params);
     }
 
+    /**
+     * @method
+     * @name xcoin#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://xcoin.com/docs/coinApi/funding-account/withdrawal/get-withdrawal-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawal structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchTransactionsHelper ('OUTGOING', code, since, limit, params);
+    }
+
     async fetchTransactionsHelper (type, code, since, limit, params) {
         await this.loadMarkets ();
         let currency = undefined;
@@ -1294,32 +1309,37 @@ export default class xcoin extends Exchange {
             request['currency'] = currency['id'];
         }
         const response = await this.privateGetV1AssetDepositRecord (this.extend (request, params));
+        const response = await this.privateGetV1AssetWithdrawalRecord (this.extend (request, params));
         //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //            {
-        //                 "accountName": "hl04",
-        //                 "amount": "24381.9837",
-        //                 "chainType": "eth",
-        //                 "cid": "174575859872200",
-        //                 "createTime": "1747818768080",
-        //                 "currency": "USDT",
-        //                 "depositFee": "",
-        //                 "depositId": "1925117560689778690",
-        //                 "fromAddress": "0xe76eccc60b21fd89b27c253796a4d2358f0fa989",
-        //                 "hash": "0x56413470ed7dcb33ed377566055701c7e0e48da7e831974d5c14e370316e1c8c",
-        //                 "memo": "",
-        //                 "pid": "1916476600090570754",
-        //                 "status": "success",
-        //                 "toAddress": "0x432960397a1175e4c1100b0e4beb4a7562769d7a",
-        //                 "uid": "174575859864400",
-        //                 "updateTime": "1747823275000"
-        //             }
-        //         ],
-        //         "msg":"success",
-        //         "ts": 1747824336306
-        //     }
+        // {
+        //   "code": 0,
+        //   "data": [
+        //      {
+        //         "accountName": "hl04",
+        //         "amount": "24381.9837",
+        //         "chainType": "eth",
+        //         "cid": "174575859872200",
+        //         "createTime": "1747818768080",
+        //         "currency": "USDT",
+        //         "memo": "",
+        //         "pid": "1916476600090570754",
+        //         "status": "success",
+        //         "uid": "174575859864400",
+        //         "updateTime": "1747823275000",
+        //         "toAddress": "0x432960397....b0e4beb62769d7a",     // only in deposits
+        //         "depositFee": "",                                  // only in deposits
+        //         "depositId": "1925117560689778690",                // only in deposits
+        //         "fromAddress": "0xe76e0b21...796a4d20fa989",       // only in deposits
+        //         "hash": "0x5641347d3......974d5c14e370316e1c8c",   // only in deposits
+        //         "address": "0xC7EBBBdc93....ED6B29F9247b9686c",    // only in withdrawals
+        //         "txId": "0x35c******b360a174d",                    // only in withdrawals
+        //         "withdrawFee": "6.888323303707866",                // only in withdrawals
+        //         "withdrawalId": "1957691534177910786"              // only in withdrawals
+        //      }
+        //   ],
+        //   "msg":"success",
+        //   "ts": 1747824336306
+        // }
         //
         const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
@@ -1327,60 +1347,62 @@ export default class xcoin extends Exchange {
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
-        // deposit
-        //
-        //            {
-        //                 "accountName": "hl04",
-        //                 "amount": "24381.9837",
-        //                 "chainType": "eth",
-        //                 "cid": "174575859872200",
-        //                 "createTime": "1747818768080",
-        //                 "currency": "USDT",
-        //                 "depositFee": "",
-        //                 "depositId": "1925117560689778690",
-        //                 "fromAddress": "0xe76eccc60b21fd89b27c253796a4d2358f0fa989",
-        //                 "hash": "0x56413470ed7dcb33ed377566055701c7e0e48da7e831974d5c14e370316e1c8c",
-        //                 "memo": "",
-        //                 "pid": "1916476600090570754",
-        //                 "status": "success",
-        //                 "toAddress": "0x432960397a1175e4c1100b0e4beb4a7562769d7a",
-        //                 "uid": "174575859864400",
-        //                 "updateTime": "1747823275000"
-        //             }
+        //      {
+        //         "accountName": "hl04",
+        //         "amount": "24381.9837",
+        //         "chainType": "eth",
+        //         "cid": "174575859872200",
+        //         "createTime": "1747818768080",
+        //         "currency": "USDT",
+        //         "memo": "",
+        //         "pid": "1916476600090570754",
+        //         "status": "success",
+        //         "uid": "174575859864400",
+        //         "updateTime": "1747823275000",
+        //         "toAddress": "0x432960397....b0e4beb62769d7a",     // only in deposits
+        //         "depositFee": "",                                  // only in deposits
+        //         "depositId": "1925117560689778690",                // only in deposits
+        //         "fromAddress": "0xe76e0b21...796a4d20fa989",       // only in deposits
+        //         "hash": "0x5641347d3......974d5c14e370316e1c8c",   // only in deposits
+        //         "address": "0xC7EBBBdc93....ED6B29F9247b9686c",    // only in withdrawals
+        //         "txId": "0x35c******b360a174d",                    // only in withdrawals
+        //         "withdrawFee": "6.888323303707866",                // only in withdrawals
+        //         "withdrawalId": "1957691534177910786"              // only in withdrawals
+        //      }
         //
         let depositOrWithdrawal: Str = undefined;
         if ('depositId' in transaction) {
             depositOrWithdrawal = 'deposit';
-        } else if ('withdraw_id' in transaction) {
+        } else if ('withdrawalId' in transaction) {
             depositOrWithdrawal = 'withdrawal';
         }
         const timestamp = this.safeInteger (transaction, 'createTime');
         const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
-        const depositFee = this.safeNumber (transaction, 'depositFee');
+        const transactionFee = this.safeNumber2 (transaction, 'depositFee', 'withdrawFee');
         let fee = undefined;
-        if (depositFee !== undefined) {
+        if (transactionFee !== undefined) {
             fee = {
-                'cost': depositFee,
+                'cost': transactionFee,
                 'currency': currency['code'],
             };
         }
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'depositId'),
+            'id': this.safeString2 (transaction, 'depositId', 'withdrawalId'),
             'currency': currency['code'],
             'amount': this.safeNumber (transaction, 'amount'),
             'network': this.networkIdToCode (this.safeString (transaction, 'chainType')),
             'address': undefined,
             'addressFrom': this.safeString (transaction, 'fromAddress'),
-            'addressTo': this.safeString (transaction, 'toAddress'),
+            'addressTo': this.safeString2 (transaction, 'toAddress', 'address'),
             'tag': this.safeString (transaction, 'memo'),
             'tagFrom': undefined,
             'tagTo': undefined,
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'type': depositOrWithdrawal,
             'updated': undefined,
-            'txid': this.safeString (transaction, 'hash'),
+            'txid': this.safeString2 (transaction, 'hash', 'txId'),
             'internal': undefined,
             'comment': undefined,
             'timestamp': timestamp,
@@ -1393,9 +1415,63 @@ export default class xcoin extends Exchange {
         const statuses: Dict = {
             'success': 'ok',
             'toBeVerified': 'pending',
+            'reviewing': 'pending',
             'fail': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name xcoin#withdraw
+     * @description make a withdrawal
+     * @see https://xcoin.com/docs/coinApi/funding-account/withdrawal/withdrawal-application
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag a memo for the transaction
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (currency['code'], amount),
+            'address': address,
+            'timestamp': this.milliseconds (),
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag; // memo or tag
+        }
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new BadRequest (this.id + ' withdraw() requires a network parameter');
+        }
+        request['blockchain'] = this.networkCodeToId (networkCode);
+        const response = await this.privatePostV1AssetWithdrawal (this.extend (request, query));
+        //
+        // {
+        //     "code": "0",
+        //     "data": {
+        //         "accountName": "1957689788565745664",
+        //         "address": "0xC7EBBBdc93293F61eF13053ED6B29F9247b9686c",
+        //         "amount": "123.89",
+        //         "chainType": "eth",
+        //         "cid": "175558458900900",
+        //         "currency": "USDT",
+        //         "pid": "1957689788565745664",
+        //         "timestamp": "1755586041673",
+        //         "uid": "175558458892100",
+        //         "withdrawFee": "6.888323303707866",
+        //         "withdrawalId": "1957695861084831746"
+        //     },
+        //     "msg": "Success",
+        //     "ts": "1755586041673"
+        // }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     /**
