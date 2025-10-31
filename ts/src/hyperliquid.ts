@@ -488,14 +488,15 @@ export default class hyperliquid extends Exchange {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const types = this.safeList (options, 'types');
         const rawPromises = [];
-        if (types.indexOf ('swap') >= 0) {
-            rawPromises.push (this.fetchSwapMarkets (params));
-        }
-        if (types.indexOf ('spot') >= 0) {
-            rawPromises.push (this.fetchSpotMarkets (params));
-        }
-        if (types.indexOf ('hip3') >= 0) {
-            rawPromises.push (this.fetchHip3Markets (params));
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
+            if (marketType === 'swap') {
+                rawPromises.push (this.fetchSwapMarkets (params));
+            } else if (marketType === 'spot') {
+                rawPromises.push (this.fetchSpotMarkets (params));
+            } else if (marketType === 'hip3') {
+                rawPromises.push (this.fetchHip3Markets (params));
+            }
         }
         const promises = await Promise.all (rawPromises);
         let result = [];
