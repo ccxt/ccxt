@@ -600,7 +600,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, $message, $subscription) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         "channel" => "ohlc",

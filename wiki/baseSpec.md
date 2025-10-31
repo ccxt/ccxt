@@ -2690,6 +2690,7 @@ fetch the funding rate interval for multiple markets
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#binancefetchfundingintervals)
+* [bitget](/exchanges/bitget.md#bitgetfetchfundingintervals)
 
 ---
 

@@ -190,6 +190,12 @@ class gate extends gate$1["default"] {
                             'currency_chains': 1,
                         },
                     },
+                    'unified': {
+                        'get': {
+                            'currencies': 1,
+                            'history_loan_rate': 1,
+                        },
+                    },
                     'spot': {
                         'get': {
                             'currencies': 1,
@@ -201,22 +207,25 @@ class gate extends gate$1["default"] {
                             'trades': 1,
                             'candlesticks': 1,
                             'time': 1,
+                            'insurance_history': 1,
                         },
                     },
                     'margin': {
                         'get': {
+                            'uni/currency_pairs': 1,
+                            'uni/currency_pairs/{currency_pair}': 1,
+                            'loan_margin_tiers': 1,
                             'currency_pairs': 1,
                             'currency_pairs/{currency_pair}': 1,
                             'funding_book': 1,
                             'cross/currencies': 1,
-                            'cross/currencies/{currency}': 1,
-                            'uni/currency_pairs': 1,
-                            'uni/currency_pairs/{currency_pair}': 1,
+                            'cross/currencies/{currency}': 1, // deprecated
                         },
                     },
                     'flash_swap': {
                         'get': {
-                            'currencies': 1,
+                            'currency_pairs': 1,
+                            'currencies': 1, // deprecated
                         },
                     },
                     'futures': {
@@ -245,6 +254,7 @@ class gate extends gate$1["default"] {
                             '{settle}/candlesticks': 1,
                             '{settle}/tickers': 1,
                             '{settle}/insurance': 1,
+                            '{settle}/risk_limit_tiers': 1,
                         },
                     },
                     'options': {
@@ -267,6 +277,17 @@ class gate extends gate$1["default"] {
                         'get': {
                             'uni/currencies': 1,
                             'uni/currencies/{currency}': 1,
+                            'dual/investment_plan': 1,
+                            'structured/products': 1,
+                        },
+                    },
+                    'loan': {
+                        'get': {
+                            'collateral/currencies': 1,
+                            'multi_collateral/currencies': 1,
+                            'multi_collateral/ltv': 1,
+                            'multi_collateral/fixed_rate': 1,
+                            'multi_collateral/current_rate': 1,
                         },
                     },
                 },
@@ -330,25 +351,28 @@ class gate extends gate$1["default"] {
                     'unified': {
                         'get': {
                             'accounts': 20 / 15,
-                            'account_mode': 20 / 15,
                             'borrowable': 20 / 15,
                             'transferable': 20 / 15,
+                            'transferables': 20 / 15,
+                            'batch_borrowable': 20 / 15,
                             'loans': 20 / 15,
                             'loan_records': 20 / 15,
                             'interest_records': 20 / 15,
-                            'estimate_rate': 20 / 15,
-                            'currency_discount_tiers': 20 / 15,
                             'risk_units': 20 / 15,
                             'unified_mode': 20 / 15,
+                            'estimate_rate': 20 / 15,
+                            'currency_discount_tiers': 20 / 15,
                             'loan_margin_tiers': 20 / 15,
                             'leverage/user_currency_config': 20 / 15,
                             'leverage/user_currency_setting': 20 / 15,
+                            'account_mode': 20 / 15, // deprecated
                         },
                         'post': {
-                            'account_mode': 20 / 15,
                             'loans': 200 / 15,
                             'portfolio_calculator': 20 / 15,
                             'leverage/user_currency_setting': 20 / 15,
+                            'collateral_currencies': 20 / 15,
+                            'account_mode': 20 / 15, // deprecated
                         },
                         'put': {
                             'unified_mode': 20 / 15,
@@ -394,6 +418,13 @@ class gate extends gate$1["default"] {
                             'funding_accounts': 20 / 15,
                             'auto_repay': 20 / 15,
                             'transferable': 20 / 15,
+                            'uni/estimate_rate': 20 / 15,
+                            'uni/loans': 20 / 15,
+                            'uni/loan_records': 20 / 15,
+                            'uni/interest_records': 20 / 15,
+                            'uni/borrowable': 20 / 15,
+                            'user/loan_margin_tiers': 20 / 15,
+                            'user/account': 20 / 15,
                             'loans': 20 / 15,
                             'loans/{loan_id}': 20 / 15,
                             'loans/{loan_id}/repayment': 20 / 15,
@@ -408,34 +439,28 @@ class gate extends gate$1["default"] {
                             'cross/interest_records': 20 / 15,
                             'cross/transferable': 20 / 15,
                             'cross/estimate_rate': 20 / 15,
-                            'cross/borrowable': 20 / 15,
-                            'uni/estimate_rate': 20 / 15,
-                            'uni/loans': 20 / 15,
-                            'uni/loan_records': 20 / 15,
-                            'uni/interest_records': 20 / 15,
-                            'uni/borrowable': 20 / 15,
+                            'cross/borrowable': 20 / 15, // deprecated
                         },
                         'post': {
                             'auto_repay': 20 / 15,
+                            'uni/loans': 20 / 15,
+                            'leverage/user_market_setting': 20 / 15,
                             'loans': 20 / 15,
                             'merged_loans': 20 / 15,
                             'loans/{loan_id}/repayment': 20 / 15,
                             'cross/loans': 20 / 15,
-                            'cross/repayments': 20 / 15,
-                            'uni/loans': 20 / 15,
+                            'cross/repayments': 20 / 15, // deprecated
                         },
                         'patch': {
                             'loans/{loan_id}': 20 / 15,
-                            'loan_records/{loan_record_id}': 20 / 15,
+                            'loan_records/{loan_record_id}': 20 / 15, // deprecated
                         },
                         'delete': {
-                            'loans/{loan_id}': 20 / 15,
+                            'loans/{loan_id}': 20 / 15, // deprecated
                         },
                     },
                     'flash_swap': {
                         'get': {
-                            'currencies': 1,
-                            'currency_pairs': 1,
                             'orders': 1,
                             'orders/{order_id}': 1,
                         },
@@ -460,7 +485,7 @@ class gate extends gate$1["default"] {
                             '{settle}/liquidates': 1,
                             '{settle}/auto_deleverages': 1,
                             '{settle}/fee': 1,
-                            '{settle}/risk_limit_tiers': 1,
+                            '{settle}/risk_limit_table': 1,
                             '{settle}/price_orders': 1,
                             '{settle}/price_orders/{order_id}': 1,
                         },
@@ -468,6 +493,8 @@ class gate extends gate$1["default"] {
                             '{settle}/positions/{contract}/margin': 1,
                             '{settle}/positions/{contract}/leverage': 1,
                             '{settle}/positions/{contract}/risk_limit': 1,
+                            '{settle}/positions/cross_mode': 1,
+                            '{settle}/dual_comp/positions/cross_mode': 1,
                             '{settle}/dual_mode': 1,
                             '{settle}/dual_comp/positions/{contract}/margin': 1,
                             '{settle}/dual_comp/positions/{contract}/leverage': 1,
@@ -476,6 +503,8 @@ class gate extends gate$1["default"] {
                             '{settle}/batch_orders': 0.4,
                             '{settle}/countdown_cancel_all': 0.4,
                             '{settle}/batch_cancel_orders': 0.4,
+                            '{settle}/batch_amend_orders': 0.4,
+                            '{settle}/bbo_orders': 0.4,
                             '{settle}/price_orders': 0.4,
                         },
                         'put': {
@@ -543,19 +572,32 @@ class gate extends gate$1["default"] {
                     },
                     'earn': {
                         'get': {
-                            'uni/currencies': 20 / 15,
-                            'uni/currencies/{currency}': 20 / 15,
                             'uni/lends': 20 / 15,
                             'uni/lend_records': 20 / 15,
                             'uni/interests/{currency}': 20 / 15,
                             'uni/interest_records': 20 / 15,
                             'uni/interest_status/{currency}': 20 / 15,
+                            'uni/chart': 20 / 15,
+                            'uni/rate': 20 / 15,
+                            'staking/eth2/rate_records': 20 / 15,
+                            'dual/orders': 20 / 15,
+                            'structured/orders': 20 / 15,
+                            'staking/coins': 20 / 15,
+                            'staking/order_list': 20 / 15,
+                            'staking/award_list': 20 / 15,
+                            'staking/assets': 20 / 15,
+                            'uni/currencies': 20 / 15,
+                            'uni/currencies/{currency}': 20 / 15, // deprecated
                         },
                         'post': {
                             'uni/lends': 20 / 15,
+                            'staking/eth2/swap': 20 / 15,
+                            'dual/orders': 20 / 15,
+                            'structured/orders': 20 / 15,
+                            'staking/swap': 20 / 15,
                         },
                         'put': {
-                            'uni/interest_reinvest': 20 / 15,
+                            'uni/interest_reinvest': 20 / 15, // deprecated
                         },
                         'patch': {
                             'uni/lends': 20 / 15,
@@ -569,16 +611,16 @@ class gate extends gate$1["default"] {
                             'collateral/collaterals': 20 / 15,
                             'collateral/total_amount': 20 / 15,
                             'collateral/ltv': 20 / 15,
-                            'collateral/currencies': 20 / 15,
                             'multi_collateral/orders': 20 / 15,
                             'multi_collateral/orders/{order_id}': 20 / 15,
                             'multi_collateral/repay': 20 / 15,
                             'multi_collateral/mortgage': 20 / 15,
                             'multi_collateral/currency_quota': 20 / 15,
+                            'collateral/currencies': 20 / 15,
                             'multi_collateral/currencies': 20 / 15,
                             'multi_collateral/ltv': 20 / 15,
                             'multi_collateral/fixed_rate': 20 / 15,
-                            'multi_collateral/current_rate': 20 / 15,
+                            'multi_collateral/current_rate': 20 / 15, // deprecated
                         },
                         'post': {
                             'collateral/orders': 20 / 15,
@@ -592,14 +634,17 @@ class gate extends gate$1["default"] {
                     'account': {
                         'get': {
                             'detail': 20 / 15,
+                            'main_keys': 20 / 15,
                             'rate_limit': 20 / 15,
                             'stp_groups': 20 / 15,
                             'stp_groups/{stp_id}/users': 20 / 15,
                             'stp_groups/debit_fee': 20 / 15,
+                            'debit_fee': 20 / 15,
                         },
                         'post': {
                             'stp_groups': 20 / 15,
                             'stp_groups/{stp_id}/users': 20 / 15,
+                            'debit_fee': 20 / 15,
                         },
                         'delete': {
                             'stp_groups/{stp_id}/users': 20 / 15,
@@ -609,6 +654,13 @@ class gate extends gate$1["default"] {
                         'get': {
                             'agency/transaction_history': 20 / 15,
                             'agency/commission_history': 20 / 15,
+                            'partner/transaction_history': 20 / 15,
+                            'partner/commission_history': 20 / 15,
+                            'partner/sub_list': 20 / 15,
+                            'broker/commission_history': 20 / 15,
+                            'broker/transaction_history': 20 / 15,
+                            'user/info': 20 / 15,
+                            'user/sub_relation': 20 / 15,
                         },
                     },
                 },
@@ -6388,7 +6440,7 @@ class gate extends gate$1["default"] {
         if (type !== 'future' && type !== 'swap') {
             throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers only supports swap and future');
         }
-        const response = await this.privateFuturesGetSettleRiskLimitTiers(this.extend(request, requestParams));
+        const response = await this.publicFuturesGetSettleRiskLimitTiers(this.extend(request, requestParams));
         //
         //     [
         //         {

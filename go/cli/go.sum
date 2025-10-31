@@ -4,10 +4,10 @@ github.com/bits-and-blooms/bitset v1.20.0 h1:2F+rfL86jE2d/bmw7OhqUg2Sj/1rURkBn3M
 github.com/bits-and-blooms/bitset v1.20.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/ccxt/ccxt/go/v4 v4.4.64 h1:AusHWtjOeNpnAP8U6ZUXvIrbev5goNpNeviVPcAfVd4=
 github.com/ccxt/ccxt/go/v4 v4.4.64/go.mod h1:+L1jFQKg3tDO534ZNRq9So66zwMOOjy+KP07XsHJI0I=
-github.com/ccxt/ccxt/go/v4/pro v0.0.0-20251031090024-d1745fa0fd73 h1:sHsYOrciEKR98h+LVYd4XTbuQmZk9OcLV3PmQn2RCPU=
-github.com/ccxt/ccxt/go/v4/pro v0.0.0-20251031090024-d1745fa0fd73/go.mod h1:DctSZodY1scP9pBH0npgSUWCfySK5ypEdpVnWYeNhZc=
-github.com/consensys/gnark-crypto v0.18.0 h1:vIye/FqI50VeAr0B3dx+YjeIvmc3LWz4yEfbWBpTUf0=
-github.com/consensys/gnark-crypto v0.18.0/go.mod h1:L3mXGFTe1ZN+RSJ+CLjUt9x7PNdx8ubaYfDROyp2Z8c=
+github.com/ccxt/ccxt/go/v4/pro v0.0.0-20251030144611-ae08284a459d h1:l37XUa8HhNo62dzQknN+LGwJU0nTROddY+zNuAVNpMM=
+github.com/ccxt/ccxt/go/v4/pro v0.0.0-20251030144611-ae08284a459d/go.mod h1:5JRQnLLTks5PUgBViaa+fMEI0fnisvbh111qlz7NQa4=
+github.com/consensys/gnark-crypto v0.18.1 h1:RyLV6UhPRoYYzaFnPQA4qK3DyuDgkTgskDdoGqFt3fI=
+github.com/consensys/gnark-crypto v0.18.1/go.mod h1:L3mXGFTe1ZN+RSJ+CLjUt9x7PNdx8ubaYfDROyp2Z8c=
 github.com/crate-crypto/go-eth-kzg v1.4.0 h1:WzDGjHk4gFg6YzV0rJOAsTK4z3Qkz5jd4RE3DAvPFkg=
 github.com/crate-crypto/go-eth-kzg v1.4.0/go.mod h1:J9/u5sWfznSObptgfa92Jq8rTswn6ahQWEuiLHOjCUI=
 github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a h1:W8mUrRp6NOVl3J+MYp5kPMoUZPp7aOYHtaua31lwRHg=

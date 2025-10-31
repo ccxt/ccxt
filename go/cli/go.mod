@@ -4,12 +4,12 @@ go 1.24.4
 
 require (
 	github.com/ccxt/ccxt/go/v4 v4.4.64
-	github.com/ccxt/ccxt/go/v4/pro v0.0.0-20251031090024-d1745fa0fd73
+	github.com/ccxt/ccxt/go/v4/pro v0.0.0-20251030144611-ae08284a459d
 )
 
 require (
 	github.com/bits-and-blooms/bitset v1.20.0 // indirect
-	github.com/consensys/gnark-crypto v0.18.0 // indirect
+	github.com/consensys/gnark-crypto v0.18.1 // indirect
 	github.com/crate-crypto/go-eth-kzg v1.4.0 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect

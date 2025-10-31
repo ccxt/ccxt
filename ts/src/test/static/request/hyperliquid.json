@@ -716,6 +716,26 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "fetch ohlcv using HPENGU/USDC",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "HPENGU/USDC",
+                    "1h"
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"@184\",\"interval\":\"1h\",\"startTime\":0,\"endTime\":1761732517134}}"
+            },
+            {
+                "description": "fetch symbol using UBTC/USDC",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "UBTC/USDC",
+                    "1h"
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"@142\",\"interval\":\"1h\",\"startTime\":0,\"endTime\":1761732492326}}"
+            },
+            {
                 "description": "fetch ohlcv  using standard name",
                 "method": "fetchOHLCV",
                 "url": "https://api.hyperliquid.xyz/info",

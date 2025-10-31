@@ -43,6 +43,7 @@
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchFundingIntervals](#fetchfundingintervals)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reduceMargin](#reducemargin)
 * [addMargin](#addmargin)
@@ -1225,10 +1226,33 @@ fetch the current funding rates for all markets
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+| params.method | <code>string</code> | No | either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate' |
 
 
 ```javascript
 bitget.fetchFundingRates ([symbols, params])
+```
+
+
+<a name="fetchFundingIntervals" id="fetchfundingintervals"></a>
+
+### fetchFundingIntervals{docsify-ignore}
+fetch the funding rate interval for multiple markets
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.productType | <code>string</code> | No | 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+
+
+```javascript
+bitget.fetchFundingIntervals ([symbols, params])
 ```
 
 
@@ -2458,6 +2482,7 @@ bitget.watchBalance ([params])
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchFundingIntervals](#fetchfundingintervals)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reduceMargin](#reducemargin)
 * [addMargin](#addmargin)
@@ -3640,10 +3665,33 @@ fetch the current funding rates for all markets
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+| params.method | <code>string</code> | No | either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate' |
 
 
 ```javascript
 bitget.fetchFundingRates ([symbols, params])
+```
+
+
+<a name="fetchFundingIntervals" id="fetchfundingintervals"></a>
+
+### fetchFundingIntervals{docsify-ignore}
+fetch the funding rate interval for multiple markets
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.productType | <code>string</code> | No | 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+
+
+```javascript
+bitget.fetchFundingIntervals ([symbols, params])
 ```
 
 
