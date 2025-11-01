@@ -2356,7 +2356,7 @@ public partial class bingx : Exchange
                 response = await this.cswapV1PrivateGetUserBalance(marketTypeQuery);
             } else
             {
-                response = await ((Task<object>)callDynamically(this, "swapV3PrivateGetUserBalance", new object[] { marketTypeQuery }));
+                response = await this.swapV3PrivateGetUserBalance(marketTypeQuery);
             }
         }
         return this.parseBalance(response);
@@ -5538,7 +5538,7 @@ public partial class bingx : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
+     * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -5550,7 +5550,19 @@ public partial class bingx : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        object walletType = this.safeInteger(parameters, "walletType", 15);
+        object defaultWalletType = 15; // spot
+        object walletType = null;
+        var walletTypeparametersVariable = this.handleOptionAndParams2(parameters, "withdraw", "type", "walletType", defaultWalletType);
+        walletType = ((IList<object>)walletTypeparametersVariable)[0];
+        parameters = ((IList<object>)walletTypeparametersVariable)[1];
+        object walletTypes = new Dictionary<string, object>() {
+            { "funding", 1 },
+            { "fund", 1 },
+            { "standard", 2 },
+            { "perpetual", 3 },
+            { "spot", 15 },
+        };
+        walletType = this.safeInteger(walletTypes, walletType, defaultWalletType);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },

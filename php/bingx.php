@@ -5879,14 +5879,24 @@ class bingx extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} [$tag]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
+         * @param {int} [$params->walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
-        $walletType = $this->safe_integer($params, 'walletType', 15);
+        $defaultWalletType = 15; // spot
+        $walletType = null;
+        list($walletType, $params) = $this->handle_option_and_params_2($params, 'withdraw', 'type', 'walletType', $defaultWalletType);
+        $walletTypes = array(
+            'funding' => 1,
+            'fund' => 1,
+            'standard' => 2,
+            'perpetual' => 3,
+            'spot' => 15,
+        );
+        $walletType = $this->safe_integer($walletTypes, $walletType, $defaultWalletType);
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,

@@ -1254,7 +1254,7 @@ make a withdrawal
 | address | <code>string</code> | Yes | the address to withdraw to |
 | tag | <code>string</code> | No |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.walletType | <code>int</code> | No | 1 fund account, 2 standard account, 3 perpetual account, 15 spot account |
+| params.walletType | <code>int</code> | No | 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account |
 
 
 ```javascript
