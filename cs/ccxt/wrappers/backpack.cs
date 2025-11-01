@@ -440,12 +440,6 @@ public partial class backpack
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
-    /// <item>
-    /// <term>params.network</term>
-    /// <description>
-    /// string : the network to withdraw on (mandatory)
-    /// </description>
-    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
