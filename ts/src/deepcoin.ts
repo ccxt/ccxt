@@ -232,6 +232,14 @@ export default class deepcoin extends Exchange {
                         'triggerDirection': false,
                         'stopLossPrice': true,
                         'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': false,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'price': true,
+                        },
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
