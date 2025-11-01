@@ -1212,24 +1212,30 @@ func NewOpenInterests(fundingRatesData2 interface{}) OpenInterests {
 }
 
 type Liquidation struct {
-	Symbol     *string
-	QuoteValue *float64
-	BaseValue  *float64
-	Timestamp  *int64
-	Datetime   *string
-	Side       *string
-	Info       map[string]interface{}
+	Symbol       *string
+	QuoteValue   *float64
+	BaseValue    *float64
+	Timestamp    *int64
+	Datetime     *string
+	Side         *string
+	Contracts    *float64
+	ContractSize *float64
+	Price        *float64
+	Info         map[string]interface{}
 }
 
 func NewLiquidation(data interface{}) Liquidation {
 	return Liquidation{
-		Symbol:     SafeStringTyped(data, "symbol"),
-		QuoteValue: SafeFloatTyped(data, "quoteValue"),
-		BaseValue:  SafeFloatTyped(data, "baseValue"),
-		Timestamp:  SafeInt64Typed(data, "timestamp"),
-		Datetime:   SafeStringTyped(data, "datetime"),
-		Side:       SafeStringTyped(data, "side"),
-		Info:       GetInfo(data),
+		Symbol:       SafeStringTyped(data, "symbol"),
+		QuoteValue:   SafeFloatTyped(data, "quoteValue"),
+		BaseValue:    SafeFloatTyped(data, "baseValue"),
+		Timestamp:    SafeInt64Typed(data, "timestamp"),
+		Datetime:     SafeStringTyped(data, "datetime"),
+		Side:         SafeStringTyped(data, "side"),
+		Contracts:    SafeFloatTyped(data, "contracts"),
+		ContractSize: SafeFloatTyped(data, "contractSize"),
+		Price:        SafeFloatTyped(data, "price"),
+		Info:         GetInfo(data),
 	}
 }
 
