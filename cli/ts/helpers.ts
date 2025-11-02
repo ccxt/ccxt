@@ -51,6 +51,9 @@ function jsonStringify (obj: any, indent = undefined) {
     return JSON.stringify (obj, (k, v) => (v === undefined ? null : v), indent);
 }
 
+function jsonParseWithNull (obj: any) {
+    return JSON.parse (obj, (k, v) => (v === null ? undefined : v));
+}
 /**
  *
  * @param fn
@@ -360,21 +363,23 @@ async function handleMarketsLoading (
     //     }
     // }
     try {
+        let save = false;
         if (fs.existsSync (marketsPath)) {
             const stats = fs.statSync (marketsPath);
             const now = new Date ().getTime ();
             const diff = now - stats.mtime.getTime ();
             if (diff > cacheConfig.refreshMarketsTimeout || forceRefresh) {
-                await exchange.loadMarkets ();
-                await writeFile (marketsPath, jsonStringify (exchange.markets));
-                await writeFile (currenciesPath, jsonStringify (exchange.currencies));
+                save = true;
             } else {
-                exchange.currencies = JSON.parse (fs.readFileSync (currenciesPath).toString ());
-                const markets = JSON.parse (fs.readFileSync (marketsPath).toString ());
+                exchange.currencies = jsonParseWithNull (fs.readFileSync (currenciesPath).toString ());
+                const markets = jsonParseWithNull (fs.readFileSync (marketsPath).toString ());
                 exchange.setMarkets (markets);
             }
         } else {
             // create file and save markets
+            save = true;
+        }
+        if (save) {
             await exchange.loadMarkets ();
             await writeFile (marketsPath, jsonStringify (exchange.markets));
             await writeFile (currenciesPath, jsonStringify (exchange.currencies));
@@ -461,10 +466,10 @@ async function loadSettingsAndCreateExchange (
     const keysLocal = path.resolve ('keys.local.json');
 
     if (fs.existsSync (keysGlobal)) {
-        allSettings = JSON.parse (fs.readFileSync (keysGlobal).toString ());
+        allSettings = jsonParseWithNull (fs.readFileSync (keysGlobal).toString ());
     }
     if (fs.existsSync (keysLocal)) {
-        const localSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
+        const localSettings = jsonParseWithNull (fs.readFileSync (keysLocal).toString ());
         allSettings = { ...allSettings, ...localSettings };
     }
     // log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
