@@ -1442,7 +1442,7 @@ export default class backpack extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] the network to withdraw on (mandatory)
+     * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -1450,7 +1450,7 @@ export default class backpack extends Exchange {
         const currency = this.currency(code);
         const request = {
             'symbol': currency['id'],
-            'amount': this.numberToString(amount),
+            'quantity': this.numberToString(amount),
             'address': address,
         };
         if (tag !== undefined) {
