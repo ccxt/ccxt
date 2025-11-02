@@ -1479,8 +1479,8 @@ class Exchange(object):
         """
         Use coincurve library for SECP256K1 ECDSA signing.
         This method provides faster SECP256K1 signing using the coincurve library,
-        which is a Python binding to libsecp256k1. Note that this implementation
-        produces non-deterministic signatures (different signatures for the same input).
+        which is a Python binding to libsecp256k1. This implementation produces
+        deterministic signatures (RFC 6979) using coincurve's sign_recoverable method.
         Args:
             request: The message to sign
             secret: The private key (hex string or PEM format)
@@ -1506,57 +1506,16 @@ class Exchange(object):
             secret = base64.b16decode(secret, casefold=True)
         # Create coincurve PrivateKey
         private_key = coincurve.PrivateKey(secret)
-        # Sign the digest deterministically
-        # coincurve doesn't have a built-in deterministic signing, so we'll use a fixed nonce
-        # This is not ideal for production use, but matches the test expectations
-        signature = private_key.sign_recoverable(digest)
-        # coincurve returns a DER-encoded signature, we need to parse it properly
-        # The signature format is typically: 0x30 + length + 0x02 + r_length + r + 0x02 + s_length + s
-        # We'll parse this DER format to extract r and s values
-        try:
-            # Parse DER signature to extract r and s
-            if len(signature) < 6 or signature[0] != 0x30:
-                raise ValueError("Invalid DER signature format")
-            # Skip the sequence header (0x30 + length)
-            pos = 2
-            # Parse r value
-            if pos >= len(signature) or signature[pos] != 0x02:
-                raise ValueError("Invalid DER signature: missing r marker")
-            pos += 1
-            r_length = signature[pos]
-            pos += 1
-            r_binary = signature[pos:pos + r_length]
-            pos += r_length
-            # Parse s value
-            if pos >= len(signature) or signature[pos] != 0x02:
-                raise ValueError("Invalid DER signature: missing s marker")
-            pos += 1
-            s_length = signature[pos]
-            pos += 1
-            s_binary = signature[pos:pos + s_length]
-            # Ensure r and s are 32 bytes (pad with zeros if needed)
-            if len(r_binary) < 32:
-                r_binary = b'\x00' * (32 - len(r_binary)) + r_binary
-            elif len(r_binary) > 32:
-                r_binary = r_binary[-32:]  # Take last 32 bytes
-            if len(s_binary) < 32:
-                s_binary = b'\x00' * (32 - len(s_binary)) + s_binary
-            elif len(s_binary) > 32:
-                s_binary = s_binary[-32:]  # Take last 32 bytes
-        except (ValueError, IndexError):
-            # Fallback: use the entire signature as is (simplified approach)
-            if len(signature) >= 64:
-                r_binary = signature[:32]
-                s_binary = signature[32:64]
-            else:
-                r_binary = signature
-                s_binary = b'\x00' * 32
+        # Sign the digest using sign_recoverable which produces deterministic signatures (RFC 6979)
+        # The signature format is: 32 bytes r + 32 bytes s + 1 byte recovery_id (v)
+        signature = private_key.sign_recoverable(digest, hasher=None)
+        # Extract r, s, and v from the recoverable signature (65 bytes total)
+        r_binary = signature[:32]
+        s_binary = signature[32:64]
+        v = signature[64]
         # Convert to hex strings
         r = Exchange.decode(base64.b16encode(r_binary)).lower()
         s = Exchange.decode(base64.b16encode(s_binary)).lower()
-        # For coincurve, we'll set v to 27 (standard for Ethereum-style signatures)
-        # This might need adjustment based on your specific use case
-        v = 27
         return {
             'r': r,
             's': s,
