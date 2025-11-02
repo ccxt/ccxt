@@ -2751,7 +2751,9 @@ export default class bitget extends bitgetRest {
             delete client.subscriptions[messageHash];
         }
         const error = new UnsubscribeError(this.id + ' orderbook ' + symbol);
-        client.reject(error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject(error, subMessageHash);
+        }
         client.resolve(true, messageHash);
     }
     handleTradesUnSubscription(client, message) {
@@ -2776,7 +2778,9 @@ export default class bitget extends bitgetRest {
             delete client.subscriptions[messageHash];
         }
         const error = new UnsubscribeError(this.id + ' trades ' + symbol);
-        client.reject(error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject(error, subMessageHash);
+        }
         client.resolve(true, messageHash);
     }
     handleTickerUnSubscription(client, message) {
@@ -2801,7 +2805,9 @@ export default class bitget extends bitgetRest {
             delete client.subscriptions[messageHash];
         }
         const error = new UnsubscribeError(this.id + ' ticker ' + symbol);
-        client.reject(error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject(error, subMessageHash);
+        }
         client.resolve(true, messageHash);
     }
     handleOHLCVUnSubscription(client, message) {

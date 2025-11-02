@@ -233,13 +233,14 @@ class toobit(ccxt.async_support.toobit):
         #     }
         #
         marketId = self.safe_string(message, 'symbol')
-        symbol = self.safe_symbol(marketId)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.trades[symbol] = ArrayCache(limit)
         stored = self.trades[symbol]
         data = self.safe_list(message, 'data', [])
-        parsed = self.parse_ws_trades(data)
+        parsed = self.parse_ws_trades(data, market)
         for i in range(0, len(parsed)):
             trade = parsed[i]
             trade['symbol'] = symbol

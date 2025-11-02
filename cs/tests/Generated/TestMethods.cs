@@ -46,7 +46,19 @@ public partial class testMainClass
         this.ext = getExt();
     }
 
-    public async virtual Task<object> init(object exchangeId, object symbolArgv, object methodArgv)
+    public async virtual Task init(object exchangeId, object symbolArgv, object methodArgv)
+    {
+        try
+        {
+            await this.initInner(exchangeId, symbolArgv, methodArgv);
+        } catch(Exception e)
+        {
+            dump("[TEST_FAILURE]"); // tell run-tests.js this is failure
+            throw e;
+        }
+    }
+
+    public async virtual Task<object> initInner(object exchangeId, object symbolArgv, object methodArgv)
     {
         this.parseCliArgsAndProps();
         if (isTrue(isTrue(this.requestTests) && isTrue(this.responseTests)))
@@ -87,6 +99,7 @@ public partial class testMainClass
         Exchange exchange = initExchange(exchangeId, exchangeArgs, this.wsTests);
         if (isTrue(exchange.alias))
         {
+            dump(this.addPadding("[INFO] skipping alias", 25));
             exitScript(0);
         }
         await this.importFiles(exchange);
@@ -475,6 +488,7 @@ public partial class testMainClass
                     {
                         if (isTrue(this.info))
                         {
+                            // todo - turn into warning
                             dump("[INFO]", "Authentication problem for public method", exceptionMessage(e), exchange.id, methodName, argsStringified);
                         }
                         return true;

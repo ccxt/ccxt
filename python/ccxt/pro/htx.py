@@ -417,20 +417,21 @@ class htx(ccxt.async_support.htx):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        allowedLimits = [20, 150]
+        allowedLimits = [5, 20, 150, 400]
         # 2) 5-level/20-level incremental MBP is a tick by tick feed,
         # which means whenever there is an order book change at that level, it pushes an update
         # 150-levels/400-level incremental MBP feed is based on the gap
         # between two snapshots at 100ms interval.
         options = self.safe_dict(self.options, 'watchOrderBook', {})
-        depth = self.safe_integer(options, 'depth', 150)
-        if not self.in_array(depth, allowedLimits):
-            raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 20 and 150 only')
+        if limit is None:
+            limit = self.safe_integer(options, 'depth', 150)
+        if not self.in_array(limit, allowedLimits):
+            raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only')
         messageHash = None
         if market['spot']:
-            messageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(depth)
+            messageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(limit)
         else:
-            messageHash = 'market.' + market['id'] + '.depth.size_' + self.number_to_string(depth) + '.high_freq'
+            messageHash = 'market.' + market['id'] + '.depth.size_' + self.number_to_string(limit) + '.high_freq'
         url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
         method = self.handle_order_book_subscription
         if not market['spot']:
