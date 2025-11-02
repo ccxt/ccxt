@@ -342,6 +342,71 @@ public partial class hyperliquid : Exchange
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enabled;
     }
 
+    public override object market(object symbol)
+    {
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
+        }
+        if (isTrue(inOp(this.markets, symbol)))
+        {
+            object market = getValue(this.markets, symbol);
+            if (isTrue(getValue(market, "spot")))
+            {
+                object baseName = this.safeString(market, "baseName");
+                object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
+                if (isTrue(inOp(spotCurrencyMapping, baseName)))
+                {
+                    object unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
+                    object quote = this.safeString(market, "quote");
+                    object newSymbol = add(add(this.safeCurrencyCode(unifiedBaseName), "/"), quote);
+                    if (isTrue(inOp(this.markets, newSymbol)))
+                    {
+                        return getValue(this.markets, newSymbol);
+                    }
+                }
+            }
+        }
+        object res = base.market(symbol);
+        return res;
+    }
+
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
+    {
+        if (isTrue(!isEqual(marketId, null)))
+        {
+            if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, marketId)))))
+            {
+                object markets = getValue(this.markets_by_id, marketId);
+                object numMarkets = getArrayLength(markets);
+                if (isTrue(isEqual(numMarkets, 1)))
+                {
+                    return getValue(markets, 0);
+                } else
+                {
+                    if (isTrue(isGreaterThan(numMarkets, 2)))
+                    {
+                        throw new ExchangeError ((string)add(add(this.id, " safeMarket() found more than two markets with the same market id "), marketId)) ;
+                    }
+                    object firstMarket = getValue(markets, 0);
+                    object secondMarket = getValue(markets, 1);
+                    if (isTrue(!isEqual(this.safeString(firstMarket, "type"), this.safeString(secondMarket, "type"))))
+                    {
+                        throw new ExchangeError ((string)add(add(this.id, " safeMarket() found two different market types with the same market id "), marketId)) ;
+                    }
+                    object baseCurrency = this.safeString(firstMarket, "base");
+                    object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
+                    if (isTrue(inOp(spotCurrencyMapping, baseCurrency)))
+                    {
+                        return secondMarket;
+                    }
+                    return firstMarket;
+                }
+            }
+        }
+        return base.safeMarket(marketId, market, delimiter, marketType);
+    }
+
     /**
      * @method
      * @name hyperliquid#fetchCurrencies
@@ -706,13 +771,15 @@ public partial class hyperliquid : Exchange
             // backward support
             object bs = this.safeCurrencyCode(baseName);
             object quote = this.safeCurrencyCode(quoteId);
+            object newEntry = this.extend(new Dictionary<string, object>() {}, entry);
             object symbol = add(add(bs, "/"), quote);
             if (isTrue(!isEqual(symbol, mappedSymbol)))
             {
-                ((IDictionary<string,object>)entry)["symbol"] = symbol;
-                ((IDictionary<string,object>)entry)["base"] = mappedBase;
-                ((IDictionary<string,object>)entry)["quote"] = mappedQuote;
-                ((IList<object>)markets).Add(this.safeMarketStructure(entry));
+                ((IDictionary<string,object>)newEntry)["symbol"] = symbol;
+                ((IDictionary<string,object>)newEntry)["base"] = bs;
+                ((IDictionary<string,object>)newEntry)["quote"] = quote;
+                ((IDictionary<string,object>)newEntry)["baseName"] = baseName;
+                ((IList<object>)markets).Add(this.safeMarketStructure(newEntry));
             }
         }
         return markets;

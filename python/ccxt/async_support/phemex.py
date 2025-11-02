@@ -3191,24 +3191,27 @@ class phemex(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request: dict = {}
         if limit is not None:
             limit = min(200, limit)
             request['limit'] = limit
-        isUSDTSettled = (symbol is None) or (self.safe_string(market, 'settle') == 'USDT')
+        isUSDTSettled = (type != 'spot') and ((symbol is None) or (self.safe_string(market, 'settle') == 'USDT'))
         if isUSDTSettled:
             request['currency'] = 'USDT'
             request['offset'] = 0
             if limit is None:
                 request['limit'] = 200
-        else:
+        elif symbol is not None:
             request['symbol'] = market['id']
         if since is not None:
             request['start'] = since
         response = None
         if isUSDTSettled:
             response = await self.privateGetExchangeOrderV2TradingList(self.extend(request, params))
-        elif market['swap']:
+        elif type == 'swap':
+            request['tradeType'] = 'Trade'
             response = await self.privateGetExchangeOrderTrade(self.extend(request, params))
         else:
             response = await self.privateGetExchangeSpotOrderTrades(self.extend(request, params))

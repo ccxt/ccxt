@@ -51,6 +51,7 @@ public partial class backpack : Exchange
                 { "createTrailingPercentOrder", false },
                 { "createTriggerOrder", true },
                 { "fetchAccounts", false },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
                 { "fetchCanceledAndClosedOrders", false },
                 { "fetchCanceledOrders", false },
@@ -69,6 +70,7 @@ public partial class backpack : Exchange
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", true },
                 { "fetchLedger", false },
                 { "fetchLeverage", false },
@@ -83,6 +85,8 @@ public partial class backpack : Exchange
                 { "fetchOpenInterestHistory", true },
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", false },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -103,6 +107,7 @@ public partial class backpack : Exchange
                 { "fetchTradingFees", false },
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
                 { "sandbox", false },
@@ -1516,7 +1521,7 @@ public partial class backpack : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] the network to withdraw on (mandatory)
+     * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -1526,7 +1531,7 @@ public partial class backpack : Exchange
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(currency, "id") },
-            { "amount", this.numberToString(amount) },
+            { "quantity", this.numberToString(amount) },
             { "address", address },
         };
         if (isTrue(!isEqual(tag, null)))

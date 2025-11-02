@@ -588,7 +588,7 @@ class kraken extends kraken$1["default"] {
         }
         client.resolve(stored, messageHash);
     }
-    handleOHLCV(client, message, subscription) {
+    handleOHLCV(client, message) {
         //
         //     {
         //         "channel": "ohlc",

@@ -2449,11 +2449,21 @@ export default class bitget extends Exchange {
             const code = this.safeCurrencyCode (id);
             const chains = this.safeValue (entry, 'chains', []);
             const networks: Dict = {};
+            let withdraw = undefined;
+            let deposit = undefined;
+            if (chains.length === 0) {
+                withdraw = false;
+                deposit = false;
+            }
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
                 let network = this.networkIdToCode (networkId, code);
                 network = network.toUpperCase ();
+                const withdrawable = (this.safeString (chain, 'withdrawable') === 'true');
+                const rechargeable = (this.safeString (chain, 'rechargeable') === 'true');
+                withdraw = (withdraw === undefined) ? withdrawable : (withdraw || withdrawable);
+                deposit = (deposit === undefined) ? rechargeable : (deposit || rechargeable);
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -2469,12 +2479,13 @@ export default class bitget extends Exchange {
                         },
                     },
                     'active': undefined,
-                    'withdraw': this.safeString (chain, 'withdrawable') === 'true',
-                    'deposit': this.safeString (chain, 'rechargeable') === 'true',
+                    'withdraw': withdrawable,
+                    'deposit': rechargeable,
                     'fee': this.safeNumber (chain, 'withdrawFee'),
                     'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawMinScale'))),
                 };
             }
+            const active = withdraw && deposit;
             const isFiat = this.inArray (code, fiatCurrencies);
             result[code] = this.safeCurrencyStructure ({
                 'info': entry,
@@ -2483,9 +2494,9 @@ export default class bitget extends Exchange {
                 'networks': networks,
                 'type': isFiat ? 'fiat' : 'crypto',
                 'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
