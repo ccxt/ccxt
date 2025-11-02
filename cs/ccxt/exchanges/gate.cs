@@ -2517,11 +2517,12 @@ public partial class gate : Exchange
                 withdrawFees = this.safeNumber(entry, "withdraw_fix");
             } else
             {
-                object chainKeys = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
-                for (object j = 0; isLessThan(j, getArrayLength(chainKeys)); postFixIncrement(ref j))
+                object networkIds = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
+                for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
                 {
-                    object chainKey = getValue(chainKeys, j);
-                    ((IDictionary<string,object>)withdrawFees)[(string)chainKey] = this.parseNumber(getValue(withdrawFixOnChains, chainKey));
+                    object networkId = getValue(networkIds, j);
+                    object networkCode = this.networkIdToCode(networkId);
+                    ((IDictionary<string,object>)withdrawFees)[(string)networkCode] = this.parseNumber(getValue(withdrawFixOnChains, networkId));
                 }
             }
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
