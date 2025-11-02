@@ -2466,10 +2466,11 @@ class gate extends gate$1["default"] {
                 withdrawFees = this.safeNumber(entry, 'withdraw_fix');
             }
             else {
-                const chainKeys = Object.keys(withdrawFixOnChains);
-                for (let j = 0; j < chainKeys.length; j++) {
-                    const chainKey = chainKeys[j];
-                    withdrawFees[chainKey] = this.parseNumber(withdrawFixOnChains[chainKey]);
+                const networkIds = Object.keys(withdrawFixOnChains);
+                for (let j = 0; j < networkIds.length; j++) {
+                    const networkId = networkIds[j];
+                    const networkCode = this.networkIdToCode(networkId);
+                    withdrawFees[networkCode] = this.parseNumber(withdrawFixOnChains[networkId]);
                 }
             }
             result[code] = {
