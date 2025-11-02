@@ -48,14 +48,14 @@ const httpsAgent = new Agent ({
  * @param indent
  */
 function jsonStringify (obj: any, indent = undefined) {
-    return JSON.stringify (obj, (k, v) => (v === undefined ? null : v), indent);
+    return JSON.stringify (obj, (k, v) => (v === undefined ? '__UNDEF__' : v), indent);
 }
 
 function jsonParseWithNull (text: string): any {
     const obj = JSON.parse (text);
 
     function replaceNulls (o: any): any {
-        if (o === null) return undefined;
+        if (o === '__UNDEF__') return undefined;
         if (Array.isArray (o)) {
             return o.map (replaceNulls);
         }
