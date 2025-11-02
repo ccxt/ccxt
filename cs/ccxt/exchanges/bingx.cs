@@ -2356,7 +2356,7 @@ public partial class bingx : Exchange
                 response = await this.cswapV1PrivateGetUserBalance(marketTypeQuery);
             } else
             {
-                response = await ((Task<object>)callDynamically(this, "swapV3PrivateGetUserBalance", new object[] { marketTypeQuery }));
+                response = await this.swapV3PrivateGetUserBalance(marketTypeQuery);
             }
         }
         return this.parseBalance(response);
