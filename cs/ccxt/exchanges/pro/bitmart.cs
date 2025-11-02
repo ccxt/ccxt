@@ -58,6 +58,9 @@ public partial class bitmart : ccxt.bitmart
                 { "watchOrderBookForSymbols", new Dictionary<string, object>() {
                     { "depth", "depth/increase100" },
                 } },
+                { "watchTrades", new Dictionary<string, object>() {
+                    { "ignoreDuplicates", true },
+                } },
                 { "ws", new Dictionary<string, object>() {
                     { "inflate", true },
                 } },
@@ -239,7 +242,7 @@ public partial class bitmart : ccxt.bitmart
         //                    "fz_bal":"0.100000000000000000000000000000"
         //                 }
         //              ],
-        //              "event_time":"1701632345415",
+        //              "event_time":"1701632345416",
         //              "event_type":"TRANSACTION_COMPLETED"
         //           }
         //        ],
@@ -348,7 +351,14 @@ public partial class bitmart : ccxt.bitmart
             object tradeSymbol = this.safeString(first, "symbol");
             limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        if (isTrue(this.handleOption("watchTrades", "ignoreDuplicates", true)))
+        {
+            object filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, "timestamp");
+            return filtered;
+        }
+        return result;
     }
 
     public virtual object getParamsForMultipleSub(object methodName, object symbols, object limit = null, object parameters = null)
@@ -1679,7 +1689,7 @@ public partial class bitmart : ccxt.bitmart
         object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "private"));
         object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

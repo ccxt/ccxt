@@ -833,7 +833,7 @@ class defx extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see https://api-docs.defx.com/#54b71951-1472-4670-b5af-4c2dc41e73d0
@@ -1178,7 +1178,8 @@ class defx extends Exchange {
         //
         $markPrice = $this->safe_number($contract, 'markPrice');
         $indexPrice = $this->safe_number($contract, 'indexPrice');
-        $fundingRate = $this->safe_number($contract, 'payoutFundingRate');
+        $fundingRateRaw = $this->safe_string($contract, 'payoutFundingRate');
+        $fundingRate = Precise::string_div($fundingRateRaw, '100');
         $fundingTime = $this->safe_integer($contract, 'nextFundingPayout');
         return array(
             'info' => $contract,
@@ -1189,7 +1190,7 @@ class defx extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'fundingRate' => $fundingRate,
+            'fundingRate' => $this->parse_number($fundingRate),
             'fundingTimestamp' => $fundingTime,
             'fundingDatetime' => $this->iso8601($fundingTime),
             'nextFundingRate' => null,
@@ -1500,7 +1501,7 @@ class defx extends Exchange {
         //     }
         // }
         //
-        return $response;
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -1543,7 +1544,7 @@ class defx extends Exchange {
         return $this->parse_position($first, $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *
@@ -1968,7 +1969,7 @@ class defx extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -2031,7 +2032,7 @@ class defx extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

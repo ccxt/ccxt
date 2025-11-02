@@ -1207,7 +1207,8 @@ public partial class defx : Exchange
         //
         object markPrice = this.safeNumber(contract, "markPrice");
         object indexPrice = this.safeNumber(contract, "indexPrice");
-        object fundingRate = this.safeNumber(contract, "payoutFundingRate");
+        object fundingRateRaw = this.safeString(contract, "payoutFundingRate");
+        object fundingRate = Precise.stringDiv(fundingRateRaw, "100");
         object fundingTime = this.safeInteger(contract, "nextFundingPayout");
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -1218,7 +1219,7 @@ public partial class defx : Exchange
             { "estimatedSettlePrice", null },
             { "timestamp", null },
             { "datetime", null },
-            { "fundingRate", fundingRate },
+            { "fundingRate", this.parseNumber(fundingRate) },
             { "fundingTimestamp", fundingTime },
             { "fundingDatetime", this.iso8601(fundingTime) },
             { "nextFundingRate", null },
@@ -1564,7 +1565,9 @@ public partial class defx : Exchange
         //     }
         // }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**

@@ -485,7 +485,7 @@ class hollaex extends \ccxt\async\hollaex {
         }) ();
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     array( $error => "Bearer or HMAC authentication required" )
         //     array( $error => "Error => wrong input" )
@@ -624,11 +624,11 @@ class hollaex extends \ccxt\async\hollaex {
 
     public function on_error(Client $client, $error) {
         $this->options['ws-expires'] = null;
-        $this->on_error($client, $error);
+        parent::on_error($client, $error);
     }
 
     public function on_close(Client $client, $error) {
         $this->options['ws-expires'] = null;
-        $this->on_close($client, $error);
+        parent::on_close($client, $error);
     }
 }

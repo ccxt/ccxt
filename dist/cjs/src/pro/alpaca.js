@@ -1,25 +1,43 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var alpaca$1 = require('../alpaca.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class alpaca extends alpaca$1 {
+class alpaca extends alpaca$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createReduceOnlyOrderWs': false,
+                'createStopLossOrderWs': false,
+                'createTakeProfitOrderWs': false,
+                'fetchPositionForSymbolWs': false,
+                'fetchPositionsForSymbolWs': false,
+                'fetchPositionsWs': false,
+                'fetchPositionWs': false,
+                'unWatchPositions': false,
                 'watchBalance': false,
+                'watchLiquidations': false,
+                'watchLiquidationsForSymbols': false,
+                'watchMarkPrice': false,
+                'watchMarkPrices': false,
+                'watchMyLiquidations': false,
+                'watchMyLiquidationsForSymbols': false,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
+                'watchPosition': false,
+                'watchPositions': false,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
-                'watchPosition': false,
             },
             'urls': {
                 'api': {
@@ -568,7 +586,7 @@ class alpaca extends alpaca$1 {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             let request = {
@@ -720,4 +738,4 @@ class alpaca extends alpaca$1 {
     }
 }
 
-module.exports = alpaca;
+exports["default"] = alpaca;

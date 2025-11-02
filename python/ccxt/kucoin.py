@@ -144,6 +144,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'webExchange': 'https://kucoin.com/_api',
                     'broker': 'https://api-broker.kucoin.com',
                     'earn': 'https://api.kucoin.com',
+                    'uta': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -184,6 +185,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'mark-price/all-symbols': 3,
                         'margin/config': 25,  # 25SW
                         'announcements': 20,  # 20W
+                        'margin/collateralRatio': 10,
                     },
                     'post': {
                         # ws
@@ -265,6 +267,9 @@ class kucoin(Exchange, ImplicitAPI):
                         'purchase/orders': 10,  # 10SW
                         # broker
                         'broker/api/rebase/download': 3,
+                        'broker/queryMyCommission': 3,
+                        'broker/queryUser': 3,
+                        'broker/queryDetailByUid': 3,
                         'migrate/user/account/status': 3,
                         # affiliate
                         'affiliate/inviter/statistics': 30,
@@ -387,6 +392,8 @@ class kucoin(Exchange, ImplicitAPI):
                         'margin/maxWithdrawMargin': 15,  # 10FW
                         'contracts/risk-limit/{symbol}': 7.5,  # 5FW
                         'funding-history': 7.5,  # 5FW
+                        'copy-trade/futures/get-max-open-size': 6,  # 4FW
+                        'copy-trade/futures/position/margin/max-withdraw-margin': 15,  # 10FW
                     },
                     'post': {
                         # funding
@@ -400,6 +407,17 @@ class kucoin(Exchange, ImplicitAPI):
                         'margin/withdrawMargin': 15,  # 10FW
                         'position/margin/deposit-margin': 6,  # 4FW
                         'position/risk-limit-level/change': 6,  # 4FW
+                        'copy-trade/futures/orders': 3,  # 2FW
+                        'copy-trade/futures/orders/test': 3,  # 2FW
+                        'copy-trade/futures/st-orders': 3,  # 2FW
+                        'copy-trade/futures/position/margin/deposit-margin': 6,  # 4FW
+                        'copy-trade/futures/position/margin/withdraw-margin': 15,  # 10FW
+                        'copy-trade/futures/position/risk-limit-level/change': 3,  # 2FW
+                        'copy-trade/futures/position/margin/auto-deposit-status': 6,  # 4FW
+                        'copy-trade/futures/position/changeMarginMode': 3,  # 2FW
+                        'copy-trade/futures/position/changeCrossUserLeverage': 3,  # 2FW
+                        'copy-trade/getCrossModeMarginRequirement': 4.5,  # 3FW
+                        'copy-trade/position/switchPositionMode': 3,  # 2FW
                         # ws
                         'bullet-private': 15,  # 10FW
                     },
@@ -408,6 +426,8 @@ class kucoin(Exchange, ImplicitAPI):
                         'orders/client-order/{clientOid}': 1.5,  # 1FW
                         'orders': 45,  # 30FW
                         'stopOrders': 22.5,  # 15FW
+                        'copy-trade/futures/orders': 1.5,  # 1FW
+                        'copy-trade/futures/orders/client-order': 1.5,  # 1FW
                     },
                 },
                 'webExchange': {
@@ -455,6 +475,21 @@ class kucoin(Exchange, ImplicitAPI):
                         'earn/orders': 7.5,  # 5EW
                     },
                 },
+                'uta': {
+                    'get': {
+                        'market/announcement': 20,
+                        'market/currency': 3,
+                        'market/instrument': 4,
+                        'market/ticker': 15,
+                        'market/orderbook': 3,
+                        'market/trade': 3,
+                        'market/kline': 3,
+                        'market/funding-rate': 2,
+                        'market/funding-rate-history': 5,
+                        'market/cross-config': 25,
+                        'market/server/status': 3,
+                    },
+                },
             },
             'timeframes': {
                 '1m': '1min',
@@ -481,6 +516,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
                     'order_not_exist_or_not_allow_to_cancel': InvalidOrder,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
                     'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
+                    'Order size increment invalid.': InvalidOrder,  # {"msg":"Order size increment invalid.","code":"600100"}
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds,  # {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
                     'The amount increment is invalid.': BadRequest,
@@ -811,7 +847,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'TLOS': 'tlos',  # tlosevm is different
                     'CFX': 'cfx',
                     'ACA': 'aca',
-                    'OP': 'optimism',
+                    'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
                     'CSPR': 'cspr',
@@ -931,6 +967,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'CS': 'cs',
                     'ORAI': 'orai',
                     'BASE': 'base',
+                    'TARA': 'tara',
                     # below will be uncommented after consensus
                     # 'BITCOINDIAMON': 'bcd',
                     # 'BITCOINGOLD': 'btg',
@@ -1396,35 +1433,30 @@ class kucoin(Exchange, ImplicitAPI):
         #    }
         #
         currenciesData = self.safe_list(response, 'data', [])
+        brokenCurrencies = self.safe_list(self.options, 'brokenCurrencies', ['00', 'OPEN_ERROR', 'HUF', 'BDT'])
         result: dict = {}
         for i in range(0, len(currenciesData)):
             entry = currenciesData[i]
             id = self.safe_string(entry, 'currency')
-            name = self.safe_string(entry, 'fullName')
+            if self.in_array(id, brokenCurrencies):
+                continue  # skip buggy entries: https://t.me/KuCoin_API/217798
             code = self.safe_currency_code(id)
             networks: dict = {}
             chains = self.safe_list(entry, 'chains', [])
-            rawPrecision = self.safe_string(entry, 'precision')
-            precision = self.parse_number(self.parse_precision(rawPrecision))
             chainsLength = len(chains)
-            if not chainsLength:
-                # one buggy coin, which doesn't contain info https://t.me/KuCoin_API/173118
-                continue
             for j in range(0, chainsLength):
                 chain = chains[j]
                 chainId = self.safe_string(chain, 'chainId')
                 networkCode = self.network_id_to_code(chainId, code)
-                chainWithdrawEnabled = self.safe_bool(chain, 'isWithdrawEnabled', False)
-                chainDepositEnabled = self.safe_bool(chain, 'isDepositEnabled', False)
                 networks[networkCode] = {
                     'info': chain,
                     'id': chainId,
                     'name': self.safe_string(chain, 'chainName'),
                     'code': networkCode,
-                    'active': chainWithdrawEnabled and chainDepositEnabled,
+                    'active': None,
                     'fee': self.safe_number(chain, 'withdrawalMinFee'),
-                    'deposit': chainDepositEnabled,
-                    'withdraw': chainWithdrawEnabled,
+                    'deposit': self.safe_bool(chain, 'isDepositEnabled'),
+                    'withdraw': self.safe_bool(chain, 'isWithdrawEnabled'),
                     'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
                     'limits': {
                         'withdraw': {
@@ -1438,10 +1470,12 @@ class kucoin(Exchange, ImplicitAPI):
                     },
                 }
             # kucoin has determined 'fiat' currencies with below logic
-            isFiat = (rawPrecision == '2') and (chainsLength == 0)
+            rawPrecision = self.safe_string(entry, 'precision')
+            precision = self.parse_number(self.parse_precision(rawPrecision))
+            isFiat = chainsLength == 0
             result[code] = self.safe_currency_structure({
                 'id': id,
-                'name': name,
+                'name': self.safe_string(entry, 'fullName'),
                 'code': code,
                 'type': 'fiat' if isFiat else 'crypto',
                 'precision': precision,
@@ -1612,7 +1646,7 @@ class kucoin(Exchange, ImplicitAPI):
                 networkCodeNew = self.network_id_to_code(self.safe_string(chain, 'chainId'), self.safe_string(currency, 'code'))
                 resultNew['networks'][networkCodeNew] = {
                     'withdraw': {
-                        'fee': self.safe_number(chain, 'withdrawMinFee'),
+                        'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
                         'percentage': False,
                     },
                     'deposit': {
@@ -1905,7 +1939,7 @@ class kucoin(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2627,7 +2661,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        trigger = self.safe_bool(params, 'stop', False)
+        trigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         hf = None
         hf, params = self.handle_hf_and_params(params)
         params = self.omit(params, 'stop')
@@ -2648,7 +2682,7 @@ class kucoin(Exchange, ImplicitAPI):
                 response = self.privateDeleteHfOrders(self.extend(request, query))
         else:
             response = self.privateDeleteOrders(self.extend(request, query))
-        return response
+        return [self.safe_order({'info': response})]
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -3387,7 +3421,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -4802,7 +4836,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -4851,6 +4885,8 @@ class kucoin(Exchange, ImplicitAPI):
             endpoint = '/' + self.implode_params(path, params)
         if api == 'earn':
             endpoint = '/api/v1/' + self.implode_params(path, params)
+        if api == 'uta':
+            endpoint = '/api/ua/v1/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers if (headers is not None) else {}

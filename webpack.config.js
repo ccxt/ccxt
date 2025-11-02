@@ -1,6 +1,7 @@
 import path from 'path';
 import url from 'url';
 import TerserPlugin from "terser-webpack-plugin";
+import webpack from 'webpack';
 
 const cwd = url.fileURLToPath (import.meta.url);
 const outputDirectory = path.normalize (path.join (path.dirname (cwd), 'dist'))
@@ -42,5 +43,13 @@ export default {
     minimizer: [new TerserPlugin ({ extractComments: false })],
     usedExports: true, // these two lines line turns on tree shaking
     concatenateModules: false,
+    splitChunks: false,
   },
+  performance: {
+    hints: false,
+  },
+  plugins: [
+    new webpack.IgnorePlugin({ resourceRegExp: /^protobufjs\/minimal$/ }),
+    new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
+  ],
 }

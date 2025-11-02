@@ -61,17 +61,29 @@ abstract class blofin extends \ccxt\async\Exchange {
     public function private_get_account_margin_mode($params = array()) {
         return $this->request('account/margin-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_account_position_mode($params = array()) {
+        return $this->request('account/position-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_account_batch_leverage_info($params = array()) {
         return $this->request('account/batch-leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_trade_orders_tpsl_pending($params = array()) {
         return $this->request('trade/orders-tpsl-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_trade_orders_algo_pending($params = array()) {
+        return $this->request('trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_trade_orders_history($params = array()) {
         return $this->request('trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_trade_orders_tpsl_history($params = array()) {
         return $this->request('trade/orders-tpsl-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_trade_orders_algo_history($params = array()) {
+        return $this->request('trade/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_trade_order_price_range($params = array()) {
+        return $this->request('trade/order/price-range', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_user_query_apikey($params = array()) {
         return $this->request('user/query-apikey', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -115,11 +127,23 @@ abstract class blofin extends \ccxt\async\Exchange {
     public function private_get_copytrading_trade_pending_tpsl_by_order($params = array()) {
         return $this->request('copytrading/trade/pending-tpsl-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_post_account_set_margin_mode($params = array()) {
+        return $this->request('account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_account_set_position_mode($params = array()) {
+        return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_trade_order($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_trade_order_algo($params = array()) {
+        return $this->request('trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_trade_cancel_order($params = array()) {
         return $this->request('trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_trade_cancel_algo($params = array()) {
+        return $this->request('trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_account_set_leverage($params = array()) {
         return $this->request('account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -226,17 +250,29 @@ abstract class blofin extends \ccxt\async\Exchange {
     public function privateGetAccountMarginMode($params = array()) {
         return $this->request('account/margin-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetAccountPositionMode($params = array()) {
+        return $this->request('account/position-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetAccountBatchLeverageInfo($params = array()) {
         return $this->request('account/batch-leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetTradeOrdersTpslPending($params = array()) {
         return $this->request('trade/orders-tpsl-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetTradeOrdersAlgoPending($params = array()) {
+        return $this->request('trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetTradeOrdersHistory($params = array()) {
         return $this->request('trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetTradeOrdersTpslHistory($params = array()) {
         return $this->request('trade/orders-tpsl-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradeOrdersAlgoHistory($params = array()) {
+        return $this->request('trade/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradeOrderPriceRange($params = array()) {
+        return $this->request('trade/order/price-range', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetUserQueryApikey($params = array()) {
         return $this->request('user/query-apikey', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -280,11 +316,23 @@ abstract class blofin extends \ccxt\async\Exchange {
     public function privateGetCopytradingTradePendingTpslByOrder($params = array()) {
         return $this->request('copytrading/trade/pending-tpsl-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privatePostAccountSetMarginMode($params = array()) {
+        return $this->request('account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAccountSetPositionMode($params = array()) {
+        return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privatePostTradeOrder($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostTradeOrderAlgo($params = array()) {
+        return $this->request('trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privatePostTradeCancelOrder($params = array()) {
         return $this->request('trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradeCancelAlgo($params = array()) {
+        return $this->request('trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostAccountSetLeverage($params = array()) {
         return $this->request('account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1));

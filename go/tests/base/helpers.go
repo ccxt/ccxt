@@ -66,6 +66,40 @@ func Assert(condition2 interface{}, message2 ...interface{}) {
 	}
 }
 
+func UnWrapType(value interface{}) interface{} {
+	// converts from wrapped types to basic types
+	// like OrderBook, Ticker, Trade, etc to map[string]interface{} or []interface{}
+	// also if value is a string, it panics with that string (error message)
+	if value == nil {
+		return nil
+	}
+	switch v := value.(type) {
+	case ccxt.OrderBookInterface:
+		return v.ToMap()
+	case ccxt.ArrayCacheByTimestamp:
+		return v.ToArray()
+	case ccxt.ArrayCache:
+		return v.ToArray()
+	case string:
+		panic(v)
+	default:
+		return value
+	}
+}
+
+func ToOrderBook(ob interface{}) map[string]interface{} {
+	if ob == nil {
+		return nil
+	}
+	switch ob := ob.(type) {
+	case ccxt.OrderBookInterface:
+		return ob.ToMap()
+	case string:
+		panic(ob)
+	}
+	return nil
+}
+
 // func IsEqual(a, b interface{}) bool {
 // 	return ccxt.IsEqual(a, b)
 // }

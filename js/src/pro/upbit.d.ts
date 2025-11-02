@@ -1,5 +1,5 @@
 import upbitRest from '../upbit.js';
-import type { Int, Str, Order, OrderBook, Trade, Ticker, Balances, Tickers, Strings } from '../base/types.js';
+import type { Int, Str, Order, OrderBook, Trade, Ticker, Balances, Tickers, Strings, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class upbit extends upbitRest {
     describe(): any;
@@ -60,9 +60,24 @@ export default class upbit extends upbitRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    /**
+     * @method
+     * @name upbit#watchOHLCV
+     * @description watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
+     * @see https://docs.upbit.com/kr/reference/websocket-candle for Upbit KR
+     * @see https://global-docs.upbit.com/reference/websocket-candle for Upbit Global
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} timeframe specifies the OHLCV candle interval to watch. As of now, Upbit only supports 1s candles.
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {OHLCV[]} a list of [OHLCV structures]{@link https://docs.ccxt.com/#/?id=ohlcv-structure}
+     */
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleTicker(client: Client, message: any): void;
     handleOrderBook(client: Client, message: any): void;
     handleTrades(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: any): void;
     authenticate(params?: {}): Promise<import("../base/ws/WsClient.js").default>;
     watchPrivate(symbol: any, channel: any, messageHash: any, params?: {}): Promise<any>;
     /**

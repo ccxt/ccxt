@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bitvavo.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
-import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
+import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
@@ -32,19 +32,29 @@ export default class bitvavo extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -55,21 +65,39 @@ export default class bitvavo extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -81,6 +109,7 @@ export default class bitvavo extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -89,9 +118,14 @@ export default class bitvavo extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
@@ -218,7 +252,12 @@ export default class bitvavo extends Exchange {
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': true,
-                        'selfTradePrevention': true, // todo implement
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': false,
+                            'EXPIRE_TAKER': false,
+                            'EXPIRE_BOTH': true,
+                            'NONE': false,
+                        },
                         'iceberg': false,
                     },
                     'createOrders': undefined,
@@ -345,28 +384,14 @@ export default class bitvavo extends Exchange {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
+                'operatorId': undefined, // this will be required soon for order-related endpoints
+                'fiatCurrencies': [ 'EUR' ], // only fiat atm
             },
-            'precisionMode': SIGNIFICANT_DIGITS,
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
         });
-    }
-
-    amountToPrecision (symbol, amount) {
-        // https://docs.bitfinex.com/docs/introduction#amount-precision
-        // The amount field allows up to 8 decimals.
-        // Anything exceeding this will be rounded to the 8th decimal.
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
-    }
-
-    priceToPrecision (symbol, price) {
-        price = this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
-        // https://docs.bitfinex.com/docs/introduction#price-precision
-        // The precision level of all trading prices is based on significant figures.
-        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
-        // Prices submit with a precision larger than 5 will be cut by the API.
-        return this.decimalToPrecision (price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     /**
@@ -395,25 +420,28 @@ export default class bitvavo extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetMarkets (params);
         //
-        //     [
-        //         {
-        //             "market":"ADA-BTC",
-        //             "status":"trading", // "trading" "halted" "auction"
-        //             "base":"ADA",
-        //             "quote":"BTC",
-        //             "pricePrecision":5,
-        //             "minOrderInBaseAsset":"100",
-        //             "minOrderInQuoteAsset":"0.001",
-        //             "orderTypes": [ "market", "limit" ]
-        //         }
-        //     ]
+        //    {
+        //        "market": "BTC-EUR",
+        //        "status": "trading",
+        //        "base": "BTC",
+        //        "quote": "EUR",
+        //        "pricePrecision": "0", // deprecated, this is mostly 0 across other markets too, which is abnormal, so we ignore this.
+        //        "tickSize": "1.00",
+        //        "minOrderInBaseAsset": "0.00006100",
+        //        "minOrderInQuoteAsset": "5.00",
+        //        "maxOrderInBaseAsset": "1000000000.00000000",
+        //        "maxOrderInQuoteAsset": "1000000000.00",
+        //        "quantityDecimals": "8",
+        //        "notionalDecimals": "2",
+        //        "maxOpenOrders": "100",
+        //        "feeCategory": "A",
+        //        "orderTypes": [ "market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit" ]
+        //    }
         //
         return this.parseMarkets (response);
     }
 
     parseMarkets (markets) {
-        const currencies = this.currencies;
-        const currenciesById = this.indexBy (currencies, 'id');
         const result = [];
         const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
@@ -424,8 +452,6 @@ export default class bitvavo extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
-            const baseCurrency = this.safeValue (currenciesById, baseId);
-            const basePrecision = this.safeInteger (baseCurrency, 'precision');
             result.push (this.safeMarketStructure ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -453,8 +479,9 @@ export default class bitvavo extends Exchange {
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
                 'precision': {
-                    'amount': this.safeInteger (baseCurrency, 'decimals', basePrecision),
-                    'price': this.safeInteger (market, 'pricePrecision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityDecimals'))),
+                    'price': this.safeNumber (market, 'tickSize'),
+                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'notionalDecimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -463,7 +490,7 @@ export default class bitvavo extends Exchange {
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'minOrderInBaseAsset'),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'maxOrderInBaseAsset'),
                     },
                     'price': {
                         'min': undefined,
@@ -471,7 +498,7 @@ export default class bitvavo extends Exchange {
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'minOrderInQuoteAsset'),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'maxOrderInQuoteAsset'),
                     },
                 },
                 'created': undefined,
@@ -561,24 +588,24 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
+        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
         const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
+            const isFiat = this.inArray (code, fiatCurrencies);
             const networks: Dict = {};
-            const networksArray = this.safeValue (currency, 'networks', []);
-            const networksLength = networksArray.length;
-            const isOneNetwork = (networksLength === 1);
-            const deposit = (this.safeValue (currency, 'depositStatus') === 'OK');
-            const withdrawal = (this.safeValue (currency, 'withdrawalStatus') === 'OK');
+            const networksArray = this.safeList (currency, 'networks', []);
+            const deposit = this.safeString (currency, 'depositStatus') === 'OK';
+            const withdrawal = this.safeString (currency, 'withdrawalStatus') === 'OK';
             const active = deposit && withdrawal;
             const withdrawFee = this.safeNumber (currency, 'withdrawalFee');
-            const precision = this.safeInteger (currency, 'decimals', 8);
+            const precision = this.safeString (currency, 'decimals', '8');
             const minWithdraw = this.safeNumber (currency, 'withdrawalMinAmount');
-            // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
-            if (isOneNetwork) {
-                const networkId = networksArray[0];
+            // btw, absolutely all of them have 1 network atm
+            for (let j = 0; j < networksArray.length; j++) {
+                const networkId = networksArray[j];
                 const networkCode = this.networkIdToCode (networkId);
                 networks[networkCode] = {
                     'info': currency,
@@ -588,7 +615,7 @@ export default class bitvavo extends Exchange {
                     'deposit': deposit,
                     'withdraw': withdrawal,
                     'fee': withdrawFee,
-                    'precision': precision,
+                    'precision': this.parseNumber (this.parsePrecision (precision)),
                     'limits': {
                         'withdraw': {
                             'min': minWithdraw,
@@ -597,7 +624,7 @@ export default class bitvavo extends Exchange {
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -607,7 +634,8 @@ export default class bitvavo extends Exchange {
                 'withdraw': withdrawal,
                 'networks': networks,
                 'fee': withdrawFee,
-                'precision': precision,
+                'precision': undefined,
+                'type': isFiat ? 'fiat' : 'crypto',
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -622,10 +650,8 @@ export default class bitvavo extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
-        // set currencies here to avoid calling publicGetAssets twice
-        this.currencies = this.deepExtend (this.currencies, result);
         return result;
     }
 
@@ -1202,6 +1228,22 @@ export default class bitvavo extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
+        let operatorId = undefined;
+        [ operatorId, params ] = this.handleOptionAndParams (params, 'createOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt (operatorId);
+        } else {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+        }
+        let selfTradePrevention = undefined;
+        [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
+        if (selfTradePrevention !== undefined) {
+            if (selfTradePrevention === 'EXPIRE_BOTH') {
+                request['selfTradePrevention'] = 'cancelBoth';
+            } else {
+                request['selfTradePrevention'] = selfTradePrevention;
+            }
+        }
         return this.extend (request, params);
     }
 
@@ -1224,7 +1266,7 @@ export default class bitvavo extends Exchange {
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
      * @param {string} [params.triggerType] "price"
      * @param {string} [params.triggerReference] "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
-     * @param {string} [params.selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+     * @param {string} [params.selfTradePrevention] one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
      * @param {bool} [params.disableMarketProtection] don't cancel if the next fill price is 10% worse than the best fill price
      * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1303,6 +1345,13 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
+        let operatorId = undefined;
+        [ operatorId, params ] = this.handleOptionAndParams (params, 'editOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt (operatorId);
+        } else {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+        }
         request['market'] = market['id'];
         return request;
     }
@@ -1340,6 +1389,13 @@ export default class bitvavo extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
             request['orderId'] = id;
+        }
+        let operatorId = undefined;
+        [ operatorId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt (operatorId);
+        } else {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         return this.extend (request, params);
     }
@@ -1384,6 +1440,13 @@ export default class bitvavo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
+        }
+        let operatorId = undefined;
+        [ operatorId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt (operatorId);
+        } else {
+            throw new ArgumentsRequired (this.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         const response = await this.privateDeleteOrders (this.extend (request, params));
         //
@@ -1817,7 +1880,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

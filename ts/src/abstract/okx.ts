@@ -28,6 +28,7 @@ interface Exchange {
     publicGetMarketOpenOracle (params?: {}): Promise<implicitReturnType>;
     publicGetMarketExchangeRate (params?: {}): Promise<implicitReturnType>;
     publicGetMarketIndexComponents (params?: {}): Promise<implicitReturnType>;
+    publicGetPublicMarketDataHistory (params?: {}): Promise<implicitReturnType>;
     publicGetPublicEconomicCalendar (params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTickers (params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTicker (params?: {}): Promise<implicitReturnType>;
@@ -168,6 +169,7 @@ interface Exchange {
     privateGetAccountSpotManualBorrowRepay (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSetAutoRepay (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSpotBorrowRepayHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountMovePositionsHistory (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountList (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountBalances (params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountBalances (params?: {}): Promise<implicitReturnType>;
@@ -176,6 +178,7 @@ interface Exchange {
     privateGetAssetSubaccountManagedSubaccountBills (params?: {}): Promise<implicitReturnType>;
     privateGetUsersEntrustSubaccountList (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountInterestLimits (params?: {}): Promise<implicitReturnType>;
+    privateGetUsersSubaccountApikey (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
@@ -290,10 +293,15 @@ interface Exchange {
     privatePostAccountFixedLoanManualReborrow (params?: {}): Promise<implicitReturnType>;
     privatePostAccountFixedLoanRepayBorrowingOrder (params?: {}): Promise<implicitReturnType>;
     privatePostAccountBillsHistoryArchive (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountMovePositions (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSetSettleCurrency (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountModifyApikey (params?: {}): Promise<implicitReturnType>;
     privatePostAssetSubaccountTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountSetTransferOut (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubaccountSetLoanAllocation (params?: {}): Promise<implicitReturnType>;
+    privatePostUsersSubaccountCreateSubaccount (params?: {}): Promise<implicitReturnType>;
+    privatePostUsersSubaccountSubaccountApikey (params?: {}): Promise<implicitReturnType>;
+    privatePostUsersSubaccountDeleteApikey (params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotGridOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotGridAmendOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotGridStopOrderAlgo (params?: {}): Promise<implicitReturnType>;

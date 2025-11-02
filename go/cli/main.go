@@ -7,10 +7,12 @@ import (
 	"log"
 	"math/rand/v2"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
 var Red = "\033[31m"
@@ -51,7 +53,7 @@ func benchmarks() {
 	orderBookContent := IoFileRead(orderBookFile, true)
 	tradesContent := IoFileRead(tradesFile, true)
 
-	exchange.Markets = marketsContent.(map[string]interface{})
+	exchange.Markets = exchange.MapToSafeMap(marketsContent.(map[string]interface{}))
 
 	beforeTickerNs := time.Now().UnixNano()
 	_ = exchange.ParseTickers(tickersContent)
@@ -364,7 +366,7 @@ func PrettyPrintData(data interface{}) {
 	}
 }
 
-func SetCredential(instance ccxt.IExchange, key string, value string) {
+func SetCredential(instance ccxt.ICoreExchange, key string, value string) {
 	switch key {
 	case "apiKey":
 		instance.SetApiKey(value)
@@ -381,7 +383,7 @@ func SetCredential(instance ccxt.IExchange, key string, value string) {
 	}
 }
 
-func SetCredentials(instance ccxt.IExchange) {
+func SetCredentials(instance ccxt.ICoreExchange) {
 	credentials := instance.GetRequiredCredentials()
 
 	for key, value := range credentials {
@@ -475,7 +477,14 @@ func main() {
 
 	exchange := ccxt.Exchange{}
 	cmdSettings := InitOptions(flags)
-	instance, suc := ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	var instance ccxt.ICoreExchange
+	suc := true
+	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+		instance, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	} else {
+		instance, suc = ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	}
+	// instance, suc := ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
 
 	if !suc {
 		panic(suc)
@@ -488,12 +497,15 @@ func main() {
 	<-instance.LoadMarkets()
 
 	before := time.Now().UnixMilli()
+	for true {
+		res := <-instance.CallInternal(method, parameters...)
+		PrettyPrintData(res)
 
-	res := <-instance.CallInternal(method, parameters...)
-
+		if !strings.HasPrefix(method, "watch") {
+			break
+		}
+	}
 	after := time.Now().UnixMilli()
-
-	PrettyPrintData(res)
 
 	fmt.Println("Execution time: ", Yellow, after-before, "ms", Reset)
 

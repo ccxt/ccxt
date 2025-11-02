@@ -26,6 +26,7 @@ public partial class bitflyer : Exchange
                 { "createOrder", true },
                 { "fetchBalance", true },
                 { "fetchClosedOrders", "emulated" },
+                { "fetchCurrencies", false },
                 { "fetchDeposits", true },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", false },
@@ -207,6 +208,7 @@ public partial class bitflyer : Exchange
         //         { "product_code": "BCH_BTC", "market_type": "Spot" },
         //         // forex swap
         //         { "product_code": "FX_BTC_JPY", "market_type": "FX" },
+        //
         //         // future
         //         {
         //             "product_code": "BTCJPY11FEB2022",

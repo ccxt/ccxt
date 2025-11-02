@@ -175,7 +175,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> createOrdersWs(object orders, object parameters = null)
+    public async override Task<object> createOrdersWs(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -371,7 +371,7 @@ public partial class gate : ccxt.gate
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -402,6 +402,11 @@ public partial class gate : ccxt.gate
      * @method
      * @name gate#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -424,7 +429,7 @@ public partial class gate : ccxt.gate
         object payload = new List<object>() {marketId, interval};
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100;
+            limit = 100; // max 100 atm
         }
         if (isTrue(getValue(market, "contract")))
         {
@@ -1429,8 +1434,37 @@ public partial class gate : ccxt.gate
         {
             object rawPosition = getValue(data, i);
             object position = this.parsePosition(rawPosition);
-            ((IList<object>)newPositions).Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            object symbol = this.safeString(position, "symbol");
+            object side = this.safeString(position, "side");
+            // Control when position is closed no side is returned
+            if (isTrue(isEqual(side, null)))
+            {
+                object prevLongPosition = this.safeDict(cache, add(symbol, "long"));
+                if (isTrue(!isEqual(prevLongPosition, null)))
+                {
+                    ((IDictionary<string,object>)position)["side"] = getValue(prevLongPosition, "side");
+                    ((IList<object>)newPositions).Add(position);
+                    callDynamically(cache, "append", new object[] {position});
+                }
+                object prevShortPosition = this.safeDict(cache, add(symbol, "short"));
+                if (isTrue(!isEqual(prevShortPosition, null)))
+                {
+                    ((IDictionary<string,object>)position)["side"] = getValue(prevShortPosition, "side");
+                    ((IList<object>)newPositions).Add(position);
+                    callDynamically(cache, "append", new object[] {position});
+                }
+                // if no prev position is found, default to long
+                if (isTrue(isTrue(isEqual(prevLongPosition, null)) && isTrue(isEqual(prevShortPosition, null))))
+                {
+                    ((IDictionary<string,object>)position)["side"] = "long";
+                    ((IList<object>)newPositions).Add(position);
+                    callDynamically(cache, "append", new object[] {position});
+                }
+            } else
+            {
+                ((IList<object>)newPositions).Add(position);
+                callDynamically(cache, "append", new object[] {position});
+            }
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, add(type, ":positions::"));
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
@@ -2289,7 +2323,7 @@ public partial class gate : ccxt.gate
         object channel = add(messageType, ".login");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

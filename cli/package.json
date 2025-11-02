@@ -1,0 +1,43 @@
+{
+  "name": "ccxt-cli",
+  "version": "1.0.0",
+  "description": "CLI for the CCXT package",
+  "main": "./js/cli.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "publishPackage": "npm run build && npm publish"
+  },
+  "bin": {
+    "ccxt": "js/cli.js"
+  },
+  "author": "CCXT",
+  "license": "MIT",
+  "keywords": [
+    "ccxt",
+    "cli",
+    "crypto",
+    "exchange",
+    "trading"
+  ],
+  "dependencies": {
+    "ansicolor": "^2.0.3",
+    "as-table": "^1.0.55",
+    "blessed": "^0.1.81",
+    "ccxt": "^4.4.86",
+    "clipboardy": "^4.0.0",
+    "commander": "^14.0.0",
+    "ololog": "^1.1.175",
+    "open": "^10.1.2",
+    "ora": "^8.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ccxt/ccxt.git"
+  },
+  "readme": "README.md",
+  "bugs": {
+    "url": "https://github.com/ccxt/ccxt/issues"
+  },
+  "homepage": "https://ccxt.com"
+}

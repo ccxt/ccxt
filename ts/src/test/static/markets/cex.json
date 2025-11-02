@@ -1,183 +1,14 @@
 {
     "BTC/USD": {
-        "id": "BTC/USD",
+        "id": "BTC-USD",
+        "lowercaseId": null,
         "symbol": "BTC/USD",
         "base": "BTC",
         "quote": "USD",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USD",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "contract": false,
-        "precision": {
-            "amount": 1e-8,
-            "price": 0.1
-        },
-        "limits": {
-            "amount": {
-                "min": 0.00035981
-            },
-            "price": {
-                "min": 3500,
-                "max": 350000
-            },
-            "cost": {
-                "min": 10
-            },
-            "leverage": {}
-        },
-        "info": {
-            "symbol1": "BTC",
-            "symbol2": "USD",
-            "pricePrecision": "1",
-            "minLotSize": "0.00035981",
-            "minLotSizeS2": "10",
-            "maxLotSize": null,
-            "minPrice": "3500",
-            "maxPrice": "350000"
-        },
-        "taker": 0.0025,
-        "maker": 0.0016
-    },
-    "BTC/EUR": {
-        "id": "BTC/EUR",
-        "symbol": "BTC/EUR",
-        "base": "BTC",
-        "quote": "EUR",
-        "baseId": "BTC",
-        "quoteId": "EUR",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "contract": false,
-        "precision": {
-            "amount": 1e-8,
-            "price": 0.1
-        },
-        "limits": {
-            "amount": {
-                "min": 0.00035981
-            },
-            "price": {
-                "min": 2000,
-                "max": 300000
-            },
-            "cost": {
-                "min": 10
-            },
-            "leverage": {}
-        },
-        "info": {
-            "symbol1": "BTC",
-            "symbol2": "EUR",
-            "pricePrecision": "1",
-            "minLotSize": "0.00035981",
-            "minLotSizeS2": "10",
-            "maxLotSize": null,
-            "minPrice": "2000",
-            "maxPrice": "300000"
-        },
-        "taker": 0.0025,
-        "maker": 0.0016
-    },
-    "LTC/USD": {
-        "id": "LTC/USD",
-        "symbol": "LTC/USD",
-        "base": "LTC",
-        "quote": "USD",
-        "baseId": "LTC",
-        "quoteId": "USD",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "contract": false,
-        "precision": {
-            "amount": 1e-8,
-            "price": 0.001
-        },
-        "limits": {
-            "amount": {
-                "min": 0.13798541
-            },
-            "price": {
-                "min": 7.73,
-                "max": 2048
-            },
-            "cost": {
-                "min": 10
-            },
-            "leverage": {}
-        },
-        "info": {
-            "symbol1": "LTC",
-            "symbol2": "USD",
-            "pricePrecision": "3",
-            "minLotSize": "0.13798541",
-            "minLotSizeS2": "10",
-            "maxLotSize": null,
-            "minPrice": "7.73",
-            "maxPrice": "2048"
-        },
-        "taker": 0.0025,
-        "maker": 0.0016
-    },
-    "ETH/USD": {
-        "id": "ETH/USD",
-        "symbol": "ETH/USD",
-        "base": "ETH",
-        "quote": "USD",
-        "baseId": "ETH",
-        "quoteId": "USD",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "contract": false,
-        "precision": {
-            "amount": 0.000001,
-            "price": 0.01
-        },
-        "limits": {
-            "amount": {
-                "min": 0.006705
-            },
-            "price": {
-                "min": 26.41,
-                "max": 10000
-            },
-            "cost": {
-                "min": 10
-            },
-            "leverage": {}
-        },
-        "info": {
-            "symbol1": "ETH",
-            "symbol2": "USD",
-            "pricePrecision": "2",
-            "minLotSize": "0.006705",
-            "minLotSizeS2": "10",
-            "maxLotSize": null,
-            "minPrice": "26.41",
-            "maxPrice": "10000"
-        },
-        "taker": 0.0025,
-        "maker": 0.0016
-    },
-    "BTC/USDT": {
-        "id": "BTC-USDT",
-        "symbol": "BTC/USDT",
-        "base": "BTC",
-        "quote": "USDT",
-        "baseId": "BTC",
-        "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -185,7 +16,18 @@
         "future": false,
         "option": false,
         "index": false,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": "0.00000001",
             "price": 0.1,
@@ -193,10 +35,317 @@
             "quote": 1e-8
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.000125,
+                "max": 11
+            },
+            "price": {
+                "min": 3500,
+                "max": 350000
+            },
+            "cost": {
+                "min": 10,
+                "max": 1000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "base": "BTC",
+            "quote": "USD",
+            "baseMin": "0.000125",
+            "baseMax": "11",
+            "baseLotSize": "0.00000001",
+            "quoteMin": "10",
+            "quoteMax": "1000000",
+            "quoteLotSize": "0.01000000",
+            "basePrecision": "8",
+            "quotePrecision": "8",
+            "pricePrecision": "1",
+            "minPrice": "3500.0",
+            "maxPrice": "350000.0"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "BTC/EUR": {
+        "id": "BTC-EUR",
+        "lowercaseId": null,
+        "symbol": "BTC/EUR",
+        "base": "BTC",
+        "quote": "EUR",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "EUR",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": null,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": "0.00000001",
+            "price": 0.1,
+            "base": 1e-8,
+            "quote": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.00042278,
-                "max": 16
+                "max": 11
+            },
+            "price": {
+                "min": 2000,
+                "max": 300000
+            },
+            "cost": {
+                "min": 10,
+                "max": 984000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "base": "BTC",
+            "quote": "EUR",
+            "baseMin": "0.00042278",
+            "baseMax": "11",
+            "baseLotSize": "0.00000001",
+            "quoteMin": "10",
+            "quoteMax": "984000",
+            "quoteLotSize": "0.01000000",
+            "basePrecision": "8",
+            "quotePrecision": "8",
+            "pricePrecision": "1",
+            "minPrice": "2000.0",
+            "maxPrice": "300000.0"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "LTC/USD": {
+        "id": "LTC-USD",
+        "lowercaseId": null,
+        "symbol": "LTC/USD",
+        "base": "LTC",
+        "quote": "USD",
+        "settle": null,
+        "baseId": "LTC",
+        "quoteId": "USD",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": null,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": "0.00000001",
+            "price": 0.01,
+            "base": 1e-8,
+            "quote": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.15,
+                "max": 10810
+            },
+            "price": {
+                "min": 7.73,
+                "max": 2048
+            },
+            "cost": {
+                "min": 10,
+                "max": 1000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "base": "LTC",
+            "quote": "USD",
+            "baseMin": "0.15",
+            "baseMax": "10810",
+            "baseLotSize": "0.00000001",
+            "quoteMin": "10",
+            "quoteMax": "1000000",
+            "quoteLotSize": "0.01000000",
+            "basePrecision": "8",
+            "quotePrecision": "8",
+            "pricePrecision": "2",
+            "minPrice": "7.73",
+            "maxPrice": "2048.00"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ETH/USD": {
+        "id": "ETH-USD",
+        "lowercaseId": null,
+        "symbol": "ETH/USD",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": null,
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": null,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": "0.00000100",
+            "price": 0.01,
+            "base": 1e-8,
+            "quote": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.008,
+                "max": 391
+            },
+            "price": {
+                "min": 26.41,
+                "max": 10000
+            },
+            "cost": {
+                "min": 10,
+                "max": 1000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "base": "ETH",
+            "quote": "USD",
+            "baseMin": "0.008",
+            "baseMax": "391",
+            "baseLotSize": "0.00000100",
+            "quoteMin": "10",
+            "quoteMax": "1000000",
+            "quoteLotSize": "0.01000000",
+            "basePrecision": "8",
+            "quotePrecision": "8",
+            "pricePrecision": "2",
+            "minPrice": "26.41",
+            "maxPrice": "10000.00"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "BTC/USDT": {
+        "id": "BTC-USDT",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": null,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": "0.00000001",
+            "price": 0.1,
+            "base": 1e-8,
+            "quote": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.000125,
+                "max": 11
             },
             "price": {
                 "min": 9000,
@@ -207,12 +356,16 @@
                 "max": 1000000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base": "BTC",
             "quote": "USDT",
-            "baseMin": "0.00042278",
-            "baseMax": "16",
+            "baseMin": "0.000125",
+            "baseMax": "11",
             "baseLotSize": "0.00000001",
             "quoteMin": "10",
             "quoteMax": "1000000",
@@ -222,15 +375,20 @@
             "pricePrecision": "1",
             "minPrice": "9000.0",
             "maxPrice": "350000.0"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "LTC/USDT": {
         "id": "LTC-USDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT",
         "base": "LTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "LTC",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -238,7 +396,18 @@
         "future": false,
         "option": false,
         "index": false,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": "0.00000001",
             "price": 0.01,
@@ -246,10 +415,13 @@
             "quote": 1e-8
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.22,
-                "max": 14850
+                "min": 0.15,
+                "max": 10810
             },
             "price": {
                 "min": 7.72,
@@ -260,12 +432,16 @@
                 "max": 1000000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base": "LTC",
             "quote": "USDT",
-            "baseMin": "0.22",
-            "baseMax": "14850",
+            "baseMin": "0.15",
+            "baseMax": "10810",
             "baseLotSize": "0.00000001",
             "quoteMin": "10",
             "quoteMax": "1000000",
@@ -275,144 +451,20 @@
             "pricePrecision": "2",
             "minPrice": "7.72",
             "maxPrice": "2048.00"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ADA/USDT": {
-        "id": "ADA/USDT",
+        "id": "ADA-USDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT",
         "base": "ADA",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ADA",
         "quoteId": "USDT",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "contract": false,
-        "precision": {
-            "amount": 0.000001,
-            "price": 0.000001
-        },
-        "limits": {
-            "amount": {
-                "min": 15.708556
-            },
-            "price": {
-                "min": 0.0062,
-                "max": 50
-            },
-            "cost": {
-                "min": 10
-            },
-            "leverage": {}
-        },
-        "info": {
-            "symbol1": "ADA",
-            "symbol2": "USDT",
-            "pricePrecision": "6",
-            "minLotSize": "15.708556",
-            "minLotSizeS2": "10",
-            "maxLotSize": null,
-            "minPrice": "0.0062",
-            "maxPrice": "50"
-        },
-        "taker": 0.0025,
-        "maker": 0.0016
-    },
-    "XRP/USDT": {
-        "id": "XRP/USDT",
-        "symbol": "XRP/USDT",
-        "base": "XRP",
-        "quote": "USDT",
-        "baseId": "XRP",
-        "quoteId": "USDT",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "contract": false,
-        "precision": {
-            "amount": 0.000001,
-            "price": 0.00001
-        },
-        "limits": {
-            "amount": {
-                "min": 16.984107
-            },
-            "price": {
-                "min": 0.0343,
-                "max": 50
-            },
-            "cost": {
-                "min": 10
-            },
-            "leverage": {}
-        },
-        "info": {
-            "symbol1": "XRP",
-            "symbol2": "USDT",
-            "pricePrecision": "5",
-            "minLotSize": "16.984107",
-            "minLotSizeS2": "10",
-            "maxLotSize": null,
-            "minPrice": "0.0343",
-            "maxPrice": "50"
-        },
-        "taker": 0.0025,
-        "maker": 0.0016
-    },
-    "TRX/USDT": {
-        "id": "TRX/USDT",
-        "symbol": "TRX/USDT",
-        "base": "TRX",
-        "quote": "USDT",
-        "baseId": "TRX",
-        "quoteId": "USDT",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "contract": false,
-        "precision": {
-            "amount": 0.000001,
-            "price": 0.00001
-        },
-        "limits": {
-            "amount": {
-                "min": 121.241513
-            },
-            "price": {
-                "min": 0.0001,
-                "max": 50
-            },
-            "cost": {
-                "min": 10
-            },
-            "leverage": {}
-        },
-        "info": {
-            "symbol1": "TRX",
-            "symbol2": "USDT",
-            "pricePrecision": "5",
-            "minLotSize": "121.241513",
-            "minLotSizeS2": "10",
-            "maxLotSize": null,
-            "minPrice": "0.0001",
-            "maxPrice": "50"
-        },
-        "taker": 0.0025,
-        "maker": 0.0016
-    },
-    "ETH/USDT": {
-        "id": "ETH-USDT",
-        "symbol": "ETH/USDT",
-        "base": "ETH",
-        "quote": "USDT",
-        "baseId": "ETH",
-        "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -420,7 +472,246 @@
         "future": false,
         "option": false,
         "index": false,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": "0.00000100",
+            "price": 0.0001,
+            "base": 1e-8,
+            "quote": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 18,
+                "max": 1208000
+            },
+            "price": {
+                "min": 0.0062,
+                "max": 50
+            },
+            "cost": {
+                "min": 10,
+                "max": 1000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "base": "ADA",
+            "quote": "USDT",
+            "baseMin": "18",
+            "baseMax": "1208000",
+            "baseLotSize": "0.00000100",
+            "quoteMin": "10",
+            "quoteMax": "1000000",
+            "quoteLotSize": "0.00000100",
+            "basePrecision": "8",
+            "quotePrecision": "8",
+            "pricePrecision": "4",
+            "minPrice": "0.0062",
+            "maxPrice": "50.0000"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "XRP/USDT": {
+        "id": "XRP-USDT",
+        "lowercaseId": null,
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": null,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": "0.00000100",
+            "price": 0.0001,
+            "base": 1e-8,
+            "quote": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 30,
+                "max": 412500
+            },
+            "price": {
+                "min": 0.0343,
+                "max": 50
+            },
+            "cost": {
+                "min": 10,
+                "max": 1000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "base": "XRP",
+            "quote": "USDT",
+            "baseMin": "30",
+            "baseMax": "412500",
+            "baseLotSize": "0.00000100",
+            "quoteMin": "10",
+            "quoteMax": "1000000",
+            "quoteLotSize": "0.00000100",
+            "basePrecision": "8",
+            "quotePrecision": "8",
+            "pricePrecision": "4",
+            "minPrice": "0.0343",
+            "maxPrice": "50.0000"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "TRX/USDT": {
+        "id": "TRX-USDT",
+        "lowercaseId": null,
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": null,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": "0.00000100",
+            "price": 0.00001,
+            "base": 1e-8,
+            "quote": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 51,
+                "max": 3715000
+            },
+            "price": {
+                "min": 0.0001,
+                "max": 50
+            },
+            "cost": {
+                "min": 10,
+                "max": 1000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "base": "TRX",
+            "quote": "USDT",
+            "baseMin": "51",
+            "baseMax": "3715000",
+            "baseLotSize": "0.00000100",
+            "quoteMin": "10",
+            "quoteMax": "1000000",
+            "quoteLotSize": "0.00000100",
+            "basePrecision": "8",
+            "quotePrecision": "8",
+            "pricePrecision": "5",
+            "minPrice": "0.00010",
+            "maxPrice": "50.00000"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ETH/USDT": {
+        "id": "ETH-USDT",
+        "lowercaseId": null,
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": null,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": "0.00000100",
             "price": 0.01,
@@ -428,10 +719,13 @@
             "quote": 1e-8
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.00618525,
-                "max": 430
+                "min": 0.008,
+                "max": 391
             },
             "price": {
                 "min": 100,
@@ -442,12 +736,16 @@
                 "max": 1000000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base": "ETH",
             "quote": "USDT",
-            "baseMin": "0.00618525",
-            "baseMax": "430",
+            "baseMin": "0.008",
+            "baseMax": "391",
             "baseLotSize": "0.00000100",
             "quoteMin": "10",
             "quoteMax": "1000000",
@@ -457,6 +755,8 @@
             "pricePrecision": "2",
             "minPrice": "100.00",
             "maxPrice": "11000.00"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     }
 }

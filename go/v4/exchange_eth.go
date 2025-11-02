@@ -16,7 +16,7 @@ import (
 // =====================================  Hyperliquid Structs ===================================== //
 // OrderMessage Struct
 // {
-// "brokerCode": 1,
+// "builder": "0xxxxxx",
 // "grouping": "na",
 // "orders": [
 //
@@ -54,10 +54,10 @@ type OrderHyperliquid struct {
 }
 
 type OrderMessage struct {
-	Type       string             `mapstructure:"type" msgpack:"type"`
-	Orders     []OrderHyperliquid `mapstructure:"orders" msgpack:"orders"`
-	Grouping   string             `mapstructure:"grouping" msgpack:"grouping"`
-	BrokerCode int                `mapstructure:"brokerCode" msgpack:"brokerCode"`
+	Type     string                 `mapstructure:"type" msgpack:"type"`
+	Orders   []OrderHyperliquid     `mapstructure:"orders" msgpack:"orders"`
+	Grouping string                 `mapstructure:"grouping" msgpack:"grouping"`
+	Builder  map[string]interface{} `mapstructure:"builder" msgpack:"builder,omitempty"`
 }
 
 // cancel
@@ -80,6 +80,12 @@ type TransferMessage struct {
 	Amount           string `mapstructure:"amount" msgpack:"amount"`
 	ToPerp           bool   `mapstructure:"toPerp" msgpack:"toPerp"`
 	Nonce            int64  `mapstructure:"nonce" msgpack:"nonce"`
+}
+type SubAccountTransferMessage struct {
+	Type           string `mapstructure:"type" msgpack:"type"`
+	SubAccountUser string `mapstructure:"subAccountUser" msgpack:"subAccountUser"`
+	IsDeposit      bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Usd            int    `mapstructure:"usd" msgpack:"usd"`
 }
 
 // withdraw
@@ -262,7 +268,7 @@ func DeepExtend(objs ...interface{}) map[string]interface{} { //tmp duplicated i
 				outObj = make(map[string]interface{})
 			}
 			dictX := x.(map[string]interface{})
-			for k, _ := range dictX {
+			for k := range dictX {
 				arg1 := outObj.(map[string]interface{})[k]
 				arg2 := dictX[k]
 				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
@@ -345,7 +351,8 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 
 	typeA := this.SafeString(converted, "type", "").(string)
 
-	if typeA == "order" {
+	switch typeA {
+	case "order":
 		var orderMsg OrderMessage
 
 		err := mapstructure.Decode(converted, &orderMsg)
@@ -359,7 +366,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "cancel" {
+	case "cancel":
 		var cancelMsg CancelMessage
 
 		err := mapstructure.Decode(converted, &cancelMsg)
@@ -373,7 +380,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "withdraw3" {
+	case "withdraw3":
 		var withdrawMsg WithdrawMessage
 
 		err := mapstructure.Decode(converted, &withdrawMsg)
@@ -386,7 +393,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "batchModify" {
+	case "batchModify":
 		var editMsg EditOrderMessage
 
 		err := mapstructure.Decode(converted, &editMsg)
@@ -395,6 +402,19 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 
 		packed, err := msgpack.Marshal(editMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "subAccountTransfer":
+		var subAccountTransferMsg SubAccountTransferMessage
+
+		err := mapstructure.Decode(converted, &subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(subAccountTransferMsg)
 		if err != nil {
 			panic(err)
 		}

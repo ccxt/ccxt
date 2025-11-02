@@ -2,6 +2,932 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "order with cost, using a decimal amount",
+                "method": "createMarketBuyOrderWithCost",
+                "input": [
+                    "DOGE/USDT",
+                    12.45
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "1971981115648733696",
+                        "orderLinkId": "1971981115648733697"
+                    },
+                    "retExtInfo": {},
+                    "time": "1749814467805"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1971981115648733696",
+                        "orderLinkId": "1971981115648733697"
+                    },
+                    "id": "1971981115648733696",
+                    "clientOrderId": "1971981115648733697",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "DOGE/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "success",
+                    "result": {
+                        "rows": [
+                            {
+                                "name": "USDT",
+                                "coin": "USDT",
+                                "remainAmount": "50000000000",
+                                "chains": [
+                                    {
+                                        "chainType": "Aptos",
+                                        "confirmation": "1",
+                                        "withdrawFee": "0",
+                                        "depositMin": "0.001",
+                                        "withdrawMin": "0",
+                                        "chain": "APTOS",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
+                                    },
+                                    {
+                                        "chainType": "Arbitrum One",
+                                        "confirmation": "120",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "1",
+                                        "chain": "ARBI",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
+                                    },
+                                    {
+                                        "chainType": "BNB Smart Chain",
+                                        "confirmation": "60",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "10",
+                                        "chain": "BSC",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
+                                    },
+                                    {
+                                        "chainType": "CAVAX",
+                                        "confirmation": "30",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "10",
+                                        "chain": "CAVAX",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "0",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+                                    },
+                                    {
+                                        "chainType": "CELO",
+                                        "confirmation": "10",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "1",
+                                        "chain": "CELO",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e"
+                                    },
+                                    {
+                                        "chainType": "Ethereum",
+                                        "confirmation": "6",
+                                        "withdrawFee": "8",
+                                        "depositMin": "0",
+                                        "withdrawMin": "10",
+                                        "chain": "ETH",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                    },
+                                    {
+                                        "chainType": "KAVAEVM",
+                                        "confirmation": "10",
+                                        "withdrawFee": "0.3",
+                                        "depositMin": "0",
+                                        "withdrawMin": "0.3",
+                                        "chain": "KAVAEVM",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c"
+                                    },
+                                    {
+                                        "chainType": "Mantle Network",
+                                        "confirmation": "100",
+                                        "withdrawFee": "0",
+                                        "depositMin": "0",
+                                        "withdrawMin": "0.3",
+                                        "chain": "MANTLE",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x201eba5cc46d216ce6dc03f6a759e8e766e956ae"
+                                    },
+                                    {
+                                        "chainType": "Polygon PoS",
+                                        "confirmation": "300",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "1",
+                                        "chain": "MATIC",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+                                    },
+                                    {
+                                        "chainType": "OP Mainnet",
+                                        "confirmation": "30",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "1",
+                                        "chain": "OP",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"
+                                    },
+                                    {
+                                        "chainType": "SOL",
+                                        "confirmation": "200",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "10",
+                                        "chain": "SOL",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                                    },
+                                    {
+                                        "chainType": "TON",
+                                        "confirmation": "1",
+                                        "withdrawFee": "0.3",
+                                        "depositMin": "0",
+                                        "withdrawMin": "1",
+                                        "chain": "TON",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                                    },
+                                    {
+                                        "chainType": "TRC20",
+                                        "confirmation": "20",
+                                        "withdrawFee": "1.6",
+                                        "depositMin": "0",
+                                        "withdrawMin": "2.6",
+                                        "chain": "TRX",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                                    },
+                                    {
+                                        "chainType": "zkSync Lite",
+                                        "confirmation": "",
+                                        "withdrawFee": "0.3",
+                                        "depositMin": "",
+                                        "withdrawMin": "0.3",
+                                        "chain": "ZKSYNC",
+                                        "chainDeposit": "0",
+                                        "chainWithdraw": "0",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1747308071042"
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "name": "USDT",
+                            "coin": "USDT",
+                            "remainAmount": "50000000000",
+                            "chains": [
+                                {
+                                    "chainType": "Aptos",
+                                    "confirmation": "1",
+                                    "withdrawFee": "0",
+                                    "depositMin": "0.001",
+                                    "withdrawMin": "0",
+                                    "chain": "APTOS",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
+                                },
+                                {
+                                    "chainType": "Arbitrum One",
+                                    "confirmation": "120",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "ARBI",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
+                                },
+                                {
+                                    "chainType": "BNB Smart Chain",
+                                    "confirmation": "60",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "BSC",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
+                                },
+                                {
+                                    "chainType": "CAVAX",
+                                    "confirmation": "30",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "CAVAX",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "0",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+                                },
+                                {
+                                    "chainType": "CELO",
+                                    "confirmation": "10",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "CELO",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e"
+                                },
+                                {
+                                    "chainType": "Ethereum",
+                                    "confirmation": "6",
+                                    "withdrawFee": "8",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "ETH",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                },
+                                {
+                                    "chainType": "KAVAEVM",
+                                    "confirmation": "10",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "0",
+                                    "withdrawMin": "0.3",
+                                    "chain": "KAVAEVM",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c"
+                                },
+                                {
+                                    "chainType": "Mantle Network",
+                                    "confirmation": "100",
+                                    "withdrawFee": "0",
+                                    "depositMin": "0",
+                                    "withdrawMin": "0.3",
+                                    "chain": "MANTLE",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x201eba5cc46d216ce6dc03f6a759e8e766e956ae"
+                                },
+                                {
+                                    "chainType": "Polygon PoS",
+                                    "confirmation": "300",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "MATIC",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+                                },
+                                {
+                                    "chainType": "OP Mainnet",
+                                    "confirmation": "30",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "OP",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"
+                                },
+                                {
+                                    "chainType": "SOL",
+                                    "confirmation": "200",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "SOL",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                                },
+                                {
+                                    "chainType": "TON",
+                                    "confirmation": "1",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "TON",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                                },
+                                {
+                                    "chainType": "TRC20",
+                                    "confirmation": "20",
+                                    "withdrawFee": "1.6",
+                                    "depositMin": "0",
+                                    "withdrawMin": "2.6",
+                                    "chain": "TRX",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                                },
+                                {
+                                    "chainType": "zkSync Lite",
+                                    "confirmation": "",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "",
+                                    "withdrawMin": "0.3",
+                                    "chain": "ZKSYNC",
+                                    "chainDeposit": "0",
+                                    "chainWithdraw": "0",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "USDT",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0,
+                        "fees": {},
+                        "networks": {
+                            "APT": {
+                                "info": {
+                                    "chainType": "Aptos",
+                                    "confirmation": "1",
+                                    "withdrawFee": "0",
+                                    "depositMin": "0.001",
+                                    "withdrawMin": "0",
+                                    "chain": "APTOS",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
+                                },
+                                "id": "APTOS",
+                                "network": "APT",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.001,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ARBONE": {
+                                "info": {
+                                    "chainType": "Arbitrum One",
+                                    "confirmation": "120",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "ARBI",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
+                                },
+                                "id": "ARBI",
+                                "network": "ARBONE",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "BEP20": {
+                                "info": {
+                                    "chainType": "BNB Smart Chain",
+                                    "confirmation": "60",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "BSC",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
+                                },
+                                "id": "BSC",
+                                "network": "BEP20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "AVAXC": {
+                                "info": {
+                                    "chainType": "CAVAX",
+                                    "confirmation": "30",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "CAVAX",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "0",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+                                },
+                                "id": "CAVAX",
+                                "network": "AVAXC",
+                                "active": false,
+                                "deposit": true,
+                                "withdraw": false,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "CELO": {
+                                "info": {
+                                    "chainType": "CELO",
+                                    "confirmation": "10",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "CELO",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e"
+                                },
+                                "id": "CELO",
+                                "network": "CELO",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ERC20": {
+                                "info": {
+                                    "chainType": "Ethereum",
+                                    "confirmation": "6",
+                                    "withdrawFee": "8",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "ETH",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 8,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "KAVAEVM": {
+                                "info": {
+                                    "chainType": "KAVAEVM",
+                                    "confirmation": "10",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "0",
+                                    "withdrawMin": "0.3",
+                                    "chain": "KAVAEVM",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c"
+                                },
+                                "id": "KAVAEVM",
+                                "network": "KAVAEVM",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.3,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.3,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "MANTLE": {
+                                "info": {
+                                    "chainType": "Mantle Network",
+                                    "confirmation": "100",
+                                    "withdrawFee": "0",
+                                    "depositMin": "0",
+                                    "withdrawMin": "0.3",
+                                    "chain": "MANTLE",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x201eba5cc46d216ce6dc03f6a759e8e766e956ae"
+                                },
+                                "id": "MANTLE",
+                                "network": "MANTLE",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.3,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "MATIC": {
+                                "info": {
+                                    "chainType": "Polygon PoS",
+                                    "confirmation": "300",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "MATIC",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+                                },
+                                "id": "MATIC",
+                                "network": "MATIC",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "OPTIMISM": {
+                                "info": {
+                                    "chainType": "OP Mainnet",
+                                    "confirmation": "30",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "OP",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"
+                                },
+                                "id": "OP",
+                                "network": "OPTIMISM",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "chainType": "SOL",
+                                    "confirmation": "200",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "SOL",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                                },
+                                "id": "SOL",
+                                "network": "SOL",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TON": {
+                                "info": {
+                                    "chainType": "TON",
+                                    "confirmation": "1",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "TON",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                                },
+                                "id": "TON",
+                                "network": "TON",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.3,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "chainType": "TRC20",
+                                    "confirmation": "20",
+                                    "withdrawFee": "1.6",
+                                    "depositMin": "0",
+                                    "withdrawMin": "2.6",
+                                    "chain": "TRX",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                                },
+                                "id": "TRX",
+                                "network": "TRC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1.6,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2.6,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ZKSYNC": {
+                                "info": {
+                                    "chainType": "zkSync Lite",
+                                    "confirmation": "",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "",
+                                    "withdrawMin": "0.3",
+                                    "chain": "ZKSYNC",
+                                    "chainDeposit": "0",
+                                    "chainWithdraw": "0",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                },
+                                "id": "ZKSYNC",
+                                "network": "ZKSYNC",
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": 0.3,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.3,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchOpenInterest": [
             {
                 "description": "linear OI",
@@ -475,6 +1401,63 @@
         ],
         "createOrder": [
             {
+                "description": "spot stopLossPrice order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.2,
+                    null,
+                    {
+                        "reduceOnly": true,
+                        "stopLossPrice": 90
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "1992319485461489920",
+                        "orderLinkId": "1992319485469878528"
+                    },
+                    "retExtInfo": {},
+                    "time": "1752238990423"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1992319485461489920",
+                        "orderLinkId": "1992319485469878528"
+                    },
+                    "id": "1992319485461489920",
+                    "clientOrderId": "1992319485469878528",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "create spot order",
                 "method": "createOrder",
                 "input": [
@@ -822,593 +1805,598 @@
         ],
         "fetchOpenOrder": [
             {
-                "description": "spot open order",
+                "description": "Fetch an open swap order by its ID and symbol",
                 "method": "fetchOpenOrder",
                 "input": [
-                    "1620421817225451008",
-                    "LTC/USDT"
+                    "3606515b-e4d7-4ea4-b096-bb247d0661ae",
+                    "BTC/USDT:USDT"
                 ],
                 "httpResponse": {
                     "retCode": "0",
                     "retMsg": "OK",
                     "result": {
-                        "nextPageCursor": "1620421817225451008%3A1707905333604%2C1620421817225451008%3A1707905333604",
-                        "category": "spot",
+                        "nextPageCursor": "3606515b-e4d7-4ea4-b096-bb247d0661ae%3A1758189775648%2C3606515b-e4d7-4ea4-b096-bb247d0661ae%3A1758189775648",
+                        "category": "linear",
                         "list": [
                             {
-                                "symbol": "LTCUSDT",
+                                "symbol": "BTCUSDT",
                                 "orderType": "Limit",
-                                "orderLinkId": "1620421817225451009",
+                                "orderLinkId": "",
                                 "slLimitPrice": "0",
-                                "orderId": "1620421817225451008",
+                                "orderId": "3606515b-e4d7-4ea4-b096-bb247d0661ae",
                                 "cancelType": "UNKNOWN",
-                                "avgPrice": "0.000",
+                                "avgPrice": "",
                                 "stopOrderType": "",
-                                "lastPriceOnCreated": "",
+                                "lastPriceOnCreated": "160995.3",
                                 "orderStatus": "New",
-                                "takeProfit": "0",
-                                "cumExecValue": "0.0000000",
+                                "createType": "CreateByUser",
+                                "takeProfit": "",
+                                "cumExecValue": "0",
+                                "tpslMode": "",
                                 "smpType": "None",
                                 "triggerDirection": "0",
                                 "blockTradeId": "",
-                                "isLeverage": "0",
+                                "cumFeeDetail": {},
+                                "isLeverage": "",
                                 "rejectReason": "EC_NoError",
-                                "price": "50.000",
+                                "price": "102000",
                                 "orderIv": "",
-                                "createdTime": "1707905333604",
+                                "createdTime": "1758189775648",
                                 "tpTriggerBy": "",
                                 "positionIdx": "0",
                                 "timeInForce": "GTC",
-                                "leavesValue": "15.0000000",
-                                "updatedTime": "1707905333608",
+                                "leavesValue": "102",
+                                "updatedTime": "1758189775651",
                                 "side": "Buy",
                                 "smpGroup": "0",
-                                "triggerPrice": "0.000",
+                                "triggerPrice": "",
                                 "tpLimitPrice": "0",
                                 "cumExecFee": "0",
-                                "leavesQty": "0.30000",
+                                "leavesQty": "0.001",
                                 "slTriggerBy": "",
                                 "closeOnTrigger": false,
                                 "placeType": "",
-                                "cumExecQty": "0.00000",
+                                "cumExecQty": "0",
                                 "reduceOnly": false,
-                                "qty": "0.30000",
-                                "stopLoss": "0",
+                                "qty": "0.001",
+                                "stopLoss": "",
                                 "marketUnit": "",
                                 "smpOrderId": "",
-                                "triggerBy": "",
-                                "nextPageCursor": "1620421817225451008%3A1707905333604%2C1620421817225451008%3A1707905333604"
+                                "triggerBy": ""
                             }
                         ]
                     },
                     "retExtInfo": {},
-                    "time": "1707905721940"
+                    "time": "1758189797405"
                 },
                 "parsedResponse": {
                     "info": {
-                        "symbol": "LTCUSDT",
+                        "symbol": "BTCUSDT",
                         "orderType": "Limit",
-                        "orderLinkId": "1620421817225451009",
+                        "orderLinkId": "",
                         "slLimitPrice": "0",
-                        "orderId": "1620421817225451008",
+                        "orderId": "3606515b-e4d7-4ea4-b096-bb247d0661ae",
                         "cancelType": "UNKNOWN",
-                        "avgPrice": "0.000",
+                        "avgPrice": "",
                         "stopOrderType": "",
-                        "lastPriceOnCreated": "",
+                        "lastPriceOnCreated": "160995.3",
                         "orderStatus": "New",
-                        "takeProfit": "0",
-                        "cumExecValue": "0.0000000",
+                        "createType": "CreateByUser",
+                        "takeProfit": "",
+                        "cumExecValue": "0",
+                        "tpslMode": "",
                         "smpType": "None",
                         "triggerDirection": "0",
                         "blockTradeId": "",
-                        "isLeverage": "0",
+                        "cumFeeDetail": {},
+                        "isLeverage": "",
                         "rejectReason": "EC_NoError",
-                        "price": "50.000",
+                        "price": "102000",
                         "orderIv": "",
-                        "createdTime": "1707905333604",
+                        "createdTime": "1758189775648",
                         "tpTriggerBy": "",
                         "positionIdx": "0",
                         "timeInForce": "GTC",
-                        "leavesValue": "15.0000000",
-                        "updatedTime": "1707905333608",
+                        "leavesValue": "102",
+                        "updatedTime": "1758189775651",
                         "side": "Buy",
                         "smpGroup": "0",
-                        "triggerPrice": "0.000",
+                        "triggerPrice": "",
                         "tpLimitPrice": "0",
                         "cumExecFee": "0",
-                        "leavesQty": "0.30000",
+                        "leavesQty": "0.001",
                         "slTriggerBy": "",
                         "closeOnTrigger": false,
                         "placeType": "",
-                        "cumExecQty": "0.00000",
+                        "cumExecQty": "0",
                         "reduceOnly": false,
-                        "qty": "0.30000",
-                        "stopLoss": "0",
+                        "qty": "0.001",
+                        "stopLoss": "",
                         "marketUnit": "",
                         "smpOrderId": "",
                         "triggerBy": "",
-                        "nextPageCursor": "1620421817225451008%3A1707905333604%2C1620421817225451008%3A1707905333604"
+                        "nextPageCursor": "3606515b-e4d7-4ea4-b096-bb247d0661ae%3A1758189775648%2C3606515b-e4d7-4ea4-b096-bb247d0661ae%3A1758189775648"
                     },
-                    "id": "1620421817225451008",
-                    "clientOrderId": "1620421817225451009",
-                    "timestamp": 1707905333604,
-                    "datetime": "2024-02-14T10:08:53.604Z",
-                    "lastTradeTimestamp": 1707905333608,
-                    "lastUpdateTimestamp": 1707905333608,
-                    "symbol": "LTC/USDT",
+                    "id": "3606515b-e4d7-4ea4-b096-bb247d0661ae",
+                    "clientOrderId": null,
+                    "timestamp": 1758189775648,
+                    "datetime": "2025-09-18T10:02:55.648Z",
+                    "lastTradeTimestamp": 1758189775651,
+                    "lastUpdateTimestamp": 1758189775651,
+                    "symbol": "BTC/USDT:USDT",
                     "type": "limit",
                     "timeInForce": "GTC",
                     "postOnly": false,
                     "reduceOnly": false,
                     "side": "buy",
-                    "price": 50,
-                    "stopPrice": null,
+                    "price": 102000,
                     "triggerPrice": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null,
-                    "amount": 0.3,
+                    "amount": 0.001,
                     "cost": 0,
                     "average": null,
                     "filled": 0,
-                    "remaining": 0.3,
+                    "remaining": 0.001,
                     "status": "open",
-                    "fee": {
-                        "cost": 0,
-                        "currency": "USDT"
-                    },
+                    "fee": null,
                     "trades": [],
-                    "fees": [
-                        {
-                            "cost": 0,
-                            "currency": "USDT"
-                        }
-                    ]
+                    "fees": [],
+                    "stopPrice": null
                 }
             }
         ],
         "fetchClosedOrder": [
             {
-                "description": "fetchOrder created using the cost",
+                "description": "Fetch swap closed order by its ID and symbol",
                 "method": "fetchClosedOrder",
                 "input": [
-                    "1823584718894229760",
-                    "BTC/USDT"
+                    "aee7453a-a100-465f-857a-3db780e9329a",
+                    "BTC/USDT:USDT"
                 ],
                 "httpResponse": {
                     "retCode": "0",
                     "retMsg": "OK",
                     "result": {
-                        "nextPageCursor": "1823584718894229760%3A1732124238777%2C1823584718894229760%3A1732124238777",
-                        "category": "spot",
+                        "nextPageCursor": "aee7453a-a100-465f-857a-3db780e9329a%3A1757837580469%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469",
+                        "category": "linear",
                         "list": [
                             {
                                 "symbol": "BTCUSDT",
                                 "orderType": "Market",
-                                "orderLinkId": "1823584718911006976",
+                                "orderLinkId": "",
                                 "slLimitPrice": "0",
-                                "orderId": "1823584718894229760",
+                                "orderId": "aee7453a-a100-465f-857a-3db780e9329a",
                                 "cancelType": "UNKNOWN",
-                                "avgPrice": "91760.9",
+                                "avgPrice": "123498",
                                 "stopOrderType": "",
-                                "lastPriceOnCreated": "",
+                                "lastPriceOnCreated": "122392",
                                 "orderStatus": "Filled",
-                                "takeProfit": "0",
-                                "cumExecValue": "49.91792960",
+                                "createType": "CreateByUser",
+                                "takeProfit": "",
+                                "cumExecValue": "123.498",
+                                "tpslMode": "",
                                 "smpType": "None",
                                 "triggerDirection": "0",
                                 "blockTradeId": "",
+                                "cumFeeDetail": {
+                                    "USDT": "0.0679239"
+                                },
                                 "rejectReason": "EC_NoError",
-                                "isLeverage": "0",
-                                "price": "0",
+                                "isLeverage": "",
+                                "price": "123615.9",
                                 "orderIv": "",
-                                "createdTime": "1732124238777",
+                                "createdTime": "1757837580469",
                                 "tpTriggerBy": "",
                                 "positionIdx": "0",
-                                "trailingPercentage": "0",
                                 "timeInForce": "IOC",
-                                "leavesValue": "0.08207040",
-                                "basePrice": "91676.16",
-                                "updatedTime": "1732124238788",
+                                "leavesValue": "0",
+                                "updatedTime": "1757837580473",
                                 "side": "Buy",
                                 "smpGroup": "0",
-                                "triggerPrice": "0.00",
+                                "triggerPrice": "",
                                 "tpLimitPrice": "0",
-                                "trailingValue": "0",
-                                "cumExecFee": "0.000000544",
+                                "cumExecFee": "0.0679239",
                                 "slTriggerBy": "",
-                                "leavesQty": "0.000000",
+                                "leavesQty": "0",
                                 "closeOnTrigger": false,
+                                "slippageToleranceType": "UNKNOWN",
                                 "placeType": "",
-                                "cumExecQty": "0.000544",
+                                "cumExecQty": "0.001",
                                 "reduceOnly": false,
-                                "activationPrice": "0",
-                                "qty": "50.00000000",
-                                "stopLoss": "0",
-                                "marketUnit": "quoteCoin",
+                                "qty": "0.001",
+                                "stopLoss": "",
                                 "smpOrderId": "",
+                                "slippageTolerance": "0",
                                 "triggerBy": "",
-                                "nextPageCursor": "1823584718894229760%3A1732124238777%2C1823584718894229760%3A1732124238777"
+                                "extraFees": ""
                             }
                         ]
                     },
                     "retExtInfo": {},
-                    "time": "1732124607365"
+                    "time": "1758189954146"
                 },
                 "parsedResponse": {
                     "info": {
                         "symbol": "BTCUSDT",
                         "orderType": "Market",
-                        "orderLinkId": "1823584718911006976",
-                        "slLimitPrice": "0",
-                        "orderId": "1823584718894229760",
-                        "cancelType": "UNKNOWN",
-                        "avgPrice": "91760.9",
-                        "stopOrderType": "",
-                        "lastPriceOnCreated": "",
-                        "orderStatus": "Filled",
-                        "takeProfit": "0",
-                        "cumExecValue": "49.91792960",
-                        "smpType": "None",
-                        "triggerDirection": "0",
-                        "blockTradeId": "",
-                        "rejectReason": "EC_NoError",
-                        "isLeverage": "0",
-                        "price": "0",
-                        "orderIv": "",
-                        "createdTime": "1732124238777",
-                        "tpTriggerBy": "",
-                        "positionIdx": "0",
-                        "trailingPercentage": "0",
-                        "timeInForce": "IOC",
-                        "leavesValue": "0.08207040",
-                        "basePrice": "91676.16",
-                        "updatedTime": "1732124238788",
-                        "side": "Buy",
-                        "smpGroup": "0",
-                        "triggerPrice": "0.00",
-                        "tpLimitPrice": "0",
-                        "trailingValue": "0",
-                        "cumExecFee": "0.000000544",
-                        "slTriggerBy": "",
-                        "leavesQty": "0.000000",
-                        "closeOnTrigger": false,
-                        "placeType": "",
-                        "cumExecQty": "0.000544",
-                        "reduceOnly": false,
-                        "activationPrice": "0",
-                        "qty": "50.00000000",
-                        "stopLoss": "0",
-                        "marketUnit": "quoteCoin",
-                        "smpOrderId": "",
-                        "triggerBy": "",
-                        "nextPageCursor": "1823584718894229760%3A1732124238777%2C1823584718894229760%3A1732124238777"
-                    },
-                    "id": "1823584718894229760",
-                    "clientOrderId": "1823584718911006976",
-                    "timestamp": 1732124238777,
-                    "datetime": "2024-11-20T17:37:18.777Z",
-                    "lastTradeTimestamp": 1732124238788,
-                    "lastUpdateTimestamp": 1732124238788,
-                    "symbol": "BTC/USDT",
-                    "type": "market",
-                    "timeInForce": "IOC",
-                    "postOnly": false,
-                    "reduceOnly": false,
-                    "side": "buy",
-                    "price": 91760.9,
-                    "stopPrice": null,
-                    "triggerPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null,
-                    "amount": 0.000544,
-                    "cost": 49.9179296,
-                    "average": 91760.9,
-                    "filled": 0.000544,
-                    "remaining": 0,
-                    "status": "closed",
-                    "fee": {
-                        "cost": 5.44e-7,
-                        "currency": "BTC"
-                    },
-                    "trades": [],
-                    "fees": [
-                        {
-                            "cost": 5.44e-7,
-                            "currency": "BTC"
-                        }
-                    ]
-                }
-            },
-            {
-                "description": "swap closed order",
-                "method": "fetchClosedOrder",
-                "input": [
-                    "01462c4c-5765-4b21-a137-316bb404401d",
-                    "LTC/USDT:USDT"
-                ],
-                "httpResponse": {
-                    "retCode": "0",
-                    "retMsg": "OK",
-                    "result": {
-                        "nextPageCursor": "01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328%2C01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328",
-                        "category": "linear",
-                        "list": [
-                            {
-                                "symbol": "LTCUSDT",
-                                "orderType": "Market",
-                                "orderLinkId": "",
-                                "slLimitPrice": "0",
-                                "orderId": "01462c4c-5765-4b21-a137-316bb404401d",
-                                "cancelType": "UNKNOWN",
-                                "avgPrice": "70.17",
-                                "stopOrderType": "",
-                                "lastPriceOnCreated": "70.14",
-                                "orderStatus": "Filled",
-                                "createType": "CreateByUser",
-                                "takeProfit": "",
-                                "cumExecValue": "7.017",
-                                "tpslMode": "",
-                                "smpType": "None",
-                                "triggerDirection": "0",
-                                "blockTradeId": "",
-                                "rejectReason": "EC_NoError",
-                                "isLeverage": "",
-                                "price": "73.64",
-                                "orderIv": "",
-                                "createdTime": "1707905807328",
-                                "tpTriggerBy": "",
-                                "positionIdx": "0",
-                                "timeInForce": "IOC",
-                                "leavesValue": "0",
-                                "updatedTime": "1707905807330",
-                                "side": "Buy",
-                                "smpGroup": "0",
-                                "triggerPrice": "",
-                                "tpLimitPrice": "0",
-                                "cumExecFee": "0.00385935",
-                                "slTriggerBy": "",
-                                "leavesQty": "0",
-                                "closeOnTrigger": false,
-                                "placeType": "",
-                                "cumExecQty": "0.1",
-                                "reduceOnly": false,
-                                "qty": "0.1",
-                                "stopLoss": "",
-                                "smpOrderId": "",
-                                "triggerBy": "",
-                                "nextPageCursor": "01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328%2C01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328"
-                            }
-                        ]
-                    },
-                    "retExtInfo": {},
-                    "time": "1707905849583"
-                },
-                "parsedResponse": {
-                    "info": {
-                        "symbol": "LTCUSDT",
-                        "orderType": "Market",
                         "orderLinkId": "",
                         "slLimitPrice": "0",
-                        "orderId": "01462c4c-5765-4b21-a137-316bb404401d",
+                        "orderId": "aee7453a-a100-465f-857a-3db780e9329a",
                         "cancelType": "UNKNOWN",
-                        "avgPrice": "70.17",
+                        "avgPrice": "123498",
                         "stopOrderType": "",
-                        "lastPriceOnCreated": "70.14",
+                        "lastPriceOnCreated": "122392",
                         "orderStatus": "Filled",
                         "createType": "CreateByUser",
                         "takeProfit": "",
-                        "cumExecValue": "7.017",
+                        "cumExecValue": "123.498",
                         "tpslMode": "",
                         "smpType": "None",
                         "triggerDirection": "0",
                         "blockTradeId": "",
+                        "cumFeeDetail": {
+                            "USDT": "0.0679239"
+                        },
                         "rejectReason": "EC_NoError",
                         "isLeverage": "",
-                        "price": "73.64",
+                        "price": "123615.9",
                         "orderIv": "",
-                        "createdTime": "1707905807328",
+                        "createdTime": "1757837580469",
                         "tpTriggerBy": "",
                         "positionIdx": "0",
                         "timeInForce": "IOC",
                         "leavesValue": "0",
-                        "updatedTime": "1707905807330",
+                        "updatedTime": "1757837580473",
                         "side": "Buy",
                         "smpGroup": "0",
                         "triggerPrice": "",
                         "tpLimitPrice": "0",
-                        "cumExecFee": "0.00385935",
+                        "cumExecFee": "0.0679239",
                         "slTriggerBy": "",
                         "leavesQty": "0",
                         "closeOnTrigger": false,
+                        "slippageToleranceType": "UNKNOWN",
                         "placeType": "",
-                        "cumExecQty": "0.1",
+                        "cumExecQty": "0.001",
                         "reduceOnly": false,
-                        "qty": "0.1",
+                        "qty": "0.001",
                         "stopLoss": "",
                         "smpOrderId": "",
+                        "slippageTolerance": "0",
                         "triggerBy": "",
-                        "nextPageCursor": "01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328%2C01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328"
+                        "extraFees": "",
+                        "nextPageCursor": "aee7453a-a100-465f-857a-3db780e9329a%3A1757837580469%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469"
                     },
-                    "id": "01462c4c-5765-4b21-a137-316bb404401d",
+                    "id": "aee7453a-a100-465f-857a-3db780e9329a",
                     "clientOrderId": null,
-                    "timestamp": 1707905807328,
-                    "datetime": "2024-02-14T10:16:47.328Z",
-                    "lastTradeTimestamp": 1707905807330,
-                    "lastUpdateTimestamp": 1707905807330,
-                    "symbol": "LTC/USDT:USDT",
+                    "timestamp": 1757837580469,
+                    "datetime": "2025-09-14T08:13:00.469Z",
+                    "lastTradeTimestamp": 1757837580473,
+                    "lastUpdateTimestamp": 1757837580473,
+                    "symbol": "BTC/USDT:USDT",
                     "type": "market",
                     "timeInForce": "IOC",
                     "postOnly": false,
                     "reduceOnly": false,
                     "side": "buy",
-                    "price": 73.64,
-                    "stopPrice": null,
+                    "price": 123615.9,
                     "triggerPrice": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null,
-                    "amount": 0.1,
-                    "cost": 7.017,
-                    "average": 70.17,
-                    "filled": 0.1,
+                    "amount": 0.001,
+                    "cost": 123.498,
+                    "average": 123498,
+                    "filled": 0.001,
                     "remaining": 0,
                     "status": "closed",
                     "fee": {
-                        "cost": 0.00385935,
+                        "cost": 0.0679239,
                         "currency": "USDT"
                     },
                     "trades": [],
                     "fees": [
                         {
-                            "cost": 0.00385935,
+                            "cost": 0.0679239,
                             "currency": "USDT"
                         }
-                    ]
+                    ],
+                    "stopPrice": null
                 }
             }
         ],
         "fetchClosedOrders": [
             {
-                "description": "Fetch swap closed order",
+                "description": "Fetch swap closed orders by the symbol",
                 "method": "fetchClosedOrders",
                 "input": [
-                    "LTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ],
                 "httpResponse": {
                     "retCode": "0",
                     "retMsg": "OK",
                     "result": {
-                        "nextPageCursor": "2ffc823f-f1b5-4518-bc2b-5147764d33eb%3A1699542108118%2C2ffc823f-f1b5-4518-bc2b-5147764d33eb%3A1699542108118",
+                        "nextPageCursor": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe%3A1757837618905%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469",
                         "category": "linear",
                         "list": [
                             {
-                                "symbol": "LTCUSDT",
+                                "symbol": "BTCUSDT",
                                 "orderType": "Market",
                                 "orderLinkId": "",
                                 "slLimitPrice": "0",
-                                "orderId": "2ffc823f-f1b5-4518-bc2b-5147764d33eb",
+                                "orderId": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
                                 "cancelType": "UNKNOWN",
-                                "avgPrice": "75.14",
+                                "avgPrice": "122529.9",
                                 "stopOrderType": "",
-                                "lastPriceOnCreated": "75.13",
+                                "lastPriceOnCreated": "123747.9",
                                 "orderStatus": "Filled",
+                                "createType": "CreateByUser",
                                 "takeProfit": "",
-                                "cumExecValue": "7.514",
-                                "tpslMode": "UNKNOWN",
+                                "cumExecValue": "122.5299",
+                                "tpslMode": "",
                                 "smpType": "None",
                                 "triggerDirection": "0",
                                 "blockTradeId": "",
+                                "cumFeeDetail": {
+                                    "USDT": "0.06739145"
+                                },
                                 "rejectReason": "EC_NoError",
                                 "isLeverage": "",
-                                "price": "78.88",
+                                "price": "120518",
                                 "orderIv": "",
-                                "createdTime": "1699542108118",
+                                "createdTime": "1757837618905",
                                 "tpTriggerBy": "",
                                 "positionIdx": "0",
                                 "timeInForce": "IOC",
                                 "leavesValue": "0",
-                                "updatedTime": "1699542108122",
+                                "updatedTime": "1757837618909",
+                                "side": "Sell",
+                                "smpGroup": "0",
+                                "triggerPrice": "",
+                                "tpLimitPrice": "0",
+                                "cumExecFee": "0.06739145",
+                                "slTriggerBy": "",
+                                "leavesQty": "0",
+                                "closeOnTrigger": false,
+                                "slippageToleranceType": "UNKNOWN",
+                                "placeType": "",
+                                "cumExecQty": "0.001",
+                                "reduceOnly": true,
+                                "qty": "0.001",
+                                "stopLoss": "",
+                                "smpOrderId": "",
+                                "slippageTolerance": "0",
+                                "triggerBy": "",
+                                "extraFees": ""
+                            },
+                            {
+                                "symbol": "BTCUSDT",
+                                "orderType": "Market",
+                                "orderLinkId": "",
+                                "slLimitPrice": "0",
+                                "orderId": "aee7453a-a100-465f-857a-3db780e9329a",
+                                "cancelType": "UNKNOWN",
+                                "avgPrice": "123498",
+                                "stopOrderType": "",
+                                "lastPriceOnCreated": "122392",
+                                "orderStatus": "Filled",
+                                "createType": "CreateByUser",
+                                "takeProfit": "",
+                                "cumExecValue": "123.498",
+                                "tpslMode": "",
+                                "smpType": "None",
+                                "triggerDirection": "0",
+                                "blockTradeId": "",
+                                "cumFeeDetail": {
+                                    "USDT": "0.0679239"
+                                },
+                                "rejectReason": "EC_NoError",
+                                "isLeverage": "",
+                                "price": "123615.9",
+                                "orderIv": "",
+                                "createdTime": "1757837580469",
+                                "tpTriggerBy": "",
+                                "positionIdx": "0",
+                                "timeInForce": "IOC",
+                                "leavesValue": "0",
+                                "updatedTime": "1757837580473",
                                 "side": "Buy",
                                 "smpGroup": "0",
                                 "triggerPrice": "",
                                 "tpLimitPrice": "0",
-                                "cumExecFee": "0.0041327",
+                                "cumExecFee": "0.0679239",
                                 "slTriggerBy": "",
                                 "leavesQty": "0",
                                 "closeOnTrigger": false,
+                                "slippageToleranceType": "UNKNOWN",
                                 "placeType": "",
-                                "cumExecQty": "0.1",
+                                "cumExecQty": "0.001",
                                 "reduceOnly": false,
-                                "qty": "0.1",
+                                "qty": "0.001",
                                 "stopLoss": "",
                                 "smpOrderId": "",
+                                "slippageTolerance": "0",
                                 "triggerBy": "",
-                                "nextPageCursor": "2ffc823f-f1b5-4518-bc2b-5147764d33eb%3A1699542108118%2C2ffc823f-f1b5-4518-bc2b-5147764d33eb%3A1699542108118"
+                                "extraFees": ""
                             }
                         ]
                     },
                     "retExtInfo": {},
-                    "time": "1699976719129"
+                    "time": "1758190052622"
                 },
                 "parsedResponse": [
                     {
                         "info": {
-                            "symbol": "LTCUSDT",
+                            "symbol": "BTCUSDT",
                             "orderType": "Market",
                             "orderLinkId": "",
                             "slLimitPrice": "0",
-                            "orderId": "2ffc823f-f1b5-4518-bc2b-5147764d33eb",
+                            "orderId": "aee7453a-a100-465f-857a-3db780e9329a",
                             "cancelType": "UNKNOWN",
-                            "avgPrice": "75.14",
+                            "avgPrice": "123498",
                             "stopOrderType": "",
-                            "lastPriceOnCreated": "75.13",
+                            "lastPriceOnCreated": "122392",
                             "orderStatus": "Filled",
+                            "createType": "CreateByUser",
                             "takeProfit": "",
-                            "cumExecValue": "7.514",
-                            "tpslMode": "UNKNOWN",
+                            "cumExecValue": "123.498",
+                            "tpslMode": "",
                             "smpType": "None",
                             "triggerDirection": "0",
                             "blockTradeId": "",
+                            "cumFeeDetail": {
+                                "USDT": "0.0679239"
+                            },
                             "rejectReason": "EC_NoError",
                             "isLeverage": "",
-                            "price": "78.88",
+                            "price": "123615.9",
                             "orderIv": "",
-                            "createdTime": "1699542108118",
+                            "createdTime": "1757837580469",
                             "tpTriggerBy": "",
                             "positionIdx": "0",
                             "timeInForce": "IOC",
                             "leavesValue": "0",
-                            "updatedTime": "1699542108122",
+                            "updatedTime": "1757837580473",
                             "side": "Buy",
                             "smpGroup": "0",
                             "triggerPrice": "",
                             "tpLimitPrice": "0",
-                            "cumExecFee": "0.0041327",
+                            "cumExecFee": "0.0679239",
                             "slTriggerBy": "",
                             "leavesQty": "0",
                             "closeOnTrigger": false,
+                            "slippageToleranceType": "UNKNOWN",
                             "placeType": "",
-                            "cumExecQty": "0.1",
+                            "cumExecQty": "0.001",
                             "reduceOnly": false,
-                            "qty": "0.1",
+                            "qty": "0.001",
                             "stopLoss": "",
                             "smpOrderId": "",
+                            "slippageTolerance": "0",
                             "triggerBy": "",
-                            "nextPageCursor": "2ffc823f-f1b5-4518-bc2b-5147764d33eb%3A1699542108118%2C2ffc823f-f1b5-4518-bc2b-5147764d33eb%3A1699542108118"
+                            "extraFees": ""
                         },
-                        "id": "2ffc823f-f1b5-4518-bc2b-5147764d33eb",
+                        "id": "aee7453a-a100-465f-857a-3db780e9329a",
                         "clientOrderId": null,
-                        "timestamp": 1699542108118,
-                        "datetime": "2023-11-09T15:01:48.118Z",
-                        "lastTradeTimestamp": 1699542108122,
-                        "lastUpdateTimestamp": 1699542108122,
-                        "symbol": "LTC/USDT:USDT",
+                        "timestamp": 1757837580469,
+                        "datetime": "2025-09-14T08:13:00.469Z",
+                        "lastTradeTimestamp": 1757837580473,
+                        "lastUpdateTimestamp": 1757837580473,
+                        "symbol": "BTC/USDT:USDT",
                         "type": "market",
                         "timeInForce": "IOC",
                         "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
-                        "price": 78.88,
-                        "stopPrice": null,
+                        "price": 123615.9,
                         "triggerPrice": null,
                         "takeProfitPrice": null,
                         "stopLossPrice": null,
-                        "amount": 0.1,
-                        "cost": 7.514,
-                        "average": 75.14,
-                        "filled": 0.1,
+                        "amount": 0.001,
+                        "cost": 123.498,
+                        "average": 123498,
+                        "filled": 0.001,
                         "remaining": 0,
                         "status": "closed",
                         "fee": {
-                            "cost": 0.0041327,
+                            "cost": 0.0679239,
                             "currency": "USDT"
                         },
                         "trades": [],
                         "fees": [
                             {
-                                "cost": 0.0041327,
+                                "cost": 0.0679239,
                                 "currency": "USDT"
                             }
-                        ]
+                        ],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "orderType": "Market",
+                            "orderLinkId": "",
+                            "slLimitPrice": "0",
+                            "orderId": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
+                            "cancelType": "UNKNOWN",
+                            "avgPrice": "122529.9",
+                            "stopOrderType": "",
+                            "lastPriceOnCreated": "123747.9",
+                            "orderStatus": "Filled",
+                            "createType": "CreateByUser",
+                            "takeProfit": "",
+                            "cumExecValue": "122.5299",
+                            "tpslMode": "",
+                            "smpType": "None",
+                            "triggerDirection": "0",
+                            "blockTradeId": "",
+                            "cumFeeDetail": {
+                                "USDT": "0.06739145"
+                            },
+                            "rejectReason": "EC_NoError",
+                            "isLeverage": "",
+                            "price": "120518",
+                            "orderIv": "",
+                            "createdTime": "1757837618905",
+                            "tpTriggerBy": "",
+                            "positionIdx": "0",
+                            "timeInForce": "IOC",
+                            "leavesValue": "0",
+                            "updatedTime": "1757837618909",
+                            "side": "Sell",
+                            "smpGroup": "0",
+                            "triggerPrice": "",
+                            "tpLimitPrice": "0",
+                            "cumExecFee": "0.06739145",
+                            "slTriggerBy": "",
+                            "leavesQty": "0",
+                            "closeOnTrigger": false,
+                            "slippageToleranceType": "UNKNOWN",
+                            "placeType": "",
+                            "cumExecQty": "0.001",
+                            "reduceOnly": true,
+                            "qty": "0.001",
+                            "stopLoss": "",
+                            "smpOrderId": "",
+                            "slippageTolerance": "0",
+                            "triggerBy": "",
+                            "extraFees": "",
+                            "nextPageCursor": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe%3A1757837618905%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469"
+                        },
+                        "id": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
+                        "clientOrderId": null,
+                        "timestamp": 1757837618905,
+                        "datetime": "2025-09-14T08:13:38.905Z",
+                        "lastTradeTimestamp": 1757837618909,
+                        "lastUpdateTimestamp": 1757837618909,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "reduceOnly": true,
+                        "side": "sell",
+                        "price": 120518,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": 0.001,
+                        "cost": 122.5299,
+                        "average": 122529.9,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": {
+                            "cost": 0.06739145,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0.06739145,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "stopPrice": null
                     }
                 ]
             }
@@ -2510,6 +3498,70 @@
                 }
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers for a BTC option symbol",
+                "method": "fetchTickers",
+                "input": [
+                  [
+                    "BTC/USDT:USDT-250530-70000-C"
+                  ]
+                ],
+                "httpResponse": {"retCode":0,"retMsg":"SUCCESS","result":{"category":"option","list":[{"symbol":"BTC-30MAY25-68000-P-USDT","bid1Price":"1975","bid1Size":"3","bid1Iv":"0.547","ask1Price":"2050","ask1Size":"0.11","ask1Iv":"0.556","lastPrice":"2030","highPrice24h":"2030","lowPrice24h":"1660","markPrice":"2015.39438867","indexPrice":"78750.38868972","markIv":"0.552","underlyingPrice":"79369.63","openInterest":"11.35","turnover24h":"77346.8492","volume24h":"0.96","totalVolume":"27","totalTurnover":"2287307","delta":"-0.19818258","gamma":"0.00001689","vega":"83.17386614","theta":"-44.39180536","predictedDeliveryPrice":"0","change24h":"-0.19284295"},{"symbol":"BTC-30MAY25-70000-C-USDT","bid1Price":"11595","bid1Size":"9.93","bid1Iv":"0.5126","ask1Price":"12150","ask1Size":"9.9","ask1Iv":"0.5729","lastPrice":"16160","highPrice24h":"0","lowPrice24h":"0","markPrice":"11860.81425623","indexPrice":"78750.38868972","markIv":"0.5419","underlyingPrice":"79369.63","openInterest":"1.09","turnover24h":"0","volume24h":"0","totalVolume":"2","totalTurnover":"100536","delta":"0.76359856","gamma":"0.00001905","vega":"92.10112644","theta":"-48.26013817","predictedDeliveryPrice":"0","change24h":"0"},{"symbol":"BTC-30MAY25-78000-C-USDT","bid1Price":"6695","bid1Size":"7.19","bid1Iv":"0.5073","ask1Price":"6825","ask1Size":"2.88","ask1Iv":"0.5184","lastPrice":"7485","highPrice24h":"7600","lowPrice24h":"6980","markPrice":"6782.24582537","indexPrice":"78750.38868972","markIv":"0.5149","underlyingPrice":"79369.63","openInterest":"2.37","turnover24h":"86663.4896","volume24h":"1.08","totalVolume":"12","totalTurnover":"956200","delta":"0.57405918","gamma":"0.0000255","vega":"117.11592428","theta":"-58.30550261","predictedDeliveryPrice":"0","change24h":"0.21806347"}]},"retExtInfo":{},"time":1744124642786},
+                "parsedResponse": {
+                  "BTC/USDT:USDT-250530-70000-C": {
+                        "symbol": "BTC/USDT:USDT-250530-70000-C",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": 11595,
+                        "bidVolume": 9.93,
+                        "ask": 12150,
+                        "askVolume": 9.9,
+                        "vwap": null,
+                        "open": null,
+                        "close": 16160,
+                        "last": 16160,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": 0,
+                        "quoteVolume": 0,
+                        "markPrice": 11860.81425623,
+                        "indexPrice": 78750.38868972,
+                        "info": {
+                            "symbol": "BTC-30MAY25-70000-C-USDT",
+                            "bid1Price": "11595",
+                            "bid1Size": "9.93",
+                            "bid1Iv": "0.5126",
+                            "ask1Price": "12150",
+                            "ask1Size": "9.9",
+                            "ask1Iv": "0.5729",
+                            "lastPrice": "16160",
+                            "highPrice24h": "0",
+                            "lowPrice24h": "0",
+                            "markPrice": "11860.81425623",
+                            "indexPrice": "78750.38868972",
+                            "markIv": "0.5419",
+                            "underlyingPrice": "79369.63",
+                            "openInterest": "1.09",
+                            "turnover24h": "0",
+                            "volume24h": "0",
+                            "totalVolume": "2",
+                            "totalTurnover": "100536",
+                            "delta": "0.76359856",
+                            "gamma": "0.00001905",
+                            "vega": "92.10112644",
+                            "theta": "-48.26013817",
+                            "predictedDeliveryPrice": "0",
+                            "change24h": "0"
+                        }
+                    }
+                }
+            }
+        ],
         "fetchLedger": [
             {
                 "description": "fetch ledger",
@@ -3093,7 +4145,7 @@
                     "timestamp": 1710892800000,
                     "datetime": "2024-03-20T00:00:00.000Z",
                     "id": "c88057b1-d3b3-4a19-861a-ae79a8762796",
-                    "amount": 0.1,
+                    "amount": 0.0007797,
                     "rate": 0.0001
                   },
                   {
@@ -3134,7 +4186,7 @@
                     "timestamp": 1710921600000,
                     "datetime": "2024-03-20T08:00:00.000Z",
                     "id": "89102b18-96c4-42d2-bc26-131699036635",
-                    "amount": 0.1,
+                    "amount": -0.00708126,
                     "rate": -0.000881
                   }
                 ]
@@ -3545,6 +4597,107 @@
                   "previousFundingTimestamp": null,
                   "previousFundingDatetime": null,
                   "interval": "8h"
+                }
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetchAllGreeks for a single symbol with a baseCoin parameter",
+                "method": "fetchAllGreeks",
+                "input": [
+                    [
+                        "BTC/USDT:USDT-250530-70000-C"
+                    ],
+                    {
+                        "baseCoin": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "SUCCESS",
+                    "result": {
+                        "category": "option",
+                        "list": [
+                            {
+                                "symbol": "BTC-30MAY25-70000-C-USDT",
+                                "bid1Price": "0",
+                                "bid1Size": "0",
+                                "bid1Iv": "0",
+                                "ask1Price": "0",
+                                "ask1Size": "0",
+                                "ask1Iv": "0",
+                                "lastPrice": "0",
+                                "highPrice24h": "0",
+                                "lowPrice24h": "0",
+                                "markPrice": "7037.25257463",
+                                "indexPrice": "107998.44660912",
+                                "markIv": "0.5252",
+                                "underlyingPrice": "107998.45",
+                                "openInterest": "0",
+                                "turnover24h": "0",
+                                "volume24h": "0",
+                                "totalVolume": "0",
+                                "totalTurnover": "0",
+                                "delta": "0.46906374",
+                                "gamma": "0.00001814",
+                                "vega": "166.09011572",
+                                "theta": "-79.92724861",
+                                "predictedDeliveryPrice": "0",
+                                "change24h": "0"
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1751739682013"
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT-250530-70000-C": {
+                        "symbol": "BTC/USDT:USDT-250530-70000-C",
+                        "timestamp": null,
+                        "datetime": null,
+                        "delta": 0.46906374,
+                        "gamma": 0.00001814,
+                        "theta": -79.92724861,
+                        "vega": 166.09011572,
+                        "rho": null,
+                        "bidSize": 0,
+                        "askSize": 0,
+                        "bidImpliedVolatility": 0,
+                        "askImpliedVolatility": 0,
+                        "markImpliedVolatility": 0.5252,
+                        "bidPrice": 0,
+                        "askPrice": 0,
+                        "markPrice": 7037.25257463,
+                        "lastPrice": 0,
+                        "underlyingPrice": 107998.45,
+                        "info": {
+                            "symbol": "BTC-30MAY25-70000-C-USDT",
+                            "bid1Price": "0",
+                            "bid1Size": "0",
+                            "bid1Iv": "0",
+                            "ask1Price": "0",
+                            "ask1Size": "0",
+                            "ask1Iv": "0",
+                            "lastPrice": "0",
+                            "highPrice24h": "0",
+                            "lowPrice24h": "0",
+                            "markPrice": "7037.25257463",
+                            "indexPrice": "107998.44660912",
+                            "markIv": "0.5252",
+                            "underlyingPrice": "107998.45",
+                            "openInterest": "0",
+                            "turnover24h": "0",
+                            "volume24h": "0",
+                            "totalVolume": "0",
+                            "totalTurnover": "0",
+                            "delta": "0.46906374",
+                            "gamma": "0.00001814",
+                            "vega": "166.09011572",
+                            "theta": "-79.92724861",
+                            "predictedDeliveryPrice": "0",
+                            "change24h": "0"
+                        }
+                    }
                 }
             }
         ]

@@ -1,23 +1,54 @@
 {
-    "ace": {
-        "skip": "temporary unavailable",
-        "until": "2025-04-10",
+    "alpaca": {
+        "skip": "private endpoints, todo",
+        "skipWs": "private endpoints, todo"
+    },
+    "arkham": {
         "skipMethods": {
             "loadMarkets": {
-                "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
-                "active":"is undefined"
+                "currencyIdAndCode": "messed",
+                "taker": "tmp",
+                "maker": "tmp"
             },
-            "fetchOrderBook": {
-                "timestamp": "not provided"
+            "fetchCurrencies": {
+                "deposit": "not provided",
+                "withdraw": "not provided",
+                "precision": "not provided",
+                "activeMajorCurrencies": "todo"
             },
-            "fetchL2OrderBook": {
-                "timestamp": "same"
+            "ticker": {
+                "timestamp": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
-    "alpaca": {
-        "skip": "private endpoints",
-        "skipWs": "private endpoints"
+    "apex": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed",
+                "currency": "messed"
+            },
+            "fetchCurrencies": {
+                "precision": "messed"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "not aligned with quoteVolume calcs"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "orderBook": {
+                "spread": "bid > ask issue https://github.com/ccxt/ccxt/actions/runs/14901691674/job/41855075107?pr=25907#step:9:389"
+            },
+            "watchTrades": {
+                "timestampSort": "order is messed"
+            },
+            "watchTradesForSymbols": {
+                "timestampSort": "same"
+            }
+        }
     },
     "ascendex": {
         "skipMethods": {
@@ -26,14 +57,46 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269432480#L3364",
-                "withdraw": "not provided",
-                "deposit": "not provided"
+                "type": "todo",
+                "withdraw": "not provided for empty chains",
+                "deposit": "not provided for empty chains",
+                "maxInactiveCurrenciesPercentage": 60
+            },
+            "ticker": {
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:214"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "watchOrderBook": {
-                "bid": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/14316810634/job/40125014500?pr=25623#step:11:420"
+                "spread": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/14316810634/job/40125014500?pr=25623#step:11:420"
             },
             "watchOrderBookForSymbols": {
-                "bid": "same"
+                "spread": "same"
+            }
+        }
+    },
+    "backpack": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "is undefined",
+                "maker": "is undefined"
+            },
+            "fetchCurrencies": {
+                "precision":"not provided",
+                "maxInactiveCurrenciesPercentage": 65
+            },
+            "fetchTrades": {
+                "side": "not provided"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "watchTrades": {
+                "timestampSort": "confirmed that exchange's engine has an issue: https://github.com/ccxt/ccxt/actions/runs/17983223256/job/51155199567?pr=25258#step:11:1120"
+            },
+            "watchTradesForSymbols": {
+                "timestampSort": "same as above"
             }
         }
     },
@@ -41,29 +104,43 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
+            },
+            "fetchCurrencies": {
+                "fee": "not provided",
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2455",
+                "type": "todo",
+                "activeMajorCurrencies": "todo"
+            },
+            "ticker": {
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:187"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
     "binance": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC"
             },
+            "fetchCurrencies": {
+                "precision": "temp issues fro fiat"
+            },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539 & https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4119"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
     "binanceus": {
         "skipMethods": {
-            "loadMarkets": {
-                "expiry": "expiry not set for future markets",
-                "expiryDatetime": "expiry not set for future markets"
-            },
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
             },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458 https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
@@ -71,20 +148,19 @@
         }
     },
     "binancecoinm": {
-        "httpsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
-            "loadMarkets": {
-                "expiry": "expiry not set for future markets",
-                "expiryDatetime": "expiry not set for future markets"
-            },
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
     "binanceusdm": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "fetchLedger": {
                 "account": "empty",
@@ -103,6 +179,46 @@
             }
         }
     },
+    "bingx": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "is undefined",
+                "maker": "is undefined",
+                "currencyIdAndCode": "not all currencies are available"
+            },
+            "ticker": {
+                "bidVolume": "weird values eg -1.1641532182693481e-10 https://github.com/ccxt/ccxt/actions/runs/13135405405/job/36649793252?pr=25190#step:9:213",
+                "askVolume": "weird value https://app.travis-ci.com/github/ccxt/ccxt/builds/272650012#L3904",
+                "compareQuoteVolumeBaseVolume": "not supported",
+                "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:253",
+                "maxIncrease": "todo"
+            },
+            "fetchTickers": "tmp skip, todo",
+            "fetchCurrencies": {
+                "limits": "min/max essup temrporarily"
+            },
+            "orderBook": {
+                "compareToNextItem": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
+            },
+            "fetchPositions": {
+                "marginRatio": "undefined",
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "initialMarginPercentage": "undefined",
+                "hedged": "undefined",
+                "timestamp": "undefined",
+                "datetime": "undefined",
+                "lastUpdateTimestamp": "undefined",
+                "maintenanceMargin": "undefined",
+                "contractSize": "undefined",
+                "markPrice": "undefined",
+                "lastPrice": "undefined",
+                "percentage": "undefined",
+                "liquidationPrice": "undefined"
+            }
+        }
+    },
     "bit2c": {
         "skipMethods": {
             "loadMarkets": {
@@ -112,17 +228,17 @@
                 "maker": "not provided",
                 "info":"null"
             },
+            "fetchCurrencies": "todo, returns only 1",
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4034",
-                "bid":"sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
+                "compareToZero": "sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
             }
         }
     },
-    "tokocrypto": {
-        "httpsProxy": "http://188.245.226.105:3128",
+    "bitbank": {
         "skipMethods": {
-            "orderBook":{
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6195"
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
             }
         }
     },
@@ -132,9 +248,14 @@
                 "limits": "market limits have min>max ",
                 "currencyIdAndCode": "broken"
             },
+            "fetchCurrencies":{
+                "activeMajorCurrencies": "todo"
+            },
             "ticker": {
-                "spread": "ask equals to bid"
-            }
+                "spread": "ask equals to bid",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:291"
+            },
+            "fetchTickers": "todo fix parsing"
         }
     },
     "bitfinex": {
@@ -144,30 +265,37 @@
             },
             "fetchCurrencies": {
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "type": "todo",
+                "activeMajorCurrencies": "todo"
             },
             "ticker": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3651",
-                "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3783",
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269327874#L3234",
-                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177570#L3624",
-                "bidVolume": "sometimes negative",
-                "askVolume": "sometimes negative"
+                "maxIncrease": "todo",
+                "compareOHLC": "todo recheck implementation"
             },
             "orderBook": {
                 "compareToNextItem": "multiple bids might have same value"
             },
-            "watchOrderBook": "complete skip because of frequent checksum mismatches: https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3553 and also for this https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999"
+            "watchOrderBook": "complete skip (todo fix) because of frequent checksum mismatches: https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3553 and also for this https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999",
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
         }
     },
     "bitflyer": {
         "skipMethods": {
-            "loadMarkets": "contract is true, but contractSize is undefined",
-            "trade": {
-                "side": "side key has an null value, but is expected to have a value"
+            "loadMarkets": {
+                "contractSize": "not defined when contract",
+                "settle": "set hardcoded, not settleid provided",
+                "settleId": "not provided",
+                "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies":{
+                "activeMajorCurrencies": "todo"
             },
             "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4205"
+                "timestamp": "not provided from endoint"
             }
         }
     },
@@ -177,25 +305,30 @@
                 "currencyIdAndCode": "broken currencies"
             },
             "fetchCurrencies": {
-                "precision": "not provided",
-                "currencyIdAndCode": "broken currencies"
+                "currencyIdAndCode": "broken currencies",
+                "skipCurrenciesWithoutNetworks": "those currencies deosnt have data",
+                "maxInactiveCurrenciesPercentage": 60
             },
             "ticker": {
-		"open": "negative numbers: https://github.com/ccxt/ccxt/actions/runs/14228305116/job/39873134339?pr=25624#step:11:102",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
+                "maxIncrease": "todo",
+                "compareOHLC": "broken from API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:318"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
     "bithumb": {
         "skipMethods": {
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchCurrencies":{
+                "activeMajorCurrencies": "todo"
             },
             "orderBook": {
-                "bid": "frequently, zero amount is set in some orderbook entry"
-            },
-            "watchTrades":{
-                "timestamp": "it could be ahead of the current time"
+                "compareToZero": "frequently, zero amount is set in some orderbook entry"
             }
         }
     },
@@ -208,31 +341,32 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
-                "precision":"not provided"
+                "precision":"not provided",
+                "maxInactiveCurrenciesPercentage": 70
             },
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "quoteVolume": "incorrect"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
+                "quoteVolume": "incorrect",
+                "compareOHLC": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "watchOrderBook": {
+                "spread": "bid>ask issue, https://github.com/ccxt/ccxt/actions/runs/14356838751/job/40248419588?pr=25638#step:9:437"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
             }
         }
     },
     "bitmex": {
         "skipMethods": {
-            "loadMarkets": "some market types are out of expected market-types",
+            "loadMarkets": {
+                "currencyIdAndCode": "broken currencies"
+            },
             "fetchOHLCV": "https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862",
             "watchOHLCV": "same as above, needs key fix",
-            "ticker": {
-                "average": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4030",
-                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269367056#L3473",
-                "close": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L3862",
-                "last": "same",
-                "low": "same",
-                "high": "same",
-                "previousClose": "same",
-                "vwap": "same",
-                "baseVolume":"temp",
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269724413#L3725"
-            },
             "fetchPositions": {
                 "stopLossPrice": "undefined",
                 "takeProfitPrice": "undefined",
@@ -273,6 +407,12 @@
             "fetchTransactions": "skip",
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4458"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "ticker": {
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:437"
             }
         }
     },
@@ -280,31 +420,29 @@
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
-                "networks": "missing"
+                "networks": "missing",
+                "type": "todo"
             },
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
-            }
-        }
-    },
-    "onetrading": {
-        "skip": "API was changed: https://github.com/ccxt/ccxt/pull/21991, also our regular proxy does not seem to work, need smth fix",
-        "skipWs": "same",
-        "skipMethods": {
-            "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided"
             },
-            "orderBook":{
-                "compareToNextItem": "messed bids sequence",
+            "fetchOrderBook": {
                 "timestamp": "not provided"
             },
+            "watchTicker": {
+                "compareOHLC": "broken https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:1178"
+            },
+            "watchTickers": {
+                "compareOHLC": "same"
+            },
             "ticker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
+                "compareOHLC": "todo fix rounding"
             }
         }
     },
     "bitrue": {
+        "skip": "tmp",
+        "until": "2025-07-10",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -312,12 +450,14 @@
             },
             "fetchCurrencies": {
                 "precision": "not provided",
-                "withdraw": "not provided",
-                "deposit": "not provided",
-                "currencyIdAndCode": "broken currencies"
+                "currencyIdAndCode": "broken currencies",
+                "maxInactiveCurrenciesPercentage": 70
             },
             "ticker": {
-                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164"
+                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -327,40 +467,49 @@
             "loadMarkets": {
                 "active": "not provided"
             },
-            "orderBook": {
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L4148"
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
             },
-            "fetchOHLCV": "randomly failing with 404 not found"
+            "orderBook": {
+                "compareToZero": "tmp",
+                "compareToNextItem":"tmp",
+                "spread":"tmp"
+            }
         }
     },
     "bitstamp": {
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "activeMajorCurrencies": "todo"
             },
             "orderBook": {
                 "compareToZero": "bid/ask might be 0",
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269693760#L3648"
             },
             "ticker": {
-                "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027",
-                "baseVolume": "baseVolume * low = 8.43e-6 * 3692.59081464 = 0.03112854056 < 0.0311285405674152"
+                "spread": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027",
+                "compareQuoteVolumeBaseVolume": "baseVolume * low = 8.43e-6 * 3692.59081464 = 0.03112854056 < 0.0311285405674152"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
-    "bl3p": {
+    "bitteam": {
         "skipMethods": {
             "loadMarkets": {
-                "precision":"not provided",
-                "active": "not provided",
-                "info": "null"
+                "taker": "is undefined",
+                "maker": "is undefined"
             },
-            "fetchTrades": {
-                "side": "side is undefined"
+            "fetchCurrencies": {
+                "deposit": "not provided",
+                "withdraw": "not provided",
+                "activeMajorCurrencies":"todo"
             },
-            "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4831"
+            "ticker": {
+                "compareOHLC": "todo fix implementation"
             }
         }
     },
@@ -372,21 +521,17 @@
                 "maker": "is undefined"
             },
             "fetchCurrencies": {
-                "precision": "not provided",
-                "networks": "missing"
+                "activeMajorCurrencies": "todo"
             },
             "ticker": {
-                "bid":"broken bid-ask",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing https://app.travis-ci.com/github/ccxt/ccxt/builds/266144312#L2220"
+                "spread":"broken bid-ask",
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing https://app.travis-ci.com/github/ccxt/ccxt/builds/266144312#L2220"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4685"
-            },
-            "watchOrderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3738"
-            },
-            "watchOrderBookForSymbols": {
-                "timestamp": "same"
             }
         }
     },
@@ -396,46 +541,54 @@
                 "taker":"not provided",
                 "maker":"not provided"
             },
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
+            },
             "orderBook": {
-                "bid": "messed bid-ask sequence",
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4517 and https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4562",
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4601",
-                "compareToNextItem": "sometimes bid equals to next bid"            }
+                "compareToNextItem": "sometimes bid equals to next bid",
+                "timestamp": "not provided"
+            }
         }
     },
     "btcbox": {
         "skipMethods": {
             "loadMarkets": {
-                "precision":"is undefined",
-                "active":"is undefined",
-                "info": "null"
+                "precision":"is undefined"
+            },
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
             },
             "orderBook": {
                 "spread":"bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0)",
                 "timestamp":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4820"
             },
             "ticker": {
-                "bid":"broken bid-ask"
+                "spread":"broken bid-ask"
             }
         }
     },
     "btcalpha": {
-	    "skip": true,
         "skipMethods": {
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
+            },
             "orderBook": {
-                "spread":"bids[0][0] is not < asks[0][0]"
+                "spread":"bids[0][0] is not < asks[0][0]",
+                "timestamp":""
             },
             "ticker": {
-                "symbol": "https://app.travis-ci.com/github/ccxt/ccxt/builds/265171549#L2518",
-                "percentage": "broken",
-                "bid": "messed bid-ask"
+                "spread": "messed bid-ask",
+                "compareOHLC": "fix implementation"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
     "btcmarkets": {
         "skipMethods": {
-            "loadMarkets":{
-                "active":"is undefined"
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
             },
             "orderBook": {
                 "compareToNextItem": "sometimes bid equals to next bid"
@@ -444,10 +597,8 @@
     },
     "btcturk": {
         "skipMethods": {
-            "loadMarkets": {
-                "precision":"is undefined",
-                "active":"is undefined",
-                "info":"null"
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
             },
             "orderBook": {
                 "compareToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263287870#L2201",
@@ -456,8 +607,8 @@
         }
     },
     "bybit": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temp skip"
@@ -466,8 +617,10 @@
                 "currencyIdAndCode": "temp skip"
             },
             "ticker": {
-                "symbol" :"returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT",
-                "quoteVolume": "incorrect calcs: https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4452"
+                "compareQuoteVolumeBaseVolume": "incorrect calcs: https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4452"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "fetchPositions": "currently returns a lot of default/non open positions",
             "fetchLedger": {
@@ -480,28 +633,39 @@
             },
             "fetchBorrowRate": "does not work with unified account",
             "orderBook": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3669",
-                "bid": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3794"
+                "compareToNextItem": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3794"
+            },
+            "watchOrderBook": {
+                "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:623"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
             }
         }
     },
     "bigone": {
         "skipMethods": {
             "loadMarkets": {
-                "taker": "key is there when run locally, but not on travis",
-                "maker": "key is there when run locally, but not on travis",
+                "taker":"not provided",
+                "maker":"not provided",
                 "currencyIdAndCode": true
             },
             "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided"
+                "withdrawForNonCrypto": "not available",
+                "depositForNonCrypto": "not available"
             },
             "ticker": {
-                "bid": "broken bid-ask",
-                "baseVolume": "negative value"
+                "spread": "broken bid-ask",
+                "baseVolume": "negative value",
+                "open": "negative",
+                "compareQuoteVolumeBaseVolume":"todo",
+                "compareOHLC": "open below low https://github.com/ccxt/ccxt/actions/runs/17983223201/job/51154949662?pr=25258#step:9:228"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
+                "timestamp": "not present"
             }
         }
     },
@@ -515,6 +679,7 @@
                 "taker":"is undefined",
                 "maker":"is undefined"
             },
+            "fetchCurrencies": "todo: doesnt return more than 1 coins",
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4893"
             }
@@ -523,19 +688,24 @@
     "coinbase": {
         "skipMethods": {
             "loadMarkets": {
-                "taker":"is undefined",
-                "maker":"is undefined",
-                "currencyIdAndCode": "some curr not available",
-                "networks": "not available"
+                "currencyIdAndCode": "some curr not available"
             },
-            "fetchTicker": "private",
-            "fetchTickers": "private",
-            "fetchBidsAsks": "private",
             "fetchCurrencies": {
                 "precision": "not provided",
                 "networks": "not provided",
                 "deposit":"not provided",
-                "withdraw": "not provided"
+                "withdraw": "not provided",
+                "activeMajorCurrencies": "todo"
+            },
+            "watchOrderBook": {
+                "spread": "broken bid-ask: https://github.com/ccxt/ccxt/actions/runs/14995105728/job/42127573821?pr=25943#step:9:382"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "broken bid-ask: https://github.com/ccxt/ccxt/actions/runs/14995105728/job/42127573821?pr=25943#step:9:382"
+            },
+            "watchTickers": "closes connection",
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -547,12 +717,16 @@
             },
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
-                "withdraw": "not provided",
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269568596#L3551",
                 "deposit": "not provided",
-                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269568596#L3551"
+                "withdraw": "not provided",
+                "activeMajorCurrencies": "not provided"
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5064"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -566,17 +740,36 @@
                 "precision": "not provided",
                 "networks": "not provided",
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "type": "todo",
+                "activeMajorCurrencies": "todo"
             }
+        }
+    },
+    "coincatch": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided",
+                "type": "todo",
+                "withdraw":"todo, needs fix",
+                "deposit":"todo, needs fix",
+                "active" : "todo, needs fix",
+                "activeMajorCurrencies": "todo",
+                "activeCurrenciesQuota": "activeCurrenciesQuota"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "watchTickers": {
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16077301099/job/45375495181?pr=26334#step:9:438"
+            },
+            "loadMarkets": "linear and inverse values are same"
         }
     },
     "coinmetro": {
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "some currencies show in fetchMarkets but not in fetchCurrencies"
-            },
-            "fetchCurrencies": {
-                "precision": "not always provided"
             },
             "fetchTrades": {
                 "side":"side is undefined"
@@ -585,7 +778,11 @@
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5064"
             },
             "ticker": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269687705#L3745"
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269687705#L3745",
+                "compareOHLC": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "tmp VXV issue"
             }
         }
     },
@@ -596,7 +793,7 @@
                 "active":"is undefined"
             },
             "ticker": {
-                "baseVolume": "quote scale isn't right"
+                "compareQuoteVolumeBaseVolume": "quote scale isn't right"
             }
         }
     },
@@ -609,8 +806,8 @@
                 "makert":"is undefined"
             },
             "ticker": {
-                "bid": "broken bid-ask",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "spread": "broken bid-ask",
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
     },
@@ -621,7 +818,10 @@
                 "maker":"messed"
             },
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5210"
@@ -640,7 +840,8 @@
                 "currencyIdAndCode": "messes codes"
             },
             "ticker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
+                "compareOHLC": "todo"
             },
             "fetchOHLCV": "cant be tested because of additional required param",
             "watchOHLCV": "does not work for 1min"
@@ -652,6 +853,14 @@
             "loadMarkets": {
                 "currencyIdAndCode":"broken",
                 "active":"is undefined"
+            },
+            "fetchCurrencies": {
+                "precision":"not provided",
+                "networks": "something implementation glitch",
+                "type": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -670,13 +879,13 @@
         "skipMethods": {
             "proxies": "probably they do not permit our proxy",
             "loadMarkets": {
-                "limits":"max is below min",
-                "active":"is undefined",
                 "currencyIdAndCode": "from travis location (USA) these webapi endpoints cant be loaded"
             },
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
             "ticker": {
-                "timestamp": "timestamp might be of 1970-01-01T00:00:00.000Z",
-                "baseVolume": "can't be infered"
+                "compareQuoteVolumeBaseVolume": "https://github.com/ccxt/ccxt/actions/runs/15016394551/job/42195664486?pr=25955#step:11:304"
             },
             "fetchPositions": {
                 "entryPrice": "entryPrice is not provided",
@@ -699,9 +908,30 @@
             "fetchAccounts": {
                 "type": "type is not provided",
                 "code": "not provided"
+            }
+        }
+    },
+    "cryptomus": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided",
+                "type": "todo"
             },
-            "watchOrderBook": {
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4756"
+            "loadMarkets": {
+                "active":"not provided",
+                "limits": "not provided",
+                "currencyIdAndCode": "messed codes"
+            },
+            "fetchOrderBook": {
+                "compareBidAsk": "sometimes bid is greater than ask"
+            },
+            "fetchTrades": {
+                "price": "sometimes is not set",
+                "cost": "same",
+                "amount": "sometimes not present, only cost present sometimes"
+            },
+            "fetchTickers" : {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -714,8 +944,8 @@
                 "settleId": "not defined when contract"
             },
             "ticker": {
-                "bid": "not above bid https://app.travis-ci.com/github/ccxt/ccxt/builds/263871244#L2163",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "spread": "not above bid https://app.travis-ci.com/github/ccxt/ccxt/builds/263871244#L2163",
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "watchTrades": {
                 "fees": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/269365378#L3601"
@@ -725,20 +955,42 @@
             }
         }
     },
+    "defx": {
+        "skipMethods": {
+            "ohlcv": {
+                "1": "distorted open: https://github.com/ccxt/ccxt/actions/runs/14648217027/job/41107795879?pr=25786#step:9:458"
+            },
+            "ticker": {
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16075871000/job/45371060374?pr=26334#step:9:298"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "watchBidsAsks": "temporary skip, because of null values being returned https://github.com/ccxt/ccxt/actions/runs/15016394551/job/42195664486?pr=25955#step:11:505"
+        }
+    },
     "delta": {
         "skipCSharp": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4301 https://app.travis-ci.com/github/ccxt/ccxt/builds/269533613#L3622",
         "skipMethods": {
-            "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
+            "loadMarkets": {
+                "contractSize": "todo",
+                "expiry": "wrng format"
+            },
             "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5295",
-                "bid": "bid more than ask"
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5295"
             },
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid": "failing the test"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
+                "bid": "failing the test",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:291"
             },
             "fetchOHLCV": {
                 "4":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269542746#L3512"
+            },
+            "fetchCurrencies": {
+                "type": "todo",
+                "activeMajorCurrencies": "todo",
+                "activeCurrenciesQuota": "todo"
             }
         }
     },
@@ -747,7 +999,10 @@
             "fetchCurrencies": {
                 "networks": "not provided",
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "type": "todo",
+                "precision": "not provided",
+                "activeMajorCurrencies": "todo"
             },
             "loadMarkets": "strike is set when option is not true",
             "fetchBalance": "does not add up",
@@ -784,49 +1039,11 @@
             "fetchTickers": "requires custom param"
         }
     },
-    "fmfwio": {
-        "skipMethods": {
-            "fetchCurrencies": {
-                "fee": "not provided"
-            },
-            "ticker": {
-                "bid":"messed bid-ask"
-            }
-        }
-    },
-    "gemini": {
-        "skipWs": "fixes needed",
-        "skipMethods": {
+    "derive": {
+        "skipMethods":{
             "loadMarkets": {
-                "currencyIdAndCode": "messed codes",
-                "active": "not provided"
-            },
-            "fetchCurrencies":{
-                "withdraw": "not provided",
-                "deposit": "not provided"
-            },
-            "watchOrderBook": {
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4833"
-            },
-            "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5654"
-            }
-        }
-    },
-    "hitbtc": {
-        "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode": "messed codes"
-            },
-            "fetchCurrencies": {
-                "fee": "not provided",
-                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2455"
-            },
-            "ticker": {
-                "bid":"messed bid-ask"
-            },
-            "watchOrderBook": {
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268349324#L2400"
+                "currency": "messed",
+                "currencyIdAndCode": "messed"
             }
         }
     },
@@ -836,7 +1053,8 @@
                 "currencyIdAndCode": "messed codes"
             },
             "fetchCurrencies": {
-                "precision": "messed"
+                "precision": "messed",
+                "type": "todo"
             },
             "fetchTicker": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id",
             "fetchTickers": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id",
@@ -864,13 +1082,49 @@
             "fetchBalance": "tmp skip"
         }
     },
+    "exmo": {
+        "skipMethods": {
+            "loadMarkets": {
+                "active":"is undefined"
+            },
+            "fetchCurrencies":{
+                "withdraw":"not provided",
+                "deposit":"not provided",
+                "activeMajorCurrencies": "todo"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3690",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16075871000/job/45371060374?pr=26334#step:9:324"
+            },
+            "watchOrderBook": {
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4807"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5420"
+            }
+        }
+    },
     "ellipx": {
         "skipMethods": {
             "fetchOrderBook": {
-                "bid":"messed bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4611"
+                "spread":"messed bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4611"
             },
-            "fetchL2OrderBook": {
-                "bid":"messed bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4611"
+            "fetchCurrencies": {
+                "type": "todo",
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "activeMajorCurrencies": "todo"
+            }
+        }
+    },
+    "fmfwio": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "fee": "not provided",
+                "type": "todo"
+            },
+            "ticker": {
+                "compareOHLC": "broken from API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:528"
             }
         }
     },
@@ -878,19 +1132,19 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
-                "fetchCurrencies": {
-                    "fee":"not provided"
-                },
                 "limits": "max should be above min",
-                "contractSize": "broken for some markets",
-                "strike": "incorrect number type"
+                "taker": "undefined",
+                "maker": "undefined"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2559"
             },
             "ticker": {
-                "bid":"messed bid-ask",
-                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262963390#L3138"
+                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262963390#L3138",
+                "compareOHLC": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "fetchPositions":  "currently returns a lot of default/non open positions",
             "fetchLedger": {
@@ -906,11 +1160,135 @@
             "fetchWithdrawals": "sandbox does not have this endpoint"
         }
     },
+    "gemini": {
+        "skip": "temporary USDC symbol issue in their API engine for swaps",
+        "until": "2025-08-31",
+        "skipPhpAsync": "tmp",
+        "skipCSharp": "tmp",
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed codes",
+                "active": "not provided"
+            },
+            "fetchCurrencies":{
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "activeMajorCurrencies": "todo"
+            },
+            "watchOrderBook": {
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4833",
+                "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:661"
+            },
+            "watchOrderBookForSymbols": {
+                "nonce": "same",
+                "spread": "same"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5654"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
+    },
+    "hashkey": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided",
+                "type": "todo"
+            },
+            "fetchTrades": {
+                "side": "not provided"
+            },
+            "watchTrades": {
+                "side": "not provided"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
+    },
+    "hibachi": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "only have USDT"
+            },
+            "fetchCurrencies": {
+                "amountOfCurrencies": "exchange has only 1 currency"
+            },
+            "fetchLedger": {
+                "before": "not provided",
+                "after": "not provided",
+                "fee": "not provided for transaction"
+            },
+            "fetchDeposits": {
+                "fee": "not provided for deposit",
+                "updated": "not provided"
+            },
+            "fetchWithdrawals": {
+                "fee": "not provided for withdrawal",
+                "updated":"not provided"
+            }
+        }
+    },
+    "hitbtc": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed codes"
+            },
+            "fetchCurrencies": {
+                "fee": "not provided",
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2455",
+                "type": "todo",
+                "activeMajorCurrencies": "todo"
+            },
+            "ticker": {
+                "bid":"messed bid-ask",
+                "compareOHLC": "todo"
+            },
+            "watchOrderBook": {
+                "spread": "tmp",
+                "compareToNextItem": "tmp"
+            },
+            "watchTickers": {
+                "compareOHLC": "broken by exchange https://github.com/ccxt/ccxt/actions/runs/16057416332/job/45315454452?pr=26334#step:11:2028"
+            }
+        }
+    },
+    "hyperliquid": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "different"
+            },
+            "fetchTrades": "private",
+            "fetchCurrencies": {
+                "id": "skip",
+                "precision": "skip",
+                "networks": "not provided",
+                "limits" : "not provided",
+                "deposit": "not provided",
+                "withdraw": "not provided",
+                "type": "todo",
+                "activeMajorCurrencies": "todo"
+            },
+            "watchTrades": {
+                "currency": "not provided"
+            }
+        }
+    },
     "hollaex": {
         "skipWs": "temp",
         "skipMethods": {
             "watchOrderBook": {
                 "nonce": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4957"
+            },
+            "fetchCurrencies": {
+                "type": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -924,11 +1302,15 @@
                 "withdraw":"not provided",
                 "deposit":"not provided",
                 "precision":"is undefined",
-                "limits": "broken somewhere"
+                "limits": "broken somewhere",
+                "type": "todo"
             },
             "ticker": {
-                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4860",
+                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4860",
                 "bid":"messed bid-ask"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "orderBook": {
                 "symbol": "undefined, todo fix https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3670"
@@ -941,7 +1323,7 @@
             }
         }
     },
-    "huobijp": {
+    "bittrade": {
         "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
@@ -952,50 +1334,21 @@
                 "networks": "missing"
             },
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "fetchTrades": {
                 "fees": "missing"
             }
         }
     },
-    "probit": {
-        "skipWs": "timeouts",
-		"skipMethods": {
-            "loadMarkets": "needs fixing",
-            "fetchCurrencies": {
-                "limits": "messed"
-            },
-            "ticker":  {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "orderBook":{
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6363"
-            }
-        }
-    },
-    "idex": {
-        "skip": "seems down",
-        "skipWs": "timeouts",
-        "skipCSharp": "for some reasons, frequent rate limits only in C#",
-        "skipMethods": {
-            "fetchCurrencies": {
-                "withdraw":"not provided",
-                "deposit":"not provided",
-                "networks": "missing"
-            },
-            "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "spread":"messed bid-ask"
-            },
-            "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5797",
-                "compareToZero": "bid/ask might be 0 - https://app.travis-ci.com/github/ccxt/ccxt/builds/263552512#L2214"
-            }
-        }
-    },
     "indodax": {
         "skipMethods": {
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
+            },
             "orderBook": {
                 "timestamp":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5881"
             }
@@ -1007,6 +1360,9 @@
             "loadMarkets": {
                 "active":"is undefined"
             },
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
+            },
             "fetchTrades": {
                 "side":"side is undefined"
             },
@@ -1014,33 +1370,70 @@
             "orderBook": {
                 "compareToNextItem": "sometimes bid equals to next bid",
                 "compareToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263629640#L2165"
-            },
-            "fetchL2OrderBook": {
-                "compareToNextItem": "same",
-                "compareToZero": "same"
             }
         }
     },
-    "kuna": {
-        "skip": "temporary glitches with this exchange: https://app.travis-ci.com/github/ccxt/ccxt/builds/267517440#L2304",
-        "httpsProxy": "http://188.245.226.105:3128",
+    "kraken": {
         "skipMethods": {
             "loadMarkets": {
-                "active":"is undefined"
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267515280#L2314"
             },
             "fetchCurrencies": {
-                "deposit":"is undefined",
-                "withdraw":"is undefined",
-                "active":"is undefined",
-                "precision":"somewhat strange atm https://app.travis-ci.com/github/ccxt/ccxt/builds/267515280#L2337"
+                "withdraw": "undefined",
+                "deposit": "undefined",
+                "currencyIdAndCode": "same as in loadMarkets",
+                "type": "todo",
+                "activeMajorCurrencies": "todo"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high is failing",
+                "compareOHLC": "todo: fix implementation"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5965"
             }
         }
+    },
+    "krakenfutures": {
+        "skipMethods": {
+            "loadMarkets" :{
+                "active": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4502",
+                "contractSize":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269640396#L3857",
+                "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies": {
+                "currencyIdAndCode": "messed",
+                "withdraw": "undefined",
+                "deposit": "undefined",
+                "activeMajorCurrencies": "todo"
+            },
+            "watchBidsAsks": {
+                "bidVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269878519#L3759",
+                "askVolume": "same"
+            },
+            "watchOrderBook.cs": {
+                "spread": "",
+                "compareToNextItem": ""
+            },
+            "watchOrderBookForSymbols.cs": {
+                "spread": "same as above",
+                "compareToNextItem": "same as above"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        },
+        "timeout": 120000
     },
     "kucoin": {
         "skipMethods":{
             "fetchCurrencies": {
                 "depositForNonCrypto": "not provided",
                 "withdrawForNonCrypto": "not provided",
+                "limits": "is not provided",
                 "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/271028497#L5338"
             },
             "loadMarkets": {
@@ -1050,7 +1443,12 @@
             },
             "ticker": {
                 "bid":"messed bid-ask",
-                "baseVolume": "quoteVolume <= baseVolume * high https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2190"
+                "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2190",
+                "maxIncrease": "todo",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:317"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -1063,10 +1461,13 @@
                 "percentage": "percentage is not provided"
             },
             "fetchTickers": {
-                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269634788#L1898"
+                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269634788#L1898"
             },
             "watchOrderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
+            },
+            "ticker": {
+                "compareOHLC": "todo: fix implementation"
             }
         }
     },
@@ -1081,7 +1482,8 @@
                 "currency": "messed",
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269188556#L4337",
                 "withdraw":"not provided",
-                "deposit":"not provided"
+                "deposit":"not provided",
+                "activeMajorCurrencies": "todo"
             },
             "ticker":{
                 "open": "negative values",
@@ -1093,7 +1495,8 @@
                 "ask": "negative values",
                 "askVolume": "negative values https://app.travis-ci.com/github/ccxt/ccxt/builds/271032316#L5285",
                 "average": "negative values",
-                "vwap": "zero values https://github.com/ccxt/ccxt/actions/runs/13230707347/job/36927433961?pr=25233"
+                "vwap": "zero values https://github.com/ccxt/ccxt/actions/runs/13230707347/job/36927433961?pr=25233",
+                "maxIncrease": "too high increases https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:833"
             },
             "orderBook":{
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6049"
@@ -1103,6 +1506,9 @@
     "luno": {
         "skipWs": "temp",
         "skipMethods": {
+            "fetchCurrencies":{
+                "activeMajorCurrencies": "todo"
+            },
             "orderBook": {
                 "compareToNextItem": "messed"
             }
@@ -1110,15 +1516,27 @@
     },
     "lbank": {
         "skipMethods": {
-            "loadMarkets": "settle must be defined when contract is true",
+            "loadMarkets": {
+                "currencyIdAndCode": "messed codes"
+            },
+            "fetchCurrencies":{
+                "activeMajorCurrencies": "todo",
+                "deposit":"not provider",
+                "type":"not provided"
+            },
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
+                "compareOHLC": "todo test tolerance"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "watchTrades": {
                 "timestamp": "ts several hours ahead in in future :)"
             },
             "orderBook": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612"
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612",
+                "compareToNextItem": "frequently failing: https://github.com/ccxt/ccxt/actions/runs/15869807959/job/44743669371?pr=26044#step:10:29"
             },
             "ohlcv": {
                 "1":"https://app.travis-ci.com/github/ccxt/ccxt/builds/272644155#L4669"
@@ -1137,29 +1555,9 @@
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6133"
             },
             "fetchCurrencies": {
-                "info":"key is missing"
+                "info":"key is missing",
+                "activeMajorCurrencies": "todo"
             }
-        }
-    },
-    "novadax": {
-        "skipMethods": {
-            "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266029139"
-            }
-        }
-    },
-    "ndax": {
-        "skipWs": "timeouts",
-        "skipMethods": {
-            "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided"
-            },
-            "fetchOrderBook": {
-                "timestamp": "undefined https://app.travis-ci.com/github/ccxt/ccxt/builds/272800616#L3898"
-            },
-            "fetchL2OrderBook": "asks and bids could be empty"
         }
     },
     "mexc": {
@@ -1175,9 +1573,13 @@
                 "side": "side is not buy/sell"
             },
             "ticker": {
-                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
+                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
                 "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
-                "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664"
+                "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664",
+                "maxIncrease": "too high gains"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "fetchAccounts": {
                 "type": "type is not provided"
@@ -1188,21 +1590,140 @@
             }
         }
     },
+    "modetrade": {
+        "skipMethods": {
+            "loadMarkets": {
+                "active": "undefined",
+                "currencyIdAndCode": "lev curr"
+            },
+            "fetchCurrencies": {
+                "amountOfCurrencies": "exchange has only 1 currency atm",
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "activeMajorCurrencies": "todo",
+                "type": "todo"
+            }
+        }
+    },
+    "novadax": {
+        "skipMethods": {
+            "fetchCurrencies":{
+                "activeMajorCurrencies": "todo"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
+                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266029139"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
+    },
+    "ndax": {
+        "skipWs": "timeouts",
+        "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "activeMajorCurrencies": "todo"
+            },
+            "fetchOrderBook": {
+                "timestamp": "undefined https://app.travis-ci.com/github/ccxt/ccxt/builds/272800616#L3898"
+            }
+        }
+    },
     "oceanex": {
         "skipMethods": {
             "loadMarkets":{
                 "active":"is undefined"
             },
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
             "fetchOrderBooks": "fetchOrderBooks returned 0 length"
         }
     },
-    "p2b": {
-        "skip": "temp issues",
-        "skipWs": "flaky",
-        "httpsProxy": "http://51.83.140.52:11230",
+    "okcoin": {
+        "skipWs": "temp",
         "skipMethods": {
-            "loadMarkets": "invalid URL",
-            "fetchTrades": "requires order id"
+            "ticker": {
+                "symbol": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6721",
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+            }
+        }
+    },
+    "oxfun": {
+        "skip": "cloudflare captcha block",
+        "skipWs": "same",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
+            },
+            "orderBook": {
+                "spread": "bid ask crossing, https://app.travis-ci.com/github/ccxt/ccxt/builds/270991459#L5901"
+            }
+        }
+    },
+    "onetrading": {
+        "skip": "API was changed: https://github.com/ccxt/ccxt/pull/21991, also our regular proxy does not seem to work, need smth fix",
+        "skipWs": "same",
+        "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            },
+            "orderBook":{
+                "compareToNextItem": "messed bids sequence",
+                "timestamp": "not provided"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+            }
+        }
+    },
+    "okx": {
+        "skipCSharp": true,
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed",
+                "contractSize": "broken for some markets"
+            },
+            "fetchCurrencies": {
+                "precision": "undefined",
+                "currencyIdAndCode": "temp skip"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2132"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "fetchBorrowRate": "some fields that we can't skip missing",
+            "fetchBorrowRates": "same",
+            "watchOrderBook": {
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6721"
+            }
+        }
+    },
+    "okxus": {
+        "skipCSharp": true,
+        "skipMethods": {
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
+    },
+    "myokx": {
+        "skipCSharp": true,
+        "skipMethods": {
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
         }
     },
     "paymium": {
@@ -1216,73 +1737,52 @@
                 "maker":"is undefined"
             },
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
     },
-    "phemex": {
-        "skipPhpAsync": true,
-        "skipCSharp": true,
-        "skipMethods": {
-            "loadMarkets": {
-                "contractSize": "broken for some markets",
-                "active": "not provided",
-                "currencyIdAndCode": "messed",
-                "taker": "null",
-                "maker": "null"
-            },
+    "probit": {
+        "skipWs": "timeouts",
+		"skipMethods": {
+            "loadMarkets": "needs fixing",
             "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided"
+                "limits": "messed",
+                "type": "todo"
             },
-            "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid": "messed bid-ask"
+            "ticker":  {
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
+                "compareOHLC": "broken from API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:898"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo check why there are more tickers"
+            },
+            "orderBook":{
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6363"
             }
         }
     },
-    "okcoin": {
-        "skipWs": "temp",
+    "paradex": {
         "skipMethods": {
-            "ticker": {
-                "symbol": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6721",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            }
-        }
-    },
-    "oxfun": {
-        "skip": "cloudflare captcha block",
-        "skipWs": "same",
-        "httpsProxy": "http://188.34.194.190:8911",
-        "wsProxy": "http://188.34.194.190:8911",
-        "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
-            },
+            "loadMarkets": "perp options not handled well by tests",
             "orderBook": {
-                "spread": "bid ask crossing, https://app.travis-ci.com/github/ccxt/ccxt/builds/270991459#L5901"
-            }
-        }
-    },
-    "exmo": {
-        "skipMethods": {
-            "loadMarkets": {
-                "active":"is undefined"
-            },
-            "fetchCurrencies":{
-                "info":"null",
-                "withdraw":"not provided",
-                "deposit":"not provided"
+                "_disabled_spread": "bid-ask crossing"
             },
             "ticker": {
-                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3690"
+                "bid": "equal to ask https://github.com/ccxt/ccxt/actions/runs/15595034293/job/43923530003?pr=26177#step:9:504"
             },
-            "watchOrderBook": {
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4807"
-            },
-            "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5420"
+            "fetchTickers": {
+                "checkActiveSymbols": "todo",
+                "average": "sometimes zero"
             }
+	    }
+    },
+    "p2b": {
+        "skip": "temp issues",
+        "skipWs": "flaky",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "skipMethods": {
+            "loadMarkets": "invalid URL",
+            "fetchTrades": "requires order id"
         }
     },
     "poloniex": {
@@ -1299,86 +1799,58 @@
                 "withdraw": "undefined",
                 "deposit": "undefined",
                 "networks": "networks key is missing",
-                "precision": "not provided"
+                "precision": "not provided",
+                "type": "todo",
+                "maxInactiveCurrenciesPercentage": 70
             },
             "fetchTrades": {
                 "side": "side is not buy/sell"
             },
             "ticker": {
-                "baseVolume": "quoteVolume <= baseVolume * high | https://app.travis-ci.com/github/ccxt/ccxt/builds/263884643#L2462"
+                "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high | https://app.travis-ci.com/github/ccxt/ccxt/builds/263884643#L2462",
+                "maxIncrease": "very distant bid/ask"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6909"
             }
         }
     },
-    "okx": {
+    "phemex": {
+        "skipPhpAsync": true,
         "skipCSharp": true,
         "skipMethods": {
             "loadMarkets": {
-                "currencyIdAndCode": "messed"
-            },
-            "fetchCurrencies": {
-                "precision": "undefined",
-                "currencyIdAndCode": "temp skip"
-            },
-            "ticker": {
-                "baseVolume": "quoteVolume <= baseVolume * high : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2132"
-            },
-            "fetchBorrowRate": "some fields that we can't skip missing",
-            "fetchBorrowRates": "same",
-            "watchOrderBook": {
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6721"
-            }
-        }
-    },
-    "kraken": {
-        "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267515280#L2314"
-            },
-            "fetchCurrencies": {
-                "withdraw": "undefined",
-                "deposit": "undefined",
-                "currencyIdAndCode": "same as in loadMarkets"
-            },
-            "ticker": {
-                "baseVolume": "quoteVolume <= baseVolume * high is failing"
-            },
-            "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5965"
-            }
-        }
-    },
-    "krakenfutures": {
-        "skipMethods": {
-            "loadMarkets" :{
-                "active": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4502",
-                "contractSize":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269640396#L3857",
-                "currencyIdAndCode": "messed"
-            },
-            "fetchCurrencies": {
+                "contractSize": "broken for some markets",
+                "active": "not provided",
                 "currencyIdAndCode": "messed",
-                "withdraw": "undefined",
-                "deposit": "undefined"
+                "taker": "null",
+                "maker": "null"
             },
-            "watchBidsAsks": {
-                "bidVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269878519#L3759",
-                "askVolume": "same"
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "type": "todo",
+                "activeMajorCurrencies": "todo",
+                "networks": "not provided"
             },
-            "watchOrderBook.cs": {
-                "bid": "strange issue specifically for krakenfutures, todo in near future https://app.travis-ci.com/github/ccxt/ccxt/builds/269965859#L4781"
-            },
-            "watchOrderBookForSymbols.cs": {
-                "bid": "same as above"
-            }
-        },
-        "timeout": 120000
-    },
-    "upbit": {
-        "skipMethods": {
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
+                "bid": "messed bid-ask"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
+    },
+    "tradeogre": {
+        "skip": "flaky",
+        "skipWs": "down",
+        "skipMethods": {
+            "watchOrderBook": {
+                "timestamp": "not provided"
             }
         }
     },
@@ -1389,7 +1861,8 @@
             },
             "fetchCurrencies": {
                 "fee":"is undefined",
-                "networks": "key not present"
+                "networks": "key not present",
+                "type": "todo"
             },
             "fetchTrades": {
                 "fees": "missingn from structure"
@@ -1397,12 +1870,87 @@
             "fetchTickers": "temporary issues"
         }
     },
+    "toobit": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "not provided",
+                "maker": "not provided",
+                "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies": {
+                "precision":"tmp",
+                "type":"tmp",
+                "limits":"tmp"
+            },
+            "fetchLastPrices": "tmp",
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "tmp"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
+    },
+    "tokocrypto": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "skipMethods": {
+            "orderBook":{
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6195"
+            }
+        }
+    },
+    "upbit": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "orderBook": {
+                "compareToZero":"some of them mare zero",
+                "compareToNextItem": "several rows are same zero"
+            },
+            "fetchTickers": {
+                "maxIncrease": "change should be above -price is failing"
+            },
+            "fetchOrderBooks": {
+                "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:410"
+            }
+        }
+    },
+    "vertex": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
+        "skipPhpAsync": "for some reason it shows invalid headers - https://app.travis-ci.com/github/ccxt/ccxt/builds/272619476#L4519 but cant reproduce locally",
+        "skipCSharp": "same as above",
+        "skipMethods": {
+            "fetchCurrencies": "incomplete",
+            "loadMarkets": {
+                "currencyIdAndCode": "different",
+                "amount": "handled seperately",
+                "precision": "handled seperately"
+            },
+            "watchTrades": {
+                "side": "not set"
+            },
+            "watchOrderBook": {
+                "spread": "cross"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
+            }
+        }
+    },
     "wavesexchange": {
         "skipMethods": {
             "loadMarkets": "missing key",
             "fetchOHLCV": "index 1 (open price) is undefined",
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
             }
         }
     },
@@ -1415,7 +1963,8 @@
                 "precision":"not provided",
                 "fee":"is undefined",
                 "networks":"missing",
-                "limits": "broken for some markets"
+                "limits": "broken for some markets",
+                "type": "todo"
             }
         }
     },
@@ -1428,7 +1977,9 @@
             },
             "fetchCurrencies":{
                 "withdraw": "undefined",
-                "deposit": "undefined"
+                "deposit": "undefined",
+                "type": "todo",
+                "activeMajorCurrencies": "todo"
             },
             "fetchPositions": {
                 "leverage": "undefined",
@@ -1453,16 +2004,58 @@
                 "active": "undefined",
                 "currencyIdAndCode": "messed"
             },
-            "fetchCurrencies":{
-                "withdraw": "undefined",
-                "deposit": "undefined"
-            }
+            "fetchCurrencies": "doesnt return currencies, todo"
         }
 	},
+    "wazirx": {
+        "skipWs": "timeouts",
+        "skipMethods": {
+            "loadMarkets": "private",
+            "fetchCurrencies": "private",
+            "ticker": {
+                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269200021#L4048"
+            }
+        }
+    },
+    "xt": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker":"is undefined",
+                "maker":"is undefined",
+                "currencyIdAndCode": "different",
+                "limits": "incorrect for some currencies"
+            },
+            "fetchTrades": {
+                "side": "not set"
+            },
+            "watchTickers": {
+                "compareOHLC": "broken by exchange https://github.com/ccxt/ccxt/actions/runs/16057416332/job/45315454452?pr=26334#step:11:2055"
+            },
+            "ticker": {
+                "maxIncrease": "too much increases https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:925",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:317"
+            },
+            "fetchTickers": {
+                "ask": "weird values",
+                "bid": "weird values",
+                "checkActiveSymbols": "todo"
+            },
+            "watchOrderBook": {
+                "timestamp": "not provided",
+                "spread": "bid-ask crossing"
+            },
+            "fetchCurrencies": {
+                "type": "todo"
+            }
+        }
+    },
     "yobit": {
         "skipMethods": {
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
             },
             "fetchTickers": "all tickers request exceedes max url length",
             "orderBook":{
@@ -1473,7 +2066,8 @@
     "zaif": {
         "skipMethods": {
             "fetchCurrencies": {
-                "info": "key is missing"
+                "info": "key is missing",
+                "activeMajorCurrencies": "todo"
             },
             "loadMarkets": {
                 "active": "is undefined"
@@ -1487,202 +2081,9 @@
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
-            }
-        }
-    },
-    "bingx": {
-        "skipMethods": {
-            "loadMarkets": {
-                "taker": "is undefined",
-                "maker": "is undefined",
-                "currencyIdAndCode": "not all currencies are available"
-            },
-            "ticker": {
-                "bidVolume": "weird values eg -1.1641532182693481e-10 https://github.com/ccxt/ccxt/actions/runs/13135405405/job/36649793252?pr=25190#step:9:213",
-                "askVolume": "weird value https://app.travis-ci.com/github/ccxt/ccxt/builds/272650012#L3904",
-                "baseVolume": "not supported",
-                "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581"
             },
             "fetchCurrencies": {
-                "deposit": "not provided",
-                "precision": "not provided",
-                "limits": "min/max essup temrporarily"
-            },
-            "orderBook": {
-                "bid": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
-            },
-            "fetchPositions": {
-                "marginRatio": "undefined",
-                "stopLossPrice": "undefined",
-                "takeProfitPrice": "undefined",
-                "initialMarginPercentage": "undefined",
-                "hedged": "undefined",
-                "timestamp": "undefined",
-                "datetime": "undefined",
-                "lastUpdateTimestamp": "undefined",
-                "maintenanceMargin": "undefined",
-                "contractSize": "undefined",
-                "markPrice": "undefined",
-                "lastPrice": "undefined",
-                "percentage": "undefined",
-                "liquidationPrice": "undefined"
-            }
-        }
-    },
-    "wazirx": {
-        "skipWs": "timeouts",
-        "skipMethods": {
-            "loadMarkets": "private",
-            "fetchCurrencies": "private",
-            "ticker": {
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269200021#L4048"
-            }
-        }
-    },
-    "coinlist": {
-        "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode":"https://github.com/ccxt/ccxt/actions/runs/13326043833/job/37219610640?pr=25274#step:9:215",
-                "precision": "ammount is sometimes 0"
-            },
-            "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low  is failing",
-                "bid": "invalid"
-            }
-        }
-    },
-    "bitteam": {
-        "skip": "tmp timeout",
-        "skipPhpAsync": true,
-        "skipMethods": {
-            "loadMarkets": {
-                "taker": "is undefined",
-                "maker": "is undefined"
-            },
-            "fetchCurrencies": {
-                "deposit": "not provided",
-                "withdraw": "not provided"
-            }
-        }
-    },
-    "hyperliquid": {
-        "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode": "different"
-            },
-            "fetchTrades": "private",
-            "fetchCurrencies": {
-                "id": "skip",
-                "precision": "skip",
-                "networks": "not provided",
-                "limits" : "not provided",
-                "deposit": "not provided",
-                "withdraw": "not provided"
-            },
-            "watchTrades": {
-                "currency": "not provided"
-            }
-        }
-    },
-    "tradeogre": {
-        "skip": "flaky"
-    },
-    "xt": {
-        "skipMethods": {
-            "loadMarkets": {
-                "taker":"is undefined",
-                "maker":"is undefined",
-                "currencyIdAndCode": "different",
-                "limits": "incorrect for some currencies"
-            },
-            "fetchTrades": {
-                "side": "not set"
-            },
-            "fetchTickers": {
-                "ask": "weird values",
-                "bid": "weird values"
-            },
-            "watchOrderBook": {
-                "timestamp": "not provided",
-                "spread": "bid-ask crossing"
-            }
-        }
-    },
-    "vertex": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
-        "skipPhpAsync": "for some reason it shows invalid headers - https://app.travis-ci.com/github/ccxt/ccxt/builds/272619476#L4519 but cant reproduce locally",
-        "skipCSharp": "same as above",
-        "skipMethods": {
-            "fetchCurrencies": "incomplete",
-            "loadMarkets": {
-                "currencyIdAndCode": "different",
-                "amount": "handled seperately",
-                "precision": "handled seperately"
-            },
-            "watchTrades": {
-                "side": "not set"
-            },
-            "watchOrderBook": {
-                "spread": "cross"
-            },
-            "watchOrderBookForSymbols": {
-                "spread": "same"
-            }
-        }
-    },
-    "paradex": {
-        "skipMethods": {
-            "loadMarkets": "perp options not handled well by tests"
-	      }
-    },
-    "hashkey": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
-        "skipMethods": {
-            "fetchCurrencies": {
-                "precision": "not provided"
-            },
-            "fetchTrades": {
-                "side": "not provided"
-            },
-            "watchTrades": {
-                "side": "not provided"
-            }
-        }
-    },
-    "coincatch": {
-        "skipMethods": {
-            "fetchCurrencies": {
-                "precision": "not provided"
-            },
-            "loadMarkets": "linear and inverse values are same"
-        }
-    },
-    "derive": {
-        "skipMethods":{
-            "loadMarkets": {
-                "currency": "messed",
-                "currencyIdAndCode": "messed"
-            }
-        }
-    },
-    "cryptomus": {
-        "skipMethods": {
-            "fetchCurrencies": {
-                "precision": "not provided"
-            },
-            "loadMarkets": {
-                "active":"not provided",
-                "precision": "not provided",
-                "limits": "not provided"
-            },
-            "fetchOrderBook": "best ask is not always greater than best bid",
-            "fetchL2OrderBook": "same",
-            "fetchTrades": {
-                "price": "sometimes is not set",
-                "amount": "same",
-                "cost": "same"
+                "activeMajorCurrencies": "todo"
             }
         }
     }

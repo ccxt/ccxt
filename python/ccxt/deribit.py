@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -620,43 +620,45 @@ class deribit(Exchange, ImplicitAPI):
         response = self.publicGetGetCurrencies(params)
         #
         #    {
-        #      "jsonrpc": "2.0",
-        #      "result": [
-        #        {
-        #          "withdrawal_priorities": [],
-        #          "withdrawal_fee": 0.01457324,
-        #          "min_withdrawal_fee": 0.000001,
-        #          "min_confirmations": 1,
-        #          "fee_precision": 8,
-        #          "currency_long": "Solana",
-        #          "currency": "SOL",
-        #          "coin_type": "SOL"
-        #        },
-        #        ...
-        #      ],
-        #      "usIn": 1688652701456124,
-        #      "usOut": 1688652701456390,
-        #      "usDiff": 266,
-        #      "testnet": True
+        #        "jsonrpc": "2.0",
+        #        "result": [
+        #            {
+        #                "currency": "XRP",
+        #                "network_fee": "1.5e-5",
+        #                "min_withdrawal_fee": "0.0001",
+        #                "apr": "0.0",
+        #                "withdrawal_fee": "0.0001",
+        #                "network_currency": "XRP",
+        #                "coin_type": "XRP",
+        #                "withdrawal_priorities": [],
+        #                "min_confirmations": "1",
+        #                "currency_long": "XRP",
+        #                "in_cross_collateral_pool": False
+        #            },
+        #        ],
+        #        "usIn": "1760110326693923",
+        #        "usOut": "1760110326944891",
+        #        "usDiff": "250968",
+        #        "testnet": False
         #    }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_list(response, 'result', [])
         result: dict = {}
         for i in range(0, len(data)):
             currency = data[i]
             currencyId = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(currencyId)
-            name = self.safe_string(currency, 'currency_long')
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
-                'name': name,
+                'name': self.safe_string(currency, 'currency_long'),
                 'active': None,
                 'deposit': None,
                 'withdraw': None,
+                'type': 'crypto',
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'fee_precision'))),
+                'precision': None,
                 'limits': {
                     'amount': {
                         'min': None,
@@ -672,7 +674,7 @@ class deribit(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': None,
-            }
+            })
         return result
 
     def code_from_options(self, methodName, params={}):
@@ -1386,7 +1388,7 @@ class deribit(Exchange, ImplicitAPI):
             tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2596,25 +2598,26 @@ class deribit(Exchange, ImplicitAPI):
         unrealizedPnl = self.safe_string(position, 'floating_profit_loss')
         initialMarginString = self.safe_string(position, 'initial_margin')
         notionalString = self.safe_string(position, 'size_currency')
+        notionalStringAbs = Precise.string_abs(notionalString)
         maintenanceMarginString = self.safe_string(position, 'maintenance_margin')
-        currentTime = self.milliseconds()
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
-            'timestamp': currentTime,
-            'datetime': self.iso8601(currentTime),
+            'timestamp': None,
+            'datetime': None,
             'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
-            'initialMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(initialMarginString, notionalString), '100')),
+            'initialMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(initialMarginString, notionalStringAbs), '100')),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
-            'maintenanceMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(maintenanceMarginString, notionalString), '100')),
+            'maintenanceMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(maintenanceMarginString, notionalStringAbs), '100')),
             'entryPrice': self.safe_number(position, 'average_price'),
-            'notional': self.parse_number(notionalString),
+            'notional': self.parse_number(notionalStringAbs),
             'leverage': self.safe_integer(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealizedPnl),
-            'contracts': None,
-            'contractSize': self.safe_number(market, 'contractSize'),
+            'realizedPnl': self.safe_number(position, 'realized_profit_loss'),
+            'contracts': self.safe_number(position, 'size'),
+            'contractSize': self.safe_number(position, 'contractSize'),
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'estimated_liquidation_price'),
             'markPrice': self.safe_number(position, 'mark_price'),
@@ -2673,7 +2676,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_position(result)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -2936,7 +2939,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

@@ -82,7 +82,7 @@ class bitmart extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
-                'fetchPositionMode' => false,
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -104,6 +104,7 @@ class bitmart extends Exchange {
                 'repayIsolatedMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -202,6 +203,7 @@ class bitmart extends Exchange {
                         'contract/private/order' => 1.2,
                         'contract/private/order-history' => 10,
                         'contract/private/position' => 10,
+                        'contract/private/position-v2' => 10,
                         'contract/private/get-open-orders' => 1.2,
                         'contract/private/current-plan-order' => 1.2,
                         'contract/private/trades' => 10,
@@ -209,6 +211,7 @@ class bitmart extends Exchange {
                         'contract/private/affilate/rebate-list' => 10,
                         'contract/private/affilate/trade-list' => 10,
                         'contract/private/transaction-history' => 10,
+                        'contract/private/get-position-mode' => 1,
                     ),
                     'post' => array(
                         // sub-account endpoints
@@ -261,6 +264,7 @@ class bitmart extends Exchange {
                         'contract/private/modify-tp-sl-order' => 2.5,
                         'contract/private/submit-trail-order' => 2.5, // weight is not provided by the exchange, is set order
                         'contract/private/cancel-trail-order' => 1.5, // weight is not provided by the exchange, is set order
+                        'contract/private/set-position-mode' => 1,
                     ),
                 ),
             ),
@@ -1006,7 +1010,7 @@ class bitmart extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => true,
+                'active' => $this->safe_string_lower_2($market, 'status', 'trade_status') === 'trading',
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -1124,7 +1128,7 @@ class bitmart extends Exchange {
                 'swap' => $isSwap,
                 'future' => $isFutures,
                 'option' => false,
-                'active' => true,
+                'active' => $this->safe_string_lower($market, 'status') === 'trading',
                 'contract' => true,
                 'linear' => true,
                 'inverse' => false,
@@ -1202,6 +1206,7 @@ class bitmart extends Exchange {
         //                 {
         //                     "currency" => "BTC",
         //                     "name" => "Bitcoin",
+        //                     "recharge_minsize" => '0.00000001',
         //                     "contract_address" => null,
         //                     "network" => "BTC",
         //                     "withdraw_enabled" => true,
@@ -1223,7 +1228,8 @@ class bitmart extends Exchange {
             $fullId = $this->safe_string($currency, 'currency');
             $currencyId = $fullId;
             $networkId = $this->safe_string($currency, 'network');
-            if (mb_strpos($fullId, 'NFT') === false) {
+            $isNtf = (mb_strpos($fullId, 'NFT') !== false);
+            if (!$isNtf) {
                 $parts = explode('-', $fullId);
                 $currencyId = $this->safe_string($parts, 0);
                 $second = $this->safe_string($parts, 1);
@@ -1244,6 +1250,7 @@ class bitmart extends Exchange {
                     'withdraw' => null,
                     'active' => null,
                     'networks' => array(),
+                    'type' => $isNtf ? 'other' : 'crypto',
                 );
             }
             $networkCode = $this->network_id_to_code($networkId);
@@ -2074,7 +2081,7 @@ class bitmart extends Exchange {
         }
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -2196,6 +2203,7 @@ class bitmart extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @param {boolean} [$params->marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
@@ -2310,6 +2318,7 @@ class bitmart extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $this->load_markets();
@@ -2355,7 +2364,7 @@ class bitmart extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['free'] = $this->safe_string_2($balance, 'available', 'available_balance');
-                $account['used'] = $this->safe_string_2($balance, 'frozen', 'frozen_balance');
+                $account['used'] = $this->safe_string_n($balance, array( 'unAvailable', 'frozen', 'frozen_balance' ));
                 $result[$code] = $account;
             }
             return $this->safe_balance($result);
@@ -2774,6 +2783,7 @@ class bitmart extends Exchange {
          * @param {string} [$params->stopLossPrice] *swap only* the $price to trigger a stop-loss $order
          * @param {string} [$params->takeProfitPrice] *swap only* the $price to trigger a take-profit $order
          * @param {int} [$params->plan_category] *swap tp/sl only* 1 => tp/sl, 2 => position tp/sl, default is 1
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -2840,6 +2850,7 @@ class bitmart extends Exchange {
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params]  extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -3188,7 +3199,7 @@ class bitmart extends Exchange {
         //     }
         //
         if ($market['swap']) {
-            return $response;
+            return $this->safe_order(array( 'info' => $response ));
         }
         $data = $this->safe_value($response, 'data');
         if ($data === true) {
@@ -3320,7 +3331,7 @@ class bitmart extends Exchange {
         //         "trace" => "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         //     }
         //
-        return $response;
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3399,6 +3410,7 @@ class bitmart extends Exchange {
          * @param {string} [$params->orderType] *swap only* 'limit', 'market', or 'trailing'
          * @param {boolean} [$params->trailing] *swap only* set to true if you want to fetch $trailing orders
          * @param {boolean} [$params->trigger] *swap only* set to true if you want to fetch trigger orders
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -3523,6 +3535,7 @@ class bitmart extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest entry
          * @param {string} [$params->marginMode] *spot only* 'cross' or 'isolated', for margin trading
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -3590,6 +3603,7 @@ class bitmart extends Exchange {
          * @param {string} [$params->clientOrderId] *spot* fetch the order by client order $id instead of order $id
          * @param {string} [$params->orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
          * @param {boolean} [$params->trailing] *swap only* set to true if you want to fetch a $trailing order
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -3760,7 +3774,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -4666,7 +4680,7 @@ class bitmart extends Exchange {
         ), $market);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -4721,12 +4735,15 @@ class bitmart extends Exchange {
         //         "code" => 1000,
         //         "message" => "Ok",
         //         "data" => array(
-        //             "timestamp" => 1695184410697,
         //             "symbol" => "BTCUSDT",
-        //             "rate_value" => "-0.00002614",
-        //             "expected_rate" => "-0.00002"
+        //             "expected_rate" => "-0.0000238",
+        //             "rate_value" => "0.000009601106",
+        //             "funding_time" => 1761292800000,
+        //             "funding_upper_limit" => "0.0375",
+        //             "funding_lower_limit" => "-0.0375",
+        //             "timestamp" => 1761291544336
         //         ),
-        //         "trace" => "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        //         "trace" => "64b7a589-e1e-4ac2-86b1-41058757421"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -4796,14 +4813,18 @@ class bitmart extends Exchange {
     public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //     {
-        //         "timestamp" => 1695184410697,
         //         "symbol" => "BTCUSDT",
-        //         "rate_value" => "-0.00002614",
-        //         "expected_rate" => "-0.00002"
+        //         "expected_rate" => "-0.0000238",
+        //         "rate_value" => "0.000009601106",
+        //         "funding_time" => 1761292800000,
+        //         "funding_upper_limit" => "0.0375",
+        //         "funding_lower_limit" => "-0.0375",
+        //         "timestamp" => 1761291544336
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
         $timestamp = $this->safe_integer($contract, 'timestamp');
+        $fundingTimestamp = $this->safe_integer($contract, 'funding_time');
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market),
@@ -4814,8 +4835,8 @@ class bitmart extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $this->safe_number($contract, 'expected_rate'),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
@@ -4876,11 +4897,12 @@ class bitmart extends Exchange {
         return $this->parse_position($first, $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open contract $positions
          *
          * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
          *
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4899,7 +4921,7 @@ class bitmart extends Exchange {
             // only supports $symbols or sending one symbol
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateGetContractPrivatePosition ($this->extend($request, $params));
+        $response = $this->privateGetContractPrivatePositionV2 ($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -5478,6 +5500,69 @@ class bitmart extends Exchange {
             }
         }
         return $addresses;
+    }
+
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a market
+         *
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+         *
+         * @param {bool} $hedged set to true to use dualSidePosition
+         * @param {string} $symbol not used by bingx setPositionMode ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} response from the exchange
+         */
+        $this->load_markets();
+        $positionMode = null;
+        if ($hedged) {
+            $positionMode = 'hedge_mode';
+        } else {
+            $positionMode = 'one_way_mode';
+        }
+        $request = array(
+            'position_mode' => $positionMode,
+        );
+        //
+        // {
+        //     "code" => 1000,
+        //     "trace" => "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message" => "Ok",
+        //     "data" => {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        return $this->privatePostContractPrivateSetPositionMode ($this->extend($request, $params));
+    }
+
+    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        /**
+         * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         *
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+         *
+         * @param {string} $symbol not used
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an object detailing whether the market is in hedged or one-way mode
+         */
+        $response = $this->privateGetContractPrivateGetPositionMode ($params);
+        //
+        // {
+        //     "code" => 1000,
+        //     "trace" => "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message" => "Ok",
+        //     "data" => {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data');
+        $positionMode = $this->safe_string($data, 'position_mode');
+        return array(
+            'info' => $response,
+            'hedged' => ($positionMode === 'hedge_mode'),
+        );
     }
 
     public function nonce() {

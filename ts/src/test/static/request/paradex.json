@@ -53,7 +53,7 @@
             {
                 "description": "fetchTickers",
                 "method": "fetchTickers",
-                "url": "https://api.testnet.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
+                "url": "https://api.testnet.paradex.trade/v1/markets/summary?market=ALL",
                 "input": [
                     [
                         "BTC/USD:USDC"
@@ -413,6 +413,24 @@
                 "url": "https://api.testnet.paradex.trade/v1/account/margin/SOL-USD-PERP",
                 "input": ["cross", "SOL/USD:USDC", {"leverage":10}],
                 "output": "{\"leverage\":10,\"margin_type\":\"CROSS\"}"
+            }
+        ],
+        "fetchGreeks": [
+            {
+                "description": "Fetch greeks for an option symbol",
+                "method": "fetchGreeks",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=BTC-USD-117000-P",
+                "input": [
+                  "BTC/USD:USDC-117000-P"
+                ]
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetch greeks for all markets",
+                "method": "fetchAllGreeks",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": []
             }
         ]
     }

@@ -1,11 +1,13 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var luno$1 = require('../luno.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class luno extends luno$1 {
+class luno extends luno$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -195,17 +197,18 @@ class luno extends luno$1 {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.indexedOrderBook({});
         }
-        const orderbook = this.orderbooks[symbol];
         const asks = this.safeValue(message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            orderbook.reset(snapshot);
+            this.orderbooks[symbol] = this.indexedOrderBook(snapshot);
         }
         else {
-            this.handleDelta(orderbook, message);
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601(timestamp);
+            const ob = this.orderbooks[symbol];
+            this.handleDelta(ob, message);
+            ob['timestamp'] = timestamp;
+            ob['datetime'] = this.iso8601(timestamp);
         }
+        const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger(message, 'sequence');
         orderbook['nonce'] = nonce;
         client.resolve(orderbook, messageHash);
@@ -317,4 +320,4 @@ class luno extends luno$1 {
     }
 }
 
-module.exports = luno;
+exports["default"] = luno;

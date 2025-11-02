@@ -27,6 +27,17 @@ export default class coincatch extends Exchange {
     fetchCurrencies(params?: {}): Promise<Currencies>;
     /**
      * @method
+     * @name coincatch#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
+    /**
+     * @method
      * @name coincatch#fetchMarkets
      * @description retrieves data on all markets for the exchange
      * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
@@ -246,7 +257,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     /**
      * @method
@@ -273,6 +284,7 @@ export default class coincatch extends Exchange {
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] *swap markets only* must be set to true if position mode is hedged (default false)
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.triggerPrice] the price that the order is to be triggered
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -317,6 +329,7 @@ export default class coincatch extends Exchange {
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
      * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
      * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -676,7 +689,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<Leverage>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;

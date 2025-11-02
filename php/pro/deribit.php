@@ -814,7 +814,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->orders, $channel);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1101,7 +1101,8 @@ class deribit extends \ccxt\async\deribit {
             if ($future === null) {
                 $this->check_required_credentials();
                 $requestId = $this->request_id();
-                $signature = $this->hmac($this->encode($timeString . '\n' . $nonce . '\n'), $this->encode($this->secret), 'sha256');
+                $lineBreak = "\n"; // eslint-disable-line quotes
+                $signature = $this->hmac($this->encode($timeString . $lineBreak . $nonce . $lineBreak), $this->encode($this->secret), 'sha256');
                 $request = array(
                     'jsonrpc' => '2.0',
                     'id' => $requestId,

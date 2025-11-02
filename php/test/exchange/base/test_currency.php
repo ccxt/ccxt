@@ -22,9 +22,8 @@ function test_currency($exchange, $skipped_properties, $method, $entry) {
     if ($is_native) {
         $format['info'] = array();
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-        // these two fields are being dynamically added a bit below
-        // format['withdraw'] = true; // withdraw enabled
-        // format['deposit'] = true; // deposit enabled
+        $format['withdraw'] = true; // withdraw enabled
+        $format['deposit'] = true; // deposit enabled
         $format['precision'] = $exchange->parse_number('0.0001'); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
         $format['fee'] = $exchange->parse_number('0.001');
         $format['networks'] = array();
@@ -38,20 +37,30 @@ function test_currency($exchange, $skipped_properties, $method, $entry) {
                 'max' => $exchange->parse_number('1000'),
             ),
         );
-        // todo: format['type'] = 'fiat|crypto'; // after all exchanges have `type` defined, romove "if" check
-        if ($currency_type !== null) {
-            assert_in_array($exchange, $skipped_properties, $method, $entry, 'type', ['fiat', 'crypto', 'leveraged', 'other']);
-        }
+        $format['type'] = 'crypto'; // crypto, fiat, leverage, other
+        assert_in_array($exchange, $skipped_properties, $method, $entry, 'type', ['fiat', 'crypto', 'leveraged', 'other', null]); // todo: remove undefined
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-        if ($currency_type === 'crypto' || !(is_array($skipped_properties) && array_key_exists('depositForNonCrypto', $skipped_properties))) {
-            $format['deposit'] = true;
+        if ($currency_type !== 'crypto' && (is_array($skipped_properties) && array_key_exists('depositForNonCrypto', $skipped_properties))) {
+            $empty_allowed_for[] = 'deposit';
         }
-        if ($currency_type === 'crypto' || !(is_array($skipped_properties) && array_key_exists('withdrawForNonCrypto', $skipped_properties))) {
-            $format['withdraw'] = true;
+        if ($currency_type !== 'crypto' && (is_array($skipped_properties) && array_key_exists('withdrawForNonCrypto', $skipped_properties))) {
+            $empty_allowed_for[] = 'withdraw';
+        }
+        if ($currency_type === 'leveraged' || $currency_type === 'other') {
+            $empty_allowed_for[] = 'precision';
         }
     }
-    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    //
     assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['code']);
+    // check if empty networks should be skipped
+    $networks = $exchange->safe_dict($entry, 'networks', array());
+    $network_keys = is_array($networks) ? array_keys($networks) : array();
+    $network_keys_length = count($network_keys);
+    if ($network_keys_length === 0 && (is_array($skipped_properties) && array_key_exists('skipCurrenciesWithoutNetworks', $skipped_properties))) {
+        return;
+    }
+    //
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
     //
     check_precision_accuracy($exchange, $skipped_properties, $method, $entry, 'precision');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'fee', '0');

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var mexc$1 = require('./abstract/mexc.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class mexc
  * @augments Exchange
  */
-class mexc extends mexc$1 {
+class mexc extends mexc$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'mexc',
@@ -230,6 +232,7 @@ class mexc extends mexc$1 {
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                             'selfSymbols': 1,
+                            'asset/internal/transfer/record': 10,
                         },
                         'post': {
                             'order': 1,
@@ -434,6 +437,7 @@ class mexc extends mexc$1 {
                         },
                     },
                 },
+                'useCcxtTradeId': true,
                 'timeframes': {
                     'spot': {
                         '1m': '1m',
@@ -472,6 +476,12 @@ class mexc extends mexc$1 {
                     'ZKSYNC': 'ZKSYNCERA',
                     'TRC20': 'TRX',
                     'TON': 'TONCOIN',
+                    'ARBITRUM': 'ARB',
+                    'STX': 'STACKS',
+                    'LUNC': 'LUNA',
+                    'STARK': 'STARKNET',
+                    'APT': 'APTOS',
+                    'PEAQ': 'PEAQEVM',
                     'AVAXC': 'AVAX_CCHAIN',
                     'ERC20': 'ETH',
                     'ACA': 'ACALA',
@@ -501,6 +511,7 @@ class mexc extends mexc$1 {
                     // 'DNX': 'Dynex(DNX)',
                     // 'DOGE': 'Dogecoin(DOGE)',
                     // 'DOT': 'Polkadot(DOT)',
+                    'DOT': 'DOTASSETHUB',
                     // 'DYM': 'Dymension(DYM)',
                     'ETHF': 'ETF',
                     'HRC20': 'HECO',
@@ -658,6 +669,7 @@ class mexc extends mexc$1 {
                     'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
+                    'Ethereum(ERC20)': 'ERC20',
                     // TODO: uncomment below after deciding unified name
                     // 'PEPE COIN BSC':
                     // 'SMART BLOCKCHAIN':
@@ -752,6 +764,9 @@ class mexc extends mexc$1 {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'forDerivs': {
                     'extends': 'default',
@@ -840,6 +855,7 @@ class mexc extends mexc$1 {
                 'PROS': 'PROSFINANCE',
                 'SIN': 'SINCITYTOKEN',
                 'SOUL': 'SOULSWAP',
+                'XBT': 'XBT', // restore original mapping
             },
             'exceptions': {
                 'exact': {
@@ -1041,7 +1057,7 @@ class mexc extends mexc$1 {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         const response = await this.spotPrivateGetCapitalConfigGetall(params);
         //
@@ -1087,88 +1103,49 @@ class mexc extends mexc$1 {
             const currency = response[i];
             const id = this.safeString(currency, 'coin');
             const code = this.safeCurrencyCode(id);
-            const name = this.safeString(currency, 'name');
-            let currencyActive = false;
-            let currencyFee = undefined;
-            let currencyWithdrawMin = undefined;
-            let currencyWithdrawMax = undefined;
-            let depositEnabled = false;
-            let withdrawEnabled = false;
             const networks = {};
             const chains = this.safeValue(currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString2(chain, 'netWork', 'network');
                 const network = this.networkIdToCode(networkId);
-                const isDepositEnabled = this.safeBool(chain, 'depositEnable', false);
-                const isWithdrawEnabled = this.safeBool(chain, 'withdrawEnable', false);
-                const active = (isDepositEnabled && isWithdrawEnabled);
-                currencyActive = active || currencyActive;
-                const withdrawMin = this.safeString(chain, 'withdrawMin');
-                const withdrawMax = this.safeString(chain, 'withdrawMax');
-                currencyWithdrawMin = (currencyWithdrawMin === undefined) ? withdrawMin : currencyWithdrawMin;
-                currencyWithdrawMax = (currencyWithdrawMax === undefined) ? withdrawMax : currencyWithdrawMax;
-                const fee = this.safeNumber(chain, 'withdrawFee');
-                currencyFee = (currencyFee === undefined) ? fee : currencyFee;
-                if (Precise["default"].stringGt(currencyWithdrawMin, withdrawMin)) {
-                    currencyWithdrawMin = withdrawMin;
-                }
-                if (Precise["default"].stringLt(currencyWithdrawMax, withdrawMax)) {
-                    currencyWithdrawMax = withdrawMax;
-                }
-                if (isDepositEnabled) {
-                    depositEnabled = true;
-                }
-                if (isWithdrawEnabled) {
-                    withdrawEnabled = true;
-                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
-                    'active': active,
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
-                    'fee': fee,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'depositEnable', false),
+                    'withdraw': this.safeBool(chain, 'withdrawEnable', false),
+                    'fee': this.safeNumber(chain, 'withdrawFee'),
                     'precision': undefined,
                     'limits': {
                         'withdraw': {
-                            'min': withdrawMin,
-                            'max': withdrawMax,
+                            'min': this.safeString(chain, 'withdrawMin'),
+                            'max': this.safeString(chain, 'withdrawMax'),
                         },
                     },
+                    'contract': this.safeString(chain, 'contract'),
                 };
             }
-            const networkKeys = Object.keys(networks);
-            const networkKeysLength = networkKeys.length;
-            if ((networkKeysLength === 1) || ('NONE' in networks)) {
-                const defaultNetwork = this.safeValue2(networks, 'NONE', networkKeysLength - 1);
-                if (defaultNetwork !== undefined) {
-                    currencyFee = defaultNetwork['fee'];
-                }
-            }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'id': id,
                 'code': code,
-                'name': name,
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': currencyFee,
+                'name': this.safeString(currency, 'name'),
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
                 'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': currencyWithdrawMin,
-                        'max': currencyWithdrawMax,
-                    },
                 },
+                'type': 'crypto',
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -1752,8 +1729,8 @@ class mexc extends mexc$1 {
                 }
             }
         }
-        if (id === undefined) {
-            id = this.syntheticTradeId(market, timestamp, side, amountString, priceString, type, takerOrMaker);
+        if (id === undefined && this.safeBool(this.options, 'useCcxtTradeId', true)) {
+            id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
         }
         return this.safeTrade({
             'id': id,
@@ -1770,29 +1747,6 @@ class mexc extends mexc$1 {
             'fee': fee,
             'info': trade,
         }, market);
-    }
-    syntheticTradeId(market = undefined, timestamp = undefined, side = undefined, amount = undefined, price = undefined, orderType = undefined, takerOrMaker = undefined) {
-        // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
-        let id = '';
-        if (timestamp !== undefined) {
-            id = this.numberToString(timestamp) + '-' + this.safeString(market, 'id', '_');
-            if (side !== undefined) {
-                id += '-' + side;
-            }
-            if (amount !== undefined) {
-                id += '-' + this.numberToString(amount);
-            }
-            if (price !== undefined) {
-                id += '-' + this.numberToString(price);
-            }
-            if (takerOrMaker !== undefined) {
-                id += '-' + takerOrMaker;
-            }
-            if (orderType !== undefined) {
-                id += '-' + orderType;
-            }
-        }
-        return id;
     }
     /**
      * @method
@@ -3425,13 +3379,27 @@ class mexc extends mexc$1 {
     }
     parseOrder(order, market = undefined) {
         //
-        // spot: createOrder
+        // spot
+        //    createOrder
         //
-        //     {
+        //    {
+        //        "symbol": "FARTCOINUSDT",
+        //        "orderId": "C02__342252993005723644225",
+        //        "orderListId": "-1",
+        //        "price": "1.1",
+        //        "origQty": "6.3",
+        //        "type": "IMMEDIATE_OR_CANCEL",
+        //        "side": "SELL",
+        //        "transactTime": "1745852205223"
+        //    }
+        //
+        //    unknown endpoint on spot
+        //
+        //    {
         //         "symbol": "BTCUSDT",
         //         "orderId": "123738410679123456",
         //         "orderListId": -1
-        //     }
+        //    }
         //
         // margin: createOrder
         //
@@ -3596,6 +3564,11 @@ class mexc extends mexc$1 {
         else {
             id = this.safeString2(order, 'orderId', 'id');
         }
+        let timeInForce = this.parseOrderTimeInForce(this.safeString(order, 'timeInForce'));
+        const typeRaw = this.safeString(order, 'type');
+        if (timeInForce === undefined) {
+            timeInForce = this.getTifFromRawOrderType(typeRaw);
+        }
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeIntegerN(order, ['time', 'createTime', 'transactTime']);
@@ -3616,10 +3589,11 @@ class mexc extends mexc$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(order, 'updateTime'),
             'status': this.parseOrderStatus(this.safeString2(order, 'status', 'state')),
             'symbol': market['symbol'],
-            'type': this.parseOrderType(this.safeString(order, 'type')),
-            'timeInForce': this.parseOrderTimeInForce(this.safeString(order, 'timeInForce')),
+            'type': this.parseOrderType(typeRaw),
+            'timeInForce': timeInForce,
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.safeNumber(order, 'price'),
             'triggerPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
@@ -3648,6 +3622,9 @@ class mexc extends mexc$1 {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
+            // on spot, during submission below types are used only accepted as limit order
+            'IMMEDIATE_OR_CANCEL': 'limit',
+            'FILL_OR_KILL': 'limit',
         };
         return this.safeString(statuses, status, status);
     }
@@ -3674,6 +3651,16 @@ class mexc extends mexc$1 {
             'IOC': 'IOC',
         };
         return this.safeString(statuses, status, status);
+    }
+    getTifFromRawOrderType(orderType = undefined) {
+        const statuses = {
+            'LIMIT': 'GTC',
+            'LIMIT_MAKER': 'POST_ONLY',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'MARKET': 'IOC',
+        };
+        return this.safeString(statuses, orderType, orderType);
     }
     async fetchAccountHelper(type, params) {
         if (type === 'spot') {
@@ -4893,11 +4880,14 @@ class mexc extends mexc$1 {
         //         "network": "TRX",
         //         "status": "5",
         //         "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
         //         "insertTime": "1664805021000",
         //         "unlockConfirm": "200",
         //         "confirmTimes": "203",
-        //         "memo": "xxyy1122"
+        //         "memo": "xxyy1122",
+        //         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //         "updateTime": "1664805621000",
+        //         "netWork: "TRX"
         //     }
         // ]
         //
@@ -4942,7 +4932,7 @@ class mexc extends mexc$1 {
         // [
         //     {
         //       "id": "adcd1c8322154de691b815eedcd10c42",
-        //       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
         //       "coin": "USDC-MATIC",
         //       "network": "MATIC",
         //       "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4953,7 +4943,11 @@ class mexc extends mexc$1 {
         //       "confirmNo": null,
         //       "applyTime": "1664882739000",
         //       "remark": '',
-        //       "memo": null
+        //       "memo": null,
+        //       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "updateTime": "1664882799000",
+        //       "netWork: "MATIC"
         //     }
         // ]
         //
@@ -4969,18 +4963,21 @@ class mexc extends mexc$1 {
         //     "network": "TRX",
         //     "status": "5",
         //     "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
         //     "insertTime": "1664805021000",
         //     "unlockConfirm": "200",
         //     "confirmTimes": "203",
-        //     "memo": "xxyy1122"
+        //     "memo": "xxyy1122",
+        //     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "updateTime": "1664805621000",
+        //     "netWork: "TRX"
         // }
         //
         // fetchWithdrawals
         //
         // {
         //     "id": "adcd1c8322154de691b815eedcd10c42",
-        //     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
         //     "coin": "USDC-MATIC",
         //     "network": "MATIC",
         //     "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4990,8 +4987,12 @@ class mexc extends mexc$1 {
         //     "transactionFee": "1",
         //     "confirmNo": null,
         //     "applyTime": "1664882739000",
-        //     "remark": '',
-        //     "memo": null
+        //     "remark": "",
+        //     "memo": null,
+        //     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "updateTime": "1664882799000",
+        //     "netWork: "MATIC"
         //   }
         //
         // withdraw
@@ -5000,9 +5001,16 @@ class mexc extends mexc$1 {
         //         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        const id = this.safeString(transaction, 'id');
+        // internal withdraw (aka internal-transfer)
+        //
+        //     {
+        //         "tranId":"ad36f0e9c9a24ae794b36fa4f152e471"
+        //     }
+        //
+        const id = this.safeString2(transaction, 'id', 'tranId');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         const timestamp = this.safeInteger2(transaction, 'insertTime', 'applyTime');
+        const updated = this.safeInteger(transaction, 'updateTime');
         let currencyId = undefined;
         const currencyWithNetwork = this.safeString(transaction, 'coin');
         if (currencyWithNetwork !== undefined) {
@@ -5017,7 +5025,7 @@ class mexc extends mexc$1 {
         const status = this.parseTransactionStatusByType(this.safeString(transaction, 'status'), type);
         let amountString = this.safeString(transaction, 'amount');
         const address = this.safeString(transaction, 'address');
-        const txid = this.safeString(transaction, 'txId');
+        const txid = this.safeString2(transaction, 'transHash', 'txId');
         let fee = undefined;
         const feeCostString = this.safeString(transaction, 'transactionFee');
         if (feeCostString !== undefined) {
@@ -5047,8 +5055,8 @@ class mexc extends mexc$1 {
             'amount': this.parseNumber(amountString),
             'currency': code,
             'status': status,
-            'updated': undefined,
-            'comment': undefined,
+            'updated': updated,
+            'comment': this.safeString(transaction, 'remark'),
             'internal': undefined,
             'fee': fee,
         };
@@ -5204,7 +5212,7 @@ class mexc extends mexc$1 {
         //        positionShowStatus: 'CLOSED'
         //    }
         //
-        market = this.safeMarket(this.safeString(position, 'symbol'), market);
+        market = this.safeMarket(this.safeString(position, 'symbol'), market, undefined, 'swap');
         const symbol = market['symbol'];
         const contracts = this.safeString(position, 'holdVol');
         const entryPrice = this.safeNumber(position, 'openAvgPrice');
@@ -5263,7 +5271,7 @@ class mexc extends mexc$1 {
             const request = {
                 'transact_id': id,
             };
-            const response = await this.spot2PrivateGetAssetInternalTransferInfo(this.extend(request, query));
+            const response = await this.spotPrivateGetAssetInternalTransferRecord(this.extend(request, query));
             //
             //     {
             //         "code": "200",
@@ -5291,60 +5299,84 @@ class mexc extends mexc$1 {
      * @description fetch a history of internal transfers made on an account
      * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-     * @param {string} code unified currency code of the currency transferred
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} code unified currency code of the currency transferred
+     * @param code
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.fromAccountType] 'SPOT' for spot wallet, 'FUTURES' for contract wallet
+     * @param {string} [params.toAccountType] 'SPOT' for spot wallet, 'FUTURES' for contract wallet
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchTransfers', undefined, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTransfers', undefined, params);
         await this.loadMarkets();
         const request = {};
         let currency = undefined;
-        let resultList = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['currency'] = currency['id'];
         }
+        let fromAccountType = undefined;
+        [fromAccountType, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'fromAccountType');
+        const accountTypes = {
+            'spot': 'SPOT',
+            'swap': 'FUTURES',
+            'futures': 'FUTURES',
+            'future': 'FUTURES',
+            'margin': 'SPOT',
+        };
+        if (fromAccountType !== undefined) {
+            request['fromAccountType'] = this.safeString(accountTypes, fromAccountType, fromAccountType);
+        }
+        else {
+            throw new errors.ArgumentsRequired(this.id + ' fetchTransfers() requires a fromAccountType parameter, one of "SPOT", "FUTURES"');
+        }
+        let toAccountType = undefined;
+        [toAccountType, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'toAccountType');
+        if (toAccountType !== undefined) {
+            request['toAccountType'] = this.safeString(accountTypes, toAccountType, toAccountType);
+        }
+        else {
+            throw new errors.ArgumentsRequired(this.id + ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"');
+        }
+        let resultList = [];
         if (marketType === 'spot') {
             if (since !== undefined) {
-                request['start_time'] = since;
+                request['startTime'] = since;
             }
             if (limit !== undefined) {
-                if (limit > 50) {
+                if (limit > 100) {
                     throw new errors.ExchangeError('This exchange supports a maximum limit of 50');
                 }
-                request['page-size'] = limit;
+                request['size'] = limit;
             }
-            const response = await this.spot2PrivateGetAssetInternalTransferRecord(this.extend(request, query));
+            const response = await this.spotPrivateGetCapitalTransfer(this.extend(request, params));
             //
-            //     {
-            //         "code": "200",
-            //         "data": {
-            //             "total_page": "1",
-            //             "total_size": "5",
-            //             "result_list": [{
-            //                     "currency": "USDT",
-            //                     "amount": "1",
-            //                     "transact_id": "954877a2ef54499db9b28a7cf9ebcf41",
-            //                     "from": "MAIN",
-            //                     "to": "CONTRACT",
-            //                     "transact_state": "SUCCESS"
-            //                 },
-            //                 ...
-            //             ]
+            //
+            // {
+            //     "rows": [
+            //         {
+            //         "tranId": "cdf0d2a618b5458c965baefe6b1d0859",
+            //         "clientTranId": null,
+            //         "asset": "USDT",
+            //         "amount": "1",
+            //         "fromAccountType": "FUTURES",
+            //         "toAccountType": "SPOT",
+            //         "symbol": null,
+            //         "status": "SUCCESS",
+            //         "timestamp": 1759328309000
             //         }
-            //     }
-            //
-            const data = this.safeValue(response, 'data', {});
-            resultList = this.safeValue(data, 'result_list', []);
+            //     ],
+            //     "total": 1
+            // }
+            resultList = this.safeList(response, 'rows', []);
         }
         else if (marketType === 'swap') {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            const response = await this.contractPrivateGetAccountTransferRecord(this.extend(request, query));
+            const response = await this.contractPrivateGetAccountTransferRecord(this.extend(request, params));
             const data = this.safeValue(response, 'data');
             resultList = this.safeValue(data, 'resultList');
             //
@@ -5393,10 +5425,10 @@ class mexc extends mexc$1 {
         const accounts = {
             'spot': 'SPOT',
             'swap': 'FUTURES',
-            'margin': 'ISOLATED_MARGIN',
+            'future': 'FUTURES',
         };
-        const fromId = this.safeString(accounts, fromAccount);
-        const toId = this.safeString(accounts, toAccount);
+        const fromId = this.safeString(accounts, fromAccount, fromAccount);
+        const toId = this.safeString(accounts, toAccount, toAccount);
         if (fromId === undefined) {
             const keys = Object.keys(accounts);
             throw new errors.ExchangeError(this.id + ' fromAccount must be one of ' + keys.join(', '));
@@ -5458,6 +5490,17 @@ class mexc extends mexc$1 {
         //         "createTime": "1648849076000",
         //         "updateTime": "1648849076000"
         //     }
+        //         {
+        //         "tranId": "cdf0d2a618b5458c965baefe6b1d0859",
+        //         "clientTranId": null,
+        //         "asset": "USDT",
+        //         "amount": "1",
+        //         "fromAccountType": "FUTURES",
+        //         "toAccountType": "SPOT",
+        //         "symbol": null,
+        //         "status": "SUCCESS",
+        //         "timestamp": 1759328309000
+        //         }
         //
         // transfer
         //
@@ -5465,14 +5508,20 @@ class mexc extends mexc$1 {
         //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
-        const currencyId = this.safeString(transfer, 'currency');
+        const currencyId = this.safeString2(transfer, 'currency', 'asset');
         const id = this.safeStringN(transfer, ['transact_id', 'txid', 'tranId']);
-        const timestamp = this.safeInteger(transfer, 'createTime');
+        const timestamp = this.safeInteger2(transfer, 'createTime', 'timestamp');
         const datetime = (timestamp !== undefined) ? this.iso8601(timestamp) : undefined;
         const direction = this.safeString(transfer, 'type');
         let accountFrom = undefined;
         let accountTo = undefined;
-        if (direction !== undefined) {
+        const fromAccountType = this.safeString(transfer, 'fromAccountType');
+        const toAccountType = this.safeString(transfer, 'toAccountType');
+        if ((fromAccountType !== undefined) && (toAccountType !== undefined)) {
+            accountFrom = fromAccountType;
+            accountTo = toAccountType;
+        }
+        else if (direction !== undefined) {
             accountFrom = (direction === 'IN') ? 'MAIN' : 'CONTRACT';
             accountTo = (direction === 'IN') ? 'CONTRACT' : 'MAIN';
         }
@@ -5489,11 +5538,13 @@ class mexc extends mexc$1 {
             'amount': this.safeNumber(transfer, 'amount'),
             'fromAccount': this.parseAccountId(accountFrom),
             'toAccount': this.parseAccountId(accountTo),
-            'status': this.parseTransferStatus(this.safeString2(transfer, 'transact_state', 'state')),
+            'status': this.parseTransferStatus(this.safeStringN(transfer, ['transact_state', 'state', 'status'])),
         };
     }
     parseAccountId(status) {
         const statuses = {
+            'SPOT': 'spot',
+            'FUTURES': 'swap',
             'MAIN': 'spot',
             'CONTRACT': 'swap',
         };
@@ -5512,17 +5563,40 @@ class mexc extends mexc$1 {
      * @name mexc#withdraw
      * @description make a withdrawal
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.internal] false by default, set to true for an "internal transfer"
+     * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets();
         const currency = this.currency(code);
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const internal = this.safeBool(params, 'internal', false);
+        if (internal) {
+            params = this.omit(params, 'internal');
+            const requestForInternal = {
+                'asset': currency['id'],
+                'amount': amount,
+                'toAccount': address,
+            };
+            const toAccountType = this.safeString(params, 'toAccountType');
+            if (toAccountType === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE');
+            }
+            const responseForInternal = await this.spotPrivatePostCapitalTransferInternal(this.extend(requestForInternal, params));
+            //
+            //     {
+            //       "id":"7213fea8e94b4a5593d507237e5a555b"
+            //     }
+            //
+            return this.parseTransaction(responseForInternal, currency);
+        }
         const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeString2(params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
@@ -5988,7 +6062,7 @@ class mexc extends mexc$1 {
         //
         // { success: true, code: '0' }
         //
-        return this.parseLeverage(response, market);
+        return this.parseLeverage(response, market); // tmp revert type
     }
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
@@ -6102,4 +6176,4 @@ class mexc extends mexc$1 {
     }
 }
 
-module.exports = mexc;
+exports["default"] = mexc;

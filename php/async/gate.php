@@ -62,14 +62,24 @@ class gate extends Exchange {
                 ),
                 'test' => array(
                     'public' => array(
-                        'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures' => 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery' => 'https://api-testnet.gateapi.io/api/v4',
+                        'options' => 'https://api-testnet.gateapi.io/api/v4',
+                        'spot' => 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet' => 'https://api-testnet.gateapi.io/api/v4',
+                        'margin' => 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts' => 'https://api-testnet.gateapi.io/api/v4',
+                        'account' => 'https://api-testnet.gateapi.io/api/v4',
                     ),
                     'private' => array(
-                        'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures' => 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery' => 'https://api-testnet.gateapi.io/api/v4',
+                        'options' => 'https://api-testnet.gateapi.io/api/v4',
+                        'spot' => 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet' => 'https://api-testnet.gateapi.io/api/v4',
+                        'margin' => 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts' => 'https://api-testnet.gateapi.io/api/v4',
+                        'account' => 'https://api-testnet.gateapi.io/api/v4',
                     ),
                 ),
                 'referral' => array(
@@ -116,7 +126,7 @@ class gate extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
-                'fetchDepositAddressesByNetwork' => false,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
@@ -186,6 +196,12 @@ class gate extends Exchange {
                             'currency_chains' => 1,
                         ),
                     ),
+                    'unified' => array(
+                        'get' => array(
+                            'currencies' => 1,
+                            'history_loan_rate' => 1,
+                        ),
+                    ),
                     'spot' => array(
                         'get' => array(
                             'currencies' => 1,
@@ -197,22 +213,25 @@ class gate extends Exchange {
                             'trades' => 1,
                             'candlesticks' => 1,
                             'time' => 1,
+                            'insurance_history' => 1,
                         ),
                     ),
                     'margin' => array(
                         'get' => array(
-                            'currency_pairs' => 1,
-                            'currency_pairs/{currency_pair}' => 1,
-                            'funding_book' => 1,
-                            'cross/currencies' => 1,
-                            'cross/currencies/{currency}' => 1,
                             'uni/currency_pairs' => 1,
                             'uni/currency_pairs/{currency_pair}' => 1,
+                            'loan_margin_tiers' => 1,
+                            'currency_pairs' => 1, // deprecated
+                            'currency_pairs/{currency_pair}' => 1, // deprecated
+                            'funding_book' => 1, // deprecated
+                            'cross/currencies' => 1, // deprecated
+                            'cross/currencies/{currency}' => 1, // deprecated
                         ),
                     ),
                     'flash_swap' => array(
                         'get' => array(
-                            'currencies' => 1,
+                            'currency_pairs' => 1,
+                            'currencies' => 1, // deprecated
                         ),
                     ),
                     'futures' => array(
@@ -241,6 +260,7 @@ class gate extends Exchange {
                             '{settle}/candlesticks' => 1,
                             '{settle}/tickers' => 1,
                             '{settle}/insurance' => 1,
+                            '{settle}/risk_limit_tiers' => 1,
                         ),
                     ),
                     'options' => array(
@@ -263,6 +283,17 @@ class gate extends Exchange {
                         'get' => array(
                             'uni/currencies' => 1,
                             'uni/currencies/{currency}' => 1,
+                            'dual/investment_plan' => 1,
+                            'structured/products' => 1,
+                        ),
+                    ),
+                    'loan' => array(
+                        'get' => array(
+                            'collateral/currencies' => 1,
+                            'multi_collateral/currencies' => 1,
+                            'multi_collateral/ltv' => 1,
+                            'multi_collateral/fixed_rate' => 1,
+                            'multi_collateral/current_rate' => 1,
                         ),
                     ),
                 ),
@@ -326,25 +357,28 @@ class gate extends Exchange {
                     'unified' => array(
                         'get' => array(
                             'accounts' => 20 / 15,
-                            'account_mode' => 20 / 15,
                             'borrowable' => 20 / 15,
                             'transferable' => 20 / 15,
+                            'transferables' => 20 / 15,
+                            'batch_borrowable' => 20 / 15,
                             'loans' => 20 / 15,
                             'loan_records' => 20 / 15,
                             'interest_records' => 20 / 15,
-                            'estimate_rate' => 20 / 15,
-                            'currency_discount_tiers' => 20 / 15,
                             'risk_units' => 20 / 15,
                             'unified_mode' => 20 / 15,
+                            'estimate_rate' => 20 / 15,
+                            'currency_discount_tiers' => 20 / 15,
                             'loan_margin_tiers' => 20 / 15,
                             'leverage/user_currency_config' => 20 / 15,
                             'leverage/user_currency_setting' => 20 / 15,
+                            'account_mode' => 20 / 15, // deprecated
                         ),
                         'post' => array(
-                            'account_mode' => 20 / 15,
                             'loans' => 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
                             'portfolio_calculator' => 20 / 15,
                             'leverage/user_currency_setting' => 20 / 15,
+                            'collateral_currencies' => 20 / 15,
+                            'account_mode' => 20 / 15, // deprecated
                         ),
                         'put' => array(
                             'unified_mode' => 20 / 15,
@@ -390,48 +424,49 @@ class gate extends Exchange {
                             'funding_accounts' => 20 / 15,
                             'auto_repay' => 20 / 15,
                             'transferable' => 20 / 15,
-                            'loans' => 20 / 15,
-                            'loans/{loan_id}' => 20 / 15,
-                            'loans/{loan_id}/repayment' => 20 / 15,
-                            'loan_records' => 20 / 15,
-                            'loan_records/{loan_record_id}' => 20 / 15,
-                            'borrowable' => 20 / 15,
-                            'cross/accounts' => 20 / 15,
-                            'cross/account_book' => 20 / 15,
-                            'cross/loans' => 20 / 15,
-                            'cross/loans/{loan_id}' => 20 / 15,
-                            'cross/repayments' => 20 / 15,
-                            'cross/interest_records' => 20 / 15,
-                            'cross/transferable' => 20 / 15,
-                            'cross/estimate_rate' => 20 / 15,
-                            'cross/borrowable' => 20 / 15,
                             'uni/estimate_rate' => 20 / 15,
                             'uni/loans' => 20 / 15,
                             'uni/loan_records' => 20 / 15,
                             'uni/interest_records' => 20 / 15,
                             'uni/borrowable' => 20 / 15,
+                            'user/loan_margin_tiers' => 20 / 15,
+                            'user/account' => 20 / 15,
+                            'loans' => 20 / 15, // deprecated
+                            'loans/{loan_id}' => 20 / 15, // deprecated
+                            'loans/{loan_id}/repayment' => 20 / 15, // deprecated
+                            'loan_records' => 20 / 15, // deprecated
+                            'loan_records/{loan_record_id}' => 20 / 15, // deprecated
+                            'borrowable' => 20 / 15, // deprecated
+                            'cross/accounts' => 20 / 15, // deprecated
+                            'cross/account_book' => 20 / 15, // deprecated
+                            'cross/loans' => 20 / 15, // deprecated
+                            'cross/loans/{loan_id}' => 20 / 15, // deprecated
+                            'cross/repayments' => 20 / 15, // deprecated
+                            'cross/interest_records' => 20 / 15, // deprecated
+                            'cross/transferable' => 20 / 15, // deprecated
+                            'cross/estimate_rate' => 20 / 15, // deprecated
+                            'cross/borrowable' => 20 / 15, // deprecated
                         ),
                         'post' => array(
                             'auto_repay' => 20 / 15,
-                            'loans' => 20 / 15,
-                            'merged_loans' => 20 / 15,
-                            'loans/{loan_id}/repayment' => 20 / 15,
-                            'cross/loans' => 20 / 15,
-                            'cross/repayments' => 20 / 15,
                             'uni/loans' => 20 / 15,
+                            'leverage/user_market_setting' => 20 / 15,
+                            'loans' => 20 / 15, // deprecated
+                            'merged_loans' => 20 / 15, // deprecated
+                            'loans/{loan_id}/repayment' => 20 / 15, // deprecated
+                            'cross/loans' => 20 / 15, // deprecated
+                            'cross/repayments' => 20 / 15, // deprecated
                         ),
                         'patch' => array(
-                            'loans/{loan_id}' => 20 / 15,
-                            'loan_records/{loan_record_id}' => 20 / 15,
+                            'loans/{loan_id}' => 20 / 15, // deprecated
+                            'loan_records/{loan_record_id}' => 20 / 15, // deprecated
                         ),
                         'delete' => array(
-                            'loans/{loan_id}' => 20 / 15,
+                            'loans/{loan_id}' => 20 / 15, // deprecated
                         ),
                     ),
                     'flash_swap' => array(
                         'get' => array(
-                            'currencies' => 1,
-                            'currency_pairs' => 1,
                             'orders' => 1,
                             'orders/{order_id}' => 1,
                         ),
@@ -456,7 +491,7 @@ class gate extends Exchange {
                             '{settle}/liquidates' => 1,
                             '{settle}/auto_deleverages' => 1,
                             '{settle}/fee' => 1,
-                            '{settle}/risk_limit_tiers' => 1,
+                            '{settle}/risk_limit_table' => 1,
                             '{settle}/price_orders' => 1,
                             '{settle}/price_orders/{order_id}' => 1,
                         ),
@@ -464,6 +499,8 @@ class gate extends Exchange {
                             '{settle}/positions/{contract}/margin' => 1,
                             '{settle}/positions/{contract}/leverage' => 1,
                             '{settle}/positions/{contract}/risk_limit' => 1,
+                            '{settle}/positions/cross_mode' => 1,
+                            '{settle}/dual_comp/positions/cross_mode' => 1,
                             '{settle}/dual_mode' => 1,
                             '{settle}/dual_comp/positions/{contract}/margin' => 1,
                             '{settle}/dual_comp/positions/{contract}/leverage' => 1,
@@ -472,6 +509,8 @@ class gate extends Exchange {
                             '{settle}/batch_orders' => 0.4,
                             '{settle}/countdown_cancel_all' => 0.4,
                             '{settle}/batch_cancel_orders' => 0.4,
+                            '{settle}/batch_amend_orders' => 0.4,
+                            '{settle}/bbo_orders' => 0.4,
                             '{settle}/price_orders' => 0.4,
                         ),
                         'put' => array(
@@ -539,19 +578,32 @@ class gate extends Exchange {
                     ),
                     'earn' => array(
                         'get' => array(
-                            'uni/currencies' => 20 / 15,
-                            'uni/currencies/{currency}' => 20 / 15,
                             'uni/lends' => 20 / 15,
                             'uni/lend_records' => 20 / 15,
                             'uni/interests/{currency}' => 20 / 15,
                             'uni/interest_records' => 20 / 15,
                             'uni/interest_status/{currency}' => 20 / 15,
+                            'uni/chart' => 20 / 15,
+                            'uni/rate' => 20 / 15,
+                            'staking/eth2/rate_records' => 20 / 15,
+                            'dual/orders' => 20 / 15,
+                            'structured/orders' => 20 / 15,
+                            'staking/coins' => 20 / 15,
+                            'staking/order_list' => 20 / 15,
+                            'staking/award_list' => 20 / 15,
+                            'staking/assets' => 20 / 15,
+                            'uni/currencies' => 20 / 15, // deprecated
+                            'uni/currencies/{currency}' => 20 / 15, // deprecated
                         ),
                         'post' => array(
                             'uni/lends' => 20 / 15,
+                            'staking/eth2/swap' => 20 / 15,
+                            'dual/orders' => 20 / 15,
+                            'structured/orders' => 20 / 15,
+                            'staking/swap' => 20 / 15,
                         ),
                         'put' => array(
-                            'uni/interest_reinvest' => 20 / 15,
+                            'uni/interest_reinvest' => 20 / 15, // deprecated
                         ),
                         'patch' => array(
                             'uni/lends' => 20 / 15,
@@ -565,16 +617,16 @@ class gate extends Exchange {
                             'collateral/collaterals' => 20 / 15,
                             'collateral/total_amount' => 20 / 15,
                             'collateral/ltv' => 20 / 15,
-                            'collateral/currencies' => 20 / 15,
                             'multi_collateral/orders' => 20 / 15,
                             'multi_collateral/orders/{order_id}' => 20 / 15,
                             'multi_collateral/repay' => 20 / 15,
                             'multi_collateral/mortgage' => 20 / 15,
                             'multi_collateral/currency_quota' => 20 / 15,
-                            'multi_collateral/currencies' => 20 / 15,
-                            'multi_collateral/ltv' => 20 / 15,
-                            'multi_collateral/fixed_rate' => 20 / 15,
-                            'multi_collateral/current_rate' => 20 / 15,
+                            'collateral/currencies' => 20 / 15, // deprecated
+                            'multi_collateral/currencies' => 20 / 15, // deprecated
+                            'multi_collateral/ltv' => 20 / 15, // deprecated
+                            'multi_collateral/fixed_rate' => 20 / 15, // deprecated
+                            'multi_collateral/current_rate' => 20 / 15, // deprecated
                         ),
                         'post' => array(
                             'collateral/orders' => 20 / 15,
@@ -588,14 +640,17 @@ class gate extends Exchange {
                     'account' => array(
                         'get' => array(
                             'detail' => 20 / 15,
+                            'main_keys' => 20 / 15,
                             'rate_limit' => 20 / 15,
                             'stp_groups' => 20 / 15,
                             'stp_groups/{stp_id}/users' => 20 / 15,
                             'stp_groups/debit_fee' => 20 / 15,
+                            'debit_fee' => 20 / 15,
                         ),
                         'post' => array(
                             'stp_groups' => 20 / 15,
                             'stp_groups/{stp_id}/users' => 20 / 15,
+                            'debit_fee' => 20 / 15,
                         ),
                         'delete' => array(
                             'stp_groups/{stp_id}/users' => 20 / 15,
@@ -605,6 +660,13 @@ class gate extends Exchange {
                         'get' => array(
                             'agency/transaction_history' => 20 / 15,
                             'agency/commission_history' => 20 / 15,
+                            'partner/transaction_history' => 20 / 15,
+                            'partner/commission_history' => 20 / 15,
+                            'partner/sub_list' => 20 / 15,
+                            'broker/commission_history' => 20 / 15,
+                            'broker/transaction_history' => 20 / 15,
+                            'user/info' => 20 / 15,
+                            'user/sub_relation' => 20 / 15,
                         ),
                     ),
                 ),
@@ -675,9 +737,7 @@ class gate extends Exchange {
                     'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'SOL' => 'SOL',
-                    'POLYGON' => 'POL',
-                    'MATIC' => 'POL',
-                    'OP' => 'OPETH',
+                    'MATIC' => 'MATIC',
                     'OPTIMISM' => 'OPETH',
                     'ADA' => 'ADA', // CARDANO
                     'AVAXC' => 'AVAX_C',
@@ -725,6 +785,16 @@ class gate extends Exchange {
                 ),
                 'networksById' => array(
                     'OPETH' => 'OP',
+                    'ETH' => 'ERC20', // for GOlang
+                    'ERC20' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'TRC20' => 'TRC20',
+                    'HT' => 'HRC20',
+                    'HECO' => 'HRC20',
+                    'BSC' => 'BEP20',
+                    'BEP20' => 'BEP20',
+                    'POLYGON' => 'MATIC',
+                    'POL' => 'MATIC',
                 ),
                 'timeInForce' => array(
                     'GTC' => 'gtc',
@@ -746,6 +816,9 @@ class gate extends Exchange {
                     'delivery' => 'delivery',
                     'option' => 'options',
                     'options' => 'options',
+                ),
+                'fetchMarkets' => array(
+                    'types' => array( 'spot', 'swap', 'future', 'option' ),
                 ),
                 'swap' => array(
                     'fetchMarkets' => array(
@@ -1219,7 +1292,7 @@ class gate extends Exchange {
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * retrieves data on all $markets for gate
+             * retrieves data on all markets for gate
              *
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     // spot
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
@@ -1233,22 +1306,29 @@ class gate extends Exchange {
             if ($this->options['adjustForTimeDifference']) {
                 Async\await($this->load_time_difference());
             }
-            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            $rawPromises = array(
-                $this->fetch_contract_markets($params),
-                $this->fetch_option_markets($params),
-            );
-            if (!$sandboxMode) {
-                // gate does not have a sandbox for spot $markets
-                $mainnetOnly = array( $this->fetch_spot_markets($params) );
-                $rawPromises = $this->array_concat($rawPromises, $mainnetOnly);
+            if ($this->check_required_credentials(false)) {
+                Async\await($this->load_unified_status());
             }
-            $promises = Async\await(Promise\all($rawPromises));
-            $spotMarkets = $this->safe_value($promises, 0, array());
-            $contractMarkets = $this->safe_value($promises, 1, array());
-            $optionMarkets = $this->safe_value($promises, 2, array());
-            $markets = $this->array_concat($spotMarkets, $contractMarkets);
-            return $this->array_concat($markets, $optionMarkets);
+            $rawPromises = array();
+            $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
+            $types = $this->safe_list($fetchMarketsOptions, 'types', array( 'spot', 'swap', 'future', 'option' ));
+            for ($i = 0; $i < count($types); $i++) {
+                $marketType = $types[$i];
+                if ($marketType === 'spot') {
+                    // if (!sandboxMode) {
+                    // gate doesn't have a sandbox for spot markets
+                    $rawPromises[] = $this->fetch_spot_markets($params);
+                    // }
+                } elseif ($marketType === 'swap') {
+                    $rawPromises[] = $this->fetch_swap_markets($params);
+                } elseif ($marketType === 'future') {
+                    $rawPromises[] = $this->fetch_future_markets($params);
+                } elseif ($marketType === 'option') {
+                    $rawPromises[] = $this->fetch_option_markets($params);
+                }
+            }
+            $results = Async\await(Promise\all($rawPromises));
+            return $this->arrays_concat($results);
         }) ();
     }
 
@@ -1265,21 +1345,25 @@ class gate extends Exchange {
             //         {
             //             "id" => "QTUM_ETH",
             //             "base" => "QTUM",
+            //             "base_name" => "Quantum",
             //             "quote" => "ETH",
+            //             "quote_name" => "Ethereum",
             //             "fee" => "0.2",
             //             "min_base_amount" => "0.01",
             //             "min_quote_amount" => "0.001",
+            //             "max_quote_amount" => "50000",
             //             "amount_precision" => 3,
             //             "precision" => 6,
             //             "trade_status" => "tradable",
-            //             "sell_start" => 0,
-            //             "buy_start" => 0
+            //             "sell_start" => 1607313600,
+            //             "buy_start" => 1700492400,
+            //             "type" => "normal",
+            //             "trade_url" => "https://www.gate.io/trade/QTUM_ETH",
             //         }
-            //     )
             //
             //  Margin
             //
-            //     array(
+            //     [
             //         {
             //             "id" => "ETH_USDT",
             //             "base" => "ETH",
@@ -1306,6 +1390,8 @@ class gate extends Exchange {
                 $tradeStatus = $this->safe_string($market, 'trade_status');
                 $leverage = $this->safe_number($market, 'leverage');
                 $margin = $leverage !== null;
+                $buyStart = $this->safe_integer_product($spotMarket, 'buy_start', 1000); // buy_start is the trading start time, while sell_start is offline orders start time
+                $createdTs = ($buyStart !== 0) ? $buyStart : null;
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
@@ -1355,7 +1441,7 @@ class gate extends Exchange {
                             'max' => $margin ? $this->safe_number($market, 'max_quote_amount') : null,
                         ),
                     ),
-                    'created' => null,
+                    'created' => $createdTs,
                     'info' => $market,
                 );
             }
@@ -1363,11 +1449,13 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_contract_markets($params = array ()) {
+    public function fetch_swap_markets($params = array ()) {
         return Async\async(function () use ($params) {
             $result = array();
             $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
-            $futureSettlementCurrencies = $this->get_settlement_currencies('future', 'fetchMarkets');
+            if ($this->options['sandboxMode']) {
+                $swapSettlementCurrencies = array( 'usdt' ); // gate sandbox only has usdt-margined swaps
+            }
             for ($c = 0; $c < count($swapSettlementCurrencies); $c++) {
                 $settleId = $swapSettlementCurrencies[$c];
                 $request = array(
@@ -1379,6 +1467,17 @@ class gate extends Exchange {
                     $result[] = $parsedMarket;
                 }
             }
+            return $result;
+        }) ();
+    }
+
+    public function fetch_future_markets($params = array ()) {
+        return Async\async(function () use ($params) {
+            if ($this->options['sandboxMode']) {
+                return array(); // right now sandbox does not have inverse swaps
+            }
+            $result = array();
+            $futureSettlementCurrencies = $this->get_settlement_currencies('future', 'fetchMarkets');
             for ($c = 0; $c < count($futureSettlementCurrencies); $c++) {
                 $settleId = $futureSettlementCurrencies[$c];
                 $request = array(
@@ -1423,13 +1522,14 @@ class gate extends Exchange {
         //        "leverage_min" => "1",
         //        "leverage_max" => "100",
         //        "risk_limit_max" => "8000000",
-        //        "maker_fee_rate" => "-0.00025",
-        //        "taker_fee_rate" => "0.00075",
+        //        "maker_fee_rate" => "-0.00025", // not actual value for regular users
+        //        "taker_fee_rate" => "0.00075", // not actual value for regular users
         //        "funding_rate" => "0.002053",
         //        "order_size_max" => 1000000,
         //        "funding_next_apply" => 1610035200,
         //        "short_users" => 977,
         //        "config_change_time" => 1609899548,
+        //        "create_time" => 1609800048,
         //        "trade_size" => 28530850594,
         //        "position_size" => 5223816,
         //        "long_users" => 455,
@@ -1467,8 +1567,8 @@ class gate extends Exchange {
         //        "risk_limit_base" => "140.726652109199",
         //        "risk_limit_step" => "1000000",
         //        "risk_limit_max" => "8000000",
-        //        "maker_fee_rate" => "-0.00025",
-        //        "taker_fee_rate" => "0.00075",
+        //        "maker_fee_rate" => "-0.00025", // not actual value for regular users
+        //        "taker_fee_rate" => "0.00075", // not actual value for regular users
         //        "ref_discount_rate" => "0",
         //        "ref_rebate_rate" => "0.2",
         //        "order_price_deviate" => "0.5",
@@ -1506,8 +1606,6 @@ class gate extends Exchange {
         $maxMultiplier = Precise::string_add('1', $priceDeviate);
         $minPrice = Precise::string_mul($minMultiplier, $markPrice);
         $maxPrice = Precise::string_mul($maxMultiplier, $markPrice);
-        $takerPercent = $this->safe_string($market, 'taker_fee_rate');
-        $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
         $isLinear = $quote === $settle;
         $contractSize = $this->safe_string($market, 'quanto_multiplier');
         // exception only for one $market => https://api.gateio.ws/api/v4/futures/btc/contracts
@@ -1533,8 +1631,8 @@ class gate extends Exchange {
             'contract' => true,
             'linear' => $isLinear,
             'inverse' => !$isLinear,
-            'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')), // Fee is in %, so divide by 100
-            'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
+            'taker' => null,
+            'maker' => null,
             'contractSize' => $this->parse_number($contractSize),
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
@@ -1562,7 +1660,7 @@ class gate extends Exchange {
                     'max' => null,
                 ),
             ),
-            'created' => null,
+            'created' => $this->safe_integer_product($market, 'create_time', 1000),
             'info' => $market,
         );
     }
@@ -1635,8 +1733,6 @@ class gate extends Exchange {
                     $maxMultiplier = Precise::string_add('1', $priceDeviate);
                     $minPrice = Precise::string_mul($minMultiplier, $markPrice);
                     $maxPrice = Precise::string_mul($maxMultiplier, $markPrice);
-                    $takerPercent = $this->safe_string($market, 'taker_fee_rate');
-                    $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
                     $result[] = array(
                         'id' => $id,
                         'symbol' => $symbol,
@@ -1656,12 +1752,12 @@ class gate extends Exchange {
                         'contract' => true,
                         'linear' => true,
                         'inverse' => false,
-                        'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')), // Fee is in %, so divide by 100
-                        'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
+                        'taker' => null,
+                        'maker' => null,
                         'contractSize' => $this->parse_number('1'),
                         'expiry' => $expiry,
                         'expiryDatetime' => $this->iso8601($expiry),
-                        'strike' => $strike,
+                        'strike' => $this->parse_number($strike),
                         'optionType' => $optionType,
                         'precision' => array(
                             'amount' => $this->parse_number('1'), // all options have this step size
@@ -1851,90 +1947,95 @@ class gate extends Exchange {
             // sandbox/testnet only supports future markets
             $apiBackup = $this->safe_value($this->urls, 'apiBackup');
             if ($apiBackup !== null) {
-                return null;
-            }
-            if ($this->check_required_credentials(false)) {
-                Async\await($this->load_unified_status());
+                return array();
             }
             $response = Async\await($this->publicSpotGetCurrencies ($params));
             //
-            //  array(
-            //   array(
-            //       "currency" => "USDT_ETH",
-            //       "name" => "Tether",
-            //       "delisted" => false,
-            //       "withdraw_disabled" => false,
-            //       "withdraw_delayed" => false,
-            //       "deposit_disabled" => false,
-            //       "trade_disabled" => true,
-            //       "chain" => "ETH"
-            //    ),
-            //  )
+            //    array(
+            //      array(
+            //         "currency" => "USDT",
+            //         "name" => "Tether",
+            //         "delisted" => false,
+            //         "withdraw_disabled" => false,
+            //         "withdraw_delayed" => false,
+            //         "deposit_disabled" => false,
+            //         "trade_disabled" => false,
+            //         "fixed_rate" => "",
+            //         "chain" => "ETH",
+            //         "chains" => array(
+            //           array(
+            //             "name" => "ETH",
+            //             "addr" => "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            //             "withdraw_disabled" => false,
+            //             "withdraw_delayed" => false,
+            //             "deposit_disabled" => false
+            //           ),
+            //           array(
+            //             "name" => "ARBEVM",
+            //             "addr" => "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+            //             "withdraw_disabled" => false,
+            //             "withdraw_delayed" => false,
+            //             "deposit_disabled" => false
+            //           ),
+            //           array(
+            //             "name" => "BSC",
+            //             "addr" => "0x55d398326f99059fF775485246999027B3197955",
+            //             "withdraw_disabled" => false,
+            //             "withdraw_delayed" => false,
+            //             "deposit_disabled" => false
+            //           ),
+            //         )
+            //       ),
+            //    )
             //
             $indexedCurrencies = $this->index_by($response, 'currency');
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $response[$i];
                 $currencyId = $this->safe_string($entry, 'currency');
-                $parts = explode('_', $currencyId);
-                $partFirst = $this->safe_string($parts, 0);
-                // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
-                $currencyName = str_ends_with($currencyId, '_OLD') ? $currencyId : $partFirst;
-                $withdrawEnabled = !$this->safe_bool($entry, 'withdraw_disabled');
-                $depositEnabled = !$this->safe_bool($entry, 'deposit_disabled');
-                $tradeDisabled = !$this->safe_bool($entry, 'trade_disabled');
-                $precision = $this->parse_number('0.0001'); // temporary safe default, because no value provided from API
-                $code = $this->safe_currency_code($currencyName);
+                $code = $this->safe_currency_code($currencyId);
                 // check leveraged tokens (e.g. BTC3S, ETH5L)
-                $isLeveragedToken = false;
-                if (str_ends_with($currencyId, '3S') || str_ends_with($currencyId, '3L') || str_ends_with($currencyId, '5S') || str_ends_with($currencyId, '5L')) {
-                    $realCurrencyId = mb_substr($currencyId, 0, -2 - 0);
-                    if (is_array($indexedCurrencies) && array_key_exists($realCurrencyId, $indexedCurrencies)) {
-                        $isLeveragedToken = true;
-                    }
-                }
-                $type = $isLeveragedToken ? 'leveraged' : 'crypto';
-                // some networks are null, they are mostly obsolete & unsupported dead tokens, so we can default their $networkId to their tokenname
-                $networkId = $this->safe_string($entry, 'chain', $currencyId);
-                $networkCode = $this->network_id_to_code($networkId, $code);
-                $networkEntry = array(
-                    'info' => $entry,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
+                $type = $this->is_leveraged_currency($currencyId, true, $indexedCurrencies) ? 'leveraged' : 'crypto';
+                $chains = $this->safe_list($entry, 'chains', array());
+                $networks = array();
+                for ($j = 0; $j < count($chains); $j++) {
+                    $chain = $chains[$j];
+                    $networkId = $this->safe_string($chain, 'name');
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networks[$networkCode] = array(
+                        'info' => $chain,
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => !$this->safe_bool($chain, 'deposit_disabled'),
+                        'withdraw' => !$this->safe_bool($chain, 'withdraw_disabled'),
+                        'fee' => null,
+                        'precision' => $this->parse_number('0.0001'), // temporary safe default, because no value provided from API,
+                        'limits' => array(
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                         ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'active' => !$tradeDisabled,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'fee' => null,
-                    'precision' => $precision,
-                );
-                // check if first $entry for the specific currency
-                if (!(is_array($result) && array_key_exists($code, $result))) {
-                    $result[$code] = array(
-                        'id' => $currencyName,
-                        'lowerCaseId' => strtolower($currencyName),
-                        'code' => $code,
-                        'type' => $type,
-                        'precision' => $precision,
-                        'limits' => $this->limits,
-                        'networks' => array(),
-                        'info' => array(), // will be filled below
                     );
                 }
-                $result[$code]['networks'][$networkCode] = $networkEntry;
-                $info = $this->safe_list($result[$code], 'info', array());
-                $info[] = $entry;
-                $result[$code]['info'] = $info;
-                $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network $entry
+                $result[$code] = $this->safe_currency_structure(array(
+                    'id' => $currencyId,
+                    'code' => $code,
+                    'name' => $this->safe_string($entry, 'name'),
+                    'type' => $type,
+                    'active' => !$this->safe_bool($entry, 'delisted'),
+                    'deposit' => !$this->safe_bool($entry, 'deposit_disabled'),
+                    'withdraw' => !$this->safe_bool($entry, 'withdraw_disabled'),
+                    'fee' => null,
+                    'networks' => $networks,
+                    'precision' => $this->parse_number('0.0001'),
+                    'info' => $entry,
+                ));
             }
             return $result;
         }) ();
@@ -2218,9 +2319,7 @@ class gate extends Exchange {
             $chains = $this->safe_value($response, 'multichain_addresses', array());
             $currencyId = $this->safe_string($response, 'currency');
             $currency = $this->safe_currency($currencyId, $currency);
-            $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
-                'currency' => $currency['id'],
-            ));
+            $parsed = $this->parse_deposit_addresses($chains, null, false);
             return $this->index_by($parsed, 'network');
         }) ();
     }
@@ -2241,8 +2340,8 @@ class gate extends Exchange {
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             $chainsIndexedById = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
-            $selectedNetworkId = $this->select_network_code_from_unified_networks($code, $networkCode, $chainsIndexedById);
-            return $chainsIndexedById[$selectedNetworkId];
+            $selectedNetworkIdOrCode = $this->select_network_code_from_unified_networks($code, $networkCode, $chainsIndexedById);
+            return $chainsIndexedById[$selectedNetworkIdOrCode];
         }) ();
     }
 
@@ -2418,10 +2517,11 @@ class gate extends Exchange {
                 if ($withdrawFixOnChains === null) {
                     $withdrawFees = $this->safe_number($entry, 'withdraw_fix');
                 } else {
-                    $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
-                    for ($j = 0; $j < count($chainKeys); $j++) {
-                        $chainKey = $chainKeys[$j];
-                        $withdrawFees[$chainKey] = $this->parse_number($withdrawFixOnChains[$chainKey]);
+                    $networkIds = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
+                    for ($j = 0; $j < count($networkIds); $j++) {
+                        $networkId = $networkIds[$j];
+                        $networkCode = $this->network_id_to_code($networkId);
+                        $withdrawFees[$networkCode] = $this->parse_number($withdrawFixOnChains[$networkId]);
                     }
                 }
                 $result[$code] = array(
@@ -2638,7 +2738,12 @@ class gate extends Exchange {
             //
             list($request, $query) = $this->prepare_request($market, $market['type'], $params);
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 10, max 100
+                if ($market['spot']) {
+                    $limit = min ($limit, 1000);
+                } else {
+                    $limit = min ($limit, 300);
+                }
+                $request['limit'] = $limit;
             }
             $request['with_id'] = true;
             $response = null;
@@ -2951,6 +3056,14 @@ class gate extends Exchange {
     public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
+             * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+             * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+             * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+             * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+             * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+             * @see https://www.gate.com/docs/developers/apiv4/en/#$query-account-information
+             *
              * @param {array} [$params] exchange specific parameters
              * @param {string} [$params->type] spot, margin, swap or future, if not provided $this->options['defaultType'] is used
              * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -3195,7 +3308,7 @@ class gate extends Exchange {
             $result = array(
                 'info' => $response,
             );
-            $isolated = $marginMode === 'margin';
+            $isolated = $marginMode === 'margin' && $type === 'spot';
             $data = $response;
             if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin and unified
                 $flatBalances = array();
@@ -3234,7 +3347,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -3942,7 +4055,7 @@ class gate extends Exchange {
                 $request['from'] = $start;
                 $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
             }
-            list($request, $params) = $this->handle_until_option('to', $request, $params);
+            list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
             $response = Async\await($this->privateWalletGetDeposits ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency);
         }) ();
@@ -3983,13 +4096,13 @@ class gate extends Exchange {
                 $request['from'] = $start;
                 $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
             }
-            list($request, $params) = $this->handle_until_option('to', $request, $params);
+            list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
             $response = Async\await($this->privateWalletGetWithdrawals ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency);
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -5829,7 +5942,7 @@ class gate extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -6137,7 +6250,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -6388,7 +6501,7 @@ class gate extends Exchange {
             if ($type !== 'future' && $type !== 'swap') {
                 throw new BadRequest($this->id . ' fetchMarketLeverageTiers only supports swap and future');
             }
-            $response = Async\await($this->privateFuturesGetSettleRiskLimitTiers ($this->extend($request, $requestParams)));
+            $response = Async\await($this->publicFuturesGetSettleRiskLimitTiers ($this->extend($request, $requestParams)));
             //
             //     array(
             //         {
@@ -7739,12 +7852,30 @@ class gate extends Exchange {
         if ($quoteValueString === null) {
             $quoteValueString = Precise::string_mul($baseValueString, $priceString);
         }
+        // --- derive $side ---
+        // 1) options payload has explicit 'side' => 'long' | 'short'
+        $optPos = $this->safe_string_lower($liquidation, 'side');
+        $side = null;
+        if ($optPos === 'long') {
+            $side = 'buy';
+        } elseif ($optPos === 'short') {
+            $side = 'sell';
+        } else {
+            if ($size !== null) { // 2) futures/perpetual (and fallback for options) => infer from $size
+                if (Precise::string_gt($size, '0')) {
+                    $side = 'buy';
+                } elseif (Precise::string_lt($size, '0')) {
+                    $side = 'sell';
+                }
+            }
+        }
         return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->parse_number($contractsString),
             'contractSize' => $this->parse_number($contractSizeString),
             'price' => $this->parse_number($priceString),
+            'side' => $side,
             'baseValue' => $this->parse_number($baseValueString),
             'quoteValue' => $this->parse_number(Precise::string_abs($quoteValueString)),
             'timestamp' => $timestamp,

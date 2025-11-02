@@ -1,30 +1,24 @@
 {
-    "USDC": {
-        "id": null,
-        "code": "USDC",
-        "precision": null,
-        "fees": {},
-        "networks": {},
-        "limits": {
-            "deposit": {},
-            "withdraw": {}
-        }
-    },
+    "USDC": null,
     "BTC": {
-        "id": 0,
-        "name": "BTC",
-        "code": "BTC",
-        "precision": null,
         "info": {
             "szDecimals": "5",
             "name": "BTC",
-            "maxLeverage": "50"
+            "maxLeverage": "40",
+            "marginTableId": "56"
         },
+        "id": 0,
+        "numericId": null,
+        "code": "BTC",
+        "precision": null,
+        "type": "crypto",
+        "name": "BTC",
         "active": null,
         "deposit": null,
         "withdraw": null,
-        "networks": null,
         "fee": null,
+        "fees": {},
+        "networks": null,
         "limits": {
             "amount": {
                 "min": null,
@@ -35,5 +29,67 @@
                 "max": null
             }
         }
-    }
+    },
+    "HYPE": {
+        "info": {
+            "szDecimals": "2",
+            "name": "HYPE",
+            "maxLeverage": "10",
+            "marginTableId": "52"
+        },
+        "id": 159,
+        "numericId": null,
+        "code": "HYPE",
+        "precision": null,
+        "type": "crypto",
+        "name": "HYPE",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "PENGU": {
+        "info": {
+            "szDecimals": "0",
+            "name": "PENGU",
+            "maxLeverage": "5",
+            "marginTableId": "5"
+        },
+        "id": 163,
+        "numericId": null,
+        "code": "PENGU",
+        "precision": null,
+        "type": "crypto",
+        "name": "PENGU",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "UBTC": null,
+    "HPENGU": null
 }

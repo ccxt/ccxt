@@ -7,7 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.async_support.base.ws.order_book_side import Asks, Bids
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -70,6 +70,9 @@ class bitmart(ccxt.async_support.bitmart):
                 },
                 'watchOrderBookForSymbols': {
                     'depth': 'depth/increase100',
+                },
+                'watchTrades': {
+                    'ignoreDuplicates': True,
                 },
                 'ws': {
                     'inflate': True,
@@ -212,7 +215,7 @@ class bitmart(ccxt.async_support.bitmart):
         #                    "fz_bal":"0.100000000000000000000000000000"
         #                 }
         #              ],
-        #              "event_time":"1701632345415",
+        #              "event_time":"1701632345416",
         #              "event_type":"TRANSACTION_COMPLETED"
         #           }
         #        ],
@@ -299,7 +302,12 @@ class bitmart(ccxt.async_support.bitmart):
             first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        if self.handle_option('watchTrades', 'ignoreDuplicates', True):
+            filtered = self.remove_repeated_trades_from_array(result)
+            filtered = self.sort_by(filtered, 'timestamp')
+            return filtered
+        return result
 
     def get_params_for_multiple_sub(self, methodName: str, symbols: List[str], limit: Int = None, params={}):
         symbols = self.market_symbols(symbols, None, False, True)
@@ -1044,7 +1052,7 @@ class bitmart(ccxt.async_support.bitmart):
             'indexPrice': self.safe_string(ticker, 'index_price'),
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://developer-pro.bitmart.com/en/spot/#public-kline-channel
@@ -1405,7 +1413,7 @@ class bitmart(ccxt.async_support.bitmart):
         url = self.implode_hostname(self.urls['api']['ws'][type]['private'])
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = str(self.milliseconds())
@@ -1454,7 +1462,7 @@ class bitmart(ccxt.async_support.bitmart):
         future = self.safe_value(client.futures, messageHash)
         future.resolve(True)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #    {event: "error", message: "Invalid sign", errorCode: 30013}
         #    {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}

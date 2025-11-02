@@ -90,6 +90,7 @@ class coincatch(Exchange, ImplicitAPI):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -374,57 +375,20 @@ class coincatch(Exchange, ImplicitAPI):
                     'CRO': 'CronosChain',
                 },
                 'networksById': {
-                    'BITCOIN': 'BTC',
-                    'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'TRX(TRC20)': 'TRC20',
-                    'BEP20': 'BEP20',
                     'ArbitrumOne': 'ARB',  # todo check
-                    'Optimism': 'OPTIMISM',
-                    'LTC': 'LTC',
-                    'BCH': 'BCH',
-                    'ETC': 'ETC',
-                    'SOL': 'SOL',
-                    'NEO3': 'NEO3',
-                    'stacks': 'STX',
-                    'Elrond': 'EGLD',
-                    'NEARProtocol': 'NEAR',
-                    'AcalaToken': 'ACA',
-                    'Klaytn': 'KLAY',
-                    'Fantom': 'FTM',
-                    'Terra': 'TERRA',
-                    'WAVES': 'WAVES',
-                    'TAO': 'TAO',
-                    'SUI': 'SUI',
-                    'SEI': 'SEI',
                     'THORChain': 'RUNE',  # todo check
-                    'ZIL': 'ZIL',
                     'Solar': 'SXP',  # todo check
-                    'FET': 'FET',
                     'C-Chain': 'AVAX',  # todo check
-                    'XRP': 'XRP',
-                    'EOS': 'EOS',
-                    'DOGECOIN': 'DOGE',
                     'CAP20': 'CAP20',  # todo check
-                    'Polygon': 'MATIC',
-                    'CSPR': 'CSPR',
-                    'Moonbeam': 'GLMR',
-                    'MINA': 'MINA',
                     'CFXeSpace': 'CFX',  # todo check
                     'CFX': 'CFX',
                     'StratisEVM': 'STRAT',  # todo check
-                    'Celestia': 'TIA',
                     'ChilizChain': 'ChilizChain',  # todo check
-                    'Aptos': 'APT',
-                    'Ontology': 'ONT',
-                    'ICP': 'ICP',
-                    'Cardano': 'ADA',
-                    'FIL': 'FIL',
-                    'CELO': 'CELO',
-                    'DOT': 'DOT',
                     'StellarLumens': 'XLM',  # todo check
-                    'ATOM': 'ATOM',
                     'CronosChain': 'CRO',  # todo check
+                    'Optimism': 'Optimism',
                 },
             },
             'features': {
@@ -655,73 +619,123 @@ class coincatch(Exchange, ImplicitAPI):
             currencyId = self.safe_string(currecy, 'coinName')
             currenciesIds.append(currencyId)
             code = self.safe_currency_code(currencyId)
-            allowDeposit = False
-            allowWithdraw = False
-            minDeposit: Str = None
-            minWithdraw: Str = None
             networks = self.safe_list(currecy, 'chains')
-            networksById = self.safe_dict(self.options, 'networksById')
             parsedNetworks: dict = {}
             for j in range(0, len(networks)):
                 network = networks[j]
                 networkId = self.safe_string(network, 'chain')
-                networkName = self.safe_string(networksById, networkId, networkId)
-                networkDepositString = self.safe_string(network, 'rechargeable')
-                networkDeposit = networkDepositString == 'true'
-                networkWithdrawString = self.safe_string(network, 'withdrawable')
-                networkWithdraw = networkWithdrawString == 'true'
-                networkMinDeposit = self.safe_string(network, 'minDepositAmount')
-                networkMinWithdraw = self.safe_string(network, 'minWithdrawAmount')
-                parsedNetworks[networkId] = {
+                networkCode = self.network_id_to_code(networkId)
+                parsedNetworks[networkCode] = {
                     'id': networkId,
-                    'network': networkName,
+                    'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': self.parse_number(networkMinDeposit),
+                            'min': self.safe_number(network, 'minDepositAmount'),
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.parse_number(networkMinWithdraw),
+                            'min': self.safe_number(network, 'minWithdrawAmount'),
                             'max': None,
                         },
                     },
-                    'active': networkDeposit and networkWithdraw,
-                    'deposit': networkDeposit,
-                    'withdraw': networkWithdraw,
+                    'active': None,
+                    'deposit': self.safe_string(network, 'rechargeable') == 'true',
+                    'withdraw': self.safe_string(network, 'withdrawable') == 'true',
                     'fee': self.safe_number(network, 'withdrawFee'),
                     'precision': None,
                     'info': network,
                 }
-                allowDeposit = allowDeposit if allowDeposit else networkDeposit
-                allowWithdraw = allowWithdraw if allowWithdraw else networkWithdraw
-                minDeposit = Precise.string_min(networkMinDeposit, minDeposit) if minDeposit else networkMinDeposit
-                minWithdraw = Precise.string_min(networkMinWithdraw, minWithdraw) if minWithdraw else networkMinWithdraw
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
                 'numericId': self.safe_integer(currecy, 'coinId'),
                 'code': code,
                 'precision': None,
                 'type': None,
                 'name': None,
-                'active': allowWithdraw and allowDeposit,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'limits': {
                     'deposit': {
-                        'min': self.parse_number(minDeposit),
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.parse_number(minWithdraw),
+                        'min': None,
                         'max': None,
                     },
                 },
                 'networks': parsedNetworks,
                 'info': currecy,
-            }
+            })
         if self.safe_list(self.options, 'currencyIdsListForParseMarket') is None:
             self.options['currencyIdsListForParseMarket'] = currenciesIds
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+        """
+        fetch deposit and withdraw fees
+
+        https://coincatch.github.io/github.io/en/spot/#get-coin-list
+
+        :param str[] [codes]: list of unified currency codes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetApiSpotV1PublicCurrencies(params)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_deposit_withdraw_fees(data, codes, 'coinName')
+
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+        #
+        # {
+        #     "coinId":"1",
+        #     "coinName":"BTC",
+        #     "transfer":"true",
+        #     "chains":[
+        #         {
+        #             "chain":null,
+        #             "needTag":"false",
+        #             "withdrawable":"true",
+        #             "rechargeAble":"true",
+        #             "withdrawFee":"0.005",
+        #             "depositConfirm":"1",
+        #             "withdrawConfirm":"1",
+        #             "minDepositAmount":"0.001",
+        #             "minWithdrawAmount":"0.001",
+        #             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        #         }
+        #     ]
+        # }
+        #
+        chains = self.safe_list(fee, 'chains', [])
+        chainsLength = len(chains)
+        result: dict = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        for i in range(0, chainsLength):
+            chain = chains[i]
+            networkId = self.safe_string(chain, 'chain')
+            currencyCode = self.safe_string(currency, 'code')
+            networkCode = self.network_id_to_code(networkId, currencyCode)
+            result['networks'][networkCode] = {
+                'deposit': {'fee': None, 'percentage': None},
+                'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+            }
+            if chainsLength == 1:
+                result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
+                result['withdraw']['percentage'] = False
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:
@@ -1332,7 +1346,7 @@ class coincatch(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'ts')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://coincatch.github.io/github.io/en/spot/#get-candle-data
@@ -2072,7 +2086,7 @@ class coincatch(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -2229,6 +2243,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.hedged]: *swap markets only* must be set to True if position mode is hedged(default False)
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :param float [params.triggerPrice]: the price that the order is to be triggered
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
@@ -2407,6 +2422,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.hedged]: must be set to True if position mode is hedged(default False)
         :param bool [params.postOnly]: *non-trigger orders only* if True, the order will only be posted to the order book and not executed immediately
         :param bool [params.reduceOnly]: True or False whether the order is reduce only
         :param str [params.timeInForce]: *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2458,7 +2474,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.hedged]: default False
+        :param bool [params.hedged]: must be set to True if position mode is hedged(default False)
         :param bool [params.postOnly]: *non-trigger orders only* if True, the order will only be posted to the order book and not executed immediately
         :param bool [params.reduceOnly]: True or False whether the order is reduce only
         :param str [params.timeInForce]: *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2494,24 +2510,31 @@ class coincatch(Exchange, ImplicitAPI):
                 request['price'] = self.price_to_precision(symbol, price)
         if (endpointType != 'tpsl'):
             request['orderType'] = type
-            hedged: Bool = False
-            hedged, params = self.handle_option_and_params(params, methodName, 'hedged', hedged)
-            # hedged and non-hedged orders have different side values and reduceOnly handling
-            reduceOnly: Bool = False
-            reduceOnly, params = self.handle_param_bool(params, 'reduceOnly', reduceOnly)
-            if hedged:
-                if reduceOnly:
-                    if side == 'buy':
-                        side = 'close_short'
-                    elif side == 'sell':
-                        side = 'close_long'
+            sideIsExchangeSpecific = False
+            hedged = False
+            if (side == 'buy_single') or (side == 'sell_single') or (side == 'open_long') or (side == 'open_short') or (side == 'close_long') or (side == 'close_short'):
+                sideIsExchangeSpecific = True
+                if (side != 'buy_single') and (side != 'sell_single'):
+                    hedged = True
+            if not sideIsExchangeSpecific:
+                hedged, params = self.handle_option_and_params(params, methodName, 'hedged', hedged)
+                # hedged and non-hedged orders have different side values and reduceOnly handling
+                reduceOnly = self.safe_bool(params, 'reduceOnly')
+                if hedged:
+                    if (reduceOnly is not None) and reduceOnly:
+                        if side == 'buy':
+                            side = 'close_short'
+                        elif side == 'sell':
+                            side = 'close_long'
+                    else:
+                        if side == 'buy':
+                            side = 'open_long'
+                        elif side == 'sell':
+                            side = 'open_short'
                 else:
-                    if side == 'buy':
-                        side = 'open_long'
-                    elif side == 'sell':
-                        side = 'open_short'
-            else:
-                side = side.lower() + '_single'
+                    side = side.lower() + '_single'
+            if hedged:
+                params = self.omit(params, 'reduceOnly')
             request['side'] = side
         return self.extend(request, params)
 
@@ -4434,7 +4457,7 @@ class coincatch(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -4610,7 +4633,7 @@ class coincatch(Exchange, ImplicitAPI):
         params['methodName'] = 'addMargin'
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
-    def fetch_position(self, symbol: str, params={}):
+    def fetch_position(self, symbol: str, params={}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -4631,7 +4654,7 @@ class coincatch(Exchange, ImplicitAPI):
                 position = positions[i]
                 if position['side'] == side:
                     return position
-        return positions[0]
+        return self.safe_dict(positions, 0, {})
 
     def fetch_positions_for_symbol(self, symbol: str, params={}) -> List[Position]:
         """

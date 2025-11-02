@@ -3,7 +3,7 @@
 import poloniexRest from '../poloniex.js';
 import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -250,7 +250,9 @@ export default class poloniex extends poloniexRest {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
         }
-        return await this.tradeRequest ('createOrder', this.extend (request, params));
+        const orders = await this.tradeRequest ('createOrder', this.extend (request, params));
+        const order = this.safeDict (orders, 0) as Order;
+        return order;
     }
 
     /**
@@ -270,7 +272,9 @@ export default class poloniex extends poloniexRest {
             const clientOrderIds = this.safeValue (params, 'clientOrderId', []);
             params['clientOrderIds'] = this.arrayConcat (clientOrderIds, [ clientOrderId ]);
         }
-        return await this.cancelOrdersWs ([ id ], symbol, params);
+        const orders = await this.cancelOrdersWs ([ id ], symbol, params);
+        const order = this.safeDict (orders, 0) as Order;
+        return order;
     }
 
     /**
@@ -290,7 +294,7 @@ export default class poloniex extends poloniexRest {
         const request: Dict = {
             'orderIds': ids,
         };
-        return await this.tradeRequest ('cancelOrders', this.extend (request, params));
+        return await this.tradeRequest ('cancelOrders', this.extend (request, params)) as Order[];
     }
 
     /**
@@ -302,7 +306,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         await this.authenticate ();
         return await this.tradeRequest ('cancelAllOrders', params);
@@ -343,7 +347,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const channel = this.safeString (timeframes, timeframe, timeframe);
@@ -1246,7 +1250,7 @@ export default class poloniex extends poloniexRest {
         }
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        message: 'Invalid channel value ["ordersss"]',
