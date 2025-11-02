@@ -14,6 +14,7 @@ interface SbeSchema {
     byteOrder: 'littleEndian' | 'bigEndian';
     messages: Map<number, SbeMessage>;
     types: Map<string, SbeType>;
+    composites: Map<string, SbeComposite>;
 }
 
 interface SbeMessage {
@@ -47,6 +48,16 @@ interface SbeType {
     length?: number;
 }
 
+interface SbeComposite {
+    name: string;
+    elements: Array<{
+        name: string;
+        type: string;
+        primitiveType?: string;
+        size: number;
+    }>;
+}
+
 /**
  * Parse an SBE XML schema file
  * This is a minimal parser that extracts the essential information for decoding
@@ -68,6 +79,7 @@ export function parseSbeSchema (schemaPath: string): SbeSchema {
         byteOrder: schemaMatch[2] as 'littleEndian' | 'bigEndian',
         messages: new Map(),
         types: new Map(),
+        composites: new Map(),
     };
 
     // Parse primitive types
@@ -81,6 +93,32 @@ export function parseSbeSchema (schemaPath: string): SbeSchema {
             primitiveType,
             length: length ? parseInt(length) : undefined,
         });
+    }
+
+    // Parse composite types
+    const compositeRegex = /<composite\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/composite>/g;
+    let compositeMatch;
+    while ((compositeMatch = compositeRegex.exec(xml)) !== null) {
+        const [, name, content] = compositeMatch;
+        const elements: Array<{name: string; type: string; primitiveType?: string; size: number}> = [];
+
+        // Parse type elements within composite
+        const elemRegex = /<type\s+name="([^"]+)"[^>]*primitiveType="([^"]+)"[^>]*(?:length="(\d+)")?/g;
+        let elemMatch;
+        while ((elemMatch = elemRegex.exec(content)) !== null) {
+            const [, elemName, primType, len] = elemMatch;
+            const length = len ? parseInt(len) : 1;
+            elements.push({
+                name: elemName,
+                type: primType,
+                primitiveType: primType,
+                size: getTypeSize(primType, schema) * length,
+            });
+        }
+
+        if (elements.length > 0) {
+            schema.composites.set(name, { name, elements });
+        }
     }
 
     // Parse messages - simplified extraction
@@ -202,7 +240,9 @@ export function createSbeDecoder (schema: SbeSchema) {
             const view = new DataView(buffer);
             let offset = 0;
 
-            // Read message header
+            // Read message header - standard 4-field format
+            // Some schemas may have additional fields (numGroups, numVarDataFields)
+            // but the first 4 are always: blockLength, templateId, schemaId, version
             const blockLength = view.getUint16(offset, littleEndian);
             offset += 2;
             const templateId = view.getUint16(offset, littleEndian);
@@ -241,10 +281,47 @@ export function createSbeDecoder (schema: SbeSchema) {
 
             // Decode groups
             for (const group of message.groups) {
+                // Read group dimensions according to SBE spec section 3.4.8.2
+                // Group dimension encoding consists of:
+                // - blockLength (typically uint16)
+                // - numInGroup (uint8, uint16, or uint32)
+                // The dimensionType can be checked in schema.types
                 const groupBlockLength = view.getUint16(offset, littleEndian);
                 offset += 2;
-                const numInGroup = view.getUint16(offset, littleEndian);
-                offset += 2;
+
+                // Read numInGroup according to dimensionType composite definition
+                // Per SBE spec section 3.4.8.2, dimension encoding contains blockLength + numInGroup
+                // numInGroup type varies: uint8, uint16, or uint32
+                let numInGroup: number;
+                const dimensionComposite = schema.composites.get(group.dimensionType);
+                if (dimensionComposite) {
+                    // Find the numInGroup element
+                    const numInGroupElem = dimensionComposite.elements.find(e => e.name === 'numInGroup');
+                    if (numInGroupElem) {
+                        if (numInGroupElem.primitiveType === 'uint32') {
+                            numInGroup = view.getUint32(offset, littleEndian);
+                            offset += 4;
+                        } else if (numInGroupElem.primitiveType === 'uint16') {
+                            numInGroup = view.getUint16(offset, littleEndian);
+                            offset += 2;
+                        } else if (numInGroupElem.primitiveType === 'uint8') {
+                            numInGroup = view.getUint8(offset);
+                            offset += 1;
+                        } else {
+                            // Fallback to uint16
+                            numInGroup = view.getUint16(offset, littleEndian);
+                            offset += 2;
+                        }
+                    } else {
+                        // No numInGroup element found, default to uint16
+                        numInGroup = view.getUint16(offset, littleEndian);
+                        offset += 2;
+                    }
+                } else {
+                    // No dimension composite found, default to uint16
+                    numInGroup = view.getUint16(offset, littleEndian);
+                    offset += 2;
+                }
 
                 console.log(`Group "${group.name}": blockLength=${groupBlockLength}, numInGroup=${numInGroup}`);
 
@@ -269,17 +346,42 @@ export function createSbeDecoder (schema: SbeSchema) {
 
             // Decode variable-length data fields
             for (const dataField of message.data) {
-                // Read length prefix (size depends on type)
+                // Read length prefix according to SBE spec section 2.7
+                // Length can be uint8, uint16, or uint32
+                // Check composite type to determine size
                 let length: number;
-                if (dataField.type === 'varString8' || dataField.type === 'varData8' || dataField.type === 'optionalVarString') {
-                    length = view.getUint8(offset);
-                    offset += 1;
-                } else if (dataField.type === 'varString16' || dataField.type === 'varData16' || dataField.type === 'varString' || dataField.type === 'messageData') {
-                    length = view.getUint16(offset, littleEndian);
-                    offset += 2;
+                const varComposite = schema.composites.get(dataField.type);
+                if (varComposite) {
+                    const lengthElem = varComposite.elements.find(e => e.name === 'length');
+                    if (lengthElem) {
+                        if (lengthElem.primitiveType === 'uint32') {
+                            length = view.getUint32(offset, littleEndian);
+                            offset += 4;
+                        } else if (lengthElem.primitiveType === 'uint16') {
+                            length = view.getUint16(offset, littleEndian);
+                            offset += 2;
+                        } else if (lengthElem.primitiveType === 'uint8') {
+                            length = view.getUint8(offset);
+                            offset += 1;
+                        } else {
+                            // Default to uint16
+                            length = view.getUint16(offset, littleEndian);
+                            offset += 2;
+                        }
+                    } else {
+                        // No length element found, default to uint16
+                        length = view.getUint16(offset, littleEndian);
+                        offset += 2;
+                    }
                 } else {
-                    console.log(`Unknown variable-length type: ${dataField.type}`);
-                    continue;
+                    // Fallback for unknown types - try to infer from name
+                    if (dataField.type.includes('8')) {
+                        length = view.getUint8(offset);
+                        offset += 1;
+                    } else {
+                        length = view.getUint16(offset, littleEndian);
+                        offset += 2;
+                    }
                 }
 
                 // Extract the data
