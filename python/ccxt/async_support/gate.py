@@ -2417,10 +2417,11 @@ class gate(Exchange, ImplicitAPI):
             if withdrawFixOnChains is None:
                 withdrawFees = self.safe_number(entry, 'withdraw_fix')
             else:
-                chainKeys = list(withdrawFixOnChains.keys())
-                for j in range(0, len(chainKeys)):
-                    chainKey = chainKeys[j]
-                    withdrawFees[chainKey] = self.parse_number(withdrawFixOnChains[chainKey])
+                networkIds = list(withdrawFixOnChains.keys())
+                for j in range(0, len(networkIds)):
+                    networkId = networkIds[j]
+                    networkCode = self.network_id_to_code(networkId)
+                    withdrawFees[networkCode] = self.parse_number(withdrawFixOnChains[networkId])
             result[code] = {
                 'withdraw': withdrawFees,
                 'deposit': None,
