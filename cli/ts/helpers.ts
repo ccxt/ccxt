@@ -51,9 +51,28 @@ function jsonStringify (obj: any, indent = undefined) {
     return JSON.stringify (obj, (k, v) => (v === undefined ? null : v), indent);
 }
 
-function jsonParseWithNull (obj: any) {
-    return JSON.parse (obj, (k, v) => (v === null ? undefined : v));
+function jsonParseWithNull (text: string): any {
+    const obj = JSON.parse (text);
+
+    function replaceNulls (o: any): any {
+        if (o === null) return undefined;
+        if (Array.isArray (o)) {
+            return o.map (replaceNulls);
+        }
+        if (o && typeof o === 'object') {
+            const result: any = {};
+            // eslint-disable-next-line
+            for (const [key1, value1] of Object.entries (o)) {
+                result[key1] = replaceNulls (value1);
+            }
+            return result;
+        }
+        return o;
+    }
+
+    return replaceNulls (obj);
 }
+
 /**
  *
  * @param fn
@@ -371,9 +390,10 @@ async function handleMarketsLoading (
             if (diff > cacheConfig.refreshMarketsTimeout || forceRefresh) {
                 save = true;
             } else {
-                exchange.currencies = jsonParseWithNull (fs.readFileSync (currenciesPath).toString ());
-                const markets = jsonParseWithNull (fs.readFileSync (marketsPath).toString ());
-                exchange.setMarkets (markets);
+                const currenciesTxt = fs.readFileSync (currenciesPath).toString ();
+                exchange.currencies = jsonParseWithNull (currenciesTxt);
+                const marketsTxt = fs.readFileSync (marketsPath).toString ();
+                exchange.setMarkets (jsonParseWithNull (marketsTxt));
             }
         } else {
             // create file and save markets
