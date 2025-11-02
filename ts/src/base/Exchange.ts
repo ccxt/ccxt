@@ -42,7 +42,7 @@ import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, B
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
-import totp from './functions/totp.js';
+import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
