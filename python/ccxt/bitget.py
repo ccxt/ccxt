@@ -2428,11 +2428,20 @@ class bitget(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             chains = self.safe_value(entry, 'chains', [])
             networks: dict = {}
+            withdraw = None
+            deposit = None
+            if len(chains) == 0:
+                withdraw = False
+                deposit = False
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
                 network = self.network_id_to_code(networkId, code)
                 network = network.upper()
+                withdrawable = (self.safe_string(chain, 'withdrawable') == 'true')
+                rechargeable = (self.safe_string(chain, 'rechargeable') == 'true')
+                withdraw = withdrawable if (withdraw is None) else (withdraw or withdrawable)
+                deposit = rechargeable if (deposit is None) else (deposit or rechargeable)
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -2448,11 +2457,12 @@ class bitget(Exchange, ImplicitAPI):
                         },
                     },
                     'active': None,
-                    'withdraw': self.safe_string(chain, 'withdrawable') == 'true',
-                    'deposit': self.safe_string(chain, 'rechargeable') == 'true',
+                    'withdraw': withdrawable,
+                    'deposit': rechargeable,
                     'fee': self.safe_number(chain, 'withdrawFee'),
                     'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
                 }
+            active = withdraw and deposit
             isFiat = self.in_array(code, fiatCurrencies)
             result[code] = self.safe_currency_structure({
                 'info': entry,
@@ -2461,9 +2471,9 @@ class bitget(Exchange, ImplicitAPI):
                 'networks': networks,
                 'type': 'fiat' if isFiat else 'crypto',
                 'name': None,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
+                'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': None,
                 'precision': None,
                 'limits': {
