@@ -2472,10 +2472,11 @@ class gate extends Exchange {
             if ($withdrawFixOnChains === null) {
                 $withdrawFees = $this->safe_number($entry, 'withdraw_fix');
             } else {
-                $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
-                for ($j = 0; $j < count($chainKeys); $j++) {
-                    $chainKey = $chainKeys[$j];
-                    $withdrawFees[$chainKey] = $this->parse_number($withdrawFixOnChains[$chainKey]);
+                $networkIds = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
+                for ($j = 0; $j < count($networkIds); $j++) {
+                    $networkId = $networkIds[$j];
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $withdrawFees[$networkCode] = $this->parse_number($withdrawFixOnChains[$networkId]);
                 }
             }
             $result[$code] = array(
