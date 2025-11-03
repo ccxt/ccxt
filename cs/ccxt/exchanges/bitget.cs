@@ -1359,6 +1359,7 @@ public partial class bitget : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "APX", "AstroPepeX" },
                 { "DEGEN", "DegenReborn" },
+                { "EVA", "Evadore" },
                 { "JADE", "Jade Protocol" },
                 { "OMNI", "omni" },
                 { "TONCOIN", "TON" },
