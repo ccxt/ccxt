@@ -1303,7 +1303,8 @@ func  (this *DeribitCore) Authenticate(optionalArgs ...interface{}) <- chan inte
             if ccxt.IsTrue(ccxt.IsEqual(future, nil)) {
                 this.CheckRequiredCredentials()
                 var requestId interface{} = this.RequestId()
-                var signature interface{} = this.Hmac(this.Encode(ccxt.Add(ccxt.Add(ccxt.Add(timeString, "\n"), nonce), "\n")), this.Encode(this.Secret), ccxt.Sha256)
+                var lineBreak interface{} = "\n" // eslint-disable-line quotes
+                var signature interface{} = this.Hmac(this.Encode(ccxt.Add(ccxt.Add(ccxt.Add(timeString, lineBreak), nonce), lineBreak)), this.Encode(this.Secret), ccxt.Sha256)
                 var request interface{} = map[string]interface{} {
                     "jsonrpc": "2.0",
                     "id": requestId,

@@ -1156,7 +1156,8 @@ class defx(Exchange, ImplicitAPI):
         #
         markPrice = self.safe_number(contract, 'markPrice')
         indexPrice = self.safe_number(contract, 'indexPrice')
-        fundingRate = self.safe_number(contract, 'payoutFundingRate')
+        fundingRateRaw = self.safe_string(contract, 'payoutFundingRate')
+        fundingRate = Precise.string_div(fundingRateRaw, '100')
         fundingTime = self.safe_integer(contract, 'nextFundingPayout')
         return {
             'info': contract,
@@ -1167,7 +1168,7 @@ class defx(Exchange, ImplicitAPI):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': fundingRate,
+            'fundingRate': self.parse_number(fundingRate),
             'fundingTimestamp': fundingTime,
             'fundingDatetime': self.iso8601(fundingTime),
             'nextFundingRate': None,

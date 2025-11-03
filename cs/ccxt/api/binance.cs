@@ -3841,4 +3841,9 @@ public partial class binance : Exchange
         return await this.callAsync ("papiDeleteListenKey",parameters);
     }
 
+    public async Task<object> papiV2GetUmAccount (object parameters = null)
+    {
+        return await this.callAsync ("papiV2GetUmAccount",parameters);
+    }
+
 }

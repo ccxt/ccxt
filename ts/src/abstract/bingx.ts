@@ -99,6 +99,7 @@ interface Exchange {
     swapV2PrivateDeleteTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateDeleteTradeAllOpenOrders (params?: {}): Promise<implicitReturnType>;
     swapV3PublicGetQuoteKlines (params?: {}): Promise<implicitReturnType>;
+    swapV3PrivateGetUserBalance (params?: {}): Promise<implicitReturnType>;
     cswapV1PublicGetMarketContracts (params?: {}): Promise<implicitReturnType>;
     cswapV1PublicGetMarketPremiumIndex (params?: {}): Promise<implicitReturnType>;
     cswapV1PublicGetMarketOpenInterest (params?: {}): Promise<implicitReturnType>;

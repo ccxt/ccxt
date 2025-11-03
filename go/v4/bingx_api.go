@@ -67,6 +67,18 @@ func (this *BingxCore) SpotV1PrivateGetAccountBalance(args ...interface{}) <-cha
 	return this.callEndpointAsync("spotV1PrivateGetAccountBalance", args...)
 }
 
+func (this *BingxCore) SpotV1PrivateGetOcoOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetOcoOrderList", args...)
+}
+
+func (this *BingxCore) SpotV1PrivateGetOcoOpenOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetOcoOpenOrderList", args...)
+}
+
+func (this *BingxCore) SpotV1PrivateGetOcoHistoryOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetOcoHistoryOrderList", args...)
+}
+
 func (this *BingxCore) SpotV1PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotV1PrivatePostTradeOrder", args...)
 }
@@ -93,6 +105,14 @@ func (this *BingxCore) SpotV1PrivatePostTradeCancelOpenOrders(args ...interface{
 
 func (this *BingxCore) SpotV1PrivatePostTradeCancelAllAfter(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotV1PrivatePostTradeCancelAllAfter", args...)
+}
+
+func (this *BingxCore) SpotV1PrivatePostOcoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostOcoOrder", args...)
+}
+
+func (this *BingxCore) SpotV1PrivatePostOcoCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostOcoCancel", args...)
 }
 
 func (this *BingxCore) SpotV2PublicGetMarketDepth(args ...interface{}) <-chan interface{} {
@@ -137,6 +157,10 @@ func (this *BingxCore) SwapV1PublicGetMarketMarkPriceKlines(args ...interface{})
 
 func (this *BingxCore) SwapV1PublicGetTradeMultiAssetsRules(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("swapV1PublicGetTradeMultiAssetsRules", args...)
+}
+
+func (this *BingxCore) SwapV1PublicGetTradingRules(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PublicGetTradingRules", args...)
 }
 
 func (this *BingxCore) SwapV1PrivateGetPositionSideDual(args ...interface{}) <-chan interface{} {
@@ -213,6 +237,14 @@ func (this *BingxCore) SwapV1PrivatePostTwapCancelOrder(args ...interface{}) <-c
 
 func (this *BingxCore) SwapV1PrivatePostTradeAssetMode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("swapV1PrivatePostTradeAssetMode", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTradeReverse(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTradeReverse", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTradeAutoAddMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTradeAutoAddMargin", args...)
 }
 
 func (this *BingxCore) SwapV2PublicGetServerTime(args ...interface{}) <-chan interface{} {
@@ -365,6 +397,10 @@ func (this *BingxCore) SwapV2PrivateDeleteTradeAllOpenOrders(args ...interface{}
 
 func (this *BingxCore) SwapV3PublicGetQuoteKlines(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("swapV3PublicGetQuoteKlines", args...)
+}
+
+func (this *BingxCore) SwapV3PrivateGetUserBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV3PrivateGetUserBalance", args...)
 }
 
 func (this *BingxCore) CswapV1PublicGetMarketContracts(args ...interface{}) <-chan interface{} {
@@ -637,4 +673,36 @@ func (this *BingxCore) ApiAssetV1PrivatePostTransfer(args ...interface{}) <-chan
 
 func (this *BingxCore) ApiAssetV1PublicGetTransferSupportCoins(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("apiAssetV1PublicGetTransferSupportCoins", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetAccountInviteAccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetAccountInviteAccountList", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetRewardCommissionDataList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetRewardCommissionDataList", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetAccountInviteRelationCheck(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetAccountInviteRelationCheck", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetAssetDepositDetailList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetAssetDepositDetailList", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetRewardThirdCommissionDataList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetRewardThirdCommissionDataList", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetAssetPartnerData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetAssetPartnerData", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetCommissionDataListReferralCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetCommissionDataListReferralCode", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetAccountSuperiorCheck(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetAccountSuperiorCheck", args...)
 }

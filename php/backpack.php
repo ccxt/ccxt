@@ -55,6 +55,7 @@ class backpack extends Exchange {
                 'createTrailingPercentOrder' => false,
                 'createTriggerOrder' => true,
                 'fetchAccounts' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchCanceledAndClosedOrders' => false,
                 'fetchCanceledOrders' => false,
@@ -73,6 +74,7 @@ class backpack extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => false,
                 'fetchLeverage' => false,
@@ -87,6 +89,8 @@ class backpack extends Exchange {
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => false,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -107,6 +111,7 @@ class backpack extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'sandbox' => false,
@@ -1453,14 +1458,14 @@ class backpack extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->network] the network to withdraw on (mandatory)
+         * @param {string} $params->network the network to withdraw on (mandatory)
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
             'symbol' => $currency['id'],
-            'amount' => $this->number_to_string($amount),
+            'quantity' => $this->number_to_string($amount),
             'address' => $address,
         );
         if ($tag !== null) {

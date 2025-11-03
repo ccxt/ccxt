@@ -153,7 +153,9 @@ export default class apex extends apexRest {
         args: string[];
         op: string;
     };
+    pong(client: any, message: any): Promise<void>;
     handlePong(client: Client, message: any): any;
+    handlePing(client: Client, message: any): void;
     handleAccount(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;

@@ -6746,6 +6746,7 @@ class htx extends Exchange {
             'repealed' => 'failed',
             'wallet-transfer' => 'pending',
             'pre-transfer' => 'pending',
+            'verifying' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }

@@ -196,6 +196,12 @@ class gate extends Exchange {
                             'currency_chains' => 1,
                         ),
                     ),
+                    'unified' => array(
+                        'get' => array(
+                            'currencies' => 1,
+                            'history_loan_rate' => 1,
+                        ),
+                    ),
                     'spot' => array(
                         'get' => array(
                             'currencies' => 1,
@@ -207,22 +213,25 @@ class gate extends Exchange {
                             'trades' => 1,
                             'candlesticks' => 1,
                             'time' => 1,
+                            'insurance_history' => 1,
                         ),
                     ),
                     'margin' => array(
                         'get' => array(
-                            'currency_pairs' => 1,
-                            'currency_pairs/{currency_pair}' => 1,
-                            'funding_book' => 1,
-                            'cross/currencies' => 1,
-                            'cross/currencies/{currency}' => 1,
                             'uni/currency_pairs' => 1,
                             'uni/currency_pairs/{currency_pair}' => 1,
+                            'loan_margin_tiers' => 1,
+                            'currency_pairs' => 1, // deprecated
+                            'currency_pairs/{currency_pair}' => 1, // deprecated
+                            'funding_book' => 1, // deprecated
+                            'cross/currencies' => 1, // deprecated
+                            'cross/currencies/{currency}' => 1, // deprecated
                         ),
                     ),
                     'flash_swap' => array(
                         'get' => array(
-                            'currencies' => 1,
+                            'currency_pairs' => 1,
+                            'currencies' => 1, // deprecated
                         ),
                     ),
                     'futures' => array(
@@ -251,6 +260,7 @@ class gate extends Exchange {
                             '{settle}/candlesticks' => 1,
                             '{settle}/tickers' => 1,
                             '{settle}/insurance' => 1,
+                            '{settle}/risk_limit_tiers' => 1,
                         ),
                     ),
                     'options' => array(
@@ -273,6 +283,17 @@ class gate extends Exchange {
                         'get' => array(
                             'uni/currencies' => 1,
                             'uni/currencies/{currency}' => 1,
+                            'dual/investment_plan' => 1,
+                            'structured/products' => 1,
+                        ),
+                    ),
+                    'loan' => array(
+                        'get' => array(
+                            'collateral/currencies' => 1,
+                            'multi_collateral/currencies' => 1,
+                            'multi_collateral/ltv' => 1,
+                            'multi_collateral/fixed_rate' => 1,
+                            'multi_collateral/current_rate' => 1,
                         ),
                     ),
                 ),
@@ -336,25 +357,28 @@ class gate extends Exchange {
                     'unified' => array(
                         'get' => array(
                             'accounts' => 20 / 15,
-                            'account_mode' => 20 / 15,
                             'borrowable' => 20 / 15,
                             'transferable' => 20 / 15,
+                            'transferables' => 20 / 15,
+                            'batch_borrowable' => 20 / 15,
                             'loans' => 20 / 15,
                             'loan_records' => 20 / 15,
                             'interest_records' => 20 / 15,
-                            'estimate_rate' => 20 / 15,
-                            'currency_discount_tiers' => 20 / 15,
                             'risk_units' => 20 / 15,
                             'unified_mode' => 20 / 15,
+                            'estimate_rate' => 20 / 15,
+                            'currency_discount_tiers' => 20 / 15,
                             'loan_margin_tiers' => 20 / 15,
                             'leverage/user_currency_config' => 20 / 15,
                             'leverage/user_currency_setting' => 20 / 15,
+                            'account_mode' => 20 / 15, // deprecated
                         ),
                         'post' => array(
-                            'account_mode' => 20 / 15,
                             'loans' => 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
                             'portfolio_calculator' => 20 / 15,
                             'leverage/user_currency_setting' => 20 / 15,
+                            'collateral_currencies' => 20 / 15,
+                            'account_mode' => 20 / 15, // deprecated
                         ),
                         'put' => array(
                             'unified_mode' => 20 / 15,
@@ -400,48 +424,49 @@ class gate extends Exchange {
                             'funding_accounts' => 20 / 15,
                             'auto_repay' => 20 / 15,
                             'transferable' => 20 / 15,
-                            'loans' => 20 / 15,
-                            'loans/{loan_id}' => 20 / 15,
-                            'loans/{loan_id}/repayment' => 20 / 15,
-                            'loan_records' => 20 / 15,
-                            'loan_records/{loan_record_id}' => 20 / 15,
-                            'borrowable' => 20 / 15,
-                            'cross/accounts' => 20 / 15,
-                            'cross/account_book' => 20 / 15,
-                            'cross/loans' => 20 / 15,
-                            'cross/loans/{loan_id}' => 20 / 15,
-                            'cross/repayments' => 20 / 15,
-                            'cross/interest_records' => 20 / 15,
-                            'cross/transferable' => 20 / 15,
-                            'cross/estimate_rate' => 20 / 15,
-                            'cross/borrowable' => 20 / 15,
                             'uni/estimate_rate' => 20 / 15,
                             'uni/loans' => 20 / 15,
                             'uni/loan_records' => 20 / 15,
                             'uni/interest_records' => 20 / 15,
                             'uni/borrowable' => 20 / 15,
+                            'user/loan_margin_tiers' => 20 / 15,
+                            'user/account' => 20 / 15,
+                            'loans' => 20 / 15, // deprecated
+                            'loans/{loan_id}' => 20 / 15, // deprecated
+                            'loans/{loan_id}/repayment' => 20 / 15, // deprecated
+                            'loan_records' => 20 / 15, // deprecated
+                            'loan_records/{loan_record_id}' => 20 / 15, // deprecated
+                            'borrowable' => 20 / 15, // deprecated
+                            'cross/accounts' => 20 / 15, // deprecated
+                            'cross/account_book' => 20 / 15, // deprecated
+                            'cross/loans' => 20 / 15, // deprecated
+                            'cross/loans/{loan_id}' => 20 / 15, // deprecated
+                            'cross/repayments' => 20 / 15, // deprecated
+                            'cross/interest_records' => 20 / 15, // deprecated
+                            'cross/transferable' => 20 / 15, // deprecated
+                            'cross/estimate_rate' => 20 / 15, // deprecated
+                            'cross/borrowable' => 20 / 15, // deprecated
                         ),
                         'post' => array(
                             'auto_repay' => 20 / 15,
-                            'loans' => 20 / 15,
-                            'merged_loans' => 20 / 15,
-                            'loans/{loan_id}/repayment' => 20 / 15,
-                            'cross/loans' => 20 / 15,
-                            'cross/repayments' => 20 / 15,
                             'uni/loans' => 20 / 15,
+                            'leverage/user_market_setting' => 20 / 15,
+                            'loans' => 20 / 15, // deprecated
+                            'merged_loans' => 20 / 15, // deprecated
+                            'loans/{loan_id}/repayment' => 20 / 15, // deprecated
+                            'cross/loans' => 20 / 15, // deprecated
+                            'cross/repayments' => 20 / 15, // deprecated
                         ),
                         'patch' => array(
-                            'loans/{loan_id}' => 20 / 15,
-                            'loan_records/{loan_record_id}' => 20 / 15,
+                            'loans/{loan_id}' => 20 / 15, // deprecated
+                            'loan_records/{loan_record_id}' => 20 / 15, // deprecated
                         ),
                         'delete' => array(
-                            'loans/{loan_id}' => 20 / 15,
+                            'loans/{loan_id}' => 20 / 15, // deprecated
                         ),
                     ),
                     'flash_swap' => array(
                         'get' => array(
-                            'currencies' => 1,
-                            'currency_pairs' => 1,
                             'orders' => 1,
                             'orders/{order_id}' => 1,
                         ),
@@ -466,7 +491,7 @@ class gate extends Exchange {
                             '{settle}/liquidates' => 1,
                             '{settle}/auto_deleverages' => 1,
                             '{settle}/fee' => 1,
-                            '{settle}/risk_limit_tiers' => 1,
+                            '{settle}/risk_limit_table' => 1,
                             '{settle}/price_orders' => 1,
                             '{settle}/price_orders/{order_id}' => 1,
                         ),
@@ -474,6 +499,8 @@ class gate extends Exchange {
                             '{settle}/positions/{contract}/margin' => 1,
                             '{settle}/positions/{contract}/leverage' => 1,
                             '{settle}/positions/{contract}/risk_limit' => 1,
+                            '{settle}/positions/cross_mode' => 1,
+                            '{settle}/dual_comp/positions/cross_mode' => 1,
                             '{settle}/dual_mode' => 1,
                             '{settle}/dual_comp/positions/{contract}/margin' => 1,
                             '{settle}/dual_comp/positions/{contract}/leverage' => 1,
@@ -482,6 +509,8 @@ class gate extends Exchange {
                             '{settle}/batch_orders' => 0.4,
                             '{settle}/countdown_cancel_all' => 0.4,
                             '{settle}/batch_cancel_orders' => 0.4,
+                            '{settle}/batch_amend_orders' => 0.4,
+                            '{settle}/bbo_orders' => 0.4,
                             '{settle}/price_orders' => 0.4,
                         ),
                         'put' => array(
@@ -549,19 +578,32 @@ class gate extends Exchange {
                     ),
                     'earn' => array(
                         'get' => array(
-                            'uni/currencies' => 20 / 15,
-                            'uni/currencies/{currency}' => 20 / 15,
                             'uni/lends' => 20 / 15,
                             'uni/lend_records' => 20 / 15,
                             'uni/interests/{currency}' => 20 / 15,
                             'uni/interest_records' => 20 / 15,
                             'uni/interest_status/{currency}' => 20 / 15,
+                            'uni/chart' => 20 / 15,
+                            'uni/rate' => 20 / 15,
+                            'staking/eth2/rate_records' => 20 / 15,
+                            'dual/orders' => 20 / 15,
+                            'structured/orders' => 20 / 15,
+                            'staking/coins' => 20 / 15,
+                            'staking/order_list' => 20 / 15,
+                            'staking/award_list' => 20 / 15,
+                            'staking/assets' => 20 / 15,
+                            'uni/currencies' => 20 / 15, // deprecated
+                            'uni/currencies/{currency}' => 20 / 15, // deprecated
                         ),
                         'post' => array(
                             'uni/lends' => 20 / 15,
+                            'staking/eth2/swap' => 20 / 15,
+                            'dual/orders' => 20 / 15,
+                            'structured/orders' => 20 / 15,
+                            'staking/swap' => 20 / 15,
                         ),
                         'put' => array(
-                            'uni/interest_reinvest' => 20 / 15,
+                            'uni/interest_reinvest' => 20 / 15, // deprecated
                         ),
                         'patch' => array(
                             'uni/lends' => 20 / 15,
@@ -575,16 +617,16 @@ class gate extends Exchange {
                             'collateral/collaterals' => 20 / 15,
                             'collateral/total_amount' => 20 / 15,
                             'collateral/ltv' => 20 / 15,
-                            'collateral/currencies' => 20 / 15,
                             'multi_collateral/orders' => 20 / 15,
                             'multi_collateral/orders/{order_id}' => 20 / 15,
                             'multi_collateral/repay' => 20 / 15,
                             'multi_collateral/mortgage' => 20 / 15,
                             'multi_collateral/currency_quota' => 20 / 15,
-                            'multi_collateral/currencies' => 20 / 15,
-                            'multi_collateral/ltv' => 20 / 15,
-                            'multi_collateral/fixed_rate' => 20 / 15,
-                            'multi_collateral/current_rate' => 20 / 15,
+                            'collateral/currencies' => 20 / 15, // deprecated
+                            'multi_collateral/currencies' => 20 / 15, // deprecated
+                            'multi_collateral/ltv' => 20 / 15, // deprecated
+                            'multi_collateral/fixed_rate' => 20 / 15, // deprecated
+                            'multi_collateral/current_rate' => 20 / 15, // deprecated
                         ),
                         'post' => array(
                             'collateral/orders' => 20 / 15,
@@ -598,14 +640,17 @@ class gate extends Exchange {
                     'account' => array(
                         'get' => array(
                             'detail' => 20 / 15,
+                            'main_keys' => 20 / 15,
                             'rate_limit' => 20 / 15,
                             'stp_groups' => 20 / 15,
                             'stp_groups/{stp_id}/users' => 20 / 15,
                             'stp_groups/debit_fee' => 20 / 15,
+                            'debit_fee' => 20 / 15,
                         ),
                         'post' => array(
                             'stp_groups' => 20 / 15,
                             'stp_groups/{stp_id}/users' => 20 / 15,
+                            'debit_fee' => 20 / 15,
                         ),
                         'delete' => array(
                             'stp_groups/{stp_id}/users' => 20 / 15,
@@ -615,6 +660,13 @@ class gate extends Exchange {
                         'get' => array(
                             'agency/transaction_history' => 20 / 15,
                             'agency/commission_history' => 20 / 15,
+                            'partner/transaction_history' => 20 / 15,
+                            'partner/commission_history' => 20 / 15,
+                            'partner/sub_list' => 20 / 15,
+                            'broker/commission_history' => 20 / 15,
+                            'broker/transaction_history' => 20 / 15,
+                            'user/info' => 20 / 15,
+                            'user/sub_relation' => 20 / 15,
                         ),
                     ),
                 ),
@@ -2465,10 +2517,11 @@ class gate extends Exchange {
                 if ($withdrawFixOnChains === null) {
                     $withdrawFees = $this->safe_number($entry, 'withdraw_fix');
                 } else {
-                    $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
-                    for ($j = 0; $j < count($chainKeys); $j++) {
-                        $chainKey = $chainKeys[$j];
-                        $withdrawFees[$chainKey] = $this->parse_number($withdrawFixOnChains[$chainKey]);
+                    $networkIds = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
+                    for ($j = 0; $j < count($networkIds); $j++) {
+                        $networkId = $networkIds[$j];
+                        $networkCode = $this->network_id_to_code($networkId);
+                        $withdrawFees[$networkCode] = $this->parse_number($withdrawFixOnChains[$networkId]);
                     }
                 }
                 $result[$code] = array(
@@ -6448,7 +6501,7 @@ class gate extends Exchange {
             if ($type !== 'future' && $type !== 'swap') {
                 throw new BadRequest($this->id . ' fetchMarketLeverageTiers only supports swap and future');
             }
-            $response = Async\await($this->privateFuturesGetSettleRiskLimitTiers ($this->extend($request, $requestParams)));
+            $response = Async\await($this->publicFuturesGetSettleRiskLimitTiers ($this->extend($request, $requestParams)));
             //
             //     array(
             //         {
