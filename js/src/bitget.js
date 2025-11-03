@@ -1401,6 +1401,7 @@ export default class bitget extends Exchange {
             'commonCurrencies': {
                 'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'EVA': 'Evadore',
                 'JADE': 'Jade Protocol',
                 'OMNI': 'omni',
                 'TONCOIN': 'TON',

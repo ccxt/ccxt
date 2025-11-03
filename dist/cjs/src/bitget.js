@@ -1400,6 +1400,7 @@ class bitget extends bitget$1["default"] {
             'commonCurrencies': {
                 'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'EVA': 'Evadore',
                 'JADE': 'Jade Protocol',
                 'OMNI': 'omni',
                 'TONCOIN': 'TON',
