@@ -1,7 +1,6 @@
 package ccxt
 
 import (
-	"bytes"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -368,16 +367,12 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 
-		var buf bytes.Buffer
-		enc := msgpack.NewEncoder(&buf)
-		enc.SetSortMapKeys(true)
-		enc.UseCompactInts(true)
+		packed, err := msgpack.Marshal(orderMsg)
 
-		err = enc.Encode(orderMsg)
 		if err != nil {
 			panic(err)
 		}
-		return buf.Bytes()
+		return packed
 	case "cancel":
 		var cancelMsg CancelMessage
 
