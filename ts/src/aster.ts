@@ -341,11 +341,22 @@ export default class aster extends Exchange {
             'options': {
                 'recvWindow': 10 * 1000, // 10 sec
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'zeroAddress': '0x0000000000000000000000000000000000000000',
                 'accountsByType': {
                     'spot': 'SPOT',
                     'future': 'FUTURE',
                     'linear': 'FUTURE',
                     'swap': 'FUTURE',
+                },
+                'networks': {
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                    'ARBI': 'ARBI',
+                },
+                'networksToChainId': {
+                    'ETH': 1,
+                    'BSC': 56,
+                    'ARBI': 42161,
                 },
             },
             'exceptions': {
@@ -3409,6 +3420,50 @@ export default class aster extends Exchange {
         return this.options['leverageBrackets'];
     }
 
+    keccakMessage (message) {
+        return '0x' + this.hash (message, keccak, 'hex');
+    }
+
+    signMessage (message, privateKey) {
+        return this.signHash (this.keccakMessage (message), privateKey.slice (-64));
+    }
+
+    signWithdrawPayload (withdrawPayload, network): string {
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        const chainId = this.safeInteger (withdrawPayload, 'chainId');
+        const domain: Dict = {
+            'chainId': chainId,
+            'name': 'Aster',
+            'verifyingContract': zeroAddress,
+            'version': '1',
+        };
+        const messageTypes: Dict = {
+            'Action': [
+                { 'name': 'type', type: 'string'},
+                { 'name': 'destination', type: 'address'},
+                { 'name': 'destination Chain', type: 'string'},
+                { 'name': 'token', type: 'string'},
+                { 'name': 'amount', type: 'string'},
+                { 'name': 'fee', type: 'string'},
+                { 'name': 'nonce', type: 'uint256'},
+                { 'name': 'aster chain', type: 'string'},
+            ],
+        };
+        const withdraw = {
+            'type': 'Withdraw',
+            'destination': this.safeString (withdrawPayload, 'receiver'),
+            'destination Chain': network,
+            'token': this.safeString (withdrawPayload, 'asset'),
+            'amount': this.safeString (withdrawPayload, 'amount'),
+            'fee': this.safeString (withdrawPayload, 'fee'),
+            'nonce': this.safeInteger (withdrawPayload, 'nonce'),
+            'aster chain': 'Mainnet',
+        };
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, withdraw);
+        const signature = this.signMessage (msg, this.privateKey);
+        return signature;
+    }
+
     /**
      * @method
      * @name aster#withdraw
@@ -3429,18 +3484,29 @@ export default class aster extends Exchange {
         const request: Dict = {
             'asset': currency['id'],
             'receiver': address,
+            'nonce': this.milliseconds () * 1000,
         };
-        if (tag !== undefined) {
-            request['addressTag'] = tag;
-        }
+        let chainId = this.safeInteger (params, 'chainId');
+        // TODO: check how ARBI signature would work
         const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit (params, 'network');
+        let network = this.safeStringUpper (params, 'network');
+        network = this.safeString (networks, network, network);
+        if ((chainId === undefined) && (network !== undefined)) {
+            const chainIds = this.safeDict (this.options, 'networksToChainId', {});
+            chainId = this.safeInteger (chainIds, network);
         }
+        if (chainId === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw require chainId or network parameter');
+        }
+        request['chainId'] = chainId;
+        const fee = this.safeString (params, 'fee');
+        if (fee === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw require fee parameter');
+        }
+        request['fee'] = fee;
+        params = this.omit (params, [ 'chainId', 'network', 'fee' ]);
         request['amount'] = this.currencyToPrecision (code, amount, network);
+        request['userSignature'] = this.signWithdrawPayload (request, network);
         const response = await this.sapiPrivatePostV1AsterUserWithdraw (this.extend (request, params));
         return {
             'info': response,
