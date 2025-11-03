@@ -2430,10 +2430,11 @@ class bitget(Exchange, ImplicitAPI):
             networks: dict = {}
             withdraw = None
             deposit = None
-            if len(chains) == 0:
+            chainsLength = len(chains)
+            if chainsLength == 0:
                 withdraw = False
                 deposit = False
-            for j in range(0, len(chains)):
+            for j in range(0, chainsLength):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
                 network = self.network_id_to_code(networkId, code)
