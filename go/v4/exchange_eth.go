@@ -1,6 +1,7 @@
 package ccxt
 
 import (
+	"bytes"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -9,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-	"github.com/mitchellh/mapstructure"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
