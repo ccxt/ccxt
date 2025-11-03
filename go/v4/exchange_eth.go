@@ -48,7 +48,7 @@ type TriggerSpec struct {
 
 type OrderKind struct {
 	Limit   *TimeInForce `mapstructure:"limit" msgpack:"limit,omitempty"`
-	Trigger *TimeInForce `mapstructure:"trigger" msgpack:"trigger,omitempty"`
+	Trigger *TriggerSpec `mapstructure:"trigger" msgpack:"trigger,omitempty"`
 }
 
 type OrderHyperliquid struct {
