@@ -347,7 +347,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 	enc.SetSortMapKeys(true)
 	enc.UseCompactInts(true)
 
-	if err := enc.Encode(converted); err != nil {
+	if err := enc.Encode(data); err != nil {
 		panic(err)
 	}
 	return buffer.Bytes()
