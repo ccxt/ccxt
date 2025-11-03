@@ -1,9 +1,20 @@
 package examples
 
+// This example demonstrates:
+// 1. Subscribing to WebSocket ticker streams with consumer functions
+// 2. Simulating a network disconnection by closing WebSocket clients
+// 3. Using StreamReconnect() to restore connections and resume message flow
+// 4. Verifying that consumers continue receiving messages after reconnection
+//
+// The key insight: StreamReconnect() should be used when connections drop,
+// NOT after calling Close(). Close() tears down everything including consumers,
+// while disconnecting just the WebSocket clients preserves the Stream state.
+
 import (
 	"fmt"
 	"log"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
@@ -15,6 +26,12 @@ func contains(s, substr string) bool {
 	return strings.Contains(s, substr)
 }
 
+// Message counters
+var (
+	messagesBeforeReconnect int64
+	messagesAfterReconnect  int64
+)
+
 // printMessage prints the ticker message
 func printMessage(message *ccxt.Message) error {
 	payload, ok := message.Payload.(map[string]interface{})
@@ -22,30 +39,20 @@ func printMessage(message *ccxt.Message) error {
 		return nil
 	}
 	symbol := ccxt.SafeString(payload, "symbol", "")
-	fmt.Printf("Received message from: %s : %s : %v\n", message.Metadata.Topic, symbol, payload)
+	fmt.Printf("[BEFORE RECONNECT] Received ticker: %s (index: %d)\n", symbol, message.Metadata.Index)
+	atomic.AddInt64(&messagesBeforeReconnect, 1)
 	return nil
 }
 
-// storeInDb simulates storing data in a database
-func storeInDb(message *ccxt.Message) error {
-	time.Sleep(1 * time.Second)
-	fmt.Printf("stored in DB index: %d\n", message.Metadata.Index)
-	return nil
-}
-
-// priceAlert checks if price is over threshold
-func priceAlert(message *ccxt.Message) error {
+// printMessageAfterReconnect prints messages received after reconnection
+func printMessageAfterReconnect(message *ccxt.Message) error {
 	payload, ok := message.Payload.(map[string]interface{})
 	if !ok {
 		return nil
 	}
-	last := ccxt.SafeFloat(payload, "last", nil)
-	if last != nil {
-		lastFloat, ok := last.(float64)
-		if ok && lastFloat > 10000.0 {
-			fmt.Printf("Price is over 10000!!!!!!!!!!\n")
-		}
-	}
+	symbol := ccxt.SafeString(payload, "symbol", "")
+	count := atomic.AddInt64(&messagesAfterReconnect, 1)
+	fmt.Printf("[AFTER RECONNECT] Received ticker #%d: %s (index: %d)\n", count, symbol, message.Metadata.Index)
 	return nil
 }
 
@@ -90,9 +97,6 @@ func main() {
 	// Subscribe to exchange wide errors
 	exchange.Stream.Subscribe("errors", checkForErrors(exchange), nil)
 
-	// Subscribe synchronously to a single ticker with an async function
-	exchange.Stream.Subscribe("tickers::BTC/USDT", storeInDb, nil)
-
 	// Use SubscribeTickers to register callbacks AND watch function for reconnection
 	stopChan := make(chan bool)
 	watchDone := make(chan bool)
@@ -100,16 +104,11 @@ func main() {
 	go func() {
 		defer close(watchDone)
 
-		// Subscribe synchronously to all tickers - SubscribeTickers registers the watch function
+		// Subscribe synchronously to all tickers with printMessage
 		<-exchange.SubscribeTickers(nil, printMessage, nil)
 
 		// Subscribe synchronously to check for errors
 		<-exchange.SubscribeTickers(nil, checkForErrors(exchange), nil)
-
-		// Subscribe asynchronously to all tickers with price alert
-		<-exchange.SubscribeTickers(nil, priceAlert, map[string]interface{}{
-			"synchronous": false,
-		})
 
 		for {
 			select {
@@ -133,74 +132,143 @@ func main() {
 		}
 	}()
 
-	// Wait for messages
+	// Wait for messages before reconnect test
+	fmt.Println("\n=== Phase 1: Collecting messages before reconnect ===")
 	time.Sleep(5 * time.Second)
 
-	// Get history length and last message index
+	// Check message count before reconnect
+	countBeforeReconnect := atomic.LoadInt64(&messagesBeforeReconnect)
+	fmt.Printf("\nMessages received before reconnect: %d\n", countBeforeReconnect)
+
+	// Get history details
 	history := exchange.Stream.GetMessageHistory("tickers")
-	var lastIndexBeforeClose int
+	var lastIndexBeforeReconnect int
 	if len(history) > 0 {
-		lastIndexBeforeClose = history[len(history)-1].Metadata.Index
+		lastIndexBeforeReconnect = history[len(history)-1].Metadata.Index
+		fmt.Printf("History buffer size: %d, Last message index: %d\n", len(history), lastIndexBeforeReconnect)
 	}
-	fmt.Printf("History Length: %d, Last Index: %d\n", len(history), lastIndexBeforeClose)
 
 	// Check active watch functions (should be > 0 now)
 	if exchange.Stream.ActiveWatchFunctions != nil {
-		fmt.Printf("Active watch functions before close: %d\n", len(exchange.Stream.ActiveWatchFunctions.([]interface{})))
+		fmt.Printf("Active watch functions: %d\n", len(exchange.Stream.ActiveWatchFunctions.([]interface{})))
 	}
 
-	// Signal the goroutine to stop before closing
-	fmt.Println("Signaling SubscribeTickers to stop...")
+	// Test reconnection by simulating network disconnection
+	fmt.Println("\n=== Phase 2: Simulating network disconnection ===")
+
+	// First, stop the watch loop so it doesn't auto-reconnect
+	fmt.Println("Stopping watch loop to prevent auto-reconnection...")
 	close(stopChan)
-
-	// Wait for the goroutine to finish
 	<-watchDone
-	fmt.Println("SubscribeTickers stopped")
+	fmt.Println("Watch loop stopped")
 
-	// Close the exchange
-	fmt.Println("Closing exchange...")
-	errs := exchange.Close()
-	if len(errs) > 0 {
-		log.Printf("Errors during close: %v", errs)
+	// Now close WebSocket clients to simulate network drop
+	fmt.Println("\nClosing all WebSocket clients to simulate network failure...")
+	exchange.WsClientsMu.Lock()
+	clientCount := len(exchange.Clients)
+	for url, client := range exchange.Clients {
+		fmt.Printf("  Closing WebSocket client: %s\n", url)
+		if wsClient, ok := client.(interface{ Close() interface{} }); ok {
+			wsClient.Close()
+		}
+	}
+	// Clear clients map to simulate disconnection
+	exchange.Clients = make(map[string]interface{})
+	exchange.WsClientsMu.Unlock()
+	fmt.Printf("Closed %d WebSocket clients\n", clientCount)
+
+	// Wait and verify NO messages are received during downtime
+	fmt.Println("\nWaiting 3 seconds (simulating network downtime)...")
+	fmt.Println("Verifying no messages are received while disconnected...")
+	beforeDisconnectCount := atomic.LoadInt64(&messagesBeforeReconnect)
+	time.Sleep(3 * time.Second)
+	afterDisconnectCount := atomic.LoadInt64(&messagesBeforeReconnect)
+
+	disconnectDiff := afterDisconnectCount - beforeDisconnectCount
+	if disconnectDiff == 0 {
+		fmt.Printf("✓ Confirmed: No new messages during disconnect\n")
+	} else {
+		fmt.Printf("Note: Consumers processed %d buffered messages during disconnect\n", disconnectDiff)
+		fmt.Println("(This is expected - consumers process their backlog even when WS is closed)")
 	}
 
-	// Wait a bit to ensure everything is closed
-	time.Sleep(1 * time.Second)
+	// Subscribe to new consumer that will count messages after reconnect
+	// This must be BEFORE StreamReconnect so it's ready when messages start flowing
+	fmt.Println("\nSubscribing to new consumer to track post-reconnect messages...")
+	exchange.Stream.Subscribe("tickers", printMessageAfterReconnect, nil)
 
-	// Check active watch functions before reconnect
-	if exchange.Stream.ActiveWatchFunctions != nil {
-		fmt.Printf("Active watch functions before reconnect: %d\n", len(exchange.Stream.ActiveWatchFunctions.([]interface{})))
-	}
-
-	// Test reconnection - should automatically resume subscriptions
-	fmt.Println("Testing reconnection...")
-
+	// Now reconnect - this should re-create all WebSocket connections
+	fmt.Println("\n=== Phase 3: Reconnecting after network failure ===")
+	fmt.Println("Calling StreamReconnect() to restore connections...")
 	result := <-exchange.StreamReconnect()
 	if ccxt.IsError(result) {
-		log.Printf("Reconnection error: %v", result)
+		log.Fatalf("Reconnection error: %v", result)
 	} else {
-		fmt.Println("Reconnection successful!")
+		fmt.Println("Reconnection successful! WebSocket clients re-created.")
 	}
 
-	// Wait to receive messages after reconnection
-	// StreamReconnect should automatically resume all registered watch functions
-	fmt.Println("Waiting for messages after reconnection...")
-	time.Sleep(10 * time.Second)
+	// Check if watch functions were restored
+	if exchange.Stream.ActiveWatchFunctions != nil {
+		fmt.Printf("Active watch functions after reconnect: %d\n", len(exchange.Stream.ActiveWatchFunctions.([]interface{})))
+	}
 
-	// Check history to verify messages were received
+	// Check that WebSocket clients were recreated
+	exchange.WsClientsMu.Lock()
+	newClientCount := len(exchange.Clients)
+	exchange.WsClientsMu.Unlock()
+	fmt.Printf("WebSocket clients reconnected: %d\n", newClientCount)
+
+	// Wait to receive messages after reconnection
+	fmt.Println("\n=== Phase 4: Collecting messages after reconnection ===")
+	fmt.Println("Waiting for messages after reconnection...")
+
+	// Wait and check multiple times
+	for i := 1; i <= 10; i++ {
+		time.Sleep(1 * time.Second)
+		count := atomic.LoadInt64(&messagesAfterReconnect)
+		if count > 0 {
+			fmt.Printf("... %d seconds: %d messages received\n", i, count)
+		} else {
+			fmt.Printf("... %d seconds: No messages yet\n", i)
+		}
+	}
+
+	// Final check
+	finalCount := atomic.LoadInt64(&messagesAfterReconnect)
+	fmt.Printf("\n=== Results ===\n")
+	fmt.Printf("Messages before reconnect: %d\n", countBeforeReconnect)
+	fmt.Printf("Messages after reconnect: %d\n", finalCount)
+
+	// Verify reconnection worked
 	historyAfterReconnect := exchange.Stream.GetMessageHistory("tickers")
 	var lastIndexAfterReconnect int
 	if len(historyAfterReconnect) > 0 {
 		lastIndexAfterReconnect = historyAfterReconnect[len(historyAfterReconnect)-1].Metadata.Index
+		fmt.Printf("History buffer size after reconnect: %d, Last message index: %d\n",
+			len(historyAfterReconnect), lastIndexAfterReconnect)
 	}
-	fmt.Printf("History Length after reconnect: %d (previous was %d)\n", len(historyAfterReconnect), len(history))
-	fmt.Printf("Last Index after reconnect: %d (previous was %d)\n", lastIndexAfterReconnect, lastIndexBeforeClose)
 
-	if lastIndexAfterReconnect > lastIndexBeforeClose {
-		fmt.Printf("SUCCESS: Received new messages after reconnection! (+%d messages)\n", lastIndexAfterReconnect-lastIndexBeforeClose)
+	if finalCount > 0 {
+		fmt.Printf("\n✓ SUCCESS: Received %d new messages after reconnection!\n", finalCount)
+		fmt.Printf("  Index increased from %d to %d (+%d)\n",
+			lastIndexBeforeReconnect, lastIndexAfterReconnect, lastIndexAfterReconnect-lastIndexBeforeReconnect)
+		fmt.Println("  StreamReconnect() is working correctly!")
 	} else {
-		fmt.Println("WARNING: No new messages received after reconnection")
+		fmt.Println("\n✗ FAILED: No new messages received after reconnection")
+		fmt.Println("  Diagnosis:")
+		indexDiff := lastIndexAfterReconnect - lastIndexBeforeReconnect
+		fmt.Printf("  - Messages added to history: %d (index %d -> %d)\n", indexDiff, lastIndexBeforeReconnect, lastIndexAfterReconnect)
+		if indexDiff > 0 {
+			fmt.Println("  - Watch function IS running (history is updating)")
+			fmt.Println("  - But consumer functions are NOT receiving messages")
+			fmt.Println("  - BUG: Stream message routing is broken after reconnection")
+		} else {
+			fmt.Println("  - Watch function is NOT running properly after reconnect")
+		}
 	}
 
+	// Final cleanup
+	fmt.Println("\nClosing exchange...")
+	exchange.Close()
 	fmt.Println("Example completed!")
 }
