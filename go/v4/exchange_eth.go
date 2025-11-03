@@ -43,8 +43,8 @@ type TimeInForce struct {
 
 type TriggerSpec struct {
 	IsMarket  bool   `mapstructure:"isMarket" msgpack:"isMarket"`
-	TPSL      string `mapstructure:"tpsl" msgpack:"tpsl"`
 	TriggerPx string `mapstructure:"triggerPx" msgpack:"triggerPx"`
+	TPSL      string `mapstructure:"tpsl" msgpack:"tpsl"`
 }
 
 type OrderKind struct {
