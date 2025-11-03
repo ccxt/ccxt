@@ -1607,6 +1607,12 @@ public partial class okx : Exchange
         //         "uly": "BTC-USD"
         //     }
         //
+        // for swap "preopen" markets, only `instId` and `instType` are present
+        //
+        //         instId: "ETH-USD_UM-SWAP",
+        //         instType: "SWAP",
+        //         state: "preopen",
+        //
         object id = this.safeString(market, "instId");
         object type = this.safeStringLower(market, "instType");
         if (isTrue(isEqual(type, "futures")))
@@ -1639,6 +1645,11 @@ public partial class okx : Exchange
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
+        // handle preopen empty markets
+        if (isTrue(isTrue(isEqual(bs, "")) || isTrue(isEqual(quote, ""))))
+        {
+            symbol = id;
+        }
         object expiry = null;
         object strikePrice = null;
         object optionType = null;
