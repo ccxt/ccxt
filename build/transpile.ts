@@ -1154,7 +1154,7 @@ class Transpiler {
             const closure = variables && variables.length ? 'use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
             phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
         }
-
+        phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
     }
 

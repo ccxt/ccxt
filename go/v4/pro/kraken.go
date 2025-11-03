@@ -682,7 +682,7 @@ func  (this *KrakenCore) HandleTrades(client interface{}, message interface{})  
     }
     client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func  (this *KrakenCore) HandleOHLCV(client interface{}, message interface{}, subscription interface{})  {
+func  (this *KrakenCore) HandleOHLCV(client interface{}, message interface{})  {
     //
     //     {
     //         "channel": "ohlc",

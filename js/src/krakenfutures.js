@@ -2306,59 +2306,71 @@ export default class krakenfutures extends Exchange {
     }
     parseFundingRate(ticker, market = undefined) {
         //
-        // {"ask": 26.283,
-        //  "askSize": 4.6,
-        //  "bid": 26.201,
-        //  "bidSize": 190,
-        //  "fundingRate": -0.000944642727438883,
-        //  "fundingRatePrediction": -0.000872671532340275,
-        //  "indexPrice": 26.253,
-        //  "last": 26.3,
-        //  "lastSize": 0.1,
-        //  "lastTime": "2023-06-11T18:55:28.958Z",
-        //  "markPrice": 26.239,
-        //  "open24h": 26.3,
-        //  "openInterest": 641.1,
-        //  "pair": "COMP:USD",
-        //  "postOnly": False,
-        //  "suspended": False,
-        //  "symbol": "pf_compusd",
-        //  "tag": "perpetual",
-        //  "vol24h": 0.1,
-        //  "volumeQuote": 2.63}
+        //     {
+        //         "symbol": "PF_ENJUSD",
+        //         "last": 0.0433,
+        //         "lastTime": "2025-10-22T11:02:25.599Z",
+        //         "tag": "perpetual",
+        //         "pair": "ENJ:USD",
+        //         "markPrice": 0.0434,
+        //         "bid": 0.0433,
+        //         "bidSize": 4609,
+        //         "ask": 0.0435,
+        //         "askSize": 4609,
+        //         "vol24h": 1696,
+        //         "volumeQuote": 73.5216,
+        //         "openInterest": 72513.00000000000,
+        //         "open24h": 0.0435,
+        //         "high24h": 0.0435,
+        //         "low24h": 0.0433,
+        //         "lastSize": 1272,
+        //         "fundingRate": -0.000000756414717067,
+        //         "fundingRatePrediction": 0.000000195218676,
+        //         "suspended": false,
+        //         "indexPrice": 0.043392,
+        //         "postOnly": false,
+        //         "change24h": -0.46
+        //     }
         //
-        const fundingRateMultiplier = '8'; // https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.symbol(marketId);
         const timestamp = this.parse8601(this.safeString(ticker, 'lastTime'));
-        const indexPrice = this.safeNumber(ticker, 'indexPrice');
         const markPriceString = this.safeString(ticker, 'markPrice');
-        const markPrice = this.parseNumber(markPriceString);
         const fundingRateString = this.safeString(ticker, 'fundingRate');
-        const fundingRateResult = Precise.stringDiv(Precise.stringMul(fundingRateString, fundingRateMultiplier), markPriceString);
-        const fundingRate = this.parseNumber(fundingRateResult);
+        let fundingRateResult = Precise.stringDiv(fundingRateString, markPriceString);
         const nextFundingRateString = this.safeString(ticker, 'fundingRatePrediction');
-        const nextFundingRateResult = Precise.stringDiv(Precise.stringMul(nextFundingRateString, fundingRateMultiplier), markPriceString);
-        const nextFundingRate = this.parseNumber(nextFundingRateResult);
+        let nextFundingRateResult = Precise.stringDiv(nextFundingRateString, markPriceString);
+        if (fundingRateResult > '0.25') {
+            fundingRateResult = '0.25';
+        }
+        else if (fundingRateResult > '-0.25') {
+            fundingRateResult = '-0.25';
+        }
+        if (nextFundingRateResult > '0.25') {
+            nextFundingRateResult = '0.25';
+        }
+        else if (nextFundingRateResult > '-0.25') {
+            nextFundingRateResult = '-0.25';
+        }
         return {
             'info': ticker,
             'symbol': symbol,
-            'markPrice': markPrice,
-            'indexPrice': indexPrice,
+            'markPrice': this.parseNumber(markPriceString),
+            'indexPrice': this.safeNumber(ticker, 'indexPrice'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'fundingRate': fundingRate,
+            'fundingRate': this.parseNumber(fundingRateResult),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
-            'nextFundingRate': nextFundingRate,
+            'nextFundingRate': this.parseNumber(nextFundingRateResult),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': '1h',
         };
     }
     /**

@@ -749,7 +749,7 @@ public partial class upbit : ccxt.upbit
         };
         object methodName = this.safeString(message, "type");
         object method = this.safeValue(methods, methodName);
-        if (isTrue(method))
+        if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
         }

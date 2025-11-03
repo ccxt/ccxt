@@ -2205,59 +2205,67 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     def parse_funding_rate(self, ticker, market: Market = None) -> FundingRate:
         #
-        # {"ask": 26.283,
-        #  "askSize": 4.6,
-        #  "bid": 26.201,
-        #  "bidSize": 190,
-        #  "fundingRate": -0.000944642727438883,
-        #  "fundingRatePrediction": -0.000872671532340275,
-        #  "indexPrice": 26.253,
-        #  "last": 26.3,
-        #  "lastSize": 0.1,
-        #  "lastTime": "2023-06-11T18:55:28.958Z",
-        #  "markPrice": 26.239,
-        #  "open24h": 26.3,
-        #  "openInterest": 641.1,
-        #  "pair": "COMP:USD",
-        #  "postOnly": False,
-        #  "suspended": False,
-        #  "symbol": "pf_compusd",
-        #  "tag": "perpetual",
-        #  "vol24h": 0.1,
-        #  "volumeQuote": 2.63}
+        #     {
+        #         "symbol": "PF_ENJUSD",
+        #         "last": 0.0433,
+        #         "lastTime": "2025-10-22T11:02:25.599Z",
+        #         "tag": "perpetual",
+        #         "pair": "ENJ:USD",
+        #         "markPrice": 0.0434,
+        #         "bid": 0.0433,
+        #         "bidSize": 4609,
+        #         "ask": 0.0435,
+        #         "askSize": 4609,
+        #         "vol24h": 1696,
+        #         "volumeQuote": 73.5216,
+        #         "openInterest": 72513.00000000000,
+        #         "open24h": 0.0435,
+        #         "high24h": 0.0435,
+        #         "low24h": 0.0433,
+        #         "lastSize": 1272,
+        #         "fundingRate": -0.000000756414717067,
+        #         "fundingRatePrediction": 0.000000195218676,
+        #         "suspended": False,
+        #         "indexPrice": 0.043392,
+        #         "postOnly": False,
+        #         "change24h": -0.46
+        #     }
         #
-        fundingRateMultiplier = '8'  # https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.symbol(marketId)
         timestamp = self.parse8601(self.safe_string(ticker, 'lastTime'))
-        indexPrice = self.safe_number(ticker, 'indexPrice')
         markPriceString = self.safe_string(ticker, 'markPrice')
-        markPrice = self.parse_number(markPriceString)
         fundingRateString = self.safe_string(ticker, 'fundingRate')
-        fundingRateResult = Precise.string_div(Precise.string_mul(fundingRateString, fundingRateMultiplier), markPriceString)
-        fundingRate = self.parse_number(fundingRateResult)
+        fundingRateResult = Precise.string_div(fundingRateString, markPriceString)
         nextFundingRateString = self.safe_string(ticker, 'fundingRatePrediction')
-        nextFundingRateResult = Precise.string_div(Precise.string_mul(nextFundingRateString, fundingRateMultiplier), markPriceString)
-        nextFundingRate = self.parse_number(nextFundingRateResult)
+        nextFundingRateResult = Precise.string_div(nextFundingRateString, markPriceString)
+        if fundingRateResult > '0.25':
+            fundingRateResult = '0.25'
+        elif fundingRateResult > '-0.25':
+            fundingRateResult = '-0.25'
+        if nextFundingRateResult > '0.25':
+            nextFundingRateResult = '0.25'
+        elif nextFundingRateResult > '-0.25':
+            nextFundingRateResult = '-0.25'
         return {
             'info': ticker,
             'symbol': symbol,
-            'markPrice': markPrice,
-            'indexPrice': indexPrice,
+            'markPrice': self.parse_number(markPriceString),
+            'indexPrice': self.safe_number(ticker, 'indexPrice'),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': fundingRate,
+            'fundingRate': self.parse_number(fundingRateResult),
             'fundingTimestamp': None,
             'fundingDatetime': None,
-            'nextFundingRate': nextFundingRate,
+            'nextFundingRate': self.parse_number(nextFundingRateResult),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': '1h',
         }
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

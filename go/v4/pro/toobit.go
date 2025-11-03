@@ -277,14 +277,15 @@ func  (this *ToobitCore) HandleTrades(client interface{}, message interface{})  
     //     }
     //
     var marketId interface{} = this.SafeString(message, "symbol")
-    var symbol interface{} = this.SafeSymbol(marketId)
+    var market interface{} = this.SafeMarket(marketId)
+    var symbol interface{} = ccxt.GetValue(market, "symbol")
     if !ccxt.IsTrue((ccxt.InOp(this.Trades, symbol))) {
         var limit interface{} = this.SafeInteger(this.Options, "tradesLimit", 1000)
         ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(limit))
     }
     var stored interface{} = ccxt.GetValue(this.Trades, symbol)
     var data interface{} = this.SafeList(message, "data", []interface{}{})
-    var parsed interface{} = this.ParseWsTrades(data)
+    var parsed interface{} = this.ParseWsTrades(data, market)
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(parsed)); i++ {
         var trade interface{} = ccxt.GetValue(parsed, i)
         ccxt.AddElementToObject(trade, "symbol", symbol)
@@ -357,8 +358,8 @@ func  (this *ToobitCore) WatchOHLCVForSymbols(symbolsAndTimeframes interface{}, 
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes2938 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2938)
+            retRes2948 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2948)
             var url interface{} = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/quote/ws/v1")
             var messageHashes interface{} = []interface{}{}
             var timeframes interface{} = this.SafeDict(ccxt.GetValue(this.Options, "ws"), "timeframes", map[string]interface{} {})
@@ -484,8 +485,8 @@ func  (this *ToobitCore) WatchTicker(symbol interface{}, optionalArgs ...interfa
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes4058 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4058)
+            retRes4068 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4068)
             symbol = this.Symbol(symbol)
         
             tickers:= (<-this.WatchTickers([]interface{}{symbol}, params))
@@ -516,8 +517,8 @@ func  (this *ToobitCore) WatchTickers(optionalArgs ...interface{}) <- chan inter
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4218 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4218)
+            retRes4228 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4228)
             symbols = this.MarketSymbols(symbols, nil, false)
             var messageHashes interface{} = []interface{}{}
             var subParams interface{} = []interface{}{}
@@ -626,9 +627,9 @@ func  (this *ToobitCore) WatchOrderBook(symbol interface{}, optionalArgs ...inte
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes51315 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
-                ccxt.PanicOnError(retRes51315)
-                ch <- retRes51315
+                retRes51415 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
+                ccxt.PanicOnError(retRes51415)
+                ch <- retRes51415
                 return nil
         
             }()
@@ -654,8 +655,8 @@ func  (this *ToobitCore) WatchOrderBookForSymbols(symbols interface{}, optionalA
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes5278 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5278)
+            retRes5288 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5288)
             symbols = this.MarketSymbols(symbols, nil, false)
             var channel interface{} = nil
             channelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "channel", "depth")
@@ -803,11 +804,11 @@ func  (this *ToobitCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6648 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6648)
-        
-            retRes6658 := (<-this.Authenticate())
+            retRes6658 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes6658)
+        
+            retRes6668 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes6668)
             var marketType interface{} = nil
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
@@ -825,9 +826,9 @@ func  (this *ToobitCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
             this.SetBalanceCache(client, marketType, subscriptionHash, params)
             client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
         
-                retRes68015 :=  (<-this.Watch(url, messageHash, params, subscriptionHash))
-                ccxt.PanicOnError(retRes68015)
-                ch <- retRes68015
+                retRes68115 :=  (<-this.Watch(url, messageHash, params, subscriptionHash))
+                ccxt.PanicOnError(retRes68115)
+                ch <- retRes68115
                 return nil
         
             }()
@@ -951,11 +952,11 @@ func  (this *ToobitCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7768 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7768)
-        
-            retRes7778 := (<-this.Authenticate())
+            retRes7778 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes7778)
+        
+            retRes7788 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes7788)
             var market interface{} = this.MarketOrNull(symbol)
             symbol = this.SafeString(market, "symbol", symbol)
             var messageHash interface{} = "orders"
@@ -1093,11 +1094,11 @@ func  (this *ToobitCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8968 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8968)
-        
-            retRes8978 := (<-this.Authenticate())
+            retRes8978 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes8978)
+        
+            retRes8988 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes8988)
             var market interface{} = this.MarketOrNull(symbol)
             symbol = this.SafeString(market, "symbol", symbol)
             var messageHash interface{} = "myTrades"
@@ -1193,11 +1194,11 @@ func  (this *ToobitCore) WatchPositions(optionalArgs ...interface{}) <- chan int
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9748 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9748)
-        
-            retRes9758 := (<-this.Authenticate())
+            retRes9758 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes9758)
+        
+            retRes9768 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes9768)
             var messageHash interface{} = ""
             if !ccxt.IsTrue(this.IsEmpty(symbols)) {
                 symbols = this.MarketSymbols(symbols)
@@ -1206,8 +1207,8 @@ func  (this *ToobitCore) WatchPositions(optionalArgs ...interface{}) <- chan int
             var url interface{} = this.GetUserStreamUrl()
             var client interface{} = this.Client(url)
         
-            retRes9838 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes9838)
+            retRes9848 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes9848)
             this.SetPositionsCache(client, symbols)
             var cache interface{} = this.Positions
             if ccxt.IsTrue(ccxt.IsEqual(cache, nil)) {
@@ -1421,9 +1422,9 @@ func  (this *ToobitCore) Authenticate(optionalArgs ...interface{}) <- chan inter
                 }
             }
         
-                retRes114915 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes114915)
-                ch <- retRes114915
+                retRes115015 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes115015)
+                ch <- retRes115015
                 return nil
         
             }()

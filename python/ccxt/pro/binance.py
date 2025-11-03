@@ -2184,18 +2184,18 @@ class binance(ccxt.async_support.binance):
 
     def sign_params(self, params={}):
         self.check_required_credentials()
-        extendedParams = self.extend({
-            'timestamp': self.nonce(),
-            'apiKey': self.apiKey,
-        }, params)
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
         if defaultRecvWindow is not None:
             params['recvWindow'] = defaultRecvWindow
         recvWindow = self.safe_integer(params, 'recvWindow')
         if recvWindow is not None:
             params['recvWindow'] = recvWindow
+        extendedParams = self.extend({
+            'timestamp': self.nonce(),
+            'apiKey': self.apiKey,
+        }, params)
         extendedParams = self.keysort(extendedParams)
-        query = self.urlencode(extendedParams)
+        query = self.rawencode(extendedParams)
         signature = None
         if self.secret.find('PRIVATE KEY') > -1:
             if len(self.secret) > 120:
@@ -3325,7 +3325,7 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
-        params = self.extend(params, {'type': type, 'symbol': symbol})  # needed inside authenticate for isolated margin
+        params = self.extend(params, {'type': type, 'symbol': symbol, 'subType': subType})  # needed inside authenticate for isolated margin
         await self.authenticate(params)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
@@ -3952,7 +3952,7 @@ class binance(ccxt.async_support.binance):
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
             params = self.extend(params, {'type': market['type'], 'symbol': symbol})
-        await self.authenticate(params)
+        await self.authenticate(self.extend({'type': type, 'subType': subType}, params))
         urlType = type  # we don't change type because the listening key is different
         if type == 'margin':
             urlType = 'spot'  # spot-margin shares the same stream spot

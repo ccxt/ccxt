@@ -729,7 +729,7 @@ class upbit extends \ccxt\async\upbit {
         );
         $methodName = $this->safe_string($message, 'type');
         $method = $this->safe_value($methods, $methodName);
-        if ($method) {
+        if ($method !== null) {
             $method($client, $message);
         }
     }

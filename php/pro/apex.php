@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\NetworkError;
 use \React\Async;
 use \React\Promise;
 use \React\Promise\PromiseInterface;
@@ -999,6 +1000,7 @@ class apex extends \ccxt\async\apex {
             'recentlyTrade' => array($this, 'handle_trades'),
             'pong' => array($this, 'handle_pong'),
             'auth' => array($this, 'handle_authenticate'),
+            'ping' => array($this, 'handle_ping'),
         );
         $exacMethod = $this->safe_value($methods, $topic);
         if ($exacMethod !== null) {
@@ -1030,6 +1032,21 @@ class apex extends \ccxt\async\apex {
         );
     }
 
+    public function pong($client, $message) {
+        return Async\async(function () use ($client, $message) {
+            //
+            //     array("op" => "ping", "args" => ["1761069137485"])
+            //
+            $timeStamp = $this->milliseconds();
+            try {
+                Async\await($client->send (array( 'args' => array( (string) $timeStamp ), 'op' => 'pong' )));
+            } catch (Exception $e) {
+                $error = new NetworkError ($this->id . ' handlePing failed with $error ' . $this->json($e));
+                $client->reset ($error);
+            }
+        }) ();
+    }
+
     public function handle_pong(Client $client, $message) {
         //
         //   {
@@ -1043,6 +1060,10 @@ class apex extends \ccxt\async\apex {
         //
         $client->lastPong = $this->safe_integer($message, 'pong');
         return $message;
+    }
+
+    public function handle_ping(Client $client, $message) {
+        $this->spawn(array($this, 'pong'), $client, $message);
     }
 
     public function handle_account(Client $client, $message) {

@@ -1055,6 +1055,7 @@ public partial class apex : ccxt.apex
             { "recentlyTrade", this.handleTrades },
             { "pong", this.handlePong },
             { "auth", this.handleAuthenticate },
+            { "ping", this.handlePing },
         };
         object exacMethod = this.safeValue(methods, topic);
         if (isTrue(!isEqual(exacMethod, null)))
@@ -1091,6 +1092,25 @@ public partial class apex : ccxt.apex
         };
     }
 
+    public async virtual Task pong(WebSocketClient client, object message)
+    {
+        //
+        //     {"op": "ping", "args": ["1761069137485"]}
+        //
+        object timeStamp = this.milliseconds();
+        try
+        {
+            await client.send(new Dictionary<string, object>() {
+                { "args", new List<object> {((object)timeStamp).ToString()} },
+                { "op", "pong" },
+            });
+        } catch(Exception e)
+        {
+            var error = new NetworkError(add(add(this.id, " handlePing failed with error "), this.json(e)));
+            ((WebSocketClient)client).reset(error);
+        }
+    }
+
     public virtual object handlePong(WebSocketClient client, object message)
     {
         //
@@ -1105,6 +1125,11 @@ public partial class apex : ccxt.apex
         //
         client.lastPong = this.safeInteger(message, "pong");
         return message;
+    }
+
+    public virtual void handlePing(WebSocketClient client, object message)
+    {
+        this.spawn(this.pong, new object[] { client, message});
     }
 
     public virtual void handleAccount(WebSocketClient client, object message)

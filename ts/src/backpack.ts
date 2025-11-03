@@ -61,6 +61,7 @@ export default class backpack extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
                 'fetchAccounts': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
@@ -79,6 +80,7 @@ export default class backpack extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': false,
                 'fetchLeverage': false,
@@ -93,6 +95,8 @@ export default class backpack extends Exchange {
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -113,6 +117,7 @@ export default class backpack extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'sandbox': false,
@@ -1459,7 +1464,7 @@ export default class backpack extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] the network to withdraw on (mandatory)
+     * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
@@ -1467,7 +1472,7 @@ export default class backpack extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
-            'amount': this.numberToString (amount),
+            'quantity': this.numberToString (amount),
             'address': address,
         };
         if (tag !== undefined) {

@@ -338,6 +338,7 @@ export default class bybit extends Exchange {
                         // account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
+                        'v5/account/instruments-info': 1,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10, // 5/s = 1000 / (20 * 10)
@@ -368,6 +369,7 @@ export default class bybit extends Exchange {
                         'v5/asset/deposit/query-address': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-address': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/coin/query-info': 28, // should be 25 but exceeds ratelimit unless the weight is 28 or higher
+                        'v5/asset/withdraw/query-address': 10,
                         'v5/asset/withdraw/query-record': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         'v5/asset/withdraw/vasp/list': 5,
@@ -386,6 +388,10 @@ export default class bybit extends Exchange {
                         // spot margin trade
                         'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
+                        'v5/spot-margin-trade/max-borrowable': 5,
+                        'v5/spot-margin-trade/position-tiers': 5,
+                        'v5/spot-margin-trade/coinstate': 5,
+                        'v5/spot-margin-trade/repayment-available-amount': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account': 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1, // 50/s => cost = 50 / 50 = 1
@@ -506,6 +512,8 @@ export default class bybit extends Exchange {
                         'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
+                        'v5/account/borrow': 5,
+                        'v5/account/repay': 5,
                         // asset
                         'v5/asset/exchange/quote-apply': 1, // 50/s
                         'v5/asset/exchange/convert-execute': 1, // 50/s
@@ -6645,7 +6653,7 @@ export default class bybit extends Exchange {
         }
         const notional = this.safeString2 (position, 'positionValue', 'cumExitValue');
         const unrealisedPnl = this.omitZero (this.safeString (position, 'unrealisedPnl'));
-        let initialMarginString = this.safeStringN (position, [ 'positionIM', 'cumEntryValue' ]);
+        let initialMarginString = this.safeString2 (position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString (position, 'positionMM');
         const timestamp = this.safeIntegerN (position, [ 'createdTime', 'createdAt' ]);
         let lastUpdateTimestamp = this.parse8601 (this.safeString (position, 'updated_at'));
@@ -6681,7 +6689,7 @@ export default class bybit extends Exchange {
                     const maintenanceMarginPriceDifference = Precise.stringAbs (Precise.stringSub (liquidationPrice, bustPrice));
                     maintenanceMarginString = Precise.stringMul (maintenanceMarginPriceDifference, size);
                     // Initial Margin = Contracts x Entry Price / Leverage
-                    if (entryPrice !== undefined) {
+                    if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise.stringDiv (Precise.stringMul (size, entryPrice), leverage);
                     }
                 } else {
@@ -6693,7 +6701,7 @@ export default class bybit extends Exchange {
                     const multiply = Precise.stringMul (bustPrice, liquidationPrice);
                     maintenanceMarginString = Precise.stringDiv (Precise.stringMul (size, difference), multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
-                    if (entryPrice !== undefined) {
+                    if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise.stringDiv (size, Precise.stringMul (entryPrice, leverage));
                     }
                 }
