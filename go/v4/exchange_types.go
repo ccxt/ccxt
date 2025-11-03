@@ -1680,8 +1680,8 @@ type Greeks struct {
 	Vega                  *float64
 	Rho                   *float64
 	Vanna                 *float64
-    Volga                 *float64
-    Charm                 *float64
+	Volga                 *float64
+	Charm                 *float64
 	BidSize               *float64
 	AskSize               *float64
 	BidImpliedVolatility  *float64
