@@ -1659,6 +1659,12 @@ export default class okx extends Exchange {
         //         "uly": "BTC-USD"
         //     }
         //
+        // for swap "preopen" markets, only `instId` and `instType` are present
+        //
+        //         instId: "ETH-USD_UM-SWAP",
+        //         instType: "SWAP",
+        //         state: "preopen",
+        //
         const id = this.safeString(market, 'instId');
         let type = this.safeStringLower(market, 'instType');
         if (type === 'futures') {
@@ -1688,6 +1694,10 @@ export default class okx extends Exchange {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = base + '/' + quote;
+        // handle preopen empty markets
+        if (base === '' || quote === '') {
+            symbol = id;
+        }
         let expiry = undefined;
         let strikePrice = undefined;
         let optionType = undefined;
