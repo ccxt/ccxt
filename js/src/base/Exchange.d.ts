@@ -9,9 +9,7 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
  * @class Exchange
  */
 export default class Exchange {
-    options: {
-        [key: string]: any;
-    };
+    options: Dict;
     isSandboxModeEnabled: boolean;
     api: Dictionary<any>;
     certified: boolean;
@@ -50,7 +48,7 @@ export default class Exchange {
     headers: Dictionary<string>;
     returnResponseHeaders: boolean;
     origin: string;
-    MAX_VALUE: Num;
+    MAX_VALUE: number;
     agent: any;
     nodeHttpModuleLoaded: boolean;
     httpAgent: any;
@@ -169,27 +167,27 @@ export default class Exchange {
         };
     };
     markets_by_id: Dictionary<any>;
-    symbols: string[];
-    ids: string[];
+    symbols: Strings;
+    ids: Strings;
     currencies: Currencies;
     baseCurrencies: Dictionary<CurrencyInterface>;
     quoteCurrencies: Dictionary<CurrencyInterface>;
     currencies_by_id: Dictionary<CurrencyInterface>;
-    codes: string[];
-    reloadingMarkets: boolean;
+    codes: Strings;
+    reloadingMarkets: Bool;
     marketsLoading: Promise<Dictionary<Market>>;
     accounts: Account[];
     accountsById: Dictionary<Account>;
     commonCurrencies: Dictionary<string>;
     hostname: Str;
-    precisionMode: Num;
-    paddingMode: Num;
+    precisionMode: Int;
+    paddingMode: Int;
     exceptions: Dictionary<string>;
     timeframes: Dictionary<number | string>;
     version: Str;
     marketsByAltname: Dictionary<Market>;
     name: Str;
-    lastRestRequestTimestamp: number;
+    lastRestRequestTimestamp: int;
     targetAccount: string;
     stablePairs: Dictionary<boolean>;
     httpProxyAgentModule: any;

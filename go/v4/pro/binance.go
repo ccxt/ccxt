@@ -469,7 +469,7 @@ func  (this *BinanceCore) ParseWsLiquidation(liquidation interface{}, optionalAr
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(liquidation, "s")
-    market = this.SafeMarket(marketId, market)
+    market = this.SafeMarket(marketId, market, nil, "swap")
     var timestamp interface{} = this.SafeInteger(liquidation, "T")
     return this.SafeLiquidation(map[string]interface{} {
         "info": liquidation,
@@ -632,8 +632,8 @@ func  (this *BinanceCore) HandleMyLiquidation(client interface{}, message interf
         return
     }
     var marketId interface{} = this.SafeString(message, "s")
-    var market interface{} = this.SafeMarket(marketId)
-    var symbol interface{} = this.SafeSymbol(marketId)
+    var market interface{} = this.SafeMarket(marketId, nil, nil, "swap")
+    var symbol interface{} = this.SafeSymbol(marketId, market)
     var liquidation interface{} = this.ParseWsLiquidation(message, market)
     var myLiquidations interface{} = this.SafeValue(this.MyLiquidations, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(myLiquidations, nil)) {
@@ -1109,7 +1109,7 @@ func  (this *BinanceCore) HandleOrderBook(client interface{}, message interface{
     //     }
     //
     var isSpot interface{} = this.IsSpotUrl(client)
-    var marketType interface{} = ccxt.Ternary(ccxt.IsTrue((isSpot)), "spot", "contract")
+    var marketType interface{} = ccxt.Ternary(ccxt.IsTrue((isSpot)), "spot", "swap")
     var marketId interface{} = this.SafeString(message, "s")
     var market interface{} = this.SafeMarket(marketId, nil, nil, marketType)
     var symbol interface{} = ccxt.GetValue(market, "symbol")
@@ -2846,10 +2846,6 @@ func  (this *BinanceCore) SignParams(optionalArgs ...interface{}) interface{}  {
     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.CheckRequiredCredentials()
-    var extendedParams interface{} = this.Extend(map[string]interface{} {
-        "timestamp": this.Nonce(),
-        "apiKey": this.ApiKey,
-    }, params)
     var defaultRecvWindow interface{} = this.SafeInteger(this.Options, "recvWindow")
     if ccxt.IsTrue(!ccxt.IsEqual(defaultRecvWindow, nil)) {
         ccxt.AddElementToObject(params, "recvWindow", defaultRecvWindow)
@@ -2858,8 +2854,12 @@ func  (this *BinanceCore) SignParams(optionalArgs ...interface{}) interface{}  {
     if ccxt.IsTrue(!ccxt.IsEqual(recvWindow, nil)) {
         ccxt.AddElementToObject(params, "recvWindow", recvWindow)
     }
+    var extendedParams interface{} = this.Extend(map[string]interface{} {
+        "timestamp": this.Nonce(),
+        "apiKey": this.ApiKey,
+    }, params)
     extendedParams = this.Keysort(extendedParams)
-    var query interface{} = this.Urlencode(extendedParams)
+    var query interface{} = this.Rawencode(extendedParams)
     var signature interface{} = nil
     if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetIndexOf(this.Secret, "PRIVATE KEY"), ccxt.OpNeg(1))) {
         if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetLength(this.Secret), 120)) {
@@ -4416,6 +4416,7 @@ func  (this *BinanceCore) WatchOrders(optionalArgs ...interface{}) <- chan inter
             params = this.Extend(params, map[string]interface{} {
                 "type": typeVar,
                 "symbol": symbol,
+                "subType": subType,
             }) // needed inside authenticate for isolated margin
         
             retRes35868 := (<-this.Authenticate(params))
@@ -4950,7 +4951,7 @@ func  (this *BinanceCore) ParseWsPosition(position interface{}, optionalArgs ...
     return this.SafePosition(map[string]interface{} {
         "info": position,
         "id": nil,
-        "symbol": this.SafeSymbol(marketId, nil, nil, "contract"),
+        "symbol": this.SafeSymbol(marketId, nil, nil, "swap"),
         "notional": nil,
         "marginMode": this.SafeString(position, "mt"),
         "liquidationPrice": nil,
@@ -5220,7 +5221,10 @@ func  (this *BinanceCore) WatchMyTrades(optionalArgs ...interface{}) <- chan int
                 })
             }
         
-            retRes42698 := (<-this.Authenticate(params))
+            retRes42698 := (<-this.Authenticate(this.Extend(map[string]interface{} {
+                "type": typeVar,
+                "subType": subType,
+            }, params)))
             ccxt.PanicOnError(retRes42698)
             var urlType interface{} = typeVar // we don't change type because the listening key is different
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin")) {

@@ -55,6 +55,15 @@ class testMainClass {
     }
 
     public function init($exchange_id, $symbol_argv, $method_argv) {
+        try {
+            $this->init_inner($exchange_id, $symbol_argv, $method_argv);
+        } catch(\Throwable $e) {
+            dump('[TEST_FAILURE]'); // tell run-tests.js this is failure
+            throw $e;
+        }
+    }
+
+    public function init_inner($exchange_id, $symbol_argv, $method_argv) {
         $this->parse_cli_args_and_props();
         if ($this->request_tests && $this->response_tests) {
             $this->run_static_request_tests($exchange_id, $symbol_argv);
@@ -89,6 +98,7 @@ class testMainClass {
         );
         $exchange = init_exchange($exchange_id, $exchange_args, $this->ws_tests);
         if ($exchange->alias) {
+            dump($this->add_padding('[INFO] skipping alias', 25));
             exit_script(0);
         }
         $this->import_files($exchange);
@@ -401,6 +411,7 @@ class testMainClass {
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if ($is_public && $is_auth_error) {
                         if ($this->info) {
+                            // todo - turn into warning
                             dump('[INFO]', 'Authentication problem for public method', exception_message($e), $exchange->id, $method_name, $args_stringified);
                         }
                         return true;

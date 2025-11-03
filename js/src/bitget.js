@@ -84,7 +84,7 @@ export default class bitget extends Exchange {
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingInterval': true,
-                'fetchFundingIntervals': false,
+                'fetchFundingIntervals': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -1779,8 +1779,23 @@ export default class bitget extends Exchange {
             },
         });
     }
+    /**
+     * @method
+     * @name bitget#setSandboxMode
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
     setSandboxMode(enabled) {
         this.options['sandboxMode'] = enabled;
+    }
+    /**
+     * @method
+     * @name bitget#enableDemoTrading
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
+    enableDemoTrading(enabled) {
+        this.setSandboxMode(enabled);
     }
     handleProductTypeAndParams(market = undefined, params = {}) {
         let subType = undefined;
@@ -2446,11 +2461,21 @@ export default class bitget extends Exchange {
             const code = this.safeCurrencyCode(id);
             const chains = this.safeValue(entry, 'chains', []);
             const networks = {};
+            let withdraw = undefined;
+            let deposit = undefined;
+            if (chains.length === 0) {
+                withdraw = false;
+                deposit = false;
+            }
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
                 let network = this.networkIdToCode(networkId, code);
                 network = network.toUpperCase();
+                const withdrawable = (this.safeString(chain, 'withdrawable') === 'true');
+                const rechargeable = (this.safeString(chain, 'rechargeable') === 'true');
+                withdraw = (withdraw === undefined) ? withdrawable : (withdraw || withdrawable);
+                deposit = (deposit === undefined) ? rechargeable : (deposit || rechargeable);
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -2466,12 +2491,13 @@ export default class bitget extends Exchange {
                         },
                     },
                     'active': undefined,
-                    'withdraw': this.safeString(chain, 'withdrawable') === 'true',
-                    'deposit': this.safeString(chain, 'rechargeable') === 'true',
+                    'withdraw': withdrawable,
+                    'deposit': rechargeable,
                     'fee': this.safeNumber(chain, 'withdrawFee'),
                     'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'withdrawMinScale'))),
                 };
             }
+            const active = withdraw && deposit;
             const isFiat = this.inArray(code, fiatCurrencies);
             result[code] = this.safeCurrencyStructure({
                 'info': entry,
@@ -2480,9 +2506,9 @@ export default class bitget extends Exchange {
                 'networks': networks,
                 'type': isFiat ? 'fiat' : 'crypto',
                 'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
@@ -8572,6 +8598,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
@@ -8584,43 +8611,83 @@ export default class bitget extends Exchange {
         const request = {};
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
+        let method = 'publicMixGetV2MixMarketTickers';
+        [method, params] = this.handleOptionAndParams(params, 'fetchFundingRates', 'method', method);
+        let response = undefined;
         request['productType'] = productType;
-        const response = await this.publicMixGetV2MixMarketTickers(this.extend(request, params));
-        // {
-        //     "code": "00000",
-        //     "msg": "success",
-        //     "requestTime": 1700533773477,
-        //     "data": [
-        //         {
-        //             "symbol": "BTCUSD",
-        //             "lastPr": "29904.5",
-        //             "askPr": "29904.5",
-        //             "bidPr": "29903.5",
-        //             "bidSz": "0.5091",
-        //             "askSz": "2.2694",
-        //             "high24h": "0",
-        //             "low24h": "0",
-        //             "ts": "1695794271400",
-        //             "change24h": "0",
-        //             "baseVolume": "0",
-        //             "quoteVolume": "0",
-        //             "usdtVolume": "0",
-        //             "openUtc": "0",
-        //             "changeUtc24h": "0",
-        //             "indexPrice": "29132.353333",
-        //             "fundingRate": "-0.0007",
-        //             "holdingAmount": "125.6844",
-        //             "deliveryStartTime": null,
-        //             "deliveryTime": null,
-        //             "deliveryStatus": "delivery_normal",
-        //             "open24h": "0",
-        //             "markPrice": "12345"
-        //         },
-        //     ]
-        // }
+        if (method === 'publicMixGetV2MixMarketTickers') {
+            // {
+            //     "code": "00000",
+            //     "msg": "success",
+            //     "requestTime": 1700533773477,
+            //     "data": [
+            //         {
+            //             "symbol": "BTCUSD",
+            //             "lastPr": "29904.5",
+            //             "askPr": "29904.5",
+            //             "bidPr": "29903.5",
+            //             "bidSz": "0.5091",
+            //             "askSz": "2.2694",
+            //             "high24h": "0",
+            //             "low24h": "0",
+            //             "ts": "1695794271400",
+            //             "change24h": "0",
+            //             "baseVolume": "0",
+            //             "quoteVolume": "0",
+            //             "usdtVolume": "0",
+            //             "openUtc": "0",
+            //             "changeUtc24h": "0",
+            //             "indexPrice": "29132.353333",
+            //             "fundingRate": "-0.0007",
+            //             "holdingAmount": "125.6844",
+            //             "deliveryStartTime": null,
+            //             "deliveryTime": null,
+            //             "deliveryStatus": "delivery_normal",
+            //             "open24h": "0",
+            //             "markPrice": "12345"
+            //         },
+            //     ]
+            // }
+            response = await this.publicMixGetV2MixMarketTickers(this.extend(request, params));
+        }
+        else if (method === 'publicMixGetV2MixMarketCurrentFundRate') {
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime":1761659449917,
+            //         "data":[
+            //             {
+            //                 "symbol": "BTCUSDT",
+            //                 "fundingRate": "-0.000024",
+            //                 "fundingRateInterval": "8",
+            //                 "nextUpdate": "1761667200000",
+            //                 "minFundingRate": "-0.003",
+            //                 "maxFundingRate": "0.003"
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, params));
+        }
         symbols = this.marketSymbols(symbols);
         const data = this.safeList(response, 'data', []);
         return this.parseFundingRates(data, symbols);
+    }
+    /**
+     * @method
+     * @name bitget#fetchFundingIntervals
+     * @description fetch the funding rate interval for multiple markets
+     * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingIntervals(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        params = this.extend({ 'method': 'publicMixGetV2MixMarketCurrentFundRate' }, params);
+        return await this.fetchFundingRates(symbols, params);
     }
     parseFundingRate(contract, market = undefined) {
         //

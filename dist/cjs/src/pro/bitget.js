@@ -2744,7 +2744,9 @@ class bitget extends bitget$1["default"] {
             delete client.subscriptions[messageHash];
         }
         const error = new errors.UnsubscribeError(this.id + ' orderbook ' + symbol);
-        client.reject(error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject(error, subMessageHash);
+        }
         client.resolve(true, messageHash);
     }
     handleTradesUnSubscription(client, message) {
@@ -2769,7 +2771,9 @@ class bitget extends bitget$1["default"] {
             delete client.subscriptions[messageHash];
         }
         const error = new errors.UnsubscribeError(this.id + ' trades ' + symbol);
-        client.reject(error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject(error, subMessageHash);
+        }
         client.resolve(true, messageHash);
     }
     handleTickerUnSubscription(client, message) {
@@ -2794,7 +2798,9 @@ class bitget extends bitget$1["default"] {
             delete client.subscriptions[messageHash];
         }
         const error = new errors.UnsubscribeError(this.id + ' ticker ' + symbol);
-        client.reject(error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject(error, subMessageHash);
+        }
         client.resolve(true, messageHash);
     }
     handleOHLCVUnSubscription(client, message) {

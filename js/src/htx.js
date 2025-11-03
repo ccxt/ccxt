@@ -6831,6 +6831,7 @@ export default class htx extends Exchange {
             'repealed': 'failed',
             'wallet-transfer': 'pending',
             'pre-transfer': 'pending',
+            'verifying': 'pending',
         };
         return this.safeString(statuses, status, status);
     }

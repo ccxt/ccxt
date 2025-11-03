@@ -539,7 +539,7 @@ func (this *Backpack) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.network] the network to withdraw on (mandatory)
+ * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
 func (this *Backpack) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {

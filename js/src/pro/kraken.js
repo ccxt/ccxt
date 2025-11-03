@@ -589,7 +589,7 @@ export default class kraken extends krakenRest {
         }
         client.resolve(stored, messageHash);
     }
-    handleOHLCV(client, message, subscription) {
+    handleOHLCV(client, message) {
         //
         //     {
         //         "channel": "ohlc",

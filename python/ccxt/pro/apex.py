@@ -14,6 +14,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import NetworkError
 
 
 class apex(ccxt.async_support.apex):
@@ -897,6 +898,7 @@ class apex(ccxt.async_support.apex):
             'recentlyTrade': self.handle_trades,
             'pong': self.handle_pong,
             'auth': self.handle_authenticate,
+            'ping': self.handle_ping,
         }
         exacMethod = self.safe_value(methods, topic)
         if exacMethod is not None:
@@ -922,6 +924,17 @@ class apex(ccxt.async_support.apex):
             'op': 'ping',
         }
 
+    async def pong(self, client, message):
+        #
+        #     {"op": "ping", "args": ["1761069137485"]}
+        #
+        timeStamp = self.milliseconds()
+        try:
+            await client.send({'args': [str(timeStamp)], 'op': 'pong'})
+        except Exception as e:
+            error = NetworkError(self.id + ' handlePing failed with error ' + self.json(e))
+            client.reset(error)
+
     def handle_pong(self, client: Client, message):
         #
         #   {
@@ -935,6 +948,9 @@ class apex(ccxt.async_support.apex):
         #
         client.lastPong = self.safe_integer(message, 'pong')
         return message
+
+    def handle_ping(self, client: Client, message):
+        self.spawn(self.pong, client, message)
 
     def handle_account(self, client: Client, message):
         contents = self.safe_dict(message, 'contents', {})

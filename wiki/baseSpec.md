@@ -148,6 +148,7 @@ cancel all open orders in a market
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacacancelallorders)
 * [apex](/exchanges/apex.md#apexcancelallorders)
+* [arkham](/exchanges/arkham.md#arkhamcancelallorders)
 * [ascendex](/exchanges/ascendex.md#ascendexcancelallorders)
 * [backpack](/exchanges/backpack.md#backpackcancelallorders)
 * [bigone](/exchanges/bigone.md#bigonecancelallorders)
@@ -276,6 +277,7 @@ cancels an open order
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacacancelorder)
 * [apex](/exchanges/apex.md#apexcancelorder)
+* [arkham](/exchanges/arkham.md#arkhamcancelorder)
 * [ascendex](/exchanges/ascendex.md#ascendexcancelorder)
 * [backpack](/exchanges/backpack.md#backpackcancelorder)
 * [bigone](/exchanges/bigone.md#bigonecancelorder)
@@ -639,6 +641,7 @@ create a currency deposit address
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [arkham](/exchanges/arkham.md#arkhamcreatedepositaddress)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexcreatedepositaddress)
 * [coinbase](/exchanges/coinbase.md#coinbasecreatedepositaddress)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#coinbaseexchangecreatedepositaddress)
@@ -822,6 +825,7 @@ create a trade order
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacacreateorder)
 * [apex](/exchanges/apex.md#apexcreateorder)
+* [arkham](/exchanges/arkham.md#arkhamcreateorder)
 * [ascendex](/exchanges/ascendex.md#ascendexcreateorder)
 * [backpack](/exchanges/backpack.md#backpackcreateorder)
 * [bigone](/exchanges/bigone.md#bigonecreateorder)
@@ -1380,6 +1384,7 @@ enables or disables demo trading mode
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#binanceenabledemotrading)
+* [bitget](/exchanges/bitget.md#bitgetenabledemotrading)
 * [bybit](/exchanges/bybit.md#bybitenabledemotrading)
 
 ---
@@ -1437,6 +1442,7 @@ fetch all the accounts associated with a profile
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [arkham](/exchanges/arkham.md#arkhamfetchaccounts)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchaccounts)
 * [bittrade](/exchanges/bittrade.md#bittradefetchaccounts)
 * [coinbase](/exchanges/coinbase.md#coinbasefetchaccounts)
@@ -1496,6 +1502,7 @@ query for balance and get the amount of funds available for trading or funds loc
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchbalance)
 * [apex](/exchanges/apex.md#apexfetchbalance)
+* [arkham](/exchanges/arkham.md#arkhamfetchbalance)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchbalance)
 * [backpack](/exchanges/backpack.md#backpackfetchbalance)
 * [bigone](/exchanges/bigone.md#bigonefetchbalance)
@@ -1832,6 +1839,7 @@ fetches information on multiple closed orders made by the user
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchclosedorders)
+* [arkham](/exchanges/arkham.md#arkhamfetchclosedorders)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchclosedorders)
 * [bigone](/exchanges/bigone.md#bigonefetchclosedorders)
 * [binance](/exchanges/binance.md#binancefetchclosedorders)
@@ -2077,6 +2085,7 @@ fetches all available currencies on an exchange
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexfetchcurrencies)
+* [arkham](/exchanges/arkham.md#arkhamfetchcurrencies)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchcurrencies)
 * [backpack](/exchanges/backpack.md#backpackfetchcurrencies)
 * [bigone](/exchanges/bigone.md#bigonefetchcurrencies)
@@ -2200,6 +2209,7 @@ fetch the deposit address for a currency associated with this account
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchdepositaddress)
+* [arkham](/exchanges/arkham.md#arkhamfetchdepositaddress)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchdepositaddress)
 * [backpack](/exchanges/backpack.md#backpackfetchdepositaddress)
 * [bigone](/exchanges/bigone.md#bigonefetchdepositaddress)
@@ -2301,6 +2311,7 @@ fetch the deposit addresses for a currency associated with this account
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [arkham](/exchanges/arkham.md#arkhamfetchdepositaddressesbynetwork)
 * [bingx](/exchanges/bingx.md#bingxfetchdepositaddressesbynetwork)
 * [bybit](/exchanges/bybit.md#bybitfetchdepositaddressesbynetwork)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchdepositaddressesbynetwork)
@@ -2457,6 +2468,7 @@ fetch all deposits made to an account
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchdeposits)
+* [arkham](/exchanges/arkham.md#arkhamfetchdeposits)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchdeposits)
 * [backpack](/exchanges/backpack.md#backpackfetchdeposits)
 * [bigone](/exchanges/bigone.md#bigonefetchdeposits)
@@ -2605,6 +2617,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexfetchfundinghistory)
+* [arkham](/exchanges/arkham.md#arkhamfetchfundinghistory)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchfundinghistory)
 * [backpack](/exchanges/backpack.md#backpackfetchfundinghistory)
 * [binance](/exchanges/binance.md#binancefetchfundinghistory)
@@ -2677,6 +2690,7 @@ fetch the funding rate interval for multiple markets
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#binancefetchfundingintervals)
+* [bitget](/exchanges/bitget.md#bitgetfetchfundingintervals)
 
 ---
 
@@ -3052,6 +3066,7 @@ fetch the set leverage for a market
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [arkham](/exchanges/arkham.md#arkhamfetchleverage)
 * [bingx](/exchanges/bingx.md#bingxfetchleverage)
 * [bitget](/exchanges/bitget.md#bitgetfetchleverage)
 * [blofin](/exchanges/blofin.md#blofinfetchleverage)
@@ -3090,6 +3105,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [arkham](/exchanges/arkham.md#arkhamfetchleveragetiers)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchleveragetiers)
 * [binance](/exchanges/binance.md#binancefetchleveragetiers)
 * [bybit](/exchanges/bybit.md#bybitfetchleveragetiers)
@@ -3352,6 +3368,7 @@ retrieves data on all markets for alpaca
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchmarkets)
 * [apex](/exchanges/apex.md#apexfetchmarkets)
+* [arkham](/exchanges/arkham.md#arkhamfetchmarkets)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchmarkets)
 * [backpack](/exchanges/backpack.md#backpackfetchmarkets)
 * [bigone](/exchanges/bigone.md#bigonefetchmarkets)
@@ -3560,6 +3577,7 @@ fetch all trades made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchmytrades)
 * [apex](/exchanges/apex.md#apexfetchmytrades)
+* [arkham](/exchanges/arkham.md#arkhamfetchmytrades)
 * [backpack](/exchanges/backpack.md#backpackfetchmytrades)
 * [bigone](/exchanges/bigone.md#bigonefetchmytrades)
 * [binance](/exchanges/binance.md#binancefetchmytrades)
@@ -3689,6 +3707,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchohlcv)
 * [apex](/exchanges/apex.md#apexfetchohlcv)
+* [arkham](/exchanges/arkham.md#arkhamfetchohlcv)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchohlcv)
 * [backpack](/exchanges/backpack.md#backpackfetchohlcv)
 * [bigone](/exchanges/bigone.md#bigonefetchohlcv)
@@ -3923,6 +3942,7 @@ fetch all unfilled currently open orders
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchopenorders)
 * [apex](/exchanges/apex.md#apexfetchopenorders)
+* [arkham](/exchanges/arkham.md#arkhamfetchopenorders)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchopenorders)
 * [backpack](/exchanges/backpack.md#backpackfetchopenorders)
 * [bigone](/exchanges/bigone.md#bigonefetchopenorders)
@@ -4123,6 +4143,7 @@ fetches information on an order made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchorder)
 * [apex](/exchanges/apex.md#apexfetchorder)
+* [arkmm](/exchanges/arkmm.md#arkmmfetchorder)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchorder)
 * [bigone](/exchanges/bigone.md#bigonefetchorder)
 * [binance](/exchanges/binance.md#binancefetchorder)
@@ -4224,6 +4245,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchorderbook)
 * [apex](/exchanges/apex.md#apexfetchorderbook)
+* [arkham](/exchanges/arkham.md#arkhamfetchorderbook)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchorderbook)
 * [backpack](/exchanges/backpack.md#backpackfetchorderbook)
 * [bigone](/exchanges/bigone.md#bigonefetchorderbook)
@@ -4772,6 +4794,7 @@ fetch all open positions
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexfetchpositions)
+* [arkkm](/exchanges/arkkm.md#arkkmfetchpositions)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchpositions)
 * [backpack](/exchanges/backpack.md#backpackfetchpositions)
 * [binance](/exchanges/binance.md#binancefetchpositions)
@@ -4990,6 +5013,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchticker)
 * [apex](/exchanges/apex.md#apexfetchticker)
+* [arkham](/exchanges/arkham.md#arkhamfetchticker)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchticker)
 * [backpack](/exchanges/backpack.md#backpackfetchticker)
 * [bigone](/exchanges/bigone.md#bigonefetchticker)
@@ -5210,6 +5234,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchtime)
 * [apex](/exchanges/apex.md#apexfetchtime)
+* [arkham](/exchanges/arkham.md#arkhamfetchtime)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchtime)
 * [backpack](/exchanges/backpack.md#backpackfetchtime)
 * [bigone](/exchanges/bigone.md#bigonefetchtime)
@@ -5283,6 +5308,7 @@ get the list of most recent trades for a particular symbol
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchtrades)
 * [apex](/exchanges/apex.md#apexfetchtrades)
+* [arkham](/exchanges/arkham.md#arkhamfetchtrades)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchtrades)
 * [backpack](/exchanges/backpack.md#backpackfetchtrades)
 * [bigone](/exchanges/bigone.md#bigonefetchtrades)
@@ -5457,8 +5483,10 @@ fetch the trading fees for multiple markets
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 ##### Supported exchanges
+* [arkham](/exchanges/arkham.md#arkhamfetchtradingfees)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchtradingfees)
 * [binance](/exchanges/binance.md#binancefetchtradingfees)
 * [bit2c](/exchanges/bit2c.md#bit2cfetchtradingfees)
@@ -6088,6 +6116,7 @@ set the level of leverage for a market
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexsetleverage)
+* [arkham](/exchanges/arkham.md#arkhamsetleverage)
 * [ascendex](/exchanges/ascendex.md#ascendexsetleverage)
 * [binance](/exchanges/binance.md#binancesetleverage)
 * [bingx](/exchanges/bingx.md#bingxsetleverage)
@@ -6218,6 +6247,23 @@ set hedged to true or false for a market
 * [phemex](/exchanges/phemex.md#phemexsetpositionmode)
 * [poloniex](/exchanges/poloniex.md#poloniexsetpositionmode)
 * [woo](/exchanges/woo.md#woosetpositionmode)
+
+---
+
+<a name="setSandboxMode" id="setsandboxmode"></a>
+
+## setSandboxMode
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance   
+
+
+| Param |
+| --- |
+| enabled | 
+
+##### Supported exchanges
+* [bitget](/exchanges/bitget.md#bitgetsetsandboxmode)
 
 ---
 
@@ -6688,12 +6734,15 @@ watch balance and get the amount of funds available for trading or funds locked 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>str</code> | No | spot or contract if not provided this.options['defaultType'] is used |
 
 ##### Supported exchanges
+* [arkham](/exchanges/arkham.md#arkhamwatchbalance)
 * [ascendex](/exchanges/ascendex.md#ascendexwatchbalance)
 * [bingx](/exchanges/bingx.md#bingxwatchbalance)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexwatchbalance)
 * [bitget](/exchanges/bitget.md#bitgetwatchbalance)
+* [bithumb](/exchanges/bithumb.md#bithumbwatchbalance)
 * [bitmart](/exchanges/bitmart.md#bitmartwatchbalance)
 * [bitmex](/exchanges/bitmex.md#bitmexwatchbalance)
 * [bitopro](/exchanges/bitopro.md#bitoprowatchbalance)
@@ -7028,6 +7077,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacawatchohlcv)
 * [apex](/exchanges/apex.md#apexwatchohlcv)
+* [arkham](/exchanges/arkham.md#arkhamwatchohlcv)
 * [ascendex](/exchanges/ascendex.md#ascendexwatchohlcv)
 * [backpack](/exchanges/backpack.md#backpackwatchohlcv)
 * [bingx](/exchanges/bingx.md#bingxwatchohlcv)
@@ -7115,6 +7165,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacawatchorderbook)
 * [apex](/exchanges/apex.md#apexwatchorderbook)
+* [arkham](/exchanges/arkham.md#arkhamwatchorderbook)
 * [ascendex](/exchanges/ascendex.md#ascendexwatchorderbook)
 * [backpack](/exchanges/backpack.md#backpackwatchorderbook)
 * [bingx](/exchanges/bingx.md#bingxwatchorderbook)
@@ -7225,11 +7276,13 @@ watches information on multiple orders made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacawatchorders)
 * [apex](/exchanges/apex.md#apexwatchorders)
+* [arkham](/exchanges/arkham.md#arkhamwatchorders)
 * [ascendex](/exchanges/ascendex.md#ascendexwatchorders)
 * [backpack](/exchanges/backpack.md#backpackwatchorders)
 * [bingx](/exchanges/bingx.md#bingxwatchorders)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexwatchorders)
 * [bitget](/exchanges/bitget.md#bitgetwatchorders)
+* [bithumb](/exchanges/bithumb.md#bithumbwatchorders)
 * [bitmart](/exchanges/bitmart.md#bitmartwatchorders)
 * [bitmex](/exchanges/bitmex.md#bitmexwatchorders)
 * [bitrue](/exchanges/bitrue.md#bitruewatchorders)
@@ -7328,6 +7381,7 @@ watch all open positions
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexwatchpositions)
+* [arkham](/exchanges/arkham.md#arkhamwatchpositions)
 * [backpack](/exchanges/backpack.md#backpackwatchpositions)
 * [bitget](/exchanges/bitget.md#bitgetwatchpositions)
 * [bitmart](/exchanges/bitmart.md#bitmartwatchpositions)
@@ -7366,6 +7420,7 @@ watches a price ticker, a statistical calculation with the information calculate
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacawatchticker)
 * [apex](/exchanges/apex.md#apexwatchticker)
+* [arkham](/exchanges/arkham.md#arkhamwatchticker)
 * [backpack](/exchanges/backpack.md#backpackwatchticker)
 * [bingx](/exchanges/bingx.md#bingxwatchticker)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexwatchticker)
@@ -7481,6 +7536,7 @@ watches information on multiple trades made in a market
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacawatchtrades)
 * [apex](/exchanges/apex.md#apexwatchtrades)
+* [arkham](/exchanges/arkham.md#arkhamwatchtrades)
 * [ascendex](/exchanges/ascendex.md#ascendexwatchtrades)
 * [backpack](/exchanges/backpack.md#backpackwatchtrades)
 * [bingx](/exchanges/bingx.md#bingxwatchtrades)
@@ -7593,6 +7649,7 @@ make a withdrawal
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacawithdraw)
+* [arkkm](/exchanges/arkkm.md#arkkmwithdraw)
 * [backpack](/exchanges/backpack.md#backpackwithdraw)
 * [bigone](/exchanges/bigone.md#bigonewithdraw)
 * [binance](/exchanges/binance.md#binancewithdraw)

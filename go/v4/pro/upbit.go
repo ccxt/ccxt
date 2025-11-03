@@ -887,7 +887,7 @@ func  (this *UpbitCore) HandleMessage(client interface{}, message interface{})  
     }
     var methodName interface{} = this.SafeString(message, "type")
     var method interface{} = this.SafeValue(methods, methodName)
-    if ccxt.IsTrue(method) {
+    if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
         ccxt.CallDynamically(method, client, message)
     }
 }

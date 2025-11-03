@@ -1450,6 +1450,7 @@ func (this *Bitget) FetchFundingRate(symbol string, options ...FetchFundingRateO
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] *contract only* 'linear', 'inverse'
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
  * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *Bitget) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
@@ -1470,6 +1471,40 @@ func (this *Bitget) FetchFundingRates(options ...FetchFundingRatesOptions) (Fund
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchFundingRates(symbols, params)
+	if IsError(res) {
+		return FundingRates{}, CreateReturnError(res)
+	}
+	return NewFundingRates(res), nil
+}
+
+/**
+ * @method
+ * @name bitget#fetchFundingIntervals
+ * @description fetch the funding rate interval for multiple markets
+ * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func (this *Bitget) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
+
+	opts := FetchFundingIntervalsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchFundingIntervals(symbols, params)
 	if IsError(res) {
 		return FundingRates{}, CreateReturnError(res)
 	}
@@ -2370,9 +2405,6 @@ func (this *Bitget) FetchDepositWithdrawFee(code string, options ...FetchDeposit
 }
 func (this *Bitget) FetchFreeBalance(params ...interface{}) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Bitget) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
 }
 func (this *Bitget) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
 	return this.exchangeTyped.FetchGreeks(symbol, options...)

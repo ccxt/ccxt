@@ -656,5 +656,5 @@ class upbit(ccxt.async_support.upbit):
         }
         methodName = self.safe_string(message, 'type')
         method = self.safe_value(methods, methodName)
-        if method:
+        if method is not None:
             method(client, message)

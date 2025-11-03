@@ -342,7 +342,7 @@ class xt extends Exchange {
                             'user/account/api-key' => 1,
                         ),
                         'delete' => array(
-                            'user/account/{apikeyId}' => 1,
+                            'user/account/{apiKeyId}' => 1,
                         ),
                     ),
                 ),

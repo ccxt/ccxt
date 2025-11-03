@@ -8,6 +8,7 @@ var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
+var arkham = require('./src/arkham.js');
 var ascendex = require('./src/ascendex.js');
 var backpack = require('./src/backpack.js');
 var bequant = require('./src/bequant.js');
@@ -113,6 +114,7 @@ var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
+var arkham$1 = require('./src/pro/arkham.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
 var backpack$1 = require('./src/pro/backpack.js');
 var bequant$1 = require('./src/pro/bequant.js');
@@ -187,11 +189,12 @@ var xt$1 = require('./src/pro/xt.js');
 // ----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.10';
+const version = '4.5.14';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
+    'arkham': arkham["default"],
     'ascendex': ascendex["default"],
     'backpack': backpack["default"],
     'bequant': bequant["default"],
@@ -299,6 +302,7 @@ const exchanges = {
 const pro = {
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
+    'arkham': arkham$1["default"],
     'ascendex': ascendex$1["default"],
     'backpack': backpack$1["default"],
     'bequant': bequant$1["default"],
@@ -423,6 +427,7 @@ exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
+exports.arkham = arkham["default"];
 exports.ascendex = ascendex["default"];
 exports.backpack = backpack["default"];
 exports.bequant = bequant["default"];
