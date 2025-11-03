@@ -341,6 +341,12 @@ export default class aster extends Exchange {
             'options': {
                 'recvWindow': 10 * 1000, // 10 sec
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'accountsByType': {
+                    'spot': 'SPOT',
+                    'future': 'FUTURE',
+                    'linear': 'FUTURE',
+                    'swap': 'FUTURE',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -3481,16 +3487,28 @@ export default class aster extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         let type = undefined;
-        if (fromAccount.toUpperCase () === 'SPOT' && toAccount.toUpperCase () === 'FUTURE') {
+        let fromId = undefined;
+        if (fromAccount !== undefined) {
+            fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
+        }
+        let toId = undefined;
+        if (toAccount !== undefined) {
+            toId = this.convertTypeToAccount (toAccount).toUpperCase ();
+        }
+        if (fromId === 'SPOT' && toId === 'FUTURE') {
             type = 'SPOT_FUTURE';
-        } else if (fromAccount.toUpperCase () === 'FUTURE' && toAccount.toUpperCase () === 'SPOT') {
+        } else if (fromId === 'FUTURE' && toId === 'SPOT') {
             type = 'FUTURE_SPOT';
         }
         let response = undefined;
         if (type !== undefined) {
+            const defaultClientTranId = this.numberToString (this.milliseconds ());
+            const clientTranId = this.safeString (params, 'clientTranId', defaultClientTranId);
             request['kindType'] = type;
+            request['clientTranId'] = clientTranId;
             response = await this.fapiPrivatePostV1AssetWalletTransfer (this.extend (request, params));
         } else {
+            // transfer asset to other address
             request['toAddress'] = toAccount;
             response = await this.sapiPrivatePostV1AssetSendToAddress (this.extend (request, params));
         }
