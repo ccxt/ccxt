@@ -1,7 +1,6 @@
 package ccxt
 
 import (
-	"bytes"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -10,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
+	"github.com/mitchellh/mapstructure"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -40,17 +40,24 @@ type TimeInForce struct {
 	TIF string `mapstructure:"tif" msgpack:"tif"`
 }
 
-type Limit struct {
-	TimeInForce TimeInForce `mapstructure:"limit" msgpack:"limit"`
+type TriggerSpec struct {
+	IsMarket  bool   `mapstructure:"isMarket" msgpack:"isMarket"`
+	TPSL      string `mapstructure:"tpsl" msgpack:"tpsl"`
+	TriggerPx string `mapstructure:"triggerPx" msgpack:"triggerPx"`
+}
+
+type OrderKind struct {
+	Limit   *TimeInForce `mapstructure:"limit" msgpack:"limit,omitempty"`
+	Trigger *TimeInForce `mapstructure:"trigger" msgpack:"trigger,omitempty"`
 }
 
 type OrderHyperliquid struct {
-	A int    `mapstructure:"a" msgpack:"a"`
-	B bool   `mapstructure:"b" msgpack:"b"`
-	P string `mapstructure:"p" msgpack:"p"`
-	S string `mapstructure:"s" msgpack:"s"`
-	R bool   `mapstructure:"r" msgpack:"r"`
-	T Limit  `mapstructure:"t" msgpack:"t"`
+	A int       `mapstructure:"a" msgpack:"a"`
+	B bool      `mapstructure:"b" msgpack:"b"`
+	P string    `mapstructure:"p" msgpack:"p"`
+	S string    `mapstructure:"s" msgpack:"s"`
+	R bool      `mapstructure:"r" msgpack:"r"`
+	T OrderKind `mapstructure:"t" msgpack:"t"`
 }
 
 type OrderMessage struct {
@@ -329,26 +336,96 @@ func ConvertInt64ToInt(data interface{}) interface{} { // these functions change
 // }
 
 func (this *Exchange) Packb(data interface{}) []uint8 {
+
 	var dataObj interface{} = nil
 	dataJson := this.Json(data)
 	dataObj = this.ParseJson(dataJson)
+
+	// if subDict, ok := data.(map[string]interface{}); ok {
+	// 	dataObj = DeepExtend(subDict, map[string]interface{}{}) // create a new only to avoid changing the original
+	// } else {
+	// 	dataObj = data
+	// }
 	converted := ConvertInt64ToBigInt(dataObj)
 
-	if !strings.EqualFold(this.Id, "hyperliquid") {
-		buf, err := msgpack.Marshal(converted)
+	if this.Id != "hyperliquid" {
+		p, err := msgpack.Marshal(converted)
 		if err != nil {
 			panic(err)
 		}
-		return buf
+		return p
 	}
 
-	var buffer bytes.Buffer
-	enc := msgpack.NewEncoder(&buffer)
-	enc.SetSortMapKeys(true)
-	enc.UseCompactInts(true)
+	typeA := this.SafeString(converted, "type", "").(string)
 
-	if err := enc.Encode(data); err != nil {
-		panic(err)
+	switch typeA {
+	case "order":
+		var orderMsg OrderMessage
+
+		err := mapstructure.Decode(converted, &orderMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(orderMsg)
+
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "cancel":
+		var cancelMsg CancelMessage
+
+		err := mapstructure.Decode(converted, &cancelMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(cancelMsg)
+
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "withdraw3":
+		var withdrawMsg WithdrawMessage
+
+		err := mapstructure.Decode(converted, &withdrawMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(withdrawMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "batchModify":
+		var editMsg EditOrderMessage
+
+		err := mapstructure.Decode(converted, &editMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(editMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "subAccountTransfer":
+		var subAccountTransferMsg SubAccountTransferMessage
+
+		err := mapstructure.Decode(converted, &subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
 	}
-	return buffer.Bytes()
+	return nil
 }
