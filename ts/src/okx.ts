@@ -1664,6 +1664,11 @@ export default class okx extends Exchange {
         //     }
         //
         // for swap "preopen" markets, only `instId` and `instType` are present
+        //
+        //         instId: "ETH-USD_UM-SWAP",
+        //         instType: "SWAP",
+        //         state: "preopen",
+        //
         const id = this.safeString (market, 'instId');
         let type = this.safeStringLower (market, 'instType');
         if (type === 'futures') {
