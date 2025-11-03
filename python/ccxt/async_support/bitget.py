@@ -1420,6 +1420,7 @@ class bitget(Exchange, ImplicitAPI):
             'commonCurrencies': {
                 'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'EVA': 'Evadore',  # conflict with EverValue Coin
                 'JADE': 'Jade Protocol',
                 'OMNI': 'omni',  # conflict with Omni Network
                 'TONCOIN': 'TON',
