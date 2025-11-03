@@ -27,7 +27,7 @@
                 "method": "fetchOrder",
                 "url": "https://api.delta.exchange/v2/orders/client_order_id/123",
                 "input": [
-                    null,
+                    "123",
                     "BTC/USDT",
                     {
                         "clientOrderId": "123"
