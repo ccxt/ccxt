@@ -2,7 +2,7 @@
 
 import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -342,6 +342,7 @@ export default class aster extends Exchange {
                 'recvWindow': 10 * 1000, // 10 sec
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 'accountsByType': {
                     'spot': 'SPOT',
                     'future': 'FUTURE',
@@ -523,6 +524,8 @@ export default class aster extends Exchange {
                     '-4165': BadRequest, // INVALID_TIME_INTERVAL
                     '-4183': InvalidOrder, // PRICE_HIGHTER_THAN_STOP_MULTIPLIER_UP
                     '-4184': InvalidOrder, // PRICE_LOWER_THAN_STOP_MULTIPLIER_DOWN
+                    '-5060': OperationRejected, // {"code":-5060,"msg":"The limit order price does not meet the PERCENT_PRICE filter limit."}
+                    '-5076': OperationRejected, // {"code":-5076,"msg":"Total order value should be more than 5 USDT"}
                 },
                 'broad': {
                 },
@@ -2211,22 +2214,97 @@ export default class aster extends Exchange {
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
-        const uppercaseType = type.toUpperCase ();
+        const initialUppercaseType = type.toUpperCase ();
+        const isMarketOrder = initialUppercaseType === 'MARKET';
+        const isLimitOrder = initialUppercaseType === 'LIMIT';
         const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
-            'type': uppercaseType,
         };
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['newClientOrderId'] = clientOrderId;
         }
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const trailingDelta = this.safeString (params, 'trailingDelta');
+        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice');
+        const trailingPercent = this.safeStringN (params, [ 'trailingPercent', 'callbackRate', 'trailingDelta' ]);
+        const isTrailingPercentOrder = trailingPercent !== undefined;
+        const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        let uppercaseType = initialUppercaseType;
+        let stopPrice = undefined;
+        if (isTrailingPercentOrder) {
+            if (market['swap']) {
+                uppercaseType = 'TRAILING_STOP_MARKET';
+                request['callbackRate'] = trailingPercent;
+                if (trailingTriggerPrice !== undefined) {
+                    request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
+                }
+            }
+        } else if (isStopLoss) {
+            stopPrice = stopLossPrice;
+            if (isMarketOrder) {
+                uppercaseType = 'STOP_MARKET';
+            } else if (isLimitOrder) {
+                uppercaseType = 'STOP';
+            }
+        } else if (isTakeProfit) {
+            stopPrice = takeProfitPrice;
+            if (isMarketOrder) {
+                uppercaseType = 'TAKE_PROFIT_MARKET';
+            } else if (isLimitOrder) {
+                uppercaseType = 'TAKE_PROFIT';
+            }
+        }
+        const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
+        if (postOnly) {
+            request['timeInForce'] = 'GTX';
+        }
+        //
+        // spot
+        // LIMIT timeInForce, quantity, price
+        // MARKET quantity or quoteOrderQty
+        // STOP and TAKE_PROFIT quantity, price, stopPrice
+        // STOP_MARKET and TAKE_PROFIT_MARKET quantity, stopPrice
+        // future
+        // LIMIT timeInForce, quantity, price
+        // MARKET quantity
+        // STOP/TAKE_PROFIT quantity, price, stopPrice
+        // STOP_MARKET/TAKE_PROFIT_MARKET stopPrice
+        // TRAILING_STOP_MARKET callbackRate
+        //
+        // additional required fields depending on the order type
+        const closePosition = this.safeBool (params, 'closePosition', false);
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let triggerPriceIsRequired = false;
         let quantityIsRequired = false;
+        request['type'] = uppercaseType;
         if (uppercaseType === 'MARKET') {
-            quantityIsRequired = true;
+            if (market['spot']) {
+                const quoteOrderQty = this.safeBool (this.options, 'quoteOrderQty', true);
+                if (quoteOrderQty) {
+                    const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
+                    const precision = market['precision']['price'];
+                    if (quoteOrderQtyNew !== undefined) {
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
+                    } else if (price !== undefined) {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
+                    } else {
+                        quantityIsRequired = true;
+                    }
+                } else {
+                    quantityIsRequired = true;
+                }
+            } else {
+                quantityIsRequired = true;
+            }
         } else if (uppercaseType === 'LIMIT') {
             timeInForceIsRequired = true;
             quantityIsRequired = true;
@@ -2236,10 +2314,11 @@ export default class aster extends Exchange {
             priceIsRequired = true;
             triggerPriceIsRequired = true;
         } else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
+            if (!closePosition) {
+                quantityIsRequired = true;
+            }
             triggerPriceIsRequired = true;
         } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
-            const trailingPercent = this.safeStringN (params, [ 'trailingPercent', 'callbackRate', 'trailingDelta' ]);
-            const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice');
             request['callbackRate'] = trailingPercent;
             if (trailingTriggerPrice !== undefined) {
                 request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
@@ -2267,7 +2346,6 @@ export default class aster extends Exchange {
             }
         }
         if (triggerPriceIsRequired) {
-            const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             }
@@ -2278,7 +2356,7 @@ export default class aster extends Exchange {
         if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
             request['timeInForce'] = this.safeString (this.options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta' ]);
+        const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         return this.extend (request, requestParams);
     }
 
@@ -3439,14 +3517,14 @@ export default class aster extends Exchange {
         };
         const messageTypes: Dict = {
             'Action': [
-                { 'name': 'type', type: 'string'},
-                { 'name': 'destination', type: 'address'},
-                { 'name': 'destination Chain', type: 'string'},
-                { 'name': 'token', type: 'string'},
-                { 'name': 'amount', type: 'string'},
-                { 'name': 'fee', type: 'string'},
-                { 'name': 'nonce', type: 'uint256'},
-                { 'name': 'aster chain', type: 'string'},
+                { 'name': 'type', 'type': 'string ' },
+                { 'name': 'destination', 'type': 'address ' },
+                { 'name': 'destination Chain', 'type': 'string ' },
+                { 'name': 'token', 'type': 'string ' },
+                { 'name': 'amount', 'type': 'string ' },
+                { 'name': 'fee', 'type': 'string ' },
+                { 'name': 'nonce', 'type': 'uint256 ' },
+                { 'name': 'aster chain', 'type': 'string ' },
             ],
         };
         const withdraw = {
