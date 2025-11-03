@@ -329,96 +329,26 @@ func ConvertInt64ToInt(data interface{}) interface{} { // these functions change
 // }
 
 func (this *Exchange) Packb(data interface{}) []uint8 {
-
 	var dataObj interface{} = nil
 	dataJson := this.Json(data)
 	dataObj = this.ParseJson(dataJson)
-
-	// if subDict, ok := data.(map[string]interface{}); ok {
-	// 	dataObj = DeepExtend(subDict, map[string]interface{}{}) // create a new only to avoid changing the original
-	// } else {
-	// 	dataObj = data
-	// }
 	converted := ConvertInt64ToBigInt(dataObj)
 
-	if this.Id != "hyperliquid" {
-		p, err := msgpack.Marshal(converted)
+	if !strings.EqualFold(this.Id, "hyperliquid") {
+		buf, err := msgpack.Marshal(converted)
 		if err != nil {
 			panic(err)
 		}
-		return p
+		return buf
 	}
 
-	typeA := this.SafeString(converted, "type", "").(string)
+	var buffer bytes.Buffer
+	enc := msgpack.NewEncoder(&buffer)
+	enc.SetSortMapKeys(true)
+	enc.UseCompactInts(true)
 
-	switch typeA {
-	case "order":
-		var orderMsg OrderMessage
-
-		err := mapstructure.Decode(converted, &orderMsg)
-		if err != nil {
-			panic(err)
-		}
-
-		packed, err := msgpack.Marshal(orderMsg)
-
-		if err != nil {
-			panic(err)
-		}
-		return packed
-	case "cancel":
-		var cancelMsg CancelMessage
-
-		err := mapstructure.Decode(converted, &cancelMsg)
-		if err != nil {
-			panic(err)
-		}
-
-		packed, err := msgpack.Marshal(cancelMsg)
-
-		if err != nil {
-			panic(err)
-		}
-		return packed
-	case "withdraw3":
-		var withdrawMsg WithdrawMessage
-
-		err := mapstructure.Decode(converted, &withdrawMsg)
-		if err != nil {
-			panic(err)
-		}
-
-		packed, err := msgpack.Marshal(withdrawMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
-	case "batchModify":
-		var editMsg EditOrderMessage
-
-		err := mapstructure.Decode(converted, &editMsg)
-		if err != nil {
-			panic(err)
-		}
-
-		packed, err := msgpack.Marshal(editMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
-	case "subAccountTransfer":
-		var subAccountTransferMsg SubAccountTransferMessage
-
-		err := mapstructure.Decode(converted, &subAccountTransferMsg)
-		if err != nil {
-			panic(err)
-		}
-
-		packed, err := msgpack.Marshal(subAccountTransferMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+	if err := enc.Encode(converted); err != nil {
+		panic(err)
 	}
-	return nil
+	return buffer.Bytes()
 }
