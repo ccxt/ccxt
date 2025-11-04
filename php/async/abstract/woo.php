@@ -139,9 +139,6 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v1_private_post_asset_ltv($params = array()) {
         return $this->request('asset/ltv', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
-    public function v1_private_post_asset_withdraw($params = array()) {
-        return $this->request('asset/withdraw', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
-    }
     public function v1_private_post_asset_internal_withdraw($params = array()) {
         return $this->request('asset/internal_withdraw', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
@@ -543,9 +540,6 @@ abstract class woo extends \ccxt\async\Exchange {
     }
     public function v1PrivatePostAssetLtv($params = array()) {
         return $this->request('asset/ltv', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
-    }
-    public function v1PrivatePostAssetWithdraw($params = array()) {
-        return $this->request('asset/withdraw', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function v1PrivatePostAssetInternalWithdraw($params = array()) {
         return $this->request('asset/internal_withdraw', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
