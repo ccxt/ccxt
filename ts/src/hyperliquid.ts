@@ -1626,6 +1626,18 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
+    buildUserDexAbstractionSig (message) {
+        const messageTypes: Dict = {
+            'HyperliquidTransaction:UserDexAbstraction': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'user', 'type': 'address' },
+                { 'name': 'enabled', 'type': 'bool' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction (messageTypes, message);
+    }
+
     buildApproveBuilderFeeSig (message) {
         const messageTypes: Dict = {
             'HyperliquidTransaction:ApproveBuilderFee': [
@@ -1691,6 +1703,43 @@ export default class hyperliquid extends Exchange {
             this.options['builderFee'] = false; // disable builder fee if an error occurs
         }
         return true;
+    }
+
+    async enableUserDexAbstraction (enabled: boolean, params = {}) {
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('enableUserDexAbstraction', params);
+        const nonce = this.milliseconds ();
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const payload: Dict = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'user': userAddress,
+            'enabled': enabled,
+            'nonce': nonce,
+        };
+        const sig = this.buildUserDexAbstractionSig (payload);
+        const action = {
+            'hyperliquidChain': payload['hyperliquidChain'],
+            'signatureChainId': '0x66eee',
+            'enabled': payload['enabled'],
+            'user': payload['user'],
+            'nonce': nonce,
+            'type': 'userDexAbstraction',
+        };
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': undefined,
+        };
+        //
+        // {
+        //     "status": "ok",
+        //     "response": {
+        //         "type": "default"
+        //     }
+        // }
+        //
+        return await this.privatePostExchange (request);
     }
 
     /**
