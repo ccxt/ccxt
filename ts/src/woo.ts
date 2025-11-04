@@ -2966,7 +2966,7 @@ export default class woo extends Exchange {
         //        }
         //
         const code = this.safeCurrencyCode (this.safeString (transfer, 'token'), currency);
-        const timestamp = this.safeTimestamp (transfer, 'createdTime');
+        const timestamp = this.safeTimestamp2 (transfer, 'createdTime', 'timestamp');
         const success = this.safeBool (transfer, 'success');
         let status: Str = undefined;
         if (success !== undefined) {

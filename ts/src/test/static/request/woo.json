@@ -693,16 +693,16 @@
         ],
         "transfer": [
             {
-                "description": "transfer",
+                "description": "transfer v3",
                 "method": "transfer",
-                "url": "https://api.woox.io/v1/asset/main_sub_transfer",
+                "url": "https://api.woox.io/v3/asset/transfer",
                 "input": [
-                    "USDT",
-                    1000,
-                    "0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3",
-                    "c01e6940-a735-4022-9b6c-9d3971cdfdfa"
+                    "USDC",
+                    5,
+                    "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                    "d8ce1671-8bd4-4f6a-b037-196ee5687109"
                 ],
-                "output": "amount=1000&from_application_id=0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3&to_application_id=c01e6940-a735-4022-9b6c-9d3971cdfdfa&token=USDT"
+                "output": "{\"amount\":5,\"from\":{\"applicationId\":\"251bf5c4-f3c8-4544-bb8b-80001007c3c0\"},\"to\":{\"applicationId\":\"d8ce1671-8bd4-4f6a-b037-196ee5687109\"},\"token\":\"USDC\"}"
             }
         ],
         "fetchFundingRateHistory": [
