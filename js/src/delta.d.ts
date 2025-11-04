@@ -196,6 +196,19 @@ export default class delta extends Exchange {
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
+     * @name delta#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.delta.exchange/#get-order-by-id
+     * @see https://docs.delta.exchange/#get-order-by-client-oid
+     * @param {string} id the order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id of the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    /**
+     * @method
      * @name delta#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://docs.delta.exchange/#get-active-orders

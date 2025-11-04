@@ -102,7 +102,6 @@ interface Exchange {
     v3PrivateGetSpotMarginMaxMargin(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetAlgoOrderOid(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetAlgoOrders(params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetBalances(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetPositions(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBuypower(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetConvertExchangeInfo(params?: {}): Promise<implicitReturnType>;

@@ -4180,6 +4180,7 @@ fetches information on an order made by the user
 * [coinsph](/exchanges/coinsph.md#coinsphfetchorder)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchorder)
 * [defx](/exchanges/defx.md#defxfetchorder)
+* [delta](/exchanges/delta.md#deltafetchorder)
 * [deribit](/exchanges/deribit.md#deribitfetchorder)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchorder)
 * [exmo](/exchanges/exmo.md#exmofetchorder)

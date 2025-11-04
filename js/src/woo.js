@@ -288,7 +288,6 @@ export default class woo extends Exchange {
                             'spotMargin/maxMargin': 60,
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
-                            'balances': 1,
                             'positions': 3.33,
                             'buypower': 1,
                             'convert/exchangeInfo': 1,
@@ -2423,7 +2422,7 @@ export default class woo extends Exchange {
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        const response = await this.v3PrivateGetBalances(params);
+        const response = await this.v3PrivateGetAssetBalances(params);
         //
         //     {
         //         "success": true,
