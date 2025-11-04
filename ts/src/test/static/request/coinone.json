@@ -59,9 +59,11 @@
             {
                 "description": "fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.coinone.co.kr/public/v2/trades/KRW/BTC",
+                "url": "https://api.coinone.co.kr/public/v2/trades/KRW/BTC?size=5",
                 "input": [
-                    "BTC/KRW"
+                    "BTC/KRW",
+                    null,
+                    5
                 ]
             }
         ]

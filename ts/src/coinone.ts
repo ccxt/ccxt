@@ -657,14 +657,14 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+     * @see https://docs.coinone.co.kr/reference/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchTicker() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -838,7 +838,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+     * @see https://docs.coinone.co.kr/reference/recent-completed-orders
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -846,6 +846,9 @@ export default class coinone extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
