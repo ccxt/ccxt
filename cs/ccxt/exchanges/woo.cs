@@ -198,7 +198,6 @@ public partial class woo : Exchange
                         { "post", new Dictionary<string, object>() {
                             { "order", 1 },
                             { "order/cancel_all_after", 1 },
-                            { "asset/main_sub_transfer", 30 },
                             { "asset/ltv", 30 },
                             { "asset/withdraw", 30 },
                             { "asset/internal_withdraw", 30 },
@@ -2845,17 +2844,25 @@ public partial class woo : Exchange
         object request = new Dictionary<string, object>() {
             { "token", getValue(currency, "id") },
             { "amount", this.parseToNumeric(amount) },
-            { "from_application_id", fromAccount },
-            { "to_application_id", toAccount },
+            { "from", new Dictionary<string, object>() {
+                { "applicationId", fromAccount },
+            } },
+            { "to", new Dictionary<string, object>() {
+                { "applicationId", toAccount },
+            } },
         };
-        object response = await this.v1PrivatePostAssetMainSubTransfer(this.extend(request, parameters));
+        object response = await this.v3PrivatePostAssetTransfer(this.extend(request, parameters));
         //
         //     {
         //         "success": true,
         //         "id": 200
         //     }
         //
-        object transfer = this.parseTransfer(response, currency);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
+        ((IDictionary<string,object>)data)["token"] = getValue(currency, "id");
+        ((IDictionary<string,object>)data)["status"] = "ok";
+        object transfer = this.parseTransfer(data, currency);
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(fillResponseFromRequest))
@@ -2979,7 +2986,7 @@ public partial class woo : Exchange
         //        }
         //
         object code = this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
-        object timestamp = this.safeTimestamp(transfer, "createdTime");
+        object timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
         object success = this.safeBool(transfer, "success");
         object status = null;
         if (isTrue(!isEqual(success, null)))
