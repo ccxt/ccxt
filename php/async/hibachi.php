@@ -1293,12 +1293,12 @@ class hibachi extends Exchange {
             return $this->hmac($message, $this->encode($privateKey), 'sha256', 'hex');
         } else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the $message
-            $hash = $this->hash($this->encode($message), 'sha256', 'hex');
+            $hash = $this->hash($message, 'sha256', 'hex');
             $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
             $r = $signature['r'];
             $s = $signature['s'];
-            $v = $signature['v'];
-            return str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $this->int_to_base16($v).padStart (2, '0');
+            $v = $this->int_to_base16($signature['v']);
+            return str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . str_pad($v, 2, '0', STR_PAD_LEFT);
         }
     }
 

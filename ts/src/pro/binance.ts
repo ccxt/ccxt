@@ -431,7 +431,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const marketId = this.safeString (liquidation, 's');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger (liquidation, 'T');
         return this.safeLiquidation ({
             'info': liquidation,
@@ -555,8 +555,8 @@ export default class binance extends binanceRest {
             return;
         }
         const marketId = this.safeString (message, 's');
-        const market = this.safeMarket (marketId);
-        const symbol = this.safeSymbol (marketId);
+        const market = this.safeMarket (marketId, undefined, undefined, 'swap');
+        const symbol = this.safeSymbol (marketId, market);
         const liquidation = this.parseWsLiquidation (message, market);
         let myLiquidations = this.safeValue (this.myLiquidations, symbol);
         if (myLiquidations === undefined) {
@@ -939,7 +939,7 @@ export default class binance extends binanceRest {
         //     }
         //
         const isSpot = this.isSpotUrl (client);
-        const marketType = (isSpot) ? 'spot' : 'contract';
+        const marketType = (isSpot) ? 'spot' : 'swap';
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -2350,10 +2350,6 @@ export default class binance extends binanceRest {
 
     signParams (params = {}) {
         this.checkRequiredCredentials ();
-        let extendedParams = this.extend ({
-            'timestamp': this.nonce (),
-            'apiKey': this.apiKey,
-        }, params);
         const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
         if (defaultRecvWindow !== undefined) {
             params['recvWindow'] = defaultRecvWindow;
@@ -2362,8 +2358,12 @@ export default class binance extends binanceRest {
         if (recvWindow !== undefined) {
             params['recvWindow'] = recvWindow;
         }
+        let extendedParams = this.extend ({
+            'timestamp': this.nonce (),
+            'apiKey': this.apiKey,
+        }, params);
         extendedParams = this.keysort (extendedParams);
-        const query = this.urlencode (extendedParams);
+        const query = this.rawencode (extendedParams);
         let signature = undefined;
         if (this.secret.indexOf ('PRIVATE KEY') > -1) {
             if (this.secret.length > 120) {
@@ -3583,7 +3583,7 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        params = this.extend (params, { 'type': type, 'symbol': symbol }); // needed inside authenticate for isolated margin
+        params = this.extend (params, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
         await this.authenticate (params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchOrders', params);
@@ -4059,7 +4059,7 @@ export default class binance extends binanceRest {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol (marketId, undefined, undefined, 'contract'),
+            'symbol': this.safeSymbol (marketId, undefined, undefined, 'swap'),
             'notional': undefined,
             'marginMode': this.safeString (position, 'mt'),
             'liquidationPrice': undefined,
@@ -4267,7 +4267,7 @@ export default class binance extends binanceRest {
             messageHash += ':' + symbol;
             params = this.extend (params, { 'type': market['type'], 'symbol': symbol });
         }
-        await this.authenticate (params);
+        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
         let urlType = type; // we don't change type because the listening key is different
         if (type === 'margin') {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot

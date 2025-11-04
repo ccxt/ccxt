@@ -296,7 +296,6 @@ class woo(Exchange, ImplicitAPI):
                             'spotMargin/maxMargin': 60,  # 10/60s
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
-                            'balances': 1,
                             'positions': 3.33,
                             'buypower': 1,
                             'convert/exchangeInfo': 1,
@@ -1915,7 +1914,13 @@ class woo(Exchange, ImplicitAPI):
         #         "positionSide": "BOTH"
         #     }
         #
-        timestamp = self.safe_timestamp(order, 'createdTime')
+        timestamp = None
+        timestrampString = self.safe_string(order, 'createdTime')
+        if timestrampString is not None:
+            if timestrampString.find('.') >= 0:
+                timestamp = self.safe_timestamp(order, 'createdTime')  # algo orders
+            else:
+                timestamp = self.safe_integer(order, 'createdTime')  # regular orders
         if timestamp is None:
             timestamp = self.safe_integer(order, 'timestamp')
         orderId = self.safe_string_2(order, 'orderId', 'algoOrderId')
@@ -1935,7 +1940,13 @@ class woo(Exchange, ImplicitAPI):
         fee = self.safe_number(order, 'totalFee')
         feeCurrency = self.safe_string(order, 'feeAsset')
         triggerPrice = self.safe_number(order, 'triggerPrice')
-        lastUpdateTimestamp = self.safe_timestamp(order, 'updatedTime')
+        lastUpdateTimestampString = self.safe_string(order, 'updatedTime')
+        lastUpdateTimestamp = None
+        if lastUpdateTimestampString is not None:
+            if lastUpdateTimestampString.find('.') >= 0:
+                lastUpdateTimestamp = self.safe_timestamp(order, 'updatedTime')  # algo orders
+            else:
+                lastUpdateTimestamp = self.safe_integer(order, 'updatedTime')  # regular orders
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -2313,7 +2324,7 @@ class woo(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
-        response = await self.v3PrivateGetBalances(params)
+        response = await self.v3PrivateGetAssetBalances(params)
         #
         #     {
         #         "success": True,

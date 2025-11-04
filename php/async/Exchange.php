@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.11';
+$version = '4.5.15';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.11';
+    const VERSION = '4.5.15';
 
     public $browser;
     public $marketsLoading = null;
@@ -1611,7 +1611,7 @@ class Exchange extends \ccxt\Exchange {
             'delay' => 0.001,
             'capacity' => 1,
             'cost' => 1,
-            'maxCapacity' => 1000,
+            'maxCapacity' => $this->safe_integer($this->options, 'maxRequestsQueue', 1000),
             'refillRate' => $refillRate,
         );
         $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;

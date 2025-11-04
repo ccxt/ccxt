@@ -153,6 +153,66 @@ func (this *Bithumb) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
     }
     return ccxt.NewTradeArray(res), nil
 }
+/**
+ * @method
+ * @name bithumb#watchBalance
+ * @description watch balance and get the amount of funds available for trading or funds locked in orders
+ * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ */
+func (this *Bithumb) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
+    res := <- this.Core.WatchBalance(params...)
+    if ccxt.IsError(res) {
+        return ccxt.Balances{}, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewBalances(res), nil
+}
+/**
+ * @method
+ * @name bithumb#watchOrders
+ * @description watches information on multiple orders made by the user
+ * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder
+ * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string[]} [params.codes] market codes to filter orders
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Bithumb) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
+
+    opts := ccxt.WatchOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchOrders(symbol, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewOrderArray(res), nil
+}
 // missing typed methods from base
 //nolint
 func (this *Bithumb) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
@@ -335,7 +395,6 @@ func (this *Bithumb) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerO
 func (this *Bithumb) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTickers(options...)}
 func (this *Bithumb) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
 func (this *Bithumb) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
-func (this *Bithumb) WatchBalance(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.WatchBalance(params...)}
 func (this *Bithumb) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchBidsAsks(options...)}
 func (this *Bithumb) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
 func (this *Bithumb) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
@@ -346,7 +405,6 @@ func (this *Bithumb) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt
 func (this *Bithumb) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.WatchOHLCV(symbol, options...)}
 func (this *Bithumb) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.WatchOHLCVForSymbolsOptions) (map[string]map[string][]ccxt.OHLCV, error) {return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
 func (this *Bithumb) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)}
-func (this *Bithumb) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrders(options...)}
 func (this *Bithumb) WatchOrdersForSymbols(symbols []string, options ...ccxt.WatchOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
 func (this *Bithumb) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.WatchPosition(options...)}
 func (this *Bithumb) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.WatchPositions(options...)}

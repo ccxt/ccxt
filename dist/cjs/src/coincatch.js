@@ -372,7 +372,8 @@ class coincatch extends coincatch$1["default"] {
                     'StratisEVM': 'STRAT',
                     'ChilizChain': 'ChilizChain',
                     'StellarLumens': 'XLM',
-                    'CronosChain': 'CRO', // todo check
+                    'CronosChain': 'CRO',
+                    'Optimism': 'Optimism',
                 },
             },
             'features': {

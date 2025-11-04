@@ -414,22 +414,24 @@ export default class htx extends htxRest {
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const allowedLimits = [20, 150];
+        const allowedLimits = [5, 20, 150, 400];
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         const options = this.safeDict(this.options, 'watchOrderBook', {});
-        const depth = this.safeInteger(options, 'depth', 150);
-        if (!this.inArray(depth, allowedLimits)) {
-            throw new ExchangeError(this.id + ' watchOrderBook market accepts limits of 20 and 150 only');
+        if (limit === undefined) {
+            limit = this.safeInteger(options, 'depth', 150);
+        }
+        if (!this.inArray(limit, allowedLimits)) {
+            throw new ExchangeError(this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
         let messageHash = undefined;
         if (market['spot']) {
-            messageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString(depth);
+            messageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString(limit);
         }
         else {
-            messageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString(depth) + '.high_freq';
+            messageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString(limit) + '.high_freq';
         }
         const url = this.getUrlByMarketType(market['type'], market['linear'], false, true);
         let method = this.handleOrderBookSubscription;

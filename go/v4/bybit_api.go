@@ -511,6 +511,10 @@ func (this *BybitCore) PrivateGetV5AccountBorrowHistory(args ...interface{}) <-c
 	return this.callEndpointAsync("privateGetV5AccountBorrowHistory", args...)
 }
 
+func (this *BybitCore) PrivateGetV5AccountInstrumentsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountInstrumentsInfo", args...)
+}
+
 func (this *BybitCore) PrivateGetV5AccountCollateralInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV5AccountCollateralInfo", args...)
 }
@@ -627,6 +631,10 @@ func (this *BybitCore) PrivateGetV5AssetCoinQueryInfo(args ...interface{}) <-cha
 	return this.callEndpointAsync("privateGetV5AssetCoinQueryInfo", args...)
 }
 
+func (this *BybitCore) PrivateGetV5AssetWithdrawQueryAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawQueryAddress", args...)
+}
+
 func (this *BybitCore) PrivateGetV5AssetWithdrawQueryRecord(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV5AssetWithdrawQueryRecord", args...)
 }
@@ -681,6 +689,22 @@ func (this *BybitCore) PrivateGetV5SpotMarginTradeInterestRateHistory(args ...in
 
 func (this *BybitCore) PrivateGetV5SpotMarginTradeState(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetV5SpotMarginTradeState", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeMaxBorrowable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeMaxBorrowable", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradePositionTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradePositionTiers", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeCoinstate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeCoinstate", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeRepaymentAvailableAmount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeRepaymentAvailableAmount", args...)
 }
 
 func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeLoanInfo(args ...interface{}) <-chan interface{} {
@@ -1097,6 +1121,18 @@ func (this *BybitCore) PrivatePostV5AccountMmpModify(args ...interface{}) <-chan
 
 func (this *BybitCore) PrivatePostV5AccountMmpReset(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostV5AccountMmpReset", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountBorrow", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountRepay", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountNoConvertRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountNoConvertRepay", args...)
 }
 
 func (this *BybitCore) PrivatePostV5AssetExchangeQuoteApply(args ...interface{}) <-chan interface{} {

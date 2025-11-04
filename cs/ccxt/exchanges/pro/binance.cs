@@ -447,7 +447,7 @@ public partial class binance : ccxt.binance
         //    }
         //
         object marketId = this.safeString(liquidation, "s");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "swap");
         object timestamp = this.safeInteger(liquidation, "T");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
@@ -586,8 +586,8 @@ public partial class binance : ccxt.binance
             return;
         }
         object marketId = this.safeString(message, "s");
-        object market = this.safeMarket(marketId);
-        object symbol = this.safeSymbol(marketId);
+        object market = this.safeMarket(marketId, null, null, "swap");
+        object symbol = this.safeSymbol(marketId, market);
         object liquidation = this.parseWsLiquidation(message, market);
         object myLiquidations = this.safeValue(this.myLiquidations, symbol);
         if (isTrue(isEqual(myLiquidations, null)))
@@ -1009,7 +1009,7 @@ public partial class binance : ccxt.binance
         //     }
         //
         object isSpot = this.isSpotUrl(client);
-        object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
+        object marketType = ((bool) isTrue((isSpot))) ? "spot" : "swap";
         object marketId = this.safeString(message, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
@@ -2608,10 +2608,6 @@ public partial class binance : ccxt.binance
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object extendedParams = this.extend(new Dictionary<string, object>() {
-            { "timestamp", this.nonce() },
-            { "apiKey", this.apiKey },
-        }, parameters);
         object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
         if (isTrue(!isEqual(defaultRecvWindow, null)))
         {
@@ -2622,8 +2618,12 @@ public partial class binance : ccxt.binance
         {
             ((IDictionary<string,object>)parameters)["recvWindow"] = recvWindow;
         }
+        object extendedParams = this.extend(new Dictionary<string, object>() {
+            { "timestamp", this.nonce() },
+            { "apiKey", this.apiKey },
+        }, parameters);
         extendedParams = this.keysort(extendedParams);
-        object query = this.urlencode(extendedParams);
+        object query = this.rawencode(extendedParams);
         object signature = null;
         if (isTrue(isGreaterThan(getIndexOf(this.secret, "PRIVATE KEY"), -1)))
         {
@@ -4031,6 +4031,7 @@ public partial class binance : ccxt.binance
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "type", type },
             { "symbol", symbol },
+            { "subType", subType },
         }); // needed inside authenticate for isolated margin
         await this.authenticate(parameters);
         object marginMode = null;
@@ -4563,7 +4564,7 @@ public partial class binance : ccxt.binance
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
-            { "symbol", this.safeSymbol(marketId, null, null, "contract") },
+            { "symbol", this.safeSymbol(marketId, null, null, "swap") },
             { "notional", null },
             { "marginMode", this.safeString(position, "mt") },
             { "liquidationPrice", null },
@@ -4800,7 +4801,10 @@ public partial class binance : ccxt.binance
                 { "symbol", symbol },
             });
         }
-        await this.authenticate(parameters);
+        await this.authenticate(this.extend(new Dictionary<string, object>() {
+            { "type", type },
+            { "subType", subType },
+        }, parameters));
         object urlType = type; // we don't change type because the listening key is different
         if (isTrue(isEqual(type, "margin")))
         {

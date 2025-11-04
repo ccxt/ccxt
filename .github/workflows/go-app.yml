@@ -61,9 +61,26 @@ jobs:
         #   #   tsx build/goTranspiler.ts -- $exchange
         #   # done
         run : |
-          cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
-          echo "Cleaned files: $cleaned_rest_files"
-          tsx utils/granular-go-build.ts $cleaned_rest_files
+          # cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+          # cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+          # # echo "Cleaned files: $cleaned_rest_files"
+          # # tsx utils/granular-go-build.ts $cleaned_rest_files
+          # if [ -n "$cleaned_rest_files" ]; then
+          #   echo "Cleaned files: $cleaned_rest_files"
+          #   tsx utils/granular-go-build.ts $cleaned_rest_files
+          # else
+          #   echo "No rest files to process; skipping."
+          # fi
+          # cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+          # if [ -n "$cleaned_ws_files" ]; then
+          #   echo "Cleaned files: $cleaned_ws_files"
+          #   tsx utils/granular-go-build.ts $cleaned_ws_files
+          # else
+          #   echo "No websocket files to process; skipping."
+          # fi
+          read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
+          echo "Files to process: ${files[*]}"
+          tsx utils/granular-go-build.ts "${files[@]}"
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
       - name: Build

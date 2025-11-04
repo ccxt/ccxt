@@ -516,11 +516,6 @@ public partial class woo : Exchange
         return await this.callAsync ("v3PrivateGetAlgoOrders",parameters);
     }
 
-    public async Task<object> v3PrivateGetBalances (object parameters = null)
-    {
-        return await this.callAsync ("v3PrivateGetBalances",parameters);
-    }
-
     public async Task<object> v3PrivateGetPositions (object parameters = null)
     {
         return await this.callAsync ("v3PrivateGetPositions",parameters);

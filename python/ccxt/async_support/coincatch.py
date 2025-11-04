@@ -388,6 +388,7 @@ class coincatch(Exchange, ImplicitAPI):
                     'ChilizChain': 'ChilizChain',  # todo check
                     'StellarLumens': 'XLM',  # todo check
                     'CronosChain': 'CRO',  # todo check
+                    'Optimism': 'Optimism',
                 },
             },
             'features': {

@@ -40,17 +40,24 @@ type TimeInForce struct {
 	TIF string `mapstructure:"tif" msgpack:"tif"`
 }
 
-type Limit struct {
-	TimeInForce TimeInForce `mapstructure:"limit" msgpack:"limit"`
+type TriggerSpec struct {
+	IsMarket  bool   `mapstructure:"isMarket" msgpack:"isMarket"`
+	TriggerPx string `mapstructure:"triggerPx" msgpack:"triggerPx"`
+	TPSL      string `mapstructure:"tpsl" msgpack:"tpsl"`
+}
+
+type OrderKind struct {
+	Limit   *TimeInForce `mapstructure:"limit" msgpack:"limit,omitempty"`
+	Trigger *TriggerSpec `mapstructure:"trigger" msgpack:"trigger,omitempty"`
 }
 
 type OrderHyperliquid struct {
-	A int    `mapstructure:"a" msgpack:"a"`
-	B bool   `mapstructure:"b" msgpack:"b"`
-	P string `mapstructure:"p" msgpack:"p"`
-	S string `mapstructure:"s" msgpack:"s"`
-	R bool   `mapstructure:"r" msgpack:"r"`
-	T Limit  `mapstructure:"t" msgpack:"t"`
+	A int       `mapstructure:"a" msgpack:"a"`
+	B bool      `mapstructure:"b" msgpack:"b"`
+	P string    `mapstructure:"p" msgpack:"p"`
+	S string    `mapstructure:"s" msgpack:"s"`
+	R bool      `mapstructure:"r" msgpack:"r"`
+	T OrderKind `mapstructure:"t" msgpack:"t"`
 }
 
 type OrderMessage struct {

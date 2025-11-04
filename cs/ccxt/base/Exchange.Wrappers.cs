@@ -1260,6 +1260,7 @@ public partial class Exchange
 // class wrappers
 public class  Alpaca: alpaca { public Alpaca(object args = null) : base(args) { } }
 public class  Apex: apex { public Apex(object args = null) : base(args) { } }
+public class  Arkham: arkham { public Arkham(object args = null) : base(args) { } }
 public class  Ascendex: ascendex { public Ascendex(object args = null) : base(args) { } }
 public class  Backpack: backpack { public Backpack(object args = null) : base(args) { } }
 public class  Bequant: bequant { public Bequant(object args = null) : base(args) { } }

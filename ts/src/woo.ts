@@ -287,7 +287,6 @@ export default class woo extends Exchange {
                             'spotMargin/maxMargin': 60, // 10/60s
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
-                            'balances': 1,
                             'positions': 3.33,
                             'buypower': 1,
                             'convert/exchangeInfo': 1,
@@ -1995,7 +1994,15 @@ export default class woo extends Exchange {
         //         "positionSide": "BOTH"
         //     }
         //
-        let timestamp = this.safeTimestamp (order, 'createdTime');
+        let timestamp = undefined;
+        const timestrampString = this.safeString (order, 'createdTime');
+        if (timestrampString !== undefined) {
+            if (timestrampString.indexOf ('.') >= 0) {
+                timestamp = this.safeTimestamp (order, 'createdTime'); // algo orders
+            } else {
+                timestamp = this.safeInteger (order, 'createdTime'); // regular orders
+            }
+        }
         if (timestamp === undefined) {
             timestamp = this.safeInteger (order, 'timestamp');
         }
@@ -2016,7 +2023,15 @@ export default class woo extends Exchange {
         const fee = this.safeNumber (order, 'totalFee');
         const feeCurrency = this.safeString (order, 'feeAsset');
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
-        const lastUpdateTimestamp = this.safeTimestamp (order, 'updatedTime');
+        const lastUpdateTimestampString = this.safeString (order, 'updatedTime');
+        let lastUpdateTimestamp = undefined;
+        if (lastUpdateTimestampString !== undefined) {
+            if (lastUpdateTimestampString.indexOf ('.') >= 0) {
+                lastUpdateTimestamp = this.safeTimestamp (order, 'updatedTime'); // algo orders
+            } else {
+                lastUpdateTimestamp = this.safeInteger (order, 'updatedTime'); // regular orders
+            }
+        }
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -2414,7 +2429,7 @@ export default class woo extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const response = await this.v3PrivateGetBalances (params);
+        const response = await this.v3PrivateGetAssetBalances (params);
         //
         //     {
         //         "success": true,

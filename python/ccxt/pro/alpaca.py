@@ -18,15 +18,31 @@ class alpaca(ccxt.async_support.alpaca):
         return self.deep_extend(super(alpaca, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWithTakeProfitAndStopLossWs': False,
+                'createReduceOnlyOrderWs': False,
+                'createStopLossOrderWs': False,
+                'createTakeProfitOrderWs': False,
+                'fetchPositionForSymbolWs': False,
+                'fetchPositionsForSymbolWs': False,
+                'fetchPositionsWs': False,
+                'fetchPositionWs': False,
+                'unWatchPositions': False,
                 'watchBalance': False,
+                'watchLiquidations': False,
+                'watchLiquidationsForSymbols': False,
+                'watchMarkPrice': False,
+                'watchMarkPrices': False,
+                'watchMyLiquidations': False,
+                'watchMyLiquidationsForSymbols': False,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
+                'watchPosition': False,
+                'watchPositions': False,
                 'watchTicker': True,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
-                'watchPosition': False,
             },
             'urls': {
                 'api': {

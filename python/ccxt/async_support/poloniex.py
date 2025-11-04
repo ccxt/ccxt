@@ -3498,6 +3498,8 @@ class poloniex(Exchange, ImplicitAPI):
         url = self.urls['api']['spot']
         if self.in_array(api, ['swapPublic', 'swapPrivate']):
             url = self.urls['api']['swap']
+        if 'symbol' in params:
+            params['symbol'] = self.encode_uri_component(params['symbol'])  # handle symbols like 索拉拉/USDT'
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
         if api == 'public' or api == 'swapPublic':

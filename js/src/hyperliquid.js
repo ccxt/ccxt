@@ -222,6 +222,20 @@ export default class hyperliquid extends Exchange {
                 'sandboxMode': false,
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'spotCurrencyMapping': {
+                    'UDZ': '2Z',
+                    'UBONK': 'BONK',
+                    'UBTC': 'BTC',
+                    'UETH': 'ETH',
+                    'UFART': 'FARTCOIN',
+                    'HPENGU': 'PENGU',
+                    'UPUMP': 'PUMP',
+                    'USOL': 'SOL',
+                    'UUUSPX': 'SPX',
+                    'USDT0': 'USDT',
+                    'XAUT0': 'XAUT',
+                    'UXPL': 'XPL',
+                },
             },
             'features': {
                 'default': {
@@ -336,6 +350,56 @@ export default class hyperliquid extends Exchange {
     setSandboxMode(enabled) {
         super.setSandboxMode(enabled);
         this.options['sandboxMode'] = enabled;
+    }
+    market(symbol) {
+        if (this.markets === undefined) {
+            throw new ExchangeError(this.id + ' markets not loaded');
+        }
+        if (symbol in this.markets) {
+            const market = this.markets[symbol];
+            if (market['spot']) {
+                const baseName = this.safeString(market, 'baseName');
+                const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
+                if (baseName in spotCurrencyMapping) {
+                    const unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
+                    const quote = this.safeString(market, 'quote');
+                    const newSymbol = this.safeCurrencyCode(unifiedBaseName) + '/' + quote;
+                    if (newSymbol in this.markets) {
+                        return this.markets[newSymbol];
+                    }
+                }
+            }
+        }
+        const res = super.market(symbol);
+        return res;
+    }
+    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        if (marketId !== undefined) {
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+                const markets = this.markets_by_id[marketId];
+                const numMarkets = markets.length;
+                if (numMarkets === 1) {
+                    return markets[0];
+                }
+                else {
+                    if (numMarkets > 2) {
+                        throw new ExchangeError(this.id + ' safeMarket() found more than two markets with the same market id ' + marketId);
+                    }
+                    const firstMarket = markets[0];
+                    const secondMarket = markets[1];
+                    if (this.safeString(firstMarket, 'type') !== this.safeString(secondMarket, 'type')) {
+                        throw new ExchangeError(this.id + ' safeMarket() found two different market types with the same market id ' + marketId);
+                    }
+                    const baseCurrency = this.safeString(firstMarket, 'base');
+                    const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
+                    if (baseCurrency in spotCurrencyMapping) {
+                        return secondMarket;
+                    }
+                    return firstMarket;
+                }
+            }
+        }
+        return super.safeMarket(marketId, market, delimiter, marketType);
     }
     /**
      * @method
@@ -607,9 +671,13 @@ export default class hyperliquid extends Exchange {
             const quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, {});
             const baseName = this.safeString(baseTokenInfo, 'name');
             const quoteId = this.safeString(quoteTokenInfo, 'name');
-            const base = this.safeCurrencyCode(baseName);
-            const quote = this.safeCurrencyCode(quoteId);
-            const symbol = base + '/' + quote;
+            // do spot currency mapping
+            const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
+            const mappedBaseName = this.safeString(spotCurrencyMapping, baseName, baseName);
+            const mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
+            const mappedBase = this.safeCurrencyCode(mappedBaseName);
+            const mappedQuote = this.safeCurrencyCode(mappedQuoteId);
+            const mappedSymbol = mappedBase + '/' + mappedQuote;
             const innerBaseTokenInfo = this.safeDict(baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecisionStr = this.safeString(innerBaseTokenInfo, 'szDecimals');
@@ -622,11 +690,11 @@ export default class hyperliquid extends Exchange {
             const pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString(index + 10000);
-            markets.push(this.safeMarketStructure({
+            const entry = {
                 'id': marketName,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
+                'symbol': mappedSymbol,
+                'base': mappedBase,
+                'quote': mappedQuote,
                 'settle': undefined,
                 'baseId': baseId,
                 'baseName': baseName,
@@ -674,7 +742,20 @@ export default class hyperliquid extends Exchange {
                 },
                 'created': undefined,
                 'info': this.extend(extraData, market),
-            }));
+            };
+            markets.push(this.safeMarketStructure(entry));
+            // backward support
+            const base = this.safeCurrencyCode(baseName);
+            const quote = this.safeCurrencyCode(quoteId);
+            const newEntry = this.extend({}, entry);
+            const symbol = base + '/' + quote;
+            if (symbol !== mappedSymbol) {
+                newEntry['symbol'] = symbol;
+                newEntry['base'] = base;
+                newEntry['quote'] = quote;
+                newEntry['baseName'] = baseName;
+                markets.push(this.safeMarketStructure(newEntry));
+            }
         }
         return markets;
     }
@@ -1121,6 +1202,9 @@ export default class hyperliquid extends Exchange {
                 // optimization if limit is provided
                 const timeframeInMilliseconds = this.parseTimeframe(timeframe) * 1000;
                 since = this.sum(until, timeframeInMilliseconds * limit * -1);
+                if (since < 0) {
+                    since = 0;
+                }
                 useTail = false;
             }
             else {
@@ -1504,7 +1588,17 @@ export default class hyperliquid extends Exchange {
         const responseObj = this.safeDict(response, 'response', {});
         const data = this.safeDict(responseObj, 'data', {});
         const statuses = this.safeList(data, 'statuses', []);
-        return this.parseOrders(statuses, undefined);
+        const ordersToBeParsed = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const order = statuses[i];
+            if (order === 'waitingForTrigger') {
+                ordersToBeParsed.push({ 'status': order }); // tp/sl orders can return a string like "waitingForTrigger",
+            }
+            else {
+                ordersToBeParsed.push(order);
+            }
+        }
+        return this.parseOrders(ordersToBeParsed, undefined);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
@@ -1630,10 +1724,10 @@ export default class hyperliquid extends Exchange {
             if (isTrigger) {
                 // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeStringN(stopLoss, ['triggerPrice', 'stopPrice']);
-                const stopLossOrderType = this.safeString(stopLoss, 'type');
+                const stopLossOrderType = this.safeString(stopLoss, 'type', 'limit');
                 const stopLossOrderLimitPrice = this.safeStringN(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice);
                 const takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, ['triggerPrice', 'stopPrice']);
-                const takeProfitOrderType = this.safeString(takeProfit, 'type');
+                const takeProfitOrderType = this.safeString(takeProfit, 'type', 'limit');
                 const takeProfitOrderLimitPrice = this.safeStringN(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice);
                 grouping = 'normalTpsl';
                 orderParams = this.omit(orderParams, ['stopLoss', 'takeProfit']);
@@ -2868,8 +2962,15 @@ export default class hyperliquid extends Exchange {
         }
         const rawUnrealizedPnl = this.safeString(entry, 'unrealizedPnl');
         const absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
-        const initialMargin = this.safeString(entry, 'marginUsed');
-        const percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, initialMargin), '100');
+        const marginUsed = this.safeString(entry, 'marginUsed');
+        let initialMargin = undefined;
+        if (isIsolated) {
+            initialMargin = Precise.stringSub(marginUsed, rawUnrealizedPnl);
+        }
+        else {
+            initialMargin = marginUsed;
+        }
+        const percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, marginUsed), '100');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -2885,7 +2986,7 @@ export default class hyperliquid extends Exchange {
             'markPrice': undefined,
             'notional': this.safeNumber(entry, 'positionValue'),
             'leverage': this.safeNumber(leverage, 'value'),
-            'collateral': this.safeNumber(entry, 'marginUsed'),
+            'collateral': this.parseNumber(marginUsed),
             'initialMargin': this.parseNumber(initialMargin),
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,

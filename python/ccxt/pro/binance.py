@@ -417,7 +417,7 @@ class binance(ccxt.async_support.binance):
         #    }
         #
         marketId = self.safe_string(liquidation, 's')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, 'swap')
         timestamp = self.safe_integer(liquidation, 'T')
         return self.safe_liquidation({
             'info': liquidation,
@@ -533,8 +533,8 @@ class binance(ccxt.async_support.binance):
         if orderType != 'LIQUIDATION':
             return
         marketId = self.safe_string(message, 's')
-        market = self.safe_market(marketId)
-        symbol = self.safe_symbol(marketId)
+        market = self.safe_market(marketId, None, None, 'swap')
+        symbol = self.safe_symbol(marketId, market)
         liquidation = self.parse_ws_liquidation(message, market)
         myLiquidations = self.safe_value(self.myLiquidations, symbol)
         if myLiquidations is None:
@@ -887,7 +887,7 @@ class binance(ccxt.async_support.binance):
         #     }
         #
         isSpot = self.is_spot_url(client)
-        marketType = 'spot' if (isSpot) else 'contract'
+        marketType = 'spot' if (isSpot) else 'swap'
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
@@ -2184,18 +2184,18 @@ class binance(ccxt.async_support.binance):
 
     def sign_params(self, params={}):
         self.check_required_credentials()
-        extendedParams = self.extend({
-            'timestamp': self.nonce(),
-            'apiKey': self.apiKey,
-        }, params)
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
         if defaultRecvWindow is not None:
             params['recvWindow'] = defaultRecvWindow
         recvWindow = self.safe_integer(params, 'recvWindow')
         if recvWindow is not None:
             params['recvWindow'] = recvWindow
+        extendedParams = self.extend({
+            'timestamp': self.nonce(),
+            'apiKey': self.apiKey,
+        }, params)
         extendedParams = self.keysort(extendedParams)
-        query = self.urlencode(extendedParams)
+        query = self.rawencode(extendedParams)
         signature = None
         if self.secret.find('PRIVATE KEY') > -1:
             if len(self.secret) > 120:
@@ -3325,7 +3325,7 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
-        params = self.extend(params, {'type': type, 'symbol': symbol})  # needed inside authenticate for isolated margin
+        params = self.extend(params, {'type': type, 'symbol': symbol, 'subType': subType})  # needed inside authenticate for isolated margin
         await self.authenticate(params)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
@@ -3760,7 +3760,7 @@ class binance(ccxt.async_support.binance):
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': self.safe_symbol(marketId, None, None, 'contract'),
+            'symbol': self.safe_symbol(marketId, None, None, 'swap'),
             'notional': None,
             'marginMode': self.safe_string(position, 'mt'),
             'liquidationPrice': None,
@@ -3952,7 +3952,7 @@ class binance(ccxt.async_support.binance):
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
             params = self.extend(params, {'type': market['type'], 'symbol': symbol})
-        await self.authenticate(params)
+        await self.authenticate(self.extend({'type': type, 'subType': subType}, params))
         urlType = type  # we don't change type because the listening key is different
         if type == 'margin':
             urlType = 'spot'  # spot-margin shares the same stream spot

@@ -103,7 +103,6 @@ class ImplicitAPI:
     v3_private_get_spotmargin_maxmargin = v3PrivateGetSpotMarginMaxMargin = Entry('spotMargin/maxMargin', ['v3', 'private'], 'GET', {'cost': 60})
     v3_private_get_algo_order_oid = v3PrivateGetAlgoOrderOid = Entry('algo/order/{oid}', ['v3', 'private'], 'GET', {'cost': 1})
     v3_private_get_algo_orders = v3PrivateGetAlgoOrders = Entry('algo/orders', ['v3', 'private'], 'GET', {'cost': 1})
-    v3_private_get_balances = v3PrivateGetBalances = Entry('balances', ['v3', 'private'], 'GET', {'cost': 1})
     v3_private_get_positions = v3PrivateGetPositions = Entry('positions', ['v3', 'private'], 'GET', {'cost': 3.33})
     v3_private_get_buypower = v3PrivateGetBuypower = Entry('buypower', ['v3', 'private'], 'GET', {'cost': 1})
     v3_private_get_convert_exchangeinfo = v3PrivateGetConvertExchangeInfo = Entry('convert/exchangeInfo', ['v3', 'private'], 'GET', {'cost': 1})

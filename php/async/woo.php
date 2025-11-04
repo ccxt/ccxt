@@ -289,7 +289,6 @@ class woo extends Exchange {
                             'spotMargin/maxMargin' => 60, // 10/60s
                             'algo/order/{oid}' => 1,
                             'algo/orders' => 1,
-                            'balances' => 1,
                             'positions' => 3.33,
                             'buypower' => 1,
                             'convert/exchangeInfo' => 1,
@@ -2036,7 +2035,15 @@ class woo extends Exchange {
         //         "positionSide" => "BOTH"
         //     }
         //
-        $timestamp = $this->safe_timestamp($order, 'createdTime');
+        $timestamp = null;
+        $timestrampString = $this->safe_string($order, 'createdTime');
+        if ($timestrampString !== null) {
+            if (mb_strpos($timestrampString, '.') !== false) {
+                $timestamp = $this->safe_timestamp($order, 'createdTime'); // algo orders
+            } else {
+                $timestamp = $this->safe_integer($order, 'createdTime'); // regular orders
+            }
+        }
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($order, 'timestamp');
         }
@@ -2057,7 +2064,15 @@ class woo extends Exchange {
         $fee = $this->safe_number($order, 'totalFee');
         $feeCurrency = $this->safe_string($order, 'feeAsset');
         $triggerPrice = $this->safe_number($order, 'triggerPrice');
-        $lastUpdateTimestamp = $this->safe_timestamp($order, 'updatedTime');
+        $lastUpdateTimestampString = $this->safe_string($order, 'updatedTime');
+        $lastUpdateTimestamp = null;
+        if ($lastUpdateTimestampString !== null) {
+            if (mb_strpos($lastUpdateTimestampString, '.') !== false) {
+                $lastUpdateTimestamp = $this->safe_timestamp($order, 'updatedTime'); // algo orders
+            } else {
+                $lastUpdateTimestamp = $this->safe_integer($order, 'updatedTime'); // regular orders
+            }
+        }
         return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
@@ -2466,7 +2481,7 @@ class woo extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->v3PrivateGetBalances ($params));
+            $response = Async\await($this->v3PrivateGetAssetBalances ($params));
             //
             //     {
             //         "success" => true,

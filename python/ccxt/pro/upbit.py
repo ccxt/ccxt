@@ -392,12 +392,31 @@ class upbit(ccxt.async_support.upbit):
             'hostname': self.hostname,
         })
         url += '/private'
+        client = self.client(url)
+        # Track private channel subscriptions to support multiple concurrent watches
+        subscriptionsKey = 'upbitPrivateSubscriptions'
+        if not (subscriptionsKey in client.subscriptions):
+            client.subscriptions[subscriptionsKey] = {}
+        channelKey = channel
+        if symbol is not None:
+            channelKey = channel + ':' + symbol
+        subscriptions = client.subscriptions[subscriptionsKey]
+        isNewChannel = not (channelKey in subscriptions)
+        if isNewChannel:
+            subscriptions[channelKey] = request
+        # Build subscription message with all requested private channels
+        # Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
+        requests = []
+        channelKeys = list(subscriptions.keys())
+        for i in range(0, len(channelKeys)):
+            requests.append(subscriptions[channelKeys[i]])
         message = [
             {
                 'ticket': self.uuid(),
             },
-            request,
         ]
+        for i in range(0, len(requests)):
+            message.append(requests[i])
         return await self.watch(url, messageHash, message, messageHash)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -656,5 +675,5 @@ class upbit(ccxt.async_support.upbit):
         }
         methodName = self.safe_string(message, 'type')
         method = self.safe_value(methods, methodName)
-        if method:
+        if method is not None:
             method(client, message)

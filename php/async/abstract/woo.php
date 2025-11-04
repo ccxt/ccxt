@@ -310,9 +310,6 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v3_private_get_algo_orders($params = array()) {
         return $this->request('algo/orders', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function v3_private_get_balances($params = array()) {
-        return $this->request('balances', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
     public function v3_private_get_positions($params = array()) {
         return $this->request('positions', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 3.33));
     }
@@ -720,9 +717,6 @@ abstract class woo extends \ccxt\async\Exchange {
     }
     public function v3PrivateGetAlgoOrders($params = array()) {
         return $this->request('algo/orders', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function v3PrivateGetBalances($params = array()) {
-        return $this->request('balances', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v3PrivateGetPositions($params = array()) {
         return $this->request('positions', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 3.33));

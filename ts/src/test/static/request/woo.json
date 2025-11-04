@@ -290,23 +290,10 @@
         ],
         "fetchBalance": [
             {
-                "description": "Fetch spot Balance",
+                "description": "Fetch Balances",
                 "method": "fetchBalance",
-                "url": "https://api.woox.io/v3/balances?type=spot",
+                "url": "https://api.woox.io/v3/asset/balances",
                 "input": [
-                    {
-                        "type": "spot"
-                    }
-                ]
-            },
-            {
-                "description": "Fetch swap Balance",
-                "method": "fetchBalance",
-                "url": "https://api.woox.io/v3/balances?type=swap",
-                "input": [
-                    {
-                        "type": "swap"
-                    }
                 ]
             }
         ],

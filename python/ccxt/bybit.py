@@ -199,7 +199,7 @@ class bybit(Exchange, ImplicitAPI):
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
+                'referral': 'https://www.bybit.com/invite?ref=XDK12WP',
             },
             'api': {
                 'public': {
@@ -353,6 +353,7 @@ class bybit(Exchange, ImplicitAPI):
                         # account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
+                        'v5/account/instruments-info': 1,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
@@ -383,6 +384,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/deposit/query-address': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-address': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/coin/query-info': 28,  # should be 25 but exceeds ratelimit unless the weight is 28 or higher
+                        'v5/asset/withdraw/query-address': 10,
                         'v5/asset/withdraw/query-record': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         'v5/asset/withdraw/vasp/list': 5,
@@ -401,6 +403,10 @@ class bybit(Exchange, ImplicitAPI):
                         # spot margin trade
                         'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
+                        'v5/spot-margin-trade/max-borrowable': 5,
+                        'v5/spot-margin-trade/position-tiers': 5,
+                        'v5/spot-margin-trade/coinstate': 5,
+                        'v5/spot-margin-trade/repayment-available-amount': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
@@ -521,6 +527,9 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
+                        'v5/account/borrow': 5,
+                        'v5/account/repay': 5,
+                        'v5/account/no-convert-repay': 5,
                         # asset
                         'v5/asset/exchange/quote-apply': 1,  # 50/s
                         'v5/asset/exchange/convert-execute': 1,  # 50/s
@@ -6313,7 +6322,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 side = None
         notional = self.safe_string_2(position, 'positionValue', 'cumExitValue')
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
-        initialMarginString = self.safe_string_n(position, ['positionIM', 'cumEntryValue'])
+        initialMarginString = self.safe_string_2(position, 'positionIM', 'cumEntryValue')
         maintenanceMarginString = self.safe_string(position, 'positionMM')
         timestamp = self.safe_integer_n(position, ['createdTime', 'createdAt'])
         lastUpdateTimestamp = self.parse8601(self.safe_string(position, 'updated_at'))
@@ -6346,7 +6355,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     maintenanceMarginPriceDifference = Precise.string_abs(Precise.string_sub(liquidationPrice, bustPrice))
                     maintenanceMarginString = Precise.string_mul(maintenanceMarginPriceDifference, size)
                     # Initial Margin = Contracts x Entry Price / Leverage
-                    if entryPrice is not None:
+                    if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(Precise.string_mul(size, entryPrice), leverage)
                 else:
                     # Contracts * (1 / Entry price - 1 / Bust price) = Collateral
@@ -6357,7 +6366,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     multiply = Precise.string_mul(bustPrice, liquidationPrice)
                     maintenanceMarginString = Precise.string_div(Precise.string_mul(size, difference), multiply)
                     # Initial Margin = Leverage x Contracts / EntryPrice
-                    if entryPrice is not None:
+                    if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)
