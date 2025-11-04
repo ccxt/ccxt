@@ -103,6 +103,90 @@ export default class xcoin extends xcoinRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+
+    handleTrade (client: Client, message: any) {
+        //
+        //    {
+        //        "businessType": "linear_perpetual",
+        //        "symbol": "BTC-USDT-PERP",
+        //        "stream": "trade",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC-USDT-PERP",
+        //                "id": "1151458165",
+        //                "side": "buy",
+        //                "price": "104613.3",
+        //                "qty": "0.5435",
+        //                "time": "1762238885070"
+        //            }
+        //        ],
+        //        "ts": 1762238885074
+        //    }
+        //
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const data = this.safeList (message, 'data', []);
+        const messageHash = 'trade:' + symbol;
+        if (!(symbol in this.trades)) {
+            const options = this.safeDict (this.options, 'ws', {});
+            const limit = this.safeInteger (options, 'trades', 1000);
+            this.trades[symbol] = new ArrayCache (limit);
+        }
+        const trades = this.trades[symbol];
+        for (let i = 0; i < data.length; i++) {
+            const trade = this.parseWsTrade (data[i], market);
+            trades.append (trade);
+        }
+        client.resolve (trades, messageHash);
+    }
+
+    parseWsTrade (trade: any, market: any = undefined): Trade {
+        //
+        // public trade
+        //
+        //    {
+        //        "businessType": "linear_perpetual",
+        //        "symbol": "BTC-USDT-PERP",
+        //        "stream": "trade",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC-USDT-PERP",
+        //                "id": "1151486270",
+        //                "side": "sell",
+        //                "price": "104541.6",
+        //                "qty": "0.0009",
+        //                "time": "1762239293764"
+        //            }
+        //        ],
+        //        "ts": 1762239293767
+        //    }
+        //
+        //
+        // myTrades (from tradeList in order)
+        //
+        //
+        const timestamp = this.safeInteger (trade, 'time');
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'id'),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': undefined,
+            'type': this.safeStringLower (trade, 'orderType'),
+            'side': this.safeStringLower (trade, 'side'),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'qty'),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * watches a price ticker, a statistical calculation with the information for a specific market
@@ -402,115 +486,6 @@ export default class xcoin extends xcoinRest {
         const request = this.deepExtend (subscribe, params);
         const positions = await this.watch (url, messageHash, request, messageHash);
         return this.filterBySymbolsSinceLimit (positions, symbols, since, limit, true);
-    }
-
-    handleTrade (client: Client, message: any) {
-        //
-        // {
-        //     "businessType": "spot",
-        //     "symbol": "BTC-USDT",
-        //     "stream": "trade",
-        //     "data": [
-        //         {
-        //             "symbol": "BTC-USDT",
-        //             "id": "544095",
-        //             "side": "sell",
-        //             "price": "101780",
-        //             "qty": "28.213",
-        //             "time": "1747295244333"
-        //         }
-        //     ],
-        //     "ts": "1732256095953"
-        // }
-        //
-        const marketId = this.safeString (message, 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const data = this.safeValue (message, 'data', []);
-        
-        const messageHash = 'trade:' + symbol;
-        let trades = this.safeValue (this.trades, symbol);
-        if (trades === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            trades = new ArrayCache (limit);
-            this.trades[symbol] = trades;
-        }
-        
-        for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade (data[i], market);
-            trades.append (trade);
-        }
-        
-        client.resolve (trades, messageHash);
-    }
-
-    parseTrade (trade: any, market: any = undefined): Trade {
-        //
-        // WebSocket public trade
-        // {
-        //     "symbol": "BTC-USDT",
-        //     "id": "544095",
-        //     "side": "sell",
-        //     "price": "101780",
-        //     "qty": "28.213",
-        //     "time": "1747295244333"
-        // }
-        //
-        // WebSocket myTrade (from tradeList in order)
-        // {
-        //     "pnl": "0",
-        //     "fillPrice": "104186.15",
-        //     "tradeId": "6755399441078085",
-        //     "role": "taker",
-        //     "fillQty": "1",
-        //     "fillTime": "1747646250302",
-        //     "feeCurrency": "USDT",
-        //     "fee": "-0.52093075",
-        //     "postPositionQty": "1",
-        //     "orderId": "1374073495124123648",
-        //     "businessType": "linear_futures",
-        //     "symbol": "BTC-USDT-27JUN25",
-        //     "orderType": "market",
-        //     "side": "buy",
-        //     "lever": "1"
-        // }
-        //
-        const id = this.safeString2 (trade, 'id', 'tradeId');
-        const timestamp = this.safeInteger2 (trade, 'time', 'fillTime');
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const price = this.safeString2 (trade, 'price', 'fillPrice');
-        const amount = this.safeString2 (trade, 'qty', 'fillQty');
-        const side = this.safeStringLower (trade, 'side');
-        const orderId = this.safeString (trade, 'orderId');
-        const takerOrMaker = this.safeString (trade, 'role');
-        
-        let fee = undefined;
-        const feeCost = this.safeString (trade, 'fee');
-        if (feeCost !== undefined) {
-            const feeCurrency = this.safeString (trade, 'feeCurrency');
-            fee = {
-                'cost': Precise.stringAbs (feeCost),
-                'currency': this.safeCurrencyCode (feeCurrency),
-            };
-        }
-        
-        return this.safeTrade ({
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': orderId,
-            'type': this.safeStringLower (trade, 'orderType'),
-            'side': side,
-            'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': undefined,
-            'fee': fee,
-        }, market);
     }
 
     handleTicker (client: Client, message: any) {
