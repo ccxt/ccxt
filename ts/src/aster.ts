@@ -3517,14 +3517,14 @@ export default class aster extends Exchange {
         };
         const messageTypes: Dict = {
             'Action': [
-                { 'name': 'type', 'type': 'string ' },
-                { 'name': 'destination', 'type': 'address ' },
-                { 'name': 'destination Chain', 'type': 'string ' },
-                { 'name': 'token', 'type': 'string ' },
-                { 'name': 'amount', 'type': 'string ' },
-                { 'name': 'fee', 'type': 'string ' },
-                { 'name': 'nonce', 'type': 'uint256 ' },
-                { 'name': 'aster chain', 'type': 'string ' },
+                { 'name': 'type', 'type': 'string' },
+                { 'name': 'destination', 'type': 'address' },
+                { 'name': 'destination Chain', 'type': 'string' },
+                { 'name': 'token', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'fee', 'type': 'string' },
+                { 'name': 'nonce', 'type': 'uint256' },
+                { 'name': 'aster chain', 'type': 'string' },
             ],
         };
         const withdraw = {
