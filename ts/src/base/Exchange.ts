@@ -5794,7 +5794,8 @@ export default class Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrderWithClientOrderId (clientOrderId: string, symbol: Str = undefined, params = {}) {
-        return await this.fetchOrder ('', symbol, this.extend (params, { 'clientOrderId': clientOrderId }));
+        const extendedParams = this.extend (params, { 'clientOrderId': clientOrderId });
+        return await this.fetchOrder ('', symbol, extendedParams);
     }
 
     async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -6290,7 +6291,8 @@ export default class Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrderWithClientOrderId (clientOrderId: string, symbol: Str = undefined, params = {}) {
-        return await this.cancelOrder ('', symbol, this.extend (params, { 'clientOrderId': clientOrderId }));
+        const extendedParams = this.extend (params, { 'clientOrderId': clientOrderId });
+        return await this.cancelOrder ('', symbol, extendedParams);
     }
 
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -6311,7 +6313,8 @@ export default class Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrdersWithClientOrderIds (clientOrderIds: string[], symbol: Str = undefined, params = {}) {
-        return await this.cancelOrders ([], symbol, this.extend (params, { 'clientOrderIds': clientOrderIds }));
+        const extendedParams = this.extend (params, { 'clientOrderIds': clientOrderIds });
+        return await this.cancelOrders ([], symbol, extendedParams);
     }
 
     async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
