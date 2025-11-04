@@ -183,10 +183,6 @@ func (this *WooCore) V1PrivatePostAssetLtv(args ...interface{}) <-chan interface
 	return this.callEndpointAsync("v1PrivatePostAssetLtv", args...)
 }
 
-func (this *WooCore) V1PrivatePostAssetWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostAssetWithdraw", args...)
-}
-
 func (this *WooCore) V1PrivatePostAssetInternalWithdraw(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PrivatePostAssetInternalWithdraw", args...)
 }
