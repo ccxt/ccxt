@@ -1,10 +1,13 @@
 import * as fs from 'fs';
 import ccxt from '../../js/ccxt.js';
 
+// Fetch balances for all exchanges, all accounts, asynchronously and output a consolidated balance object
+
 interface ExchangeConfig {
     apiKey: string;
     secret: string;
     options?: {
+        owner?: string;
         [key: string]: any;
     };
     [key: string]: any;
@@ -12,6 +15,20 @@ interface ExchangeConfig {
 
 interface KeysConfig {
     [exchangeId: string]: ExchangeConfig;
+}
+
+interface Balance {
+    [exchangeId: string]: {
+        [marketType: string]: {
+            [currency: string]: string;
+        };
+    };
+}
+
+interface MarketBalances {
+    [marketType: string]: {
+        [currency: string]: string
+    }
 }
 
 /**
@@ -37,11 +54,9 @@ function balancesEqual (bal1: { [currency: string]: string }, bal2: { [currency:
 
 async function fetchAllBalances () {
     try {
-        // Read keys from keys.local.json
         const keysData = fs.readFileSync ('keys.local.json', 'utf-8');
-        const keys: KeysConfig = JSON.parse (keysData);
-        const validExchanges = Object.entries (keys);
-        // Define market types to fetch
+        const exchanges: [string, KeysConfig][] = Object.entries (JSON.parse (keysData));
+
         const marketTypes = [
             { 'type': 'spot', 'params': {}},
             { 'type': 'margin', 'params': { 'type': 'margin' }},
@@ -60,14 +75,17 @@ async function fetchAllBalances () {
             { 'type': 'financial', 'params': { 'type': 'financial' }},
             { 'type': 'wallet', 'params': { 'type': 'wallet' }},
         ];
-        // Create exchange instances and fetch balances in parallel
-        const balancePromises = validExchanges.map (async ([ exchangeId, config ]) => {
+
+        // create exchange instances and fetch balances in parallel
+        const balancePromises = exchanges.map (async ([ exchangeId, config ]) => {
             try {
                 const CCXT = ccxt as any;
                 const ExchangeClass = CCXT[exchangeId];
+
                 if (!ExchangeClass) {
                     throw new Error (`Exchange ${exchangeId} not found in CCXT`);
                 }
+
                 const exchange = new ExchangeClass ({
                     'apiKey': config.apiKey,
                     'secret': config.secret,
@@ -75,7 +93,8 @@ async function fetchAllBalances () {
                     'enableRateLimit': true,
                     'timeout': 30000,
                 });
-                // Fetch balances for all market types
+
+                // fetch balances for all market types
                 const balanceResults = await Promise.allSettled (
                     marketTypes.map (async ({ type, params }) => {
                         try {
@@ -96,21 +115,14 @@ async function fetchAllBalances () {
                         }
                     })
                 );
-                // Extract results from Promise.allSettled
-                const balances = [];
-                for (let i = 0; i < balanceResults.length; i++) {
-                    const result = balanceResults[i];
-                    if (result.status === 'fulfilled') {
-                        balances.push (result.value);
-                    } else {
-                        balances.push ({
-                            'marketType': 'unknown',
-                            'success': false,
-                            'balance': null,
-                            'error': 'Promise rejected',
-                        });
-                    }
-                }
+
+                const balances = balanceResults.map ((result) => (result.status === 'fulfilled' ? result.value : {
+                    'marketType': 'unknown',
+                    'success': false,
+                    'balance': null,
+                    'error': 'Promise rejected',
+                }));
+
                 return {
                     'exchangeId': exchangeId,
                     'success': true,
@@ -119,87 +131,70 @@ async function fetchAllBalances () {
                 };
             } catch (error) {
                 return {
-                    exchangeId,
+                    'exchangeId': exchangeId,
                     'success': false,
                     'balances': null,
-                    'error': (error instanceof Error) ? error.message : String (error),
+                    'error': error instanceof Error ? error.message : String (error),
                 };
             }
         });
-        // Wait for all balance fetches to complete
+
         const results = await Promise.all (balancePromises);
-        // Build nested object structure
-        const balanceObject: { [exchangeId: string]: { [marketType: string]: { [currency: string]: string }}} = {};
-        for (let k = 0; k < results.length; k++) {
-            const result = results[k];
-            const success = result['success'];
-            const exchangeId = result['exchangeId'];
-            const balances = result['balances'];
+
+        const balanceObject: Balance = {};
+
+        results.forEach (({ exchangeId, success, balances }) => {
             if (success && balances) {
-                // First, collect all balances for each market type
-                const marketBalances: { [marketType: string]: { [currency: string]: string }} = {};
-                for (let j = 0; j < balances.length; j++) {
-                    const balancej = balances[j];
-                    const marketType = balancej['marketType'];
-                    const balanceSuccess = balancej['success'];
-                    const balance = balancej['balance'];
+                // collect all balances for each market type
+                const marketBalances: MarketBalances = {};
+
+                balances.forEach (({ marketType, 'success': balanceSuccess, balance }) => {
                     if (balanceSuccess && balance) {
                         marketBalances[marketType] = {};
-                        const balanceKeys = Object.keys (balance);
-                        for (let i = 0; i < balanceKeys.length; i++) {
-                            const currency = balanceKeys[i];
-                            const info = balance[currency];
+
+                        Object.entries (balance).forEach (([ currency, info ]: [string, any]) => {
                             if (typeof info === 'object' && info !== null && parseFloat (info.total || '0') > 0) {
                                 marketBalances[marketType][currency] = info.total;
                             }
-                        }
+                        });
                     }
-                }
+                });
+
                 // Filter out empty market types (no balances > 0)
-                const nonEmptyMarketTypes = [];
-                const marketTypes = Object.keys (marketBalances);
-                for (let i = 0; i < marketTypes.length; i++) {
-                    const marketType = marketTypes[i];
+                const nonEmptyMarketTypes = Object.keys (marketBalances).filter ((marketType) => {
                     const balances = marketBalances[marketType];
-                    if (balances && Object.keys (balances).length > 0) {
-                        nonEmptyMarketTypes.push (marketType);
-                    }
-                }
+                    return balances && Object.keys (balances).length > 0;
+                });
+
                 // Find unique market types (remove duplicates)
                 const uniqueMarketTypes: string[] = [];
                 const seenBalances: { [key: string]: string }[] = [];
-                for (let i = 0; i < nonEmptyMarketTypes.length; i++) {
-                    const marketType = nonEmptyMarketTypes[i];
+
+                nonEmptyMarketTypes.forEach ((marketType) => {
                     const balances = marketBalances[marketType];
-                    let isDuplicate = false;
-                    for (let i = 0; i < seenBalances.length; i++) {
-                        const seenBalance = seenBalances[i];
-                        if (balancesEqual (seenBalance, balances)) {
-                            isDuplicate = true;
-                            break;
-                        }
-                    }
+                    const isDuplicate = seenBalances.some ((seenBalance) => balancesEqual (seenBalance, balances));
+
                     if (!isDuplicate) {
                         uniqueMarketTypes.push (marketType);
                         seenBalances.push (balances);
                     }
-                }
-                // Add to result object
+                });
+
                 balanceObject[exchangeId] = {};
-                for (let i = 0; i < uniqueMarketTypes.length; i++) {
-                    const marketType = uniqueMarketTypes[i];
+                uniqueMarketTypes.forEach ((marketType) => {
                     balanceObject[exchangeId][marketType] = marketBalances[marketType];
-                }
+                });
             }
-        }
-        console.log (JSON.stringify (balanceObject));
+        });
+
+        console.log (JSON.stringify (balanceObject, null, 2));
     } catch (error) {
         console.error ('Error reading keys file:', error);
     }
 }
 
 try {
-    fetchAllBalances ().catch ();
+    fetchAllBalances ();
 } catch (error) {
     console.error (error);
 }
