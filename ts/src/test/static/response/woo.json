@@ -162,6 +162,59 @@
         ],
         "withdraw": [
             {
+                "description": "withdraw v3",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x24625c5f1b6574403a0469994dea24271bfbd443",
+                    null,
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "withdrawId": "25110415390200329"
+                    },
+                    "timestamp": "1762270743567"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "withdrawId": "25110415390200329",
+                        "id": "25110415390200329",
+                        "timestamp": 1762270743567,
+                        "currency": "USDT",
+                        "amount": 10,
+                        "addressTo": "0x24625c5f1b6574403a0469994dea24271bfbd443",
+                        "tag": null,
+                        "network": "ERC20",
+                        "type": "withdrawal",
+                        "status": "pending"
+                    },
+                    "id": "25110415390200329",
+                    "txid": null,
+                    "timestamp": 1762270743567,
+                    "datetime": "2025-11-04T15:39:03.567Z",
+                    "address": null,
+                    "addressFrom": null,
+                    "addressTo": "0x24625c5f1b6574403a0469994dea24271bfbd443",
+                    "tag": null,
+                    "tagFrom": null,
+                    "tagTo": null,
+                    "type": "withdrawal",
+                    "amount": 10,
+                    "currency": "USDT",
+                    "status": "pending",
+                    "updated": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null,
+                    "network": "ERC20"
+                }
+            },
+            {
                 "description": "withdraw USDT on ERC20",
                 "method": "withdraw",
                 "input": [
