@@ -379,7 +379,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchMarkets
      * @description retrieves data on all markets for coinone
-     * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+     * @see https://docs.coinone.co.kr/reference/tickers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -485,20 +485,24 @@ export default class coinone extends Exchange {
     }
 
     parseBalance (response): Balances {
+        //
+        //     [
+        //         {
+        //             "available": "998999692485",
+        //             "limit": "0",
+        //             "average_price": "100000000",
+        //             "currency": "BTC"
+        //         }
+        //     ]
+        //
         const result: Dict = { 'info': response };
-        const balances = this.omit (response, [
-            'errorCode',
-            'result',
-            'normalWallets',
-        ]);
-        const currencyIds = Object.keys (balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const balance = balances[currencyId];
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'avail');
-            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'limit');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -508,14 +512,41 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.coinone.co.kr/v1.0/reference/v21
+     * @see https://docs.coinone.co.kr/reference/find-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const response = await this.v2PrivatePostAccountBalance (params);
-        return this.parseBalance (response);
+        const response = await this.v2_1PrivatePostAccountBalanceAll (params);
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "balances": [
+        //             {
+        //                 "available": "998999692485",
+        //                 "limit": "0",
+        //                 "average_price": "100000000",
+        //                 "currency": "BTC"
+        //             },
+        //             {
+        //                 "available": "100",
+        //                 "limit": "0",
+        //                 "average_price": "3290000",
+        //                 "currency": "XRP"
+        //             },
+        //             {
+        //                 "available": "232706745677",
+        //                 "limit": "0",
+        //                 "average_price": "0",
+        //                 "currency": "KRW"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'balances', []);
+        return this.parseBalance (data);
     }
 
     /**
