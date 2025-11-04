@@ -179,10 +179,6 @@ func (this *WooCore) V1PrivatePostOrderCancelAllAfter(args ...interface{}) <-cha
 	return this.callEndpointAsync("v1PrivatePostOrderCancelAllAfter", args...)
 }
 
-func (this *WooCore) V1PrivatePostAssetMainSubTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostAssetMainSubTransfer", args...)
-}
-
 func (this *WooCore) V1PrivatePostAssetLtv(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PrivatePostAssetLtv", args...)
 }
