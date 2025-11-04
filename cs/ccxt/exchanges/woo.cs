@@ -199,7 +199,6 @@ public partial class woo : Exchange
                             { "order", 1 },
                             { "order/cancel_all_after", 1 },
                             { "asset/ltv", 30 },
-                            { "asset/withdraw", 30 },
                             { "asset/internal_withdraw", 30 },
                             { "interest/repay", 60 },
                             { "client/account_mode", 120 },
@@ -2779,15 +2778,15 @@ public partial class woo : Exchange
         object networkizedCode = this.safeString(transaction, "token");
         object currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         object code = getValue(currencyDefined, "code");
-        object movementDirection = this.safeStringLower2(transaction, "token_side", "tokenSide");
+        object movementDirection = this.safeStringLowerN(transaction, new List<object>() {"token_side", "tokenSide", "type"});
         if (isTrue(isEqual(movementDirection, "withdraw")))
         {
             movementDirection = "withdrawal";
         }
         object fee = this.parseTokenAndFeeTemp(transaction, new List<object>() {"fee_token", "feeToken"}, new List<object>() {"fee_amount", "feeAmount"});
-        object addressTo = this.safeString2(transaction, "target_address", "targetAddress");
+        object addressTo = this.safeStringN(transaction, new List<object>() {"target_address", "targetAddress", "addressTo"});
         object addressFrom = this.safeString2(transaction, "source_address", "sourceAddress");
-        object timestamp = this.safeTimestamp2(transaction, "created_time", "createdTime");
+        object timestamp = this.safeTimestampN(transaction, new List<object>() {"created_time", "createdTime"}, this.safeInteger(transaction, "timestamp"));
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeStringN(transaction, new List<object>() {"id", "withdraw_id", "withdrawId"}) },
@@ -2797,7 +2796,7 @@ public partial class woo : Exchange
             { "address", null },
             { "addressFrom", addressFrom },
             { "addressTo", addressTo },
-            { "tag", this.safeString(transaction, "extra") },
+            { "tag", this.safeString2(transaction, "extra", "tag") },
             { "tagFrom", null },
             { "tagTo", null },
             { "type", movementDirection },
@@ -2808,7 +2807,7 @@ public partial class woo : Exchange
             { "comment", null },
             { "internal", null },
             { "fee", fee },
-            { "network", null },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network")) },
         };
     }
 
@@ -3024,7 +3023,7 @@ public partial class woo : Exchange
      * @method
      * @name woo#withdraw
      * @description make a withdrawal
-     * @see https://docs.woox.io/#token-withdraw
+     * @see https://docs.woox.io/#token-withdraw-v3
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -3049,19 +3048,34 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["extra"] = tag;
         }
-        object specialNetworkId = null;
-        var specialNetworkIdparametersVariable = this.getDedicatedNetworkId(currency, parameters);
-        specialNetworkId = ((IList<object>)specialNetworkIdparametersVariable)[0];
-        parameters = ((IList<object>)specialNetworkIdparametersVariable)[1];
-        ((IDictionary<string,object>)request)["token"] = specialNetworkId;
-        object response = await this.v1PrivatePostAssetWithdraw(this.extend(request, parameters));
+        object network = this.safeString(parameters, "network");
+        if (isTrue(isEqual(network, null)))
+        {
+            throw new ArgumentsRequired ((string)add(add(this.id, " withdraw() requires a network parameter for "), code)) ;
+        }
+        parameters = this.omit(parameters, "network");
+        ((IDictionary<string,object>)request)["token"] = getValue(currency, "id");
+        ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(network);
+        object response = await this.v3PrivatePostAssetWalletWithdraw(this.extend(request, parameters));
         //
         //     {
         //         "success": true,
         //         "withdraw_id": "20200119145703654"
         //     }
         //
-        return this.parseTransaction(response, currency);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object transactionData = this.extend(data, new Dictionary<string, object>() {
+            { "id", this.safeString(data, "withdrawId") },
+            { "timestamp", this.safeInteger(response, "timestamp") },
+            { "currency", code },
+            { "amount", amount },
+            { "addressTo", address },
+            { "tag", tag },
+            { "network", network },
+            { "type", "withdrawal" },
+            { "status", "pending" },
+        });
+        return this.parseTransaction(transactionData, currency);
     }
 
     /**

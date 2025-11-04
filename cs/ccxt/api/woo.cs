@@ -231,11 +231,6 @@ public partial class woo : Exchange
         return await this.callAsync ("v1PrivatePostAssetLtv",parameters);
     }
 
-    public async Task<object> v1PrivatePostAssetWithdraw (object parameters = null)
-    {
-        return await this.callAsync ("v1PrivatePostAssetWithdraw",parameters);
-    }
-
     public async Task<object> v1PrivatePostAssetInternalWithdraw (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostAssetInternalWithdraw",parameters);
