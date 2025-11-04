@@ -553,7 +553,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.coinone.co.kr/v1.0/reference/orderbook
+     * @see https://docs.coinone.co.kr/reference/orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -561,6 +561,9 @@ export default class coinone extends Exchange {
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'quote_currency': market['quote'],
@@ -601,8 +604,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.coinone.co.kr/v1.0/reference/tickers
-     * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+     * @see https://docs.coinone.co.kr/reference/tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -613,17 +615,7 @@ export default class coinone extends Exchange {
         const request: Dict = {
             'quote_currency': 'KRW',
         };
-        let market = undefined;
-        let response = undefined;
-        if (symbols !== undefined) {
-            const first = this.safeString (symbols, 0);
-            market = this.market (first);
-            request['quote_currency'] = market['quote'];
-            request['target_currency'] = market['base'];
-            response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency (this.extend (request, params));
-        } else {
-            response = await this.v2PublicGetTickerNewQuoteCurrency (this.extend (request, params));
-        }
+        const response = await this.v2PublicGetTickerNewQuoteCurrency (this.extend (request, params));
         //
         //     {
         //         "result": "success",
