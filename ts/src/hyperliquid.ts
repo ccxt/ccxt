@@ -237,11 +237,11 @@ export default class hyperliquid extends Exchange {
                     'UXPL': 'XPL',
                 },
                 'fetchMarkets': {
-                    'types': [ 'spot', 'swap', 'hip3' ],
-                    'hip3': {
-                        'limit': 5, // how many dexes to load max if dexes are not specified
-                        'dex': [ 'xyz' ],
-                    },
+                    'types': [ 'spot', 'swap' ], // 'spot', 'swap', 'hip3'
+                    // 'hip3': {
+                    //     'limit': 5, // how many dexes to load max if dexes are not specified
+                    //     'dex': [ 'xyz' ],
+                    // },
                 },
             },
             'features': {
@@ -537,6 +537,13 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
+        const perpDexesOffset: Dict = {};
+        for (let i = 1; i < fetchDexes.length; i++) {
+            // builder-deployed perp dexs start at 110000
+            const dex = fetchDexes[i];
+            const offset = 110000 + (i - 1) * 10000;
+            perpDexesOffset[dex['name']] = offset;
+        }
         let fetchDexesList = [];
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const hip3 = this.safeDict (options, 'hip3', {});
@@ -566,6 +573,8 @@ export default class hyperliquid extends Exchange {
         const promises = await Promise.all (rawPromises);
         let markets = [];
         for (let i = 0; i < promises.length; i++) {
+            const dexName = fetchDexesList[i];
+            const offset = perpDexesOffset[dexName];
             const response = promises[i];
             const meta = this.safeDict (response, 0, {});
             const universe = this.safeList (meta, 'universe', []);
@@ -576,7 +585,7 @@ export default class hyperliquid extends Exchange {
                     this.safeDict (universe, j, {}),
                     this.safeDict (assetCtxs, j, {})
                 );
-                data['baseId'] = j;
+                data['baseId'] = j + offset;
                 result.push (data);
             }
             markets = this.arrayConcat (markets, this.parseMarkets (result));
