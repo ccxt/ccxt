@@ -3087,7 +3087,7 @@ export default class xcoin extends Exchange {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        const msg = this.safeString (response, 'msg');
+        const msg = this.safeStringLower (response, 'msg');
         const code = this.safeString (response, 'code');
         if ((code !== '0') || (msg !== 'success')) {
             const feedback = this.id + ' ' + body;
