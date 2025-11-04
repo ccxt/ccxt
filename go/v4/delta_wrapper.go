@@ -497,6 +497,42 @@ func (this *Delta) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, 
 
 /**
  * @method
+ * @name delta#fetchOrder
+ * @description fetches information on an order made by the user
+ * @see https://docs.delta.exchange/#get-order-by-id
+ * @see https://docs.delta.exchange/#get-order-by-client-oid
+ * @param {string} id the order id
+ * @param {string} [symbol] unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id of the order
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Delta) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
+
+	opts := FetchOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOrder(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+
+/**
+ * @method
  * @name delta#fetchOpenOrders
  * @description fetch all unfilled currently open orders
  * @see https://docs.delta.exchange/#get-active-orders
@@ -1236,9 +1272,6 @@ func (this *Delta) FetchOpenInterests(options ...FetchOpenInterestsOptions) (Ope
 }
 func (this *Delta) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Delta) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrder(id, options...)
 }
 func (this *Delta) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
