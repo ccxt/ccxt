@@ -83,9 +83,12 @@ const imports = [
 
 const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "cancelOrder": true, // true if the method returns a channel (async in JS)
+    "cancelOrdersWithClientOrderIds": true,
+    "cancelOrderWithClient": true,
     "createExpiredOptionMarket": false,
     "createOrder": true,
     "editOrder": true,
+    "editOrderWithClientOrderId": true,
     "fetchAccounts": true,
     "fetchBalance": true,
     "fetchClosedOrders": true,
@@ -108,6 +111,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchTradingFees": true,
     "fetchOption": true,
     "fetchOrder": true,
+    "fetchOrderWithClientOrderId": true,
     "fetchOrderBook": true,
     "fetchOrderBooks": true,
     "fetchOrders": true,
@@ -236,9 +240,12 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
 }
 
 const INTERFACE_METHODS = [
+    'cancelOrders',
+    'cancelOrdersWithClientOrderIds',
     'cancelAllOrders',
     'cancelAllOrdersAfter',
     'cancelOrder',
+    'cancelOrderWithClientOrderId',
     'cancelOrdersForSymbols',
     'createConvertTrade',
     'createDepositAddress',
@@ -268,6 +275,7 @@ const INTERFACE_METHODS = [
     'editLimitOrder',
     'editLimitSellOrder',
     'editOrder',
+    'editOrderWithClientOrderId',
     'editOrders',
     'fetchAccounts',
     'fetchAllGreeks',
@@ -329,6 +337,7 @@ const INTERFACE_METHODS = [
     'fetchOption',
     'fetchOptionChain',
     'fetchOrder',
+    'fetchOrderWithClientOrderId',
     'fetchOrderBook',
     'fetchOrderBooks',
     'fetchOrders',
