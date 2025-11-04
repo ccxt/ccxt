@@ -136,9 +136,6 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v1_private_post_order_cancel_all_after($params = array()) {
         return $this->request('order/cancel_all_after', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function v1_private_post_asset_main_sub_transfer($params = array()) {
-        return $this->request('asset/main_sub_transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
-    }
     public function v1_private_post_asset_ltv($params = array()) {
         return $this->request('asset/ltv', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
@@ -543,9 +540,6 @@ abstract class woo extends \ccxt\async\Exchange {
     }
     public function v1PrivatePostOrderCancelAllAfter($params = array()) {
         return $this->request('order/cancel_all_after', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function v1PrivatePostAssetMainSubTransfer($params = array()) {
-        return $this->request('asset/main_sub_transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function v1PrivatePostAssetLtv($params = array()) {
         return $this->request('asset/ltv', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));

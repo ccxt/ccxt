@@ -213,7 +213,6 @@ class woo extends Exchange {
                         'post' => array(
                             'order' => 1, // 10 requests per 1 second per symbol
                             'order/cancel_all_after' => 1,
-                            'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
                             'asset/ltv' => 30,
                             'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#token-withdraw
                             'asset/internal_withdraw' => 30,
@@ -2898,17 +2897,25 @@ class woo extends Exchange {
             $request = array(
                 'token' => $currency['id'],
                 'amount' => $this->parse_to_numeric($amount),
-                'from_application_id' => $fromAccount,
-                'to_application_id' => $toAccount,
+                'from' => array(
+                    'applicationId' => $fromAccount,
+                ),
+                'to' => array(
+                    'applicationId' => $toAccount,
+                ),
             );
-            $response = Async\await($this->v1PrivatePostAssetMainSubTransfer ($this->extend($request, $params)));
+            $response = Async\await($this->v3PrivatePostAssetTransfer ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
             //         "id" => 200
             //     }
             //
-            $transfer = $this->parse_transfer($response, $currency);
+            $data = $this->safe_dict($response, 'data', array());
+            $data['timestamp'] = $this->safe_integer($response, 'timestamp');
+            $data['token'] = $currency['id'];
+            $data['status'] = 'ok';
+            $transfer = $this->parse_transfer($data, $currency);
             $transferOptions = $this->safe_dict($this->options, 'transfer', array());
             $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
@@ -3027,7 +3034,7 @@ class woo extends Exchange {
         //        }
         //
         $code = $this->safe_currency_code($this->safe_string($transfer, 'token'), $currency);
-        $timestamp = $this->safe_timestamp($transfer, 'createdTime');
+        $timestamp = $this->safe_timestamp_2($transfer, 'createdTime', 'timestamp');
         $success = $this->safe_bool($transfer, 'success');
         $status = null;
         if ($success !== null) {
