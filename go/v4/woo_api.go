@@ -411,10 +411,6 @@ func (this *WooCore) V3PrivateGetAlgoOrders(args ...interface{}) <-chan interfac
 	return this.callEndpointAsync("v3PrivateGetAlgoOrders", args...)
 }
 
-func (this *WooCore) V3PrivateGetBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v3PrivateGetBalances", args...)
-}
-
 func (this *WooCore) V3PrivateGetPositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivateGetPositions", args...)
 }
