@@ -240,9 +240,12 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
 }
 
 const INTERFACE_METHODS = [
+    'cancelOrders',
+    'cancelOrdersWithClientOrderIds',
     'cancelAllOrders',
     'cancelAllOrdersAfter',
     'cancelOrder',
+    'cancelOrderWithClientOrderId',
     'cancelOrdersForSymbols',
     'createConvertTrade',
     'createDepositAddress',
@@ -272,6 +275,7 @@ const INTERFACE_METHODS = [
     'editLimitOrder',
     'editLimitSellOrder',
     'editOrder',
+    'editOrderWithClientOrderId',
     'editOrders',
     'fetchAccounts',
     'fetchAllGreeks',
@@ -333,6 +337,7 @@ const INTERFACE_METHODS = [
     'fetchOption',
     'fetchOptionChain',
     'fetchOrder',
+    'fetchOrderWithClientOrderId',
     'fetchOrderBook',
     'fetchOrderBooks',
     'fetchOrders',
