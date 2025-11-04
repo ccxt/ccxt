@@ -44,7 +44,6 @@ interface Exchange {
     v1PrivateGetClientFuturesLeverage(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostOrder(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostOrderCancelAllAfter(params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostAssetMainSubTransfer(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostAssetLtv(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostAssetWithdraw(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostAssetInternalWithdraw(params?: {}): Promise<implicitReturnType>;

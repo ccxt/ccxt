@@ -211,7 +211,6 @@ class woo extends woo$1["default"] {
                         'post': {
                             'order': 1,
                             'order/cancel_all_after': 1,
-                            'asset/main_sub_transfer': 30,
                             'asset/ltv': 30,
                             'asset/withdraw': 30,
                             'asset/internal_withdraw': 30,
@@ -2810,17 +2809,25 @@ class woo extends woo$1["default"] {
         const request = {
             'token': currency['id'],
             'amount': this.parseToNumeric(amount),
-            'from_application_id': fromAccount,
-            'to_application_id': toAccount,
+            'from': {
+                'applicationId': fromAccount,
+            },
+            'to': {
+                'applicationId': toAccount,
+            },
         };
-        const response = await this.v1PrivatePostAssetMainSubTransfer(this.extend(request, params));
+        const response = await this.v3PrivatePostAssetTransfer(this.extend(request, params));
         //
         //     {
         //         "success": true,
         //         "id": 200
         //     }
         //
-        const transfer = this.parseTransfer(response, currency);
+        const data = this.safeDict(response, 'data', {});
+        data['timestamp'] = this.safeInteger(response, 'timestamp');
+        data['token'] = currency['id'];
+        data['status'] = 'ok';
+        const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
@@ -2934,7 +2941,7 @@ class woo extends woo$1["default"] {
         //        }
         //
         const code = this.safeCurrencyCode(this.safeString(transfer, 'token'), currency);
-        const timestamp = this.safeTimestamp(transfer, 'createdTime');
+        const timestamp = this.safeTimestamp2(transfer, 'createdTime', 'timestamp');
         const success = this.safeBool(transfer, 'success');
         let status = undefined;
         if (success !== undefined) {
