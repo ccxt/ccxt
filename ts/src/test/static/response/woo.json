@@ -164,6 +164,8 @@
             {
                 "description": "withdraw v3",
                 "method": "withdraw",
+                "disabledCS": true,
+                "disabledGO": true,
                 "input": [
                     "USDT",
                     10,
