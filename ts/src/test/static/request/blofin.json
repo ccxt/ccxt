@@ -160,10 +160,13 @@
                     1,
                     null,
                     {
-                        "takeProfitPrice": 200
+                        "takeProfitPrice": 200,
+                        "clientOrderId": "84c4ac9afce249e0aef35631382928f6",
+                        "marginMode": "isolated",
+                        "reduceOnly": true
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"1\",\"tpTriggerPrice\":\"200\",\"tpOrderPrice\":\"-1\",\"marginMode\":\"cross\"}"
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"1\",\"tpTriggerPrice\":\"200\",\"tpOrderPrice\":\"-1\",\"marginMode\":\"isolated\", \"reduceOnly\":\"true\", \"clientOrderId\":\"84c4ac9afce249e0aef35631382928f6\"}"
             },
             {
                 "description": "create stop loss (type2) order",
@@ -176,10 +179,11 @@
                     1,
                     null,
                     {
-                        "stopLossPrice": 50
+                        "stopLossPrice": 50,
+                        "clientOrderId": "84c4ac9afce249e0aef35631382928f6"
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"1\",\"slTriggerPrice\":\"50\",\"slOrderPrice\":\"-1\",\"marginMode\":\"cross\"}"
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"1\",\"slTriggerPrice\":\"50\",\"slOrderPrice\":\"-1\",\"marginMode\":\"cross\", \"clientOrderId\":\"84c4ac9afce249e0aef35631382928f6\"}"
             }
         ],
         "cancelOrder": [

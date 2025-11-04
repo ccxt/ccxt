@@ -1426,8 +1426,7 @@ export default class blofin extends Exchange {
         }
         if (isTpslOrder || isTriggerOrder) {
             const dataDict = this.safeDict (response, 'data', {});
-            const order = this.parseOrder (dataDict, market);
-            return order;
+            return this.parseOrder (dataDict, market);
         }
         const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0);

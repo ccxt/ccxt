@@ -960,7 +960,7 @@
                     null,
                     {
                         "clientOrderId": "84c4ac9afce249e0aef35631382928f6",
-                        "takeProfitPrice": "4000",
+                        "takeProfitPrice": 4000,
                         "marginMode": "isolated",
                         "reduceOnly": true
                     }
