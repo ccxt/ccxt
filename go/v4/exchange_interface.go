@@ -354,9 +354,14 @@ type IDerivedExchange interface {
 	Sign(path interface{}, optionalArgs ...interface{}) interface{}
 	FetchBalance(optionalArgs ...interface{}) <-chan interface{}
 	CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CancelOrdersWithClientOrderIds(clientOrderIds interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CancelOrderWithClientOrderId(clientOrderId interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{}
 	EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{}
+	EditOrderWithClientOrderId(clientOrderId interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOrderWithClientOrderId(clientOrderId interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOrders(optionalArgs ...interface{}) <-chan interface{}
 	CreateExpiredOptionMarket(symbol interface{}) interface{}
 	FetchTime(optionalArgs ...interface{}) <-chan interface{}

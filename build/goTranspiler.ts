@@ -83,9 +83,12 @@ const imports = [
 
 const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "cancelOrder": true, // true if the method returns a channel (async in JS)
+    "cancelOrdersWithClientOrderIds": true,
+    "cancelOrderWithClient": true,
     "createExpiredOptionMarket": false,
     "createOrder": true,
     "editOrder": true,
+    "editOrderWithClientOrderId": true,
     "fetchAccounts": true,
     "fetchBalance": true,
     "fetchClosedOrders": true,
@@ -108,6 +111,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchTradingFees": true,
     "fetchOption": true,
     "fetchOrder": true,
+    "fetchOrderWithClientOrderId": true,
     "fetchOrderBook": true,
     "fetchOrderBooks": true,
     "fetchOrders": true,
