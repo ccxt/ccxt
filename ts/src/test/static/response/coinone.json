@@ -419,6 +419,93 @@
                     }
                 }
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/KRW"
+                ],
+                "httpResponse": {
+                    "result": "success",
+                    "error_code": "0",
+                    "server_time": 1701073358487,
+                    "tickers": [
+                        {
+                            "quote_currency": "krw",
+                            "target_currency": "btc",
+                            "timestamp": 1701073357818,
+                            "high": "50543000.0",
+                            "low": "49945000.0",
+                            "first": "50487000.0",
+                            "last": "50062000.0",
+                            "quote_volume": "11349804285.3859",
+                            "target_volume": "226.07268994",
+                            "best_asks": [
+                                {
+                                    "price": "50081000.0",
+                                    "qty": "0.18471358"
+                                }
+                            ],
+                            "best_bids": [
+                                {
+                                    "price": "50062000.0",
+                                    "qty": "0.04213455"
+                                }
+                            ],
+                            "id": "1701073357818001"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/KRW",
+                    "timestamp": 1701073357818,
+                    "datetime": "2023-11-27T08:22:37.818Z",
+                    "high": 50543000,
+                    "low": 49945000,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 50204225.412623495,
+                    "open": 50487000,
+                    "close": 50062000,
+                    "last": 50062000,
+                    "previousClose": null,
+                    "change": -425000,
+                    "percentage": -0.8418008596272307,
+                    "average": 50274500,
+                    "baseVolume": 226.07268994,
+                    "quoteVolume": 11349804285.3859,
+                    "info": {
+                        "quote_currency": "krw",
+                        "target_currency": "btc",
+                        "timestamp": 1701073357818,
+                        "high": "50543000.0",
+                        "low": "49945000.0",
+                        "first": "50487000.0",
+                        "last": "50062000.0",
+                        "quote_volume": "11349804285.3859",
+                        "target_volume": "226.07268994",
+                        "best_asks": [
+                            {
+                                "price": "50081000.0",
+                                "qty": "0.18471358"
+                            }
+                        ],
+                        "best_bids": [
+                            {
+                                "price": "50062000.0",
+                                "qty": "0.04213455"
+                            }
+                        ],
+                        "id": "1701073357818001"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
         ]
     }
 }

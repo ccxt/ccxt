@@ -560,10 +560,10 @@ export default class coinone extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'quote_currency': market['quote'],
@@ -663,6 +663,9 @@ export default class coinone extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
