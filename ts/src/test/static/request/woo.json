@@ -5,34 +5,19 @@
     "methods": {
         "withdraw": [
             {
-                "description": "withdraw USDT on ETH",
+                "description": "withdraw v3",
                 "method": "withdraw",
-                "url": "https://api.woox.io/v1/asset/withdraw",
+                "url": "https://api.woox.io/v3/asset/wallet/withdraw",
                 "input": [
                     "USDT",
                     10,
-                    "0x0000000000000000000000000000000000000000",
-                    null,
-                    {
-                        "network": "ETH"
-                    }
-                ],
-                "output": "address=0x0000000000000000000000000000000000000000&amount=10&token=ETH_USDT"
-            },
-            {
-                "description": "withdraw USDT on ERC20",
-                "method": "withdraw",
-                "url": "https://api.woox.io/v1/asset/withdraw",
-                "input": [
-                    "USDT",
-                    10,
-                    "0x0000000000000000000000000000000000000000",
+                    "0x34625d5f0b6575503a0669994dea24271bfbd443",
                     null,
                     {
                         "network": "ERC20"
                     }
                 ],
-                "output": "address=0x0000000000000000000000000000000000000000&amount=10&token=ETH_USDT"
+                "output": "{\"address\":\"0x34625d5f0b6575503a0669994dea24271bfbd443\",\"amount\":10,\"network\":\"ETH\",\"token\":\"USDT\"}"
             }
         ],
         "createOrder": [
