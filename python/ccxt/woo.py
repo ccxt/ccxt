@@ -295,7 +295,6 @@ class woo(Exchange, ImplicitAPI):
                             'spotMargin/maxMargin': 60,  # 10/60s
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
-                            'balances': 1,
                             'positions': 3.33,
                             'buypower': 1,
                             'convert/exchangeInfo': 1,
@@ -2324,7 +2323,7 @@ class woo(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        response = self.v3PrivateGetBalances(params)
+        response = self.v3PrivateGetAssetBalances(params)
         #
         #     {
         #         "success": True,
