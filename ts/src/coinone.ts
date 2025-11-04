@@ -144,7 +144,8 @@ export default class coinone extends Exchange {
                 },
                 'v2Public': {
                     'get': [
-                        'range_units',
+                        'range_units', // deprecated
+                        'range_units/{quote_currency}/{target_currency}',
                         'markets/{quote_currency}',
                         'markets/{quote_currency}/{target_currency}',
                         'orderbook/{quote_currency}/{target_currency}',
@@ -204,17 +205,27 @@ export default class coinone extends Exchange {
                         'account/balance',
                         'account/trade_fee',
                         'account/trade_fee/{quote_currency}/{target_currency}',
-                        'order/limit',
+                        'order/active_orders',
+                        'order/detail',
+                        'order/completed_orders/all',
+                        'order/completed_orders',
+                        'order',
+                        'order/limit', // deprecated
                         'order/cancel',
                         'order/cancel/all',
-                        'order/open_orders',
-                        'order/open_orders/all',
-                        'order/complete_orders',
-                        'order/complete_orders/all',
-                        'order/info',
+                        'order/open_orders', // deprecated
+                        'order/open_orders/all', // deprecated
+                        'order/complete_orders', // deprecated
+                        'order/complete_orders/all', // deprecated
+                        'order/info', // deprecated
                         'transaction/krw/history',
                         'transaction/coin/history',
+                        'transaction/coin/history/detail',
                         'transaction/coin/withdrawal/limit',
+                        'transaction/coin/withdrawal/address_book',
+                        'transaction/coin/withdrawal',
+                        'event/order-reward/programs',
+                        'event/order-reward/history',
                     ],
                 },
             },
