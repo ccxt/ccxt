@@ -501,6 +501,34 @@ func (this *Kraken) CreateOrder(symbol string, typeVar string, side string, amou
 
 /**
  * @method
+ * @name kraken#createOrders
+ * @description create a list of trade orders
+ * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Kraken) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
+
+	opts := CreateOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+
+/**
+ * @method
  * @name kraken#editOrder
  * @description edit a trade order
  * @see https://docs.kraken.com/api/docs/rest-api/amend-order
@@ -1299,9 +1327,6 @@ func (this *Kraken) CreateMarketSellOrder(symbol string, amount float64, options
 }
 func (this *Kraken) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Kraken) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrders(orders, options...)
 }
 func (this *Kraken) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
 	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
