@@ -4061,21 +4061,30 @@ export default class bybit extends Exchange {
                 throw new InvalidOrder (this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                const tpslMode = this.safeString (params, 'tpslMode') || 'partial';
+                const isFullTpsl = tpslMode === 'full';
+                const isPartialTpsl = tpslMode === 'partial';
+                if (isLimit && isFullTpsl) {
+                    throw new InvalidOrder (this.id + ' full tpsl orders only support market orders');
+                }
+                request['tpslMode'] = this.capitalize (tpslMode);
                 if (isStopLossTriggerOrder) {
                     request['stopLoss'] = this.getPrice (symbol, stopLossTriggerPrice);
+                    if (isPartialTpsl) {
+                        request['slSize'] = amountString;
+                    }
                     if (isLimit) {
-                        request['tpslMode'] = 'Partial';
                         request['slOrderType'] = 'Limit';
                         request['slLimitPrice'] = priceString;
-                        request['slSize'] = amountString;
                     }
                 } else if (isTakeProfitTriggerOrder) {
                     request['takeProfit'] = this.getPrice (symbol, takeProfitTriggerPrice);
+                    if (isPartialTpsl) {
+                        request['tpSize'] = amountString;
+                    }
                     if (isLimit) {
-                        request['tpslMode'] = 'Partial';
                         request['tpOrderType'] = 'Limit';
                         request['tpLimitPrice'] = priceString;
-                        request['tpSize'] = amountString;
                     }
                 }
             }
