@@ -292,6 +292,74 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"takeProfit\":\"98000\",\"tpslMode\":\"Partial\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"99000\",\"tpSize\":\"1\",\"category\":\"linear\"}"
             },
             {
+                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode full",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "stopLossPrice": 3999,
+                    "tpslMode": "Full"
+                  }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"stopLoss\":\"3999\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode full",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "takeProfitPrice": 4000,
+                    "tpslMode": "Full"
+                  }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"takeProfit\":\"4000\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode partial",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "stopLossPrice": 3.9,
+                    "tpslMode": "Partial"
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"stopLoss\":\"3.9\",\"tpslMode\":\"Partial\",\"slSize\":\"1\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode partial",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "takeProfitPrice": 2.2,
+                    "tpslMode": "Partial"
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"takeProfit\":\"2.2\",\"tpslMode\":\"Partial\",\"tpSize\":\"1\",\"category\":\"linear\"}"
+            },
+            {
                 "description": "Opening position with sl + tp attached (type 3)",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
