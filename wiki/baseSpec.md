@@ -1025,6 +1025,7 @@ create a list of trade orders
 * [hibachi](/exchanges/hibachi.md#hibachicreateorders)
 * [htx](/exchanges/htx.md#htxcreateorders)
 * [hyperliquid](/exchanges/hyperliquid.md#hyperliquidcreateorders)
+* [kraken](/exchanges/kraken.md#krakencreateorders)
 * [krakenfutures](/exchanges/krakenfutures.md#krakenfuturescreateorders)
 * [kucoin](/exchanges/kucoin.md#kucoincreateorders)
 * [kucoinfutures](/exchanges/kucoinfutures.md#kucoinfuturescreateorders)
