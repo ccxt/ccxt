@@ -32,6 +32,7 @@ public partial class kraken : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
@@ -429,7 +430,11 @@ public partial class kraken : Exchange
                         { "selfTradePrevention", true },
                         { "iceberg", true },
                     } },
-                    { "createOrders", null },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "min", 2 },
+                        { "max", 15 },
+                        { "sameSymbolOnly", true },
+                    } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
@@ -1738,6 +1743,85 @@ public partial class kraken : Exchange
         // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder(result);
+    }
+
+    /**
+     * @method
+     * @name kraken#createOrders
+     * @description create a list of trade orders
+     * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ordersRequests = new List<object>() {};
+        object orderSymbols = new List<object>() {};
+        object symbol = null;
+        object market = null;
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(orders, i);
+            object marketId = this.safeString(rawOrder, "symbol");
+            if (isTrue(isEqual(symbol, null)))
+            {
+                symbol = marketId;
+            } else
+            {
+                if (isTrue(!isEqual(symbol, marketId)))
+                {
+                    throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                }
+            }
+            market = this.market(marketId);
+            ((IList<object>)orderSymbols).Add(marketId);
+            object type = this.safeString(rawOrder, "type");
+            object side = this.safeString(rawOrder, "side");
+            object amount = this.safeValue(rawOrder, "amount");
+            object price = this.safeValue(rawOrder, "price");
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            object req = new Dictionary<string, object>() {
+                { "type", side },
+                { "ordertype", type },
+                { "volume", this.amountToPrecision(getValue(market, "symbol"), amount) },
+            };
+            object orderRequest = this.orderRequest("createOrders", marketId, type, req, amount, price, orderParams);
+            ((IList<object>)ordersRequests).Add(getValue(orderRequest, 0));
+        }
+        orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
+        object response = null;
+        object request = new Dictionary<string, object>() {
+            { "orders", ordersRequests },
+            { "pair", getValue(market, "id") },
+        };
+        request = this.extend(request, parameters);
+        response = await this.privatePostAddOrderBatch(request);
+        //
+        //         {
+        //    "error":[
+        //    ],
+        //    "result":{
+        //       "orders":[
+        //          {
+        //             "txid":"OEPPJX-34RMM-OROGZE",
+        //             "descr":{
+        //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+        //             }
+        //          },
+        //          {
+        //             "txid":"OLQY7O-OYBXW-W23PGL",
+        //             "descr":{
+        //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+        //             }
+        //          }
+        //       ]
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseOrders(this.safeList(result, "orders"));
     }
 
     public virtual object findMarketByAltnameOrId(object id)
@@ -3736,10 +3820,11 @@ public partial class kraken : Exchange
                 isTriggerPercent = ((bool) isTrue((((string)price).EndsWith(((string)"%"))))) ? true : false;
             }
             object isCancelOrderBatch = (isEqual(path, "CancelOrderBatch"));
+            object isBatchOrder = (isEqual(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if (isTrue(isTrue(isCancelOrderBatch) || isTrue(isTriggerPercent)))
+            if (isTrue(isTrue(isTrue(isCancelOrderBatch) || isTrue(isTriggerPercent)) || isTrue(isBatchOrder)))
             {
                 body = this.json(this.extend(new Dictionary<string, object>() {
                     { "nonce", nonce },
@@ -3760,7 +3845,7 @@ public partial class kraken : Exchange
                 { "API-Key", this.apiKey },
                 { "API-Sign", signature },
             };
-            if (isTrue(isTrue(isCancelOrderBatch) || isTrue(isTriggerPercent)))
+            if (isTrue(isTrue(isTrue(isCancelOrderBatch) || isTrue(isTriggerPercent)) || isTrue(isBatchOrder)))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             } else
@@ -3799,12 +3884,12 @@ public partial class kraken : Exchange
         {
             if (isTrue(!(response is string)))
             {
+                object message = add(add(this.id, " "), body);
                 if (isTrue(inOp(response, "error")))
                 {
                     object numErrors = getArrayLength(getValue(response, "error"));
                     if (isTrue(numErrors))
                     {
-                        object message = add(add(this.id, " "), body);
                         for (object i = 0; isLessThan(i, getArrayLength(getValue(response, "error"))); postFixIncrement(ref i))
                         {
                             object error = getValue(getValue(response, "error"), i);
@@ -3812,6 +3897,26 @@ public partial class kraken : Exchange
                             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, message);
                         }
                         throw new ExchangeError ((string)message) ;
+                    }
+                }
+                // handleCreateOrdersErrors:
+                if (isTrue(inOp(response, "result")))
+                {
+                    object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+                    if (isTrue(inOp(result, "orders")))
+                    {
+                        object orders = this.safeList(result, "orders", new List<object>() {});
+                        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+                        {
+                            object order = getValue(orders, i);
+                            object error = this.safeString(order, "error");
+                            if (isTrue(!isEqual(error, null)))
+                            {
+                                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, message);
+                                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, message);
+                                throw new ExchangeError ((string)message) ;
+                            }
+                        }
                     }
                 }
             }
