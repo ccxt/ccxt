@@ -87,9 +87,8 @@ export default class xcoin extends xcoinRest {
         let messageHash = unifiedHash;
         const requestObjects = [];
         symbols = this.marketSymbols (symbols, undefined, true, true);
-        const symbolsLength = symbols.length;
-        const isSingleSymbol = (symbolsLength !== undefined) && (symbolsLength === 1);
-        if (isSingleSymbol) {
+        const symbolsLength = (symbols === undefined) ? undefined : symbols.length;
+        if (symbolsLength === 1) {
             const market = this.market (symbols[0]);
             requestObjects.push ({
                 'symbol': market['id'],
@@ -116,15 +115,14 @@ export default class xcoin extends xcoinRest {
                     messageHashes.push (unifiedHash + ':' + market['symbol']);
                 }
             } else {
-                messageHash = messageHash + 's';
                 let marketType: Str = undefined;
                 const callingMethod = this.safeString (pluralMethods, unifiedHash, unifiedHash);
-                [ marketType, params ] = this.handleOptionAndParams (params, callingMethod, 'type');
+                [ marketType, params ] = this.handleOptionAndParams (params, callingMethod, 'type', 'spot');
                 requestObjects.push ({
                     'stream': exchangeChannel,
                     'businessType': this.safeString (channelMap, marketType),
                 });
-                messageHash = messageHash + ':' + 's';
+                messageHash = messageHash + 's';
                 messageHashes.push (messageHash);
             }
             const subscribe = {
@@ -194,10 +192,9 @@ export default class xcoin extends xcoinRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeList (message, 'data', []);
-        const messageHash = 'trade:' + symbol;
         if (!(symbol in this.trades)) {
             const options = this.safeDict (this.options, 'ws', {});
-            const limit = this.safeInteger (options, 'trades', 1000);
+            const limit = this.safeInteger (options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache (limit);
         }
         const trades = this.trades[symbol];
@@ -205,7 +202,7 @@ export default class xcoin extends xcoinRest {
             const trade = this.parseWsTrade (data[i], market);
             trades.append (trade);
         }
-        client.resolve (trades, messageHash);
+        client.resolve (trades, 'trade:' + symbol);
         client.resolve (trades, 'trades');
     }
 
@@ -281,8 +278,14 @@ export default class xcoin extends xcoinRest {
         await this.loadMarkets ();
         let wsChannel: Str = undefined;
         [ wsChannel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'ticker24hr');
-        const tickers = await this.publicWatch ('ticker', wsChannel, symbols, params);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        const ticker = await this.publicWatch ('ticker', wsChannel, symbols, params);
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            const symbol = this.safeString (ticker, 'symbol');
+            tickers[symbol] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message: any) {
@@ -355,6 +358,7 @@ export default class xcoin extends xcoinRest {
          * @param {string} [params.interval] 100ms or 1000ms, default is 100ms
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
+        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -375,6 +379,7 @@ export default class xcoin extends xcoinRest {
         const orderbook = await this.publicWatch ('orderbook', 'depthlevels#' + interval.toString () + 'ms', symbols, params);
         return orderbook.limit ();
     }
+
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
@@ -572,43 +577,11 @@ export default class xcoin extends xcoinRest {
     }
 
     handleOrderBook (client: Client, message: any) {
-        //
-        // Incremental depth update
-        // {
-        //     "businessType": "spot",
-        //     "symbol": "BTC-USDT",
-        //     "stream": "depth#100ms",
-        //     "data": [{
-        //         "symbol": "BTC-USDT",
-        //         "bids": [["65000", "0.1"], ["65001", "0.1"]],
-        //         "asks": [["65000", "0.1"], ["65001", "0.1"]],
-        //         "preUpdateId": "99",
-        //         "lastUpdateId": "100"
-        //     }],
-        //     "ts": "1732256095953"
-        // }
-        //
-        // Limited depth levels
-        // {
-        //     "businessType": "spot",
-        //     "symbol": "BTC-USDT",
-        //     "stream": "depthlevels#1000ms#5#1",
-        //     "data": [{
-        //         "symbol": "BTC-USDT",
-        //         "lastUpdateId": "2888033",
-        //         "bids": [["85000", "67.5586"]],
-        //         "asks": [["85510", "7.09"]],
-        //         "group": "1"
-        //     }],
-        //     "ts": 1754999207653
-        // }
-        //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeValue (message, 'data', []);
         const stream = this.safeString (message, 'stream', '');
-        
         if (data.length > 0) {
             const update = data[0];
             const timestamp = this.safeInteger (message, 'ts');
@@ -840,7 +813,6 @@ export default class xcoin extends xcoinRest {
             messageHash = 'orders:' + symbol;
             client.resolve (orders, messageHash);
         }
-        
         // Handle trades from tradeList
         const tradeList = this.safeValue (message, 'tradeList', []);
         if (tradeList.length > 0) {
@@ -1083,7 +1055,6 @@ export default class xcoin extends xcoinRest {
             'trading_account': this.handleBalance,
             'kline': this.handleOHLCV,
             'depth': this.handleOrderBook,
-            'depthlevels': this.handleOrderBook,
             'ticker24hr': this.handleTicker,
             'miniTicker': this.handleTicker,
             'trade': this.handleTrade,
@@ -1091,6 +1062,10 @@ export default class xcoin extends xcoinRest {
         const method = this.safeValue (methods, stream);
         if (method !== undefined) {
             method.call (this, client, message);
+        } else {
+            if (stream.indexOf ('depthlevels#') >= 0) {
+                this.handleOrderBookPartialSnapshot (client, message);
+            }
         }
     }
 
