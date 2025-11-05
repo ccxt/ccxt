@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, Position, OrderRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -46,6 +46,7 @@ export default class kraken extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -473,7 +474,11 @@ export default class kraken extends Exchange {
                         'selfTradePrevention': true, // todo implement
                         'iceberg': true, // todo implement
                     },
-                    'createOrders': undefined,
+                    'createOrders': {
+                        'min': 2,
+                        'max': 15,
+                        'sameSymbolOnly': true,
+                    },
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': undefined,
@@ -1695,6 +1700,79 @@ export default class kraken extends Exchange {
         // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder (result);
+    }
+
+    /**
+     * @method
+     * @name kraken#createOrders
+     * @description create a list of trade orders
+     * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let orderSymbols = [];
+        let symbol = undefined;
+        let market = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            } else {
+                if (symbol !== marketId) {
+                    throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            market = this.market (marketId);
+            orderSymbols.push (marketId);
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const req: Dict = {
+                'type': side,
+                'ordertype': type,
+                'volume': this.amountToPrecision (market['symbol'], amount),
+            };
+            const orderRequest = this.orderRequest ('createOrders', marketId, type, req, amount, price, orderParams);
+            ordersRequests.push (orderRequest[0]);
+        }
+        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        let response = undefined;
+        let request: Dict = {
+            'orders': ordersRequests,
+            'pair': market['id'],
+        };
+        request = this.extend (request, params);
+        response = await this.privatePostAddOrderBatch (request);
+        //
+        //         {
+        //    "error":[
+        //    ],
+        //    "result":{
+        //       "orders":[
+        //          {
+        //             "txid":"OEPPJX-34RMM-OROGZE",
+        //             "descr":{
+        //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+        //             }
+        //          },
+        //          {
+        //             "txid":"OLQY7O-OYBXW-W23PGL",
+        //             "descr":{
+        //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+        //             }
+        //          }
+        //       ]
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOrders (this.safeList (result, 'orders'));
     }
 
     findMarketByAltnameOrId (id) {
@@ -3497,10 +3575,11 @@ export default class kraken extends Exchange {
                 isTriggerPercent = (price.endsWith ('%')) ? true : false;
             }
             const isCancelOrderBatch = (path === 'CancelOrderBatch');
+            const isBatchOrder = (path === 'AddOrderBatch');
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if (isCancelOrderBatch || isTriggerPercent) {
+            if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
                 body = this.json (this.extend ({ 'nonce': nonce }, params));
             } else {
                 body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
@@ -3515,7 +3594,7 @@ export default class kraken extends Exchange {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,
             };
-            if (isCancelOrderBatch || isTriggerPercent) {
+            if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
                 headers['Content-Type'] = 'application/json';
             } else {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -3540,16 +3619,32 @@ export default class kraken extends Exchange {
         }
         if (body[0] === '{') {
             if (typeof response !== 'string') {
+                const message = this.id + ' ' + body;
                 if ('error' in response) {
                     const numErrors = response['error'].length;
                     if (numErrors) {
-                        const message = this.id + ' ' + body;
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
                             this.throwExactlyMatchedException (this.exceptions['exact'], error, message);
                             this.throwBroadlyMatchedException (this.exceptions['broad'], error, message);
                         }
                         throw new ExchangeError (message);
+                    }
+                }
+                // handleCreateOrdersErrors:
+                if ('result' in response) {
+                    const result = this.safeDict (response, 'result', {});
+                    if ('orders' in result) {
+                        const orders = this.safeList (result, 'orders', []);
+                        for (let i = 0; i < orders.length; i++) {
+                            const order = orders[i];
+                            const error = this.safeString (order, 'error');
+                            if (error !== undefined) {
+                                this.throwExactlyMatchedException (this.exceptions['exact'], error, message);
+                                this.throwBroadlyMatchedException (this.exceptions['broad'], error, message);
+                                throw new ExchangeError (message);
+                            }
+                        }
                     }
                 }
             }
