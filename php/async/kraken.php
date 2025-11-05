@@ -50,6 +50,7 @@ class kraken extends Exchange {
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
@@ -477,7 +478,11 @@ class kraken extends Exchange {
                         'selfTradePrevention' => true, // todo implement
                         'iceberg' => true, // todo implement
                     ),
-                    'createOrders' => null,
+                    'createOrders' => array(
+                        'min' => 2,
+                        'max' => 15,
+                        'sameSymbolOnly' => true,
+                    ),
                     'fetchMyTrades' => array(
                         'marginMode' => false,
                         'limit' => null,
@@ -1730,6 +1735,81 @@ class kraken extends Exchange {
             // becuase kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
             // this usingCost flag is used to help the parsing but omited from the order
             return $this->parse_order($result);
+        }) ();
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             *
+             * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+             *
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $orderSymbols = array();
+            $symbol = null;
+            $market = null;
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                if ($symbol === null) {
+                    $symbol = $marketId;
+                } else {
+                    if ($symbol !== $marketId) {
+                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    }
+                }
+                $market = $this->market($marketId);
+                $orderSymbols[] = $marketId;
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_dict($rawOrder, 'params', array());
+                $req = array(
+                    'type' => $side,
+                    'ordertype' => $type,
+                    'volume' => $this->amount_to_precision($market['symbol'], $amount),
+                );
+                $orderRequest = $this->order_request('createOrders', $marketId, $type, $req, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest[0];
+            }
+            $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
+            $response = null;
+            $request = array(
+                'orders' => $ordersRequests,
+                'pair' => $market['id'],
+            );
+            $request = $this->extend($request, $params);
+            $response = Async\await($this->privatePostAddOrderBatch ($request));
+            //
+            //         {
+            //    "error":array(
+            //    ),
+            //    "result":{
+            //       "orders":array(
+            //          {
+            //             "txid":"OEPPJX-34RMM-OROGZE",
+            //             "descr":array(
+            //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+            //             }
+            //          ),
+            //          {
+            //             "txid":"OLQY7O-OYBXW-W23PGL",
+            //             "descr":{
+            //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+            //             }
+            //          }
+            //       )
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            return $this->parse_orders($this->safe_list($result, 'orders'));
         }) ();
     }
 
@@ -3575,10 +3655,11 @@ class kraken extends Exchange {
                 $isTriggerPercent = (str_ends_with($price, '%')) ? true : false;
             }
             $isCancelOrderBatch = ($path === 'CancelOrderBatch');
+            $isBatchOrder = ($path === 'AddOrderBatch');
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if ($isCancelOrderBatch || $isTriggerPercent) {
+            if ($isCancelOrderBatch || $isTriggerPercent || $isBatchOrder) {
                 $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             } else {
                 $body = $this->urlencode_nested($this->extend(array( 'nonce' => $nonce ), $params));
@@ -3593,7 +3674,7 @@ class kraken extends Exchange {
                 'API-Key' => $this->apiKey,
                 'API-Sign' => $signature,
             );
-            if ($isCancelOrderBatch || $isTriggerPercent) {
+            if ($isCancelOrderBatch || $isTriggerPercent || $isBatchOrder) {
                 $headers['Content-Type'] = 'application/json';
             } else {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -3618,16 +3699,32 @@ class kraken extends Exchange {
         }
         if ($body[0] === '{') {
             if (gettype($response) !== 'string') {
+                $message = $this->id . ' ' . $body;
                 if (is_array($response) && array_key_exists('error', $response)) {
                     $numErrors = count($response['error']);
                     if ($numErrors) {
-                        $message = $this->id . ' ' . $body;
                         for ($i = 0; $i < count($response['error']); $i++) {
                             $error = $response['error'][$i];
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
                             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
                         }
                         throw new ExchangeError($message);
+                    }
+                }
+                // handleCreateOrdersErrors:
+                if (is_array($response) && array_key_exists('result', $response)) {
+                    $result = $this->safe_dict($response, 'result', array());
+                    if (is_array($result) && array_key_exists('orders', $result)) {
+                        $orders = $this->safe_list($result, 'orders', array());
+                        for ($i = 0; $i < count($orders); $i++) {
+                            $order = $orders[$i];
+                            $error = $this->safe_string($order, 'error');
+                            if ($error !== null) {
+                                $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
+                                $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
+                                throw new ExchangeError($message);
+                            }
+                        }
                     }
                 }
             }
