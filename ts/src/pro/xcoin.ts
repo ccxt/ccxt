@@ -424,6 +424,79 @@ export default class xcoin extends xcoinRest {
         }
     }
 
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name xcoin#watchBidsAsks
+         * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/limited-depth-levels-channel
+         * @param {string[]} symbols unified symbols of the markets to fetch the bids/asks for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, false, true);
+        const result = await this.publicWatch ('bidask', 'orderBook', symbols, params);
+        if (this.newUpdates) {
+            return result;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    handleBidsAsks (client: Client, message) {
+        //
+        //    {
+        //        "businessType": "spot",
+        //        "symbol": "RENDER-USDT",
+        //        "stream": "orderBook",
+        //        "data": [
+        //            {
+        //                "symbol": "RENDER-USDT",
+        //                "lastUpdateId": "36029273",
+        //                "preUpdateId": "36029273",
+        //                "bids": [
+        //                    [ "1.934", "518.60" ]
+        //                ],
+        //                "asks": [
+        //                    [ "1.936", "874.29" ]
+        //                ]
+        //            }
+        //        ],
+        //        "ts": 1762355823004
+        //    }
+        //
+        const timestamp = this.safeInteger (message, 'ts');
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const data = this.safeList (message, 'data', []);
+        const newTickers = {};
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseBidAskCustom (data[i], market);
+            ticker['timestamp'] = timestamp;
+            ticker['datetime'] = this.iso8601 (timestamp);
+            newTickers[symbol] = ticker;
+            this.tickers[symbol] = ticker;
+            client.resolve (ticker, 'bidask::' + symbol);
+        }
+        client.resolve (newTickers, 'bidasks');
+    }
+
+    parseBidAskCustom (data: any, market: any = undefined): Ticker {
+        const bids = this.safeList (data, 'bids', []);
+        const asks = this.safeList (data, 'asks', []);
+        const firstBid = this.safeList (bids, 0, []);
+        const firstAsk = this.safeList (asks, 0, []);
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'bid': this.safeNumber (firstBid, 0),
+            'ask': this.safeNumber (firstAsk, 0),
+            'bidVolume': this.safeNumber (firstBid, 1),
+            'askVolume': this.safeNumber (firstAsk, 1),
+            'info': data,
+        }, market);
+    }
+
+
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * watches historical candlestick data containing the open, high, low, close price, and the volume of a market
@@ -457,44 +530,6 @@ export default class xcoin extends xcoinRest {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
-    }
-
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * watches best bid & ask for symbols
-         * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/limited-depth-levels-channel
-         * @param {string[]} symbols unified symbols of the markets to fetch the bids/asks for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const url = this.urls['api']['ws']['public'];
-        const messageHash = 'bidsasks';
-        const data = [];
-        
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a symbols argument');
-        }
-        
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
-            data.push ({
-                'businessType': market['spot'] ? 'spot' : 'linear_perpetual',
-                'symbol': market['id'],
-                'stream': 'depthlevels#1000ms',
-                'levels': '1',
-                'group': '1',
-            });
-        }
-        
-        const subscribe = {
-            'event': 'subscribe',
-            'data': data,
-        };
-        const request = this.deepExtend (subscribe, params);
-        const bidsasks = await this.watch (url, messageHash, request, messageHash);
-        return this.filterByArray (bidsasks, 'symbol', symbols);
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -1098,6 +1133,7 @@ export default class xcoin extends xcoinRest {
             'trading_account': this.handleBalance,
             'kline': this.handleOHLCV,
             'depth': this.handleOrderBook,
+            'orderBook': this.handleBidsAsks, // best bid-asks
             'ticker24hr': this.handleTicker,
             'miniTicker': this.handleTicker,
             'trade': this.handleTrade,
