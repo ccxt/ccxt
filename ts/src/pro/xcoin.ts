@@ -100,7 +100,7 @@ export default class xcoin extends xcoinRest {
                 'data': requestObjects,
             };
             const request = this.deepExtend (subscribe, params);
-            messageHash = messageHash + ':' + market['symbol'];
+            messageHash = messageHash + '::' + market['symbol'];
             return await this.watch (url, messageHash, request, messageHash);
         } else {
             const messageHashes = [];
@@ -112,7 +112,7 @@ export default class xcoin extends xcoinRest {
                         'stream': exchangeChannel,
                         'businessType': this.safeString (channelMap, market['type']),
                     });
-                    messageHashes.push (unifiedHash + ':' + market['symbol']);
+                    messageHashes.push (unifiedHash + '::' + market['symbol']);
                 }
             } else {
                 let marketType: Str = undefined;
@@ -202,7 +202,7 @@ export default class xcoin extends xcoinRest {
             const trade = this.parseWsTrade (data[i], market);
             trades.append (trade);
         }
-        client.resolve (trades, 'trade:' + symbol);
+        client.resolve (trades, 'trade::' + symbol);
         client.resolve (trades, 'trades');
     }
 
@@ -232,15 +232,12 @@ export default class xcoin extends xcoinRest {
         //
         //
         const timestamp = this.safeInteger (trade, 'time');
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
         return this.safeTrade ({
             'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': this.safeSymbol (this.safeString (trade, 'symbol'), market),
             'order': undefined,
             'type': this.safeStringLower (trade, 'orderType'),
             'side': this.safeStringLower (trade, 'side'),
@@ -319,7 +316,7 @@ export default class xcoin extends xcoinRest {
             const ticker = this.parseWsTicker (data[i], market);
             newTickers[symbol] = ticker;
             this.tickers[symbol] = ticker;
-            client.resolve (ticker, 'ticker:' + symbol);
+            client.resolve (ticker, 'ticker::' + symbol);
         }
         client.resolve (newTickers, 'tickers');
     }
@@ -376,10 +373,56 @@ export default class xcoin extends xcoinRest {
         await this.loadMarkets ();
         let interval = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 100);
-        const orderbook = await this.publicWatch ('orderbook', 'depthlevels#' + interval.toString () + 'ms', symbols, params);
+        const orderbook = await this.publicWatch ('orderBook', 'depthlevels#' + interval.toString () + 'ms', symbols, params);
         return orderbook.limit ();
     }
 
+    handleOrderBookPartialSnapshot (client: Client, message) {
+        //
+        //    {
+        //        "businessType": "linear_perpetual",
+        //        "symbol": "BTC-USDT-PERP",
+        //        "stream": "depthlevels#100ms#5#none",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC-USDT-PERP",
+        //                "lastUpdateId": "1163985053",
+        //                "bids": [
+        //                    [ "102602.1", "7.5238"],
+        //                    ...
+        //                ],
+        //                "asks": [
+        //                    [ "102602.2", "10.1106" ],
+        //                    ...
+        //                ],
+        //                "group": "none"
+        //            }
+        //        ],
+        //        "ts": 1762352597503
+        //    }
+        //
+        const data = this.safeList (message, 'data', []);
+        const length = data.length;
+        if (length === 0) {
+            return;
+        }
+        for (let i = 0; i < length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            const messageHash = 'orderBook::' + symbol;
+            if (!(symbol in this.orderbooks)) {
+                const limit = this.safeInteger (this.options['ws'], 'orderBookLimit', 1000);
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            }
+            const orderbook = this.orderbooks[symbol];
+            const timestamp = this.safeInteger (message, 'ts');
+            const snapshot = this.parseOrderBook (entry, symbol, timestamp);
+            snapshot['nonce'] = this.safeInteger (entry, 'lastUpdateId');
+            orderbook.reset (snapshot);
+            client.resolve (orderbook, messageHash);
+        }
+    }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
