@@ -1186,11 +1186,17 @@ export default class kucoin extends Exchange {
      * @see https://docs.kucoin.com/#get-symbols-list-deprecated
      * @see https://docs.kucoin.com/#get-all-tickers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         let fetchTickersFees = undefined;
         [ fetchTickersFees, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchTickersFees', true);
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'uta', false);
+        if (uta) {
+            return await this.fetchUtaMarkets (params);
+        }
         const promises = [];
         promises.push (this.publicGetSymbols (params));
         //
@@ -1367,6 +1373,187 @@ export default class kucoin extends Exchange {
                     },
                 },
                 'created': undefined,
+                'info': market,
+            });
+        }
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
+        return result;
+    }
+
+    async fetchUtaMarkets (params = {}): Promise<Market[]> {
+        const promises = [];
+        promises.push (this.utaGetMarketInstrument ({ 'tradeType': 'SPOT' }));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "tradeType": "SPOT",
+        //             "list": [
+        //                 {
+        //                     "symbol": "AVA-USDT",
+        //                     "name": "AVA-USDT",
+        //                     "baseCurrency": "AVA",
+        //                     "quoteCurrency": "USDT",
+        //                     "market": "USDS",
+        //                     "minBaseOrderSize": "0.1",
+        //                     "minQuoteOrderSize": "0.1",
+        //                     "maxBaseOrderSize": "10000000000",
+        //                     "maxQuoteOrderSize": "99999999",
+        //                     "baseOrderStep": "0.01",
+        //                     "quoteOrderStep": "0.0001",
+        //                     "tickSize": "0.0001",
+        //                     "feeCurrency": "USDT",
+        //                     "tradingStatus": "1",
+        //                     "marginMode": "2",
+        //                     "priceLimitRatio": "0.05",
+        //                     "feeCategory": 1,
+        //                     "makerFeeCoefficient": "1.00",
+        //                     "takerFeeCoefficient": "1.00",
+        //                     "st": false
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        promises.push (this.utaGetMarketInstrument ({ 'tradeType': 'FUTURES' }));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "tradeType": "FUTURES",
+        //             "list": [
+        //                 {
+        //                     "symbol": "XBTUSDTM",
+        //                     "baseCurrency": "XBT",
+        //                     "quoteCurrency": "USDT",
+        //                     "maxBaseOrderSize": "1000000",
+        //                     "tickSize": "0.1",
+        //                     "tradingStatus": "1",
+        //                     "settlementCurrency": "USDT",
+        //                     "contractType": "0",
+        //                     "isInverse": false,
+        //                     "launchTime": 1585555200000,
+        //                     "expiryTime": null,
+        //                     "settlementTime": null,
+        //                     "maxPrice": "1000000.0",
+        //                     "lotSize": "1",
+        //                     "unitSize": "0.001",
+        //                     "makerFeeRate": "0.00020",
+        //                     "takerFeeRate": "0.00060",
+        //                     "settlementFeeRate": null,
+        //                     "maxLeverage": 125,
+        //                     "indexSourceExchanges": ["okex","binance","kucoin","bybit","bitmart","gateio"],
+        //                     "k": "490.0",
+        //                     "m": "300.0",
+        //                     "f": "1.3",
+        //                     "mmrLimit": "0.3",
+        //                     "mmrLevConstant": "125.0"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const responses = await Promise.all (promises);
+        const data = this.safeDict (responses[0], 'data', {});
+        const contractData = this.safeDict (responses[1], 'data', {});
+        const spotData = this.safeList (data, 'list', []);
+        const contractSymbolsData = this.safeList (contractData, 'list', []);
+        const symbolsData = this.arrayConcat (spotData, contractSymbolsData);
+        const result = [];
+        for (let i = 0; i < symbolsData.length; i++) {
+            const market = symbolsData[i];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const settleId = this.safeString (market, 'settlementCurrency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const hasMargin = this.safeString (market, 'marginMode');
+            const isMarginable = (hasMargin === '1') ? true : false;
+            let symbol = base + '/' + quote;
+            if (settle !== undefined) {
+                symbol += ':' + settle;
+            }
+            const contractType = this.safeString (market, 'contractType');
+            const expiry = this.safeInteger (market, 'expiryTime');
+            const active = this.safeString (market, 'tradingStatus');
+            let type = undefined;
+            let spot = false;
+            let swap = false;
+            let future = false;
+            let contract = false;
+            let linear = false;
+            let inverse = false;
+            if (contractType !== undefined) {
+                contract = true;
+                if (quote === settle) {
+                    linear = true;
+                } else {
+                    inverse = true;
+                }
+                if (contractType === '0') {
+                    type = 'swap';
+                    swap = true;
+                } else {
+                    type = 'future';
+                    future = true;
+                }
+            } else {
+                type = 'spot';
+                spot = true;
+            }
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': spot,
+                'margin': isMarginable,
+                'swap': swap,
+                'future': future,
+                'option': false,
+                'active': (active === '1') ? true : false,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': this.safeNumber (market, 'makerFeeRate'),
+                'maker': this.safeNumber (market, 'takerFeeRate'),
+                'contractSize': this.safeNumber (market, 'unitSize'),
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'lotSize'),
+                    'price': this.safeNumber (market, 'tickSize'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': this.safeInteger (market, 'maxLeverage'),
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minBaseOrderSize'),
+                        'max': this.safeNumber (market, 'maxBaseOrderSize'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': this.safeNumber (market, 'maxPrice'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'minQuoteOrderSize'),
+                        'max': this.safeNumber (market, 'maxQuoteOrderSize'),
+                    },
+                },
+                'created': this.safeInteger (market, 'launchTime'),
                 'info': market,
             });
         }
