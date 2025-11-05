@@ -109,7 +109,7 @@ type WithdrawMessage struct {
 // editOrder
 // {"type":"batchModify","modifies":[{"oid":8553833906,"order":{"a":5,"b":true,"p":"151","s":"0.2","r":false,"t":{"limit":{"tif":"Gtc"}}}}]}
 type Modify struct {
-	OID   int `mapstructure:"oid" msgpack:"oid"`
+	OID   int              `mapstructure:"oid" msgpack:"oid"`
 	Order OrderHyperliquid `mapstructure:"order" msgpack:"order"`
 }
 
