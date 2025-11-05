@@ -634,10 +634,16 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300) as OHLCV[];
+        }
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
@@ -1839,6 +1845,11 @@ export default class deepcoin extends Exchange {
      */
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params) as Order[];
+        }
         const trigger = this.safeBool (params, 'trigger', false);
         let methodName = 'fetchCanceledAndClosedOrders';
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
@@ -2814,10 +2825,16 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @param {string} [params.type] 'spot' or 'swap', the market type for the trades (default is 'spot')
+     * @params {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
