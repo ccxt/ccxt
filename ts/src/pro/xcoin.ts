@@ -73,20 +73,21 @@ export default class xcoin extends xcoinRest {
         });
     }
 
-    async publicWatch (unifiedHash: string, exchangeChannel: string, symbols = undefined, params = {}) {
+    async publicWatch (unifiedHash: string, exchangeChannel: string, symbolsArray = undefined, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const channelMap = {
             'spot': 'spot',
             'swap': 'linear_perpetual',
             'future': 'linear_futures',
         };
-        const pluralMethods = {
-            'orderBook': 'watchOrderBooks',
-            'ticker': 'watchTickers',
-        };
         let messageHash = unifiedHash;
         const requestObjects = [];
-        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const isOHLCV = (unifiedHash === 'ohlcv');
+        let symbols = symbolsArray;
+        if (isOHLCV) {
+            symbols = this.getListFromObjectValues (symbols, 0);
+        }
+        symbols = this.marketSymbols (symbols, undefined, true, false);
         const symbolsLength = (symbols === undefined) ? undefined : symbols.length;
         if (symbolsLength === 1) {
             const market = this.market (symbols[0]);
@@ -106,16 +107,27 @@ export default class xcoin extends xcoinRest {
             const messageHashes = [];
             if (symbolsLength > 1) {
                 for (let i = 0; i < symbolsLength; i++) {
-                    const market = this.market (symbols[i]);
+                    const market = !isOHLCV ? this.market (symbols[i]) : this.market (symbols[i][0]);
+                    let selectedChannel = exchangeChannel;
+                    if (isOHLCV) {
+                        const timeframe = symbolsArray[i][1];
+                        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+                        selectedChannel = selectedChannel + interval;
+                    }
                     requestObjects.push ({
                         'symbol': market['id'],
-                        'stream': exchangeChannel,
+                        'stream': selectedChannel,
                         'businessType': this.safeString (channelMap, market['type']),
                     });
                     messageHashes.push (unifiedHash + '::' + market['symbol']);
                 }
             } else {
                 let marketType: Str = undefined;
+                const pluralMethods = {
+                    'orderBook': 'watchOrderBook',
+                    'ticker': 'watchTickers',
+                    'ohlcv': 'watchOHLCVForSymbols',
+                };
                 const callingMethod = this.safeString (pluralMethods, unifiedHash, unifiedHash);
                 [ marketType, params ] = this.handleOptionAndParams (params, callingMethod, 'type', 'spot');
                 requestObjects.push ({
@@ -136,7 +148,8 @@ export default class xcoin extends xcoinRest {
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
-         * watches information on multiple trades made in a market
+         * @method
+         * @name xcoin#watchTrades
          * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/trade-channel
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -150,7 +163,7 @@ export default class xcoin extends xcoinRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name apex#watchTradesForSymbols
+         * @name xcoin#watchTradesForSymbols
          * @description get the list of most recent trades for a list of symbols
          * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/trade-channel
          * @param {string[]} symbols unified symbol of the market to fetch trades for
@@ -258,7 +271,6 @@ export default class xcoin extends xcoinRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbol = this.symbol (symbol);
         let wsChannel: Str = undefined;
         [ wsChannel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'ticker24hr');
         return await this.publicWatch ('ticker', wsChannel, [ symbol ], params);
@@ -266,7 +278,8 @@ export default class xcoin extends xcoinRest {
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
-         * watches a price ticker, a statistical calculation with the information for all markets
+         * @method
+         * @name xcoin#watchTickers
          * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/24h-ticker-channel
          * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -496,11 +509,12 @@ export default class xcoin extends xcoinRest {
         }, market);
     }
 
-
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
-         * watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+         * @method
+         * @name xcoin#watchOHLCV
          * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/kline-channel
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -508,28 +522,73 @@ export default class xcoin extends xcoinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const url = this.urls['api']['ws']['public'];
-        const messageHash = 'kline:' + symbol + ':' + timeframe;
-        const subscribe = {
-            'event': 'subscribe',
-            'data': [
-                {
-                    'businessType': market['spot'] ? 'spot' : 'linear_perpetual',
-                    'symbol': market['id'],
-                    'stream': 'kline#' + interval,
-                },
-            ],
-        };
-        const request = this.deepExtend (subscribe, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+        params['callerMethodName'] = 'watchOHLCV';
+        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
+        return result[symbol][timeframe];
+    }
+
+    /**
+     * @method
+     * @name xcoin#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/kline-channel
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        await this.loadMarkets ();
+        const [ symbol, timeframe, candles ] = await this.publicWatch ('ohlcv', 'kline#', symbolsAndTimeframes, params);
+        if (this.newUpdates) {
+            limit = candles.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        // message
+        //
+        //     {
+        //         arg: {
+        //             channel: "candle1m",
+        //             instId: "DOGE-USDT",
+        //         },
+        //         data: [
+        //             [ same object as shown in REST example ]
+        //         ],
+        //     }
+        //
+        const arg = this.safeDict (message, 'arg');
+        const channelName = this.safeString (arg, 'channel');
+        const data = this.safeList (message, 'data');
+        const marketId = this.safeString (arg, 'instId');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const interval = channelName.replace ('candle', '');
+        const unifiedTimeframe = this.findTimeframe (interval);
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], unifiedTimeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][unifiedTimeframe] = stored;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const candle = data[i];
+            const parsed = this.parseOHLCV (candle, market);
+            stored.append (parsed);
+        }
+        const resolveData = [ symbol, unifiedTimeframe, stored ];
+        const messageHash = 'candle' + interval + ':' + symbol;
+        client.resolve (resolveData, messageHash);
     }
 
     async watchBalance (params = {}): Promise<Balances> {
