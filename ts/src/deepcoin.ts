@@ -282,7 +282,12 @@ export default class deepcoin extends Exchange {
                     },
                 },
                 'swap': {
-                    'extends': 'spot',
+                    'linear': {
+                        'extends': 'spot',
+                    },
+                    'inverse': {
+                        'extends': 'spot',
+                    },
                 },
             },
             'requiredCredentials': {
