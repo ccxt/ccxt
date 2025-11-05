@@ -1479,7 +1479,7 @@ public partial class blofin : Exchange
         parameters = ((IList<object>)methodparametersVariable)[1];
         object isStopLossPriceDefined = !isEqual(this.safeString(parameters, "stopLossPrice"), null);
         object isTakeProfitPriceDefined = !isEqual(this.safeString(parameters, "takeProfitPrice"), null);
-        object isTriggerOrder = !isEqual(this.safeString(parameters, "triggerPrice"), null);
+        object hasTriggerPrice = !isEqual(this.safeString(parameters, "triggerPrice"), null);
         object isType2Order = (isTrue(isStopLossPriceDefined) || isTrue(isTakeProfitPriceDefined));
         object response = null;
         object reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -1487,11 +1487,13 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)parameters)["reduceOnly"] = ((bool) isTrue(reduceOnly)) ? "true" : "false";
         }
-        if (isTrue(isTrue(isTrue(tpsl) || isTrue((isEqual(method, "privatePostTradeOrderTpsl")))) || isTrue(isType2Order)))
+        object isTpslOrder = isTrue(isTrue(tpsl) || isTrue((isEqual(method, "privatePostTradeOrderTpsl")))) || isTrue(isType2Order);
+        object isTriggerOrder = isTrue(hasTriggerPrice) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")));
+        if (isTrue(isTpslOrder))
         {
             object tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrderTpsl(tpslRequest);
-        } else if (isTrue(isTrue(isTriggerOrder) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")))))
+        } else if (isTrue(isTriggerOrder))
         {
             object triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrderAlgo(triggerRequest);
@@ -1500,11 +1502,10 @@ public partial class blofin : Exchange
             object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrder(request);
         }
-        if (isTrue(isTrue(isTriggerOrder) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")))))
+        if (isTrue(isTrue(isTpslOrder) || isTrue(isTriggerOrder)))
         {
             object dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            object triggerOrder = this.parseOrder(dataDict, market);
-            return triggerOrder;
+            return this.parseOrder(dataDict, market);
         }
         object data = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(data, 0);
