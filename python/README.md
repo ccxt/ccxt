@@ -220,13 +220,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.15/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.15/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.16/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.16/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.15/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.16/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -259,6 +259,21 @@ import ccxt.async_support as ccxt # link against the asynchronous version of ccx
 CCXT also supports `orjson` for parsing JSON since it is much faster than the builtin library. This is especially important when using websockets because some exchanges return big messages that need to be parsed and dispatched as quickly as possible.
 
 However, `orjson` is not enabled by default because it is not supported by every python interpreter. If you want to opt-in, you just need to install it (`pip install orjson`) on your local environment. CCXT will detect the installion and pick it up automatically.
+
+#### ECDSA Support
+
+Some exchanges, such as Hyperliquid, Binance, and Paradex use **ECDSA** for request signing.
+By default, CCXT includes a pure Python ECDSA implementation that ensures compatibility across all environments. However, this implementation may not meet the performance requirements of latency-sensitive applications.
+
+To address this, CCXT also supports the Coincurve library, which dramatically reduces signing time from approximately 45 ms to under 0.05 ms.
+
+For optimal performance, we recommend installing Coincurve via:
+
+```
+pip install coincurve
+```
+
+Once installed, CCXT will automatically detect and use it.
 
 ### PHP
 

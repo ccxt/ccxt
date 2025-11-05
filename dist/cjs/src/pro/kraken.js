@@ -7,7 +7,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class kraken extends kraken$1["default"] {
     describe() {

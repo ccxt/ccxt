@@ -2242,11 +2242,11 @@ public partial class delta : Exchange
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["client_oid"] = clientOrderId;
-            response = await ((Task<object>)callDynamically(this, "privateGetOrdersClientOrderIdClientOid", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetOrdersClientOrderIdClientOid(this.extend(request, parameters));
         } else
         {
             ((IDictionary<string,object>)request)["order_id"] = id;
-            response = await ((Task<object>)callDynamically(this, "privateGetOrdersOrderId", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetOrdersOrderId(this.extend(request, parameters));
         }
         //
         //     {

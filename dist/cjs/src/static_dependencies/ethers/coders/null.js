@@ -4,7 +4,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var abstractCoder = require('./abstract-coder.js');
 
-// ----------------------------------------------------------------------------
 const Empty = new Uint8Array([]);
 /**
  *  @_ignore
