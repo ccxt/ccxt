@@ -266,6 +266,7 @@ public partial class okx
     /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history"/>  <br/>
     /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks"/>  <br/>
     /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -295,6 +296,12 @@ public partial class okx
     /// <term>params.until</term>
     /// <description>
     /// int : timestamp in ms of the latest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
     /// </description>
     /// </item>
     /// <item>
@@ -704,7 +711,7 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();

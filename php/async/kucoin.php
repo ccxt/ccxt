@@ -131,6 +131,7 @@ class kucoin extends Exchange {
                     'webExchange' => 'https://kucoin.com/_api',
                     'broker' => 'https://api-broker.kucoin.com',
                     'earn' => 'https://api.kucoin.com',
+                    'uta' => 'https://api.kucoin.com',
                 ),
                 'www' => 'https://www.kucoin.com',
                 'doc' => array(
@@ -171,6 +172,7 @@ class kucoin extends Exchange {
                         'mark-price/all-symbols' => 3,
                         'margin/config' => 25, // 25SW
                         'announcements' => 20, // 20W
+                        'margin/collateralRatio' => 10,
                     ),
                     'post' => array(
                         // ws
@@ -252,6 +254,9 @@ class kucoin extends Exchange {
                         'purchase/orders' => 10, // 10SW
                         // broker
                         'broker/api/rebase/download' => 3,
+                        'broker/queryMyCommission' => 3,
+                        'broker/queryUser' => 3,
+                        'broker/queryDetailByUid' => 3,
                         'migrate/user/account/status' => 3,
                         // affiliate
                         'affiliate/inviter/statistics' => 30,
@@ -374,6 +379,8 @@ class kucoin extends Exchange {
                         'margin/maxWithdrawMargin' => 15, // 10FW
                         'contracts/risk-limit/{symbol}' => 7.5, // 5FW
                         'funding-history' => 7.5, // 5FW
+                        'copy-trade/futures/get-max-open-size' => 6, // 4FW
+                        'copy-trade/futures/position/margin/max-withdraw-margin' => 15, // 10FW
                     ),
                     'post' => array(
                         // funding
@@ -387,6 +394,17 @@ class kucoin extends Exchange {
                         'margin/withdrawMargin' => 15, // 10FW
                         'position/margin/deposit-margin' => 6, // 4FW
                         'position/risk-limit-level/change' => 6, // 4FW
+                        'copy-trade/futures/orders' => 3, // 2FW
+                        'copy-trade/futures/orders/test' => 3, // 2FW
+                        'copy-trade/futures/st-orders' => 3, // 2FW
+                        'copy-trade/futures/position/margin/deposit-margin' => 6, // 4FW
+                        'copy-trade/futures/position/margin/withdraw-margin' => 15, // 10FW
+                        'copy-trade/futures/position/risk-limit-level/change' => 3, // 2FW
+                        'copy-trade/futures/position/margin/auto-deposit-status' => 6, // 4FW
+                        'copy-trade/futures/position/changeMarginMode' => 3, // 2FW
+                        'copy-trade/futures/position/changeCrossUserLeverage' => 3, // 2FW
+                        'copy-trade/getCrossModeMarginRequirement' => 4.5, // 3FW
+                        'copy-trade/position/switchPositionMode' => 3, // 2FW
                         // ws
                         'bullet-private' => 15, // 10FW
                     ),
@@ -395,6 +413,8 @@ class kucoin extends Exchange {
                         'orders/client-order/{clientOid}' => 1.5, // 1FW
                         'orders' => 45, // 30FW
                         'stopOrders' => 22.5, // 15FW
+                        'copy-trade/futures/orders' => 1.5, // 1FW
+                        'copy-trade/futures/orders/client-order' => 1.5, // 1FW
                     ),
                 ),
                 'webExchange' => array(
@@ -442,6 +462,21 @@ class kucoin extends Exchange {
                         'earn/orders' => 7.5, // 5EW
                     ),
                 ),
+                'uta' => array(
+                    'get' => array(
+                        'market/announcement' => 20,
+                        'market/currency' => 3,
+                        'market/instrument' => 4,
+                        'market/ticker' => 15,
+                        'market/orderbook' => 3,
+                        'market/trade' => 3,
+                        'market/kline' => 3,
+                        'market/funding-rate' => 2,
+                        'market/funding-rate-history' => 5,
+                        'market/cross-config' => 25,
+                        'market/server/status' => 3,
+                    ),
+                ),
             ),
             'timeframes' => array(
                 '1m' => '1min',
@@ -468,6 +503,7 @@ class kucoin extends Exchange {
                     'order_not_exist' => '\\ccxt\\OrderNotFound', // array("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
                     'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"order_not_exist_or_not_allow_to_cancel")
                     'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"Order size below the minimum requirement.")
+                    'Order size increment invalid.' => '\\ccxt\\InvalidOrder', // array("msg":"Order size increment invalid.","code":"600100")
                     'The withdrawal amount is below the minimum requirement.' => '\\ccxt\\ExchangeError', // array("code":"400100","msg":"The withdrawal amount is below the minimum requirement.")
                     'Unsuccessful! Exceeded the max. funds out-transfer limit' => '\\ccxt\\InsufficientFunds', // array("code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit")
                     'The amount increment is invalid.' => '\\ccxt\\BadRequest',
@@ -1409,7 +1445,6 @@ class kucoin extends Exchange {
             //
             $currenciesData = $this->safe_list($response, 'data', array());
             $brokenCurrencies = $this->safe_list($this->options, 'brokenCurrencies', array( '00', 'OPEN_ERROR', 'HUF', 'BDT' ));
-            $otherFiats = $this->safe_list($this->options, 'fiats', array( 'KWD', 'IRR', 'PKR' ));
             $result = array();
             for ($i = 0; $i < count($currenciesData); $i++) {
                 $entry = $currenciesData[$i];
@@ -1450,7 +1485,7 @@ class kucoin extends Exchange {
                 // kucoin has determined 'fiat' currencies with below logic
                 $rawPrecision = $this->safe_string($entry, 'precision');
                 $precision = $this->parse_number($this->parse_precision($rawPrecision));
-                $isFiat = $this->in_array($id, $otherFiats) || (($rawPrecision === '2') && ($chainsLength === 0));
+                $isFiat = $chainsLength === 0;
                 $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'name' => $this->safe_string($entry, 'fullName'),
@@ -1639,7 +1674,7 @@ class kucoin extends Exchange {
                 $networkCodeNew = $this->network_id_to_code($this->safe_string($chain, 'chainId'), $this->safe_string($currency, 'code'));
                 $resultNew['networks'][$networkCodeNew] = array(
                     'withdraw' => array(
-                        'fee' => $this->safe_number($chain, 'withdrawMinFee'),
+                        'fee' => $this->safe_number_2($chain, 'withdrawalMinFee', 'withdrawMinFee'),
                         'percentage' => false,
                     ),
                     'deposit' => array(
@@ -1954,7 +1989,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -5178,6 +5213,9 @@ class kucoin extends Exchange {
         }
         if ($api === 'earn') {
             $endpoint = '/api/v1/' . $this->implode_params($path, $params);
+        }
+        if ($api === 'uta') {
+            $endpoint = '/api/ua/v1/' . $this->implode_params($path, $params);
         }
         $query = $this->omit($params, $this->extract_params($path));
         $endpart = '';

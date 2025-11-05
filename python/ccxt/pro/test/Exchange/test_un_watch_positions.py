@@ -19,7 +19,7 @@ async def create_order_after_delay(exchange):
     await exchange.create_order('BTC/USDT:USDT', 'market', 'buy', 0.001)
 
 
-async def test_unwatch_positions(exchange, skipped_properties, symbol):
+async def test_un_watch_positions(exchange, skipped_properties, symbol):
     method = 'unWatchPositions'
     exchange.set_sandbox_mode(True)
     # First, we need to subscribe to positions to test the unsubscribe functionality
@@ -35,7 +35,7 @@ async def test_unwatch_positions(exchange, skipped_properties, symbol):
         if not test_shared_methods.is_temporary_failure(e):
             raise e
         # If we can't subscribe, we can't test unsubscribe, so skip this test
-        return
+        return False
     # Verify that we have a subscription
     assert isinstance(positions_subscription, list), exchange.id + ' ' + method + ' requires a valid positions subscription to test unsubscribe'
     # Assert unWatchPositions for one symbol is not supported
@@ -67,3 +67,4 @@ async def test_unwatch_positions(exchange, skipped_properties, symbol):
         raise Error(exchange.id + ' ' + method + ' failed to resubscribe after unwatch, indicating potential cleanup issues')
     # Verify resubscription works
     assert isinstance(resubscribe_response, list), exchange.id + ' ' + method + ' must allow resubscription after unwatch, returned ' + exchange.json(resubscribe_response)
+    return True

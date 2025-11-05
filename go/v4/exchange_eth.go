@@ -40,17 +40,24 @@ type TimeInForce struct {
 	TIF string `mapstructure:"tif" msgpack:"tif"`
 }
 
-type Limit struct {
-	TimeInForce TimeInForce `mapstructure:"limit" msgpack:"limit"`
+type TriggerSpec struct {
+	IsMarket  bool   `mapstructure:"isMarket" msgpack:"isMarket"`
+	TriggerPx string `mapstructure:"triggerPx" msgpack:"triggerPx"`
+	TPSL      string `mapstructure:"tpsl" msgpack:"tpsl"`
+}
+
+type OrderKind struct {
+	Limit   *TimeInForce `mapstructure:"limit" msgpack:"limit,omitempty"`
+	Trigger *TriggerSpec `mapstructure:"trigger" msgpack:"trigger,omitempty"`
 }
 
 type OrderHyperliquid struct {
-	A int    `mapstructure:"a" msgpack:"a"`
-	B bool   `mapstructure:"b" msgpack:"b"`
-	P string `mapstructure:"p" msgpack:"p"`
-	S string `mapstructure:"s" msgpack:"s"`
-	R bool   `mapstructure:"r" msgpack:"r"`
-	T Limit  `mapstructure:"t" msgpack:"t"`
+	A int       `mapstructure:"a" msgpack:"a"`
+	B bool      `mapstructure:"b" msgpack:"b"`
+	P string    `mapstructure:"p" msgpack:"p"`
+	S string    `mapstructure:"s" msgpack:"s"`
+	R bool      `mapstructure:"r" msgpack:"r"`
+	T OrderKind `mapstructure:"t" msgpack:"t"`
 }
 
 type OrderMessage struct {
@@ -80,6 +87,12 @@ type TransferMessage struct {
 	Amount           string `mapstructure:"amount" msgpack:"amount"`
 	ToPerp           bool   `mapstructure:"toPerp" msgpack:"toPerp"`
 	Nonce            int64  `mapstructure:"nonce" msgpack:"nonce"`
+}
+type SubAccountTransferMessage struct {
+	Type           string `mapstructure:"type" msgpack:"type"`
+	SubAccountUser string `mapstructure:"subAccountUser" msgpack:"subAccountUser"`
+	IsDeposit      bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Usd            int    `mapstructure:"usd" msgpack:"usd"`
 }
 
 // withdraw
@@ -396,6 +409,19 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 
 		packed, err := msgpack.Marshal(editMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "subAccountTransfer":
+		var subAccountTransferMsg SubAccountTransferMessage
+
+		err := mapstructure.Decode(converted, &subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(subAccountTransferMsg)
 		if err != nil {
 			panic(err)
 		}

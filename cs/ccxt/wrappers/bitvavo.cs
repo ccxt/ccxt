@@ -338,7 +338,7 @@ public partial class bitvavo
     /// <item>
     /// <term>params.selfTradePrevention</term>
     /// <description>
-    /// string : "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+    /// string : one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
     /// </description>
     /// </item>
     /// <item>

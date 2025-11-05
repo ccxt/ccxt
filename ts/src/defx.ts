@@ -851,7 +851,7 @@ export default class defx extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const maxLimit = 1000;
@@ -1183,7 +1183,8 @@ export default class defx extends Exchange {
         //
         const markPrice = this.safeNumber (contract, 'markPrice');
         const indexPrice = this.safeNumber (contract, 'indexPrice');
-        const fundingRate = this.safeNumber (contract, 'payoutFundingRate');
+        const fundingRateRaw = this.safeString (contract, 'payoutFundingRate');
+        const fundingRate = Precise.stringDiv (fundingRateRaw, '100');
         const fundingTime = this.safeInteger (contract, 'nextFundingPayout');
         return {
             'info': contract,
@@ -1194,7 +1195,7 @@ export default class defx extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': fundingRate,
+            'fundingRate': this.parseNumber (fundingRate),
             'fundingTimestamp': fundingTime,
             'fundingDatetime': this.iso8601 (fundingTime),
             'nextFundingRate': undefined,

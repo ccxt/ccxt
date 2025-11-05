@@ -8,7 +8,7 @@
 import onetradingRest from '../onetrading.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import Precise from '../base/Precise.js';
+import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class onetrading extends onetradingRest {
     describe() {
@@ -1328,7 +1328,7 @@ export default class onetrading extends onetradingRest {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future('authenticated');
+        const future = client.reusableFuture('authenticated');
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials();

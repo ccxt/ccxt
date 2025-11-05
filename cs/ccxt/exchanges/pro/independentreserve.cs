@@ -246,6 +246,7 @@ public partial class independentreserve : ccxt.independentreserve
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 ((WebSocketClient)client).reject(error, messageHash);
+                return;
             }
         }
         if (isTrue(receivedSnapshot))

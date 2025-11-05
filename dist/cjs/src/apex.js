@@ -35,6 +35,7 @@ class apex extends apex$1["default"] {
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
@@ -53,10 +54,14 @@ class apex extends apex$1["default"] {
                 'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrders': false,
@@ -72,6 +77,7 @@ class apex extends apex$1["default"] {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -90,6 +96,8 @@ class apex extends apex$1["default"] {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -107,6 +115,7 @@ class apex extends apex$1["default"] {
                 'fetchTradingFees': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
@@ -805,9 +814,9 @@ class apex extends apex$1["default"] {
             limit = 200; // default is 200 when requested with `since`
         }
         request['limit'] = limit; // max 200, default 200
-        [request, params] = this.handleUntilOption('end', request, params);
+        [request, params] = this.handleUntilOption('end', request, params, 0.001);
         if (since !== undefined) {
-            request['start'] = since;
+            request['start'] = Math.floor(since / 1000);
         }
         const response = await this.publicGetV3Klines(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
