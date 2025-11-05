@@ -2943,6 +2943,7 @@ export default class deepcoin extends Exchange {
                 'DC-ACCESS-KEY': this.apiKey,
                 'DC-ACCESS-TIMESTAMP': dateTime,
                 'DC-ACCESS-PASSPHRASE': this.password,
+                'appid': '200103',
             };
             if (method !== 'GET') {
                 body = this.json (params);
