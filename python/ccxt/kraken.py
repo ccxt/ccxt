@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -62,6 +62,7 @@ class kraken(Exchange, ImplicitAPI):
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createOrders': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -489,7 +490,11 @@ class kraken(Exchange, ImplicitAPI):
                         'selfTradePrevention': True,  # todo implement
                         'iceberg': True,  # todo implement
                     },
-                    'createOrders': None,
+                    'createOrders': {
+                        'min': 2,
+                        'max': 15,
+                        'sameSymbolOnly': True,
+                    },
                     'fetchMyTrades': {
                         'marginMode': False,
                         'limit': None,
@@ -1647,6 +1652,75 @@ class kraken(Exchange, ImplicitAPI):
         # becuase kraken only returns something like self: {order: 'buy 10.00000000 LTCUSD @ market'}
         # self usingCost flag is used to help the parsing but omited from the order
         return self.parse_order(result)
+
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+
+        https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        orderSymbols = []
+        symbol = None
+        market = None
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            if symbol is None:
+                symbol = marketId
+            else:
+                if symbol != marketId:
+                    raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
+            market = self.market(marketId)
+            orderSymbols.append(marketId)
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            req: dict = {
+                'type': side,
+                'ordertype': type,
+                'volume': self.amount_to_precision(market['symbol'], amount),
+            }
+            orderRequest = self.order_request('createOrders', marketId, type, req, amount, price, orderParams)
+            ordersRequests.append(orderRequest[0])
+        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
+        response = None
+        request: dict = {
+            'orders': ordersRequests,
+            'pair': market['id'],
+        }
+        request = self.extend(request, params)
+        response = self.privatePostAddOrderBatch(request)
+        #
+        #         {
+        #    "error":[
+        #    ],
+        #    "result":{
+        #       "orders":[
+        #          {
+        #             "txid":"OEPPJX-34RMM-OROGZE",
+        #             "descr":{
+        #                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+        #             }
+        #          },
+        #          {
+        #             "txid":"OLQY7O-OYBXW-W23PGL",
+        #             "descr":{
+        #                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+        #             }
+        #          }
+        #       ]
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_orders(self.safe_list(result, 'orders'))
 
     def find_market_by_altname_or_id(self, id):
         marketsByAltname = self.safe_value(self.options, 'marketsByAltname', {})
@@ -3308,10 +3382,11 @@ class kraken(Exchange, ImplicitAPI):
             if price is not None:
                 isTriggerPercent = True if (price.endswith('%')) else False
             isCancelOrderBatch = (path == 'CancelOrderBatch')
+            isBatchOrder = (path == 'AddOrderBatch')
             self.check_required_credentials()
             nonce = str(self.nonce())
             # urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if isCancelOrderBatch or isTriggerPercent:
+            if isCancelOrderBatch or isTriggerPercent or isBatchOrder:
                 body = self.json(self.extend({'nonce': nonce}, params))
             else:
                 body = self.urlencode_nested(self.extend({'nonce': nonce}, params))
@@ -3325,7 +3400,7 @@ class kraken(Exchange, ImplicitAPI):
                 'API-Key': self.apiKey,
                 'API-Sign': signature,
             }
-            if isCancelOrderBatch or isTriggerPercent:
+            if isCancelOrderBatch or isTriggerPercent or isBatchOrder:
                 headers['Content-Type'] = 'application/json'
             else:
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
@@ -3344,13 +3419,25 @@ class kraken(Exchange, ImplicitAPI):
             return None
         if body[0] == '{':
             if not isinstance(response, str):
+                message = self.id + ' ' + body
                 if 'error' in response:
                     numErrors = len(response['error'])
                     if numErrors:
-                        message = self.id + ' ' + body
                         for i in range(0, len(response['error'])):
                             error = response['error'][i]
                             self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)
                             self.throw_broadly_matched_exception(self.exceptions['broad'], error, message)
                         raise ExchangeError(message)
+                # handleCreateOrdersErrors:
+                if 'result' in response:
+                    result = self.safe_dict(response, 'result', {})
+                    if 'orders' in result:
+                        orders = self.safe_list(result, 'orders', [])
+                        for i in range(0, len(orders)):
+                            order = orders[i]
+                            error = self.safe_string(order, 'error')
+                            if error is not None:
+                                self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)
+                                self.throw_broadly_matched_exception(self.exceptions['broad'], error, message)
+                                raise ExchangeError(message)
         return None
