@@ -80,7 +80,6 @@ export default class xcoin extends xcoinRest {
             'swap': 'linear_perpetual',
             'future': 'linear_futures',
         };
-        let messageHash = unifiedHash;
         const requestObjects = [];
         const isOHLCV = (unifiedHash === 'ohlcv');
         let symbols = symbolsArray;
@@ -91,6 +90,12 @@ export default class xcoin extends xcoinRest {
         const symbolsLength = (symbols === undefined) ? undefined : symbols.length;
         if (symbolsLength === 1) {
             const market = this.market (symbols[0]);
+            let messageHash = unifiedHash + '::' + market['symbol'];
+            if (isOHLCV) {
+                const timeframe = symbolsArray[0][1];
+                exchangeChannel = exchangeChannel + this.safeString (this.timeframes, timeframe, timeframe);
+                messageHash = messageHash + '::' + timeframe;
+            }
             const subscribe = {
                 'event': 'subscribe',
                 'data': [
@@ -102,7 +107,6 @@ export default class xcoin extends xcoinRest {
                 ],
             };
             const request = this.deepExtend (subscribe, params);
-            messageHash = messageHash + '::' + market['symbol'];
             return await this.watch (url, messageHash, request, messageHash);
         } else {
             const messageHashes = [];
@@ -110,17 +114,18 @@ export default class xcoin extends xcoinRest {
                 for (let i = 0; i < symbolsLength; i++) {
                     const market = !isOHLCV ? this.market (symbols[i]) : this.market (symbols[i][0]);
                     let selectedChannel = exchangeChannel;
+                    let messageHash = unifiedHash + '::' + market['symbol'];
                     if (isOHLCV) {
                         const timeframe = symbolsArray[i][1];
-                        const interval = this.safeString (this.timeframes, timeframe, timeframe);
-                        selectedChannel = selectedChannel + interval;
+                        selectedChannel = selectedChannel + this.safeString (this.timeframes, timeframe, timeframe);
+                        messageHash = messageHash + '::' + timeframe;
                     }
                     requestObjects.push ({
                         'symbol': market['id'],
                         'stream': selectedChannel,
                         'businessType': this.safeString (channelMap, market['type']),
                     });
-                    messageHashes.push (unifiedHash + '::' + market['symbol']);
+                    messageHashes.push (messageHash);
                 }
             } else {
                 let marketType: Str = undefined;
@@ -135,7 +140,7 @@ export default class xcoin extends xcoinRest {
                     'stream': exchangeChannel,
                     'businessType': this.safeString (channelMap, marketType),
                 });
-                messageHashes.push (messageHash + 's');
+                messageHashes.push (unifiedHash + 's');
             }
             const subscribe = {
                 'event': 'subscribe',
@@ -554,41 +559,69 @@ export default class xcoin extends xcoinRest {
 
     handleOHLCV (client: Client, message) {
         //
-        // message
+        //    {
+        //        "businessType": "linear_perpetual",
+        //        "symbol": "BTC-USDT-PERP",
+        //        "stream": "kline#1m",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC-USDT-PERP",
+        //                "period": "1m",
+        //                "openTime": "1762373100000",
+        //                "closeTime": "1762373135747",
+        //                "openPrice": "104014.2",
+        //                "closePrice": "104107.7",
+        //                "highPrice": "104134.7",
+        //                "lowPrice": "104014.2",
+        //                "volume": "38.5526",
+        //                "quoteVolume": "4012736.31871",
+        //                "count": "163",
+        //                "priceChange": "93.5",
+        //                "priceChangePercent": "0.000898915724968322"
+        //            }
+        //        ],
+        //        "ts": 1762373135750
+        //    }
         //
-        //     {
-        //         arg: {
-        //             channel: "candle1m",
-        //             instId: "DOGE-USDT",
-        //         },
-        //         data: [
-        //             [ same object as shown in REST example ]
-        //         ],
-        //     }
-        //
-        const arg = this.safeDict (message, 'arg');
-        const channelName = this.safeString (arg, 'channel');
+        const stream = this.safeString (message, 'stream');
         const data = this.safeList (message, 'data');
-        const marketId = this.safeString (arg, 'instId');
+        const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const interval = channelName.replace ('candle', '');
+        const interval = stream.replace ('kline#', '');
         const unifiedTimeframe = this.findTimeframe (interval);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], unifiedTimeframe);
-        if (stored === undefined) {
+        if (!(unifiedTimeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][unifiedTimeframe] = stored;
+            this.ohlcvs[symbol][unifiedTimeframe] = new ArrayCacheByTimestamp (limit);
         }
+        const stored = this.ohlcvs[symbol][unifiedTimeframe];
         for (let i = 0; i < data.length; i++) {
             const candle = data[i];
             const parsed = this.parseOHLCV (candle, market);
-            stored.append (parsed);
+            const length = stored.length;
+            if (length && parsed[0] === stored[length - 1][0]) {
+                // Update the last candle
+                stored[length - 1] = parsed;
+            } else {
+                // Append new candle
+                stored.append (parsed);
+            }
         }
         const resolveData = [ symbol, unifiedTimeframe, stored ];
-        const messageHash = 'candle' + interval + ':' + symbol;
+        const messageHash = 'ohlcv' + '::' + symbol + '::' + unifiedTimeframe;
         client.resolve (resolveData, messageHash);
+    }
+
+    parseOHLCV (ohlcv: any, market: any = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 'openTime'),
+            this.safeNumber (ohlcv, 'openPrice'),
+            this.safeNumber (ohlcv, 'highPrice'),
+            this.safeNumber (ohlcv, 'lowPrice'),
+            this.safeNumber (ohlcv, 'closePrice'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -782,92 +815,6 @@ export default class xcoin extends xcoinRest {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
-    }
-
-    handleOHLCV (client: Client, message: any) {
-        //
-        // {
-        //     "businessType": "spot",
-        //     "symbol": "BTC-USDT",
-        //     "stream": "kline#1m",
-        //     "data": [{
-        //         "symbol": "BTC-USDT",
-        //         "period": "1m",
-        //         "openTime": "1747290000000",
-        //         "closeTime": "1747290052647",
-        //         "openPrice": "102510.8",
-        //         "closePrice": "102476",
-        //         "highPrice": "102510.8",
-        //         "lowPrice": "102476",
-        //         "volume": "246.521",
-        //         "quoteVolume": "25267402.2798",
-        //         "count": "46"
-        //     }],
-        //     "ts": "1732256095953"
-        // }
-        //
-        const marketId = this.safeString (message, 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const data = this.safeValue (message, 'data', []);
-        
-        if (data.length > 0) {
-            const kline = data[0];
-            const period = this.safeString (kline, 'period');
-            const timeframe = this.findTimeframe (period);
-            const parsed = this.parseOHLCV (kline, market);
-            const messageHash = 'kline:' + symbol + ':' + timeframe;
-            
-            let stored = this.safeValue (this.ohlcvs, symbol);
-            if (stored === undefined) {
-                stored = {};
-                this.ohlcvs[symbol] = stored;
-            }
-            
-            let storedArray = this.safeValue (stored, timeframe);
-            if (storedArray === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                storedArray = new ArrayCacheByTimestamp (limit);
-                stored[timeframe] = storedArray;
-            }
-            
-            const length = storedArray.length;
-            if (length && parsed[0] === storedArray.array[length - 1][0]) {
-                // Update the last candle
-                storedArray.array[length - 1] = parsed;
-            } else {
-                // Append new candle
-                storedArray.append (parsed);
-            }
-            
-            client.resolve (storedArray, messageHash);
-        }
-    }
-
-    parseOHLCV (ohlcv: any, market: any = undefined): OHLCV {
-        //
-        // {
-        //     "symbol": "BTC-USDT",
-        //     "period": "1m",
-        //     "openTime": "1747290000000",
-        //     "closeTime": "1747290052647",
-        //     "openPrice": "102510.8",
-        //     "closePrice": "102476",
-        //     "highPrice": "102510.8",
-        //     "lowPrice": "102476",
-        //     "volume": "246.521",
-        //     "quoteVolume": "25267402.2798",
-        //     "count": "46"
-        // }
-        //
-        return [
-            this.safeInteger (ohlcv, 'openTime'),
-            this.safeNumber (ohlcv, 'openPrice'),
-            this.safeNumber (ohlcv, 'highPrice'),
-            this.safeNumber (ohlcv, 'lowPrice'),
-            this.safeNumber (ohlcv, 'closePrice'),
-            this.safeNumber (ohlcv, 'volume'),
-        ];
     }
 
     handleBalance (client: Client, message: any) {
@@ -1190,19 +1137,28 @@ export default class xcoin extends xcoinRest {
             'position': this.handlePosition,
             'order': this.handleOrder,
             'trading_account': this.handleBalance,
-            'kline': this.handleOHLCV,
             'depth': this.handleOrderBook,
             'orderBook': this.handleBidsAsks, // best bid-asks
             'ticker24hr': this.handleTicker,
             'miniTicker': this.handleTicker,
             'trade': this.handleTrade,
         };
+        const methodMatches = {
+            'kline#': this.handleOHLCV,
+            'depthlevels#': this.handleOrderBook,
+        };
         const method = this.safeValue (methods, stream);
         if (method !== undefined) {
             method.call (this, client, message);
         } else {
-            if (stream.indexOf ('depthlevels#') >= 0) {
-                this.handleOrderBookPartialSnapshot (client, message);
+            const keys = Object.keys (methodMatches);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                if (stream.indexOf (key) >= 0) {
+                    const methodRegex = methodMatches[key];
+                    methodRegex.call (this, client, message);
+                    return;
+                }
             }
         }
     }
@@ -1274,9 +1230,7 @@ export default class xcoin extends xcoinRest {
         //
         // Send ping message to keep connection alive
         //
-        return {
-            'event': 'ping',
-        };
+        return 'ping';
     }
 
     async authenticate (params = {}) {
