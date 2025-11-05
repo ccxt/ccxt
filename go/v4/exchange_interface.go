@@ -323,6 +323,7 @@ type IDerivedExchange interface {
 	ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}
 	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}
 	ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	ParseTrades(trades interface{}, optionalArgs ...interface{}) interface{}
 	ParseGreeks(greeks interface{}, optionalArgs ...interface{}) interface{}
 	ParseMarket(market interface{}) interface{}
 	ParseCurrency(rawCurrency interface{}) interface{}
@@ -333,6 +334,7 @@ type IDerivedExchange interface {
 	ParseLastPrice(item interface{}, optionalArgs ...interface{}) interface{}
 	ParseOrder(order interface{}, optionalArgs ...interface{}) interface{}
 	ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{}
+	ParseTickers(tickers interface{}, optionalArgs ...interface{}) interface{}
 	ParseOrderBook(orderbook interface{}, symbol interface{}, optionalArgs ...interface{}) interface{}
 	ParsePosition(position interface{}, optionalArgs ...interface{}) interface{}
 	SafeMarketStructure(optionalArgs ...interface{}) interface{}
