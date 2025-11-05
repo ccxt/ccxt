@@ -91,14 +91,15 @@ export default class xcoin extends xcoinRest {
         const symbolsLength = (symbols === undefined) ? undefined : symbols.length;
         if (symbolsLength === 1) {
             const market = this.market (symbols[0]);
-            requestObjects.push ({
-                'symbol': market['id'],
-                'stream': exchangeChannel,
-                'businessType': this.safeString (channelMap, market['type']),
-            });
             const subscribe = {
                 'event': 'subscribe',
-                'data': requestObjects,
+                'data': [
+                    {
+                        'symbol': market['id'],
+                        'stream': exchangeChannel,
+                        'businessType': this.safeString (channelMap, market['type']),
+                    },
+                ],
             };
             const request = this.deepExtend (subscribe, params);
             messageHash = messageHash + '::' + market['symbol'];
@@ -134,8 +135,7 @@ export default class xcoin extends xcoinRest {
                     'stream': exchangeChannel,
                     'businessType': this.safeString (channelMap, marketType),
                 });
-                messageHash = messageHash + 's';
-                messageHashes.push (messageHash);
+                messageHashes.push (messageHash + 's');
             }
             const subscribe = {
                 'event': 'subscribe',
