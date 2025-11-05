@@ -303,7 +303,7 @@
                   null,
                   {
                     "stopLossPrice": 3999,
-                    "tpslMode": "full"
+                    "tpslMode": "Full"
                   }
                 ],
                 "output": "{\"symbol\":\"ETHUSDT\",\"stopLoss\":\"3999\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
@@ -320,7 +320,7 @@
                   null,
                   {
                     "takeProfitPrice": 4000,
-                    "tpslMode": "full"
+                    "tpslMode": "Full"
                   }
                 ],
                 "output": "{\"symbol\":\"ETHUSDT\",\"takeProfit\":\"4000\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
@@ -337,7 +337,7 @@
                   null,
                   {
                     "stopLossPrice": 3.9,
-                    "tpslMode": "partial"
+                    "tpslMode": "Partial"
                   }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"stopLoss\":\"3.9\",\"tpslMode\":\"Partial\",\"slSize\":\"1\",\"category\":\"linear\"}"
@@ -354,7 +354,7 @@
                   null,
                   {
                     "takeProfitPrice": 2.2,
-                    "tpslMode": "partial"
+                    "tpslMode": "Partial"
                   }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"takeProfit\":\"2.2\",\"tpslMode\":\"Partial\",\"tpSize\":\"1\",\"category\":\"linear\"}"

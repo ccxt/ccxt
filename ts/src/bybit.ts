@@ -3939,7 +3939,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
      * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
      * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
-     * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+     * @param {string} [params.tpslMode] *contract only* 'Full' or 'Partial'
      * @param {string} [params.mmp] *option only* market maker protection
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -4061,13 +4061,13 @@ export default class bybit extends Exchange {
                 throw new InvalidOrder (this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-                const tpslMode = this.safeString (params, 'tpslMode') || 'partial';
-                const isFullTpsl = tpslMode === 'full';
-                const isPartialTpsl = tpslMode === 'partial';
+                const tpslMode = this.safeString (params, 'tpslMode', 'Partial');
+                const isFullTpsl = tpslMode === 'Full';
+                const isPartialTpsl = tpslMode === 'Partial';
                 if (isLimit && isFullTpsl) {
                     throw new InvalidOrder (this.id + ' tpsl orders with "full" tpslMode only support "market" type');
                 }
-                request['tpslMode'] = this.capitalize (tpslMode);
+                request['tpslMode'] = tpslMode;
                 if (isStopLossTriggerOrder) {
                     request['stopLoss'] = this.getPrice (symbol, stopLossTriggerPrice);
                     if (isPartialTpsl) {
