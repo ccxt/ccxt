@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinone.js';
-import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
+import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
@@ -305,6 +305,9 @@ export default class coinone extends Exchange {
             },
             'commonCurrencies': {
                 'SOC': 'Soda Coin',
+            },
+            'options': {
+                'createMarketBuyOrderRequiresPrice': true,
             },
         });
     }
@@ -885,29 +888,79 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#createOrder
      * @description create a trade order
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+     * @see https://docs.coinone.co.kr/reference/place-order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type must be 'limit'
+     * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+     * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+     * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        type = type.toUpperCase ();
+        const isMarket = type === 'MARKET';
         const request: Dict = {
-            'price': price,
-            'currency': market['id'],
-            'qty': amount,
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
+            'side': side.toUpperCase (),
         };
-        const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
-        const response = await this[method] (this.extend (request, params));
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
+        request['post_only'] = postOnly;
+        const triggerPrice = this.safeValueN (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'postOnly' ]);
+        if (triggerPrice !== undefined) {
+            request['type'] = 'STOP_LIMIT';
+            request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['qty'] = this.amountToPrecision (symbol, amount);
+        } else {
+            request['type'] = type;
+            if (!isMarket) {
+                request['price'] = this.priceToPrecision (symbol, price);
+                request['qty'] = this.amountToPrecision (symbol, amount);
+            } else {
+                if (side === 'buy') {
+                    const cost = this.safeString (params, 'cost');
+                    params = this.omit (params, 'cost');
+                    let createMarketBuyOrderRequiresPrice = true;
+                    [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    if (cost !== undefined) {
+                        request['amount'] = this.costToPrecision (symbol, cost);
+                    } else if (createMarketBuyOrderRequiresPrice) {
+                        if (price === undefined) {
+                            throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                        } else {
+                            const amountString = this.numberToString (amount);
+                            const priceString = this.numberToString (price);
+                            const quoteAmount = Precise.stringMul (amountString, priceString);
+                            request['amount'] = this.costToPrecision (symbol, quoteAmount);
+                        }
+                    } else {
+                        request['amount'] = this.costToPrecision (symbol, amount);
+                    }
+                } else {
+                    request['qty'] = this.amountToPrecision (symbol, amount);
+                }
+            }
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+        if (clientOrderId !== undefined) {
+            request['user_order_id'] = clientOrderId;
+        }
+        const response = await this.v2_1PrivatePostOrder (this.extend (request, params));
         //
         //     {
         //         "result": "success",
