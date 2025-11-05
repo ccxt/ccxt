@@ -50,7 +50,10 @@ export default class xcoin extends xcoinRest {
                     'interval': '100ms', // 100ms or 1000ms
                 },
                 'watchTicker': {
-                    'name': 'ticker24hr', // ticker24hr or miniTicker
+                    'channel': 'ticker24hr', // ticker24hr or miniTicker
+                },
+                'watchTickers': {
+                    'channel': 'ticker24hr', // ticker24hr or miniTicker
                 },
             },
             'streaming': {
@@ -70,6 +73,23 @@ export default class xcoin extends xcoinRest {
         });
     }
 
+    async publicWatch (unifiedChannel: string, exchangeChannel: string, market: Market, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const messageHash = unifiedChannel + ':' + market['symbol'];
+        const subscribe = {
+            'event': 'subscribe',
+            'data': [
+                {
+                    'businessType': market['spot'] ? 'spot' : 'linear_perpetual',
+                    'symbol': market['id'],
+                    'stream': exchangeChannel,
+                },
+            ],
+        };
+        const request = this.deepExtend (subscribe, params);
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * watches information on multiple trades made in a market
@@ -83,26 +103,12 @@ export default class xcoin extends xcoinRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.urls['api']['ws']['public'];
-        const messageHash = 'trade:' + symbol;
-        const subscribe = {
-            'event': 'subscribe',
-            'data': [
-                {
-                    'businessType': market['spot'] ? 'spot' : 'linear_perpetual',
-                    'symbol': market['id'],
-                    'stream': 'trade',
-                },
-            ],
-        };
-        const request = this.deepExtend (subscribe, params);
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        const trades = await this.publicWatch ('trade', 'trade', market, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
-
 
     handleTrade (client: Client, message: any) {
         //
@@ -198,21 +204,9 @@ export default class xcoin extends xcoinRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.urls['api']['ws']['public'];
-        const messageHash = 'ticker:' + symbol;
-        const tickerName = this.safeString (this.options['watchTicker'], 'name', 'ticker24hr');
-        const subscribe = {
-            'event': 'subscribe',
-            'data': [
-                {
-                    'businessType': market['spot'] ? 'spot' : 'linear_perpetual',
-                    'symbol': market['id'],
-                    'stream': tickerName,
-                },
-            ],
-        };
-        const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        let channel: Str = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'ticker24hr');
+        return await this.publicWatch ('ticker', channel, market, params);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -225,41 +219,81 @@ export default class xcoin extends xcoinRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
+        let channel: Str = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'ticker24hr');
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'tickers';
-        const tickerName = this.safeString (this.options['watchTicker'], 'name', 'ticker24hr');
-        const data = [];
-        
-        if (symbols === undefined) {
-            // Subscribe to all spot tickers
-            for (const symbol in this.markets) {
-                const market = this.markets[symbol];
-                if (market['spot']) {
-                    data.push ({
-                        'businessType': 'spot',
-                        'symbol': market['id'],
-                        'stream': tickerName,
-                    });
-                }
-            }
-        } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const market = this.market (symbols[i]);
-                data.push ({
-                    'businessType': market['spot'] ? 'spot' : 'linear_perpetual',
-                    'symbol': market['id'],
-                    'stream': tickerName,
-                });
-            }
-        }
-        
         const subscribe = {
             'event': 'subscribe',
-            'data': data,
+            'data': [
+                {
+                    'businessType': 'spot',
+                    'stream': channel,
+                },
+            ],
         };
         const request = this.deepExtend (subscribe, params);
-        const tickers = await this.watch (url, messageHash, request, messageHash);
+        const tickers = await this.watch (url, messageHash, request, channel);
         return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    handleTicker (client: Client, message: any) {
+        //
+        //    {
+        //        "businessType": "linear_perpetual",
+        //        "symbol": "BTC-USDT-PERP",
+        //        "stream": "ticker24hr",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC-USDT-PERP",
+        //                "priceChange": "-2777.3",
+        //                "priceChangePercent": "-0.026546295676776173",
+        //                "lastPrice": "101843.7",
+        //                "highPrice": "104799.9",
+        //                "lowPrice": "98889.3",
+        //                "fillQty": "155914.9386",
+        //                "fillAmount": "15865232612.32784",
+        //                "count": "701637"
+        //            }
+        //        ],
+        //        "ts": 1762328284542
+        //    }
+        //
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseWsTicker (data[i], market);
+            this.tickers[symbol] = ticker;
+            const messageHash = 'ticker:' + symbol;
+            client.resolve (ticker, messageHash);
+            client.resolve (this.tickers, 'tickers');
+        }
+    }
+
+    parseWsTicker (ticker: any, market: any = undefined): Ticker {
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (this.safeString (ticker, 'symbol'), market),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': this.safeString (ticker, 'lastPrice'),
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'priceChange'),
+            'percentage': this.safeString (ticker, 'priceChangePercent'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'fillQty'),
+            'quoteVolume': this.safeString (ticker, 'fillAmount'),
+            'info': ticker,
+        }, market);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -486,92 +520,6 @@ export default class xcoin extends xcoinRest {
         const request = this.deepExtend (subscribe, params);
         const positions = await this.watch (url, messageHash, request, messageHash);
         return this.filterBySymbolsSinceLimit (positions, symbols, since, limit, true);
-    }
-
-    handleTicker (client: Client, message: any) {
-        //
-        // ticker24hr
-        // {
-        //     "businessType": "spot",
-        //     "symbol": "BTC-USDT",
-        //     "stream": "ticker24hr",
-        //     "data": [{
-        //         "symbol": "BTC-USDT",
-        //         "priceChange": "-13",
-        //         "priceChangePercent": "-0.59090906",
-        //         "lastPrice": "88000",
-        //         "highPrice": "88000",
-        //         "lowPrice": "83000",
-        //         "fillQty": "53",
-        //         "fillAmount": "94",
-        //         "count": "59"
-        //     }],
-        //     "ts": "1732256095953"
-        // }
-        //
-        const marketId = this.safeString (message, 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const data = this.safeValue (message, 'data', []);
-        
-        if (data.length > 0) {
-            const ticker = this.parseTicker (data[0], market);
-            this.tickers[symbol] = ticker;
-            const messageHash = 'ticker:' + symbol;
-            client.resolve (ticker, messageHash);
-            // Also resolve for tickers (plural)
-            client.resolve (this.tickers, 'tickers');
-        }
-    }
-
-    parseTicker (ticker: any, market: any = undefined): Ticker {
-        //
-        // ticker24hr
-        // {
-        //     "symbol": "BTC-USDT",
-        //     "priceChange": "-13",
-        //     "priceChangePercent": "-0.59090906",
-        //     "lastPrice": "88000",
-        //     "highPrice": "88000",
-        //     "lowPrice": "83000",
-        //     "fillQty": "53",
-        //     "fillAmount": "94",
-        //     "count": "59"
-        // }
-        //
-        const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const last = this.safeString (ticker, 'lastPrice');
-        const high = this.safeString (ticker, 'highPrice');
-        const low = this.safeString (ticker, 'lowPrice');
-        const change = this.safeString (ticker, 'priceChange');
-        const percentage = this.safeString (ticker, 'priceChangePercent');
-        const baseVolume = this.safeString (ticker, 'fillQty');
-        const quoteVolume = this.safeString (ticker, 'fillAmount');
-        
-        return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'high': high,
-            'low': low,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
-        }, market);
     }
 
     handleOrderBook (client: Client, message: any) {

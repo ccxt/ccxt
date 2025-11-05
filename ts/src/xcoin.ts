@@ -517,7 +517,7 @@ export default class xcoin extends Exchange {
             'inverse': (subType === 'linear') ? false : undefined,
             'taker': undefined,
             'maker': undefined,
-            'contractSize': this.safeNumberOmitZero (item, 'ctVal'),
+            'contractSize': this.parseNumber ('1'), // this.safeNumberOmitZero (item, 'ctVal'),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
             'optionType': undefined,
