@@ -4065,7 +4065,7 @@ export default class bybit extends Exchange {
                 const isFullTpsl = tpslMode === 'full';
                 const isPartialTpsl = tpslMode === 'partial';
                 if (isLimit && isFullTpsl) {
-                    throw new InvalidOrder (this.id + ' full tpsl orders only support market orders');
+                    throw new InvalidOrder (this.id + ' tpsl orders with "full" tpslMode only support "market" type');
                 }
                 request['tpslMode'] = this.capitalize (tpslMode);
                 if (isStopLossTriggerOrder) {
