@@ -242,6 +242,7 @@ class websea(Exchange, ImplicitAPI):
                         'openApi/contract/walletList/full': 1,  # 全仓资产列表
                         'openApi/contract/position': 1,  # 合约持仓查询
                         'openApi/contract/currentList': 1,  # 合约当前委托列表
+                        'openApi/contract/historyList': 1,  # 合约历史委托列表
                         'openApi/contract/getOrderDetail': 1,  # 合约订单详情
                     },
                     'post': {
@@ -1938,6 +1939,9 @@ class websea(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap', if not provided self.options['defaultType'] is used
+        :param int [params.from]: query starting order_id for pagination
+        :param str [params.direct]: query direction, 'prev'(default) for reverse chronological, 'next' for chronological
+        :param int [params.is_full]: 1 for isolated margin, 2 for cross margin(contract only)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1946,55 +1950,71 @@ class websea(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if since is not None:
-            request['start_time'] = since
-        if limit is not None:
-            request['limit'] = limit
+        # Handle pagination parameters
+        _from = self.safe_integer(params, 'from')
+        if _from is not None:
+            request['from'] = _from
+        direct = self.safe_string(params, 'direct', 'prev')
+        request['direct'] = direct
+        request['limit'] = 1000
+        # Handle margin mode for contracts
+        request['is_full'] = self.safe_integer(params, 'is_full', 2)
         marketTypeConst, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         marketType = marketTypeConst
         response = None
         if marketType == 'swap':
-            # Websea API没有提供专门的期货历史订单列表端点
-            # 根据API文档，使用通用的历史订单列表端点
-            # 注意：这可能不会区分现货和期货订单，需要在解析时进行过滤
-            response = self.privateGetOpenApiEntrustHistoryList(self.extend(request, query))
+            # 合约历史订单列表 - 使用专门的合约API端点
+            response = self.privateGetOpenApiContractHistoryList(self.extend(request, query))
         else:
             # 现货历史订单列表
             response = self.privateGetOpenApiEntrustHistoryList(self.extend(request, query))
         #
-        # Websea API响应格式示例:
+        # Websea 现货API响应格式:
         # {
         #     "errno": 0,
         #     "errmsg": "success",
         #     "result": [
         #         {
-        #             "order_id": "123456",
-        #             "symbol": "BTC-USDT",
+        #             "order_id": 121,
+        #             "order_sn": "BL123456789987523",
+        #             "symbol": "MCO-BTC",
+        #             "ctime": "2018-10-02 10:33:33",
+        #             "type": 2,
         #             "side": "buy",
-        #             "type": "limit",
-        #             "price": "50000",
-        #             "amount": "0.1",
-        #             "filled": "0.1",
-        #             "remaining": "0",
-        #             "status": "closed",
-        #             "create_time": 1630000000000,
-        #             "update_time": 1630000001000
+        #             "price": "0.123456",
+        #             "number": "1.0000",
+        #             "total_price": "0.123456",
+        #             "deal_number": "0.00000",
+        #             "deal_price": "0.00000",
+        #             "status": 1
+        #         }
+        #     ]
+        # }
+        #
+        # Websea 合约API响应格式:
+        # {
+        #     "errno": 0,
+        #     "errmsg": "success",
+        #     "result": [
+        #         {
+        #             "order_id": "11535",
+        #             "ctime": 1576746253,
+        #             "symbol": "EOS-USDT",
+        #             "price": "14",
+        #             "price_avg": "15",
+        #             "lever_rate": 10,
+        #             "amount": "150",
+        #             "deal_amount": "100",
+        #             "type": "buy-limit",
+        #             "status": 3,
+        #             "contract_type": "open",
+        #             "profit": "10"
         #         }
         #     ]
         # }
         #
         result = self.safe_value(response, 'result', [])
-        # 如果是期货市场类型，需要过滤结果以仅包含期货订单
-        filteredResult = result
-        if marketType == 'swap' and market is not None:
-            filteredResult = []
-            for i in range(0, len(result)):
-                order = result[i]
-                orderSymbol = self.safe_string(order, 'symbol')
-                # 检查订单符号是否为期货市场
-                if orderSymbol == market['id'] and market['swap']:
-                    filteredResult.append(order)
-        return self.parse_orders(filteredResult, None, since, limit, params)
+        return self.parse_orders(result, market, since, limit, {'type': marketType})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['spot']

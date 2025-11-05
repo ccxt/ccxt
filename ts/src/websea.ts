@@ -260,6 +260,7 @@ export default class websea extends Exchange {
                         'openApi/contract/walletList/full': 1, // 全仓资产列表
                         'openApi/contract/position': 1, // 合约持仓查询
                         'openApi/contract/currentList': 1, // 合约当前委托列表
+                        'openApi/contract/historyList': 1, // 合约历史委托列表
                         'openApi/contract/getOrderDetail': 1, // 合约订单详情
                     },
                     'post': {
@@ -2148,6 +2149,9 @@ export default class websea extends Exchange {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot' or 'swap', if not provided this.options['defaultType'] is used
+         * @param {int} [params.from] query starting order_id for pagination
+         * @param {string} [params.direct] query direction, 'prev' (default) for reverse chronological, 'next' for chronological
+         * @param {int} [params.is_full] 1 for isolated margin, 2 for cross margin (contract only)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2157,61 +2161,73 @@ export default class websea extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['start_time'] = since;
+        // Handle pagination parameters
+        const _from = this.safeInteger (params, 'from');
+        if (_from !== undefined) {
+            request['from'] = _from;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        const direct = this.safeString (params, 'direct', 'prev');
+        request['direct'] = direct;
+        request['limit'] = 1000;
+        // Handle margin mode for contracts
+        request['is_full'] = this.safeInteger (params, 'is_full', 2);
         const [ marketTypeConst, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         const marketType = marketTypeConst;
         let response = undefined;
         if (marketType === 'swap') {
-            // Websea API没有提供专门的期货历史订单列表端点
-            // 根据API文档，使用通用的历史订单列表端点
-            // 注意：这可能不会区分现货和期货订单，需要在解析时进行过滤
-            response = await this.privateGetOpenApiEntrustHistoryList (this.extend (request, query));
+            // 合约历史订单列表 - 使用专门的合约API端点
+            response = await this.privateGetOpenApiContractHistoryList (this.extend (request, query));
         } else {
             // 现货历史订单列表
             response = await this.privateGetOpenApiEntrustHistoryList (this.extend (request, query));
         }
         //
-        // Websea API响应格式示例:
+        // Websea 现货API响应格式:
         // {
         //     "errno": 0,
         //     "errmsg": "success",
         //     "result": [
         //         {
-        //             "order_id": "123456",
-        //             "symbol": "BTC-USDT",
+        //             "order_id": 121,
+        //             "order_sn": "BL123456789987523",
+        //             "symbol": "MCO-BTC",
+        //             "ctime": "2018-10-02 10:33:33",
+        //             "type": 2,
         //             "side": "buy",
-        //             "type": "limit",
-        //             "price": "50000",
-        //             "amount": "0.1",
-        //             "filled": "0.1",
-        //             "remaining": "0",
-        //             "status": "closed",
-        //             "create_time": 1630000000000,
-        //             "update_time": 1630000001000
+        //             "price": "0.123456",
+        //             "number": "1.0000",
+        //             "total_price": "0.123456",
+        //             "deal_number": "0.00000",
+        //             "deal_price": "0.00000",
+        //             "status": 1
+        //         }
+        //     ]
+        // }
+        //
+        // Websea 合约API响应格式:
+        // {
+        //     "errno": 0,
+        //     "errmsg": "success",
+        //     "result": [
+        //         {
+        //             "order_id": "11535",
+        //             "ctime": 1576746253,
+        //             "symbol": "EOS-USDT",
+        //             "price": "14",
+        //             "price_avg": "15",
+        //             "lever_rate": 10,
+        //             "amount": "150",
+        //             "deal_amount": "100",
+        //             "type": "buy-limit",
+        //             "status": 3,
+        //             "contract_type": "open",
+        //             "profit": "10"
         //         }
         //     ]
         // }
         //
         const result = this.safeValue (response, 'result', []);
-        // 如果是期货市场类型，需要过滤结果以仅包含期货订单
-        let filteredResult = result;
-        if (marketType === 'swap' && market !== undefined) {
-            filteredResult = [];
-            for (let i = 0; i < result.length; i++) {
-                const order = result[i];
-                const orderSymbol = this.safeString (order, 'symbol');
-                // 检查订单符号是否为期货市场
-                if (orderSymbol === market['id'] && market['swap']) {
-                    filteredResult.push (order);
-                }
-            }
-        }
-        return this.parseOrders (filteredResult, undefined, since, limit, params);
+        return this.parseOrders (result, market, since, limit, { 'type': marketType });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

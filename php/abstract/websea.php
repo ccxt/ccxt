@@ -73,6 +73,9 @@ abstract class websea extends \ccxt\Exchange {
     public function private_get_openapi_contract_currentlist($params = array()) {
         return $this->request('openApi/contract/currentList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_openapi_contract_historylist($params = array()) {
+        return $this->request('openApi/contract/historyList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_openapi_contract_getorderdetail($params = array()) {
         return $this->request('openApi/contract/getOrderDetail', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -165,6 +168,9 @@ abstract class websea extends \ccxt\Exchange {
     }
     public function privateGetOpenApiContractCurrentList($params = array()) {
         return $this->request('openApi/contract/currentList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetOpenApiContractHistoryList($params = array()) {
+        return $this->request('openApi/contract/historyList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetOpenApiContractGetOrderDetail($params = array()) {
         return $this->request('openApi/contract/getOrderDetail', 'private', 'GET', $params, null, null, array("cost" => 1));

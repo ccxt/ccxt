@@ -409,6 +409,9 @@ fetches information on multiple closed orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'spot' or 'swap', if not provided this.options['defaultType'] is used |
+| params.from | <code>int</code> | No | query starting order_id for pagination |
+| params.direct | <code>string</code> | No | query direction, 'prev' (default) for reverse chronological, 'next' for chronological |
+| params.is_full | <code>int</code> | No | 1 for isolated margin, 2 for cross margin (contract only) |
 
 
 ```javascript
