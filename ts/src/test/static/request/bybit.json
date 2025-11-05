@@ -292,7 +292,7 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"takeProfit\":\"98000\",\"tpslMode\":\"Partial\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"99000\",\"tpSize\":\"1\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap market sell with stopLossPrice and tpslMode full",
+                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode full",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
@@ -309,7 +309,7 @@
                 "output": "{\"symbol\":\"ETHUSDT\",\"stopLoss\":\"3999\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap market sell with takeProfitPrice and tpslMode full",
+                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode full",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
@@ -326,7 +326,7 @@
                 "output": "{\"symbol\":\"ETHUSDT\",\"takeProfit\":\"4000\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap market sell with stopLossPrice and tpslMode partial",
+                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode partial",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
@@ -343,7 +343,7 @@
                 "output": "{\"symbol\":\"LTCUSDT\",\"stopLoss\":\"3.9\",\"tpslMode\":\"Partial\",\"slSize\":\"1\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap market sell with takeProfitPrice and tpslMode partial",
+                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode partial",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
