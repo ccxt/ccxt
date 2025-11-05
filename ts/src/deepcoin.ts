@@ -250,6 +250,7 @@ export default class deepcoin extends Exchange {
                         'trailing': false,
                         'marketBuyRequiresPrice': false,
                     },
+                    'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': true,
                         'limit': 100,
