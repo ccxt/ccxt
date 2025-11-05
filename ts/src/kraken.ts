@@ -3615,16 +3615,32 @@ export default class kraken extends Exchange {
         }
         if (body[0] === '{') {
             if (typeof response !== 'string') {
+                const message = this.id + ' ' + body;
                 if ('error' in response) {
                     const numErrors = response['error'].length;
                     if (numErrors) {
-                        const message = this.id + ' ' + body;
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
                             this.throwExactlyMatchedException (this.exceptions['exact'], error, message);
                             this.throwBroadlyMatchedException (this.exceptions['broad'], error, message);
                         }
                         throw new ExchangeError (message);
+                    }
+                }
+                // handleCreateOrdersErrors:
+                if ('result' in response) {
+                    const result = this.safeDict (response, 'result', {});
+                    if ('orders' in result) {
+                        const orders = this.safeList (result, 'orders', []);
+                        for (let i = 0; i < orders.length; i++) {
+                            const order = orders[i];
+                            const error = this.safeString (order, 'error');
+                            if (error !== undefined) {
+                                this.throwExactlyMatchedException (this.exceptions['exact'], error, message);
+                                this.throwBroadlyMatchedException (this.exceptions['broad'], error, message);
+                                throw new ExchangeError (message);
+                            }
+                        }
                     }
                 }
             }
