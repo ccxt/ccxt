@@ -35,6 +35,22 @@
         ],
         "createOrder": [
             {
+                "description": "regular stopLossPrice order",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.2,
+                    50,
+                    {
+                        "stopLossPrice": 51
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"0.2\",\"slTriggerPrice\":\"51\",\"slOrderPrice\":\"-1\",\"marginMode\":\"cross\"}"
+            },
+            {
                 "description": "triger order",
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order-algo",
