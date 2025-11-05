@@ -1086,26 +1086,39 @@ export default class astralx extends Exchange {
          * @description fetches information on closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve (default 20)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.orderType] 'LIMIT' for limit orders, 'STOP' for stop orders
+         * @param {string} [params.orderId] specific order ID to query
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['startTime'] = since;
+        // Handle orderType parameter (LIMIT or STOP)
+        const orderType = this.safeString (params, 'orderType');
+        if (orderType !== undefined) {
+            request['orderType'] = orderType;
+        }
+        // Handle specific orderId parameter
+        const orderId = this.safeString (params, 'orderId');
+        if (orderId !== undefined) {
+            request['orderId'] = orderId;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        // Note: API doesn't support 'since' parameter directly
+        // The API uses timestamp for authentication, not for filtering
         const response = await this.privatePostOpenapiContractHistoryOrders (this.extend (request, params));
-        // API直接返回订单数组，没有data字段包装
-        const orders = this.safeValue (response, 'data', response);
-        return this.parseOrders (orders, undefined, since, limit);
+        // API directly returns order array according to the documentation
+        const orders = Array.isArray (response) ? response : this.safeValue (response, 'data', []);
+        // Use CCXT standard parseOrders method which handles sorting and filtering
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1256,40 +1269,27 @@ export default class astralx extends Exchange {
          * @param {object} [marketParam] the market to which the order belongs
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // 直接使用传入的market参数，避免重新查找
+        // Use provided market parameter to avoid repeated lookups
         const market = marketParam !== undefined ? marketParam : this.safeMarket (this.safeString (order, 'symbol'));
         const symbol = market['symbol'];
+        // Parse timestamps - API provides 'time' and 'updateTime'
         const timestamp = this.safeInteger (order, 'time');
+        const lastUpdateTimestamp = this.safeInteger (order, 'updateTime');
         const price = this.safeNumber (order, 'price');
-        // origQty 合约张数
-        const origQtyString = this.safeString (order, 'origQty');
-        let amount = undefined;
-        if (origQtyString !== undefined) {
-            const origQty = this.parseNumber (origQtyString);
-            // 获取市场的最小数量精度
-            const minAmount = this.safeNumber (market['precision'], 'amount', 0.001);
-            if (origQty >= minAmount) {
-                amount = this.parseNumber (this.amountToPrecision (symbol, origQty));
-            } else {
-                amount = 0; // 如果小于最小精度，设置为0
-            }
-        }
-        const executedQtyString = this.safeString (order, 'executedQty');
-        let filled = undefined;
-        if (executedQtyString !== undefined) {
-            const executedQty = this.parseNumber (executedQtyString);
-            // 获取市场的最小数量精度
-            const minAmount = this.safeNumber (market['precision'], 'amount', 0.001);
-            if (executedQty >= minAmount) {
-                filled = this.parseNumber (this.amountToPrecision (symbol, executedQty));
-            } else {
-                filled = 0; // 如果小于最小精度，设置为0
-            }
-        }
+        const average = this.safeNumber (order, 'avgPrice');
+        // Parse quantities - API uses 'origQty' and 'executeQty'
+        const amount = this.safeNumber (order, 'origQty');
+        const filled = this.safeNumber (order, 'executeQty'); // Note: API uses 'executeQty' not 'executedQty'
         let remaining = undefined;
         if (amount !== undefined && filled !== undefined) {
             remaining = Math.max (0, amount - filled);
         }
+        // Calculate cost if possible
+        let cost = undefined;
+        if (filled !== undefined && average !== undefined && average > 0) {
+            cost = filled * average;
+        }
+        // Parse order status
         let status = this.safeString (order, 'status');
         if (status === 'NEW') {
             status = 'open';
@@ -1300,16 +1300,17 @@ export default class astralx extends Exchange {
         } else if (status === 'PARTIALLY_FILLED') {
             status = 'open';
         }
-        // Astralx使用BUY_OPEN/SELL_OPEN等方向值，需要映射到标准的buy/sell
+        // Parse side - Astralx uses BUY_OPEN/SELL_OPEN/BUY_CLOSE/SELL_CLOSE
         const apiSide = this.safeString (order, 'side');
-        let side = apiSide;
+        let side = undefined;
+        let reduceOnly = false;
         if (apiSide === 'BUY_OPEN' || apiSide === 'BUY_CLOSE') {
             side = 'buy';
+            reduceOnly = (apiSide === 'BUY_CLOSE');
         } else if (apiSide === 'SELL_OPEN' || apiSide === 'SELL_CLOSE') {
             side = 'sell';
+            reduceOnly = (apiSide === 'SELL_CLOSE');
         }
-        // 判断是否为reduce-only订单（平仓订单）
-        const reduceOnly = (apiSide === 'BUY_CLOSE' || apiSide === 'SELL_CLOSE');
         // 根据priceType确定订单类型：INPUT -> limit, MARKET -> market
         const priceType = this.safeString (order, 'priceType');
         let type = 'limit'; // 默认限价单
@@ -1318,32 +1319,64 @@ export default class astralx extends Exchange {
         } else if (priceType === 'INPUT') {
             type = 'limit';
         }
+        // Parse additional fields from API response
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        const average = this.safeNumber (order, 'avgPrice');
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const leverage = this.safeNumber (order, 'leverage');
+        const isCross = this.safeValue (order, 'isCross');
+        const marginLocked = this.safeNumber (order, 'marginLocked');
+        // Parse fees array if present
+        const feesArray = this.safeValue (order, 'fees', []);
+        let fees = undefined;
+        if (feesArray.length > 0) {
+            fees = [];
+            for (let i = 0; i < feesArray.length; i++) {
+                const feeItem = feesArray[i];
+                // Use 'fee' field from API response
+                const feeAmount = this.safeNumber (feeItem, 'fee');
+                if (feeAmount !== undefined && feeAmount > 0) {
+                    // Use 'feeTokenId' field from API response
+                    const feeTokenId = this.safeString (feeItem, 'feeTokenId');
+                    const feeCurrency = this.safeCurrencyCode (feeTokenId);
+                    fees.push ({
+                        'cost': feeAmount,
+                        'currency': feeCurrency,
+                    });
+                }
+            }
+            // If no valid fees found, set to undefined
+            if (fees.length === 0) {
+                fees = undefined;
+            }
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastUpdateTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
-            'timeInForce': this.safeString (order, 'timeInForce'),
+            'timeInForce': timeInForce,
             'postOnly': undefined,
             'side': side,
             'price': price,
             'triggerPrice': undefined,
             'amount': amount,
-            'cost': undefined,
+            'cost': cost,
             'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fees': fees,
             'trades': undefined,
             'reduceOnly': reduceOnly,
+            'leverage': leverage,
+            'marginMode': isCross ? 'cross' : 'isolated',
+            'marginLocked': marginLocked,
         });
     }
 
