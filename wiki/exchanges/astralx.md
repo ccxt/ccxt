@@ -21,7 +21,6 @@
 * [createOrder](#createorder)
 * [createReduceOnlyOrder](#createreduceonlyorder)
 * [cancelOrder](#cancelorder)
-* [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchMyTrades](#fetchmytrades)
@@ -362,27 +361,6 @@ astralx.cancelOrder (id, symbol[, params])
 ```
 
 
-<a name="fetchOrder" id="fetchorder"></a>
-
-### fetchOrder{docsify-ignore}
-fetches information on an order made by the user
-
-**Kind**: instance method of [<code>astralx</code>](#astralx)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | the order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-astralx.fetchOrder (id, symbol[, params])
-```
-
-
 <a name="fetchOpenOrders" id="fetchopenorders"></a>
 
 ### fetchOpenOrders{docsify-ignore}
@@ -418,8 +396,10 @@ fetches information on closed orders made by the user
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve (default 20) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.orderType | <code>string</code> | No | 'LIMIT' for limit orders, 'STOP' for stop orders |
+| params.orderId | <code>string</code> | No | specific order ID to query |
 
 
 ```javascript

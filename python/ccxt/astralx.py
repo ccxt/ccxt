@@ -962,25 +962,6 @@ class astralx(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'data', response)
         return self.parse_order(order, market)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
-        """
-        fetches information on an order made by the user
-        :param str id: the order id
-        :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        self.load_markets()
-        request = {
-            'orderId': id,
-        }
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-        response = self.privateGetOpenapiContractOrder(self.extend(request, params))
-        order = self.safe_value(response, 'data', {})
-        return self.parse_order(order)
-
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on all open orders made by the user
@@ -1005,23 +986,35 @@ class astralx(Exchange, ImplicitAPI):
         fetches information on closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve(default 20)
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.orderType]: 'LIMIT' for limit orders, 'STOP' for stop orders
+        :param str [params.orderId]: specific order ID to query
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if since is not None:
-            request['startTime'] = since
+        # Handle orderType parameter(LIMIT or STOP)
+        orderType = self.safe_string(params, 'orderType')
+        if orderType is not None:
+            request['orderType'] = orderType
+        # Handle specific orderId parameter
+        orderId = self.safe_string(params, 'orderId')
+        if orderId is not None:
+            request['orderId'] = orderId
         if limit is not None:
             request['limit'] = limit
+        # Note: API doesn't support 'since' parameter directly
+        # The API uses timestamp for authentication, not for filtering
         response = self.privatePostOpenapiContractHistoryOrders(self.extend(request, params))
-        # API直接返回订单数组，没有data字段包装
-        orders = self.safe_value(response, 'data', response)
-        return self.parse_orders(orders, None, since, limit)
+        # API directly returns order array according to the documentation
+        orders = response if isinstance(response, list) else self.safe_value(response, 'data', [])
+        # Use CCXT standard parseOrders method which handles sorting and filtering
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -1150,35 +1143,25 @@ class astralx(Exchange, ImplicitAPI):
         :param dict [marketParam]: the market to which the order belongs
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        # 直接使用传入的market参数，避免重新查找
+        # Use provided market parameter to avoid repeated lookups
         market = marketParam is not marketParam if None else self.safe_market(self.safe_string(order, 'symbol'))
         symbol = market['symbol']
+        # Parse timestamps - API provides 'time' and 'updateTime'
         timestamp = self.safe_integer(order, 'time')
+        lastUpdateTimestamp = self.safe_integer(order, 'updateTime')
         price = self.safe_number(order, 'price')
-        # origQty 合约张数
-        origQtyString = self.safe_string(order, 'origQty')
-        amount = None
-        if origQtyString is not None:
-            origQty = self.parse_number(origQtyString)
-            # 获取市场的最小数量精度
-            minAmount = self.safe_number(market['precision'], 'amount', 0.001)
-            if origQty >= minAmount:
-                amount = self.parse_number(self.amount_to_precision(symbol, origQty))
-            else:
-                amount = 0  # 如果小于最小精度，设置为0
-        executedQtyString = self.safe_string(order, 'executedQty')
-        filled = None
-        if executedQtyString is not None:
-            executedQty = self.parse_number(executedQtyString)
-            # 获取市场的最小数量精度
-            minAmount = self.safe_number(market['precision'], 'amount', 0.001)
-            if executedQty >= minAmount:
-                filled = self.parse_number(self.amount_to_precision(symbol, executedQty))
-            else:
-                filled = 0  # 如果小于最小精度，设置为0
+        average = self.safe_number(order, 'avgPrice')
+        # Parse quantities - API uses 'origQty' and 'executeQty'
+        amount = self.safe_number(order, 'origQty')
+        filled = self.safe_number(order, 'executeQty')  # Note: API uses 'executeQty' not 'executedQty'
         remaining = None
         if amount is not None and filled is not None:
             remaining = max(0, amount - filled)
+        # Calculate cost if possible
+        cost = None
+        if filled is not None and average is not None and average > 0:
+            cost = filled * average
+        # Parse order status
         status = self.safe_string(order, 'status')
         if status == 'NEW':
             status = 'open'
@@ -1188,15 +1171,16 @@ class astralx(Exchange, ImplicitAPI):
             status = 'canceled'
         elif status == 'PARTIALLY_FILLED':
             status = 'open'
-        # Astralx使用BUY_OPEN/SELL_OPEN等方向值，需要映射到标准的buy/sell
+        # Parse side - Astralx uses BUY_OPEN/SELL_OPEN/BUY_CLOSE/SELL_CLOSE
         apiSide = self.safe_string(order, 'side')
-        side = apiSide
+        side = None
+        reduceOnly = False
         if apiSide == 'BUY_OPEN' or apiSide == 'BUY_CLOSE':
             side = 'buy'
+            reduceOnly = (apiSide == 'BUY_CLOSE')
         elif apiSide == 'SELL_OPEN' or apiSide == 'SELL_CLOSE':
             side = 'sell'
-        # 判断是否为reduce-only订单（平仓订单）
-        reduceOnly = (apiSide == 'BUY_CLOSE' or apiSide == 'SELL_CLOSE')
+            reduceOnly = (apiSide == 'SELL_CLOSE')
         # 根据priceType确定订单类型：INPUT -> limit, MARKET -> market
         priceType = self.safe_string(order, 'priceType')
         type = 'limit'  # 默认限价单
@@ -1204,32 +1188,60 @@ class astralx(Exchange, ImplicitAPI):
             type = 'market'
         elif priceType == 'INPUT':
             type = 'limit'
+        # Parse additional fields from API response
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        average = self.safe_number(order, 'avgPrice')
+        timeInForce = self.safe_string(order, 'timeInForce')
+        leverage = self.safe_number(order, 'leverage')
+        isCross = self.safe_value(order, 'isCross')
+        marginLocked = self.safe_number(order, 'marginLocked')
+        # Parse fees array if present
+        feesArray = self.safe_value(order, 'fees', [])
+        fees = None
+        if len(feesArray) > 0:
+            fees = []
+            for i in range(0, len(feesArray)):
+                feeItem = feesArray[i]
+                # Use 'fee' field from API response
+                feeAmount = self.safe_number(feeItem, 'fee')
+                if feeAmount is not None and feeAmount > 0:
+                    # Use 'feeTokenId' field from API response
+                    feeTokenId = self.safe_string(feeItem, 'feeTokenId')
+                    feeCurrency = self.safe_currency_code(feeTokenId)
+                    fees.append({
+                        'cost': feeAmount,
+                        'currency': feeCurrency,
+                    })
+            # If no valid fees found, set to None
+            if len(fees) == 0:
+                fees = None
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastUpdateTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
-            'timeInForce': self.safe_string(order, 'timeInForce'),
+            'timeInForce': timeInForce,
             'postOnly': None,
             'side': side,
             'price': price,
             'triggerPrice': None,
             'amount': amount,
-            'cost': None,
+            'cost': cost,
             'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': None,
+            'fees': fees,
             'trades': None,
             'reduceOnly': reduceOnly,
+            'leverage': leverage,
+            'marginMode': 'cross' if isCross else 'isolated',
+            'marginLocked': marginLocked,
         })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

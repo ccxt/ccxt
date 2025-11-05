@@ -4199,7 +4199,6 @@ fetches information on an order made by the user
 * [alpaca](/exchanges/alpaca.md#alpacafetchorder)
 * [apex](/exchanges/apex.md#apexfetchorder)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchorder)
-* [astralx](/exchanges/astralx.md#astralxfetchorder)
 * [bigone](/exchanges/bigone.md#bigonefetchorder)
 * [binance](/exchanges/binance.md#binancefetchorder)
 * [bingx](/exchanges/bingx.md#bingxfetchorder)

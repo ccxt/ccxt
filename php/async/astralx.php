@@ -1044,29 +1044,6 @@ class astralx extends Exchange {
         }) ();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetches information on an $order made by the user
-             * @param {string} $id the $order $id
-             * @param {string} $symbol unified $symbol of the $market the $order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
-             */
-            Async\await($this->load_markets());
-            $request = array(
-                'orderId' => $id,
-            );
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            $response = Async\await($this->privateGetOpenapiContractOrder ($this->extend($request, $params)));
-            $order = $this->safe_value($response, 'data', array());
-            return $this->parse_order($order);
-        }) ();
-    }
-
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -1096,26 +1073,39 @@ class astralx extends Exchange {
              * fetches information on closed $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve (default 20)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->orderType] 'LIMIT' for $limit $orders, 'STOP' for stop $orders
+             * @param {string} [$params->orderId] specific order ID to query
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
+            $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            if ($since !== null) {
-                $request['startTime'] = $since;
+            // Handle $orderType parameter (LIMIT or STOP)
+            $orderType = $this->safe_string($params, 'orderType');
+            if ($orderType !== null) {
+                $request['orderType'] = $orderType;
+            }
+            // Handle specific $orderId parameter
+            $orderId = $this->safe_string($params, 'orderId');
+            if ($orderId !== null) {
+                $request['orderId'] = $orderId;
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            // Note => API doesn't support 'since' parameter directly
+            // The API uses timestamp for authentication, not for filtering
             $response = Async\await($this->privatePostOpenapiContractHistoryOrders ($this->extend($request, $params)));
-            // API直接返回订单数组，没有data字段包装
-            $orders = $this->safe_value($response, 'data', $response);
-            return $this->parse_orders($orders, null, $since, $limit);
+            // API directly returns order array according to the documentation
+            $orders = gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)) ? $response : $this->safe_value($response, 'data', array());
+            // Use CCXT standard parseOrders method which handles sorting and filtering
+            return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
 
@@ -1263,40 +1253,27 @@ class astralx extends Exchange {
          * @param {array} [$marketParam] the $market to which the $order belongs
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
-        // 直接使用传入的$market参数，避免重新查找
+        // Use provided $market parameter to avoid repeated lookups
         $market = $marketParam !== null ? $marketParam : $this->safe_market($this->safe_string($order, 'symbol'));
         $symbol = $market['symbol'];
+        // Parse timestamps - API provides 'time' and 'updateTime'
         $timestamp = $this->safe_integer($order, 'time');
+        $lastUpdateTimestamp = $this->safe_integer($order, 'updateTime');
         $price = $this->safe_number($order, 'price');
-        // $origQty 合约张数
-        $origQtyString = $this->safe_string($order, 'origQty');
-        $amount = null;
-        if ($origQtyString !== null) {
-            $origQty = $this->parse_number($origQtyString);
-            // 获取市场的最小数量精度
-            $minAmount = $this->safe_number($market['precision'], 'amount', 0.001);
-            if ($origQty >= $minAmount) {
-                $amount = $this->parse_number($this->amount_to_precision($symbol, $origQty));
-            } else {
-                $amount = 0; // 如果小于最小精度，设置为0
-            }
-        }
-        $executedQtyString = $this->safe_string($order, 'executedQty');
-        $filled = null;
-        if ($executedQtyString !== null) {
-            $executedQty = $this->parse_number($executedQtyString);
-            // 获取市场的最小数量精度
-            $minAmount = $this->safe_number($market['precision'], 'amount', 0.001);
-            if ($executedQty >= $minAmount) {
-                $filled = $this->parse_number($this->amount_to_precision($symbol, $executedQty));
-            } else {
-                $filled = 0; // 如果小于最小精度，设置为0
-            }
-        }
+        $average = $this->safe_number($order, 'avgPrice');
+        // Parse quantities - API uses 'origQty' and 'executeQty'
+        $amount = $this->safe_number($order, 'origQty');
+        $filled = $this->safe_number($order, 'executeQty'); // Note => API uses 'executeQty' not 'executedQty'
         $remaining = null;
         if ($amount !== null && $filled !== null) {
             $remaining = max (0, $amount - $filled);
         }
+        // Calculate $cost if possible
+        $cost = null;
+        if ($filled !== null && $average !== null && $average > 0) {
+            $cost = $filled * $average;
+        }
+        // Parse $order $status
         $status = $this->safe_string($order, 'status');
         if ($status === 'NEW') {
             $status = 'open';
@@ -1307,16 +1284,17 @@ class astralx extends Exchange {
         } elseif ($status === 'PARTIALLY_FILLED') {
             $status = 'open';
         }
-        // Astralx使用BUY_OPEN/SELL_OPEN等方向值，需要映射到标准的buy/sell
+        // Parse $side - Astralx uses BUY_OPEN/SELL_OPEN/BUY_CLOSE/SELL_CLOSE
         $apiSide = $this->safe_string($order, 'side');
-        $side = $apiSide;
+        $side = null;
+        $reduceOnly = false;
         if ($apiSide === 'BUY_OPEN' || $apiSide === 'BUY_CLOSE') {
             $side = 'buy';
+            $reduceOnly = ($apiSide === 'BUY_CLOSE');
         } elseif ($apiSide === 'SELL_OPEN' || $apiSide === 'SELL_CLOSE') {
             $side = 'sell';
+            $reduceOnly = ($apiSide === 'SELL_CLOSE');
         }
-        // 判断是否为reduce-only订单（平仓订单）
-        $reduceOnly = ($apiSide === 'BUY_CLOSE' || $apiSide === 'SELL_CLOSE');
         // 根据$priceType确定订单类型：INPUT -> limit, MARKET -> $market
         $priceType = $this->safe_string($order, 'priceType');
         $type = 'limit'; // 默认限价单
@@ -1325,32 +1303,64 @@ class astralx extends Exchange {
         } elseif ($priceType === 'INPUT') {
             $type = 'limit';
         }
+        // Parse additional fields from API response
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        $average = $this->safe_number($order, 'avgPrice');
+        $timeInForce = $this->safe_string($order, 'timeInForce');
+        $leverage = $this->safe_number($order, 'leverage');
+        $isCross = $this->safe_value($order, 'isCross');
+        $marginLocked = $this->safe_number($order, 'marginLocked');
+        // Parse $fees array if present
+        $feesArray = $this->safe_value($order, 'fees', array());
+        $fees = null;
+        if (strlen($feesArray) > 0) {
+            $fees = array();
+            for ($i = 0; $i < count($feesArray); $i++) {
+                $feeItem = $feesArray[$i];
+                // Use 'fee' field from API response
+                $feeAmount = $this->safe_number($feeItem, 'fee');
+                if ($feeAmount !== null && $feeAmount > 0) {
+                    // Use 'feeTokenId' field from API response
+                    $feeTokenId = $this->safe_string($feeItem, 'feeTokenId');
+                    $feeCurrency = $this->safe_currency_code($feeTokenId);
+                    $fees[] = array(
+                        'cost' => $feeAmount,
+                        'currency' => $feeCurrency,
+                    );
+                }
+            }
+            // If no valid $fees found, set to null
+            if (strlen($fees) === 0) {
+                $fees = null;
+            }
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastUpdateTimestamp,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'symbol' => $symbol,
             'type' => $type,
-            'timeInForce' => $this->safe_string($order, 'timeInForce'),
+            'timeInForce' => $timeInForce,
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
             'triggerPrice' => null,
             'amount' => $amount,
-            'cost' => null,
+            'cost' => $cost,
             'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => null,
+            'fees' => $fees,
             'trades' => null,
             'reduceOnly' => $reduceOnly,
+            'leverage' => $leverage,
+            'marginMode' => $isCross ? 'cross' : 'isolated',
+            'marginLocked' => $marginLocked,
         ));
     }
 
