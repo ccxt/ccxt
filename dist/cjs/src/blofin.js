@@ -1388,18 +1388,20 @@ class blofin extends blofin$1["default"] {
         [method, params] = this.handleOptionAndParams(params, 'createOrder', 'method', 'privatePostTradeOrder');
         const isStopLossPriceDefined = this.safeString(params, 'stopLossPrice') !== undefined;
         const isTakeProfitPriceDefined = this.safeString(params, 'takeProfitPrice') !== undefined;
-        const isTriggerOrder = this.safeString(params, 'triggerPrice') !== undefined;
+        const hasTriggerPrice = this.safeString(params, 'triggerPrice') !== undefined;
         const isType2Order = (isStopLossPriceDefined || isTakeProfitPriceDefined);
         let response = undefined;
         const reduceOnly = this.safeBool(params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             params['reduceOnly'] = reduceOnly ? 'true' : 'false';
         }
-        if (tpsl || (method === 'privatePostTradeOrderTpsl') || isType2Order) {
+        const isTpslOrder = tpsl || (method === 'privatePostTradeOrderTpsl') || isType2Order;
+        const isTriggerOrder = hasTriggerPrice || (method === 'privatePostTradeOrderAlgo');
+        if (isTpslOrder) {
             const tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderTpsl(tpslRequest);
         }
-        else if (isTriggerOrder || (method === 'privatePostTradeOrderAlgo')) {
+        else if (isTriggerOrder) {
             const triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderAlgo(triggerRequest);
         }
@@ -1407,10 +1409,9 @@ class blofin extends blofin$1["default"] {
             const request = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrder(request);
         }
-        if (isTriggerOrder || (method === 'privatePostTradeOrderAlgo')) {
+        if (isTpslOrder || isTriggerOrder) {
             const dataDict = this.safeDict(response, 'data', {});
-            const triggerOrder = this.parseOrder(dataDict, market);
-            return triggerOrder;
+            return this.parseOrder(dataDict, market);
         }
         const data = this.safeList(response, 'data', []);
         const first = this.safeDict(data, 0);
