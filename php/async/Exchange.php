@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.13';
+$version = '4.5.15';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.13';
+    const VERSION = '4.5.15';
 
     public $browser;
     public $marketsLoading = null;
@@ -411,8 +411,10 @@ class Exchange extends \ccxt\Exchange {
                 'cancelAllOrders' => null,
                 'cancelAllOrdersWs' => null,
                 'cancelOrder' => true,
+                'cancelOrderWithClientOrderId' => null,
                 'cancelOrderWs' => null,
                 'cancelOrders' => null,
+                'cancelOrdersWithClientOrderId' => null,
                 'cancelOrdersWs' => null,
                 'closeAllPositions' => null,
                 'closePosition' => null,
@@ -462,6 +464,7 @@ class Exchange extends \ccxt\Exchange {
                 'createTriggerOrderWs' => null,
                 'deposit' => null,
                 'editOrder' => 'emulated',
+                'editOrderWithClientOrderId' => null,
                 'editOrders' => null,
                 'editOrderWs' => null,
                 'fetchAccounts' => null,
@@ -540,6 +543,7 @@ class Exchange extends \ccxt\Exchange {
                 'fetchOption' => null,
                 'fetchOptionChain' => null,
                 'fetchOrder' => null,
+                'fetchOrderWithClientOrderId' => null,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => null,
                 'fetchOrderBookWs' => null,
@@ -3876,6 +3880,12 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function edit_order_with_client_order_id(string $clientOrderId, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($clientOrderId, $symbol, $type, $side, $amount, $price, $params) {
+            return Async\await($this->edit_order('', $symbol, $type, $side, $amount, $price, $this->extend(array( 'clientOrderId' => $clientOrderId ), $params)));
+        }) ();
+    }
+
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->cancel_order_ws($id, $symbol));
@@ -4427,6 +4437,20 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOrder() is not supported yet');
     }
 
+    public function fetch_order_with_client_order_id(string $clientOrderId, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($clientOrderId, $symbol, $params) {
+            /**
+             * create a market order by providing the $symbol, side and cost
+             * @param {string} $clientOrderId client order Id
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
+            return Async\await($this->fetch_order('', $symbol, $extendedParams));
+        }) ();
+    }
+
     public function fetch_order_ws(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderWs() is not supported yet');
     }
@@ -4914,12 +4938,40 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
     }
 
+    public function cancel_order_with_client_order_id(string $clientOrderId, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($clientOrderId, $symbol, $params) {
+            /**
+             * create a market order by providing the $symbol, side and cost
+             * @param {string} $clientOrderId client order Id
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
+            return Async\await($this->cancel_order('', $symbol, $extendedParams));
+        }) ();
+    }
+
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrderWs() is not supported yet');
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrders() is not supported yet');
+    }
+
+    public function cancel_orders_with_client_order_ids(array $clientOrderIds, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($clientOrderIds, $symbol, $params) {
+            /**
+             * create a market order by providing the $symbol, side and cost
+             * @param {string[]} $clientOrderIds client order Ids
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            $extendedParams = $this->extend($params, array( 'clientOrderIds' => $clientOrderIds ));
+            return Async\await($this->cancel_orders(array(), $symbol, $extendedParams));
+        }) ();
     }
 
     public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {

@@ -462,6 +462,7 @@ public partial class bybit : Exchange
                         { "v5/account/mmp-reset", 5 },
                         { "v5/account/borrow", 5 },
                         { "v5/account/repay", 5 },
+                        { "v5/account/no-convert-repay", 5 },
                         { "v5/asset/exchange/quote-apply", 1 },
                         { "v5/asset/exchange/convert-execute", 1 },
                         { "v5/asset/transfer/inter-transfer", 50 },

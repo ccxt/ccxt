@@ -71,6 +71,7 @@ class backpack(Exchange, ImplicitAPI):
                 'createTrailingPercentOrder': False,
                 'createTriggerOrder': True,
                 'fetchAccounts': False,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchCanceledAndClosedOrders': False,
                 'fetchCanceledOrders': False,
@@ -89,6 +90,7 @@ class backpack(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': False,
                 'fetchLeverage': False,
@@ -103,6 +105,8 @@ class backpack(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': False,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -123,6 +127,7 @@ class backpack(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'sandbox': False,
@@ -1413,14 +1418,14 @@ class backpack(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.network]: the network to withdraw on(mandatory)
+        :param str params['network']: the network to withdraw on(mandatory)
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
         request: dict = {
             'symbol': currency['id'],
-            'amount': self.number_to_string(amount),
+            'quantity': self.number_to_string(amount),
             'address': address,
         }
         if tag is not None:

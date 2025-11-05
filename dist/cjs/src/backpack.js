@@ -61,6 +61,7 @@ class backpack extends backpack$1["default"] {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
                 'fetchAccounts': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
@@ -79,6 +80,7 @@ class backpack extends backpack$1["default"] {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': false,
                 'fetchLeverage': false,
@@ -93,6 +95,8 @@ class backpack extends backpack$1["default"] {
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -113,6 +117,7 @@ class backpack extends backpack$1["default"] {
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'sandbox': false,
@@ -1436,7 +1441,7 @@ class backpack extends backpack$1["default"] {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] the network to withdraw on (mandatory)
+     * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -1444,7 +1449,7 @@ class backpack extends backpack$1["default"] {
         const currency = this.currency(code);
         const request = {
             'symbol': currency['id'],
-            'amount': this.numberToString(amount),
+            'quantity': this.numberToString(amount),
             'address': address,
         };
         if (tag !== undefined) {

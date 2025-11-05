@@ -11931,6 +11931,9 @@ class binance extends Exchange {
                     $orderidlist = $this->safe_list($extendedParams, 'orderidlist', array());
                     $origclientorderidlist = $this->safe_list_2($extendedParams, 'origclientorderidlist', 'origClientOrderIdList', array());
                     $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist', 'origClientOrderIdList' ));
+                    if (is_array($extendedParams) && array_key_exists('symbol', $extendedParams)) {
+                        $extendedParams['symbol'] = $this->encode_uri_component($extendedParams['symbol']);
+                    }
                     $query = $this->rawencode($extendedParams);
                     $orderidlistLength = count($orderidlist);
                     $origclientorderidlistLength = count($origclientorderidlist);

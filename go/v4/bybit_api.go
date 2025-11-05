@@ -1131,6 +1131,10 @@ func (this *BybitCore) PrivatePostV5AccountRepay(args ...interface{}) <-chan int
 	return this.callEndpointAsync("privatePostV5AccountRepay", args...)
 }
 
+func (this *BybitCore) PrivatePostV5AccountNoConvertRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountNoConvertRepay", args...)
+}
+
 func (this *BybitCore) PrivatePostV5AssetExchangeQuoteApply(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostV5AssetExchangeQuoteApply", args...)
 }

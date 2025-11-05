@@ -432,9 +432,9 @@ class htx extends \ccxt\async\htx {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-$market-$depth-data
-             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-$market-$depth-data
-             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-$market-$depth-data
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-$market-depth-data
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-$market-depth-data
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-$market-depth-data
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -445,21 +445,23 @@ class htx extends \ccxt\async\htx {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $allowedLimits = array( 20, 150 );
+            $allowedLimits = array( 5, 20, 150, 400 );
             // 2) 5-level/20-level incremental MBP is a tick by tick feed,
             // which means whenever there is an order book change at that level, it pushes an update;
             // 150-levels/400-level incremental MBP feed is based on the gap
             // between two snapshots at 100ms interval.
             $options = $this->safe_dict($this->options, 'watchOrderBook', array());
-            $depth = $this->safe_integer($options, 'depth', 150);
-            if (!$this->in_array($depth, $allowedLimits)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $market accepts limits of 20 and 150 only');
+            if ($limit === null) {
+                $limit = $this->safe_integer($options, 'depth', 150);
+            }
+            if (!$this->in_array($limit, $allowedLimits)) {
+                throw new ExchangeError($this->id . ' watchOrderBook $market accepts limits of 5, 20, 150 or 400 only');
             }
             $messageHash = null;
             if ($market['spot']) {
-                $messageHash = 'market.' . $market['id'] . '.mbp.' . $this->number_to_string($depth);
+                $messageHash = 'market.' . $market['id'] . '.mbp.' . $this->number_to_string($limit);
             } else {
-                $messageHash = 'market.' . $market['id'] . '.depth.size_' . $this->number_to_string($depth) . '.high_freq';
+                $messageHash = 'market.' . $market['id'] . '.depth.size_' . $this->number_to_string($limit) . '.high_freq';
             }
             $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, true);
             $method = array($this, 'handle_order_book_subscription');

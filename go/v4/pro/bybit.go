@@ -2381,9 +2381,9 @@ func  (this *BybitCore) HandleOrderWs(client interface{}, message interface{})  
     //            "orderLinkId":"1673523595617593601"
     //        },
     //        "header":{
-    //            "X-Bapi-ccxt.Limit":"20",
-    //            "X-Bapi-ccxt.Limit-Status":"19",
-    //            "X-Bapi-ccxt.Limit-Reset-Timestamp":"1714235558880",
+    //            "X-Bapi-Limit":"20",
+    //            "X-Bapi-Limit-Status":"19",
+    //            "X-Bapi-Limit-Reset-Timestamp":"1714235558880",
     //            "Traceid":"584a06d373f2fdcb3a4dfdd81d27df11",
     //            "Timenow":"1714235558881"
     //        },
@@ -2951,9 +2951,9 @@ func  (this *BybitCore) HandleErrorMessage(client interface{}, message interface
     //
     //       },
     //       "header":{
-    //           "X-Bapi-ccxt.Limit":"20",
-    //           "X-Bapi-ccxt.Limit-Status":"19",
-    //           "X-Bapi-ccxt.Limit-Reset-Timestamp":"1714236608944",
+    //           "X-Bapi-Limit":"20",
+    //           "X-Bapi-Limit-Status":"19",
+    //           "X-Bapi-Limit-Reset-Timestamp":"1714236608944",
     //           "Traceid":"3d7168a137bf32a947b7e5e6a575ac7f",
     //           "Timenow":"1714236608946"
     //       },

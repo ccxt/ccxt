@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
 import asyncio
 import math
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -360,6 +360,44 @@ class hyperliquid(Exchange, ImplicitAPI):
         super(hyperliquid, self).set_sandbox_mode(enabled)
         self.options['sandboxMode'] = enabled
 
+    def market(self, symbol: str) -> MarketInterface:
+        if self.markets is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if symbol in self.markets:
+            market = self.markets[symbol]
+            if market['spot']:
+                baseName = self.safe_string(market, 'baseName')
+                spotCurrencyMapping = self.safe_dict(self.options, 'spotCurrencyMapping', {})
+                if baseName in spotCurrencyMapping:
+                    unifiedBaseName = self.safe_string(spotCurrencyMapping, baseName)
+                    quote = self.safe_string(market, 'quote')
+                    newSymbol = self.safe_currency_code(unifiedBaseName) + '/' + quote
+                    if newSymbol in self.markets:
+                        return self.markets[newSymbol]
+        res = super(hyperliquid, self).market(symbol)
+        return res
+
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
+        if marketId is not None:
+            if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
+                markets = self.markets_by_id[marketId]
+                numMarkets = len(markets)
+                if numMarkets == 1:
+                    return markets[0]
+                else:
+                    if numMarkets > 2:
+                        raise ExchangeError(self.id + ' safeMarket() found more than two markets with the same market id ' + marketId)
+                    firstMarket = markets[0]
+                    secondMarket = markets[1]
+                    if self.safe_string(firstMarket, 'type') != self.safe_string(secondMarket, 'type'):
+                        raise ExchangeError(self.id + ' safeMarket() found two different market types with the same market id ' + marketId)
+                    baseCurrency = self.safe_string(firstMarket, 'base')
+                    spotCurrencyMapping = self.safe_dict(self.options, 'spotCurrencyMapping', {})
+                    if baseCurrency in spotCurrencyMapping:
+                        return secondMarket
+                    return firstMarket
+        return super(hyperliquid, self).safe_market(marketId, market, delimiter, marketType)
+
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
@@ -698,12 +736,14 @@ class hyperliquid(Exchange, ImplicitAPI):
             # backward support
             base = self.safe_currency_code(baseName)
             quote = self.safe_currency_code(quoteId)
+            newEntry = self.extend({}, entry)
             symbol = base + '/' + quote
             if symbol != mappedSymbol:
-                entry['symbol'] = symbol
-                entry['base'] = mappedBase
-                entry['quote'] = mappedQuote
-                markets.append(self.safe_market_structure(entry))
+                newEntry['symbol'] = symbol
+                newEntry['base'] = base
+                newEntry['quote'] = quote
+                newEntry['baseName'] = baseName
+                markets.append(self.safe_market_structure(newEntry))
         return markets
 
     def parse_market(self, market: dict) -> Market:
@@ -2788,8 +2828,13 @@ class hyperliquid(Exchange, ImplicitAPI):
             size = Precise.string_abs(size)
         rawUnrealizedPnl = self.safe_string(entry, 'unrealizedPnl')
         absRawUnrealizedPnl = Precise.string_abs(rawUnrealizedPnl)
-        initialMargin = self.safe_string(entry, 'marginUsed')
-        percentage = Precise.string_mul(Precise.string_div(absRawUnrealizedPnl, initialMargin), '100')
+        marginUsed = self.safe_string(entry, 'marginUsed')
+        initialMargin = None
+        if isIsolated:
+            initialMargin = Precise.string_sub(marginUsed, rawUnrealizedPnl)
+        else:
+            initialMargin = marginUsed
+        percentage = Precise.string_mul(Precise.string_div(absRawUnrealizedPnl, marginUsed), '100')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -2805,7 +2850,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'markPrice': None,
             'notional': self.safe_number(entry, 'positionValue'),
             'leverage': self.safe_number(leverage, 'value'),
-            'collateral': self.safe_number(entry, 'marginUsed'),
+            'collateral': self.parse_number(marginUsed),
             'initialMargin': self.parse_number(initialMargin),
             'maintenanceMargin': None,
             'initialMarginPercentage': None,

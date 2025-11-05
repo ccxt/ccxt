@@ -63,13 +63,17 @@ public partial class bitfinex : ccxt.bitfinex
             { "checksum", false },
         });
         object checksum = this.safeBool(this.options, "checksum", true);
-        if (isTrue(isTrue(isTrue(checksum) && !isTrue(getValue(getValue(((WebSocketClient)client).subscriptions, messageHash), "checksum"))) && isTrue((isEqual(channel, "book")))))
+        if (isTrue(isTrue(checksum) && isTrue((isEqual(channel, "book")))))
         {
-            ((IDictionary<string,object>)getValue(((WebSocketClient)client).subscriptions, messageHash))["checksum"] = true;
-            await client.send(new Dictionary<string, object>() {
-                { "event", "conf" },
-                { "flags", 131072 },
-            });
+            object sub = getValue(((WebSocketClient)client).subscriptions, messageHash);
+            if (isTrue(isTrue(sub) && !isTrue(getValue(sub, "checksum"))))
+            {
+                ((IDictionary<string,object>)getValue(((WebSocketClient)client).subscriptions, messageHash))["checksum"] = true;
+                await client.send(new Dictionary<string, object>() {
+                    { "event", "conf" },
+                    { "flags", 131072 },
+                });
+            }
         }
         return result;
     }

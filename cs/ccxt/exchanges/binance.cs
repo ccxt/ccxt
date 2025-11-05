@@ -11414,7 +11414,7 @@ public partial class binance : Exchange
         {
             if (isTrue(isPortfolioMargin))
             {
-                response = await ((Task<object>)callDynamically(this, "papiV2GetUmAccount", new object[] { parameters }));
+                response = await this.papiV2GetUmAccount(parameters);
             } else
             {
                 object useV2 = null;
@@ -12643,6 +12643,10 @@ public partial class binance : Exchange
                     object orderidlist = this.safeList(extendedParams, "orderidlist", new List<object>() {});
                     object origclientorderidlist = this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new List<object>() {});
                     extendedParams = this.omit(extendedParams, new List<object>() {"orderidlist", "origclientorderidlist", "origClientOrderIdList"});
+                    if (isTrue(inOp(extendedParams, "symbol")))
+                    {
+                        ((IDictionary<string,object>)extendedParams)["symbol"] = this.encodeURIComponent(getValue(extendedParams, "symbol"));
+                    }
                     query = this.rawencode(extendedParams);
                     object orderidlistLength = getArrayLength(orderidlist);
                     object origclientorderidlistLength = getArrayLength(origclientorderidlist);

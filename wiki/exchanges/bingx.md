@@ -423,7 +423,7 @@ query for balance and get the amount of funds available for trading or funds loc
 **See**
 
 - https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
-- https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
+- https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20account%20data
 - https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
 - https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
 
@@ -1254,7 +1254,7 @@ make a withdrawal
 | address | <code>string</code> | Yes | the address to withdraw to |
 | tag | <code>string</code> | No |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.walletType | <code>int</code> | No | 1 fund account, 2 standard account, 3 perpetual account, 15 spot account |
+| params.walletType | <code>int</code> | No | 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account |
 
 
 ```javascript

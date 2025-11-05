@@ -70,7 +70,7 @@ export default class kraken extends krakenRest {
     handleCancelAllOrders(client: any, message: any): void;
     handleTicker(client: any, message: any): void;
     handleTrades(client: Client, message: any): void;
-    handleOHLCV(client: Client, message: any, subscription: any): void;
+    handleOHLCV(client: Client, message: any): void;
     requestId(): any;
     /**
      * @method

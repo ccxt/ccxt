@@ -1,3 +1,30 @@
+<a id="v4.5.14"></a>
+# [v4.5.14](https://github.com/ccxt/ccxt/releases/tag/v4.5.14) - 2025-10-29
+
+## What's Changed
+* fix(arkham): logo and pro flag by [@carlosmiei](https://github.com/carlosmiei) in [#27154](https://github.com/ccxt/ccxt/pull/27154)
+* fix(toobit): pro true ^ by [@ttodua](https://github.com/ttodua) in [#27151](https://github.com/ccxt/ccxt/pull/27151)
+* cryptocom trading fees by [@ndubel](https://github.com/ndubel) in [#27161](https://github.com/ccxt/ccxt/pull/27161)
+* feat(binance): add papiV2GetUmAccount by [@carlosmiei](https://github.com/carlosmiei) in [#27162](https://github.com/ccxt/ccxt/pull/27162)
+* fixed incorrect types on base exchange by [@caoilainnl](https://github.com/caoilainnl) in [#27153](https://github.com/ccxt/ccxt/pull/27153)
+* fix(hyperliquid): fix fetchOHLCV by [@sc0Vu](https://github.com/sc0Vu) in [#27164](https://github.com/ccxt/ccxt/pull/27164)
+* fix(binance): signParams in ws by [@sc0Vu](https://github.com/sc0Vu) in [#27163](https://github.com/ccxt/ccxt/pull/27163)
+* fix(go): prevent precision loss in Binance order IDs and other large integers by [@tttpeng](https://github.com/tttpeng) in [#26557](https://github.com/ccxt/ccxt/pull/26557)
+* fix(htx): watchOrderBook limit fix by [@carlosmiei](https://github.com/carlosmiei) in [#27167](https://github.com/ccxt/ccxt/pull/27167)
+* feat(kucoin): add new endpoints by [@Dan-krm](https://github.com/Dan-krm) in [#27174](https://github.com/ccxt/ccxt/pull/27174)
+* feat(bitget): fetchFundingIntervals updated by [@yzh-pelle](https://github.com/yzh-pelle) in [#27165](https://github.com/ccxt/ccxt/pull/27165)
+* fix(hyperliquid): adjust initialMargin value by [@Dan-krm](https://github.com/Dan-krm) in [#27159](https://github.com/ccxt/ccxt/pull/27159)
+* fix(hyperliquid): ambigous spot symbols (BTC/USDC and UBTC/USDC support) by [@carlosmiei](https://github.com/carlosmiei) in [#27175](https://github.com/ccxt/ccxt/pull/27175)
+* feat(gate): add apis, mark deprecated by [@sc0Vu](https://github.com/sc0Vu) in [#27146](https://github.com/ccxt/ccxt/pull/27146)
+* fix(binance): watchMyTrades/Orders inverse perps by [@carlosmiei](https://github.com/carlosmiei) in [#27177](https://github.com/ccxt/ccxt/pull/27177)
+* fix(bitfinex): protect watchOrderBook client.sub access by [@carlosmiei](https://github.com/carlosmiei) in [#27178](https://github.com/ccxt/ccxt/pull/27178)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.13...v4.5.14
+
+[Changes][v4.5.14]
+
+
 <a id="v4.5.13"></a>
 # [v4.5.13](https://github.com/ccxt/ccxt/releases/tag/v4.5.13) - 2025-10-27
 
@@ -10667,6 +10694,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.14]: https://github.com/ccxt/ccxt/compare/v4.5.13...v4.5.14
 [v4.5.13]: https://github.com/ccxt/ccxt/compare/v4.5.12...v4.5.13
 [v4.5.12]: https://github.com/ccxt/ccxt/compare/v4.5.11...v4.5.12
 [v4.5.11]: https://github.com/ccxt/ccxt/compare/v4.5.10...v4.5.11

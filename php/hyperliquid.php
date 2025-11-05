@@ -347,6 +347,57 @@ class hyperliquid extends Exchange {
         $this->options['sandboxMode'] = $enabled;
     }
 
+    public function market(string $symbol): array {
+        if ($this->markets === null) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
+        if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+            $market = $this->markets[$symbol];
+            if ($market['spot']) {
+                $baseName = $this->safe_string($market, 'baseName');
+                $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+                if (is_array($spotCurrencyMapping) && array_key_exists($baseName, $spotCurrencyMapping)) {
+                    $unifiedBaseName = $this->safe_string($spotCurrencyMapping, $baseName);
+                    $quote = $this->safe_string($market, 'quote');
+                    $newSymbol = $this->safe_currency_code($unifiedBaseName) . '/' . $quote;
+                    if (is_array($this->markets) && array_key_exists($newSymbol, $this->markets)) {
+                        return $this->markets[$newSymbol];
+                    }
+                }
+            }
+        }
+        $res = parent::market($symbol);
+        return $res;
+    }
+
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
+        if ($marketId !== null) {
+            if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+                $markets = $this->markets_by_id[$marketId];
+                $numMarkets = count($markets);
+                if ($numMarkets === 1) {
+                    return $markets[0];
+                } else {
+                    if ($numMarkets > 2) {
+                        throw new ExchangeError($this->id . ' safeMarket() found more than two $markets with the same $market id ' . $marketId);
+                    }
+                    $firstMarket = $markets[0];
+                    $secondMarket = $markets[1];
+                    if ($this->safe_string($firstMarket, 'type') !== $this->safe_string($secondMarket, 'type')) {
+                        throw new ExchangeError($this->id . ' safeMarket() found two different $market types with the same $market id ' . $marketId);
+                    }
+                    $baseCurrency = $this->safe_string($firstMarket, 'base');
+                    $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+                    if (is_array($spotCurrencyMapping) && array_key_exists($baseCurrency, $spotCurrencyMapping)) {
+                        return $secondMarket;
+                    }
+                    return $firstMarket;
+                }
+            }
+        }
+        return parent::safe_market($marketId, $market, $delimiter, $marketType);
+    }
+
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
@@ -696,12 +747,14 @@ class hyperliquid extends Exchange {
             // backward support
             $base = $this->safe_currency_code($baseName);
             $quote = $this->safe_currency_code($quoteId);
+            $newEntry = $this->extend(array(), $entry);
             $symbol = $base . '/' . $quote;
             if ($symbol !== $mappedSymbol) {
-                $entry['symbol'] = $symbol;
-                $entry['base'] = $mappedBase;
-                $entry['quote'] = $mappedQuote;
-                $markets[] = $this->safe_market_structure($entry);
+                $newEntry['symbol'] = $symbol;
+                $newEntry['base'] = $base;
+                $newEntry['quote'] = $quote;
+                $newEntry['baseName'] = $baseName;
+                $markets[] = $this->safe_market_structure($newEntry);
             }
         }
         return $markets;
@@ -2929,8 +2982,14 @@ class hyperliquid extends Exchange {
         }
         $rawUnrealizedPnl = $this->safe_string($entry, 'unrealizedPnl');
         $absRawUnrealizedPnl = Precise::string_abs($rawUnrealizedPnl);
-        $initialMargin = $this->safe_string($entry, 'marginUsed');
-        $percentage = Precise::string_mul(Precise::string_div($absRawUnrealizedPnl, $initialMargin), '100');
+        $marginUsed = $this->safe_string($entry, 'marginUsed');
+        $initialMargin = null;
+        if ($isIsolated) {
+            $initialMargin = Precise::string_sub($marginUsed, $rawUnrealizedPnl);
+        } else {
+            $initialMargin = $marginUsed;
+        }
+        $percentage = Precise::string_mul(Precise::string_div($absRawUnrealizedPnl, $marginUsed), '100');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2946,7 +3005,7 @@ class hyperliquid extends Exchange {
             'markPrice' => null,
             'notional' => $this->safe_number($entry, 'positionValue'),
             'leverage' => $this->safe_number($leverage, 'value'),
-            'collateral' => $this->safe_number($entry, 'marginUsed'),
+            'collateral' => $this->parse_number($marginUsed),
             'initialMargin' => $this->parse_number($initialMargin),
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,

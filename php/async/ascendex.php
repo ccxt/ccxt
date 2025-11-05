@@ -48,6 +48,7 @@ class ascendex extends Exchange {
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,

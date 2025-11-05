@@ -74,7 +74,7 @@ public partial class bitget : Exchange
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
                 { "fetchFundingInterval", true },
-                { "fetchFundingIntervals", false },
+                { "fetchFundingIntervals", true },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
@@ -1359,6 +1359,7 @@ public partial class bitget : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "APX", "AstroPepeX" },
                 { "DEGEN", "DegenReborn" },
+                { "EVA", "Evadore" },
                 { "JADE", "Jade Protocol" },
                 { "OMNI", "omni" },
                 { "TONCOIN", "TON" },
@@ -2447,12 +2448,24 @@ public partial class bitget : Exchange
             object code = this.safeCurrencyCode(id);
             object chains = this.safeValue(entry, "chains", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            object withdraw = null;
+            object deposit = null;
+            object chainsLength = getArrayLength(chains);
+            if (isTrue(isEqual(chainsLength, 0)))
+            {
+                withdraw = false;
+                deposit = false;
+            }
+            for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");
                 object network = this.networkIdToCode(networkId, code);
                 network = ((string)network).ToUpper();
+                object withdrawable = (isEqual(this.safeString(chain, "withdrawable"), "true"));
+                object rechargeable = (isEqual(this.safeString(chain, "rechargeable"), "true"));
+                withdraw = ((bool) isTrue((isEqual(withdraw, null)))) ? withdrawable : (isTrue(withdraw) || isTrue(withdrawable));
+                deposit = ((bool) isTrue((isEqual(deposit, null)))) ? rechargeable : (isTrue(deposit) || isTrue(rechargeable));
                 ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", networkId },
@@ -2468,12 +2481,13 @@ public partial class bitget : Exchange
                         } },
                     } },
                     { "active", null },
-                    { "withdraw", isEqual(this.safeString(chain, "withdrawable"), "true") },
-                    { "deposit", isEqual(this.safeString(chain, "rechargeable"), "true") },
+                    { "withdraw", withdrawable },
+                    { "deposit", rechargeable },
                     { "fee", this.safeNumber(chain, "withdrawFee") },
                     { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawMinScale"))) },
                 };
             }
+            object active = isTrue(withdraw) && isTrue(deposit);
             object isFiat = this.inArray(code, fiatCurrencies);
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", entry },
@@ -2482,9 +2496,9 @@ public partial class bitget : Exchange
                 { "networks", networks },
                 { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "name", null },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
+                { "active", active },
+                { "deposit", deposit },
+                { "withdraw", withdraw },
                 { "fee", null },
                 { "precision", null },
                 { "limits", new Dictionary<string, object>() {
@@ -9087,6 +9101,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
      */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
@@ -9104,43 +9119,91 @@ public partial class bitget : Exchange
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
+        object method = "publicMixGetV2MixMarketTickers";
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRates", "method", method);
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
+        object response = null;
         ((IDictionary<string,object>)request)["productType"] = productType;
-        object response = await this.publicMixGetV2MixMarketTickers(this.extend(request, parameters));
-        // {
-        //     "code": "00000",
-        //     "msg": "success",
-        //     "requestTime": 1700533773477,
-        //     "data": [
-        //         {
-        //             "symbol": "BTCUSD",
-        //             "lastPr": "29904.5",
-        //             "askPr": "29904.5",
-        //             "bidPr": "29903.5",
-        //             "bidSz": "0.5091",
-        //             "askSz": "2.2694",
-        //             "high24h": "0",
-        //             "low24h": "0",
-        //             "ts": "1695794271400",
-        //             "change24h": "0",
-        //             "baseVolume": "0",
-        //             "quoteVolume": "0",
-        //             "usdtVolume": "0",
-        //             "openUtc": "0",
-        //             "changeUtc24h": "0",
-        //             "indexPrice": "29132.353333",
-        //             "fundingRate": "-0.0007",
-        //             "holdingAmount": "125.6844",
-        //             "deliveryStartTime": null,
-        //             "deliveryTime": null,
-        //             "deliveryStatus": "delivery_normal",
-        //             "open24h": "0",
-        //             "markPrice": "12345"
-        //         },
-        //     ]
-        // }
+        if (isTrue(isEqual(method, "publicMixGetV2MixMarketTickers")))
+        {
+            // {
+            //     "code": "00000",
+            //     "msg": "success",
+            //     "requestTime": 1700533773477,
+            //     "data": [
+            //         {
+            //             "symbol": "BTCUSD",
+            //             "lastPr": "29904.5",
+            //             "askPr": "29904.5",
+            //             "bidPr": "29903.5",
+            //             "bidSz": "0.5091",
+            //             "askSz": "2.2694",
+            //             "high24h": "0",
+            //             "low24h": "0",
+            //             "ts": "1695794271400",
+            //             "change24h": "0",
+            //             "baseVolume": "0",
+            //             "quoteVolume": "0",
+            //             "usdtVolume": "0",
+            //             "openUtc": "0",
+            //             "changeUtc24h": "0",
+            //             "indexPrice": "29132.353333",
+            //             "fundingRate": "-0.0007",
+            //             "holdingAmount": "125.6844",
+            //             "deliveryStartTime": null,
+            //             "deliveryTime": null,
+            //             "deliveryStatus": "delivery_normal",
+            //             "open24h": "0",
+            //             "markPrice": "12345"
+            //         },
+            //     ]
+            // }
+            response = await this.publicMixGetV2MixMarketTickers(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "publicMixGetV2MixMarketCurrentFundRate")))
+        {
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime":1761659449917,
+            //         "data":[
+            //             {
+            //                 "symbol": "BTCUSDT",
+            //                 "fundingRate": "-0.000024",
+            //                 "fundingRateInterval": "8",
+            //                 "nextUpdate": "1761667200000",
+            //                 "minFundingRate": "-0.003",
+            //                 "maxFundingRate": "0.003"
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, parameters));
+        }
         symbols = this.marketSymbols(symbols);
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseFundingRates(data, symbols);
+    }
+
+    /**
+     * @method
+     * @name bitget#fetchFundingIntervals
+     * @description fetch the funding rate interval for multiple markets
+     * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    public async override Task<object> fetchFundingIntervals(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        parameters = this.extend(new Dictionary<string, object>() {
+            { "method", "publicMixGetV2MixMarketCurrentFundRate" },
+        }, parameters);
+        return await this.fetchFundingRates(symbols, parameters);
     }
 
     public override object parseFundingRate(object contract, object market = null)

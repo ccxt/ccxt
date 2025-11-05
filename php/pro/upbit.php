@@ -434,12 +434,36 @@ class upbit extends \ccxt\async\upbit {
                 'hostname' => $this->hostname,
             ));
             $url .= '/private';
+            $client = $this->client($url);
+            // Track private $channel $subscriptions to support multiple concurrent watches
+            $subscriptionsKey = 'upbitPrivateSubscriptions';
+            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey, $client->subscriptions))) {
+                $client->subscriptions[$subscriptionsKey] = array();
+            }
+            $channelKey = $channel;
+            if ($symbol !== null) {
+                $channelKey = $channel . ':' . $symbol;
+            }
+            $subscriptions = $client->subscriptions[$subscriptionsKey];
+            $isNewChannel = !(is_array($subscriptions) && array_key_exists($channelKey, $subscriptions));
+            if ($isNewChannel) {
+                $subscriptions[$channelKey] = $request;
+            }
+            // Build subscription $message with all requested private channels
+            // Format => [array('ticket' => uuid), array('type' => 'myOrder'), array('type' => 'myAsset'), ...]
+            $requests = array();
+            $channelKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
+            for ($i = 0; $i < count($channelKeys); $i++) {
+                $requests[] = $subscriptions[$channelKeys[$i]];
+            }
             $message = array(
                 array(
                     'ticket' => $this->uuid(),
                 ),
-                $request,
             );
+            for ($i = 0; $i < count($requests); $i++) {
+                $message[] = $requests[$i];
+            }
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
