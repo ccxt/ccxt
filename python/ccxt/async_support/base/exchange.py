@@ -269,13 +269,20 @@ class Exchange(BaseExchange):
         if http_response == '' or http_response is None:
             return http_response
         return response.content
+    def normalize_socks_proxy_scheme(self, proxy_url: str):
+        """convert socks5h:// to socks5:// with rdns=True"""
+        if proxy_url.lower().startswith("socks5h://"):
+            return "socks5://" + proxy_url[10:], True  # len("socks5h://") = 10
+        return proxy_url, False
 
     def get_socks_proxy_session(self, socksProxy):
         if (self.socks_proxy_sessions is None):
             self.socks_proxy_sessions = {}
         if (socksProxy not in self.socks_proxy_sessions):
+            normalized_socks, rdns = self.normalize_socks_proxy_scheme(socksProxy)
             self.aiohttp_socks_connector = ProxyConnector.from_url(
                 socksProxy,
+                rdns=rdns,
                 # extra args copied from self.open()
                 ssl=self.ssl_context,
                 loop=self.asyncio_loop,
