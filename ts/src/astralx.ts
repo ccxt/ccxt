@@ -1056,29 +1056,6 @@ export default class astralx extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name astralx#fetchOrder
-         * @description fetches information on an order made by the user
-         * @param {string} id the order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        const request = {
-            'orderId': id,
-        };
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        const response = await this.privateGetOpenapiContractOrder (this.extend (request, params));
-        const order = this.safeValue (response, 'data', {});
-        return this.parseOrder (order);
-    }
-
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
