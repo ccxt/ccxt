@@ -45,9 +45,9 @@ export default class xcoin extends xcoinRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'watchOrderBook': {
-                    'depth': 20,
-                    'interval': '100ms', // 100ms or 1000ms
+                'watchOrderBookForSymbols': {
+                    'depth': 30, // 5, 10, 20, 30
+                    'interval': 100, // 100, 500, 1000 ms
                 },
                 'watchTicker': {
                     'channel': 'ticker24hr', // ticker24hr or miniTicker
@@ -73,21 +73,67 @@ export default class xcoin extends xcoinRest {
         });
     }
 
-    async publicWatch (unifiedChannel: string, exchangeChannel: string, market: Market, params = {}) {
+    async publicWatch (unifiedHash: string, exchangeChannel: string, symbols = undefined, params = {}) {
         const url = this.urls['api']['ws']['public'];
-        const messageHash = unifiedChannel + ':' + market['symbol'];
-        const subscribe = {
-            'event': 'subscribe',
-            'data': [
-                {
-                    'businessType': market['spot'] ? 'spot' : 'linear_perpetual',
-                    'symbol': market['id'],
-                    'stream': exchangeChannel,
-                },
-            ],
+        const channelMap = {
+            'spot': 'spot',
+            'swap': 'linear_perpetual',
+            'future': 'linear_futures',
         };
-        const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        const pluralMethods = {
+            'orderBook': 'watchOrderBooks',
+            'ticker': 'watchTickers',
+        };
+        let messageHash = unifiedHash;
+        const requestObjects = [];
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const symbolsLength = symbols.length;
+        const isSingleSymbol = (symbolsLength !== undefined) && (symbolsLength === 1);
+        if (isSingleSymbol) {
+            const market = this.market (symbols[0]);
+            requestObjects.push ({
+                'symbol': market['id'],
+                'stream': exchangeChannel,
+                'businessType': this.safeString (channelMap, market['type']),
+            });
+            const subscribe = {
+                'event': 'subscribe',
+                'data': requestObjects,
+            };
+            const request = this.deepExtend (subscribe, params);
+            messageHash = messageHash + ':' + market['symbol'];
+            return await this.watch (url, messageHash, request, messageHash);
+        } else {
+            const messageHashes = [];
+            if (symbolsLength > 1) {
+                for (let i = 0; i < symbolsLength; i++) {
+                    const market = this.market (symbols[i]);
+                    requestObjects.push ({
+                        'symbol': market['id'],
+                        'stream': exchangeChannel,
+                        'businessType': this.safeString (channelMap, market['type']),
+                    });
+                    messageHashes.push (unifiedHash + ':' + market['symbol']);
+                }
+            } else {
+                messageHash = messageHash + 's';
+                let marketType: Str = undefined;
+                const callingMethod = this.safeString (pluralMethods, unifiedHash, unifiedHash);
+                [ marketType, params ] = this.handleOptionAndParams (params, callingMethod, 'type');
+                requestObjects.push ({
+                    'stream': exchangeChannel,
+                    'businessType': this.safeString (channelMap, marketType),
+                });
+                messageHash = messageHash + ':' + 's';
+                messageHashes.push (messageHash);
+            }
+            const subscribe = {
+                'event': 'subscribe',
+                'data': requestObjects,
+            };
+            const request = this.deepExtend (subscribe, params);
+            return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        }
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -100,11 +146,26 @@ export default class xcoin extends xcoinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
+        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name apex#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/trade-channel
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const trades = await this.publicWatch ('trade', 'trade', market, params);
+        const trades = await this.publicWatch ('trade', 'trade', symbols, params);
         if (this.newUpdates) {
+            const first = this.safeDict (trades, 0);
+            const symbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -145,6 +206,7 @@ export default class xcoin extends xcoinRest {
             trades.append (trade);
         }
         client.resolve (trades, messageHash);
+        client.resolve (trades, 'trades');
     }
 
     parseWsTrade (trade: any, market: any = undefined): Trade {
@@ -202,11 +264,10 @@ export default class xcoin extends xcoinRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'ticker24hr');
-        return await this.publicWatch ('ticker', channel, market, params);
+        symbol = this.symbol (symbol);
+        let wsChannel: Str = undefined;
+        [ wsChannel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'ticker24hr');
+        return await this.publicWatch ('ticker', wsChannel, [ symbol ], params);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -218,22 +279,9 @@ export default class xcoin extends xcoinRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'ticker24hr');
-        const url = this.urls['api']['ws']['public'];
-        const messageHash = 'tickers';
-        const subscribe = {
-            'event': 'subscribe',
-            'data': [
-                {
-                    'businessType': 'spot',
-                    'stream': channel,
-                },
-            ],
-        };
-        const request = this.deepExtend (subscribe, params);
-        const tickers = await this.watch (url, messageHash, request, channel);
+        let wsChannel: Str = undefined;
+        [ wsChannel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'ticker24hr');
+        const tickers = await this.publicWatch ('ticker', wsChannel, symbols, params);
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
@@ -263,13 +311,14 @@ export default class xcoin extends xcoinRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeList (message, 'data', []);
+        const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsTicker (data[i], market);
+            newTickers[symbol] = ticker;
             this.tickers[symbol] = ticker;
-            const messageHash = 'ticker:' + symbol;
-            client.resolve (ticker, messageHash);
-            client.resolve (this.tickers, 'tickers');
+            client.resolve (ticker, 'ticker:' + symbol);
         }
+        client.resolve (newTickers, 'tickers');
     }
 
     parseWsTicker (ticker: any, market: any = undefined): Ticker {
@@ -306,24 +355,24 @@ export default class xcoin extends xcoinRest {
          * @param {string} [params.interval] 100ms or 1000ms, default is 100ms
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name xcoin#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/incremental-depth-channel
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const url = this.urls['api']['ws']['public'];
-        const messageHash = 'depth:' + symbol;
-        const interval = this.safeString (params, 'interval', this.safeString (this.options['watchOrderBook'], 'interval', '100ms'));
-        const subscribe = {
-            'event': 'subscribe',
-            'data': [
-                {
-                    'businessType': market['spot'] ? 'spot' : 'linear_perpetual',
-                    'symbol': market['id'],
-                    'stream': 'depth#' + interval,
-                },
-            ],
-        };
-        const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        let interval = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 100);
+        const orderbook = await this.publicWatch ('orderbook', 'depthlevels#' + interval.toString () + 'ms', symbols, params);
         return orderbook.limit ();
     }
 

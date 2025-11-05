@@ -505,7 +505,7 @@ export default class xcoin extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'spot',
+            'type': marketType,
             'spot': (marketType === 'spot'),
             'margin': false,
             'swap': (marketType === 'swap'),
