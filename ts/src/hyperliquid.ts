@@ -1518,13 +1518,14 @@ export default class hyperliquid extends Exchange {
             'nonce': nonce,
             'signature': signature,
         };
+        let response = undefined;
         try {
-            const response = await this.privatePostExchange (request);
+            response = await this.privatePostExchange (request);
             return response;
         } catch (e) {
-            // return false;
+            response = undefined; // ignore this
         }
-        return false;
+        return response;
     }
 
     async approveBuilderFee (builder: string, maxFeeRate: string) {
