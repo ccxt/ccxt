@@ -1502,7 +1502,7 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
-    async setReferrer () {
+    async setRef () {
         if (this.safeBool (this.options, 'refSet', false)) {
             return true;
         }
@@ -1563,7 +1563,7 @@ export default class hyperliquid extends Exchange {
 
     async initializeClient () {
         try {
-            await Promise.all ([ this.handleBuilderFeeApproval (), this.setReferrer () ]);
+            await Promise.all ([ this.handleBuilderFeeApproval (), this.setRef () ]);
             return true;
         } catch (e) {
             return false;
