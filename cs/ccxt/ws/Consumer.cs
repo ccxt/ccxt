@@ -110,8 +110,8 @@ namespace ccxt.pro
             var stream = message.metadata.stream;
             var fn = this.fn;
             Action<Exception> produceError = (Exception err) => {
-                // Wrap the error in a suitable object if needed, here just passing the message
-                stream.produce("errors", message, err.Message);
+                var error = new ccxt.ConsumerFunctionError(err.Message);
+                stream.produce("errors", message, error);
             };
             if (synchronous)
             {
