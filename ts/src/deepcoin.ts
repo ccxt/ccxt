@@ -2921,7 +2921,7 @@ export default class deepcoin extends Exchange {
 
     /**
      * @method
-     * @name binance#fetchOrderTrades
+     * @name deepcoin#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
      * @param {string} id order id
