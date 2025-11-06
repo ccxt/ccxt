@@ -441,7 +441,25 @@ const INTERFACE_METHODS = [
     'watchTrades',
     'watchTradesForSymbols',
     'withdrawWs',
-    
+    // subscribe methods
+    'subscribeBalance',
+    'subscribeTicker',
+    'subscribeTickers',
+    'subscribeTrades',
+    'subscribeMyTrades',
+    'subscribeOrders',
+    'subscribeOHLCV',
+    'subscribePosition',
+    'subscribePositions',
+    'unsubscribeBalance',
+    'unsubscribeTicker',
+    'unsubscribeTickers',
+    'unsubscribeTrades',
+    'unsubscribeMyTrades',
+    'unsubscribeOrders',
+    'unsubscribeOHLCV',
+    'unsubscribePosition',
+    'unsubscribePositions',
 ];
 
 class NewTranspiler {
@@ -2539,6 +2557,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/message\.error\b/g, 'message.Error'],
                 [/message\.payload\b/g, 'message.Payload'],
                 [/message\.metadata\b/g, 'message.Metadata'],
+                // Fix Message type in consumer function parameters (only in function signatures)
+                [/func\((message interface\{\})\)/g, 'func(message *ccxt.Message)'],
                 // Capitalize subscribe methods for Go
                 [/exchange\.subscribe([A-Z]\w+)/g, 'exchange.Subscribe$1'],
 
