@@ -46,8 +46,11 @@ export default class xcoin extends xcoinRest {
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'watchOrderBookForSymbols': {
-                    'depth': 30, // 5, 10, 20, 30
-                    'interval': 100, // 100, 500, 1000 ms
+                    // full snapshots:
+                    //    depthLevels#[100|500|1000]ms#[5|10|20|30]
+                    // incremental updates
+                    //    depth#[100|500|1000]ms
+                    'method': 'depth#100ms',
                 },
                 'watchTicker': {
                     'channel': 'ticker24hr', // ticker24hr or miniTicker
@@ -82,6 +85,7 @@ export default class xcoin extends xcoinRest {
         };
         const requestObjects = [];
         const isOHLCV = (unifiedHash === 'ohlcv');
+        const isDepth = (exchangeChannel.startsWith ('depth#'));
         let symbols = symbolsArray;
         if (isOHLCV) {
             symbols = this.getListFromObjectValues (symbols, 0);
@@ -91,10 +95,16 @@ export default class xcoin extends xcoinRest {
         if (symbolsLength === 1) {
             const market = this.market (symbols[0]);
             let messageHash = unifiedHash + '::' + market['symbol'];
+            let subscription = undefined;
             if (isOHLCV) {
                 const timeframe = symbolsArray[0][1];
                 exchangeChannel = exchangeChannel + this.safeString (this.timeframes, timeframe, timeframe);
                 messageHash = messageHash + '::' + timeframe;
+            } else if (isDepth) {
+                subscription = {
+                    'id': exchangeChannel + '_' + market['id'],
+                    'method': this.handleOrderBookSubscription,
+                };
             }
             const subscribe = {
                 'event': 'subscribe',
@@ -107,7 +117,7 @@ export default class xcoin extends xcoinRest {
                 ],
             };
             const request = this.deepExtend (subscribe, params);
-            return await this.watch (url, messageHash, request, messageHash);
+            return await this.watch (url, messageHash, request, messageHash, subscription);
         } else {
             const messageHashes = [];
             if (symbolsLength > 1) {
@@ -149,6 +159,110 @@ export default class xcoin extends xcoinRest {
             const request = this.deepExtend (subscribe, params);
             return await this.watchMultiple (url, messageHashes, request, messageHashes);
         }
+    }
+
+    handleMessage (client: Client, message: any) {
+        const event = this.safeString (message, 'event');
+        if (event === 'subscribe') {
+            this.handleSubscriptionStatus (client, message);
+            return;
+        }
+        if (event === 'authorization') {
+            return this.handleAuthenticationMessage (client, message);
+        }
+        // Handle error messages
+        const code = this.safeString (message, 'code');
+        if (code !== undefined && code !== '0') {
+            this.handleErrorMessage (client, message);
+            return;
+        }
+        // Handle data messages by stream type
+        const stream = this.safeString (message, 'stream');
+        if (stream === undefined) {
+            return;
+        }
+        const methods: Dict = {
+            'pong': this.handlePong,
+            'position': this.handlePosition,
+            'order': this.handleOrder,
+            'trading_account': this.handleBalance,
+            'depth': this.handleOrderBook,
+            'orderBook': this.handleBidsAsks, // best bid-asks
+            'ticker24hr': this.handleTicker,
+            'miniTicker': this.handleTicker,
+            'trade': this.handleTrade,
+            'subscribe': this.handleSubscribe,
+        };
+        const methodMatches = {
+            'kline#': this.handleOHLCV,
+            'depthlevels#': this.handleOrderBook,
+        };
+        const method = this.safeValue (methods, stream);
+        if (method !== undefined) {
+            method.call (this, client, message);
+        } else {
+            const keys = Object.keys (methodMatches);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                if (stream.indexOf (key) >= 0) {
+                    const methodRegex = methodMatches[key];
+                    methodRegex.call (this, client, message);
+                    return;
+                }
+            }
+        }
+    }
+
+    handleSubscriptionStatus (client: Client, message: any) {
+        //
+        // successful subscription
+        //
+        //    {
+        //        "event": "subscribe",
+        //        "data": [
+        //            {
+        //                "businessType": "linear_perpetual",
+        //                "symbol": "BTC-USDT-PERP",
+        //                "stream": "trade",
+        //                "message": "成功",
+        //                "code": 0
+        //            }
+        //        ],
+        //        "ts": 1762237676412
+        //    }
+        //
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const subscriptionRaw = data[i];
+            const code = this.safeInteger (subscriptionRaw, 'code');
+            if (code !== 0) {
+                continue;
+            }
+            const marketId = this.safeString (subscriptionRaw, 'symbol');
+            const stream = this.safeString (subscriptionRaw, 'stream');
+            const id = stream + '_' + marketId;
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subscription = this.safeValue (subscriptionsById, id, {});
+            const method = this.safeValue (subscription, 'method');
+            if (method !== undefined) {
+                method.call (this, client, message, subscription);
+            }
+        }
+    }
+
+    handlePong (client: Client, message: any) {
+        //
+        // { "event": "pong", "ts": "1732256095953" }
+        //
+        client.lastPong = this.milliseconds ();
+        return message;
+    }
+
+    ping (client: Client) {
+        //
+        // Send ping message to keep connection alive
+        //
+        return 'ping';
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -389,9 +503,9 @@ export default class xcoin extends xcoinRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        let interval = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 100);
-        const orderbook = await this.publicWatch ('orderBook', 'depthlevels#' + interval.toString () + 'ms', symbols, params);
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'method', 'depth#100ms');
+        const orderbook = await this.publicWatch ('orderBook', method, symbols, params);
         return orderbook.limit ();
     }
 
@@ -440,6 +554,49 @@ export default class xcoin extends xcoinRest {
             orderbook.reset (snapshot);
             client.resolve (orderbook, messageHash);
         }
+    }
+
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const messageHash = this.safeString (message, 'topic');
+        try {
+            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+            const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+            const params = this.safeValue (subscription, 'params');
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
+            if (this.safeValue (this.orderbooks, symbol) === undefined) {
+                // if the orderbook is dropped before the snapshot is received
+                return;
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook.reset (snapshot);
+            const messages = orderbook.cache;
+            for (let i = 0; i < messages.length; i++) {
+                const messageItem = messages[i];
+                const ts = this.safeInteger (messageItem, 'ts');
+                if (ts < orderbook['timestamp']) {
+                    continue;
+                } else {
+                    this.handleOrderBookMessage (client, messageItem, orderbook);
+                }
+            }
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        } catch (e) {
+            delete client.subscriptions[messageHash];
+            client.reject (e, messageHash);
+        }
+    }
+
+    handleOrderBookMessage (client: Client, message, orderbook) {
+        const data = this.safeDict (message, 'data');
+        this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
+        this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
+        const timestamp = this.safeInteger (message, 'ts');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        return orderbook;
     }
 
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -1112,57 +1269,6 @@ export default class xcoin extends xcoinRest {
         });
     }
 
-    handleMessage (client: Client, message: any) {
-        const event = this.safeString (message, 'event');
-        if (event === 'subscribe') {
-            this.handleSubscriptionStatus (client, message);
-            return;
-        }
-        if (event === 'authorization') {
-            return this.handleAuthenticationMessage (client, message);
-        }
-        // Handle error messages
-        const code = this.safeString (message, 'code');
-        if (code !== undefined && code !== '0') {
-            this.handleErrorMessage (client, message);
-            return;
-        }
-        // Handle data messages by stream type
-        const stream = this.safeString (message, 'stream');
-        if (stream === undefined) {
-            return;
-        }
-        const methods: Dict = {
-            'pong': this.handlePong,
-            'position': this.handlePosition,
-            'order': this.handleOrder,
-            'trading_account': this.handleBalance,
-            'depth': this.handleOrderBook,
-            'orderBook': this.handleBidsAsks, // best bid-asks
-            'ticker24hr': this.handleTicker,
-            'miniTicker': this.handleTicker,
-            'trade': this.handleTrade,
-        };
-        const methodMatches = {
-            'kline#': this.handleOHLCV,
-            'depthlevels#': this.handleOrderBook,
-        };
-        const method = this.safeValue (methods, stream);
-        if (method !== undefined) {
-            method.call (this, client, message);
-        } else {
-            const keys = Object.keys (methodMatches);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                if (stream.indexOf (key) >= 0) {
-                    const methodRegex = methodMatches[key];
-                    methodRegex.call (this, client, message);
-                    return;
-                }
-            }
-        }
-    }
-
     handleAuthenticationMessage (client: Client, message: any) {
         //
         // {
@@ -1195,42 +1301,6 @@ export default class xcoin extends xcoinRest {
         this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
         throw new ExchangeError (feedback);
-    }
-
-    handleSubscriptionStatus (client: Client, message: any) {
-        //
-        // successful subscription
-        //
-        //    {
-        //        "event": "subscribe",
-        //        "data": [
-        //            {
-        //                "businessType": "linear_perpetual",
-        //                "symbol": "BTC-USDT-PERP",
-        //                "stream": "trade",
-        //                "message": "成功",
-        //                "code": 0
-        //            }
-        //        ],
-        //        "ts": 1762237676412
-        //    }
-        //
-        return message;
-    }
-
-    handlePong (client: Client, message: any) {
-        //
-        // { "event": "pong", "ts": "1732256095953" }
-        //
-        client.lastPong = this.milliseconds ();
-        return message;
-    }
-
-    ping (client: Client) {
-        //
-        // Send ping message to keep connection alive
-        //
-        return 'ping';
     }
 
     async authenticate (params = {}) {

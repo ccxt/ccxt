@@ -5165,6 +5165,24 @@ export default class Exchange {
         return this.accounts;
     }
 
+    spawnFetchOrderBookSnapshot (client: Client, message, subscription) {
+        const wsOptions = this.safeDict (this.options, 'ws', this.options);
+        const methodDict = this.safeDict (wsOptions, 'orderBook', {});
+        const defaultLimit = this.safeInteger (methodDict, 'limit', 1000);
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        const symbol = this.safeString (subscription, 'symbol');
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+    }
+
+    
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        throw new NotSupported (this.id + ' fetchOrderBookSnapshot() is not implemented');
+    }
+
     buildOHLCVC (trades: Trade[], timeframe: string = '1m', since: number = 0, limit: number = 2147483647): OHLCVC[] {
         // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
         // note, default limit value (2147483647) is max int32 value
