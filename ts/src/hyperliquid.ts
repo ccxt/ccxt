@@ -1509,7 +1509,7 @@ export default class hyperliquid extends Exchange {
         this.options['refSet'] = true;
         const action = {
             'type': 'setReferrer',
-            'code': this.safeString (this.options, 'refCode', 'CCXT1'),
+            'code': this.safeString (this.options, 'ref', 'CCXT1'),
         };
         const nonce = this.milliseconds ();
         const signature = this.signL1Action (action, nonce);
