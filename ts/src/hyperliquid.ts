@@ -414,7 +414,7 @@ export default class hyperliquid extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         if (this.checkRequiredCredentials (false)) {
-            await this.handleBuilderFeeApproval ();
+            await this.initializeClient ();
         }
         const request: Dict = {
             'type': 'meta',
@@ -1502,6 +1502,32 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
+    async setRef () {
+        if (this.safeBool (this.options, 'refSet', false)) {
+            return true;
+        }
+        this.options['refSet'] = true;
+        const action = {
+            'type': 'setReferrer',
+            'code': this.safeString (this.options, 'ref', 'CCXT1'),
+        };
+        const nonce = this.milliseconds ();
+        const signature = this.signL1Action (action, nonce);
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+        };
+        let response = undefined;
+        try {
+            response = await this.privatePostExchange (request);
+            return response;
+        } catch (e) {
+            response = undefined; // ignore this
+        }
+        return response;
+    }
+
     async approveBuilderFee (builder: string, maxFeeRate: string) {
         const nonce = this.milliseconds ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
@@ -1535,6 +1561,15 @@ export default class hyperliquid extends Exchange {
         // }
         //
         return await this.privatePostExchange (request);
+    }
+
+    async initializeClient () {
+        try {
+            await Promise.all ([ this.handleBuilderFeeApproval (), this.setRef () ]);
+        } catch (e) {
+            return false;
+        }
+        return true;
     }
 
     async handleBuilderFeeApproval () {
@@ -1596,7 +1631,7 @@ export default class hyperliquid extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        await this.handleBuilderFeeApproval ();
+        await this.initializeClient ();
         const request = this.createOrdersRequest (orders, params);
         const response = await this.privatePostExchange (request);
         //
@@ -1847,6 +1882,7 @@ export default class hyperliquid extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
+        await this.initializeClient ();
         const request = this.cancelOrdersRequest (ids, symbol, params);
         const response = await this.privatePostExchange (request);
         //
@@ -1951,6 +1987,7 @@ export default class hyperliquid extends Exchange {
     async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
+        await this.initializeClient ();
         const nonce = this.milliseconds ();
         const request: Dict = {
             'nonce': nonce,
@@ -2026,6 +2063,7 @@ export default class hyperliquid extends Exchange {
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
+        await this.initializeClient ();
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         const nonce = this.milliseconds ();
         const request: Dict = {
@@ -2219,6 +2257,7 @@ export default class hyperliquid extends Exchange {
      */
     async editOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
+        await this.initializeClient ();
         const request = this.editOrdersRequest (orders, params);
         const response = await this.privatePostExchange (request);
         //
