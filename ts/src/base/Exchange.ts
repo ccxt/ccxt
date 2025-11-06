@@ -5165,22 +5165,49 @@ export default class Exchange {
         return this.accounts;
     }
 
-    spawnFetchOrderBookSnapshot (client: Client, message, subscription) {
+    async spawnFetchOrderBookSnapshot (client: Client, message, subscription) {
+        // this method should be triggered when subscription confirmation is arrived in "handleSuscriptionStatus" method
+        // so, `message` argument would be skipped here, the derived class should be calling this method deterministically
         const wsOptions = this.safeDict (this.options, 'ws', this.options);
-        const methodDict = this.safeDict (wsOptions, 'orderBook', {});
-        const defaultLimit = this.safeInteger (methodDict, 'limit', 1000);
+        const obOptions = this.safeDict2 (wsOptions, 'watchOrderBook', 'orderBook', {});
+        const defaultLimit = this.safeInteger (obOptions, 'limit', 1000);
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        const params = this.safeValue (subscription, 'params');
         const symbol = this.safeString (subscription, 'symbol');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        if (symbol !== undefined) {
+            if (symbol in this.orderbooks) {
+                delete this.orderbooks[symbol];
+            }
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
-        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        const messageHash = this.safeString (subscription, 'messageHash');
+        try {
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
+            // if the orderbook was dropped while the snapshot was being received
+            if (!(symbol in this.orderbooks) || (this.orderbooks[symbol] === undefined)) {
+                return;
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook.reset (snapshot);
+            const rawMessages = orderbook.cache;
+            const tsKey = this.safeString (obOptions, 'incrementalTimestampKey');
+            for (let i = 0; i < rawMessages.length; i++) {
+                const rawMessage = rawMessages[i];
+                const ts = this.safeInteger (rawMessage, tsKey);
+                if (ts >= orderbook['timestamp']) {
+                    this.handleIncrementalOrderBookMessage (client, rawMessage, orderbook);
+                }
+            }
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        } catch (e) {
+            delete client.subscriptions[messageHash];
+            client.reject (e, messageHash);
+        }
     }
 
-    
-    async fetchOrderBookSnapshot (client, message, subscription) {
-        throw new NotSupported (this.id + ' fetchOrderBookSnapshot() is not implemented');
+    handleIncrementalOrderBookMessage (client: Client, message, orderbook) {
+        throw new NotSupported (this.id + ' handleIncrementalOrderBookMessage() not implemented yet');
     }
 
     buildOHLCVC (trades: Trade[], timeframe: string = '1m', since: number = 0, limit: number = 2147483647): OHLCVC[] {

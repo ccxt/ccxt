@@ -45,12 +45,13 @@ export default class xcoin extends xcoinRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'watchOrderBookForSymbols': {
+                'orderBook': {
                     // full snapshots:
                     //    depthLevels#[100|500|1000]ms#[5|10|20|30]
                     // incremental updates
                     //    depth#[100|500|1000]ms
                     'method': 'depth#100ms',
+                    'incrementalTimestampKey': 'ts',
                 },
                 'watchTicker': {
                     'channel': 'ticker24hr', // ticker24hr or miniTicker
@@ -103,7 +104,9 @@ export default class xcoin extends xcoinRest {
             } else if (isDepth) {
                 subscription = {
                     'id': exchangeChannel + '_' + market['id'],
-                    'method': this.handleOrderBookSubscription,
+                    'symbol': market['symbol'],
+                    'messageHash': messageHash,
+                    'method': this.spawnFetchOrderBookSnapshot,
                 };
             }
             const subscribe = {
@@ -191,7 +194,6 @@ export default class xcoin extends xcoinRest {
             'ticker24hr': this.handleTicker,
             'miniTicker': this.handleTicker,
             'trade': this.handleTrade,
-            'subscribe': this.handleSubscribe,
         };
         const methodMatches = {
             'kline#': this.handleOHLCV,
@@ -556,47 +558,77 @@ export default class xcoin extends xcoinRest {
         }
     }
 
-
-    async fetchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const messageHash = this.safeString (message, 'topic');
-        try {
-            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-            const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-            const params = this.safeValue (subscription, 'params');
-            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
-            if (this.safeValue (this.orderbooks, symbol) === undefined) {
-                // if the orderbook is dropped before the snapshot is received
-                return;
+    handleIncrementalOrderBookMessage (client: Client, message, orderbook) {
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const data = this.safeValue (message, 'data', []);
+        const stream = this.safeString (message, 'stream', '');
+        if (data.length > 0) {
+            const update = data[0];
+            const timestamp = this.safeInteger (message, 'ts');
+            const bids = this.safeValue (update, 'bids', []);
+            const asks = this.safeValue (update, 'asks', []);
+            
+            let messageHash = 'depth:' + symbol;
+            if (stream.indexOf ('depthlevels') >= 0) {
+                messageHash = 'bidsasks';
             }
-            const orderbook = this.orderbooks[symbol];
-            orderbook.reset (snapshot);
-            const messages = orderbook.cache;
-            for (let i = 0; i < messages.length; i++) {
-                const messageItem = messages[i];
-                const ts = this.safeInteger (messageItem, 'ts');
-                if (ts < orderbook['timestamp']) {
-                    continue;
-                } else {
-                    this.handleOrderBookMessage (client, messageItem, orderbook);
-                }
+            
+            let orderbook = this.safeValue (this.orderbooks, symbol);
+            if (orderbook === undefined) {
+                orderbook = this.orderBook ({});
+                this.orderbooks[symbol] = orderbook;
             }
-            this.orderbooks[symbol] = orderbook;
+            
+            // Check if this is a snapshot (has many levels) or update (has few changes)
+            const isSnapshot = (bids.length > 10) || (asks.length > 10);
+            if (isSnapshot) {
+                const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks');
+                orderbook.reset (snapshot);
+            } else {
+                // Incremental update
+                this.handleDeltas (orderbook['bids'], bids);
+                this.handleDeltas (orderbook['asks'], asks);
+                orderbook['timestamp'] = timestamp;
+                orderbook['datetime'] = this.iso8601 (timestamp);
+            }
+            
             client.resolve (orderbook, messageHash);
-        } catch (e) {
-            delete client.subscriptions[messageHash];
-            client.reject (e, messageHash);
+            
+            // For bidsasks, also create a ticker-like structure
+            if (stream.indexOf ('depthlevels') >= 0) {
+                const ticker = {
+                    'symbol': symbol,
+                    'bid': this.safeFloat (bids, [0, 0]),
+                    'bidVolume': this.safeFloat (bids, [0, 1]),
+                    'ask': this.safeFloat (asks, [0, 0]),
+                    'askVolume': this.safeFloat (asks, [0, 1]),
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                    'info': update,
+                };
+                if (this.bidsasks === undefined) {
+                    this.bidsasks = {};
+                }
+                this.bidsasks[symbol] = ticker;
+                client.resolve (this.bidsasks, 'bidsasks');
+            }
         }
-    }
 
-    handleOrderBookMessage (client: Client, message, orderbook) {
         const data = this.safeDict (message, 'data');
-        this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
-        this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
+        this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
+        this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
         const timestamp = this.safeInteger (message, 'ts');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
+    }
+
+    handleDelta (bookside: any, delta: any) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
     }
 
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -901,77 +933,6 @@ export default class xcoin extends xcoinRest {
         const request = this.deepExtend (subscribe, params);
         const positions = await this.watch (url, messageHash, request, messageHash);
         return this.filterBySymbolsSinceLimit (positions, symbols, since, limit, true);
-    }
-
-    handleOrderBook (client: Client, message: any) {
-        const marketId = this.safeString (message, 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const data = this.safeValue (message, 'data', []);
-        const stream = this.safeString (message, 'stream', '');
-        if (data.length > 0) {
-            const update = data[0];
-            const timestamp = this.safeInteger (message, 'ts');
-            const bids = this.safeValue (update, 'bids', []);
-            const asks = this.safeValue (update, 'asks', []);
-            
-            let messageHash = 'depth:' + symbol;
-            if (stream.indexOf ('depthlevels') >= 0) {
-                messageHash = 'bidsasks';
-            }
-            
-            let orderbook = this.safeValue (this.orderbooks, symbol);
-            if (orderbook === undefined) {
-                orderbook = this.orderBook ({});
-                this.orderbooks[symbol] = orderbook;
-            }
-            
-            // Check if this is a snapshot (has many levels) or update (has few changes)
-            const isSnapshot = (bids.length > 10) || (asks.length > 10);
-            if (isSnapshot) {
-                const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks');
-                orderbook.reset (snapshot);
-            } else {
-                // Incremental update
-                this.handleDeltas (orderbook['bids'], bids);
-                this.handleDeltas (orderbook['asks'], asks);
-                orderbook['timestamp'] = timestamp;
-                orderbook['datetime'] = this.iso8601 (timestamp);
-            }
-            
-            client.resolve (orderbook, messageHash);
-            
-            // For bidsasks, also create a ticker-like structure
-            if (stream.indexOf ('depthlevels') >= 0) {
-                const ticker = {
-                    'symbol': symbol,
-                    'bid': this.safeFloat (bids, [0, 0]),
-                    'bidVolume': this.safeFloat (bids, [0, 1]),
-                    'ask': this.safeFloat (asks, [0, 0]),
-                    'askVolume': this.safeFloat (asks, [0, 1]),
-                    'timestamp': timestamp,
-                    'datetime': this.iso8601 (timestamp),
-                    'info': update,
-                };
-                if (this.bidsasks === undefined) {
-                    this.bidsasks = {};
-                }
-                this.bidsasks[symbol] = ticker;
-                client.resolve (this.bidsasks, 'bidsasks');
-            }
-        }
-    }
-
-    handleDelta (bookside: any, delta: any) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
-        bookside.store (price, amount);
-    }
-
-    handleDeltas (bookside: any, deltas: any) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
-        }
     }
 
     handleBalance (client: Client, message: any) {
