@@ -93,7 +93,7 @@ setup(
             'yarl>=1.7.2',
         ],
         ':python_version>="3.9"': [
-            'coincurve>=20.0.0',
+            'coincurve==20.0.0',
         ],
         'qa': [
             'ruff==0.0.292',
