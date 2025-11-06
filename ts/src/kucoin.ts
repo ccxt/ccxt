@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, BorrowInterest } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, BorrowInterest, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -67,8 +67,8 @@ export default class kucoin extends Exchange {
                 'fetchDepositWithdrawFee': true,
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
@@ -5529,6 +5529,144 @@ export default class kucoin extends Exchange {
         request['leverage'] = leverage.toString ();
         request['isIsolated'] = (marginMode === 'isolated');
         return await this.privatePostPositionUpdateUserLeverage (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.utaGetMarketFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "symbol": ".XBTUSDTMFPI8H",
+        //             "nextFundingRate": 7.4E-5,
+        //             "fundingTime": 1762444800000,
+        //             "fundingRateCap": 0.003,
+        //             "fundingRateFloor": -0.003
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (data, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "symbol": ".XBTUSDTMFPI8H",
+        //         "nextFundingRate": 7.4E-5,
+        //         "fundingTime": 1762444800000,
+        //         "fundingRateCap": 0.003,
+        //         "fundingRateFloor": -0.003
+        //     }
+        //
+        const fundingTimestamp = this.safeInteger (data, 'fundingTime');
+        const marketId = this.safeString (data, 'symbol');
+        return {
+            'info': data,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (data, 'nextFundingRate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': undefined,
+        } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] not used by kucuoinfutures
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in ms
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a since argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (since !== undefined) {
+            request['startAt'] = since;
+            if (until === undefined) {
+                request['endAt'] = this.milliseconds ();
+            }
+        }
+        if (until !== undefined) {
+            request['endAt'] = until;
+        }
+        const response = await this.utaGetMarketFundingRateHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "symbol": "XBTUSDTM",
+        //             "list": [
+        //                 {
+        //                     "fundingRate": 7.6E-5,
+        //                     "ts": 1706097600000
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const result = this.safeList (data, 'list', []);
+        return this.parseFundingRateHistories (result, market, since, limit);
+    }
+
+    parseFundingRateHistory (info, market: Market = undefined) {
+        //
+        //     {
+        //         "fundingRate": 7.6E-5,
+        //         "ts": 1706097600000
+        //     }
+        //
+        const timestamp = this.safeInteger (info, 'ts');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (undefined, market),
+            'fundingRate': this.safeNumber (info, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

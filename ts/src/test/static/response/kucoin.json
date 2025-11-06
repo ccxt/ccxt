@@ -3205,6 +3205,109 @@
                     }
                 }
             }
+        ],
+        "fetchFundingRate":[
+            {
+                "description": "uta fetch funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": ".XBTUSDTMFPI8H",
+                        "nextFundingRate": 0.00006,
+                        "fundingTime": 1762444800000,
+                        "fundingRateCap": 0.003,
+                        "fundingRateFloor": -0.003
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": ".XBTUSDTMFPI8H",
+                        "nextFundingRate": 0.00006,
+                        "fundingTime": 1762444800000,
+                        "fundingRateCap": 0.003,
+                        "fundingRateFloor": -0.003
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.00006,
+                    "fundingTimestamp": 1762444800000,
+                    "fundingDatetime": "2025-11-06T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
+            }
+        ],
+        "fetchFundingRateHistory":[
+            {
+                "description": "uta fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ],
+                    1702065600000,
+                    null,
+                    {
+                        "uta": true,
+                        "until": 1702094400000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": "XBTUSDTM",
+                        "list": [
+                            {
+                                "fundingRate": 0.000482,
+                                "ts": 1702094400000
+                            },
+                            {
+                                "fundingRate": 0.0004,
+                                "ts": 1702065600000
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fundingRate": 0.0004,
+                            "ts": 1702065600000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0004,
+                        "timestamp": 1702065600000,
+                        "datetime": "2023-12-08T20:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "fundingRate": 0.000482,
+                            "ts": 1702094400000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.000482,
+                        "timestamp": 1702094400000,
+                        "datetime": "2023-12-09T04:00:00.000Z"
+                    }
+                ]
+            }
         ]
     }
 }
