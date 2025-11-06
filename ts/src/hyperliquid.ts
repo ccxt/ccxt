@@ -1522,8 +1522,9 @@ export default class hyperliquid extends Exchange {
             const response = await this.privatePostExchange (request);
             return response;
         } catch (e) {
-            return false;
+            // return false;
         }
+        return false;
     }
 
     async approveBuilderFee (builder: string, maxFeeRate: string) {
