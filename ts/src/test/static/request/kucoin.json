@@ -968,37 +968,6 @@
                     }
                 ]
             }
-        ],
-        "fetchFundingRate": [
-            {
-                "description": "uta fetchFundingRate",
-                "method": "fetchFundingRate",
-                "url": "https://api.kucoin.com/api/ua/v1/market/funding-rate?symbol=XBTUSDTM&uta=true",
-                "input": [
-                    "BTC/USDT:USDT",
-                    {
-                        "uta": true
-                    }
-                ]
-            }
-        ],
-        "fetchFundingRateHistory": [
-            {
-                "description": "uta fetchFundingRateHistory",
-                "method": "fetchFundingRateHistory",
-                "url": "https://api.kucoin.com/api/ua/v1/market/funding-rate-history?symbol=XBTUSDTM&startAt=1703217600000&endAt=1706097600000&uta=true",
-                "input": [
-                    [
-                        "BTC/USDT:USDT"
-                    ],
-                    1702065600000,
-                    null,
-                    {
-                        "uta": true,
-                        "until": 1702094400000
-                    }
-                ]
-            }
         ]
     }
 }
