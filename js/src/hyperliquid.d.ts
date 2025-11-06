@@ -182,7 +182,9 @@ export default class hyperliquid extends Exchange {
         s: string;
         v: any;
     };
+    setRef(): Promise<any>;
     approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
+    initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
     /**
      * @method
