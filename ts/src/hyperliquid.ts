@@ -1566,10 +1566,10 @@ export default class hyperliquid extends Exchange {
     async initializeClient () {
         try {
             await Promise.all ([ this.handleBuilderFeeApproval (), this.setRef () ]);
-            return true;
         } catch (e) {
             return false;
         }
+        return true;
     }
 
     async handleBuilderFeeApproval () {
