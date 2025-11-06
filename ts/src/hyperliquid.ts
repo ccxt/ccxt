@@ -8,6 +8,7 @@ import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -414,7 +415,7 @@ export default class hyperliquid extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         if (this.checkRequiredCredentials (false)) {
-            await this.handleBuilderFeeApproval ();
+            await this.initializeClient ();
         }
         const request: Dict = {
             'type': 'meta',
@@ -1502,6 +1503,30 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
+    async setReferrer () {
+        if (this.safeBool (this.options, 'refSet', false)) {
+            return true;
+        }
+        this.options['refSet'] = true;
+        const action = {
+            'type': 'setReferrer',
+            'code': this.safeString (this.options, 'refCode', 'CCXT1'),
+        };
+        const nonce = this.milliseconds ();
+        const signature = this.signL1Action (action, nonce);
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+        };
+        try {
+            const response = await this.privatePostExchange (request);
+            return response;
+        } catch (e) {
+            return false;
+        }
+    }
+
     async approveBuilderFee (builder: string, maxFeeRate: string) {
         const nonce = this.milliseconds ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
@@ -1535,6 +1560,15 @@ export default class hyperliquid extends Exchange {
         // }
         //
         return await this.privatePostExchange (request);
+    }
+
+    async initializeClient () {
+        try {
+            await Promise.all ([ this.handleBuilderFeeApproval (), this.setReferrer () ]);
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     async handleBuilderFeeApproval () {
@@ -1596,7 +1630,7 @@ export default class hyperliquid extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        await this.handleBuilderFeeApproval ();
+        await this.initializeClient ();
         const request = this.createOrdersRequest (orders, params);
         const response = await this.privatePostExchange (request);
         //
