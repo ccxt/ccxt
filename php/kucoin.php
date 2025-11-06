@@ -488,6 +488,7 @@ class kucoin extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
+                    'Order not exist or not allow to be cancelled' => '\\ccxt\\OrderNotFound',
                     'The order does not exist.' => '\\ccxt\\OrderNotFound',
                     'order not exist' => '\\ccxt\\OrderNotFound',
                     'order not exist.' => '\\ccxt\\OrderNotFound', // duplicated error temporarily
