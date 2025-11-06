@@ -28,12 +28,27 @@
         "strike": null,
         "optionType": null,
         "created": null,
-        "precision": { "amount": 1e-8, "price": 0.1 },
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
         "limits": {
-            "leverage": { "min": 1, "max": 1 },
-            "amount": { "min": 0.0004, "max": 1000 },
-            "price": { "min": null, "max": null },
-            "cost": { "min": null, "max": null }
+            "leverage": {
+                "min": 1,
+                "max": 1
+            },
+            "amount": {
+                "min": 0.0004,
+                "max": 1000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
         "info": {
             "instType": "SPOT",
@@ -84,12 +99,27 @@
         "strike": null,
         "optionType": null,
         "created": null,
-        "precision": { "amount": 1e-8, "price": 0.01 },
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
         "limits": {
-            "leverage": { "min": 1, "max": 1 },
-            "amount": { "min": 0.004, "max": 10000 },
-            "price": { "min": null, "max": null },
-            "cost": { "min": null, "max": null }
+            "leverage": {
+                "min": 1,
+                "max": 1
+            },
+            "amount": {
+                "min": 0.004,
+                "max": 10000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
         "info": {
             "instType": "SPOT",
@@ -140,12 +170,27 @@
         "strike": null,
         "optionType": null,
         "created": null,
-        "precision": { "amount": 1, "price": 0.1 },
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
         "limits": {
-            "leverage": { "min": 1, "max": 125 },
-            "amount": { "min": 1, "max": 200000 },
-            "price": { "min": null, "max": null },
-            "cost": { "min": null, "max": null }
+            "leverage": {
+                "min": 1,
+                "max": 125
+            },
+            "amount": {
+                "min": 1,
+                "max": 200000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
         "info": {
             "instType": "SWAP",
@@ -196,12 +241,27 @@
         "strike": null,
         "optionType": null,
         "created": null,
-        "precision": { "amount": 1, "price": 0.01 },
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
         "limits": {
-            "leverage": { "min": 1, "max": 125 },
-            "amount": { "min": 1, "max": 100000 },
-            "price": { "min": null, "max": null },
-            "cost": { "min": null, "max": null }
+            "leverage": {
+                "min": 1,
+                "max": 125
+            },
+            "amount": {
+                "min": 1,
+                "max": 100000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
         "info": {
             "instType": "SWAP",
@@ -252,14 +312,32 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": { "amount": 1, "price": 0.00001 },
-        "limits": {
-            "leverage": { "min": 1, "max": 75 },
-            "amount": { "min": 20, "max": 1500000 },
-            "price": { "min": null, "max": null },
-            "cost": { "min": null, "max": null }
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
         },
-        "marginModes": { "cross": null, "isolated": null },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 75
+            },
+            "amount": {
+                "min": 20,
+                "max": 1500000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": null,
         "info": {
             "instType": "SWAP",
@@ -312,14 +390,32 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": { "amount": 1, "price": 0.0001 },
-        "limits": {
-            "leverage": { "min": 1, "max": 33 },
-            "amount": { "min": 1, "max": 200000 },
-            "price": { "min": null, "max": null },
-            "cost": { "min": null, "max": null }
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
         },
-        "marginModes": { "cross": null, "isolated": null },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 33
+            },
+            "amount": {
+                "min": 1,
+                "max": 200000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": null,
         "info": {
             "instType": "SWAP",
@@ -339,6 +435,84 @@
             "state": "live",
             "maxLmtSz": "200000",
             "maxMktSz": "200000"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "LTC/USDT": {
+        "id": "LTC-USDT",
+        "lowercaseId": null,
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0015,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 1
+            },
+            "amount": {
+                "min": 0.096,
+                "max": 100000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "instType": "SPOT",
+            "instId": "LTC-USDT",
+            "uly": "",
+            "baseCcy": "LTC",
+            "quoteCcy": "USDT",
+            "ctVal": "1",
+            "ctValCcy": "",
+            "listTime": "0",
+            "lever": "1",
+            "tickSz": "0.01",
+            "lotSz": "0.00000001",
+            "minSz": "0.096",
+            "ctType": "",
+            "alias": "",
+            "state": "live",
+            "maxLmtSz": "100000",
+            "maxMktSz": "100000"
         },
         "tierBased": null,
         "percentage": null

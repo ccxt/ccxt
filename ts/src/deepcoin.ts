@@ -138,14 +138,17 @@ export default class deepcoin extends Exchange {
                 '1y': '1Y',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/671bd35c-770e-4935-9070-f8fb114f79c4',
                 'api': {
                     'public': 'https://api.deepcoin.com',
                     'private': 'https://api.deepcoin.com',
                 },
                 'www': 'https://www.deepcoin.com/',
                 'doc': 'https://www.deepcoin.com/docs',
-                'referral': '',
+                'referral': {
+                    'url': 'https://s.deepcoin.com/UzkyODgy',
+                    'discount': 0.1,
+                },
             },
             'api': {
                 'public': {
@@ -1456,8 +1459,8 @@ export default class deepcoin extends Exchange {
      * @param {bool} [params.postOnly] *non trigger orders only* true to place a post only order
      * @param {bool} [params.reduceOnly] *non trigger orders only* a mark to reduce the position size for margin, swap and future orders
      * @param {float} [params.triggerPrice] the price a trigger order is triggered at
-     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+     * @param {float} [params.stopLoss.triggerPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfit.triggerPrice] the price that a take profit order is triggered at
      * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode
      * @param {string} [params.marginMode] *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
@@ -1502,13 +1505,15 @@ export default class deepcoin extends Exchange {
          */
         const market = this.market (symbol);
         const triggerPrice = this.safeString (params, 'triggerPrice');
+        // const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
+        const isTriggerOrder = (triggerPrice !== undefined);
         const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
             if (!market['spot'] || (triggerPrice !== undefined)) {
                 throw new BadRequest (this.id + ' createOrder() accepts a cost parameter for spot non-trigger market orders only');
             }
         }
-        if (triggerPrice !== undefined) {
+        if (isTriggerOrder) {
             return this.createTriggerOrderRequest (symbol, type, side, amount, price, params);
         } else {
             return this.createRegularOrderRequest (symbol, type, side, amount, price, params);
@@ -1562,18 +1567,16 @@ export default class deepcoin extends Exchange {
             request['clOrdId'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
         }
-        let stopLossPrice = this.safeString (params, 'stopLossPrice');
         const stopLoss = this.safeDict (params, 'stopLoss', {});
-        stopLossPrice = stopLossPrice ? stopLossPrice : this.safeString (stopLoss, 'triggerPrice');
+        const stopLossPrice = this.safeString (stopLoss, 'triggerPrice');
         if (stopLossPrice !== undefined) {
-            params = this.omit (params, [ 'stopLossPrice', 'stopLoss' ]);
+            params = this.omit (params, [ 'stopLoss' ]);
             request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
         }
-        let takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const takeProfit = this.safeDict (params, 'takeProfit', {});
-        takeProfitPrice = takeProfitPrice ? takeProfitPrice : this.safeString (takeProfit, 'triggerPrice');
+        const takeProfitPrice = this.safeString (takeProfit, 'triggerPrice');
         if (takeProfitPrice !== undefined) {
-            params = this.omit (params, [ 'takeProfitPrice', 'takeProfit' ]);
+            params = this.omit (params, [ 'takeProfit' ]);
             request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
         }
         const isMarketOrder = (type === 'market');
@@ -1661,7 +1664,18 @@ export default class deepcoin extends Exchange {
             // 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
         };
         const triggerPrice = this.safeString (params, 'triggerPrice');
+        // const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        // const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        // const isTpOrSlOrder = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined);
+        // if (isTpOrSlOrder) {
+        //     if (takeProfitPrice !== undefined) {
+        //         request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+        //     } else {
+        //         request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+        //     }
+        // } else {
         request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        // }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         } else if (type === 'limit') {
@@ -1673,11 +1687,11 @@ export default class deepcoin extends Exchange {
         if (marginMode === 'isolated') {
             isCrossMargin = 0;
         }
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        params = this.omit (params, 'reduceOnly');
         request['isCrossMargin'] = isCrossMargin;
         request['tdMode'] = marginMode;
         if (market['swap']) {
-            const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-            params = this.omit (params, 'reduceOnly');
             if (reduceOnly) {
                 if (side === 'buy') {
                     request['posSide'] = 'short';

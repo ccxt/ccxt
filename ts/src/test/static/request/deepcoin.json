@@ -6,6 +6,21 @@
     ],
     "outputType": "json",
     "methods": {
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.deepcoin.com/deepcoin/trade/order",
+                "input": [
+                    "LTC/USDT",
+                    15,
+                    {
+                        "clientOrderId": "myorder2"
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"clOrdId\":\"myorder2\",\"sz\":\"15\",\"tgtCcy\":\"quote_ccy\",\"tdMode\":\"cash\"}"
+            }
+        ],
         "createTriggerOrder": [
             {
                 "description": "create trigger order",

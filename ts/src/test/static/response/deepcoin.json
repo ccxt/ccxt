@@ -3,6 +3,65 @@
     "skipKeys": [ ],
     "options": {},
     "methods": {
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "input": [
+                    "LTC/USDT",
+                    15,
+                    {
+                        "clientOrderId": "myorder2"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "ordId": "1001446365473295",
+                        "clOrdId": "",
+                        "tag": "",
+                        "sCode": "0",
+                        "sMsg": ""
+                    }
+                },
+                "parsedResponse": {
+                    "id": "1001446365473295",
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "LTC/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "side": null,
+                    "price": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "info": {
+                        "ordId": "1001446365473295",
+                        "clOrdId": "",
+                        "tag": "",
+                        "sCode": "0",
+                        "sMsg": ""
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
         "createTriggerOrder": [
             {
                 "description": "create trigger order",
