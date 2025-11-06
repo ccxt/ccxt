@@ -357,6 +357,7 @@ export default class deepcoin extends Exchange {
                     'field is required': ArgumentsRequired, // {"code":"51","msg":"The productGroup field is required","data":null}
                     'not in acceptable range': BadRequest, // {"code":"51","msg":"The instType value `spot` is not in acceptable range: SPOT,SWAP","data":null}
                     'subscription cluster does not "exist"': BadRequest,
+                    'must be equal or lesser than': BadRequest, // {"code":"51","msg":"The Size value `100` must be equal or lesser than 50","data":null}
                 },
             },
         });
@@ -980,6 +981,11 @@ export default class deepcoin extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
+        }
         const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
