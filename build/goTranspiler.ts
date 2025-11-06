@@ -2535,6 +2535,12 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/(\s+)(if IsTrue\(IsEqual\(success, true\)\) \{\s*\n[\s\S]*?)(\s+now = exchange\.Milliseconds\(\)\s*\n\s*\})/gm, '$1$2$1now = exchange.Milliseconds()$3'],
                 // Fix named function expressions in Go (func Consumer -> func)
                 [/func\s+Consumer\s*\(/g, 'func('],
+                // Capitalize Message fields for Go
+                [/message\.error\b/g, 'message.Error'],
+                [/message\.payload\b/g, 'message.Payload'],
+                [/message\.metadata\b/g, 'message.Metadata'],
+                // Capitalize subscribe methods for Go
+                [/exchange\.subscribe([A-Z]\w+)/g, 'exchange.Subscribe$1'],
 
 
 

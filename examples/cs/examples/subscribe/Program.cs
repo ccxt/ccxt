@@ -43,11 +43,11 @@ public static class Program
         ConsumerFunction storeInDb = StoreInDb;
 
         // subscribe synchronously to all tickers with a sync function
-        await exchange.subscribeTrades ("BTC/USDT", storeInDb, true);
-        // subscribe asynchronously to all tickers with a sync function
-        await exchange.subscribeTrades ("BTC/USDT", printMessage, false);
+        await exchange.subscribeTrades ("BTC/USDT", storeInDb, new Dictionary<string, object>() { { "synchronous", true } });
+        // subscribe asynchronously to all tickers with a async function
+        await exchange.subscribeTrades ("BTC/USDT", printMessage, new Dictionary<string, object>() { { "synchronous", false } });
         // subscribe to exchange wide errors
-        exchange.stream.subscribe("errors", printMessage, true);
+        exchange.stream.subscribe("errors", printMessage, new Dictionary<string, object>() { { "synchronous", true } });
 
         await exchange.sleep(10000);
         var result = exchange.stream.unsubscribe ("trades::BTC/USDT", printMessage);
