@@ -639,10 +639,12 @@ export default class deepcoin extends Exchange {
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
+        const maxLimit = 300;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300) as OHLCV[];
+            params = this.extend (params, { 'calculateUntil': true });
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
@@ -651,7 +653,6 @@ export default class deepcoin extends Exchange {
         const request: Dict = {
             'instId': market['id'],
             'bar': bar,
-            'limit': limit,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -660,6 +661,22 @@ export default class deepcoin extends Exchange {
         if (until !== undefined) {
             request['after'] = until;
             params = this.omit (params, 'until');
+        }
+        const calculateUntil = this.safeBool (params, 'calculateUntil', false);
+        if (calculateUntil) {
+            params = this.omit (params, 'calculateUntil');
+            if (since !== undefined) {
+                // the exchange do not have a since param for this endpoint
+                // we canlculate until (after) for correct pagination
+                const duration = this.parseTimeframe (timeframe);
+                const numberOfCandles = (limit === undefined) ? maxLimit : limit;
+                let endTime = since + (duration * numberOfCandles) * 1000;
+                if (until !== undefined) {
+                    endTime = Math.min (endTime, until);
+                }
+                const now = this.milliseconds ();
+                request['after'] = Math.min (endTime, now);
+            }
         }
         let response = undefined;
         if (price === 'mark') {
