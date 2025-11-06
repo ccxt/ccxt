@@ -1,3 +1,18 @@
+<a id="v4.5.17"></a>
+# [v4.5.17](https://github.com/ccxt/ccxt/releases/tag/v4.5.17) - 2025-11-06
+
+## What's Changed
+* Arkham has by [@samgermain](https://github.com/samgermain) in [#27241](https://github.com/ccxt/ccxt/pull/27241)
+* feat: update link id by [@carlosmiei](https://github.com/carlosmiei) in [#27244](https://github.com/ccxt/ccxt/pull/27244)
+* fix(kucoin): add Order not exist or not allow to be cancelled error by [@carlosmiei](https://github.com/carlosmiei) in [#27242](https://github.com/ccxt/ccxt/pull/27242)
+* python: downgrade coincurve version to ==20 by [@carlosmiei](https://github.com/carlosmiei) in [#27247](https://github.com/ccxt/ccxt/pull/27247)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.16...v4.5.17
+
+[Changes][v4.5.17]
+
+
 <a id="v4.5.16"></a>
 # [v4.5.16](https://github.com/ccxt/ccxt/releases/tag/v4.5.16) - 2025-11-05
 
@@ -10761,6 +10776,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.17]: https://github.com/ccxt/ccxt/compare/v4.5.16...v4.5.17
 [v4.5.16]: https://github.com/ccxt/ccxt/compare/v4.5.15...v4.5.16
 [v4.5.15]: https://github.com/ccxt/ccxt/compare/v4.5.14...v4.5.15
 [v4.5.14]: https://github.com/ccxt/ccxt/compare/v4.5.13...v4.5.14
