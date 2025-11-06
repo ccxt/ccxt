@@ -2252,6 +2252,7 @@ export default class hyperliquid extends Exchange {
      */
     async editOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
+        await this.initializeClient ();
         const request = this.editOrdersRequest (orders, params);
         const response = await this.privatePostExchange (request);
         //
