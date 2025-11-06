@@ -1594,9 +1594,6 @@ export default class deepcoin extends Exchange {
                 if (!isMarketOrder) {
                     throw new BadRequest (this.id + ' createOrder() accepts a cost parameter for spot market orders only');
                 }
-                if ((amount !== undefined) && (amount !== 0)) {
-                    throw new BadRequest (this.id + ' createOrder() accepts either amount argument or cost parameter, not both');
-                }
                 params = this.omit (params, 'cost');
                 request['sz'] = this.costToPrecision (symbol, cost);
                 request['tgtCcy'] = 'quote_ccy';
