@@ -368,7 +368,7 @@ export default class deepcoin extends Exchange {
         params = this.omit (params, 'instType');
         const type = this.safeString (params, 'type');
         if ((type === undefined) && (instType !== undefined)) {
-            params['type'] = instType;
+            params = this.extend (params, { 'type': instType });
         }
         return super.handleMarketTypeAndParams (methodName, market, params, defaultValue);
     }
