@@ -1880,6 +1880,7 @@ export default class hyperliquid extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
+        await this.initializeClient ();
         const request = this.cancelOrdersRequest (ids, symbol, params);
         const response = await this.privatePostExchange (request);
         //
@@ -1984,6 +1985,7 @@ export default class hyperliquid extends Exchange {
     async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
+        await this.initializeClient ();
         const nonce = this.milliseconds ();
         const request: Dict = {
             'nonce': nonce,
@@ -2059,6 +2061,7 @@ export default class hyperliquid extends Exchange {
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
+        await this.initializeClient ();
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         const nonce = this.milliseconds ();
         const request: Dict = {
