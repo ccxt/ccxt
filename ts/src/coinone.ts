@@ -53,7 +53,7 @@ export default class coinone extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchClosedOrders': true, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -1112,6 +1112,24 @@ export default class coinone extends Exchange {
         //         "triggered_at": null
         //     }
         //
+        // fetchClosedOrders
+        //
+        //     {
+        //         "trade_id": "0e2bb80f-1e4d-11e9-9ec7-00e04c3600d1",
+        //         "order_id": "0e2b9627-1e4d-11e9-9ec7-00e04c3600d2",
+        //         "quote_currency": "KRW",
+        //         "target_currency": "BTC",
+        //         "order_type": "LIMIT",
+        //         "is_ask": true,
+        //         "is_maker": true,
+        //         "price": "8420",
+        //         "qty": "0.1599",
+        //         "timestamp": 8964000,
+        //         "fee_rate": "0.001",
+        //         "fee": "162",
+        //         "fee_currency": "KRW"
+        //     }
+        //
         const id = this.safeString (order, 'order_id');
         const baseId = this.safeString (order, 'target_currency');
         const quoteId = this.safeString (order, 'quote_currency');
@@ -1129,13 +1147,20 @@ export default class coinone extends Exchange {
             market = this.safeMarket (symbol, market, '/');
         }
         const timestamp = this.safeInteger (order, 'updated_at');
-        let type = this.safeStringLower (order, 'type');
+        let type = this.safeStringLower2 (order, 'type', 'order_type');
         if (type === 'stop_limit') {
             type = 'limit';
         }
-        const side = this.safeStringLower (order, 'side');
+        let side = this.safeStringLower (order, 'side');
+        if (side === undefined) {
+            const isAsk = this.safeBool (order, 'is_ask');
+            const isMaker = this.safeBool (order, 'is_maker');
+            if (isAsk !== undefined && isMaker !== undefined) {
+                side = (isAsk === isMaker) ? 'sell' : 'buy';
+            }
+        }
         const remainingString = this.safeString (order, 'remain_qty');
-        const amountString = this.safeString (order, 'original_qty');
+        const amountString = this.safeString2 (order, 'original_qty', 'qty');
         let status = this.safeString (order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if (status === 'LIVE') {
@@ -1150,11 +1175,10 @@ export default class coinone extends Exchange {
         let fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrencyCode = (side === 'sell') ? quote : base;
             fee = {
                 'cost': feeCostString,
                 'rate': this.safeString (order, 'fee_rate'),
-                'currency': feeCurrencyCode,
+                'currency': this.safeString (order, 'fee_currency', 'KRW'),
             };
         }
         return this.safeOrder ({
@@ -1233,6 +1257,66 @@ export default class coinone extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'active_orders', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name coinone#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.coinone.co.kr/reference/find-all-completed-orders
+     * @see https://docs.coinone.co.kr/reference/find-completed-orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const now = this.milliseconds ();
+        const until = this.safeInteger (params, 'until', now);
+        params = this.omit (params, 'until');
+        const request: Dict = {
+            'size': limit === undefined ? 100 : Math.min (limit, 100),
+            'from_ts': since === undefined ? now - 7776000000 : since,
+            'to_ts': until,
+        };
+        let market = undefined;
+        let response = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['quote_currency'] = market['quote'];
+            request['target_currency'] = market['base'];
+            response = await this.v2_1PrivatePostOrderCompletedOrders (this.extend (request, params));
+        } else {
+            response = await this.v2_1PrivatePostOrderCompletedOrdersAll (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "completed_orders": [
+        //             {
+        //                 "trade_id": "0e2bb80f-1e4d-11e9-9ec7-00e04c3600d1",
+        //                 "order_id": "0e2b9627-1e4d-11e9-9ec7-00e04c3600d2",
+        //                 "quote_currency": "KRW",
+        //                 "target_currency": "BTC",
+        //                 "order_type": "LIMIT",
+        //                 "is_ask": true,
+        //                 "is_maker": true,
+        //                 "price": "8420",
+        //                 "qty": "0.1599",
+        //                 "timestamp": 8964000,
+        //                 "fee_rate": "0.001",
+        //                 "fee": "162",
+        //                 "fee_currency": "KRW"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'completed_orders', []);
         return this.parseOrders (data, market, since, limit);
     }
 
