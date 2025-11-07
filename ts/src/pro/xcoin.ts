@@ -61,7 +61,7 @@ export default class xcoin extends xcoinRest {
                 },
             },
             'streaming': {
-                'keepAlive': 30000,
+                'keepAlive': 25000, // 30 max
                 'ping': this.ping,
             },
             'timeframes': {
@@ -77,7 +77,7 @@ export default class xcoin extends xcoinRest {
         });
     }
 
-    async publicWatch (unifiedHash: string, exchangeChannel: string, symbolsArray = undefined, params = {}) {
+    async watchPublic (unifiedHash: string, exchangeChannel: string, symbolsArray = undefined, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const channelMap = {
             'spot': 'spot',
@@ -164,6 +164,21 @@ export default class xcoin extends xcoinRest {
         }
     }
 
+    async watchPrivate (unifiedHash: string, exchangeChannel: string, params = {}) {
+        const url = this.urls['api']['ws']['private'];
+        const messageHash = unifiedHash;
+        const subscribe = {
+            'event': 'subscribe',
+            'data': [
+                {
+                    'stream': exchangeChannel,
+                },
+            ],
+        };
+        const request = this.deepExtend (subscribe, params);
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
     handleMessage (client: Client, message: any) {
         const event = this.safeString (message, 'event');
         if (event === 'subscribe') {
@@ -171,7 +186,8 @@ export default class xcoin extends xcoinRest {
             return;
         }
         if (event === 'authorization') {
-            return this.handleAuthenticationMessage (client, message);
+            this.handleAuthenticationMessage (client, message);
+            return;
         }
         this.handleErrorMessage (client, message);
         // Handle data messages by stream type
@@ -281,7 +297,7 @@ export default class xcoin extends xcoinRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
-        const trades = await this.publicWatch ('trade', 'trade', symbols, params);
+        const trades = await this.watchPublic ('trade', 'trade', symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const symbol = this.safeString (first, 'symbol');
@@ -381,7 +397,7 @@ export default class xcoin extends xcoinRest {
         await this.loadMarkets ();
         let wsChannel: Str = undefined;
         [ wsChannel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'ticker24hr');
-        return await this.publicWatch ('ticker', wsChannel, [ symbol ], params);
+        return await this.watchPublic ('ticker', wsChannel, [ symbol ], params);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -396,7 +412,7 @@ export default class xcoin extends xcoinRest {
         await this.loadMarkets ();
         let wsChannel: Str = undefined;
         [ wsChannel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'ticker24hr');
-        const ticker = await this.publicWatch ('ticker', wsChannel, symbols, params);
+        const ticker = await this.watchPublic ('ticker', wsChannel, symbols, params);
         if (this.newUpdates) {
             const tickers: Dict = {};
             const symbol = this.safeString (ticker, 'symbol');
@@ -494,7 +510,7 @@ export default class xcoin extends xcoinRest {
         await this.loadMarkets ();
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'method', 'depth#100ms');
-        const orderbook = await this.publicWatch ('orderBook', method, symbols, params);
+        const orderbook = await this.watchPublic ('orderBook', method, symbols, params);
         return orderbook.limit ();
     }
 
@@ -627,7 +643,7 @@ export default class xcoin extends xcoinRest {
                     'type': 'Token',
                     'accessKey': this.apiKey,
                     'accessTimestamp': timestamp,
-                    'accountName': '',
+                    // 'accountName': '',
                 },
                 'event': 'authorization',
             };
@@ -668,7 +684,7 @@ export default class xcoin extends xcoinRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
-        const result = await this.publicWatch ('bidask', 'orderBook', symbols, params);
+        const result = await this.watchPublic ('bidask', 'orderBook', symbols, params);
         if (this.newUpdates) {
             return result;
         }
@@ -764,7 +780,7 @@ export default class xcoin extends xcoinRest {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         await this.loadMarkets ();
-        const [ symbol, timeframe, candles ] = await this.publicWatch ('ohlcv', 'kline#', symbolsAndTimeframes, params);
+        const [ symbol, timeframe, candles ] = await this.watchPublic ('ohlcv', 'kline#', symbolsAndTimeframes, params);
         if (this.newUpdates) {
             limit = candles.getLimit (symbol, limit);
         }
@@ -851,22 +867,7 @@ export default class xcoin extends xcoinRest {
         const promise1 = this.loadMarkets ();
         const promise2 = this.authenticate (params);
         await Promise.all ([ promise1, promise2 ]);
-        return await this.privateWatch ('balance', 'trading_account', params);
-    }
-
-    async privateWatch (unifiedHash: string, exchangeChannel: string, params = {}) {
-        const url = this.urls['api']['ws']['private'];
-        const messageHash = unifiedHash;
-        const subscribe = {
-            'event': 'subscribe',
-            'data': [
-                {
-                    'stream': exchangeChannel,
-                },
-            ],
-        };
-        const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watchPrivate ('balance', 'trading_account', params);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -970,46 +971,54 @@ export default class xcoin extends xcoinRest {
 
     handleBalance (client: Client, message: any) {
         //
-        // {
-        //     "pid": "1915030429994115073",
-        //     "totalEquity": "9982626.463656177813115742",
-        //     "totalMarginBalance": "9982499.027406177813115742",
-        //     "totalAvailableBalance": "9963268.480482499813115742",
-        //     "details": [{
-        //         "currency": "USDT",
-        //         "equity": "9992460.435444457813115742",
-        //         "balance": "10022285.67808223248136992",
-        //         "upl": "-29825.242637774668254178",
-        //         "availableMargin": "9977888.265744457813115742",
-        //         "initialMargin": "13532.0697",
-        //         "frozen": "1040.1"
-        //     }]
-        // }
+        //    {
+        //        "stream": "trading_account",
+        //        "ts": "1762535468534",
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "pid": "1981204053820035072",
+        //                "totalEquity": "10",
+        //                "totalMarginBalance": "10",
+        //                "totalAvailableBalance": "10",
+        //                "totalPositionValue": "0",
+        //                "totalIm": "0",
+        //                "totalMm": "0",
+        //                "totalOpenLoss": "0",
+        //                "mmr": "0",
+        //                "imr": "0",
+        //                "accountLeverage": "0",
+        //                "totalUpl": "0",
+        //                "totalEffectiveMargin": "10",
+        //                "details": [
+        //                    {
+        //                        "currency": "USDT",
+        //                        "equity": "10",
+        //                        "balance": "10",
+        //                        "borrow": "0",
+        //                        "realLiability": "0",
+        //                        "potentialLiability": "0",
+        //                        "upl": "0",
+        //                        "availableMargin": "10",
+        //                        "liabilityInitialMargin": "0",
+        //                        "initialMargin": "0",
+        //                        "frozen": "0",
+        //                        "realLiabilityValue": "0"
+        //                    }
+        //                ]
+        //            }
+        //        ]
+        //    }
         //
-        const details = this.safeValue (message, 'details', []);
-        const result = {
-            'info': message,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        
-        for (let i = 0; i < details.length; i++) {
-            const balance = details[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            const total = this.safeString (balance, 'balance');
-            const free = this.safeString (balance, 'availableMargin');
-            const frozen = this.safeString (balance, 'frozen');
-            account['free'] = free;
-            account['used'] = frozen;
-            account['total'] = total;
-            result[code] = account;
-        }
-        
+        const balance = this.safeList (message, 'data', []);
+        // todo
         const messageHash = 'balance';
-        this.balance = this.safeBalance (result);
-        client.resolve (this.balance, messageHash);
+        const result = this.safeBalance (this.balance);
+        client.resolve (result, messageHash);
+    }
+
+    parseWsBalance (response): Balances {
+        return this.parseBalance (response);
     }
 
     handleOrder (client: Client, message: any) {

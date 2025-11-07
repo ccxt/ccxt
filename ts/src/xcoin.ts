@@ -176,10 +176,10 @@ export default class xcoin extends Exchange {
                     'method': 'publicGetV1MarketTicker24hr', // publicGetV1MarketTicker24hr, publicGetV1MarketTickerMini
                 },
                 'fetchBalance': {
-                    'defaultAccount': 'trading', // trading, funding
+                    'defaultType': 'trading', // trading, funding
                 },
                 'fetchLedger': {
-                    'defaultAccount': 'trading', // trading, funding
+                    'defaultType': 'trading', // trading, funding
                 },
             },
             'features': {
@@ -1161,91 +1161,113 @@ export default class xcoin extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://xcoin.com/docs/coinApi/funding-account/get-funding-account-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.defaultAccount] "trading" (default), "funding"
+     * @param {string} [params.defaultType] "trading" (default), "funding"
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let defaultAccount = undefined;
-        [ defaultAccount, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'defaultAccount');
+        let defaultType = undefined;
+        [ defaultType, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'defaultType');
         let response = undefined;
-        if (defaultAccount === 'funding') {
+        if (defaultType === 'funding') {
             response = await this.privateGetV1AssetBalances (params);
             //
             //    {
             //        "code": "0",
             //        "data": [
             //            {
-            //                "accountName": "test123",
+            //                "accountName": "CCXT_testing",
             //                "pid": "1981204053820035072",
             //                "uid": "176118985582700",
             //                "cid": "176118985590600",
             //                "currency": "USDT",
             //                "accountType": "funding",
-            //                "balance": "100",
+            //                "balance": "90",
             //                "freeze": "0",
-            //                "equity": "100",
-            //                "withdrawAble": "100"
+            //                "equity": "90",
+            //                "withdrawAble": "90"
             //            }
             //        ],
             //        "msg": "Success",
-            //        "ts": "1761655079854",
-            //        "traceId": "671ca9e68d04f29edb756d25917b2d49"
+            //        "ts": "1762541715636",
+            //        "traceId": "3104f5b29a4529ddd1cc628dda65906e"
             //    }
             //
         } else {
             response = await this.privateGetV1AccountBalance (params);
             //
-            // {
-            //     "code": "0",
-            //     "msg":"success",
-            //     "data": {
-            //         "pid": "1917181551846567937",
-            //         "totalEquity": "19392.506484534215473559",
-            //         "totalMarginBalance": "17635.572422907886172353",
-            //         "totalAvailableBalance": "16060.954948108649117299",
-            //         "totalPositionValue": "15746.174747992370550548",
-            //         "totalIm": "1574.617474799237055054",
-            //         "totalMm": "787.308737399618527527",
-            //         "totalOpenLoss": "0",
-            //         "mmr": "0.04464322",
-            //         "imr": "0.08928644",
-            //         "accountLeverage": "0.8928644",
-            //         "totalUpl": "0",
-            //         "totalEffectiveMargin": "17635.572422907886172353",
-            //         "details": [
-            //             {
-            //                 "currency": "USDT",
-            //                 "equity": "-15746.174747992370550548",
-            //                 "totalBalance": "0",
-            //                 "cashBalance": "0",
-            //                 "savingBalance": "0",
-            //                 "leftPersonalQuota": null,
-            //                 "savingTotalPnl": null,
-            //                 "savingLastPnl": null,
-            //                 "savingHoldDays": null,
-            //                 "savingTotalAPR": "0.000781530000000000",
-            //                 "savingLastAPR": null,
-            //                 "borrow": "15746.174747992370550548",
-            //                 "realLiability": "15746.174747992370550548",
-            //                 "potentialLiability": "15746.174747992370550548",
-            //                 "accruedInterest": "0.000100528919329999",
-            //                 "upl": "0",
-            //                 "positionInitialMargin": null,
-            //                 "orderInitialMargin": null,
-            //                 "liabilityInitialMargin": "1574.617474799237055054",
-            //                 "initialMargin": "1574.617474799237055054"
-            //             },
-            //         ],
-            //         "accountName": "hongliang03",
-            //         "flexibleEquity": "35138.6812325265860241072",
-            //         "flexiblePnl": "1.7207679725053541062",
-            //         "autoSubscribe": false,
-            //         "cid": "174575858798300",
-            //         "uid": "174575858790600"
-            //     },
-            //     "ts": "1746844510052"
-            // }
+            //    {
+            //        "code": "0",
+            //        "msg": "success",
+            //        "data": {
+            //            "accountName": "CCXT_testing",
+            //            "totalEquity": "10.034088464",
+            //            "totalMarginBalance": "8.6731462496",
+            //            "totalAvailableBalance": "8.5408862496",
+            //            "totalEffectiveMargin": "8.6731462496",
+            //            "totalPositionValue": "0.6613",
+            //            "totalIm": "0.13226",
+            //            "totalMm": "0.013226",
+            //            "totalOpenLoss": "0",
+            //            "mmr": "0.00152494",
+            //            "imr": "0.01524937",
+            //            "accountLeverage": "0.07624684",
+            //            "totalUpl": "0",
+            //            "flexibleEquity": "0.0000",
+            //            "flexiblePnl": "0.0000",
+            //            "autoSubscribe": false,
+            //            "details": [
+            //                {
+            //                    "currency": "USDT",
+            //                    "equity": "-0.6613",
+            //                    "totalBalance": "0",
+            //                    "cashBalance": "0",
+            //                    "savingBalance": "0",
+            //                    "leftPersonalQuota": null,
+            //                    "savingTotalPnl": null,
+            //                    "savingLastPnl": null,
+            //                    "savingHoldDays": null,
+            //                    "savingTotalAPR": "0.000065640000000000",
+            //                    "savingLastAPR": null,
+            //                    "borrow": "0.6613",
+            //                    "realLiability": "0.6613",
+            //                    "potentialLiability": "0.6613",
+            //                    "accruedInterest": "0",
+            //                    "upl": "0",
+            //                    "positionInitialMargin": null,
+            //                    "orderInitialMargin": null,
+            //                    "liabilityInitialMargin": "0.13226",
+            //                    "initialMargin": "0.13226"
+            //                },
+            //                {
+            //                    "currency": "SOL",
+            //                    "equity": "0.0299952",
+            //                    "totalBalance": "0.0299952",
+            //                    "cashBalance": "0.0299952",
+            //                    "savingBalance": "0",
+            //                    "leftPersonalQuota": null,
+            //                    "savingTotalPnl": null,
+            //                    "savingLastPnl": null,
+            //                    "savingHoldDays": null,
+            //                    "savingTotalAPR": "0.000041160000000000",
+            //                    "savingLastAPR": null,
+            //                    "borrow": "0",
+            //                    "realLiability": "0",
+            //                    "potentialLiability": "0",
+            //                    "accruedInterest": "0",
+            //                    "upl": "0",
+            //                    "positionInitialMargin": null,
+            //                    "orderInitialMargin": null,
+            //                    "liabilityInitialMargin": "0",
+            //                    "initialMargin": "0"
+            //                }
+            //            ],
+            //            "pid": "1981204053820035072",
+            //            "cid": "176118985590600",
+            //            "uid": "176118985582700"
+            //        },
+            //        "ts": "1762541171766"
+            //    }
             //
         }
         return this.parseBalance (response);
@@ -1258,12 +1280,15 @@ export default class xcoin extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const balances = this.safeList (response, 'data', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balanceRaw = balances[i];
+        const data = this.safeDict (response, 'data');
+        const details = this.safeList (data, 'details');
+        const finalArray = this.safeList (response, 'data', details); // handle "funding" response too
+        for (let i = 0; i < finalArray.length; i++) {
+            const balanceRaw = finalArray[i];
             const code = this.safeCurrencyCode (this.safeString (balanceRaw, 'currency'));
             const account = this.account ();
-            account['total'] = this.safeString (balanceRaw, 'totalBalance');
+            // balances are very complex, it is also borrowable in totalAmount, as opposed to equeity (for funding & WS balance)
+            account['total'] = this.safeString2 (balanceRaw, 'totalBalance', 'equity');
             account['free'] = this.safeString (balanceRaw, 'balance');
             account['used'] = this.safeString (balanceRaw, 'freeze');
             result[code] = account;
@@ -1282,7 +1307,7 @@ export default class xcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @param {string} [params.defaultAccount] "trading" (default), "funding"
+     * @param {string} [params.defaultType] "trading" (default), "funding"
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
@@ -1305,10 +1330,10 @@ export default class xcoin extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        let defaultAccount = undefined;
-        [ defaultAccount, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'defaultAccount');
+        let defaultType = undefined;
+        [ defaultType, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'defaultType');
         let response = undefined;
-        if (defaultAccount === 'funding') {
+        if (defaultType === 'funding') {
             response = await this.privateGetV1AssetBill (this.extend (request, params));
             //
             //     {
