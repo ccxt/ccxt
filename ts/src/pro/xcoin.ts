@@ -238,7 +238,7 @@ export default class xcoin extends xcoinRest {
             const marketId = this.safeString (data, 'symbol');
             const stream = this.safeString (data, 'stream');
             const id = stream + '_' + marketId;
-            this.callOrderBookSubscriptionMethod (client, message, id);
+            this.checkIfSubscriptionCallbackNeeded (client, message, id);
         }
     }
 

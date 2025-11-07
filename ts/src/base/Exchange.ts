@@ -5207,12 +5207,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' handleOrderBookIncrementalMessage() not implemented yet');
     }
 
-    callOrderBookSubscriptionMethod (client: Client, message, id) {
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
-        const method = this.safeValue (subscription, 'callback');
-        if (method !== undefined) {
-            method.call (this, client, message, subscription);
+    checkIfSubscriptionCallbackNeeded (client: Client, message: any, subscriptionId: string) {
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const subscriptionDict = this.safeDict (client.subscriptions, key, {});
+            const id = this.safeString (subscriptionDict, 'id');
+            if (id !== undefined && subscriptionId) {
+                const method = this.safeValue (subscriptionDict, 'callback');
+                if (method !== undefined) {
+                    method.call (this, client, message, subscriptionDict);
+                }
+            }
         }
     }
 
