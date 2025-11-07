@@ -159,7 +159,7 @@ export default class Client {
     }
 
     log (... args: any[]) {
-        console.log (... args)
+        console.log (... args, '|', this.url)
         // console.dir (args, { depth: null })
     }
 
