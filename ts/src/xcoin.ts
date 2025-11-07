@@ -169,8 +169,8 @@ export default class xcoin extends Exchange {
             },
             'options': {
                 'accountsByType': {
-                    'trading': 'trading',
                     'funding': 'funding',
+                    'trading': 'trading',
                 },
                 'fetchTickers': {
                     'method': 'publicGetV1MarketTicker24hr', // publicGetV1MarketTicker24hr, publicGetV1MarketTickerMini
@@ -1200,11 +1200,10 @@ export default class xcoin extends Exchange {
             //     "code": "0",
             //     "msg":"success",
             //     "data": {
-            //         "accountName": "hongliang03",
+            //         "pid": "1917181551846567937",
             //         "totalEquity": "19392.506484534215473559",
             //         "totalMarginBalance": "17635.572422907886172353",
             //         "totalAvailableBalance": "16060.954948108649117299",
-            //         "totalEffectiveMargin": "17635.572422907886172353",
             //         "totalPositionValue": "15746.174747992370550548",
             //         "totalIm": "1574.617474799237055054",
             //         "totalMm": "787.308737399618527527",
@@ -1213,9 +1212,7 @@ export default class xcoin extends Exchange {
             //         "imr": "0.08928644",
             //         "accountLeverage": "0.8928644",
             //         "totalUpl": "0",
-            //         "flexibleEquity": "35138.6812325265860241072",
-            //         "flexiblePnl": "1.7207679725053541062",
-            //         "autoSubscribe": false,
+            //         "totalEffectiveMargin": "17635.572422907886172353",
             //         "details": [
             //             {
             //                 "currency": "USDT",
@@ -1240,7 +1237,10 @@ export default class xcoin extends Exchange {
             //                 "initialMargin": "1574.617474799237055054"
             //             },
             //         ],
-            //         "pid": "1917181551846567937",
+            //         "accountName": "hongliang03",
+            //         "flexibleEquity": "35138.6812325265860241072",
+            //         "flexiblePnl": "1.7207679725053541062",
+            //         "autoSubscribe": false,
             //         "cid": "174575858798300",
             //         "uid": "174575858790600"
             //     },
@@ -1714,6 +1714,15 @@ export default class xcoin extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
+    accountTypeValue (accountType: string) {
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        if (!(accountType in accountsByType)) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' ' + accountType + ' is not a valid, supported values are ' + this.json (keys));
+        }
+        return this.safeString (accountsByType, accountType, accountType);
+    }
+
     /**
      * @method
      * @name xcoin#transfer
@@ -1721,28 +1730,28 @@ export default class xcoin extends Exchange {
      * @see https://xcoin.com/docs/coinApi/funding-account/transfer/internal-transfer-application
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
-     * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
+     * @param {string} fromAccount trading, funding
+     * @param {string} toAccount trading, funding
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const request: Dict = {
-            'symbol': currency['id'],
-            'currency': this.currencyToPrecision (code, amount),
-            'fromAccountType': this.safeString (accountsByType, fromAccount, fromAccount),
-            'toAccountType': this.safeString (accountsByType, toAccount, toAccount),
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'fromAccountType': this.accountTypeValue (fromAccount),
+            'toAccountType': this.accountTypeValue (toAccount),
         };
         const response = await this.privatePostV1AssetTransfer (this.extend (request, params));
         //
         // {
         //     "code": 0,
         //     "data": true,
-        //     "msg": "0",
-        //     "ts": 1746155931317
+        //     "msg": "Success",
+        //     "ts": "1762532331198",
+        //     "traceId":"b3ea441eff61405c64b39ffb54b99245"
         // }
         //
         return this.parseTransfer (response, currency);
@@ -2164,7 +2173,8 @@ export default class xcoin extends Exchange {
             //     "code": "0",
             //     "msg":"success",
             //     "data": {
-            //         "orderId": "1322590062927904769"
+            //         "orderId": "1322590062927904769",
+            //         "clientOrderId": "1236510635820617728"
             //     },
             //     "ts": "1732158178000"
             // }
@@ -2242,7 +2252,7 @@ export default class xcoin extends Exchange {
             request['timeInForce'] = timeInForce.toLowerCase ();
         }
         const isReduceOnly = this.safeBool (params, 'reduceOnly');
-        if (!market['spot'] || isReduceOnly) {
+        if (!market['spot'] && isReduceOnly) {
             request['reduceOnly'] = true;
         }
         const triggerPriceTypes = {
@@ -2339,7 +2349,12 @@ export default class xcoin extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        const request: Dict = {};
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request: Dict = {};
         const isTrigger = this.safeBool (params, 'isTrigger', false);
         let response = undefined;
         if (isTrigger) {
@@ -2357,7 +2372,10 @@ export default class xcoin extends Exchange {
             // }
             //
         } else {
-            request['orderId'] = id;
+            request = {
+                'orderId': id,
+                'symbol': market['id'],
+            };
             response = await this.privatePostV1TradeCancelOrder (this.extend (request, params));
             //
             // {
@@ -3060,19 +3078,19 @@ export default class xcoin extends Exchange {
         let queryStr = '';
         if (method === 'GET') {
             if (Object.keys (query).length) {
-                queryStr = this.urlencode (query);
-                url += '?' + queryStr;
+                queryStr = '?' + this.urlencode (query);
+                url += queryStr;
             }
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ();
+            const timestamp = this.milliseconds ().toString ();
             let bodyStr = '';
             if (method === 'POST') {
                 body = this.json (params);
                 bodyStr = body;
             }
-            const preHash = timestamp.toString () + method.toUpperCase () + '/' + path + queryStr + bodyStr;
+            const preHash = timestamp + method.toUpperCase () + '/' + path + queryStr + bodyStr;
             const signature = this.hmac (this.encode (preHash), this.encode (this.secret), sha256, 'hex');
             headers = {
                 'Content-Type': 'application/json',
