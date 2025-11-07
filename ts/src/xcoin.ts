@@ -713,16 +713,17 @@ export default class xcoin extends Exchange {
         //       "asks": [
         //         ["65003","0.1"],
         //         ["65004","0.1"],
-        //       ]
-        //     },
-        //     "lastUpdateId": "5001"
+        //       ],
+        //       "lastUpdateId": "5001"
         //    },
         //    "ts": "1732158178000"
         //  }
         //
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (response, 'ts');
-        return this.parseOrderBook (data, market['symbol'], timestamp);
+        const orderBook = this.parseOrderBook (data, market['symbol'], timestamp);
+        orderBook['nonce'] = this.safeInteger (data, 'lastUpdateId');
+        return orderBook;
     }
 
     /**

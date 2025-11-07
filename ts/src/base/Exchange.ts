@@ -5182,6 +5182,7 @@ export default class Exchange {
         }
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
+            await this.sleep (0); // yield to the event loop
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
             // if the orderbook was dropped while the snapshot was being received
             if (!(symbol in this.orderbooks) || (this.orderbooks[symbol] === undefined)) {
@@ -5189,14 +5190,10 @@ export default class Exchange {
             }
             const orderbook = this.orderbooks[symbol];
             orderbook.reset (snapshot);
-            const rawMessages = orderbook.cache;
-            const tsKey = this.safeString (obOptions, 'incrementalTimestampKey');
-            for (let i = 0; i < rawMessages.length; i++) {
-                const rawMessage = rawMessages[i];
-                const ts = this.safeInteger (rawMessage, tsKey);
-                if (ts >= orderbook['timestamp']) {
-                    this.handleIncrementalOrderBookMessage (client, rawMessage, orderbook);
-                }
+            const collectedMessages = orderbook.cache;
+            for (let i = 0; i < collectedMessages.length; i++) {
+                const rawMessage = collectedMessages[i];
+                this.handleOrderBookIncrementalMessage (client, rawMessage, orderbook);
             }
             this.orderbooks[symbol] = orderbook;
             client.resolve (orderbook, messageHash);
@@ -5206,8 +5203,17 @@ export default class Exchange {
         }
     }
 
-    handleIncrementalOrderBookMessage (client: Client, message, orderbook) {
-        throw new NotSupported (this.id + ' handleIncrementalOrderBookMessage() not implemented yet');
+    handleOrderBookIncrementalMessage (client: Client, message, orderbook) {
+        throw new NotSupported (this.id + ' handleOrderBookIncrementalMessage() not implemented yet');
+    }
+
+    callOrderBookSubscriptionMethod (client: Client, message, id) {
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id, {});
+        const method = this.safeValue (subscription, 'callback');
+        if (method !== undefined) {
+            method.call (this, client, message, subscription);
+        }
     }
 
     buildOHLCVC (trades: Trade[], timeframe: string = '1m', since: number = 0, limit: number = 2147483647): OHLCVC[] {

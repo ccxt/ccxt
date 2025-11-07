@@ -51,7 +51,6 @@ export default class xcoin extends xcoinRest {
                     // incremental updates
                     //    depth#[100|500|1000]ms
                     'method': 'depth#100ms',
-                    'incrementalTimestampKey': 'ts',
                 },
                 'watchTicker': {
                     'channel': 'ticker24hr', // ticker24hr or miniTicker
@@ -106,7 +105,7 @@ export default class xcoin extends xcoinRest {
                     'id': exchangeChannel + '_' + market['id'],
                     'symbol': market['symbol'],
                     'messageHash': messageHash,
-                    'method': this.spawnFetchOrderBookSnapshot,
+                    'callback': this.spawnFetchOrderBookSnapshot,
                 };
             }
             const subscribe = {
@@ -189,7 +188,6 @@ export default class xcoin extends xcoinRest {
             'position': this.handlePosition,
             'order': this.handleOrder,
             'trading_account': this.handleBalance,
-            'depth': this.handleOrderBook,
             'orderBook': this.handleBidsAsks, // best bid-asks
             'ticker24hr': this.handleTicker,
             'miniTicker': this.handleTicker,
@@ -197,7 +195,8 @@ export default class xcoin extends xcoinRest {
         };
         const methodMatches = {
             'kline#': this.handleOHLCV,
-            'depthlevels#': this.handleOrderBook,
+            'depthlevels#': this.handleOrderBookPartialSnapshot,
+            'depth#': this.handleOrderBookIncrementalMessage,
         };
         const method = this.safeValue (methods, stream);
         if (method !== undefined) {
@@ -233,22 +232,17 @@ export default class xcoin extends xcoinRest {
         //        "ts": 1762237676412
         //    }
         //
-        const data = this.safeList (message, 'data', []);
-        for (let i = 0; i < data.length; i++) {
-            const subscriptionRaw = data[i];
-            const code = this.safeInteger (subscriptionRaw, 'code');
+        const datas = this.safeList (message, 'data', []);
+        for (let i = 0; i < datas.length; i++) {
+            const data = datas[i];
+            const code = this.safeInteger (data, 'code');
             if (code !== 0) {
                 continue;
             }
-            const marketId = this.safeString (subscriptionRaw, 'symbol');
-            const stream = this.safeString (subscriptionRaw, 'stream');
+            const marketId = this.safeString (data, 'symbol');
+            const stream = this.safeString (data, 'stream');
             const id = stream + '_' + marketId;
-            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, id, {});
-            const method = this.safeValue (subscription, 'method');
-            if (method !== undefined) {
-                method.call (this, client, message, subscription);
-            }
+            this.callOrderBookSubscriptionMethod (client, message, id);
         }
     }
 
@@ -546,7 +540,9 @@ export default class xcoin extends xcoinRest {
             const symbol = this.safeSymbol (marketId);
             const messageHash = 'orderBook::' + symbol;
             if (!(symbol in this.orderbooks)) {
-                const limit = this.safeInteger (this.options['ws'], 'orderBookLimit', 1000);
+                const wsOptions = this.safeDict (this.options, 'ws', this.options);
+                const obOptions = this.safeDict (wsOptions, 'orderBook', {});
+                const limit = this.safeInteger (obOptions, 'limit', 1000);
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
             const orderbook = this.orderbooks[symbol];
@@ -558,76 +554,70 @@ export default class xcoin extends xcoinRest {
         }
     }
 
-    handleIncrementalOrderBookMessage (client: Client, message, orderbook) {
+    handleOrderBookIncrementalMessage (client: Client, message, initialSnapshot = undefined) {
+        //
+        //    {
+        //        "businessType": "linear_perpetual",
+        //        "symbol": "BTC-USDT-PERP",
+        //        "stream": "depth#100ms",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC-USDT-PERP",
+        //                "lastUpdateId": "1169874843",
+        //                "preUpdateId": "1169874820",
+        //                "bids": [
+        //                    [ "101744.7", "0"],
+        //                    [ "101748.8", "0.0007"],
+        //                ],
+        //                "asks": [
+        //                    [ "101744.8", "0" ],
+        //                    [ "101749.7", "13.6903" ]
+        //                ]
+        //            }
+        //        ],
+        //        "ts": 1762455386785
+        //    }
+        //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const data = this.safeValue (message, 'data', []);
-        const stream = this.safeString (message, 'stream', '');
-        if (data.length > 0) {
-            const update = data[0];
-            const timestamp = this.safeInteger (message, 'ts');
-            const bids = this.safeValue (update, 'bids', []);
-            const asks = this.safeValue (update, 'asks', []);
-            
-            let messageHash = 'depth:' + symbol;
-            if (stream.indexOf ('depthlevels') >= 0) {
-                messageHash = 'bidsasks';
-            }
-            
-            let orderbook = this.safeValue (this.orderbooks, symbol);
-            if (orderbook === undefined) {
-                orderbook = this.orderBook ({});
-                this.orderbooks[symbol] = orderbook;
-            }
-            
-            // Check if this is a snapshot (has many levels) or update (has few changes)
-            const isSnapshot = (bids.length > 10) || (asks.length > 10);
-            if (isSnapshot) {
-                const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks');
-                orderbook.reset (snapshot);
-            } else {
-                // Incremental update
-                this.handleDeltas (orderbook['bids'], bids);
-                this.handleDeltas (orderbook['asks'], asks);
-                orderbook['timestamp'] = timestamp;
-                orderbook['datetime'] = this.iso8601 (timestamp);
-            }
-            
-            client.resolve (orderbook, messageHash);
-            
-            // For bidsasks, also create a ticker-like structure
-            if (stream.indexOf ('depthlevels') >= 0) {
-                const ticker = {
-                    'symbol': symbol,
-                    'bid': this.safeFloat (bids, [0, 0]),
-                    'bidVolume': this.safeFloat (bids, [0, 1]),
-                    'ask': this.safeFloat (asks, [0, 0]),
-                    'askVolume': this.safeFloat (asks, [0, 1]),
-                    'timestamp': timestamp,
-                    'datetime': this.iso8601 (timestamp),
-                    'info': update,
-                };
-                if (this.bidsasks === undefined) {
-                    this.bidsasks = {};
-                }
-                this.bidsasks[symbol] = ticker;
-                client.resolve (this.bidsasks, 'bidsasks');
-            }
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
         }
-
-        const data = this.safeDict (message, 'data');
-        this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
-        this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
+        let orderbook = this.orderbooks[symbol];
+        // if snapshot was not yet received
+        if (orderbook['nonce'] === undefined) {
+            orderbook.cache.push (message);
+            return;
+        }
+        const data = this.safeList (message, 'data', []);
         const timestamp = this.safeInteger (message, 'ts');
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
-        return orderbook;
+        for (let i = 0; i < data.length; i++) {
+            const update = data[i];
+            const preUpdateId = this.safeInteger (update, 'preUpdateId');
+            // if it's the first call after snapshot
+            if (initialSnapshot !== undefined) {
+                if (preUpdateId < initialSnapshot['nonce']) {
+                    continue;
+                }
+            }
+            const bids = this.safeList (update, 'bids', []);
+            const asks = this.safeList (update, 'asks', []);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook ({});
+            }
+            orderbook = this.orderbooks[symbol];
+            this.handleDeltas (orderbook['bids'], bids);
+            this.handleDeltas (orderbook['asks'], asks);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            client.resolve (orderbook, 'orderBook::' + symbol);
+        }
     }
 
     handleDelta (bookside: any, delta: any) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
+        const price = this.safeNumber (delta, 0);
+        const amount = this.safeNumber (delta, 1);
         bookside.store (price, amount);
     }
 
