@@ -301,7 +301,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function fetch_order_book_snapshot(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book_snapshot_custom(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             $restOrderBook = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
             if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
@@ -1004,7 +1004,7 @@ class ascendex extends \ccxt\async\ascendex {
         }
         $this->orderbooks[$symbol] = $this->order_book(array());
         if ($this->options['defaultType'] === 'swap' || $market['contract']) {
-            $this->spawn(array($this, 'fetch_order_book_snapshot'), $symbol);
+            $this->spawn(array($this, 'fetch_order_book_snapshot_custom'), $symbol);
         } else {
             $this->spawn(array($this, 'watch_order_book_snapshot'), $symbol);
         }
