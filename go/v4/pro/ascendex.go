@@ -415,7 +415,7 @@ func  (this *AscendexCore) WatchOrderBookSnapshot(symbol interface{}, optionalAr
             }()
             return ch
         }
-func  (this *AscendexCore) FetchOrderBookSnapshot(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
+func  (this *AscendexCore) FetchOrderBookSnapshotCustom(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -1174,7 +1174,7 @@ func  (this *AscendexCore) HandleOrderBookSubscription(client interface{}, messa
     }
     ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]interface{} {}))
     if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(this.Options, "defaultType"), "swap")) || ccxt.IsTrue(ccxt.GetValue(market, "contract"))) {
-        this.Spawn(this.FetchOrderBookSnapshot, symbol)
+        this.Spawn(this.FetchOrderBookSnapshotCustom, symbol)
     } else {
         this.Spawn(this.WatchOrderBookSnapshot, symbol)
     }
