@@ -32,6 +32,7 @@ import { // eslint-disable-line object-curly-newline
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
+import type Client from './ws/Client.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
 // ----------------------------------------------------------------------------
@@ -49,7 +50,6 @@ import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
-import type Client from './ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 const {
