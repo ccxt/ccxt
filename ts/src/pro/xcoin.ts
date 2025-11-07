@@ -839,6 +839,21 @@ export default class xcoin extends xcoinRest {
         ];
     }
 
+    async watchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name xcoin#watchBalance
+         * @description watches balance and get updates on changes
+         * @see https://xcoin.com/docs/coinApi/websocket-stream/private-channel/trading-account-channel
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        const promise1 = this.loadMarkets ();
+        const promise2 = this.authenticate (params);
+        await Promise.all ([ promise1, promise2 ]);
+        return await this.privateWatch ('balance', 'trading_account', params);
+    }
+
     async privateWatch (unifiedHash: string, exchangeChannel: string, params = {}) {
         const url = this.urls['api']['ws']['private'];
         const messageHash = unifiedHash;
