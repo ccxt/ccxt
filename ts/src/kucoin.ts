@@ -2051,12 +2051,24 @@ export default class kucoin extends Exchange {
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'uta', false);
         let response = undefined;
         if (uta) {
-            const tradeType = this.safeStringUpper (params, 'tradeType');
-            if (tradeType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTickers() requires a tradeType parameter for uta, either SPOT or FUTURES');
+            if (symbols !== undefined) {
+                const symbol = this.safeString (symbols, 0);
+                const market = this.market (symbol);
+                let type = undefined;
+                [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+                if (type === 'spot') {
+                    request['tradeType'] = 'SPOT';
+                } else {
+                    request['tradeType'] = 'FUTURES';
+                }
+            } else {
+                const tradeType = this.safeStringUpper (params, 'tradeType');
+                if (tradeType === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchTickers() requires a tradeType parameter for uta, either SPOT or FUTURES');
+                }
+                request['tradeType'] = tradeType;
+                params = this.omit (params, 'tradeType');
             }
-            request['tradeType'] = tradeType;
-            params = this.omit (params, 'tradeType');
             response = await this.utaGetMarketTicker (this.extend (request, params));
             //
             //     {
@@ -2156,7 +2168,6 @@ export default class kucoin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -2170,12 +2181,13 @@ export default class kucoin extends Exchange {
         let response = undefined;
         let result = undefined;
         if (uta) {
-            const tradeType = this.safeStringUpper (params, 'tradeType');
-            if (tradeType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTicker() requires a tradeType parameter for uta, either SPOT or FUTURES');
+            let type = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
+            if (type === 'spot') {
+                request['tradeType'] = 'SPOT';
+            } else {
+                request['tradeType'] = 'FUTURES';
             }
-            request['tradeType'] = tradeType;
-            params = this.omit (params, 'tradeType');
             response = await this.utaGetMarketTicker (this.extend (request, params));
             //
             //     {
@@ -2291,7 +2303,6 @@ export default class kucoin extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -2329,13 +2340,14 @@ export default class kucoin extends Exchange {
         let response = undefined;
         let result = undefined;
         if (uta) {
-            const tradeType = this.safeStringUpper (params, 'tradeType');
-            if (tradeType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a tradeType parameter for uta, either SPOT or FUTURES');
+            let type = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
+            if (type === 'spot') {
+                request['tradeType'] = 'SPOT';
+            } else {
+                request['tradeType'] = 'FUTURES';
             }
-            request['tradeType'] = tradeType;
             request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-            params = this.omit (params, 'tradeType');
             response = await this.utaGetMarketKline (this.extend (request, params));
             //
             //     {
@@ -2524,7 +2536,6 @@ export default class kucoin extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -2537,17 +2548,18 @@ export default class kucoin extends Exchange {
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'uta', false);
         let response = undefined;
         if (uta) {
-            const tradeType = this.safeStringUpper (params, 'tradeType');
-            if (tradeType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a tradeType parameter for uta, either SPOT or FUTURES');
-            }
             if (limit === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a limit argument for uta, either 20, 50, 100 or FULL');
             }
-            request['tradeType'] = tradeType;
             request['limit'] = limit;
             request['symbol'] = market['id'];
-            params = this.omit (params, 'tradeType');
+            let type = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+            if (type === 'spot') {
+                request['tradeType'] = 'SPOT';
+            } else {
+                request['tradeType'] = 'FUTURES';
+            }
             response = await this.utaGetMarketOrderbook (this.extend (request, params));
             //
             //     {
@@ -3736,7 +3748,6 @@ export default class kucoin extends Exchange {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -3757,12 +3768,13 @@ export default class kucoin extends Exchange {
         let response = undefined;
         let trades = undefined;
         if (uta) {
-            const tradeType = this.safeStringUpper (params, 'tradeType');
-            if (tradeType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTrades() requires a tradeType parameter for uta, either SPOT or FUTURES');
+            let type = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
+            if (type === 'spot') {
+                request['tradeType'] = 'SPOT';
+            } else {
+                request['tradeType'] = 'FUTURES';
             }
-            request['tradeType'] = tradeType;
-            params = this.omit (params, 'tradeType');
             response = await this.utaGetMarketTrade (this.extend (request, params));
             //
             //     {
