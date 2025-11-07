@@ -2560,6 +2560,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.dex] perp dex name. default is null
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2568,11 +2569,19 @@ export default class hyperliquid extends Exchange {
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         await this.loadMarkets ();
-        const market = this.safeMarket (symbol);
         const request: Dict = {
             'type': method,
             'user': userAddress,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            // check if is hip3 symbol
+            const part = this.safeString (market, 'baseName', '').split (':');
+            if (part.length > 1) {
+                request['dex'] = this.safeString (part, 0);
+            }
+        }
         const response = await this.publicPostInfo (this.extend (request, params));
         //
         //     [
@@ -4226,6 +4235,9 @@ export default class hyperliquid extends Exchange {
     coinToMarketId (coin: Str) {
         if (coin.indexOf ('/') > -1 || coin.indexOf ('@') > -1) {
             return coin; // spot
+        }
+        if (coin.indexOf (':') > -1) {
+            coin = coin.replace (':', '-'); // hip3
         }
         return this.safeCurrencyCode (coin) + '/USDC:USDC';
     }
