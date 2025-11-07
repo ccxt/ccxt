@@ -20,24 +20,25 @@ export default class xcoin extends xcoinRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': true,
-                'watchMyTrades': true,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': false,
-                'watchOrders': true,
-                'watchPositions': true,
-                'watchTicker': true,
-                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
+                'watchTicker': true,
+                'watchTickers': true,
                 'watchBidsAsks': true,
+                'watchOrders': true,
+                'watchPositions': true,
+                'watchBalance': true,
+                'watchMyTrades': true,
             },
             'urls': {
                 'api': {
                     'ws': {
                         'public': 'wss://stream.xcoin.com/ws/public/v1/market',
-                        'private': 'wss://stream.xcoin.com/ws/private',
+                        'private': 'wss://stream.xcoin.com/ws/private/v2/notification',
                     },
                 },
             },
@@ -172,12 +173,7 @@ export default class xcoin extends xcoinRest {
         if (event === 'authorization') {
             return this.handleAuthenticationMessage (client, message);
         }
-        // Handle error messages
-        const code = this.safeString (message, 'code');
-        if (code !== undefined && code !== '0') {
-            this.handleErrorMessage (client, message);
-            return;
-        }
+        this.handleErrorMessage (client, message);
         // Handle data messages by stream type
         const stream = this.safeString (message, 'stream');
         if (stream === undefined) {
@@ -185,13 +181,13 @@ export default class xcoin extends xcoinRest {
         }
         const methods: Dict = {
             'pong': this.handlePong,
-            'position': this.handlePosition,
-            'order': this.handleOrder,
-            'trading_account': this.handleBalance,
-            'orderBook': this.handleBidsAsks, // best bid-asks
             'ticker24hr': this.handleTicker,
             'miniTicker': this.handleTicker,
             'trade': this.handleTrade,
+            'orderBook': this.handleBidsAsks, // best bid-asks
+            'position': this.handlePosition,
+            'order': this.handleOrder,
+            'trading_account': this.handleBalance,
         };
         const methodMatches = {
             'kline#': this.handleOHLCV,
@@ -247,9 +243,6 @@ export default class xcoin extends xcoinRest {
     }
 
     handlePong (client: Client, message: any) {
-        //
-        // { "event": "pong", "ts": "1732256095953" }
-        //
         client.lastPong = this.milliseconds ();
         return message;
     }
@@ -621,6 +614,49 @@ export default class xcoin extends xcoinRest {
         bookside.store (price, amount);
     }
 
+    async authenticate (params = {}) {
+        const url = this.urls['api']['ws']['private'];
+        this.checkRequiredCredentials ();
+        const messageHash = 'authenticated';
+        const client = this.client (url);
+        const future = client.reusableFuture (messageHash);
+        if (!(messageHash in client.subscriptions)) {
+            const timestamp = this.milliseconds ().toString ();
+            const request = {
+                'data': {
+                    'type': 'Token',
+                    'accessKey': this.apiKey,
+                    'accessTimestamp': timestamp,
+                    'accountName': '',
+                },
+                'event': 'authorization',
+            };
+            const preHash = timestamp + 'POST' + '/v2/notification' + this.json (request['data']);
+            const signature = this.hmac (this.encode (preHash), this.encode (this.secret), sha256, 'hex');
+            request['accessSign'] = signature;
+            this.watch (url, messageHash, request, messageHash, future);
+        }
+        return await future;
+    }
+
+    handleAuthenticationMessage (client: Client, message: any) {
+        //
+        // {
+        //     "event": "authorization",
+        //     "msg": "success",
+        //     "code": "0",
+        //     "ts": "1732158443301"
+        // }
+        //
+        const messageHash = 'authenticated';
+        if (this.safeString (message, 'code') === '0') {
+            client.resolve (message, messageHash);
+        } else {
+            const error = new AuthenticationError (this.id + ' authentication failed: ' + this.safeString (message, 'msg'));
+            client.reject (error, messageHash);
+        }
+    }
+
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
@@ -803,22 +839,14 @@ export default class xcoin extends xcoinRest {
         ];
     }
 
-    async watchBalance (params = {}): Promise<Balances> {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://xcoin.com/docs/coinApi/websocket-stream/private-channel/trading-account-channel
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
-        await this.loadMarkets ();
-        await this.authenticate (params);
+    async privateWatch (unifiedHash: string, exchangeChannel: string, params = {}) {
         const url = this.urls['api']['ws']['private'];
-        const messageHash = 'balance';
+        const messageHash = unifiedHash;
         const subscribe = {
             'event': 'subscribe',
             'data': [
                 {
-                    'stream': 'trading_account',
+                    'stream': exchangeChannel,
                 },
             ],
         };
@@ -1220,68 +1248,21 @@ export default class xcoin extends xcoinRest {
         });
     }
 
-    handleAuthenticationMessage (client: Client, message: any) {
-        //
-        // {
-        //     "event": "authorization",
-        //     "msg": "success",
-        //     "code": "0",
-        //     "ts": "1732158443301"
-        // }
-        //
-        const code = this.safeString (message, 'code');
-        const messageHash = 'authenticated';
-        if (code === '0') {
-            client.resolve (message, messageHash);
-        } else {
-            const error = new AuthenticationError (this.id + ' authentication failed: ' + this.safeString (message, 'msg'));
-            client.reject (error, messageHash);
-        }
-    }
-
     handleErrorMessage (client: Client, message: any) {
         //
-        // {
-        //     "code": "xxxx",
-        //     "msg": "error message"
-        // }
+        //    {
+        //        "event": "error",
+        //        "code": 1,
+        //        "message": "失败"
+        //    }
         //
         const code = this.safeString (message, 'code');
-        const msg = this.safeString (message, 'msg', 'Unknown error');
-        const feedback = this.id + ' ' + msg;
-        this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-        this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
-        throw new ExchangeError (feedback);
-    }
-
-    async authenticate (params = {}) {
-        //
-        // Authenticate WebSocket connection for private channels
-        //
-        const url = this.urls['api']['ws']['private'];
-        const messageHash = 'authenticated';
-        const client = this.client (url);
-        const future = client.future (messageHash);
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
-            const timestamp = this.milliseconds ().toString ();
-            const accountName = this.safeString (this.options, 'accountName', '');
-            // Create signature: timestamp + accountName + accessKey
-            const message = timestamp + accountName + this.apiKey;
-            const signature = this.hmac (this.encode (message), this.encode (this.secret), sha256, 'hex');
-            const auth = {
-                'event': 'authorization',
-                'data': {
-                    'accountName': accountName,
-                    'type': 'Token',
-                    'accessKey': this.apiKey,
-                    'accessTimestamp': timestamp,
-                },
-                'accessSign': signature,
-            };
-            const request = this.deepExtend (auth, params);
-            this.spawn (this.watch, url, messageHash, request, messageHash);
+        if (code !== undefined && code !== '0') {
+            const msg = this.safeString (message, 'message');
+            const feedback = this.id + ' ' + msg;
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
+            throw new ExchangeError (this.id + ' ' + this.json (message));
         }
-        return await future;
     }
 }
