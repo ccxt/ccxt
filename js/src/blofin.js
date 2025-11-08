@@ -1284,11 +1284,14 @@ export default class blofin extends Exchange {
             timeInForce = 'IOC';
             type = 'limit';
         }
+        else if (type === 'conditional') {
+            type = 'trigger';
+        }
         const marketId = this.safeString(order, 'instId');
         market = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, market, '-');
         const filled = this.safeString(order, 'filledSize');
-        const price = this.safeString2(order, 'px', 'price');
+        const price = this.safeStringN(order, ['px', 'price', 'orderPrice']);
         const average = this.safeString(order, 'averagePrice');
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const feeCostString = this.safeString(order, 'fee');
