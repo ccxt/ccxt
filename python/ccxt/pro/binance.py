@@ -1737,6 +1737,27 @@ class binance(ccxt.async_support.binance):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
+    async def un_watch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        stops watching the mark price for all markets
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        channelName = None
+        # for now watchmarkPrice uses the same messageHash
+        # so it's impossible to watch both at the same time
+        # refactor self to use different messageHashes
+        channelName, params = self.handle_option_and_params(params, 'watchMarkPrices', 'name', 'markPrice')
+        newTickers = await self.watch_multi_ticker_helper('watchMarkPrices', channelName, symbols, params)
+        if self.newUpdates:
+            return newTickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
+
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -2209,7 +2230,7 @@ class binance(ccxt.async_support.binance):
 
     async def ensure_user_data_stream_ws_subscribe_signature(self, marketType: str = 'spot'):
         """
- Ensures a User Data Stream WebSocket subscription is active for the specified scope
+        watches best bid & ask for symbols
  @param marketType {string} only support on 'spot'
 
         {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
