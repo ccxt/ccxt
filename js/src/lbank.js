@@ -463,7 +463,10 @@ export default class lbank extends Exchange {
             const networks = {};
             for (let j = 0; j < networksRaw.length; j++) {
                 const networkEntry = networksRaw[j];
-                const networkId = this.safeString(networkEntry, 'chain');
+                let networkId = this.safeString(networkEntry, 'chain');
+                if (networkId === undefined) {
+                    networkId = this.safeString(networkEntry, 'assetCode'); // use type as fallback if networkId is not present
+                }
                 const networkCode = this.networkIdToCode(networkId);
                 networks[networkCode] = {
                     'id': networkId,
@@ -975,7 +978,7 @@ export default class lbank extends Exchange {
         if (market['swap']) {
             return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
-        return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0);
+        return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks');
     }
     parseTrade(trade, market = undefined) {
         //

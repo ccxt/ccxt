@@ -95,7 +95,7 @@ class foxbit(Exchange, ImplicitAPI):
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/ba1435eb-1d59-4393-8de7-0db10a002fb3',
+                'logo': 'https://github.com/user-attachments/assets/1f8faca2-ae2f-4222-b33e-5671e7d873dd',
                 'api': {
                     'public': 'https://api.foxbit.com.br',
                     'private': 'https://api.foxbit.com.br',
@@ -756,7 +756,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         Fetch historical candlestick data containing the open, high, low, and close price, and the volume of a market.
 
@@ -1628,7 +1628,7 @@ class foxbit(Exchange, ImplicitAPI):
             'percentage': self.safe_string(rolling_24h, 'price_change_percent'),
             'average': None,
             'baseVolume': self.safe_string(rolling_24h, 'volume'),
-            'quoteVolume': None,
+            'quoteVolume': self.safe_string(rolling_24h, 'quote_volume'),
             'info': ticker,
         }, market)
 

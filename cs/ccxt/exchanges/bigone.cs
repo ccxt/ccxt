@@ -17,9 +17,12 @@ public partial class bigone : Exchange
                 { "CORS", null },
                 { "spot", true },
                 { "margin", false },
-                { "swap", null },
+                { "swap", true },
                 { "future", null },
                 { "option", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "createMarketBuyOrderWithCost", true },
@@ -30,8 +33,17 @@ public partial class bigone : Exchange
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistories", false },
+                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
+                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
@@ -41,10 +53,15 @@ public partial class bigone : Exchange
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
+                { "fetchIsolatedBorrowRate", false },
+                { "fetchIsolatedBorrowRates", false },
                 { "fetchMarkets", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -55,7 +72,10 @@ public partial class bigone : Exchange
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", false },
                 { "fetchTransactionFees", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "transfer", true },
                 { "withdraw", true },
             } },
@@ -364,7 +384,7 @@ public partial class bigone : Exchange
         object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGetV3Assets", true);
         if (isTrue(isEqual(data, null)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         //
         // {
@@ -1208,7 +1228,7 @@ public partial class bigone : Exchange
         object market = this.market(symbol);
         if (isTrue(getValue(market, "contract")))
         {
-            throw new BadRequest ((string)add(this.id, " fetchTrades () can only fetch trades for spot markets")) ;
+            throw new NotSupported ((string)add(this.id, " fetchTrades () can only fetch trades for spot markets")) ;
         }
         object request = new Dictionary<string, object>() {
             { "asset_pair_name", getValue(market, "id") },
@@ -1275,7 +1295,7 @@ public partial class bigone : Exchange
         object market = this.market(symbol);
         if (isTrue(getValue(market, "contract")))
         {
-            throw new BadRequest ((string)add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
+            throw new NotSupported ((string)add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
         }
         object until = this.safeInteger(parameters, "until");
         object untilIsDefined = (!isEqual(until, null));

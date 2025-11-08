@@ -79,7 +79,7 @@ class foxbit extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/ba1435eb-1d59-4393-8de7-0db10a002fb3',
+                'logo' => 'https://github.com/user-attachments/assets/1f8faca2-ae2f-4222-b33e-5671e7d873dd',
                 'api' => array(
                     'public' => 'https://api.foxbit.com.br',
                     'private' => 'https://api.foxbit.com.br',
@@ -754,7 +754,7 @@ class foxbit extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * Fetch historical candlestick data containing the open, high, low, and close price, and the volume of a $market->
          *
@@ -1707,7 +1707,7 @@ class foxbit extends Exchange {
             'percentage' => $this->safe_string($rolling_24h, 'price_change_percent'),
             'average' => null,
             'baseVolume' => $this->safe_string($rolling_24h, 'volume'),
-            'quoteVolume' => null,
+            'quoteVolume' => $this->safe_string($rolling_24h, 'quote_volume'),
             'info' => $ticker,
         ), $market);
     }

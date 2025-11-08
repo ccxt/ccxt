@@ -106,6 +106,11 @@ public partial class myokx : okx
         return await this.callAsync ("publicGetMarketIndexComponents",parameters);
     }
 
+    public async Task<object> publicGetPublicMarketDataHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicGetPublicMarketDataHistory",parameters);
+    }
+
     public async Task<object> publicGetPublicEconomicCalendar (object parameters = null)
     {
         return await this.callAsync ("publicGetPublicEconomicCalendar",parameters);
@@ -1429,6 +1434,11 @@ public partial class myokx : okx
     public async Task<object> privatePostAccountMovePositions (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountMovePositions",parameters);
+    }
+
+    public async Task<object> privatePostAccountSetSettleCurrency (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountSetSettleCurrency",parameters);
     }
 
     public async Task<object> privatePostUsersSubaccountModifyApikey (object parameters = null)

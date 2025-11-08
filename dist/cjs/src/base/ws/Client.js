@@ -16,6 +16,7 @@ var index = require('../../static_dependencies/scure-base/index.js');
 class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;
+        this.decompressBinary = true;
         const defaults = {
             url,
             onMessageCallback,
@@ -49,6 +50,10 @@ class Client {
         Object.assign(this, generic.deepExtend(defaults, config));
         // connection-related Future
         this.connected = Future.Future();
+    }
+    reusableFuture(messageHash) {
+        // only used in go
+        return this.future(messageHash);
     }
     future(messageHash) {
         if (!(messageHash in this.futures)) {
@@ -279,11 +284,14 @@ class Client {
                 message = index.utf8.encode(arrayBuffer);
             }
             else {
-                message = message.toString();
+                if (this.decompressBinary) {
+                    message = message.toString();
+                }
             }
         }
         try {
             if (encode.isJsonEncodedObject(message)) {
+                message = message.toString();
                 message = JSON.parse(message.replace(/:(\d{15,}),/g, ':"$1",'));
             }
             if (this.verbose) {

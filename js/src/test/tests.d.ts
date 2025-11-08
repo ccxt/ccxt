@@ -24,7 +24,8 @@ declare class testMainClass {
     lang: string;
     proxyTestFileName: string;
     parseCliArgsAndProps(): void;
-    init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<boolean>;
+    init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<void>;
+    initInner(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<boolean>;
     checkIfSpecificTestIsChosen(methodArgv: any): void;
     importFiles(exchange: Exchange): Promise<boolean>;
     loadCredentialsFromEnv(exchange: Exchange): void;
@@ -89,7 +90,6 @@ declare class testMainClass {
     testWoofiPro(): Promise<boolean>;
     testOxfun(): Promise<boolean>;
     testXT(): Promise<boolean>;
-    testVertex(): Promise<boolean>;
     testParadex(): Promise<boolean>;
     testHashkey(): Promise<boolean>;
     testCoincatch(): Promise<boolean>;
@@ -97,5 +97,6 @@ declare class testMainClass {
     testCryptomus(): Promise<boolean>;
     testDerive(): Promise<boolean>;
     testModeTrade(): Promise<boolean>;
+    testBackpack(): Promise<boolean>;
 }
 export default testMainClass;

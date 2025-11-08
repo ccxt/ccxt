@@ -232,9 +232,7 @@ export interface CurrencyInterface {
             max?: Num;
         },
     },
-    networks: {
-        string: any,
-    },
+    networks: Dictionary<any>,
     info: any;
 }
 
@@ -451,6 +449,9 @@ export interface Liquidation {
     price: number;
     baseValue?: number;
     quoteValue?: number;
+    contracts?: number;
+    contractSize?: number;
+    side?: OrderSide;
 }
 
 export interface OrderRequest {

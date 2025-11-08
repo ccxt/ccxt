@@ -315,30 +315,34 @@ class cryptocom extends cryptocom$1["default"] {
             },
             'fees': {
                 'trading': {
-                    'maker': this.parseNumber('0.004'),
-                    'taker': this.parseNumber('0.004'),
+                    'maker': this.parseNumber('0.0025'),
+                    'taker': this.parseNumber('0.005'),
                     'tiers': {
                         'maker': [
-                            [this.parseNumber('0'), this.parseNumber('0.004')],
-                            [this.parseNumber('25000'), this.parseNumber('0.0035')],
+                            [this.parseNumber('0'), this.parseNumber('0.0025')],
+                            [this.parseNumber('10000'), this.parseNumber('0.002')],
                             [this.parseNumber('50000'), this.parseNumber('0.0015')],
-                            [this.parseNumber('100000'), this.parseNumber('0.001')],
-                            [this.parseNumber('250000'), this.parseNumber('0.0009')],
-                            [this.parseNumber('1000000'), this.parseNumber('0.0008')],
-                            [this.parseNumber('20000000'), this.parseNumber('0.0007')],
-                            [this.parseNumber('100000000'), this.parseNumber('0.0006')],
-                            [this.parseNumber('200000000'), this.parseNumber('0.0004')],
+                            [this.parseNumber('250000'), this.parseNumber('0.001')],
+                            [this.parseNumber('500000'), this.parseNumber('0.0008')],
+                            [this.parseNumber('2500000'), this.parseNumber('0.00065')],
+                            [this.parseNumber('10000000'), this.parseNumber('0')],
+                            [this.parseNumber('25000000'), this.parseNumber('0')],
+                            [this.parseNumber('100000000'), this.parseNumber('0')],
+                            [this.parseNumber('250000000'), this.parseNumber('0')],
+                            [this.parseNumber('500000000'), this.parseNumber('0')],
                         ],
                         'taker': [
-                            [this.parseNumber('0'), this.parseNumber('0.004')],
-                            [this.parseNumber('25000'), this.parseNumber('0.0035')],
+                            [this.parseNumber('0'), this.parseNumber('0.005')],
+                            [this.parseNumber('10000'), this.parseNumber('0.004')],
                             [this.parseNumber('50000'), this.parseNumber('0.0025')],
-                            [this.parseNumber('100000'), this.parseNumber('0.0016')],
-                            [this.parseNumber('250000'), this.parseNumber('0.00015')],
-                            [this.parseNumber('1000000'), this.parseNumber('0.00014')],
-                            [this.parseNumber('20000000'), this.parseNumber('0.00013')],
-                            [this.parseNumber('100000000'), this.parseNumber('0.00012')],
-                            [this.parseNumber('200000000'), this.parseNumber('0.0001')],
+                            [this.parseNumber('250000'), this.parseNumber('0.002')],
+                            [this.parseNumber('500000'), this.parseNumber('0.0018')],
+                            [this.parseNumber('2500000'), this.parseNumber('0.001')],
+                            [this.parseNumber('10000000'), this.parseNumber('0.0005')],
+                            [this.parseNumber('25000000'), this.parseNumber('0.0004')],
+                            [this.parseNumber('100000000'), this.parseNumber('0.00035')],
+                            [this.parseNumber('250000000'), this.parseNumber('0.00031')],
+                            [this.parseNumber('500000000'), this.parseNumber('0.00025')],
                         ],
                     },
                 },
@@ -438,6 +442,9 @@ class cryptocom extends cryptocom$1["default"] {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -532,13 +539,13 @@ class cryptocom extends cryptocom$1["default"] {
     async fetchCurrencies(params = {}) {
         // this endpoint requires authentication
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         let skipFetchCurrencies = false;
         [skipFetchCurrencies, params] = this.handleOptionAndParams(params, 'fetchCurrencies', 'skipFetchCurrencies', false);
         if (skipFetchCurrencies) {
             // sub-accounts can't access this endpoint
-            return undefined;
+            return {};
         }
         let response = {};
         try {
@@ -548,7 +555,7 @@ class cryptocom extends cryptocom$1["default"] {
             if (e instanceof errors.ExchangeError) {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
-                return undefined;
+                return {};
             }
             throw e;
             // do nothing

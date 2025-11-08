@@ -436,6 +436,10 @@ public partial class lbank : Exchange
             {
                 object networkEntry = getValue(networksRaw, j);
                 object networkId = this.safeString(networkEntry, "chain");
+                if (isTrue(isEqual(networkId, null)))
+                {
+                    networkId = this.safeString(networkEntry, "assetCode"); // use type as fallback if networkId is not present
+                }
                 object networkCode = this.networkIdToCode(networkId);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
@@ -977,7 +981,7 @@ public partial class lbank : Exchange
         {
             return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
         }
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 1, 0);
+        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks");
     }
 
     public override object parseTrade(object trade, object market = null)

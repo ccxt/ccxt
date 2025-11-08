@@ -3,6 +3,75 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "create order with tp and sl",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "input": [
+                    "HYPE/USDC:USDC",
+                    "market",
+                    "buy",
+                    1,
+                    39,
+                    30,
+                    10
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "order",
+                        "data": {
+                            "statuses": [
+                                {
+                                    "filled": {
+                                        "totalSz": "1.0",
+                                        "avgPx": "39.9351",
+                                        "oid": "211341310459"
+                                    }
+                                },
+                                "waitingForTrigger",
+                                "waitingForTrigger"
+                            ]
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "filled": {
+                            "totalSz": "1.0",
+                            "avgPx": "39.9351",
+                            "oid": "211341310459"
+                        }
+                    },
+                    "id": "211341310459",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": 1,
+                    "cost": null,
+                    "average": 39.9351,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -996,9 +1065,209 @@
                         "percentage": 11.597564511452594
                     }
                 ]
+            },
+            {
+                "description": "isolated short position",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "HYPE/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "marginSummary": {
+                        "accountValue": "76.206517",
+                        "totalNtlPos": "192.58",
+                        "totalRawUsd": "268.786517",
+                        "totalMarginUsed": "18.564417"
+                    },
+                    "crossMarginSummary": {
+                        "accountValue": "57.6421",
+                        "totalNtlPos": "0.0",
+                        "totalRawUsd": "57.6421",
+                        "totalMarginUsed": "0.0"
+                    },
+                    "crossMaintenanceMarginUsed": "0.0",
+                    "withdrawable": "57.6421",
+                    "assetPositions": [
+                        {
+                            "type": "oneWay",
+                            "position": {
+                                "coin": "HYPE",
+                                "szi": "-4.0",
+                                "leverage": {
+                                    "type": "isolated",
+                                    "value": "10",
+                                    "rawUsd": "211.144417"
+                                },
+                                "entryPx": "47.9932",
+                                "positionValue": "192.58",
+                                "unrealizedPnl": "-0.6071",
+                                "returnOnEquity": "-0.0316242553",
+                                "liquidationPx": "50.2724802381",
+                                "marginUsed": "18.564417",
+                                "maxLeverage": "10",
+                                "cumFunding": {
+                                    "allTime": "0.0",
+                                    "sinceOpen": "0.0",
+                                    "sinceChange": "0.0"
+                                }
+                            }
+                        }
+                    ],
+                    "time": "1761803589961"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "type": "oneWay",
+                            "position": {
+                                "coin": "HYPE",
+                                "szi": "-4.0",
+                                "leverage": {
+                                    "type": "isolated",
+                                    "value": "10",
+                                    "rawUsd": "211.144417"
+                                },
+                                "entryPx": "47.9932",
+                                "positionValue": "192.58",
+                                "unrealizedPnl": "-0.6071",
+                                "returnOnEquity": "-0.0316242553",
+                                "liquidationPx": "50.2724802381",
+                                "marginUsed": "18.564417",
+                                "maxLeverage": "10",
+                                "cumFunding": {
+                                    "allTime": "0.0",
+                                    "sinceOpen": "0.0",
+                                    "sinceChange": "0.0"
+                                }
+                            }
+                        },
+                        "id": null,
+                        "symbol": "HYPE/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": true,
+                        "hedged": null,
+                        "side": "short",
+                        "contracts": 4,
+                        "contractSize": 1,
+                        "entryPrice": 47.9932,
+                        "markPrice": null,
+                        "notional": 192.58,
+                        "leverage": 10,
+                        "collateral": 18.564417,
+                        "initialMargin": 19.171517,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": -0.6071,
+                        "liquidationPrice": 50.2724802381,
+                        "marginMode": "isolated",
+                        "percentage": 3.270234664519764
+                    }
+                ]
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv using HPENGU/USDC",
+                "method": "fetchOHLCV",
+                "input": [
+                    "HPENGU/USDC",
+                    "1h",
+                    1761729650000,
+                    1,
+                    {
+                        "until": 1761736850000
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "t": "1761728400000",
+                        "T": "1761731999999",
+                        "s": "@184",
+                        "i": "1h",
+                        "o": "0.020729",
+                        "c": "0.020704",
+                        "h": "0.020752",
+                        "l": "0.020624",
+                        "v": "321028.89",
+                        "n": "73"
+                    },
+                    {
+                        "t": "1761732000000",
+                        "T": "1761735599999",
+                        "s": "@184",
+                        "i": "1h",
+                        "o": "0.0207",
+                        "c": "0.020765",
+                        "h": "0.020765",
+                        "l": "0.020687",
+                        "v": "54681.37",
+                        "n": "14"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1761732000000,
+                        0.0207,
+                        0.020765,
+                        0.020687,
+                        0.020765,
+                        54681.37
+                    ]
+                ]
+            },
+            {
+                "description": "fetch ohlcv using UBTC/USDC",
+                "method": "fetchOHLCV",
+                "input": [
+                    "UBTC/USDC",
+                    "1h",
+                    1761729650000,
+                    1,
+                    {
+                        "until": 1761736850000
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "t": "1761728400000",
+                        "T": "1761731999999",
+                        "s": "@142",
+                        "i": "1h",
+                        "o": "113097.0",
+                        "c": "113035.0",
+                        "h": "113112.0",
+                        "l": "112804.0",
+                        "v": "30.79386",
+                        "n": "2850"
+                    },
+                    {
+                        "t": "1761732000000",
+                        "T": "1761735599999",
+                        "s": "@142",
+                        "i": "1h",
+                        "o": "113035.0",
+                        "c": "113103.0",
+                        "h": "113150.0",
+                        "l": "112926.0",
+                        "v": "7.44028",
+                        "n": "1158"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1761732000000,
+                        113035,
+                        113150,
+                        112926,
+                        113103,
+                        7.44028
+                    ]
+                ]
+            },
             {
                 "description": "btc ohlcv",
                 "method": "fetchOHLCV",

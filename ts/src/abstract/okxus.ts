@@ -28,6 +28,7 @@ interface okx {
     publicGetMarketOpenOracle (params?: {}): Promise<implicitReturnType>;
     publicGetMarketExchangeRate (params?: {}): Promise<implicitReturnType>;
     publicGetMarketIndexComponents (params?: {}): Promise<implicitReturnType>;
+    publicGetPublicMarketDataHistory (params?: {}): Promise<implicitReturnType>;
     publicGetPublicEconomicCalendar (params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTickers (params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTicker (params?: {}): Promise<implicitReturnType>;
@@ -293,6 +294,7 @@ interface okx {
     privatePostAccountFixedLoanRepayBorrowingOrder (params?: {}): Promise<implicitReturnType>;
     privatePostAccountBillsHistoryArchive (params?: {}): Promise<implicitReturnType>;
     privatePostAccountMovePositions (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSetSettleCurrency (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountModifyApikey (params?: {}): Promise<implicitReturnType>;
     privatePostAssetSubaccountTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountSetTransferOut (params?: {}): Promise<implicitReturnType>;

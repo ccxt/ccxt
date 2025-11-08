@@ -12,15 +12,31 @@ public partial class alpaca : ccxt.alpaca
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createReduceOnlyOrderWs", false },
+                { "createStopLossOrderWs", false },
+                { "createTakeProfitOrderWs", false },
+                { "fetchPositionForSymbolWs", false },
+                { "fetchPositionsForSymbolWs", false },
+                { "fetchPositionsWs", false },
+                { "fetchPositionWs", false },
+                { "unWatchPositions", false },
                 { "watchBalance", false },
+                { "watchLiquidations", false },
+                { "watchLiquidationsForSymbols", false },
+                { "watchMarkPrice", false },
+                { "watchMarkPrices", false },
+                { "watchMyLiquidations", false },
+                { "watchMyLiquidationsForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
                 { "watchOrders", true },
+                { "watchPosition", false },
+                { "watchPositions", false },
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
-                { "watchPosition", false },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -628,7 +644,7 @@ public partial class alpaca : ccxt.alpaca
         this.checkRequiredCredentials();
         object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

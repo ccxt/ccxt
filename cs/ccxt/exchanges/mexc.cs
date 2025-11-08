@@ -219,6 +219,7 @@ public partial class mexc : Exchange
                             { "mxDeduct/enable", 1 },
                             { "userDataStream", 1 },
                             { "selfSymbols", 1 },
+                            { "asset/internal/transfer/record", 10 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "order", 1 },
@@ -462,6 +463,12 @@ public partial class mexc : Exchange
                     { "ZKSYNC", "ZKSYNCERA" },
                     { "TRC20", "TRX" },
                     { "TON", "TONCOIN" },
+                    { "ARBITRUM", "ARB" },
+                    { "STX", "STACKS" },
+                    { "LUNC", "LUNA" },
+                    { "STARK", "STARKNET" },
+                    { "APT", "APTOS" },
+                    { "PEAQ", "PEAQEVM" },
                     { "AVAXC", "AVAX_CCHAIN" },
                     { "ERC20", "ETH" },
                     { "ACA", "ACALA" },
@@ -470,6 +477,7 @@ public partial class mexc : Exchange
                     { "ASTR", "ASTAR" },
                     { "BTM", "BTM2" },
                     { "CRC20", "CRONOS" },
+                    { "DOT", "DOTASSETHUB" },
                     { "ETHF", "ETF" },
                     { "HRC20", "HECO" },
                     { "OASIS", "ROSE" },
@@ -480,6 +488,7 @@ public partial class mexc : Exchange
                     { "BNB Smart Chain(BEP20-RACAV1)", "BSC" },
                     { "BNB Smart Chain(BEP20-RACAV2)", "BSC" },
                     { "BNB Smart Chain(BEP20)", "BSC" },
+                    { "Ethereum(ERC20)", "ERC20" },
                 } },
                 { "recvWindow", multiply(5, 1000) },
                 { "maxTimeTillEnd", subtract(multiply(multiply(90, 86400), 1000), 1) },
@@ -562,6 +571,9 @@ public partial class mexc : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                 } },
                 { "forDerivs", new Dictionary<string, object>() {
                     { "extends", "default" },
@@ -724,6 +736,7 @@ public partial class mexc : Exchange
                     { "30029", typeof(InvalidOrder) },
                     { "30032", typeof(InvalidOrder) },
                     { "30041", typeof(InvalidOrder) },
+                    { "30087", typeof(InvalidOrder) },
                     { "60005", typeof(ExchangeError) },
                     { "700001", typeof(AuthenticationError) },
                     { "700002", typeof(AuthenticationError) },
@@ -866,7 +879,7 @@ public partial class mexc : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object response = await this.spotPrivateGetCapitalConfigGetall(parameters);
         //
@@ -3105,7 +3118,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3463,6 +3476,7 @@ public partial class mexc : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
+            { "lastUpdateTimestamp", this.safeInteger(order, "updateTime") },
             { "status", this.parseOrderStatus(this.safeString2(order, "status", "state")) },
             { "symbol", getValue(market, "symbol") },
             { "type", this.parseOrderType(typeRaw) },
@@ -4921,7 +4935,13 @@ public partial class mexc : Exchange
         //         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        object id = this.safeString(transaction, "id");
+        // internal withdraw (aka internal-transfer)
+        //
+        //     {
+        //         "tranId":"ad36f0e9c9a24ae794b36fa4f152e471"
+        //     }
+        //
+        object id = this.safeString2(transaction, "id", "tranId");
         object type = ((bool) isTrue((isEqual(id, null)))) ? "deposit" : "withdrawal";
         object timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
         object updated = this.safeInteger(transaction, "updateTime");
@@ -5140,7 +5160,7 @@ public partial class mexc : Exchange
         //        positionShowStatus: 'CLOSED'
         //    }
         //
-        market = this.safeMarket(this.safeString(position, "symbol"), market);
+        market = this.safeMarket(this.safeString(position, "symbol"), market, null, "swap");
         object symbol = getValue(market, "symbol");
         object contracts = this.safeString(position, "holdVol");
         object entryPrice = this.safeNumber(position, "openAvgPrice");
@@ -5205,7 +5225,7 @@ public partial class mexc : Exchange
             object request = new Dictionary<string, object>() {
                 { "transact_id", id },
             };
-            object response = await this.spot2PrivateGetAssetInternalTransferInfo(this.extend(request, query));
+            object response = await this.spotPrivateGetAssetInternalTransferRecord(this.extend(request, query));
             //
             //     {
             //         "code": "200",
@@ -5234,70 +5254,100 @@ public partial class mexc : Exchange
      * @description fetch a history of internal transfers made on an account
      * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-     * @param {string} code unified currency code of the currency transferred
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} code unified currency code of the currency transferred
+     * @param code
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.fromAccountType] 'SPOT' for spot wallet, 'FUTURES' for contract wallet
+     * @param {string} [params.toAccountType] 'SPOT' for spot wallet, 'FUTURES' for contract wallet
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTransfers", null, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTransfers", null, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object currency = null;
-        object resultList = null;
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
+        object fromAccountType = null;
+        var fromAccountTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "fromAccountType");
+        fromAccountType = ((IList<object>)fromAccountTypeparametersVariable)[0];
+        parameters = ((IList<object>)fromAccountTypeparametersVariable)[1];
+        object accountTypes = new Dictionary<string, object>() {
+            { "spot", "SPOT" },
+            { "swap", "FUTURES" },
+            { "futures", "FUTURES" },
+            { "future", "FUTURES" },
+            { "margin", "SPOT" },
+        };
+        if (isTrue(!isEqual(fromAccountType, null)))
+        {
+            ((IDictionary<string,object>)request)["fromAccountType"] = this.safeString(accountTypes, fromAccountType, fromAccountType);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
+        }
+        object toAccountType = null;
+        var toAccountTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "toAccountType");
+        toAccountType = ((IList<object>)toAccountTypeparametersVariable)[0];
+        parameters = ((IList<object>)toAccountTypeparametersVariable)[1];
+        if (isTrue(!isEqual(toAccountType, null)))
+        {
+            ((IDictionary<string,object>)request)["toAccountType"] = this.safeString(accountTypes, toAccountType, toAccountType);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTransfers() requires a toAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
+        }
+        object resultList = new List<object>() {};
         if (isTrue(isEqual(marketType, "spot")))
         {
             if (isTrue(!isEqual(since, null)))
             {
-                ((IDictionary<string,object>)request)["start_time"] = since;
+                ((IDictionary<string,object>)request)["startTime"] = since;
             }
             if (isTrue(!isEqual(limit, null)))
             {
-                if (isTrue(isGreaterThan(limit, 50)))
+                if (isTrue(isGreaterThan(limit, 100)))
                 {
                     throw new ExchangeError ((string)"This exchange supports a maximum limit of 50") ;
                 }
-                ((IDictionary<string,object>)request)["page-size"] = limit;
+                ((IDictionary<string,object>)request)["size"] = limit;
             }
-            object response = await this.spot2PrivateGetAssetInternalTransferRecord(this.extend(request, query));
+            object response = await this.spotPrivateGetCapitalTransfer(this.extend(request, parameters));
             //
-            //     {
-            //         "code": "200",
-            //         "data": {
-            //             "total_page": "1",
-            //             "total_size": "5",
-            //             "result_list": [{
-            //                     "currency": "USDT",
-            //                     "amount": "1",
-            //                     "transact_id": "954877a2ef54499db9b28a7cf9ebcf41",
-            //                     "from": "MAIN",
-            //                     "to": "CONTRACT",
-            //                     "transact_state": "SUCCESS"
-            //                 },
-            //                 ...
-            //             ]
+            //
+            // {
+            //     "rows": [
+            //         {
+            //         "tranId": "cdf0d2a618b5458c965baefe6b1d0859",
+            //         "clientTranId": null,
+            //         "asset": "USDT",
+            //         "amount": "1",
+            //         "fromAccountType": "FUTURES",
+            //         "toAccountType": "SPOT",
+            //         "symbol": null,
+            //         "status": "SUCCESS",
+            //         "timestamp": 1759328309000
             //         }
-            //     }
-            //
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-            resultList = this.safeValue(data, "result_list", new List<object>() {});
+            //     ],
+            //     "total": 1
+            // }
+            resultList = this.safeList(response, "rows", new List<object>() {});
         } else if (isTrue(isEqual(marketType, "swap")))
         {
             if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             }
-            object response = await this.contractPrivateGetAccountTransferRecord(this.extend(request, query));
+            object response = await this.contractPrivateGetAccountTransferRecord(this.extend(request, parameters));
             object data = this.safeValue(response, "data");
             resultList = this.safeValue(data, "resultList");
         }
@@ -5325,10 +5375,10 @@ public partial class mexc : Exchange
         object accounts = new Dictionary<string, object>() {
             { "spot", "SPOT" },
             { "swap", "FUTURES" },
-            { "margin", "ISOLATED_MARGIN" },
+            { "future", "FUTURES" },
         };
-        object fromId = this.safeString(accounts, fromAccount);
-        object toId = this.safeString(accounts, toAccount);
+        object fromId = this.safeString(accounts, fromAccount, fromAccount);
+        object toId = this.safeString(accounts, toAccount, toAccount);
         if (isTrue(isEqual(fromId, null)))
         {
             object keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
@@ -5396,6 +5446,17 @@ public partial class mexc : Exchange
         //         "createTime": "1648849076000",
         //         "updateTime": "1648849076000"
         //     }
+        //         {
+        //         "tranId": "cdf0d2a618b5458c965baefe6b1d0859",
+        //         "clientTranId": null,
+        //         "asset": "USDT",
+        //         "amount": "1",
+        //         "fromAccountType": "FUTURES",
+        //         "toAccountType": "SPOT",
+        //         "symbol": null,
+        //         "status": "SUCCESS",
+        //         "timestamp": 1759328309000
+        //         }
         //
         // transfer
         //
@@ -5403,14 +5464,20 @@ public partial class mexc : Exchange
         //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
-        object currencyId = this.safeString(transfer, "currency");
+        object currencyId = this.safeString2(transfer, "currency", "asset");
         object id = this.safeStringN(transfer, new List<object>() {"transact_id", "txid", "tranId"});
-        object timestamp = this.safeInteger(transfer, "createTime");
+        object timestamp = this.safeInteger2(transfer, "createTime", "timestamp");
         object datetime = ((bool) isTrue((!isEqual(timestamp, null)))) ? this.iso8601(timestamp) : null;
         object direction = this.safeString(transfer, "type");
         object accountFrom = null;
         object accountTo = null;
-        if (isTrue(!isEqual(direction, null)))
+        object fromAccountType = this.safeString(transfer, "fromAccountType");
+        object toAccountType = this.safeString(transfer, "toAccountType");
+        if (isTrue(isTrue((!isEqual(fromAccountType, null))) && isTrue((!isEqual(toAccountType, null)))))
+        {
+            accountFrom = fromAccountType;
+            accountTo = toAccountType;
+        } else if (isTrue(!isEqual(direction, null)))
         {
             accountFrom = ((bool) isTrue((isEqual(direction, "IN")))) ? "MAIN" : "CONTRACT";
             accountTo = ((bool) isTrue((isEqual(direction, "IN")))) ? "CONTRACT" : "MAIN";
@@ -5428,13 +5495,15 @@ public partial class mexc : Exchange
             { "amount", this.safeNumber(transfer, "amount") },
             { "fromAccount", this.parseAccountId(accountFrom) },
             { "toAccount", this.parseAccountId(accountTo) },
-            { "status", this.parseTransferStatus(this.safeString2(transfer, "transact_state", "state")) },
+            { "status", this.parseTransferStatus(this.safeStringN(transfer, new List<object>() {"transact_state", "state", "status"})) },
         };
     }
 
     public virtual object parseAccountId(object status)
     {
         object statuses = new Dictionary<string, object>() {
+            { "SPOT", "spot" },
+            { "FUTURES", "swap" },
             { "MAIN", "spot" },
             { "CONTRACT", "swap" },
         };
@@ -5456,11 +5525,14 @@ public partial class mexc : Exchange
      * @name mexc#withdraw
      * @description make a withdrawal
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.internal] false by default, set to true for an "internal transfer"
+     * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -5471,6 +5543,28 @@ public partial class mexc : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
+        object intern = this.safeBool(parameters, "internal", false);
+        if (isTrue(intern))
+        {
+            parameters = this.omit(parameters, "internal");
+            object requestForInternal = new Dictionary<string, object>() {
+                { "asset", getValue(currency, "id") },
+                { "amount", amount },
+                { "toAccount", address },
+            };
+            object toAccountType = this.safeString(parameters, "toAccountType");
+            if (isTrue(isEqual(toAccountType, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE")) ;
+            }
+            object responseForInternal = await this.spotPrivatePostCapitalTransferInternal(this.extend(requestForInternal, parameters));
+            //
+            //     {
+            //       "id":"7213fea8e94b4a5593d507237e5a555b"
+            //     }
+            //
+            return this.parseTransaction(responseForInternal, currency);
+        }
         object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias

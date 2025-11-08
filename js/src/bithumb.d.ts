@@ -138,7 +138,7 @@ export default class bithumb extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelUnifiedOrder(order: any, params?: {}): Promise<Order>;
+    cancelUnifiedOrder(order: Order, params?: {}): Promise<Order>;
     /**
      * @method
      * @name bithumb#withdraw

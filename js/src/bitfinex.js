@@ -1984,11 +1984,13 @@ export default class bitfinex extends Exchange {
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         await this.loadMarkets();
+        const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = this.parseToNumeric(ids[i]);
+            // numericIds[i] = this.parseToNumeric (ids[i]);
+            numericIds.push(this.parseToNumeric(ids[i]));
         }
         const request = {
-            'id': ids,
+            'id': numericIds,
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -3682,12 +3684,15 @@ export default class bitfinex extends Exchange {
         const contractSize = this.safeString(market, 'contractSize');
         const baseValue = Precise.stringMul(contracts, contractSize);
         const price = this.safeString(entry, 11);
+        const sideFlag = this.safeInteger(entry, 8);
+        const side = (sideFlag === 1) ? 'buy' : 'sell';
         return this.safeLiquidation({
             'info': entry,
             'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
             'contracts': this.parseNumber(contracts),
             'contractSize': this.parseNumber(contractSize),
             'price': this.parseNumber(price),
+            'side': side,
             'baseValue': this.parseNumber(baseValue),
             'quoteValue': this.parseNumber(Precise.stringMul(baseValue, price)),
             'timestamp': timestamp,

@@ -88,7 +88,7 @@ class ascendex(ccxt.async_support.ascendex):
         await self.authenticate(url, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -267,7 +267,7 @@ class ascendex(ccxt.async_support.ascendex):
         orderbook = await self.watch_public(channel, params)
         return orderbook.limit()
 
-    async def fetch_order_book_snapshot(self, symbol: str, limit: Int = None, params={}):
+    async def fetch_order_book_snapshot_custom(self, symbol: str, limit: Int = None, params={}):
         restOrderBook = await self.fetch_rest_order_book_safe(symbol, limit, params)
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
@@ -921,7 +921,7 @@ class ascendex(ccxt.async_support.ascendex):
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({})
         if self.options['defaultType'] == 'swap' or market['contract']:
-            self.spawn(self.fetch_order_book_snapshot, symbol)
+            self.spawn(self.fetch_order_book_snapshot_custom, symbol)
         else:
             self.spawn(self.watch_order_book_snapshot, symbol)
 

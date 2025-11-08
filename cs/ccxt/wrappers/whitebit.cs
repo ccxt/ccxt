@@ -87,6 +87,47 @@ public partial class whitebit
         return new TradingFees(res);
     }
     /// <summary>
+    /// fetch the trading limits for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/public/http-v4/#market-info"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [trading limits structure]{@link https://docs.ccxt.com/#/?id=trading-limits-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchTradingLimits(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingLimits(symbols, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch the deposit and withdrawal limits for a currency
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/public/http-v4/#asset-status-list"/>  <br/>
+    /// See <see href="https://docs.whitebit.com/public/http-v4/#fee"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding limits structure]{@link https://docs.ccxt.com/#/?id=funding-limits-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchFundingLimits(List<String> codes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingLimits(codes, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
@@ -105,6 +146,39 @@ public partial class whitebit
     {
         var res = await this.fetchTicker(symbol, parameters);
         return new Ticker(res);
+    }
+    /// <summary>
+    /// fetches information on an order by the id
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders"/>  <br/>
+    /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.checkActive</term>
+    /// <description>
+    /// boolean : whether to check active orders (default: true)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.checkExecuted</term>
+    /// <description>
+    /// boolean : whether to check executed orders (default: true)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrder(id, symbol, parameters);
+        return new Order(res);
     }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -475,6 +549,41 @@ public partial class whitebit
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// fetches information on multiple orders made by the user (combines open and closed orders)
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders"/>  <br/>
+    /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
     /// dead man's switch, cancel all orders after the given timeout
     /// </summary>
     /// <remarks>
@@ -636,6 +745,92 @@ public partial class whitebit
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
+    /// fetch all withdrawals made from an account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch withdrawals for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of withdrawals structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.transactionMethod</term>
+    /// <description>
+    /// string : transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// fetch history of deposits and withdrawals
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch transactions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of transactions structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.transactionMethod</term>
+    /// <description>
+    /// string : transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchTransactions(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchTransactions(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
@@ -687,6 +882,26 @@ public partial class whitebit
     {
         var res = await this.createDepositAddress(code, parameters);
         return new DepositAddress(res);
+    }
+    /// <summary>
+    /// fetch all the accounts associated with a profile
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/http-main-v4/#sub-account-list"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}.</returns>
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchAccounts(parameters);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
     /// set the level of leverage for a market

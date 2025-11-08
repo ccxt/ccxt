@@ -311,30 +311,34 @@ class cryptocom extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => $this->parse_number('0.004'),
-                    'taker' => $this->parse_number('0.004'),
+                    'maker' => $this->parse_number('0.0025'),
+                    'taker' => $this->parse_number('0.005'),
                     'tiers' => array(
                         'maker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
-                            array( $this->parse_number('25000'), $this->parse_number('0.0035') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0025') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.002') ),
                             array( $this->parse_number('50000'), $this->parse_number('0.0015') ),
-                            array( $this->parse_number('100000'), $this->parse_number('0.001') ),
-                            array( $this->parse_number('250000'), $this->parse_number('0.0009') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.0008') ),
-                            array( $this->parse_number('20000000'), $this->parse_number('0.0007') ),
-                            array( $this->parse_number('100000000'), $this->parse_number('0.0006') ),
-                            array( $this->parse_number('200000000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.00065') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('250000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('500000000'), $this->parse_number('0') ),
                         ),
                         'taker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
-                            array( $this->parse_number('25000'), $this->parse_number('0.0035') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.005') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.004') ),
                             array( $this->parse_number('50000'), $this->parse_number('0.0025') ),
-                            array( $this->parse_number('100000'), $this->parse_number('0.0016') ),
-                            array( $this->parse_number('250000'), $this->parse_number('0.00015') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.00014') ),
-                            array( $this->parse_number('20000000'), $this->parse_number('0.00013') ),
-                            array( $this->parse_number('100000000'), $this->parse_number('0.00012') ),
-                            array( $this->parse_number('200000000'), $this->parse_number('0.0001') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0.00035') ),
+                            array( $this->parse_number('250000000'), $this->parse_number('0.00031') ),
+                            array( $this->parse_number('500000000'), $this->parse_number('0.00025') ),
                         ),
                     ),
                 ),
@@ -434,6 +438,9 @@ class cryptocom extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                 ),
                 'swap' => array(
                     'linear' => array(
@@ -529,13 +536,13 @@ class cryptocom extends Exchange {
          */
         // this endpoint requires authentication
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         $skipFetchCurrencies = false;
         list($skipFetchCurrencies, $params) = $this->handle_option_and_params($params, 'fetchCurrencies', 'skipFetchCurrencies', false);
         if ($skipFetchCurrencies) {
             // sub-accounts can't access this endpoint
-            return null;
+            return array();
         }
         $response = array();
         try {
@@ -544,7 +551,7 @@ class cryptocom extends Exchange {
             if ($e instanceof ExchangeError) {
                 // sub-accounts can't access this endpoint
                 // array("code":"10001","msg":"SYS_ERROR")
-                return null;
+                return array();
             }
             throw $e;
             // do nothing
@@ -1056,7 +1063,7 @@ class cryptocom extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1736,7 +1743,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          *
