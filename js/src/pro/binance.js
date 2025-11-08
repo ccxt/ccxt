@@ -1832,6 +1832,28 @@ export default class binance extends binanceRest {
     }
     /**
      * @method
+     * @name binance#unWatchMarkPrices
+     * @description stops watching the mark price for all markets
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchMarkPrices(symbols = undefined, params = {}) {
+        let channelName = undefined;
+        // for now watchmarkPrice uses the same messageHash as watchTicker
+        // so it's impossible to watch both at the same time
+        // refactor this to use different messageHashes
+        [channelName, params] = this.handleOptionAndParams(params, 'watchMarkPrices', 'name', 'markPrice');
+        const newTickers = await this.watchMultiTickerHelper('watchMarkPrices', channelName, symbols, params);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
+    /**
+     * @method
      * @name binance#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
@@ -2353,7 +2375,8 @@ export default class binance extends binanceRest {
         return extendedParams;
     }
     /**
-     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @name binance#ensureUserDataStreamWsSubscribeSignature
+     * @description watches best bid & ask for symbols
      * @param marketType {string} only support on 'spot'
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
