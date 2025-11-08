@@ -393,10 +393,12 @@ func (this *Blofin) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Orde
  * @name blofin#watchOrdersForSymbols
  * @description watches information on multiple orders made by the user across multiple symbols
  * @see https://docs.blofin.com/index.html#ws-order-channel
+ * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
  * @param {string[]} symbols
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.trigger] set to true for trigger orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
  */
 func (this *Blofin) WatchOrdersForSymbols(symbols []string, options ...ccxt.WatchOrdersForSymbolsOptions) ([]ccxt.Order, error) {
