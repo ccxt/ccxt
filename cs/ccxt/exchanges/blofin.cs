@@ -1365,12 +1365,15 @@ public partial class blofin : Exchange
         {
             timeInForce = "IOC";
             type = "limit";
+        } else if (isTrue(isEqual(type, "conditional")))
+        {
+            type = "trigger";
         }
         object marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
         object symbol = this.safeSymbol(marketId, market, "-");
         object filled = this.safeString(order, "filledSize");
-        object price = this.safeString2(order, "px", "price");
+        object price = this.safeStringN(order, new List<object>() {"px", "price", "orderPrice"});
         object average = this.safeString(order, "averagePrice");
         object status = this.parseOrderStatus(this.safeString(order, "state"));
         object feeCostString = this.safeString(order, "fee");
