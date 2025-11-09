@@ -1905,6 +1905,31 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
+    public function un_watch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * stops watching the mark price for all markets
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+             *
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            $channelName = null;
+            // for now watchmarkPrice uses the same messageHash
+            // so it's impossible to watch both at the same time
+            // refactor this to use different messageHashes
+            list($channelName, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
+            $newTickers = Async\await($this->watch_multi_ticker_helper('watchMarkPrices', $channelName, $symbols, $params));
+            if ($this->newUpdates) {
+                return $newTickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
@@ -2434,7 +2459,7 @@ class binance extends \ccxt\async\binance {
     public function ensure_user_data_stream_ws_subscribe_signature(string $marketType = 'spot') {
         return Async\async(function () use ($marketType) {
             /**
-             * Ensures a User Data Stream WebSocket $subscription is active for the specified scope
+             * watches best bid & ask for symbols
              * @param $marketType {string} only support on 'spot'
              *
              * @see array(@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-$subscription-user_data Binance User Data Stream Documentation)

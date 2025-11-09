@@ -584,7 +584,10 @@ class kraken(ccxt.async_support.kraken):
         #
         data = self.safe_list(message, 'data', [])
         first = data[0]
-        symbol = self.safe_string(first, 'symbol')
+        marketId = self.safe_string(first, 'symbol')
+        symbol = self.safe_symbol(marketId)
+        if not (symbol in self.ohlcvs):
+            self.ohlcvs[symbol] = {}
         interval = self.safe_integer(first, 'interval')
         timeframe = self.find_timeframe(interval)
         messageHash = self.get_message_hash('ohlcv', None, symbol)

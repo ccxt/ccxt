@@ -11313,6 +11313,8 @@ class binance(Exchange, ImplicitAPI):
                     orderidlist = self.safe_list(extendedParams, 'orderidlist', [])
                     origclientorderidlist = self.safe_list_2(extendedParams, 'origclientorderidlist', 'origClientOrderIdList', [])
                     extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist', 'origClientOrderIdList'])
+                    if 'symbol' in extendedParams:
+                        extendedParams['symbol'] = self.encode_uri_component(extendedParams['symbol'])
                     query = self.rawencode(extendedParams)
                     orderidlistLength = len(orderidlist)
                     origclientorderidlistLength = len(origclientorderidlist)

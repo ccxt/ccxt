@@ -370,6 +370,13 @@ public partial class Exchange
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    public async Task<Order> EditOrderWithClientOrderId(string clientOrderId, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
     public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -581,6 +588,11 @@ public partial class Exchange
         var res = await this.fetchOrder(id, symbol, parameters);
         return new Order(res);
     }
+    public async Task<Order> FetchOrderWithClientOrderId(string clientOrderId, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrderWithClientOrderId(clientOrderId, symbol, parameters);
+        return new Order(res);
+    }
     public async Task<Order> FetchOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrderWs(id, symbol, parameters);
@@ -756,6 +768,11 @@ public partial class Exchange
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
+    public async Task<Order> CancelOrderWithClientOrderId(string clientOrderId, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrderWithClientOrderId(clientOrderId, symbol, parameters);
+        return new Order(res);
+    }
     public async Task<Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrderWs(id, symbol, parameters);
@@ -764,6 +781,11 @@ public partial class Exchange
     public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> CancelOrdersWithClientOrderIds(List<string> clientOrderIds, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrdersWithClientOrderIds(clientOrderIds, symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     public async Task<List<Order>> CancelOrdersWs(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)

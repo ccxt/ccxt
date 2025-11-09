@@ -527,7 +527,7 @@ create a trade order
 | params.positionIdx | <code>string</code> | No | *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode |
 | params.hedged | <code>bool</code> | No | *contracts only* true for hedged mode, false for one way mode, default is false |
 | params.isLeverage | <code>int</code> | No | *unified spot only* false then spot trading true then margin trading |
-| params.tpslMode | <code>string</code> | No | *contract only* 'full' or 'partial' |
+| params.tpslMode | <code>string</code> | No | *contract only* 'Full' or 'Partial' |
 | params.mmp | <code>string</code> | No | *option only* market maker protection |
 | params.triggerDirection | <code>string</code> | No | *contract only* the direction for trigger orders, 'ascending' or 'descending' |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |

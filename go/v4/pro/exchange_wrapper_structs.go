@@ -331,6 +331,12 @@ var WithEditOrderAmount = ccxt.WithEditOrderAmount
 var WithEditOrderPrice = ccxt.WithEditOrderPrice
 var WithEditOrderParams = ccxt.WithEditOrderParams
 
+type EditOrderWithClientOrderIdOptionsStruct = ccxt.EditOrderWithClientOrderIdOptionsStruct
+type EditOrderWithClientOrderIdOptions = ccxt.EditOrderWithClientOrderIdOptions
+var WithEditOrderWithClientOrderIdAmount = ccxt.WithEditOrderWithClientOrderIdAmount
+var WithEditOrderWithClientOrderIdPrice = ccxt.WithEditOrderWithClientOrderIdPrice
+var WithEditOrderWithClientOrderIdParams = ccxt.WithEditOrderWithClientOrderIdParams
+
 type EditOrderWsOptionsStruct = ccxt.EditOrderWsOptionsStruct
 type EditOrderWsOptions = ccxt.EditOrderWsOptions
 var WithEditOrderWsAmount = ccxt.WithEditOrderWsAmount
@@ -499,6 +505,11 @@ type FetchOrderOptions = ccxt.FetchOrderOptions
 var WithFetchOrderSymbol = ccxt.WithFetchOrderSymbol
 var WithFetchOrderParams = ccxt.WithFetchOrderParams
 
+type FetchOrderWithClientOrderIdOptionsStruct = ccxt.FetchOrderWithClientOrderIdOptionsStruct
+type FetchOrderWithClientOrderIdOptions = ccxt.FetchOrderWithClientOrderIdOptions
+var WithFetchOrderWithClientOrderIdSymbol = ccxt.WithFetchOrderWithClientOrderIdSymbol
+var WithFetchOrderWithClientOrderIdParams = ccxt.WithFetchOrderWithClientOrderIdParams
+
 type FetchOrderWsOptionsStruct = ccxt.FetchOrderWsOptionsStruct
 type FetchOrderWsOptions = ccxt.FetchOrderWsOptions
 var WithFetchOrderWsSymbol = ccxt.WithFetchOrderWsSymbol
@@ -652,6 +663,11 @@ type CancelOrderOptions = ccxt.CancelOrderOptions
 var WithCancelOrderSymbol = ccxt.WithCancelOrderSymbol
 var WithCancelOrderParams = ccxt.WithCancelOrderParams
 
+type CancelOrderWithClientOrderIdOptionsStruct = ccxt.CancelOrderWithClientOrderIdOptionsStruct
+type CancelOrderWithClientOrderIdOptions = ccxt.CancelOrderWithClientOrderIdOptions
+var WithCancelOrderWithClientOrderIdSymbol = ccxt.WithCancelOrderWithClientOrderIdSymbol
+var WithCancelOrderWithClientOrderIdParams = ccxt.WithCancelOrderWithClientOrderIdParams
+
 type CancelOrderWsOptionsStruct = ccxt.CancelOrderWsOptionsStruct
 type CancelOrderWsOptions = ccxt.CancelOrderWsOptions
 var WithCancelOrderWsSymbol = ccxt.WithCancelOrderWsSymbol
@@ -661,6 +677,11 @@ type CancelOrdersOptionsStruct = ccxt.CancelOrdersOptionsStruct
 type CancelOrdersOptions = ccxt.CancelOrdersOptions
 var WithCancelOrdersSymbol = ccxt.WithCancelOrdersSymbol
 var WithCancelOrdersParams = ccxt.WithCancelOrdersParams
+
+type CancelOrdersWithClientOrderIdsOptionsStruct = ccxt.CancelOrdersWithClientOrderIdsOptionsStruct
+type CancelOrdersWithClientOrderIdsOptions = ccxt.CancelOrdersWithClientOrderIdsOptions
+var WithCancelOrdersWithClientOrderIdsSymbol = ccxt.WithCancelOrdersWithClientOrderIdsSymbol
+var WithCancelOrdersWithClientOrderIdsParams = ccxt.WithCancelOrdersWithClientOrderIdsParams
 
 type CancelOrdersWsOptionsStruct = ccxt.CancelOrdersWsOptionsStruct
 type CancelOrdersWsOptions = ccxt.CancelOrdersWsOptions

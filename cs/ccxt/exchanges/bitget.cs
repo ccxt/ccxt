@@ -1359,6 +1359,7 @@ public partial class bitget : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "APX", "AstroPepeX" },
                 { "DEGEN", "DegenReborn" },
+                { "EVA", "Evadore" },
                 { "JADE", "Jade Protocol" },
                 { "OMNI", "omni" },
                 { "TONCOIN", "TON" },
@@ -2449,12 +2450,13 @@ public partial class bitget : Exchange
             object networks = new Dictionary<string, object>() {};
             object withdraw = null;
             object deposit = null;
-            if (isTrue(isEqual(getArrayLength(chains), 0)))
+            object chainsLength = getArrayLength(chains);
+            if (isTrue(isEqual(chainsLength, 0)))
             {
                 withdraw = false;
                 deposit = false;
             }
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");

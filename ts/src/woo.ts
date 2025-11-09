@@ -211,9 +211,7 @@ export default class woo extends Exchange {
                         'post': {
                             'order': 1, // 10 requests per 1 second per symbol
                             'order/cancel_all_after': 1,
-                            'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
                             'asset/ltv': 30,
-                            'asset/withdraw': 30,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#token-withdraw
                             'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
@@ -287,7 +285,6 @@ export default class woo extends Exchange {
                             'spotMargin/maxMargin': 60, // 10/60s
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
-                            'balances': 1,
                             'positions': 3.33,
                             'buypower': 1,
                             'convert/exchangeInfo': 1,
@@ -2430,7 +2427,7 @@ export default class woo extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const response = await this.v3PrivateGetBalances (params);
+        const response = await this.v3PrivateGetAssetBalances (params);
         //
         //     {
         //         "success": true,
@@ -2772,14 +2769,14 @@ export default class woo extends Exchange {
         const networkizedCode = this.safeString (transaction, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
         const code = currencyDefined['code'];
-        let movementDirection = this.safeStringLower2 (transaction, 'token_side', 'tokenSide');
+        let movementDirection = this.safeStringLowerN (transaction, [ 'token_side', 'tokenSide', 'type' ]);
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
         }
         const fee = this.parseTokenAndFeeTemp (transaction, [ 'fee_token', 'feeToken' ], [ 'fee_amount', 'feeAmount' ]);
-        const addressTo = this.safeString2 (transaction, 'target_address', 'targetAddress');
+        const addressTo = this.safeStringN (transaction, [ 'target_address', 'targetAddress', 'addressTo' ]);
         const addressFrom = this.safeString2 (transaction, 'source_address', 'sourceAddress');
-        const timestamp = this.safeTimestamp2 (transaction, 'created_time', 'createdTime');
+        const timestamp = this.safeTimestampN (transaction, [ 'created_time', 'createdTime' ], this.safeInteger (transaction, 'timestamp'));
         return {
             'info': transaction,
             'id': this.safeStringN (transaction, [ 'id', 'withdraw_id', 'withdrawId' ]),
@@ -2789,7 +2786,7 @@ export default class woo extends Exchange {
             'address': undefined,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
-            'tag': this.safeString (transaction, 'extra'),
+            'tag': this.safeString2 (transaction, 'extra', 'tag'),
             'tagFrom': undefined,
             'tagTo': undefined,
             'type': movementDirection,
@@ -2800,7 +2797,7 @@ export default class woo extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-            'network': undefined,
+            'network': this.networkIdToCode (this.safeString (transaction, 'network')),
         } as Transaction;
     }
 
@@ -2833,17 +2830,25 @@ export default class woo extends Exchange {
         const request: Dict = {
             'token': currency['id'],
             'amount': this.parseToNumeric (amount),
-            'from_application_id': fromAccount,
-            'to_application_id': toAccount,
+            'from': {
+                'applicationId': fromAccount,
+            },
+            'to': {
+                'applicationId': toAccount,
+            },
         };
-        const response = await this.v1PrivatePostAssetMainSubTransfer (this.extend (request, params));
+        const response = await this.v3PrivatePostAssetTransfer (this.extend (request, params));
         //
         //     {
         //         "success": true,
         //         "id": 200
         //     }
         //
-        const transfer = this.parseTransfer (response, currency);
+        const data = this.safeDict (response, 'data', {});
+        data['timestamp'] = this.safeInteger (response, 'timestamp');
+        data['token'] = currency['id'];
+        data['status'] = 'ok';
+        const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
@@ -2959,7 +2964,7 @@ export default class woo extends Exchange {
         //        }
         //
         const code = this.safeCurrencyCode (this.safeString (transfer, 'token'), currency);
-        const timestamp = this.safeTimestamp (transfer, 'createdTime');
+        const timestamp = this.safeTimestamp2 (transfer, 'createdTime', 'timestamp');
         const success = this.safeBool (transfer, 'success');
         let status: Str = undefined;
         if (success !== undefined) {
@@ -2995,7 +3000,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#withdraw
      * @description make a withdrawal
-     * @see https://docs.woox.io/#token-withdraw
+     * @see https://docs.woox.io/#token-withdraw-v3
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -3015,17 +3020,33 @@ export default class woo extends Exchange {
         if (tag !== undefined) {
             request['extra'] = tag;
         }
-        let specialNetworkId: Str = undefined;
-        [ specialNetworkId, params ] = this.getDedicatedNetworkId (currency, params);
-        request['token'] = specialNetworkId;
-        const response = await this.v1PrivatePostAssetWithdraw (this.extend (request, params));
+        const network = this.safeString (params, 'network');
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter for ' + code);
+        }
+        params = this.omit (params, 'network');
+        request['token'] = currency['id'];
+        request['network'] = this.networkCodeToId (network);
+        const response = await this.v3PrivatePostAssetWalletWithdraw (this.extend (request, params));
         //
         //     {
         //         "success": true,
         //         "withdraw_id": "20200119145703654"
         //     }
         //
-        return this.parseTransaction (response, currency);
+        const data = this.safeDict (response, 'data', {});
+        const transactionData = this.extend (data, {
+            'id': this.safeString (data, 'withdrawId'),
+            'timestamp': this.safeInteger (response, 'timestamp'),
+            'currency': code,
+            'amount': amount,
+            'addressTo': address,
+            'tag': tag,
+            'network': network,
+            'type': 'withdrawal',
+            'status': 'pending',
+        });
+        return this.parseTransaction (transactionData, currency);
     }
 
     /**

@@ -420,7 +420,7 @@ public partial class hyperliquid : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(this.checkRequiredCredentials(false)))
         {
-            await this.handleBuilderFeeApproval();
+            await this.initializeClient();
         }
         object request = new Dictionary<string, object>() {
             { "type", "meta" },
@@ -1603,6 +1603,36 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
+    public async virtual Task<object> setRef()
+    {
+        if (isTrue(this.safeBool(this.options, "refSet", false)))
+        {
+            return true;
+        }
+        ((IDictionary<string,object>)this.options)["refSet"] = true;
+        object action = new Dictionary<string, object>() {
+            { "type", "setReferrer" },
+            { "code", this.safeString(this.options, "ref", "CCXT1") },
+        };
+        object nonce = this.milliseconds();
+        object signature = this.signL1Action(action, nonce);
+        object request = new Dictionary<string, object>() {
+            { "action", action },
+            { "nonce", nonce },
+            { "signature", signature },
+        };
+        object response = null;
+        try
+        {
+            response = await this.privatePostExchange(request);
+            return response;
+        } catch(Exception e)
+        {
+            response = null; // ignore this
+        }
+        return response;
+    }
+
     public async virtual Task<object> approveBuilderFee(object builder, object maxFeeRate)
     {
         object nonce = this.milliseconds();
@@ -1637,6 +1667,18 @@ public partial class hyperliquid : Exchange
         // }
         //
         return await this.privatePostExchange(request);
+    }
+
+    public async virtual Task<object> initializeClient()
+    {
+        try
+        {
+            await promiseAll(new List<object> {this.handleBuilderFeeApproval(), this.setRef()});
+        } catch(Exception e)
+        {
+            return false;
+        }
+        return true;
     }
 
     public async virtual Task<object> handleBuilderFeeApproval()
@@ -1709,7 +1751,7 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        await this.handleBuilderFeeApproval();
+        await this.initializeClient();
         object request = this.createOrdersRequest(orders, parameters);
         object response = await this.privatePostExchange(request);
         //
@@ -1999,6 +2041,7 @@ public partial class hyperliquid : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
         await this.loadMarkets();
+        await this.initializeClient();
         object request = this.cancelOrdersRequest(ids, symbol, parameters);
         object response = await this.privatePostExchange(request);
         //
@@ -2115,6 +2158,7 @@ public partial class hyperliquid : Exchange
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
+        await this.initializeClient();
         object nonce = this.milliseconds();
         object request = new Dictionary<string, object>() {
             { "nonce", nonce },
@@ -2200,6 +2244,7 @@ public partial class hyperliquid : Exchange
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
+        await this.initializeClient();
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         object nonce = this.milliseconds();
         object request = new Dictionary<string, object>() {
@@ -2420,6 +2465,7 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.initializeClient();
         object request = this.editOrdersRequest(orders, parameters);
         object response = await this.privatePostExchange(request);
         //

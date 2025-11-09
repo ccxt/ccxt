@@ -1400,6 +1400,7 @@ export default class bitget extends Exchange {
             'commonCurrencies': {
                 'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'EVA': 'Evadore', // conflict with EverValue Coin
                 'JADE': 'Jade Protocol',
                 'OMNI': 'omni', // conflict with Omni Network
                 'TONCOIN': 'TON',
@@ -2451,11 +2452,12 @@ export default class bitget extends Exchange {
             const networks: Dict = {};
             let withdraw = undefined;
             let deposit = undefined;
-            if (chains.length === 0) {
+            const chainsLength = chains.length;
+            if (chainsLength === 0) {
                 withdraw = false;
                 deposit = false;
             }
-            for (let j = 0; j < chains.length; j++) {
+            for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
                 let network = this.networkIdToCode (networkId, code);

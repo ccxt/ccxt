@@ -2623,7 +2623,7 @@ public partial class binance : ccxt.binance
             { "apiKey", this.apiKey },
         }, parameters);
         extendedParams = this.keysort(extendedParams);
-        object query = this.urlencode(extendedParams);
+        object query = this.rawencode(extendedParams);
         object signature = null;
         if (isTrue(isGreaterThan(getIndexOf(this.secret, "PRIVATE KEY"), -1)))
         {

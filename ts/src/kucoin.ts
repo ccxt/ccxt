@@ -493,6 +493,7 @@ export default class kucoin extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    'Order not exist or not allow to be cancelled': OrderNotFound,
                     'The order does not exist.': OrderNotFound,
                     'order not exist': OrderNotFound,
                     'order not exist.': OrderNotFound, // duplicated error temporarily

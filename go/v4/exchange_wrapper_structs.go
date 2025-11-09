@@ -1288,6 +1288,32 @@ func WithEditOrderParams(params map[string]interface{}) EditOrderOptions {
 	}
 }
 
+type EditOrderWithClientOrderIdOptionsStruct struct {
+	Amount *float64
+	Price  *float64
+	Params *map[string]interface{}
+}
+
+type EditOrderWithClientOrderIdOptions func(opts *EditOrderWithClientOrderIdOptionsStruct)
+
+func WithEditOrderWithClientOrderIdAmount(amount float64) EditOrderWithClientOrderIdOptions {
+	return func(opts *EditOrderWithClientOrderIdOptionsStruct) {
+		opts.Amount = &amount
+	}
+}
+
+func WithEditOrderWithClientOrderIdPrice(price float64) EditOrderWithClientOrderIdOptions {
+	return func(opts *EditOrderWithClientOrderIdOptionsStruct) {
+		opts.Price = &price
+	}
+}
+
+func WithEditOrderWithClientOrderIdParams(params map[string]interface{}) EditOrderWithClientOrderIdOptions {
+	return func(opts *EditOrderWithClientOrderIdOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type EditOrderWsOptionsStruct struct {
 	Amount *float64
 	Price  *float64
@@ -1920,6 +1946,25 @@ func WithFetchOrderParams(params map[string]interface{}) FetchOrderOptions {
 	}
 }
 
+type FetchOrderWithClientOrderIdOptionsStruct struct {
+	Symbol *string
+	Params *map[string]interface{}
+}
+
+type FetchOrderWithClientOrderIdOptions func(opts *FetchOrderWithClientOrderIdOptionsStruct)
+
+func WithFetchOrderWithClientOrderIdSymbol(symbol string) FetchOrderWithClientOrderIdOptions {
+	return func(opts *FetchOrderWithClientOrderIdOptionsStruct) {
+		opts.Symbol = &symbol
+	}
+}
+
+func WithFetchOrderWithClientOrderIdParams(params map[string]interface{}) FetchOrderWithClientOrderIdOptions {
+	return func(opts *FetchOrderWithClientOrderIdOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchOrderWsOptionsStruct struct {
 	Symbol *string
 	Params *map[string]interface{}
@@ -2543,6 +2588,25 @@ func WithCancelOrderParams(params map[string]interface{}) CancelOrderOptions {
 	}
 }
 
+type CancelOrderWithClientOrderIdOptionsStruct struct {
+	Symbol *string
+	Params *map[string]interface{}
+}
+
+type CancelOrderWithClientOrderIdOptions func(opts *CancelOrderWithClientOrderIdOptionsStruct)
+
+func WithCancelOrderWithClientOrderIdSymbol(symbol string) CancelOrderWithClientOrderIdOptions {
+	return func(opts *CancelOrderWithClientOrderIdOptionsStruct) {
+		opts.Symbol = &symbol
+	}
+}
+
+func WithCancelOrderWithClientOrderIdParams(params map[string]interface{}) CancelOrderWithClientOrderIdOptions {
+	return func(opts *CancelOrderWithClientOrderIdOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type CancelOrderWsOptionsStruct struct {
 	Symbol *string
 	Params *map[string]interface{}
@@ -2577,6 +2641,25 @@ func WithCancelOrdersSymbol(symbol string) CancelOrdersOptions {
 
 func WithCancelOrdersParams(params map[string]interface{}) CancelOrdersOptions {
 	return func(opts *CancelOrdersOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type CancelOrdersWithClientOrderIdsOptionsStruct struct {
+	Symbol *string
+	Params *map[string]interface{}
+}
+
+type CancelOrdersWithClientOrderIdsOptions func(opts *CancelOrdersWithClientOrderIdsOptionsStruct)
+
+func WithCancelOrdersWithClientOrderIdsSymbol(symbol string) CancelOrdersWithClientOrderIdsOptions {
+	return func(opts *CancelOrdersWithClientOrderIdsOptionsStruct) {
+		opts.Symbol = &symbol
+	}
+}
+
+func WithCancelOrdersWithClientOrderIdsParams(params map[string]interface{}) CancelOrdersWithClientOrderIdsOptions {
+	return func(opts *CancelOrdersWithClientOrderIdsOptionsStruct) {
 		opts.Params = &params
 	}
 }

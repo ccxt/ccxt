@@ -850,6 +850,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_post_v5_account_repay($params = array()) {
         return $this->request('v5/account/repay', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function private_post_v5_account_no_convert_repay($params = array()) {
+        return $this->request('v5/account/no-convert-repay', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_post_v5_asset_exchange_quote_apply($params = array()) {
         return $this->request('v5/asset/exchange/quote-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1800,6 +1803,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privatePostV5AccountRepay($params = array()) {
         return $this->request('v5/account/repay', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AccountNoConvertRepay($params = array()) {
+        return $this->request('v5/account/no-convert-repay', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostV5AssetExchangeQuoteApply($params = array()) {
         return $this->request('v5/asset/exchange/quote-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
