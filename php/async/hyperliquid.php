@@ -418,7 +418,7 @@ class hyperliquid extends Exchange {
              * @return {array} an associative dictionary of currencies
              */
             if ($this->check_required_credentials(false)) {
-                Async\await($this->handle_builder_fee_approval());
+                Async\await($this->initialize_client());
             }
             $request = array(
                 'type' => 'meta',
@@ -1523,6 +1523,34 @@ class hyperliquid extends Exchange {
         return $this->sign_user_signed_action($messageTypes, $message);
     }
 
+    public function set_ref() {
+        return Async\async(function ()  {
+            if ($this->safe_bool($this->options, 'refSet', false)) {
+                return true;
+            }
+            $this->options['refSet'] = true;
+            $action = array(
+                'type' => 'setReferrer',
+                'code' => $this->safe_string($this->options, 'ref', 'CCXT1'),
+            );
+            $nonce = $this->milliseconds();
+            $signature = $this->sign_l1_action($action, $nonce);
+            $request = array(
+                'action' => $action,
+                'nonce' => $nonce,
+                'signature' => $signature,
+            );
+            $response = null;
+            try {
+                $response = Async\await($this->privatePostExchange ($request));
+                return $response;
+            } catch (Exception $e) {
+                $response = null; // ignore this
+            }
+            return $response;
+        }) ();
+    }
+
     public function approve_builder_fee(string $builder, string $maxFeeRate) {
         return Async\async(function () use ($builder, $maxFeeRate) {
             $nonce = $this->milliseconds();
@@ -1557,6 +1585,17 @@ class hyperliquid extends Exchange {
             // }
             //
             return Async\await($this->privatePostExchange ($request));
+        }) ();
+    }
+
+    public function initialize_client() {
+        return Async\async(function ()  {
+            try {
+                Async\await(Promise\all(array( $this->handle_builder_fee_approval(), $this->set_ref() )));
+            } catch (Exception $e) {
+                return false;
+            }
+            return true;
         }) ();
     }
 
@@ -1624,7 +1663,7 @@ class hyperliquid extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
-            Async\await($this->handle_builder_fee_approval());
+            Async\await($this->initialize_client());
             $request = $this->create_orders_request($orders, $params);
             $response = Async\await($this->privatePostExchange ($request));
             //
@@ -1877,6 +1916,7 @@ class hyperliquid extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
+            Async\await($this->initialize_client());
             $request = $this->cancel_orders_request($ids, $symbol, $params);
             $response = Async\await($this->privatePostExchange ($request));
             //
@@ -1981,6 +2021,7 @@ class hyperliquid extends Exchange {
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
+            Async\await($this->initialize_client());
             $nonce = $this->milliseconds();
             $request = array(
                 'nonce' => $nonce,
@@ -2056,6 +2097,7 @@ class hyperliquid extends Exchange {
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
+            Async\await($this->initialize_client());
             $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
             $nonce = $this->milliseconds();
             $request = array(
@@ -2253,6 +2295,7 @@ class hyperliquid extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            Async\await($this->initialize_client());
             $request = $this->edit_orders_request($orders, $params);
             $response = Async\await($this->privatePostExchange ($request));
             //

@@ -1,3 +1,85 @@
+<a id="v4.5.17"></a>
+# [v4.5.17](https://github.com/ccxt/ccxt/releases/tag/v4.5.17) - 2025-11-06
+
+## What's Changed
+* Arkham has by [@samgermain](https://github.com/samgermain) in [#27241](https://github.com/ccxt/ccxt/pull/27241)
+* feat: update link id by [@carlosmiei](https://github.com/carlosmiei) in [#27244](https://github.com/ccxt/ccxt/pull/27244)
+* fix(kucoin): add Order not exist or not allow to be cancelled error by [@carlosmiei](https://github.com/carlosmiei) in [#27242](https://github.com/ccxt/ccxt/pull/27242)
+* python: downgrade coincurve version to ==20 by [@carlosmiei](https://github.com/carlosmiei) in [#27247](https://github.com/ccxt/ccxt/pull/27247)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.16...v4.5.17
+
+[Changes][v4.5.17]
+
+
+<a id="v4.5.16"></a>
+# [v4.5.16](https://github.com/ccxt/ccxt/releases/tag/v4.5.16) - 2025-11-05
+
+## What's Changed
+* feat(python): implement coincurve to improve performance on ecdsa signing by [@pcriadoperez](https://github.com/pcriadoperez) in [#26686](https://github.com/ccxt/ccxt/pull/26686)
+* feat(bybit): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27223](https://github.com/ccxt/ccxt/pull/27223)
+* fix(upbit): fix multiple concurrent private channel subscriptions by [@irresi](https://github.com/irresi) in [#27219](https://github.com/ccxt/ccxt/pull/27219)
+* feat(delta): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27212](https://github.com/ccxt/ccxt/pull/27212)
+* feat(woo): update v3 fetchBalance route by [@glenn-woo](https://github.com/glenn-woo) in [#27221](https://github.com/ccxt/ccxt/pull/27221)
+* feat(Exchange.ts): added order methods by client order ID by [@AresArtemius](https://github.com/AresArtemius) in [#27076](https://github.com/ccxt/ccxt/pull/27076)
+* feat(woo): update transfer from v1 API to v3 API by [@glenn-woo](https://github.com/glenn-woo) in [#27172](https://github.com/ccxt/ccxt/pull/27172)
+* feat(woo): update withdraw API from v1 to v3 by [@glenn-woo](https://github.com/glenn-woo) in [#27173](https://github.com/ccxt/ccxt/pull/27173)
+* mexc error mapping by [@ndubel](https://github.com/ndubel) in [#27226](https://github.com/ccxt/ccxt/pull/27226)
+* feat(kraken): add createOrders by [@carlosmiei](https://github.com/carlosmiei) in [#27230](https://github.com/ccxt/ccxt/pull/27230)
+* new example: Fetch balance across all exchanges asynchronously by [@samgermain](https://github.com/samgermain) in [#27231](https://github.com/ccxt/ccxt/pull/27231)
+* chore: improve takeProfit/stopLoss orders docs by [@carlosmiei](https://github.com/carlosmiei) in [#27236](https://github.com/ccxt/ccxt/pull/27236)
+* feat(cli): remove usage of NewBinanceCore in go cli by [@sc0Vu](https://github.com/sc0Vu) in [#27237](https://github.com/ccxt/ccxt/pull/27237)
+* fix(hyperliquid): correct edit order message by [@sc0Vu](https://github.com/sc0Vu) in [#27238](https://github.com/ccxt/ccxt/pull/27238)
+* fix(blofin): create order tpsl response by [@hoangbn](https://github.com/hoangbn) in [#27228](https://github.com/ccxt/ccxt/pull/27228)
+* fix(python): socks5h support & minor change by [@ttodua](https://github.com/ttodua) in [#26703](https://github.com/ccxt/ccxt/pull/26703)
+* fix(bybit): market tpsl create order by [@hoangbn](https://github.com/hoangbn) in [#27233](https://github.com/ccxt/ccxt/pull/27233)
+
+## New Contributors
+* [@glenn-woo](https://github.com/glenn-woo) made their first contribution in [#27221](https://github.com/ccxt/ccxt/pull/27221)
+* [@hoangbn](https://github.com/hoangbn) made their first contribution in [#27228](https://github.com/ccxt/ccxt/pull/27228)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.15...v4.5.16
+
+[Changes][v4.5.16]
+
+
+<a id="v4.5.15"></a>
+# [v4.5.15](https://github.com/ccxt/ccxt/releases/tag/v4.5.15) - 2025-11-03
+
+## What's Changed
+* chore: update order struct in DOCS by [@carlosmiei](https://github.com/carlosmiei) in [#27179](https://github.com/ccxt/ccxt/pull/27179)
+* kucoin error mapping by [@ndubel](https://github.com/ndubel) in [#27185](https://github.com/ccxt/ccxt/pull/27185)
+* fix(binance): Ws signature for non-ascii symbols by [@carlosmiei](https://github.com/carlosmiei) in [#27182](https://github.com/ccxt/ccxt/pull/27182)
+* ascendex/backpack.has: option methods = false by [@samgermain](https://github.com/samgermain) in [#27181](https://github.com/ccxt/ccxt/pull/27181)
+* test(hyperliquid): fetchPositions, isolated margin by [@Dan-krm](https://github.com/Dan-krm) in [#27184](https://github.com/ccxt/ccxt/pull/27184)
+* htx transaction status by [@ndubel](https://github.com/ndubel) in [#27186](https://github.com/ccxt/ccxt/pull/27186)
+* chore(deps): bump github.com/consensys/gnark-crypto from 0.12.1 to 0.18.1 in /go/v4 by [@dependabot](https://github.com/dependabot)[bot] in [#27190](https://github.com/ccxt/ccxt/pull/27190)
+* build(deps): bump golang.org/x/net from 0.24.0 to 0.38.0 in /go/v4/pro by [@dependabot](https://github.com/dependabot)[bot] in [#27012](https://github.com/ccxt/ccxt/pull/27012)
+* chore(deps): bump github.com/consensys/gnark-crypto from 0.12.1 to 0.18.1 in /go/cli by [@dependabot](https://github.com/dependabot)[bot] in [#27191](https://github.com/ccxt/ccxt/pull/27191)
+* fix(kraken): ws handleOHLCV php ^ by [@ttodua](https://github.com/ttodua) in [#27189](https://github.com/ccxt/ccxt/pull/27189)
+* Revert "chore(deps): bump github.com/consensys/gnark-crypto from 0.12… by [@carlosmiei](https://github.com/carlosmiei) in [#27196](https://github.com/ccxt/ccxt/pull/27196)
+* feat(bingx): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27195](https://github.com/ccxt/ccxt/pull/27195)
+* fix(go): upgrade go-ethereum to v1.16.5 by [@sc0Vu](https://github.com/sc0Vu) in [#27199](https://github.com/ccxt/ccxt/pull/27199)
+* fix(poloniex): handle nonAscii symbol by [@carlosmiei](https://github.com/carlosmiei) in [#27197](https://github.com/ccxt/ccxt/pull/27197)
+* fix(backpack): withdraw error fix by [@yzh-pelle](https://github.com/yzh-pelle) in [#27206](https://github.com/ccxt/ccxt/pull/27206)
+* fix(phemex): default spot endpoint and filter tarde type for linear c… by [@carlosmiei](https://github.com/carlosmiei) in [#27198](https://github.com/ccxt/ccxt/pull/27198)
+* fix(Liquidation): add missing types by [@carlosmiei](https://github.com/carlosmiei) in [#27208](https://github.com/ccxt/ccxt/pull/27208)
+* fix(go) Greeks type does not match to documentation by [@Fiboniak](https://github.com/Fiboniak) in [#27211](https://github.com/ccxt/ccxt/pull/27211)
+* fix(okx): empty markets by [@ttodua](https://github.com/ttodua) in [#27216](https://github.com/ccxt/ccxt/pull/27216)
+* fix(go) Liquidation type do not match to documentation by [@Fiboniak](https://github.com/Fiboniak) in [#27204](https://github.com/ccxt/ccxt/pull/27204)
+* fix(bitget): chainsLength fix by [@carlosmiei](https://github.com/carlosmiei) in [#27217](https://github.com/ccxt/ccxt/pull/27217)
+* fix(hyperliquid): add TriggerSpec and OrderKind to Order struct by [@ninja0404](https://github.com/ninja0404) in [#27214](https://github.com/ccxt/ccxt/pull/27214)
+* fix(binance): cancelOrders with non ascii symbol by [@carlosmiei](https://github.com/carlosmiei) in [#27218](https://github.com/ccxt/ccxt/pull/27218)
+
+## New Contributors
+* [@ninja0404](https://github.com/ninja0404) made their first contribution in [#27214](https://github.com/ccxt/ccxt/pull/27214)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.14...v4.5.15
+
+[Changes][v4.5.15]
+
+
 <a id="v4.5.14"></a>
 # [v4.5.14](https://github.com/ccxt/ccxt/releases/tag/v4.5.14) - 2025-10-29
 
@@ -10694,6 +10776,9 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.17]: https://github.com/ccxt/ccxt/compare/v4.5.16...v4.5.17
+[v4.5.16]: https://github.com/ccxt/ccxt/compare/v4.5.15...v4.5.16
+[v4.5.15]: https://github.com/ccxt/ccxt/compare/v4.5.14...v4.5.15
 [v4.5.14]: https://github.com/ccxt/ccxt/compare/v4.5.13...v4.5.14
 [v4.5.13]: https://github.com/ccxt/ccxt/compare/v4.5.12...v4.5.13
 [v4.5.12]: https://github.com/ccxt/ccxt/compare/v4.5.11...v4.5.12

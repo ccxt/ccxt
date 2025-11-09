@@ -240,7 +240,7 @@ dead man's switch, cancel all orders after the given timeout
 <a name="cancelAllOrdersWs" id="cancelallordersws"></a>
 
 ## cancelAllOrdersWs
-cancel all open orders
+cancel all open orders in a market
 
 **Kind**: instance   
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
@@ -248,10 +248,11 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancecancelallordersws)
 * [bitvavo](/exchanges/bitvavo.md#bitvavocancelallordersws)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomcancelallordersws)
 * [gate](/exchanges/gate.md#gatecancelallordersws)
@@ -376,19 +377,21 @@ cancels an open order
 <a name="cancelOrderWs" id="cancelorderws"></a>
 
 ## cancelOrderWs
-cancels an open order
+cancel multiple orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| symbol | <code>string</code> | No | unified market symbol, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.cancelRestrictions | <code>string</code>, <code>undefined</code> | No | Supported values: ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED. |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancecancelorderws)
 * [bitvavo](/exchanges/bitvavo.md#bitvavocancelorderws)
 * [bybit](/exchanges/bybit.md#bybitcancelorderws)
 * [cex](/exchanges/cex.md#cexcancelorderws)
@@ -962,21 +965,13 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
-| params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "PO" |
-| params.stopPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
-| params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
-| params.postOnly | <code>bool</code> | No | If true, the order will only be posted to the order book and not executed immediately |
-| params.stopLossPrice | <code>float</code> | No | The price at which a stop loss order is triggered at |
-| params.takeProfitPrice | <code>float</code> | No | The price at which a take profit order is triggered at |
-| params.triggerType | <code>string</code> | No | "price" |
-| params.triggerReference | <code>string</code> | No | "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order |
-| params.selfTradePrevention | <code>string</code> | No | "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth" |
-| params.disableMarketProtection | <code>bool</code> | No | don't cancel if the next fill price is 10% worse than the best fill price |
-| params.responseRequired | <code>bool</code> | No | Set this to 'false' when only an acknowledgement of success or failure is required, this is faster. |
+| price | <code>float</code>, <code>undefined</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.test | <code>boolean</code> | Yes | test order, default false |
+| params.returnRateLimits | <code>boolean</code> | Yes | set to true to return rate limit information, default false |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancecreateorderws)
 * [bitvavo](/exchanges/bitvavo.md#bitvavocreateorderws)
 * [bybit](/exchanges/bybit.md#bybitcreateorderws)
 * [cex](/exchanges/cex.md#cexcreateorderws)
@@ -1025,6 +1020,7 @@ create a list of trade orders
 * [hibachi](/exchanges/hibachi.md#hibachicreateorders)
 * [htx](/exchanges/htx.md#htxcreateorders)
 * [hyperliquid](/exchanges/hyperliquid.md#hyperliquidcreateorders)
+* [kraken](/exchanges/kraken.md#krakencreateorders)
 * [krakenfutures](/exchanges/krakenfutures.md#krakenfuturescreateorders)
 * [kucoin](/exchanges/kucoin.md#kucoincreateorders)
 * [kucoinfutures](/exchanges/kucoinfutures.md#kucoinfuturescreateorders)
@@ -1328,15 +1324,16 @@ edit a trade order
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | cancel order id |
+| id | <code>string</code> | Yes | order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | No | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
+| price | <code>float</code>, <code>undefined</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binanceeditorderws)
 * [bitvavo](/exchanges/bitvavo.md#bitvavoeditorderws)
 * [bybit](/exchanges/bybit.md#bybiteditorderws)
 * [cex](/exchanges/cex.md#cexeditorderws)
@@ -1602,17 +1599,22 @@ query for balance and get the amount of funds available for trading or funds loc
 <a name="fetchBalanceWs" id="fetchbalancews"></a>
 
 ## fetchBalanceWs
-query for balance and get the amount of funds available for trading or funds locked in orders
+fetch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/en/latest/manual.html?#balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code>, <code>undefined</code> | No | 'future', 'delivery', 'savings', 'funding', or 'spot' |
+| params.marginMode | <code>string</code>, <code>undefined</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
+| params.symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | No | unified market symbols, only used in isolated margin mode |
+| params.method | <code>string</code>, <code>undefined</code> | No | method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchbalancews)
 * [bitvavo](/exchanges/bitvavo.md#bitvavofetchbalancews)
 * [cex](/exchanges/cex.md#cexfetchbalancews)
 
@@ -1906,20 +1908,21 @@ fetches information on multiple closed orders made by the user
 <a name="fetchClosedOrdersWs" id="fetchclosedordersws"></a>
 
 ## fetchClosedOrdersWs
-fetches information on multiple closed orders made by the user
+fetch closed orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
+| limit | <code>int</code> | No | the maximum number of open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchclosedordersws)
 * [gate](/exchanges/gate.md#gatefetchclosedordersws)
 
 ---
@@ -3670,17 +3673,20 @@ fetch all trades made by the user
 fetch all trades made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| since | <code>int</code>, <code>undefined</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code>, <code>undefined</code> | No | the maximum number of trades structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.endTime | <code>int</code> | No | the latest time in ms to fetch trades for |
+| params.fromId | <code>int</code> | No | first trade Id to fetch |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchmytradesws)
 * [bitvavo](/exchanges/bitvavo.md#bitvavofetchmytradesws)
 
 ---
@@ -3790,21 +3796,24 @@ fetches historical candlestick data containing the open, high, low, and close pr
 <a name="fetchOHLCVWs" id="fetchohlcvws"></a>
 
 ## fetchOHLCVWs
-fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+query historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
 **Kind**: instance   
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
 
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code> | unified symbol of the market to query OHLCV data for |
+| timeframe | <code>string</code> | the length of time each candle represents |
+| since | <code>int</code> | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | the maximum amount of candles to fetch |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | timestamp in ms of the earliest candle to fetch EXCHANGE SPECIFIC PARAMETERS |
+| params.timeZone | <code>string</code> | default=0 (UTC) |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchohlcvws)
 * [bitvavo](/exchanges/bitvavo.md#bitvavofetchohlcvws)
 * [lbank](/exchanges/lbank.md#lbankfetchohlcvws)
 
@@ -4043,17 +4052,18 @@ fetch all unfilled currently open orders
 fetch all unfilled currently open orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
-| limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| since | <code>int</code>, <code>undefined</code> | No | the earliest time in ms to fetch open orders for |
+| limit | <code>int</code>, <code>undefined</code> | No | the maximum number of open orders structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchopenordersws)
 * [bitvavo](/exchanges/bitvavo.md#bitvavofetchopenordersws)
 * [cex](/exchanges/cex.md#cexfetchopenordersws)
 * [gate](/exchanges/gate.md#gatefetchopenordersws)
@@ -4180,6 +4190,7 @@ fetches information on an order made by the user
 * [coinsph](/exchanges/coinsph.md#coinsphfetchorder)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchorder)
 * [defx](/exchanges/defx.md#defxfetchorder)
+* [delta](/exchanges/delta.md#deltafetchorder)
 * [deribit](/exchanges/deribit.md#deribitfetchorder)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchorder)
 * [exmo](/exchanges/exmo.md#exmofetchorder)
@@ -4343,19 +4354,20 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 <a name="fetchOrderBookWs" id="fetchorderbookws"></a>
 
 ## fetchOrderBookWs
-watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/en/latest/manual.html#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
 
-| Param | Type | Description |
-| --- | --- | --- |
-| symbol | <code>string</code> | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code>, <code>undefined</code> | the maximum amount of order book entries to return |
-| params | <code>object</code> | extra parameters specific to the lbank api endpoint |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchorderbookws)
 * [lbank](/exchanges/lbank.md#lbankfetchorderbookws)
 
 ---
@@ -4466,11 +4478,12 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | the order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | No | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchorderws)
 * [bitvavo](/exchanges/bitvavo.md#bitvavofetchorderws)
 * [cex](/exchanges/cex.md#cexfetchorderws)
 * [gate](/exchanges/gate.md#gatefetchorderws)
@@ -4628,17 +4641,22 @@ fetches information on multiple orders made by the user *classic accounts only*
 fetches information on multiple orders made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of  orde structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| since | <code>int</code>, <code>undefined</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code>, <code>undefined</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.orderId | <code>int</code> | No | order id to begin at |
+| params.startTime | <code>int</code> | No | earliest time in ms to retrieve orders for |
+| params.endTime | <code>int</code> | No | latest time in ms to retrieve orders for |
+| params.limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchordersws)
 * [bitvavo](/exchanges/bitvavo.md#bitvavofetchordersws)
 * [gate](/exchanges/gate.md#gatefetchordersws)
 
@@ -4778,6 +4796,25 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 
 ---
 
+<a name="fetchPositionWs" id="fetchpositionws"></a>
+
+## fetchPositionWs
+fetch data on an open position
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchpositionws)
+
+---
+
 <a name="fetchPositions" id="fetchpositions"></a>
 
 ## fetchPositions
@@ -4887,6 +4924,27 @@ fetches historical positions
 * [kucoinfutures](/exchanges/kucoinfutures.md#kucoinfuturesfetchpositionshistory)
 * [mexc](/exchanges/mexc.md#mexcfetchpositionshistory)
 * [okx](/exchanges/okx.md#okxfetchpositionshistory)
+
+---
+
+<a name="fetchPositionsWs" id="fetchpositionsws"></a>
+
+## fetchPositionsWs
+fetch all open positions
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.returnRateLimits | <code>boolean</code> | No | set to true to return rate limit informations, defaults to false. |
+| params.method | <code>string</code>, <code>undefined</code> | No | method to use. Can be account.position or v2/account.position |
+
+##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchpositionsws)
 
 ---
 
@@ -5113,9 +5171,12 @@ fetches a price ticker, a statistical calculation with the information calculate
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the cex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.method | <code>string</code> | No | method to use can be ticker.price or ticker.book |
+| params.returnRateLimits | <code>boolean</code> | No | return the rate limits for the exchange |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchtickerws)
 * [cex](/exchanges/cex.md#cexfetchtickerws)
 * [lbank](/exchanges/lbank.md#lbankfetchtickerws)
 
@@ -5405,20 +5466,22 @@ get the list of most recent trades for a particular symbol
 <a name="fetchTradesWs" id="fetchtradesws"></a>
 
 ## fetchTradesWs
-get the list of most recent trades for a particular symbol
+fetch all trades made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve, default=500, max=1000 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS |
+| params.fromId | <code>int</code> | No | trade ID to begin at |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchtradesws)
 * [lbank](/exchanges/lbank.md#lbankfetchtradesws)
 
 ---
@@ -6391,6 +6454,26 @@ unWatches best bid & ask for symbols
 
 ---
 
+<a name="unWatchMarkPrices" id="unwatchmarkprices"></a>
+
+## unWatchMarkPrices
+stops watching the mark price for all markets
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.use1sFreq | <code>boolean</code> | No | *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds |
+
+##### Supported exchanges
+* [binance](/exchanges/binance.md#binanceunwatchmarkprices)
+
+---
+
 <a name="unWatchMyTrades" id="unwatchmytrades"></a>
 
 ## unWatchMyTrades
@@ -6429,6 +6512,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchohlcv)
+* [binance](/exchanges/binance.md#binanceunwatchohlcv)
 * [bingx](/exchanges/bingx.md#bingxunwatchohlcv)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexunwatchohlcv)
 * [bitget](/exchanges/bitget.md#bitgetunwatchohlcv)
@@ -6461,6 +6545,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchohlcvforsymbols)
+* [binance](/exchanges/binance.md#binanceunwatchohlcvforsymbols)
 * [bybit](/exchanges/bybit.md#bybitunwatchohlcvforsymbols)
 * [defx](/exchanges/defx.md#defxunwatchohlcvforsymbols)
 * [okx](/exchanges/okx.md#okxunwatchohlcvforsymbols)
@@ -6483,6 +6568,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchorderbook)
+* [binance](/exchanges/binance.md#binanceunwatchorderbook)
 * [bingx](/exchanges/bingx.md#bingxunwatchorderbook)
 * [bitget](/exchanges/bitget.md#bitgetunwatchorderbook)
 * [bybit](/exchanges/bybit.md#bybitunwatchorderbook)
@@ -6518,6 +6604,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchorderbookforsymbols)
+* [binance](/exchanges/binance.md#binanceunwatchorderbookforsymbols)
 * [bybit](/exchanges/bybit.md#bybitunwatchorderbookforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomunwatchorderbookforsymbols)
 * [defx](/exchanges/defx.md#defxunwatchorderbookforsymbols)
@@ -6583,6 +6670,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchticker)
+* [binance](/exchanges/binance.md#binanceunwatchticker)
 * [bingx](/exchanges/bingx.md#bingxunwatchticker)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexunwatchticker)
 * [bitget](/exchanges/bitget.md#bitgetunwatchticker)
@@ -6614,6 +6702,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchtickers)
+* [binance](/exchanges/binance.md#binanceunwatchtickers)
 * [bybit](/exchanges/bybit.md#bybitunwatchtickers)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomunwatchtickers)
 * [defx](/exchanges/defx.md#defxunwatchtickers)
@@ -6640,6 +6729,7 @@ unWatches from the stream channel
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchtrades)
+* [binance](/exchanges/binance.md#binanceunwatchtrades)
 * [bingx](/exchanges/bingx.md#bingxunwatchtrades)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexunwatchtrades)
 * [bitget](/exchanges/bitget.md#bitgetunwatchtrades)
@@ -6675,6 +6765,7 @@ unWatches from the stream channel
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchtradesforsymbols)
+* [binance](/exchanges/binance.md#binanceunwatchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#bybitunwatchtradesforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomunwatchtradesforsymbols)
 * [defx](/exchanges/defx.md#defxunwatchtradesforsymbols)
@@ -6739,6 +6830,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 ##### Supported exchanges
 * [arkham](/exchanges/arkham.md#arkhamwatchbalance)
 * [ascendex](/exchanges/ascendex.md#ascendexwatchbalance)
+* [binance](/exchanges/binance.md#binancewatchbalance)
 * [bingx](/exchanges/bingx.md#bingxwatchbalance)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexwatchbalance)
 * [bitget](/exchanges/bitget.md#bitgetwatchbalance)
@@ -6795,6 +6887,7 @@ watches best bid & ask for symbols
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackwatchbidsasks)
+* [binance](/exchanges/binance.md#binancewatchbidsasks)
 * [bitget](/exchanges/bitget.md#bitgetwatchbidsasks)
 * [bitmart](/exchanges/bitmart.md#bitmartwatchbidsasks)
 * [bitvavo](/exchanges/bitvavo.md#bitvavowatchbidsasks)
@@ -6872,6 +6965,7 @@ watch the public liquidations of a trading pair
 | params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancewatchliquidations)
 * [bitmex](/exchanges/bitmex.md#bitmexwatchliquidations)
 * [bybit](/exchanges/bybit.md#bybitwatchliquidations)
 
@@ -6888,12 +6982,13 @@ watch the public liquidations of a trading pair
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes |  |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
 | params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancewatchliquidationsforsymbols)
 * [bitmex](/exchanges/bitmex.md#bitmexwatchliquidationsforsymbols)
 * [okx](/exchanges/okx.md#okxwatchliquidationsforsymbols)
 
@@ -6902,7 +6997,7 @@ watch the public liquidations of a trading pair
 <a name="watchMarkPrice" id="watchmarkprice"></a>
 
 ## watchMarkPrice
-watches a mark price
+watches a mark price for a specific market
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
@@ -6912,9 +7007,10 @@ watches a mark price
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
+| params.use1sFreq | <code>boolean</code> | No | *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancewatchmarkprice)
 * [okx](/exchanges/okx.md#okxwatchmarkprice)
 
 ---
@@ -6922,7 +7018,7 @@ watches a mark price
 <a name="watchMarkPrices" id="watchmarkprices"></a>
 
 ## watchMarkPrices
-watches mark prices
+watches the mark price for all markets
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
@@ -6930,11 +7026,12 @@ watches mark prices
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
+| params.use1sFreq | <code>boolean</code> | No | *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancewatchmarkprices)
 * [okx](/exchanges/okx.md#okxwatchmarkprices)
 
 ---
@@ -6942,7 +7039,7 @@ watches mark prices
 <a name="watchMyLiquidations" id="watchmyliquidations"></a>
 
 ## watchMyLiquidations
-watch the public liquidations of a trading pair
+watch the private liquidations of a trading pair
 
 **Kind**: instance   
 **Returns**: <code>object</code> - an array of [liquidation structures](https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure)
@@ -6956,6 +7053,7 @@ watch the public liquidations of a trading pair
 | params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancewatchmyliquidations)
 * [gate](/exchanges/gate.md#gatewatchmyliquidations)
 
 ---
@@ -6971,12 +7069,13 @@ watch the private liquidations of a trading pair
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified CCXT market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the gate api endpoint |
+| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancewatchmyliquidationsforsymbols)
 * [gate](/exchanges/gate.md#gatewatchmyliquidationsforsymbols)
 * [okx](/exchanges/okx.md#okxwatchmyliquidationsforsymbols)
 
@@ -7002,6 +7101,7 @@ watches information on multiple trades made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacawatchmytrades)
 * [apex](/exchanges/apex.md#apexwatchmytrades)
+* [binance](/exchanges/binance.md#binancewatchmytrades)
 * [bingx](/exchanges/bingx.md#bingxwatchmytrades)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexwatchmytrades)
 * [bitget](/exchanges/bitget.md#bitgetwatchmytrades)
@@ -7080,6 +7180,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [arkham](/exchanges/arkham.md#arkhamwatchohlcv)
 * [ascendex](/exchanges/ascendex.md#ascendexwatchohlcv)
 * [backpack](/exchanges/backpack.md#backpackwatchohlcv)
+* [binance](/exchanges/binance.md#binancewatchohlcv)
 * [bingx](/exchanges/bingx.md#bingxwatchohlcv)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexwatchohlcv)
 * [bitget](/exchanges/bitget.md#bitgetwatchohlcv)
@@ -7137,6 +7238,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexwatchohlcvforsymbols)
 * [backpack](/exchanges/backpack.md#backpackwatchohlcvforsymbols)
+* [binance](/exchanges/binance.md#binancewatchohlcvforsymbols)
 * [blofin](/exchanges/blofin.md#blofinwatchohlcvforsymbols)
 * [bybit](/exchanges/bybit.md#bybitwatchohlcvforsymbols)
 * [defx](/exchanges/defx.md#defxwatchohlcvforsymbols)
@@ -7168,6 +7270,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [arkham](/exchanges/arkham.md#arkhamwatchorderbook)
 * [ascendex](/exchanges/ascendex.md#ascendexwatchorderbook)
 * [backpack](/exchanges/backpack.md#backpackwatchorderbook)
+* [binance](/exchanges/binance.md#binancewatchorderbook)
 * [bingx](/exchanges/bingx.md#bingxwatchorderbook)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexwatchorderbook)
 * [bitget](/exchanges/bitget.md#bitgetwatchorderbook)
@@ -7237,6 +7340,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexwatchorderbookforsymbols)
 * [backpack](/exchanges/backpack.md#backpackwatchorderbookforsymbols)
+* [binance](/exchanges/binance.md#binancewatchorderbookforsymbols)
 * [bitget](/exchanges/bitget.md#bitgetwatchorderbookforsymbols)
 * [bitmart](/exchanges/bitmart.md#bitmartwatchorderbookforsymbols)
 * [bitmex](/exchanges/bitmex.md#bitmexwatchorderbookforsymbols)
@@ -7279,6 +7383,7 @@ watches information on multiple orders made by the user
 * [arkham](/exchanges/arkham.md#arkhamwatchorders)
 * [ascendex](/exchanges/ascendex.md#ascendexwatchorders)
 * [backpack](/exchanges/backpack.md#backpackwatchorders)
+* [binance](/exchanges/binance.md#binancewatchorders)
 * [bingx](/exchanges/bingx.md#bingxwatchorders)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexwatchorders)
 * [bitget](/exchanges/bitget.md#bitgetwatchorders)
@@ -7337,6 +7442,7 @@ watches information on multiple orders made by the user across multiple symbols
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | set to true for trigger orders |
 
 ##### Supported exchanges
 * [blofin](/exchanges/blofin.md#blofinwatchordersforsymbols)
@@ -7383,6 +7489,7 @@ watch all open positions
 * [apex](/exchanges/apex.md#apexwatchpositions)
 * [arkham](/exchanges/arkham.md#arkhamwatchpositions)
 * [backpack](/exchanges/backpack.md#backpackwatchpositions)
+* [binance](/exchanges/binance.md#binancewatchpositions)
 * [bitget](/exchanges/bitget.md#bitgetwatchpositions)
 * [bitmart](/exchanges/bitmart.md#bitmartwatchpositions)
 * [bitmex](/exchanges/bitmex.md#bitmexwatchpositions)
@@ -7422,6 +7529,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [apex](/exchanges/apex.md#apexwatchticker)
 * [arkham](/exchanges/arkham.md#arkhamwatchticker)
 * [backpack](/exchanges/backpack.md#backpackwatchticker)
+* [binance](/exchanges/binance.md#binancewatchticker)
 * [bingx](/exchanges/bingx.md#bingxwatchticker)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexwatchticker)
 * [bitget](/exchanges/bitget.md#bitgetwatchticker)
@@ -7484,6 +7592,7 @@ watches a price ticker, a statistical calculation with the information calculate
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexwatchtickers)
 * [backpack](/exchanges/backpack.md#backpackwatchtickers)
+* [binance](/exchanges/binance.md#binancewatchtickers)
 * [bitget](/exchanges/bitget.md#bitgetwatchtickers)
 * [bithumb](/exchanges/bithumb.md#bithumbwatchtickers)
 * [bitmart](/exchanges/bitmart.md#bitmartwatchtickers)
@@ -7539,6 +7648,7 @@ watches information on multiple trades made in a market
 * [arkham](/exchanges/arkham.md#arkhamwatchtrades)
 * [ascendex](/exchanges/ascendex.md#ascendexwatchtrades)
 * [backpack](/exchanges/backpack.md#backpackwatchtrades)
+* [binance](/exchanges/binance.md#binancewatchtrades)
 * [bingx](/exchanges/bingx.md#bingxwatchtrades)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexwatchtrades)
 * [bitget](/exchanges/bitget.md#bitgetwatchtrades)
@@ -7608,6 +7718,7 @@ get the list of most recent trades for a list of symbols
 * [apex](/exchanges/apex.md#apexwatchtradesforsymbols)
 * [ascendex](/exchanges/ascendex.md#ascendexwatchtradesforsymbols)
 * [backpack](/exchanges/backpack.md#backpackwatchtradesforsymbols)
+* [binance](/exchanges/binance.md#binancewatchtradesforsymbols)
 * [bitget](/exchanges/bitget.md#bitgetwatchtradesforsymbols)
 * [bitmart](/exchanges/bitmart.md#bitmartwatchtradesforsymbols)
 * [bitmex](/exchanges/bitmex.md#bitmexwatchtradesforsymbols)
