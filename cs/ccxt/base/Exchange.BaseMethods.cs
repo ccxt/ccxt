@@ -36,8 +36,10 @@ public partial class Exchange
                 { "cancelAllOrders", null },
                 { "cancelAllOrdersWs", null },
                 { "cancelOrder", true },
+                { "cancelOrderWithClientOrderId", null },
                 { "cancelOrderWs", null },
                 { "cancelOrders", null },
+                { "cancelOrdersWithClientOrderId", null },
                 { "cancelOrdersWs", null },
                 { "closeAllPositions", null },
                 { "closePosition", null },
@@ -87,6 +89,7 @@ public partial class Exchange
                 { "createTriggerOrderWs", null },
                 { "deposit", null },
                 { "editOrder", "emulated" },
+                { "editOrderWithClientOrderId", null },
                 { "editOrders", null },
                 { "editOrderWs", null },
                 { "fetchAccounts", null },
@@ -165,6 +168,7 @@ public partial class Exchange
                 { "fetchOption", null },
                 { "fetchOptionChain", null },
                 { "fetchOrder", null },
+                { "fetchOrderWithClientOrderId", null },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", null },
                 { "fetchOrderBookWs", null },
@@ -4284,6 +4288,14 @@ public partial class Exchange
         return await this.createOrder(symbol, type, side, amount, price, parameters);
     }
 
+    public async virtual Task<object> editOrderWithClientOrderId(object clientOrderId, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.editOrder("", symbol, type, side, amount, price, this.extend(new Dictionary<string, object>() {
+            { "clientOrderId", clientOrderId },
+        }, parameters));
+    }
+
     public async virtual Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4985,6 +4997,24 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchOrder() is not supported yet")) ;
     }
 
+    /**
+     * @method
+     * @name fetchOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async virtual Task<object> fetchOrderWithClientOrderId(object clientOrderId, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "clientOrderId", clientOrderId },
+        });
+        return await this.fetchOrder("", symbol, extendedParams);
+    }
+
     public async virtual Task<object> fetchOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5567,6 +5597,24 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " cancelOrder() is not supported yet")) ;
     }
 
+    /**
+     * @method
+     * @name cancelOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async virtual Task<object> cancelOrderWithClientOrderId(object clientOrderId, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "clientOrderId", clientOrderId },
+        });
+        return await this.cancelOrder("", symbol, extendedParams);
+    }
+
     public async virtual Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5577,6 +5625,24 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelOrders() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name cancelOrdersWithClientOrderIds
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string[]} clientOrderIds client order Ids
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async virtual Task<object> cancelOrdersWithClientOrderIds(object clientOrderIds, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "clientOrderIds", clientOrderIds },
+        });
+        return await this.cancelOrders(new List<object>() {}, symbol, extendedParams);
     }
 
     public async virtual Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)

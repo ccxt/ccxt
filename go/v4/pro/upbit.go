@@ -545,13 +545,38 @@ func  (this *UpbitCore) WatchPrivate(symbol interface{}, channel interface{}, me
                 "hostname": this.Hostname,
             })
             url = ccxt.Add(url, "/private")
+            var client interface{} = this.Client(url)
+            // Track private channel subscriptions to support multiple concurrent watches
+            var subscriptionsKey interface{} = "upbitPrivateSubscriptions"
+            if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey))) {
+                ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey, map[string]interface{} {})
+            }
+            var channelKey interface{} = channel
+            if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+                channelKey = ccxt.Add(ccxt.Add(channel, ":"), symbol)
+            }
+            var subscriptions interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)
+            var isNewChannel interface{} =     !ccxt.IsTrue((ccxt.InOp(subscriptions, channelKey)))
+            if ccxt.IsTrue(isNewChannel) {
+                ccxt.AddElementToObject(subscriptions, channelKey, request)
+            }
+            // Build subscription message with all requested private channels
+            // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
+            var requests interface{} = []interface{}{}
+            var channelKeys interface{} = ccxt.ObjectKeys(subscriptions)
+            for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(channelKeys)); i++ {
+                ccxt.AppendToArray(&requests, ccxt.GetValue(subscriptions, ccxt.GetValue(channelKeys, i)))
+            }
             var message interface{} = []interface{}{map[string]interface{} {
             "ticket": this.Uuid(),
-        }, request}
+        }}
+            for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(requests)); i++ {
+                ccxt.AppendToArray(&message, ccxt.GetValue(requests, i))
+            }
         
-                retRes42515 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes42515)
-                ch <- retRes42515
+                retRes44915 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes44915)
+                ch <- retRes44915
                 return nil
         
             }()
@@ -582,8 +607,8 @@ func  (this *UpbitCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes4408 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4408)
+            retRes4648 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4648)
             var channel interface{} = "myOrder"
             var messageHash interface{} = "myOrder"
         
@@ -624,8 +649,8 @@ func  (this *UpbitCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inter
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes4628 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4628)
+            retRes4868 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4868)
             var channel interface{} = "myOrder"
             var messageHash interface{} = "myTrades"
         
@@ -827,14 +852,14 @@ func  (this *UpbitCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6538 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6538)
+            retRes6778 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6778)
             var channel interface{} = "myAsset"
             var messageHash interface{} = "myAsset"
         
-                retRes65615 :=  (<-this.WatchPrivate(nil, channel, messageHash))
-                ccxt.PanicOnError(retRes65615)
-                ch <- retRes65615
+                retRes68015 :=  (<-this.WatchPrivate(nil, channel, messageHash))
+                ccxt.PanicOnError(retRes68015)
+                ch <- retRes68015
                 return nil
         
             }()
@@ -887,7 +912,7 @@ func  (this *UpbitCore) HandleMessage(client interface{}, message interface{})  
     }
     var methodName interface{} = this.SafeString(message, "type")
     var method interface{} = this.SafeValue(methods, methodName)
-    if ccxt.IsTrue(method) {
+    if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
         ccxt.CallDynamically(method, client, message)
     }
 }

@@ -18,7 +18,7 @@ class toobit extends Exchange {
             'version' => 'v1',
             'rateLimit' => 20, // 50 requests per second
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,

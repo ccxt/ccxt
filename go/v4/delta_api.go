@@ -59,6 +59,14 @@ func (this *DeltaCore) PrivateGetOrders(args ...interface{}) <-chan interface{} 
 	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
+func (this *DeltaCore) PrivateGetOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
+}
+
+func (this *DeltaCore) PrivateGetOrdersClientOrderIdClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersClientOrderIdClientOid", args...)
+}
+
 func (this *DeltaCore) PrivateGetProductsProductIdOrdersLeverage(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetProductsProductIdOrdersLeverage", args...)
 }
@@ -111,12 +119,12 @@ func (this *DeltaCore) PrivateGetProfile(args ...interface{}) <-chan interface{}
 	return this.callEndpointAsync("privateGetProfile", args...)
 }
 
-func (this *DeltaCore) PrivateGetDepositsAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetDepositsAddress", args...)
+func (this *DeltaCore) PrivateGetHeartbeat(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHeartbeat", args...)
 }
 
-func (this *DeltaCore) PrivateGetOrdersLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOrdersLeverage", args...)
+func (this *DeltaCore) PrivateGetDepositsAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositsAddress", args...)
 }
 
 func (this *DeltaCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
@@ -145,6 +153,14 @@ func (this *DeltaCore) PrivatePostPositionsCloseAll(args ...interface{}) <-chan 
 
 func (this *DeltaCore) PrivatePostWalletsSubAccountBalanceTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWalletsSubAccountBalanceTransfer", args...)
+}
+
+func (this *DeltaCore) PrivatePostHeartbeatCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHeartbeatCreate", args...)
+}
+
+func (this *DeltaCore) PrivatePostHeartbeat(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHeartbeat", args...)
 }
 
 func (this *DeltaCore) PrivatePostOrdersCancelAfter(args ...interface{}) <-chan interface{} {

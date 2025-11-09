@@ -1011,7 +1011,7 @@ func  (this *CoinbaseCore) HandleOrder(client interface{}, message interface{}) 
     //                        "product_id": "BTC-USD",
     //                        "creation_time": "2022-12-07T19:42:18.719312Z",
     //                        "order_side": "BUY",
-    //                        "order_type": "ccxt.Limit"
+    //                        "order_type": "Limit"
     //                    },
     //                ]
     //            }
@@ -1060,7 +1060,7 @@ func  (this *CoinbaseCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     //        "product_id": "BTC-USD",
     //        "creation_time": "2022-12-07T19:42:18.719312Z",
     //        "order_side": "BUY",
-    //        "order_type": "ccxt.Limit"
+    //        "order_type": "Limit"
     //    }
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)

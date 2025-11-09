@@ -1905,6 +1905,31 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
+    public function un_watch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * stops watching the mark price for all markets
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+             *
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            $channelName = null;
+            // for now watchmarkPrice uses the same messageHash
+            // so it's impossible to watch both at the same time
+            // refactor this to use different messageHashes
+            list($channelName, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
+            $newTickers = Async\await($this->watch_multi_ticker_helper('watchMarkPrices', $channelName, $symbols, $params));
+            if ($this->newUpdates) {
+                return $newTickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
@@ -2403,10 +2428,6 @@ class binance extends \ccxt\async\binance {
 
     public function sign_params($params = array ()) {
         $this->check_required_credentials();
-        $extendedParams = $this->extend(array(
-            'timestamp' => $this->nonce(),
-            'apiKey' => $this->apiKey,
-        ), $params);
         $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
         if ($defaultRecvWindow !== null) {
             $params['recvWindow'] = $defaultRecvWindow;
@@ -2415,8 +2436,12 @@ class binance extends \ccxt\async\binance {
         if ($recvWindow !== null) {
             $params['recvWindow'] = $recvWindow;
         }
+        $extendedParams = $this->extend(array(
+            'timestamp' => $this->nonce(),
+            'apiKey' => $this->apiKey,
+        ), $params);
         $extendedParams = $this->keysort($extendedParams);
-        $query = $this->urlencode($extendedParams);
+        $query = $this->rawencode($extendedParams);
         $signature = null;
         if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
             if (strlen($this->secret) > 120) {
@@ -2434,7 +2459,7 @@ class binance extends \ccxt\async\binance {
     public function ensure_user_data_stream_ws_subscribe_signature(string $marketType = 'spot') {
         return Async\async(function () use ($marketType) {
             /**
-             * Ensures a User Data Stream WebSocket $subscription is active for the specified scope
+             * watches best bid & ask for symbols
              * @param $marketType {string} only support on 'spot'
              *
              * @see array(@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-$subscription-user_data Binance User Data Stream Documentation)
@@ -3669,7 +3694,7 @@ class binance extends \ccxt\async\binance {
             } elseif ($this->isInverse ($type, $subType)) {
                 $type = 'delivery';
             }
-            $params = $this->extend($params, array( 'type' => $type, 'symbol' => $symbol )); // needed inside authenticate for isolated margin
+            $params = $this->extend($params, array( 'type' => $type, 'symbol' => $symbol, 'subType' => $subType )); // needed inside authenticate for isolated margin
             Async\await($this->authenticate($params));
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('watchOrders', $params);
@@ -4359,7 +4384,7 @@ class binance extends \ccxt\async\binance {
                 $messageHash .= ':' . $symbol;
                 $params = $this->extend($params, array( 'type' => $market['type'], 'symbol' => $symbol ));
             }
-            Async\await($this->authenticate($params));
+            Async\await($this->authenticate($this->extend(array( 'type' => $type, 'subType' => $subType ), $params)));
             $urlType = $type; // we don't change $type because the listening key is different
             if ($type === 'margin') {
                 $urlType = 'spot'; // spot-margin shares the same stream spot

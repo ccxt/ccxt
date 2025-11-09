@@ -57,6 +57,7 @@ public partial class delta : Exchange
                 { "fetchOpenOrders", true },
                 { "fetchOption", true },
                 { "fetchOptionChain", false },
+                { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", true },
                 { "fetchPositionMode", false },
@@ -118,8 +119,8 @@ public partial class delta : Exchange
                     { "get", new List<object>() {"assets", "indices", "products", "products/{symbol}", "tickers", "tickers/{symbol}", "l2orderbook/{symbol}", "trades/{symbol}", "stats", "history/candles", "history/sparklines", "settings"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orders", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "deposits/address", "orders/leverage"} },
-                    { "post", new List<object>() {"orders", "orders/bracket", "orders/batch", "products/{product_id}/orders/leverage", "positions/change_margin", "positions/close_all", "wallets/sub_account_balance_transfer", "orders/cancel_after", "orders/leverage"} },
+                    { "get", new List<object>() {"orders", "orders/{order_id}", "orders/client_order_id/{client_oid}", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "heartbeat", "deposits/address"} },
+                    { "post", new List<object>() {"orders", "orders/bracket", "orders/batch", "products/{product_id}/orders/leverage", "positions/change_margin", "positions/close_all", "wallets/sub_account_balance_transfer", "heartbeat/create", "heartbeat", "orders/cancel_after", "orders/leverage"} },
                     { "put", new List<object>() {"orders", "orders/bracket", "orders/batch", "positions/auto_topup", "users/update_mmp", "users/reset_mmp"} },
                     { "delete", new List<object>() {"orders", "orders/all", "orders/batch"} },
                 } },
@@ -1891,9 +1892,42 @@ public partial class delta : Exchange
         //         "user_id":22142
         //     }
         //
+        // fetchOrder
+        //
+        //     {
+        //         "id": 123,
+        //         "user_id": 453671,
+        //         "size": 10,
+        //         "unfilled_size": 2,
+        //         "side": "buy",
+        //         "order_type": "limit_order",
+        //         "limit_price": "59000",
+        //         "stop_order_type": "stop_loss_order",
+        //         "stop_price": "55000",
+        //         "paid_commission": "0.5432",
+        //         "commission": "0.5432",
+        //         "reduce_only": false,
+        //         "client_order_id": "my_signal_34521712",
+        //         "state": "open",
+        //         "created_at": "1725865012000000",
+        //         "product_id": 27,
+        //         "product_symbol": "BTCUSD"
+        //     }
+        //
         object id = this.safeString(order, "id");
         object clientOrderId = this.safeString(order, "client_order_id");
-        object timestamp = this.parse8601(this.safeString(order, "created_at"));
+        object createdAt = this.safeString(order, "created_at");
+        object timestamp = null;
+        if (isTrue(!isEqual(createdAt, null)))
+        {
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(createdAt, "-"), 0)))
+            {
+                timestamp = this.parse8601(createdAt);
+            } else
+            {
+                timestamp = this.safeIntegerProduct(order, "created_at", 0.001);
+            }
+        }
         object marketId = this.safeString(order, "product_id");
         object marketsByNumericId = this.safeDict(this.options, "marketsByNumericId", new Dictionary<string, object>() {});
         market = this.safeValue(marketsByNumericId, marketId, market);
@@ -1901,7 +1935,10 @@ public partial class delta : Exchange
         object status = this.parseOrderStatus(this.safeString(order, "state"));
         object side = this.safeString(order, "side");
         object type = this.safeString(order, "order_type");
-        type = ((string)type).Replace((string)"_order", (string)"");
+        if (isTrue(!isEqual(type, null)))
+        {
+            type = ((string)type).Replace((string)"_order", (string)"");
+        }
         object price = this.safeString(order, "limit_price");
         object amount = this.safeString(order, "size");
         object remaining = this.safeString(order, "unfilled_size");
@@ -2175,6 +2212,68 @@ public partial class delta : Exchange
         return new List<object> {this.safeOrder(new Dictionary<string, object>() {
     { "info", response },
 })};
+    }
+
+    /**
+     * @method
+     * @name delta#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.delta.exchange/#get-order-by-id
+     * @see https://docs.delta.exchange/#get-order-by-client-oid
+     * @param {string} id the order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id of the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object clientOrderId = this.safeStringN(parameters, new List<object>() {"clientOrderId", "client_oid", "clientOid"});
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid", "clientOid"});
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["client_oid"] = clientOrderId;
+            response = await this.privateGetOrdersClientOrderIdClientOid(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["order_id"] = id;
+            response = await this.privateGetOrdersOrderId(this.extend(request, parameters));
+        }
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "id": 123,
+        //             "user_id": 453671,
+        //             "size": 10,
+        //             "unfilled_size": 2,
+        //             "side": "buy",
+        //             "order_type": "limit_order",
+        //             "limit_price": "59000",
+        //             "stop_order_type": "stop_loss_order",
+        //             "stop_price": "55000",
+        //             "paid_commission": "0.5432",
+        //             "commission": "0.5432",
+        //             "reduce_only": false,
+        //             "client_order_id": "my_signal_34521712",
+        //             "state": "open",
+        //             "created_at": "1725865012000000",
+        //             "product_id": 27,
+        //             "product_symbol": "BTCUSD"
+        //         }
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseOrder(result, market);
     }
 
     /**

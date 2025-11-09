@@ -1579,6 +1579,34 @@ func (this *ExchangeTyped) EditOrder(id string, symbol string, typeVar string, s
 	}
 	return NewOrder(res), nil
 }
+func (this *ExchangeTyped) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+
+	opts := EditOrderWithClientOrderIdOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var amount interface{} = nil
+	if opts.Amount != nil {
+		amount = *opts.Amount
+	}
+
+	var price interface{} = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
 func (this *ExchangeTyped) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 
 	opts := EditOrderWsOptionsStruct{}
@@ -2400,6 +2428,29 @@ func (this *ExchangeTyped) FetchOrder(id string, options ...FetchOrderOptions) (
 	}
 	return NewOrder(res), nil
 }
+func (this *ExchangeTyped) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+
+	opts := FetchOrderWithClientOrderIdOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOrderWithClientOrderId(clientOrderId, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
 func (this *ExchangeTyped) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
 
 	opts := FetchOrderWsOptionsStruct{}
@@ -3109,6 +3160,29 @@ func (this *ExchangeTyped) CancelOrder(id string, options ...CancelOrderOptions)
 	}
 	return NewOrder(res), nil
 }
+func (this *ExchangeTyped) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+
+	opts := CancelOrderWithClientOrderIdOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelOrderWithClientOrderId(clientOrderId, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
 func (this *ExchangeTyped) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
 
 	opts := CancelOrderWsOptionsStruct{}
@@ -3150,6 +3224,29 @@ func (this *ExchangeTyped) CancelOrders(ids []string, options ...CancelOrdersOpt
 		params = *opts.Params
 	}
 	res := <-this.Exchange.CancelOrders(ids, symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+
+	opts := CancelOrdersWithClientOrderIdsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelOrdersWithClientOrderIds(clientOrderIds, symbol, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}

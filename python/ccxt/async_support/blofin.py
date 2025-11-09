@@ -1255,11 +1255,13 @@ class blofin(Exchange, ImplicitAPI):
         elif type == 'ioc':
             timeInForce = 'IOC'
             type = 'limit'
+        elif type == 'conditional':
+            type = 'trigger'
         marketId = self.safe_string(order, 'instId')
         market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market, '-')
         filled = self.safe_string(order, 'filledSize')
-        price = self.safe_string_2(order, 'px', 'price')
+        price = self.safe_string_n(order, ['px', 'price', 'orderPrice'])
         average = self.safe_string(order, 'averagePrice')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCostString = self.safe_string(order, 'fee')
@@ -1357,25 +1359,26 @@ class blofin(Exchange, ImplicitAPI):
         method, params = self.handle_option_and_params(params, 'createOrder', 'method', 'privatePostTradeOrder')
         isStopLossPriceDefined = self.safe_string(params, 'stopLossPrice') is not None
         isTakeProfitPriceDefined = self.safe_string(params, 'takeProfitPrice') is not None
-        isTriggerOrder = self.safe_string(params, 'triggerPrice') is not None
+        hasTriggerPrice = self.safe_string(params, 'triggerPrice') is not None
         isType2Order = (isStopLossPriceDefined or isTakeProfitPriceDefined)
         response = None
         reduceOnly = self.safe_bool(params, 'reduceOnly')
         if reduceOnly is not None:
             params['reduceOnly'] = 'true' if reduceOnly else 'false'
-        if tpsl or (method == 'privatePostTradeOrderTpsl') or isType2Order:
+        isTpslOrder = tpsl or (method == 'privatePostTradeOrderTpsl') or isType2Order
+        isTriggerOrder = hasTriggerPrice or (method == 'privatePostTradeOrderAlgo')
+        if isTpslOrder:
             tpslRequest = self.create_tpsl_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrderTpsl(tpslRequest)
-        elif isTriggerOrder or (method == 'privatePostTradeOrderAlgo'):
+        elif isTriggerOrder:
             triggerRequest = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrderAlgo(triggerRequest)
         else:
             request = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrder(request)
-        if isTriggerOrder or (method == 'privatePostTradeOrderAlgo'):
+        if isTpslOrder or isTriggerOrder:
             dataDict = self.safe_dict(response, 'data', {})
-            triggerOrder = self.parse_order(dataDict, market)
-            return triggerOrder
+            return self.parse_order(dataDict, market)
         data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0)
         order = self.parse_order(first, market)

@@ -1658,6 +1658,12 @@ class okx extends okx$1["default"] {
         //         "uly": "BTC-USD"
         //     }
         //
+        // for swap "preopen" markets, only `instId` and `instType` are present
+        //
+        //         instId: "ETH-USD_UM-SWAP",
+        //         instType: "SWAP",
+        //         state: "preopen",
+        //
         const id = this.safeString(market, 'instId');
         let type = this.safeStringLower(market, 'instType');
         if (type === 'futures') {
@@ -1678,9 +1684,19 @@ class okx extends okx$1["default"] {
             baseId = this.safeString(parts, 0);
             quoteId = this.safeString(parts, 1);
         }
+        if (((baseId === '') || (quoteId === '')) && spot) { // to fix weird preopen markets
+            const instId = this.safeString(market, 'instId', '');
+            const parts = instId.split('-');
+            baseId = this.safeString(parts, 0);
+            quoteId = this.safeString(parts, 1);
+        }
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = base + '/' + quote;
+        // handle preopen empty markets
+        if (base === '' || quote === '') {
+            symbol = id;
+        }
         let expiry = undefined;
         let strikePrice = undefined;
         let optionType = undefined;
@@ -1710,6 +1726,7 @@ class okx extends okx$1["default"] {
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const maxSpotCost = this.safeNumber(market, 'maxMktSz');
+        const status = this.safeString(market, 'state');
         return this.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -1725,7 +1742,7 @@ class okx extends okx$1["default"] {
             'swap': swap,
             'future': future,
             'option': option,
-            'active': true,
+            'active': status === 'live',
             'contract': contract,
             'linear': contract ? (quoteId === settleId) : undefined,
             'inverse': contract ? (baseId === settleId) : undefined,

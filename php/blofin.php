@@ -1293,12 +1293,14 @@ class blofin extends Exchange {
         } elseif ($type === 'ioc') {
             $timeInForce = 'IOC';
             $type = 'limit';
+        } elseif ($type === 'conditional') {
+            $type = 'trigger';
         }
         $marketId = $this->safe_string($order, 'instId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $filled = $this->safe_string($order, 'filledSize');
-        $price = $this->safe_string_2($order, 'px', 'price');
+        $price = $this->safe_string_n($order, array( 'px', 'price', 'orderPrice' ));
         $average = $this->safe_string($order, 'averagePrice');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
@@ -1400,27 +1402,28 @@ class blofin extends Exchange {
         list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', 'privatePostTradeOrder');
         $isStopLossPriceDefined = $this->safe_string($params, 'stopLossPrice') !== null;
         $isTakeProfitPriceDefined = $this->safe_string($params, 'takeProfitPrice') !== null;
-        $isTriggerOrder = $this->safe_string($params, 'triggerPrice') !== null;
+        $hasTriggerPrice = $this->safe_string($params, 'triggerPrice') !== null;
         $isType2Order = ($isStopLossPriceDefined || $isTakeProfitPriceDefined);
         $response = null;
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         if ($reduceOnly !== null) {
             $params['reduceOnly'] = $reduceOnly ? 'true' : 'false';
         }
-        if ($tpsl || ($method === 'privatePostTradeOrderTpsl') || $isType2Order) {
+        $isTpslOrder = $tpsl || ($method === 'privatePostTradeOrderTpsl') || $isType2Order;
+        $isTriggerOrder = $hasTriggerPrice || ($method === 'privatePostTradeOrderAlgo');
+        if ($isTpslOrder) {
             $tpslRequest = $this->create_tpsl_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = $this->privatePostTradeOrderTpsl ($tpslRequest);
-        } elseif ($isTriggerOrder || ($method === 'privatePostTradeOrderAlgo')) {
+        } elseif ($isTriggerOrder) {
             $triggerRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = $this->privatePostTradeOrderAlgo ($triggerRequest);
         } else {
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = $this->privatePostTradeOrder ($request);
         }
-        if ($isTriggerOrder || ($method === 'privatePostTradeOrderAlgo')) {
+        if ($isTpslOrder || $isTriggerOrder) {
             $dataDict = $this->safe_dict($response, 'data', array());
-            $triggerOrder = $this->parse_order($dataDict, $market);
-            return $triggerOrder;
+            return $this->parse_order($dataDict, $market);
         }
         $data = $this->safe_list($response, 'data', array());
         $first = $this->safe_dict($data, 0);

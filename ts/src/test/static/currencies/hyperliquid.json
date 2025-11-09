@@ -59,5 +59,37 @@
                 "max": null
             }
         }
-    }
+    },
+    "PENGU": {
+        "info": {
+            "szDecimals": "0",
+            "name": "PENGU",
+            "maxLeverage": "5",
+            "marginTableId": "5"
+        },
+        "id": 163,
+        "numericId": null,
+        "code": "PENGU",
+        "precision": null,
+        "type": "crypto",
+        "name": "PENGU",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "UBTC": null,
+    "HPENGU": null
 }

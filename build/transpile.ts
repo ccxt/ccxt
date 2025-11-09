@@ -104,13 +104,16 @@ class Transpiler {
     getCommonRegexes (): any[] {
 
         return [
-            [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
+            [ /(?<!assert|equals|verify)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.featuresGenerator/g, '.features_generator'],
             [ /\.featuresMapper/g, '.features_mapper'],
             [ /\.safeValue2/g, '.safe_value_2'],
             [ /\.safeInteger2/g, '.safe_integer_2'],
             [ /\.safeString2/g, '.safe_string_2'],
+            [ /safeString \(/g, 'safe_string('],
+            [ /safeInteger \(/g, 'safe_integer('],
+            [ /inArray \(/g, 'in_array('],
             [ /\.safeFloat2/g, '.safe_float_2'],
             [ /\.safeDict2/g, '.safe_dict_2'],
             [ /\.safeList2/g, '.safe_list_2'],
@@ -1154,7 +1157,7 @@ class Transpiler {
             const closure = variables && variables.length ? 'use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
             phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
         }
-
+        phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
     }
 
@@ -1997,6 +2000,9 @@ class Transpiler {
             "hmac = Exchange.hmac",
             "ecdsa = Exchange.ecdsa",
             "eddsa = Exchange.eddsa",
+            "safe_string = Exchange.safe_string",
+            "safe_integer = Exchange.safe_integer",
+            "in_array = Exchange.in_array",
             "jwt = Exchange.jwt",
             "crc32 = Exchange.crc32",
             "rsa = Exchange.rsa",

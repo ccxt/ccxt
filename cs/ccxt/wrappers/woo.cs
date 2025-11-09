@@ -1109,7 +1109,7 @@ public partial class woo
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#token-withdraw"/>  <br/>
+    /// See <see href="https://docs.woox.io/#token-withdraw-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

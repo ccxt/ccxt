@@ -248,6 +248,7 @@ class binance extends Exchange {
                     'private' => 'https://api.binance.com/api/v3',
                     'v1' => 'https://api.binance.com/api/v1',
                     'papi' => 'https://papi.binance.com/papi/v1',
+                    'papiV2' => 'https://papi.binance.com/papi/v2',
                 ),
                 'www' => 'https://www.binance.com',
                 'referral' => array(
@@ -1194,6 +1195,11 @@ class binance extends Exchange {
                         'margin/allOpenOrders' => 5,
                         'margin/orderList' => 2,
                         'listenKey' => 0.2,
+                    ),
+                ),
+                'papiV2' => array(
+                    'get' => array(
+                        'um/account' => 1,
                     ),
                 ),
             ),
@@ -10933,7 +10939,7 @@ class binance extends Exchange {
             $response = null;
             if ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetUmAccount ($params));
+                    $response = Async\await($this->papiV2GetUmAccount ($params));
                 } else {
                     $useV2 = null;
                     list($useV2, $params) = $this->handle_option_and_params($params, 'fetchAccountPositions', 'useV2', false);
@@ -12011,7 +12017,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papi' && $path !== 'ping')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papiV2' || $api === 'papi' && $path !== 'ping')) {
             $this->check_required_credentials();
             if ((mb_strpos($url, 'testnet.binancefuture.com') > -1) && $this->isSandboxModeEnabled && (!$this->safe_bool($this->options, 'disableFuturesSandboxWarning'))) {
                 throw new NotSupported($this->id . ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
@@ -12070,6 +12076,9 @@ class binance extends Exchange {
                     $orderidlist = $this->safe_list($extendedParams, 'orderidlist', array());
                     $origclientorderidlist = $this->safe_list_2($extendedParams, 'origclientorderidlist', 'origClientOrderIdList', array());
                     $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist', 'origClientOrderIdList' ));
+                    if (is_array($extendedParams) && array_key_exists('symbol', $extendedParams)) {
+                        $extendedParams['symbol'] = $this->encode_uri_component($extendedParams['symbol']);
+                    }
                     $query = $this->rawencode($extendedParams);
                     $orderidlistLength = count($orderidlist);
                     $origclientorderidlistLength = count($origclientorderidlist);

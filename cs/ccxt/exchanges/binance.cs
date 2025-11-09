@@ -230,6 +230,7 @@ public partial class binance : Exchange
                     { "private", "https://api.binance.com/api/v3" },
                     { "v1", "https://api.binance.com/api/v1" },
                     { "papi", "https://papi.binance.com/papi/v1" },
+                    { "papiV2", "https://papi.binance.com/papi/v2" },
                 } },
                 { "www", "https://www.binance.com" },
                 { "referral", new Dictionary<string, object>() {
@@ -1260,6 +1261,11 @@ public partial class binance : Exchange
                         { "margin/allOpenOrders", 5 },
                         { "margin/orderList", 2 },
                         { "listenKey", 0.2 },
+                    } },
+                } },
+                { "papiV2", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "um/account", 1 },
                     } },
                 } },
             } },
@@ -11408,7 +11414,7 @@ public partial class binance : Exchange
         {
             if (isTrue(isPortfolioMargin))
             {
-                response = await this.papiGetUmAccount(parameters);
+                response = await this.papiV2GetUmAccount(parameters);
             } else
             {
                 object useV2 = null;
@@ -12565,7 +12571,7 @@ public partial class binance : Exchange
             {
                 throw new AuthenticationError ((string)add(this.id, " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "eapiPrivate")))) || isTrue((isTrue(isEqual(api, "sapi")) && isTrue(!isEqual(path, "system/status"))))) || isTrue((isEqual(api, "sapiV2")))) || isTrue((isEqual(api, "sapiV3")))) || isTrue((isEqual(api, "sapiV4")))) || isTrue((isEqual(api, "dapiPrivate")))) || isTrue((isEqual(api, "dapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivate")))) || isTrue((isEqual(api, "fapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivateV3")))) || isTrue((isTrue(isEqual(api, "papi")) && isTrue(!isEqual(path, "ping"))))))
+        } else if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "eapiPrivate")))) || isTrue((isTrue(isEqual(api, "sapi")) && isTrue(!isEqual(path, "system/status"))))) || isTrue((isEqual(api, "sapiV2")))) || isTrue((isEqual(api, "sapiV3")))) || isTrue((isEqual(api, "sapiV4")))) || isTrue((isEqual(api, "dapiPrivate")))) || isTrue((isEqual(api, "dapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivate")))) || isTrue((isEqual(api, "fapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivateV3")))) || isTrue((isTrue(isEqual(api, "papiV2")) || isTrue(isTrue(isEqual(api, "papi")) && isTrue(!isEqual(path, "ping")))))))
         {
             this.checkRequiredCredentials();
             if (isTrue(isTrue(isTrue((isGreaterThan(getIndexOf(url, "testnet.binancefuture.com"), -1))) && isTrue(this.isSandboxModeEnabled)) && isTrue((!isTrue(this.safeBool(this.options, "disableFuturesSandboxWarning"))))))
@@ -12637,6 +12643,10 @@ public partial class binance : Exchange
                     object orderidlist = this.safeList(extendedParams, "orderidlist", new List<object>() {});
                     object origclientorderidlist = this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new List<object>() {});
                     extendedParams = this.omit(extendedParams, new List<object>() {"orderidlist", "origclientorderidlist", "origClientOrderIdList"});
+                    if (isTrue(inOp(extendedParams, "symbol")))
+                    {
+                        ((IDictionary<string,object>)extendedParams)["symbol"] = this.encodeURIComponent(getValue(extendedParams, "symbol"));
+                    }
                     query = this.rawencode(extendedParams);
                     object orderidlistLength = getArrayLength(orderidlist);
                     object origclientorderidlistLength = getArrayLength(origclientorderidlist);

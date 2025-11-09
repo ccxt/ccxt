@@ -25,9 +25,12 @@ func NewCoinbaseadvanced(userConfig map[string]interface{}) *Coinbaseadvanced {
 // missing typed methods from base
 //nolint
 func (this *Coinbaseadvanced) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Coinbaseadvanced) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrders(ids, options...)}
+func (this *Coinbaseadvanced) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...ccxt.CancelOrdersWithClientOrderIdsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
 func (this *Coinbaseadvanced) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelAllOrders(options...)}
 func (this *Coinbaseadvanced) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]interface{}, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
 func (this *Coinbaseadvanced) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrder(id, options...)}
+func (this *Coinbaseadvanced) CancelOrderWithClientOrderId(clientOrderId string, options ...ccxt.CancelOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Coinbaseadvanced) CancelOrdersForSymbols(orders []ccxt.CancellationRequest, options ...ccxt.CancelOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)}
 func (this *Coinbaseadvanced) CreateConvertTrade(id string, fromCode string, toCode string, options ...ccxt.CreateConvertTradeOptions) (ccxt.Conversion, error) {return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)}
 func (this *Coinbaseadvanced) CreateDepositAddress(code string, options ...ccxt.CreateDepositAddressOptions) (ccxt.DepositAddress, error) {return this.exchangeTyped.CreateDepositAddress(code, options...)}
@@ -57,6 +60,7 @@ func (this *Coinbaseadvanced) EditLimitBuyOrder(id string, symbol string, amount
 func (this *Coinbaseadvanced) EditLimitOrder(id string, symbol string, side string, amount float64, options ...ccxt.EditLimitOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)}
 func (this *Coinbaseadvanced) EditLimitSellOrder(id string, symbol string, amount float64, options ...ccxt.EditLimitSellOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)}
 func (this *Coinbaseadvanced) EditOrder(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)}
+func (this *Coinbaseadvanced) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
 func (this *Coinbaseadvanced) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
 func (this *Coinbaseadvanced) FetchAccounts(params ...interface{}) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
 func (this *Coinbaseadvanced) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
@@ -118,6 +122,7 @@ func (this *Coinbaseadvanced) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOpt
 func (this *Coinbaseadvanced) FetchOption(symbol string, options ...ccxt.FetchOptionOptions) (ccxt.Option, error) {return this.exchangeTyped.FetchOption(symbol, options...)}
 func (this *Coinbaseadvanced) FetchOptionChain(code string, options ...ccxt.FetchOptionChainOptions) (ccxt.OptionChain, error) {return this.exchangeTyped.FetchOptionChain(code, options...)}
 func (this *Coinbaseadvanced) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.FetchOrder(id, options...)}
+func (this *Coinbaseadvanced) FetchOrderWithClientOrderId(clientOrderId string, options ...ccxt.FetchOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Coinbaseadvanced) FetchOrderBook(symbol string, options ...ccxt.FetchOrderBookOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.FetchOrderBook(symbol, options...)}
 func (this *Coinbaseadvanced) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.OrderBooks, error) {return this.exchangeTyped.FetchOrderBooks(options...)}
 func (this *Coinbaseadvanced) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOrders(options...)}

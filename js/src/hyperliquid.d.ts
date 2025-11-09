@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -7,6 +7,8 @@ import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fundi
 export default class hyperliquid extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
+    market(symbol: string): MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     /**
      * @method
      * @name hyperliquid#fetchCurrencies
@@ -180,7 +182,9 @@ export default class hyperliquid extends Exchange {
         s: string;
         v: any;
     };
+    setRef(): Promise<any>;
     approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
+    initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
     /**
      * @method

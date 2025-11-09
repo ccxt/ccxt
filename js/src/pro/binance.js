@@ -1832,6 +1832,28 @@ export default class binance extends binanceRest {
     }
     /**
      * @method
+     * @name binance#unWatchMarkPrices
+     * @description stops watching the mark price for all markets
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchMarkPrices(symbols = undefined, params = {}) {
+        let channelName = undefined;
+        // for now watchmarkPrice uses the same messageHash as watchTicker
+        // so it's impossible to watch both at the same time
+        // refactor this to use different messageHashes
+        [channelName, params] = this.handleOptionAndParams(params, 'watchMarkPrices', 'name', 'markPrice');
+        const newTickers = await this.watchMultiTickerHelper('watchMarkPrices', channelName, symbols, params);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
+    /**
+     * @method
      * @name binance#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
@@ -2323,10 +2345,6 @@ export default class binance extends binanceRest {
     }
     signParams(params = {}) {
         this.checkRequiredCredentials();
-        let extendedParams = this.extend({
-            'timestamp': this.nonce(),
-            'apiKey': this.apiKey,
-        }, params);
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
         if (defaultRecvWindow !== undefined) {
             params['recvWindow'] = defaultRecvWindow;
@@ -2335,8 +2353,12 @@ export default class binance extends binanceRest {
         if (recvWindow !== undefined) {
             params['recvWindow'] = recvWindow;
         }
+        let extendedParams = this.extend({
+            'timestamp': this.nonce(),
+            'apiKey': this.apiKey,
+        }, params);
         extendedParams = this.keysort(extendedParams);
-        const query = this.urlencode(extendedParams);
+        const query = this.rawencode(extendedParams);
         let signature = undefined;
         if (this.secret.indexOf('PRIVATE KEY') > -1) {
             if (this.secret.length > 120) {
@@ -2353,7 +2375,8 @@ export default class binance extends binanceRest {
         return extendedParams;
     }
     /**
-     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @name binance#ensureUserDataStreamWsSubscribeSignature
+     * @description watches best bid & ask for symbols
      * @param marketType {string} only support on 'spot'
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
@@ -3555,7 +3578,7 @@ export default class binance extends binanceRest {
         else if (this.isInverse(type, subType)) {
             type = 'delivery';
         }
-        params = this.extend(params, { 'type': type, 'symbol': symbol }); // needed inside authenticate for isolated margin
+        params = this.extend(params, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
         await this.authenticate(params);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
@@ -4234,7 +4257,7 @@ export default class binance extends binanceRest {
             messageHash += ':' + symbol;
             params = this.extend(params, { 'type': market['type'], 'symbol': symbol });
         }
-        await this.authenticate(params);
+        await this.authenticate(this.extend({ 'type': type, 'subType': subType }, params));
         let urlType = type; // we don't change type because the listening key is different
         if (type === 'margin') {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot

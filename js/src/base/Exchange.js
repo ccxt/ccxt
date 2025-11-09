@@ -20,7 +20,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 // ----------------------------------------------------------------------------
 //
 import { axolotl } from './functions/crypto.js';
-import totp from './functions/totp.js';
+import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
@@ -1440,8 +1440,10 @@ export default class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
                 'cancelOrder': true,
+                'cancelOrderWithClientOrderId': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
+                'cancelOrdersWithClientOrderId': undefined,
                 'cancelOrdersWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
@@ -1491,6 +1493,7 @@ export default class Exchange {
                 'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
+                'editOrderWithClientOrderId': undefined,
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
@@ -1569,6 +1572,7 @@ export default class Exchange {
                 'fetchOption': undefined,
                 'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
+                'fetchOrderWithClientOrderId': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrderBookWs': undefined,
@@ -4752,6 +4756,9 @@ export default class Exchange {
         await this.cancelOrder(id, symbol);
         return await this.createOrder(symbol, type, side, amount, price, params);
     }
+    async editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        return await this.editOrder('', symbol, type, side, amount, price, this.extend({ 'clientOrderId': clientOrderId }, params));
+    }
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrderWs(id, symbol);
         return await this.createOrderWs(symbol, type, side, amount, price, params);
@@ -5242,6 +5249,19 @@ export default class Exchange {
     async fetchOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrder() is not supported yet');
     }
+    /**
+     * @method
+     * @name fetchOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrderWithClientOrderId(clientOrderId, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.fetchOrder('', symbol, extendedParams);
+    }
     async fetchOrderWs(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderWs() is not supported yet');
     }
@@ -5696,11 +5716,37 @@ export default class Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrder() is not supported yet');
     }
+    /**
+     * @method
+     * @name cancelOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrderWithClientOrderId(clientOrderId, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.cancelOrder('', symbol, extendedParams);
+    }
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrderWs() is not supported yet');
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrders() is not supported yet');
+    }
+    /**
+     * @method
+     * @name cancelOrdersWithClientOrderIds
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string[]} clientOrderIds client order Ids
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrdersWithClientOrderIds(clientOrderIds, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderIds': clientOrderIds });
+        return await this.cancelOrders([], symbol, extendedParams);
     }
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrdersWs() is not supported yet');

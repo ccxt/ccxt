@@ -736,6 +736,7 @@ public partial class mexc : Exchange
                     { "30029", typeof(InvalidOrder) },
                     { "30032", typeof(InvalidOrder) },
                     { "30041", typeof(InvalidOrder) },
+                    { "30087", typeof(InvalidOrder) },
                     { "60005", typeof(ExchangeError) },
                     { "700001", typeof(AuthenticationError) },
                     { "700002", typeof(AuthenticationError) },

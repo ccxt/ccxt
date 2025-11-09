@@ -128,6 +128,7 @@ export default class kucoin extends Exchange {
                     'webExchange': 'https://kucoin.com/_api',
                     'broker': 'https://api-broker.kucoin.com',
                     'earn': 'https://api.kucoin.com',
+                    'uta': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -167,7 +168,8 @@ export default class kucoin extends Exchange {
                         'mark-price/{symbol}/current': 3,
                         'mark-price/all-symbols': 3,
                         'margin/config': 25,
-                        'announcements': 20, // 20W
+                        'announcements': 20,
+                        'margin/collateralRatio': 10,
                     },
                     'post': {
                         // ws
@@ -249,6 +251,9 @@ export default class kucoin extends Exchange {
                         'purchase/orders': 10,
                         // broker
                         'broker/api/rebase/download': 3,
+                        'broker/queryMyCommission': 3,
+                        'broker/queryUser': 3,
+                        'broker/queryDetailByUid': 3,
                         'migrate/user/account/status': 3,
                         // affiliate
                         'affiliate/inviter/statistics': 30,
@@ -370,7 +375,9 @@ export default class kucoin extends Exchange {
                         'positions': 3,
                         'margin/maxWithdrawMargin': 15,
                         'contracts/risk-limit/{symbol}': 7.5,
-                        'funding-history': 7.5, // 5FW
+                        'funding-history': 7.5,
+                        'copy-trade/futures/get-max-open-size': 6,
+                        'copy-trade/futures/position/margin/max-withdraw-margin': 15, // 10FW
                     },
                     'post': {
                         // funding
@@ -384,6 +391,17 @@ export default class kucoin extends Exchange {
                         'margin/withdrawMargin': 15,
                         'position/margin/deposit-margin': 6,
                         'position/risk-limit-level/change': 6,
+                        'copy-trade/futures/orders': 3,
+                        'copy-trade/futures/orders/test': 3,
+                        'copy-trade/futures/st-orders': 3,
+                        'copy-trade/futures/position/margin/deposit-margin': 6,
+                        'copy-trade/futures/position/margin/withdraw-margin': 15,
+                        'copy-trade/futures/position/risk-limit-level/change': 3,
+                        'copy-trade/futures/position/margin/auto-deposit-status': 6,
+                        'copy-trade/futures/position/changeMarginMode': 3,
+                        'copy-trade/futures/position/changeCrossUserLeverage': 3,
+                        'copy-trade/getCrossModeMarginRequirement': 4.5,
+                        'copy-trade/position/switchPositionMode': 3,
                         // ws
                         'bullet-private': 15, // 10FW
                     },
@@ -391,7 +409,9 @@ export default class kucoin extends Exchange {
                         'orders/{orderId}': 1.5,
                         'orders/client-order/{clientOid}': 1.5,
                         'orders': 45,
-                        'stopOrders': 22.5, // 15FW
+                        'stopOrders': 22.5,
+                        'copy-trade/futures/orders': 1.5,
+                        'copy-trade/futures/orders/client-order': 1.5, // 1FW
                     },
                 },
                 'webExchange': {
@@ -439,6 +459,21 @@ export default class kucoin extends Exchange {
                         'earn/orders': 7.5, // 5EW
                     },
                 },
+                'uta': {
+                    'get': {
+                        'market/announcement': 20,
+                        'market/currency': 3,
+                        'market/instrument': 4,
+                        'market/ticker': 15,
+                        'market/orderbook': 3,
+                        'market/trade': 3,
+                        'market/kline': 3,
+                        'market/funding-rate': 2,
+                        'market/funding-rate-history': 5,
+                        'market/cross-config': 25,
+                        'market/server/status': 3,
+                    },
+                },
             },
             'timeframes': {
                 '1m': '1min',
@@ -459,12 +494,14 @@ export default class kucoin extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    'Order not exist or not allow to be cancelled': OrderNotFound,
                     'The order does not exist.': OrderNotFound,
                     'order not exist': OrderNotFound,
                     'order not exist.': OrderNotFound,
                     'order_not_exist': OrderNotFound,
                     'order_not_exist_or_not_allow_to_cancel': InvalidOrder,
                     'Order size below the minimum requirement.': InvalidOrder,
+                    'Order size increment invalid.': InvalidOrder,
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds,
                     'The amount increment is invalid.': BadRequest,
@@ -5068,6 +5105,9 @@ export default class kucoin extends Exchange {
         }
         if (api === 'earn') {
             endpoint = '/api/v1/' + this.implodeParams(path, params);
+        }
+        if (api === 'uta') {
+            endpoint = '/api/ua/v1/' + this.implodeParams(path, params);
         }
         const query = this.omit(params, this.extractParams(path));
         let endpart = '';

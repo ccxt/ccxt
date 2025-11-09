@@ -682,7 +682,7 @@ func  (this *KrakenCore) HandleTrades(client interface{}, message interface{})  
     }
     client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func  (this *KrakenCore) HandleOHLCV(client interface{}, message interface{}, subscription interface{})  {
+func  (this *KrakenCore) HandleOHLCV(client interface{}, message interface{})  {
     //
     //     {
     //         "channel": "ohlc",
@@ -707,7 +707,11 @@ func  (this *KrakenCore) HandleOHLCV(client interface{}, message interface{}, su
     //
     var data interface{} = this.SafeList(message, "data", []interface{}{})
     var first interface{} = ccxt.GetValue(data, 0)
-    var symbol interface{} = this.SafeString(first, "symbol")
+    var marketId interface{} = this.SafeString(first, "symbol")
+    var symbol interface{} = this.SafeSymbol(marketId)
+    if !ccxt.IsTrue((ccxt.InOp(this.Ohlcvs, symbol))) {
+        ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]interface{} {})
+    }
     var interval interface{} = this.SafeInteger(first, "interval")
     var timeframe interface{} = this.FindTimeframe(interval)
     var messageHash interface{} = this.GetMessageHash("ohlcv", nil, symbol)
@@ -751,8 +755,8 @@ func  (this *KrakenCore) WatchTicker(symbol interface{}, optionalArgs ...interfa
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6578 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6578)
+            retRes6618 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6618)
             symbol = this.Symbol(symbol)
         
             tickers:= (<-this.WatchTickers([]interface{}{symbol}, params))
@@ -783,8 +787,8 @@ func  (this *KrakenCore) WatchTickers(optionalArgs ...interface{}) <- chan inter
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6738 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6738)
+            retRes6778 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6778)
             symbols = this.MarketSymbols(symbols, nil, false)
         
             ticker:= (<-this.WatchMultiHelper("ticker", "ticker", symbols, nil, params))
@@ -822,8 +826,8 @@ func  (this *KrakenCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6948 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6948)
+            retRes6988 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6988)
             symbols = this.MarketSymbols(symbols, nil, false)
             ccxt.AddElementToObject(params, "event_trigger", "bbo")
         
@@ -866,9 +870,9 @@ func  (this *KrakenCore) WatchTrades(symbol interface{}, optionalArgs ...interfa
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-                retRes71815 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes71815)
-                ch <- retRes71815
+                retRes72215 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes72215)
+                ch <- retRes72215
                 return nil
         
             }()
@@ -931,9 +935,9 @@ func  (this *KrakenCore) WatchOrderBook(symbol interface{}, optionalArgs ...inte
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes75315 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
-                ccxt.PanicOnError(retRes75315)
-                ch <- retRes75315
+                retRes75715 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
+                ccxt.PanicOnError(retRes75715)
+                ch <- retRes75715
                 return nil
         
             }()
@@ -1004,8 +1008,8 @@ func  (this *KrakenCore) WatchOHLCV(symbol interface{}, optionalArgs ...interfac
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7928 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7928)
+            retRes7968 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7968)
             var name interface{} = "ohlc"
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
@@ -1088,14 +1092,14 @@ func  (this *KrakenCore) WatchHeartbeat(optionalArgs ...interface{}) <- chan int
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes8508 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8508)
+            retRes8548 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8548)
             var event interface{} = "heartbeat"
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
         
-                retRes85315 :=  (<-this.Watch(url, event))
-                ccxt.PanicOnError(retRes85315)
-                ch <- retRes85315
+                retRes85715 :=  (<-this.Watch(url, event))
+                ccxt.PanicOnError(retRes85715)
+                ch <- retRes85715
                 return nil
         
             }()
@@ -1343,8 +1347,8 @@ func  (this *KrakenCore) WatchPrivate(name interface{}, optionalArgs ...interfac
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes10868 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10868)
+            retRes10908 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10908)
         
             token:= (<-this.Authenticate())
             ccxt.PanicOnError(token)
@@ -1406,9 +1410,9 @@ func  (this *KrakenCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
             _ = params
             ccxt.AddElementToObject(params, "snap_trades", true)
         
-                retRes112715 :=  (<-this.WatchPrivate("myTrades", symbol, since, limit, params))
-                ccxt.PanicOnError(retRes112715)
-                ch <- retRes112715
+                retRes113115 :=  (<-this.WatchPrivate("myTrades", symbol, since, limit, params))
+                ccxt.PanicOnError(retRes113115)
+                ch <- retRes113115
                 return nil
         
             }()
@@ -1558,9 +1562,9 @@ func  (this *KrakenCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             _ = params
             ccxt.AddElementToObject(params, "snap_orders", true)
         
-                retRes125915 :=  (<-this.WatchPrivate("orders", symbol, since, limit, params))
-                ccxt.PanicOnError(retRes125915)
-                ch <- retRes125915
+                retRes126315 :=  (<-this.WatchPrivate("orders", symbol, since, limit, params))
+                ccxt.PanicOnError(retRes126315)
+                ch <- retRes126315
                 return nil
         
             }()
@@ -1722,8 +1726,8 @@ func  (this *KrakenCore) WatchMultiHelper(unifiedName interface{}, channelName i
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes14058 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14058)
+            retRes14098 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes14098)
             // symbols are required
             symbols = this.MarketSymbols(symbols, nil, false, true, false)
             var messageHashes interface{} = []interface{}{}
@@ -1746,9 +1750,9 @@ func  (this *KrakenCore) WatchMultiHelper(unifiedName interface{}, channelName i
             ccxt.AddElementToObject(request, "params", this.DeepExtend(ccxt.GetValue(request, "params"), params))
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
         
-                retRes142715 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs))
-                ccxt.PanicOnError(retRes142715)
-                ch <- retRes142715
+                retRes143115 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs))
+                ccxt.PanicOnError(retRes143115)
+                ch <- retRes143115
                 return nil
         
             }()
@@ -1770,8 +1774,8 @@ func  (this *KrakenCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes14398 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14398)
+            retRes14438 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes14438)
         
             token:= (<-this.Authenticate())
             ccxt.PanicOnError(token)
@@ -1788,9 +1792,9 @@ func  (this *KrakenCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
             }
             var request interface{} = this.DeepExtend(subscribe, params)
         
-                retRes145315 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes145315)
-                ch <- retRes145315
+                retRes145715 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes145715)
+                ch <- retRes145715
                 return nil
         
             }()

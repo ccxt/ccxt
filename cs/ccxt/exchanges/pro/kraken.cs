@@ -646,7 +646,7 @@ public partial class kraken : ccxt.kraken
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message, object subscription)
+    public virtual void handleOHLCV(WebSocketClient client, object message)
     {
         //
         //     {
