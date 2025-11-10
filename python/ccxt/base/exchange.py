@@ -2426,7 +2426,7 @@ class Exchange(object):
             bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, deltas):
-        # return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        # return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1
 
     def arrays_concat(self, arraysOfArrays: List[Any]):
@@ -3944,7 +3944,7 @@ class Exchange(object):
             if feeDefined:
                 fee = self.parse_fee_numeric(fee)
             if not feesDefined:
-                # just set it directly, no further processing needed
+                # just set it directly, no further processing needed.
                 fees = [fee]
             # 'fees' were set, so reparse them
             reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees

@@ -1293,12 +1293,14 @@ class blofin extends Exchange {
         } elseif ($type === 'ioc') {
             $timeInForce = 'IOC';
             $type = 'limit';
+        } elseif ($type === 'conditional') {
+            $type = 'trigger';
         }
         $marketId = $this->safe_string($order, 'instId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $filled = $this->safe_string($order, 'filledSize');
-        $price = $this->safe_string_2($order, 'px', 'price');
+        $price = $this->safe_string_n($order, array( 'px', 'price', 'orderPrice' ));
         $average = $this->safe_string($order, 'averagePrice');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');

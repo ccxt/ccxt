@@ -490,7 +490,7 @@ func (this *Exchange) HandleDeltasWithKeys(bookSide interface{}, deltas interfac
 	}
 }
 func (this *Exchange) GetCacheIndex(orderbook interface{}, deltas interface{}) interface{} {
-	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
+	// return the first index of the cache that can be applied to the orderbook or -1 if not possible.
 	return OpNeg(1)
 }
 func (this *Exchange) ArraysConcat(arraysOfArrays interface{}) interface{} {
@@ -3072,7 +3072,7 @@ func (this *Exchange) ParsedFeeAndFees(container interface{}) interface{} {
 			fee = this.ParseFeeNumeric(fee)
 		}
 		if !IsTrue(feesDefined) {
-			// just set it directly, no further processing needed
+			// just set it directly, no further processing needed.
 			fees = []interface{}{fee}
 		}
 		// 'fees' were set, so reparse them

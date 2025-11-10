@@ -53,6 +53,7 @@ Exchange::$exchanges = array(
     'coinex',
     'coinone',
     'cryptocom',
+    'deepcoin',
     'defx',
     'deribit',
     'derive',

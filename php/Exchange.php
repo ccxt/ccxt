@@ -388,6 +388,7 @@ class Exchange {
         'coinspot',
         'cryptocom',
         'cryptomus',
+        'deepcoin',
         'defx',
         'delta',
         'deribit',
@@ -2856,7 +2857,7 @@ class Exchange {
     }
 
     public function get_cache_index($orderbook, $deltas) {
-        // return the first index of the cache that can be applied to the $orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the $orderbook or -1 if not possible.
         return -1;
     }
 
@@ -4710,7 +4711,7 @@ class Exchange {
                 $fee = $this->parse_fee_numeric($fee);
             }
             if (!$feesDefined) {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 $fees = array( $fee );
             }
             // 'fees' were set, so reparse them

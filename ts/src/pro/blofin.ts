@@ -507,10 +507,13 @@ export default class blofin extends blofinRest {
      * @method
      * @name biofin#watchOrders
      * @description watches information on multiple orders made by the user
+     * @see https://docs.blofin.com/index.html#ws-order-channel
+     * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -524,16 +527,21 @@ export default class blofin extends blofinRest {
      * @name blofin#watchOrdersForSymbols
      * @description watches information on multiple orders made by the user across multiple symbols
      * @see https://docs.blofin.com/index.html#ws-order-channel
+     * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
      * @param {string[]} symbols
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
      */
     async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.authenticate ();
         await this.loadMarkets ();
-        const orders = await this.watchMultipleWrapper (false, 'orders', 'watchOrdersForSymbols', symbols, params);
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const channel = trigger ? 'orders-algo' : 'orders';
+        const orders = await this.watchMultipleWrapper (false, channel, 'watchOrdersForSymbols', symbols, params);
         if (this.newUpdates) {
             const first = this.safeValue (orders, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -675,7 +683,7 @@ export default class blofin extends blofinRest {
             messageHashes.push (channelName);
         }
         // private channel are difference, they only need plural channel name for multiple symbols
-        if (this.inArray (channelName, [ 'orders', 'positions' ])) {
+        if (this.inArray (channelName, [ 'orders', 'orders-algo', 'positions' ])) {
             rawSubscriptions = [ { 'channel': channelName } ];
         }
         const request = this.getSubscriptionRequest (rawSubscriptions);
@@ -715,6 +723,7 @@ export default class blofin extends blofinRest {
             // private
             'account': this.handleBalance,
             'orders': this.handleOrders,
+            'orders-algo': this.handleOrders,
             'positions': this.handlePositions,
         };
         let method = undefined;

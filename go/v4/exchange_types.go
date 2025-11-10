@@ -1936,7 +1936,12 @@ func NewLeverageTier(data interface{}) LeverageTier {
 // array helpers
 
 func NewTradeArray(trades2 interface{}) []Trade {
-	trades := trades2.([]interface{})
+	var trades []interface{}
+	if tr, ok := trades2.(*ArrayCache); ok {
+		trades = tr.ToArray()
+	} else {
+		trades = trades2.([]interface{})
+	}
 	result := make([]Trade, 0, len(trades))
 	for _, t := range trades {
 		if tradeMap, ok := t.(map[string]interface{}); ok {
@@ -1948,7 +1953,13 @@ func NewTradeArray(trades2 interface{}) []Trade {
 }
 
 func NewOrderArray(orders2 interface{}) []Order {
-	orders := orders2.([]interface{})
+	var orders []interface{}
+	if tr, ok := orders2.(*ArrayCache); ok {
+		orders = tr.ToArray()
+	} else {
+		orders = orders2.([]interface{})
+
+	}
 	result := make([]Order, 0, len(orders))
 	for _, t := range orders {
 		if tradeMap, ok := t.(map[string]interface{}); ok {
@@ -1972,7 +1983,15 @@ func NewGreeksArray(orders2 interface{}) []Greeks {
 }
 
 func NewOHLCVArray(orders2 interface{}) []OHLCV {
-	orders := orders2.([]interface{})
+	// orders := orders2.([]interface{})
+	var orders []interface{}
+	if tr, ok := orders2.(*ArrayCache); ok {
+		orders = tr.ToArray()
+	} else if tr2, ok := orders2.(*ArrayCacheByTimestamp); ok {
+		orders = tr2.ToArray()
+	} else {
+		orders = orders2.([]interface{})
+	}
 	result := make([]OHLCV, 0, len(orders))
 	for _, t := range orders {
 		if ohlcvlist, ok := t.([]interface{}); ok {
@@ -2044,7 +2063,15 @@ func NewTransferEntryArray(orders2 interface{}) []TransferEntry {
 }
 
 func NewPositionArray(orders2 interface{}) []Position {
-	orders := orders2.([]interface{})
+	// orders := orders2.([]interface{})
+	var orders []interface{}
+	if tr, ok := orders2.(*ArrayCache); ok {
+		orders = tr.ToArray()
+	} else if tr2, ok := orders2.(*ArrayCacheBySymbolBySide); ok {
+		orders = tr2.ToArray()
+	} else {
+		orders = orders2.([]interface{})
+	}
 	result := make([]Position, 0, len(orders))
 	for _, t := range orders {
 		if tradeMap, ok := t.(map[string]interface{}); ok {

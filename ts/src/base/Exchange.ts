@@ -2219,7 +2219,7 @@ export default class Exchange {
     }
 
     getCacheIndex (orderbook, deltas) {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1;
     }
 
@@ -4084,7 +4084,7 @@ export default class Exchange {
                 fee = this.parseFeeNumeric (fee);
             }
             if (!feesDefined) {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 fees = [ fee ];
             }
             // 'fees' were set, so reparse them
