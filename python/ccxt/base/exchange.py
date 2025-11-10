@@ -2426,7 +2426,7 @@ class Exchange(object):
             bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, deltas):
-        # return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        # return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1
 
     def arrays_concat(self, arraysOfArrays: List[Any]):
