@@ -96,6 +96,7 @@ import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
 import cryptomus from  './src/cryptomus.js'
+import deepcoin from  './src/deepcoin.js'
 import defx from  './src/defx.js'
 import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
@@ -189,6 +190,7 @@ import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
 import cryptocomPro from  './src/pro/cryptocom.js'
+import deepcoinPro from  './src/pro/deepcoin.js'
 import defxPro from  './src/pro/defx.js'
 import deribitPro from  './src/pro/deribit.js'
 import derivePro from  './src/pro/derive.js'
@@ -280,6 +282,7 @@ const exchanges = {
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
     'cryptomus':              cryptomus,
+    'deepcoin':               deepcoin,
     'defx':                   defx,
     'delta':                  delta,
     'deribit':                deribit,
@@ -373,6 +376,7 @@ const pro = {
     'coinex':                 coinexPro,
     'coinone':                coinonePro,
     'cryptocom':              cryptocomPro,
+    'deepcoin':               deepcoinPro,
     'defx':                   defxPro,
     'deribit':                deribitPro,
     'derive':                 derivePro,
@@ -606,6 +610,7 @@ export {
     coinspot,
     cryptocom,
     cryptomus,
+    deepcoin,
     defx,
     delta,
     deribit,
