@@ -1,7 +1,10 @@
 name: Release JS workflow
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Js"]
+    types:
+      - completed
     branches:
       - master
 
@@ -13,11 +16,12 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Print Trigger Info
         run: |
-          echo "This workflow was triggered by push to master."
+          echo "This workflow was triggered after Js workflow completed successfully."
           echo "Using version bump: patch"
       - uses: actions/checkout@v4
         with:
