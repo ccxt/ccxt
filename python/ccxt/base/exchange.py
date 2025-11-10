@@ -7432,7 +7432,7 @@ class Exchange(object):
                     futures = client.futures
                     if (futures is not None) and ('fetchPositionsSnapshot' in futures):
                         del futures['fetchPositionsSnapshot']
-            elif topic == 'ticker' and (self.tickers is not None):
+            elif (topic == 'ticker' or topic == 'markPrice') and (self.tickers is not None):
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):
                     tickerSymbol = tickerSymbols[i]
