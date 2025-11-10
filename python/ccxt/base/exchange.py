@@ -3944,7 +3944,7 @@ class Exchange(object):
             if feeDefined:
                 fee = self.parse_fee_numeric(fee)
             if not feesDefined:
-                # just set it directly, no further processing needed
+                # just set it directly, no further processing needed.
                 fees = [fee]
             # 'fees' were set, so reparse them
             reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
