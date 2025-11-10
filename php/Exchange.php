@@ -4710,7 +4710,7 @@ class Exchange {
                 $fee = $this->parse_fee_numeric($fee);
             }
             if (!$feesDefined) {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 $fees = array( $fee );
             }
             // 'fees' were set, so reparse them
