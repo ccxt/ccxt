@@ -2470,14 +2470,12 @@ export default class xcoin extends Exchange {
         //      regular
         //
         //         {
-        //             "accountName": "hongliang02",
         //             "businessType": "linear_perpetual",
         //             "symbol": "ETH-USDT-PERP",
         //             "orderId": "1369615474164670464",
         //             "clientOrderId": "1369615474164670464",
         //             "price": "1800",
         //             "qty": "100",
-        //             "pnl": "",
         //             "orderType": "limit",
         //             "side": "buy",
         //             "totalFillQty": "50",
@@ -2485,17 +2483,15 @@ export default class xcoin extends Exchange {
         //             "status": "partially_filled",
         //             "lever": 1,
         //             "baseFee": "",
-        //             "quoteFee": "-0.45",
         //             "uid": "174594041178400",
         //             "source": "web",
-        //             "category": "normal",
         //             "reduceOnly": false,
         //             "timeInForce": "gtc",
         //             "createTime": 1746583375274,
         //             "updateTime": 1746584491397,
         //             "eventId": "1",
         //             "parentOrderId": "",
-        //             "tpslOrder": {
+        //             "tpslOrder": {                          // not in WS
         //                 // "quoteId": "",
         //                 // "quote": false,
         //                 // "mmpGroup": "",
@@ -2512,7 +2508,15 @@ export default class xcoin extends Exchange {
         //                 "slLimitPrice": null
         //             },
         //             "pid": "1919735713887760385",
-        //             "cid": "174594041187401"
+        //             "accountName": "hongliang02",           // not in WS
+        //             "pnl": "",                              // not in WS
+        //             "quoteFee": "-0.45",                    // not in WS
+        //             "category": "normal",                   // not in WS
+        //             "cid": "174594041187401"                // not in WS
+        //             "cancelUid": "0",                       // only in WS
+        //             "createType": "order",                  // only in WS
+        //             "riskReducing": false,                  // only in WS
+        //             "massQuoteOrder": { "quote": false, "priceAdjustment": false } // only in WS
         //         }
         //
         //     trigger
@@ -2553,6 +2557,28 @@ export default class xcoin extends Exchange {
         //             "cid": "174594041187401",
         //             "uid": "174594041178400"
         //         }
+        //
+        // WS order has additionally this fields in watchOrders:
+        //
+        //     "tradeList": [
+        //         {
+        //             "fillPrice": "0.589",
+        //             "tradeId": "4503599627840140",
+        //             "role": "taker",
+        //             "fillQty": "10",
+        //             "fillTime": "1762788970362",
+        //             "feeCurrency": "ADA",
+        //             "fee": "-0.0016",
+        //             "eventId": "1",
+        //             "clientOrderId": "1437586666466402304",
+        //             "orderId": "1437586666466402304",
+        //             "businessType": "spot",
+        //             "symbol": "ADA-USDT",
+        //             "orderType": "market",
+        //             "side": "buy",
+        //             "lever": "0"
+        //         }
+        //     ],
         //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);

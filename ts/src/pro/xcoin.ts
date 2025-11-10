@@ -170,12 +170,12 @@ export default class xcoin extends xcoinRest {
 
     async watchPrivate (unifiedHash: string, exchangeChannel: string, symbols = undefined, params = {}) {
         const url = this.urls['api']['ws']['private'];
-        const messageHash = unifiedHash;
         symbols = this.marketSymbols (symbols, undefined, true, false);
         const symbolsLength = (symbols === undefined) ? undefined : symbols.length;
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleOptionAndParams (params, undefined, 'type', 'spot');
         const subs = [];
+        const messageHashes = [];
         if (symbolsLength > 0) {
             for (let i = 0; i < symbolsLength; i++) {
                 const market = this.market (symbols[i]);
@@ -184,19 +184,21 @@ export default class xcoin extends xcoinRest {
                     'stream': exchangeChannel,
                     'businessType': this.marketTypeToBusinessType (market['type']),
                 });
+                messageHashes.push (unifiedHash + '::' + market['id']);
             }
         } else {
             subs.push ({
                 'stream': exchangeChannel,
                 'businessType': this.marketTypeToBusinessType (marketType),
             });
+            messageHashes.push (unifiedHash);
         }
         const subscribe = {
             'event': 'subscribe',
             'data': subs,
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
     async authenticate (params = {}) {
@@ -243,6 +245,10 @@ export default class xcoin extends xcoinRest {
     }
 
     handleMessage (client: Client, message: any) {
+        if (message === 'PONG') {
+            this.handlePong (client, message);
+            return;
+        }
         const event = this.safeString (message, 'event');
         if (event === 'subscribe') {
             this.handleSubscriptionStatus (client, message);
@@ -259,7 +265,6 @@ export default class xcoin extends xcoinRest {
             return;
         }
         const methods: Dict = {
-            'PONG': this.handlePong,
             'ticker24hr': this.handleTicker,
             'miniTicker': this.handleTicker,
             'trade': this.handleTrade,
@@ -970,30 +975,19 @@ export default class xcoin extends xcoinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        await this.authenticate (params);
-        let market = undefined;
-        let messageHash = 'orders';
+        await Promise.all ([ this.loadMarkets (), this.authenticate (params) ]);
+        const request: Dict = {};
+        let symbols = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            const market = this.market (symbol);
             symbol = market['symbol'];
-            messageHash = 'orders:' + symbol;
+            symbols = [ symbol ];
         }
-        const url = this.urls['api']['ws']['private'];
-        const subscribe = {
-            'event': 'subscribe',
-            'data': [
-                {
-                    'stream': 'order',
-                },
-            ],
-        };
-        const request = this.deepExtend (subscribe, params);
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const newOrders = await this.watchPrivate ('orders', 'order', symbols, this.extend (request, params));
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            return newOrders;
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.orders, symbols, since, limit, true);
     }
 
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1035,61 +1029,95 @@ export default class xcoin extends xcoinRest {
 
     handleOrder (client: Client, message: any) {
         //
-        // {
-        //     "pid": "1915030429994115073",
-        //     "businessType": "linear_futures",
-        //     "symbol": "BTC-USDT-27JUN25",
-        //     "orderId": "1374073495124123648",
-        //     "clientOrderId": "1374073495124123648",
-        //     "price": "104186.15",
-        //     "qty": "1",
-        //     "orderType": "market",
-        //     "side": "buy",
-        //     "totalFillQty": "1",
-        //     "avgPrice": "104186.15",
-        //     "status": "filled",
-        //     "createTime": "1747646250290",
-        //     "updateTime": "1747646250302",
-        //     "tradeList": [...]
-        // }
+        //    {
+        //        "stream": "order",
+        //        "ts": "1762788970367",
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "pid": "1981204053820035072",
+        //                "uid": "176118985582700",
+        //                "businessType": "spot",
+        //                "symbol": "ADA-USDT",
+        //                "orderId": "1437586666466402304",
+        //                "clientOrderId": "1437586666466402304",
+        //                "price": "0.618",
+        //                "qty": "10",
+        //                "orderType": "market",
+        //                "side": "buy",
+        //                "totalFillQty": "10",
+        //                "avgPrice": "0.589",
+        //                "status": "filled",
+        //                "lever": "0",
+        //                "baseFee": "-0.0016",
+        //                "source": "api",
+        //                "reduceOnly": false,
+        //                "createTime": "1762788970359",
+        //                "updateTime": "1762788970362",
+        //                "cancelUid": "0",
+        //                "tradeList": [
+        //                    {
+        //                        "fillPrice": "0.589",
+        //                        "tradeId": "4503599627840140",
+        //                        "role": "taker",
+        //                        "fillQty": "10",
+        //                        "fillTime": "1762788970362",
+        //                        "feeCurrency": "ADA",
+        //                        "fee": "-0.0016",
+        //                        "eventId": "1",
+        //                        "clientOrderId": "1437586666466402304",
+        //                        "orderId": "1437586666466402304",
+        //                        "businessType": "spot",
+        //                        "symbol": "ADA-USDT",
+        //                        "orderType": "market",
+        //                        "side": "buy",
+        //                        "lever": "0"
+        //                    }
+        //                ],
+        //                "timeInForce": "ioc",
+        //                "parentOrderId": "",
+        //                "createType": "order",
+        //                "riskReducing": false,
+        //                "eventId": "1",
+        //                "massQuoteOrder": {
+        //                    "quote": false,
+        //                    "priceAdjustment": false
+        //                }
+        //            }
+        //        ]
+        //    }
         //
         const order = this.parseOrder (message);
         const symbol = order['symbol'];
-        
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
         orders.append (order);
-        
-        let messageHash = 'orders';
-        client.resolve (orders, messageHash);
+        client.resolve (orders, 'orders');
         if (symbol !== undefined) {
-            messageHash = 'orders:' + symbol;
-            client.resolve (orders, messageHash);
+            client.resolve (orders, 'orders::' + symbol);
         }
-        // Handle trades from tradeList
-        const tradeList = this.safeValue (message, 'tradeList', []);
-        if (tradeList.length > 0) {
-            if (this.myTrades === undefined) {
-                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                this.myTrades = new ArrayCacheBySymbolById (limit);
-            }
-            const myTrades = this.myTrades;
-            
-            for (let i = 0; i < tradeList.length; i++) {
-                const trade = this.parseTrade (tradeList[i]);
-                myTrades.append (trade);
-            }
-            
-            messageHash = 'myTrades';
-            client.resolve (myTrades, messageHash);
-            if (symbol !== undefined) {
-                messageHash = 'myTrades:' + symbol;
-                client.resolve (myTrades, messageHash);
-            }
-        }
+        // // Handle trades from tradeList
+        // const tradeList = this.safeValue (message, 'tradeList', []);
+        // if (tradeList.length > 0) {
+        //     if (this.myTrades === undefined) {
+        //         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+        //         this.myTrades = new ArrayCacheBySymbolById (limit);
+        //     }
+        //     const myTrades = this.myTrades;
+        //     for (let i = 0; i < tradeList.length; i++) {
+        //         const trade = this.parseTrade (tradeList[i]);
+        //         myTrades.append (trade);
+        //     }
+        //     messageHash = 'myTrades';
+        //     client.resolve (myTrades, messageHash);
+        //     if (symbol !== undefined) {
+        //         messageHash = 'myTrades:' + symbol;
+        //         client.resolve (myTrades, messageHash);
+        //     }
+        // }
     }
 
     parseOrder (order: any, market: any = undefined): Order {
