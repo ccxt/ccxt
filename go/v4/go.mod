@@ -25,6 +25,7 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 )
 
 // require github.com/ethereum/go-ethereum v1.14.12 // indirect
