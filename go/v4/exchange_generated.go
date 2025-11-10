@@ -10222,7 +10222,7 @@ func (this *Exchange) CleanCache(subscription interface{}) {
 					Remove(futures, "fetchPositionsSnapshot")
 				}
 			}
-		} else if IsTrue(IsTrue(IsEqual(topic, "ticker")) && IsTrue((!IsEqual(this.Tickers, nil)))) {
+		} else if IsTrue(IsTrue((IsTrue(IsEqual(topic, "ticker")) || IsTrue(IsEqual(topic, "markPrice")))) && IsTrue((!IsEqual(this.Tickers, nil)))) {
 			var tickerSymbols interface{} = ObjectKeys(this.Tickers)
 			for i := 0; IsLessThan(i, GetArrayLength(tickerSymbols)); i++ {
 				var tickerSymbol interface{} = GetValue(tickerSymbols, i)
