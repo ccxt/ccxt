@@ -1,5 +1,5 @@
 {
-  "name": "ccxt",
+  "name": "@kraken-crypto/ccxt",
   "version": "4.5.18",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
@@ -14,11 +14,11 @@
     "node": ">=15.0.0"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.com"
+    "registry": "https://npm.pkg.github.com"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ccxt/ccxt.git"
+    "url": "git+https://github.com/Kraken-crypto/custom-ccxt.git"
   },
   "readme": "README.md",
   "scripts": {

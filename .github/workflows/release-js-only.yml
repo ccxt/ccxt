@@ -1,43 +1,49 @@
 name: Release JS workflow
 
 on:
-  workflow_dispatch:
-    inputs:
-      example_input:
-        description: 'An example input value'
-        required: false
-        default: 'default-value'
+  push:
+    branches:
+      - master
 
 permissions:
   contents: write
+  packages: write
 
 
 jobs:
-  manual-job:
+  release:
     runs-on: ubuntu-latest
-    environment: Prod
-    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei"]'), github.actor)
 
     steps:
       - name: Print Trigger Info
         run: |
-          echo "This workflow was triggered manually."
-          echo "Input value: ${{ github.event.inputs.example_input }}"
+          echo "This workflow was triggered by push to master."
+          echo "Using version bump: patch"
       - uses: actions/checkout@v4
-        if: github.ref == 'refs/heads/master'
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          fetch-depth: 2
-          fetch-tags: true
-      - uses: actions/checkout@v4
-        if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
           fetch-tags: true
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Bump version
+        run: |
+          npm config set git-tag-version=false
+          npm version patch --no-git-tag-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "Bumped version to: $NEW_VERSION"
+      - name: Commit version bump
+        run: |
+          git add package.json
+          git commit -m "chore(release): bump version to ${{ env.NEW_VERSION }}" || echo "No changes to commit"
+          git push || echo "Nothing to push"
       - name: Install NPM dependencies
         run: npm ci
       - name: Transpile TS
         run: npm run tsBuild
       - uses: JS-DevTools/npm-publish@v3
         with:
-          token: ${{ secrets.NPM_PROD }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          access: public
