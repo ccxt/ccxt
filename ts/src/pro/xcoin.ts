@@ -59,6 +59,11 @@ export default class xcoin extends xcoinRest {
                 'watchTickers': {
                     'channel': 'ticker24hr', // ticker24hr or miniTicker
                 },
+                'channelsMap': {
+                    'spot': 'spot',
+                    'swap': 'linear_perpetual',
+                    'future': 'linear_futures',
+                },
             },
             'streaming': {
                 'keepAlive': 25000, // 30 max
@@ -77,13 +82,12 @@ export default class xcoin extends xcoinRest {
         });
     }
 
+    marketTypeToBusinessType (marketType: string): string {
+        return this.safeString (this.options['channelsMap'], marketType, marketType);
+    }
+
     async watchPublic (unifiedHash: string, exchangeChannel: string, symbolsArray = undefined, params = {}) {
         const url = this.urls['api']['ws']['public'];
-        const channelMap = {
-            'spot': 'spot',
-            'swap': 'linear_perpetual',
-            'future': 'linear_futures',
-        };
         const requestObjects = [];
         const isOHLCV = (unifiedHash === 'ohlcv');
         const isDepth = (exchangeChannel.startsWith ('depth#'));
@@ -115,7 +119,7 @@ export default class xcoin extends xcoinRest {
                     {
                         'symbol': market['id'],
                         'stream': exchangeChannel,
-                        'businessType': this.safeString (channelMap, market['type']),
+                        'businessType': this.marketTypeToBusinessType (market['type']),
                     },
                 ],
             };
@@ -136,7 +140,7 @@ export default class xcoin extends xcoinRest {
                     requestObjects.push ({
                         'symbol': market['id'],
                         'stream': selectedChannel,
-                        'businessType': this.safeString (channelMap, market['type']),
+                        'businessType': this.marketTypeToBusinessType (market['type']),
                     });
                     messageHashes.push (messageHash);
                 }
@@ -151,7 +155,7 @@ export default class xcoin extends xcoinRest {
                 [ marketType, params ] = this.handleOptionAndParams (params, callingMethod, 'type', 'spot');
                 requestObjects.push ({
                     'stream': exchangeChannel,
-                    'businessType': this.safeString (channelMap, marketType),
+                    'businessType': this.marketTypeToBusinessType (marketType),
                 });
                 messageHashes.push (unifiedHash + 's');
             }
@@ -164,19 +168,78 @@ export default class xcoin extends xcoinRest {
         }
     }
 
-    async watchPrivate (unifiedHash: string, exchangeChannel: string, params = {}) {
+    async watchPrivate (unifiedHash: string, exchangeChannel: string, symbols = undefined, params = {}) {
         const url = this.urls['api']['ws']['private'];
         const messageHash = unifiedHash;
+        symbols = this.marketSymbols (symbols, undefined, true, false);
+        const symbolsLength = (symbols === undefined) ? undefined : symbols.length;
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleOptionAndParams (params, undefined, 'type', 'spot');
+        const subs = [];
+        if (symbolsLength > 0) {
+            for (let i = 0; i < symbolsLength; i++) {
+                const market = this.market (symbols[i]);
+                subs.push ({
+                    'symbol': market['id'],
+                    'stream': exchangeChannel,
+                    'businessType': this.marketTypeToBusinessType (market['type']),
+                });
+            }
+        } else {
+            subs.push ({
+                'stream': exchangeChannel,
+                'businessType': this.marketTypeToBusinessType (marketType),
+            });
+        }
         const subscribe = {
             'event': 'subscribe',
-            'data': [
-                {
-                    'stream': exchangeChannel,
-                },
-            ],
+            'data': subs,
         };
         const request = this.deepExtend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async authenticate (params = {}) {
+        const url = this.urls['api']['ws']['private'];
+        this.checkRequiredCredentials ();
+        const messageHash = 'authenticated';
+        const client = this.client (url);
+        const future = client.reusableFuture (messageHash);
+        if (!(messageHash in client.subscriptions)) {
+            const timestamp = this.milliseconds ().toString ();
+            const request = {
+                'data': {
+                    'type': 'Token',
+                    'accessKey': this.apiKey,
+                    'accessTimestamp': timestamp,
+                    // 'accountName': '',
+                },
+                'event': 'authorization',
+            };
+            const preHash = timestamp + 'POST' + '/v2/notification' + this.json (request['data']);
+            const signature = this.hmac (this.encode (preHash), this.encode (this.secret), sha256, 'hex');
+            request['accessSign'] = signature;
+            this.watch (url, messageHash, request, messageHash, future);
+        }
+        return await future;
+    }
+
+    handleAuthenticationMessage (client: Client, message: any) {
+        //
+        // {
+        //     "event": "authorization",
+        //     "msg": "success",
+        //     "code": "0",
+        //     "ts": "1732158443301"
+        // }
+        //
+        const messageHash = 'authenticated';
+        if (this.safeString (message, 'code') === '0') {
+            client.resolve (message, messageHash);
+        } else {
+            const error = new AuthenticationError (this.id + ' authentication failed: ' + this.safeString (message, 'msg'));
+            client.reject (error, messageHash);
+        }
     }
 
     handleMessage (client: Client, message: any) {
@@ -630,49 +693,6 @@ export default class xcoin extends xcoinRest {
         bookside.store (price, amount);
     }
 
-    async authenticate (params = {}) {
-        const url = this.urls['api']['ws']['private'];
-        this.checkRequiredCredentials ();
-        const messageHash = 'authenticated';
-        const client = this.client (url);
-        const future = client.reusableFuture (messageHash);
-        if (!(messageHash in client.subscriptions)) {
-            const timestamp = this.milliseconds ().toString ();
-            const request = {
-                'data': {
-                    'type': 'Token',
-                    'accessKey': this.apiKey,
-                    'accessTimestamp': timestamp,
-                    // 'accountName': '',
-                },
-                'event': 'authorization',
-            };
-            const preHash = timestamp + 'POST' + '/v2/notification' + this.json (request['data']);
-            const signature = this.hmac (this.encode (preHash), this.encode (this.secret), sha256, 'hex');
-            request['accessSign'] = signature;
-            this.watch (url, messageHash, request, messageHash, future);
-        }
-        return await future;
-    }
-
-    handleAuthenticationMessage (client: Client, message: any) {
-        //
-        // {
-        //     "event": "authorization",
-        //     "msg": "success",
-        //     "code": "0",
-        //     "ts": "1732158443301"
-        // }
-        //
-        const messageHash = 'authenticated';
-        if (this.safeString (message, 'code') === '0') {
-            client.resolve (message, messageHash);
-        } else {
-            const error = new AuthenticationError (this.id + ' authentication failed: ' + this.safeString (message, 'msg'));
-            client.reject (error, messageHash);
-        }
-    }
-
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
@@ -864,10 +884,81 @@ export default class xcoin extends xcoinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        const promise1 = this.loadMarkets ();
-        const promise2 = this.authenticate (params);
-        await Promise.all ([ promise1, promise2 ]);
-        return await this.watchPrivate ('balance', 'trading_account', params);
+        await Promise.all ([ this.loadMarkets (), this.authenticate (params) ]);
+        return await this.watchPrivate ('balance', 'trading_account', undefined, params);
+    }
+
+    handleBalance (client: Client, message: any) {
+        //
+        //    {
+        //        "stream": "trading_account",
+        //        "ts": "1762535468534",
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "pid": "1981204053820035072",
+        //                "totalEquity": "10",
+        //                "totalMarginBalance": "10",
+        //                "totalAvailableBalance": "10",
+        //                "totalPositionValue": "0",
+        //                "totalIm": "0",
+        //                "totalMm": "0",
+        //                "totalOpenLoss": "0",
+        //                "mmr": "0",
+        //                "imr": "0",
+        //                "accountLeverage": "0",
+        //                "totalUpl": "0",
+        //                "totalEffectiveMargin": "10",
+        //                "details": [
+        //                    {
+        //                        "currency": "USDT",
+        //                        "equity": "10",
+        //                        "balance": "10",
+        //                        "borrow": "0",
+        //                        "realLiability": "0",
+        //                        "potentialLiability": "0",
+        //                        "upl": "0",
+        //                        "availableMargin": "10",
+        //                        "liabilityInitialMargin": "0",
+        //                        "initialMargin": "0",
+        //                        "frozen": "0",
+        //                        "realLiabilityValue": "0"
+        //                    }
+        //                ]
+        //            }
+        //        ]
+        //    }
+        //
+        const balance = this.safeList (message, 'data', []);
+        // todo
+        const messageHash = 'balance';
+        const result = this.safeBalance (this.balance);
+        client.resolve (result, messageHash);
+    }
+
+    parseWsBalance (response): Balances {
+        return this.parseBalance (response);
+    }
+
+    /**
+     * @method
+     * @name xcoin#watchPositions
+     * @see https://xcoin.com/docs/coinApi/websocket-stream/private-channel/position-channel
+     * @description watch all open positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await Promise.all ([ this.loadMarkets (), this.authenticate (params) ]);
+        const request: Dict = {};
+        const newPositions = await this.watchPrivate ('positions', 'position', symbols, this.extend (request, params));
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -941,84 +1032,6 @@ export default class xcoin extends xcoinRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
-    }
-
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        /**
-         * watch all open positions
-         * @see https://xcoin.com/docs/coinApi/websocket-stream/private-channel/position-channel
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-         */
-        await this.loadMarkets ();
-        await this.authenticate (params);
-        symbols = this.marketSymbols (symbols);
-        const url = this.urls['api']['ws']['private'];
-        const messageHash = 'positions';
-        const subscribe = {
-            'event': 'subscribe',
-            'data': [
-                {
-                    'stream': 'position',
-                },
-            ],
-        };
-        const request = this.deepExtend (subscribe, params);
-        const positions = await this.watch (url, messageHash, request, messageHash);
-        return this.filterBySymbolsSinceLimit (positions, symbols, since, limit, true);
-    }
-
-    handleBalance (client: Client, message: any) {
-        //
-        //    {
-        //        "stream": "trading_account",
-        //        "ts": "1762535468534",
-        //        "code": "0",
-        //        "data": [
-        //            {
-        //                "pid": "1981204053820035072",
-        //                "totalEquity": "10",
-        //                "totalMarginBalance": "10",
-        //                "totalAvailableBalance": "10",
-        //                "totalPositionValue": "0",
-        //                "totalIm": "0",
-        //                "totalMm": "0",
-        //                "totalOpenLoss": "0",
-        //                "mmr": "0",
-        //                "imr": "0",
-        //                "accountLeverage": "0",
-        //                "totalUpl": "0",
-        //                "totalEffectiveMargin": "10",
-        //                "details": [
-        //                    {
-        //                        "currency": "USDT",
-        //                        "equity": "10",
-        //                        "balance": "10",
-        //                        "borrow": "0",
-        //                        "realLiability": "0",
-        //                        "potentialLiability": "0",
-        //                        "upl": "0",
-        //                        "availableMargin": "10",
-        //                        "liabilityInitialMargin": "0",
-        //                        "initialMargin": "0",
-        //                        "frozen": "0",
-        //                        "realLiabilityValue": "0"
-        //                    }
-        //                ]
-        //            }
-        //        ]
-        //    }
-        //
-        const balance = this.safeList (message, 'data', []);
-        // todo
-        const messageHash = 'balance';
-        const result = this.safeBalance (this.balance);
-        client.resolve (result, messageHash);
-    }
-
-    parseWsBalance (response): Balances {
-        return this.parseBalance (response);
     }
 
     handleOrder (client: Client, message: any) {
@@ -1166,110 +1179,50 @@ export default class xcoin extends xcoinRest {
 
     handlePosition (client: Client, message: any) {
         //
-        // {
-        //     "businessType": "linear_perpetual",
-        //     "symbol": "BTC-USDT-PERP",
-        //     "stream": "position",
-        //     "data": [{
-        //         "businessType": "linear_futures",
-        //         "symbol": "BTC-USDT-27JUN25",
-        //         "positionQty": "1",
-        //         "avgPrice": "104186.15",
-        //         "upl": "-20.7918",
-        //         "lever": "1",
-        //         "liquidationPrice": "0",
-        //         "markPrice": "102106.97",
-        //         "im": "1021.0697",
-        //         "indexPrice": "103188.28",
-        //         "pnl": "-0.52093075",
-        //         "fee": "-0.52093075",
-        //         "fundingFee": "0",
-        //         "createTime": "1747646250302",
-        //         "updateTime": "1747646250302",
-        //         "positionId": "6755399441058600",
-        //         "pid": "1915030429994115073",
-        //         "tradedType": "OPEN"
-        //     }],
-        //     "ts": "1732256095953"
-        // }
+        //    {
+        //        "stream": "position",
+        //        "ts": "1762786664306",
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "businessType": "linear_perpetual",
+        //                "symbol": "ADA-USDT-PERP",
+        //                "positionQty": "50",
+        //                "avgPrice": "0.58322",
+        //                "upl": "-0.021",
+        //                "lever": "5",
+        //                "liquidationPrice": "0",
+        //                "markPrice": "0.5828",
+        //                "im": "5.828",
+        //                "indexPrice": "0.5828",
+        //                "pnl": "-0.00466576",
+        //                "fee": "-0.00466576",
+        //                "fundingFee": "0",
+        //                "createTime": "1762786498154",
+        //                "updateTime": "1762786664301",
+        //                "positionId": "4503599627373602",
+        //                "pid": "1981204053820035072",
+        //                "tradedType": "OPEN"
+        //            }
+        //        ]
+        //    }
         //
-        const data = this.safeValue (message, 'data', []);
-        
+        const data = this.safeList (message, 'data', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolById ();
         }
         const positions = this.positions;
-        
         for (let i = 0; i < data.length; i++) {
-            const position = this.parsePosition (data[i]);
+            const position = this.parseWsPosition (data[i]);
             positions.append (position);
         }
-        
         const messageHash = 'positions';
         client.resolve (positions, messageHash);
     }
 
-    parsePosition (position: any, market: any = undefined): Position {
-        //
-        // {
-        //     "businessType": "linear_futures",
-        //     "symbol": "BTC-USDT-27JUN25",
-        //     "positionQty": "1",
-        //     "avgPrice": "104186.15",
-        //     "upl": "-20.7918",
-        //     "lever": "1",
-        //     "liquidationPrice": "0",
-        //     "markPrice": "102106.97",
-        //     "im": "1021.0697",
-        //     "indexPrice": "103188.28",
-        //     "pnl": "-0.52093075",
-        //     "fee": "-0.52093075",
-        //     "fundingFee": "0",
-        //     "createTime": "1747646250302",
-        //     "updateTime": "1747646250302",
-        //     "positionId": "6755399441058600"
-        // }
-        //
-        const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const timestamp = this.safeInteger (position, 'updateTime');
-        const contracts = this.safeString (position, 'positionQty');
-        const entryPrice = this.safeString (position, 'avgPrice');
-        const unrealizedPnl = this.safeString (position, 'upl');
-        const realizedPnl = this.safeString (position, 'pnl');
-        const markPrice = this.safeString (position, 'markPrice');
-        const liquidationPrice = this.safeString (position, 'liquidationPrice');
-        const leverage = this.safeString (position, 'lever');
-        const initialMargin = this.safeString (position, 'im');
-        const side = Precise.stringGt (contracts, '0') ? 'long' : 'short';
-        return this.safePosition ({
-            'info': position,
-            'id': this.safeString (position, 'positionId'),
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'contracts': Precise.stringAbs (contracts),
-            'contractSize': undefined,
-            'side': side,
-            'notional': undefined,
-            'leverage': leverage,
-            'unrealizedPnl': unrealizedPnl,
-            'realizedPnl': realizedPnl,
-            'collateral': undefined,
-            'entryPrice': entryPrice,
-            'markPrice': markPrice,
-            'liquidationPrice': liquidationPrice,
-            'marginMode': undefined,
-            'hedged': undefined,
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': undefined,
-            'initialMargin': initialMargin,
-            'initialMarginPercentage': undefined,
-            'marginRatio': undefined,
-            'lastUpdateTimestamp': timestamp,
-            'percentage': undefined,
-        });
+    parseWsPosition (position: any, market: any = undefined): Position {
+        // almost same as REST response
+        return this.parsePosition (position, market);
     }
 
     handleErrorMessage (client: Client, message: any) {

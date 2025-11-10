@@ -1985,6 +1985,35 @@ export default class xcoin extends Exchange {
     }
 
     parsePosition (position: Dict, market: Market = undefined) {
+        //
+        // REST position:
+        //
+        //         {
+        //             "positionId": "15762598695810131",
+        //             "businessType": "linear_perpetual",
+        //             "symbol": "BTC-USDT-PERP",
+        //             "positionQty": "-2",
+        //             "avgPrice": "93921.6",
+        //             "upl": "0.662",
+        //             "lever": 1,
+        //             "liquidationPrice": "1400633.1709273944765165",
+        //             "markPrice": "93888.5",
+        //             "im": "1877.77",
+        //             "indexPrice": "93877.2",
+        //             "createTime": 1746532093181,
+        //             "updateTime": 1746532093181,
+        //             "pid": "1917181674366382082",
+        //             "accountName": "hongliang02",    // only in REST
+        //             "takeProfit": "96000",           // only in REST
+        //             "stopLoss": "85000",             // only in REST
+        //             "cid": "174575858798300",        // only in REST
+        //             "uid": "174575858790600",        // only in REST
+        //             "pnl": "-0.00466576",            // only in WS
+        //             "fee": "-0.00166576",            // only in WS
+        //             "fundingFee": "0",               // only in WS
+        //             "tradedType": "OPEN",            // only in WS
+        //         }
+        //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -2004,6 +2033,7 @@ export default class xcoin extends Exchange {
             'notional': undefined,
             'collateral': undefined,
             'unrealizedPnl': this.safeString (position, 'upl'),
+            'realizedPnl': this.safeString (position, 'pnl'),
             'side': side,
             'contracts': Precise.stringAbs (quantity),
             'contractSize': undefined,
