@@ -138,6 +138,8 @@ jobs:
           git push
     - name: Push To CCXT.WIKI
       if: github.ref == 'refs/heads/master'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         cd build/ccxt.wiki
         cp -R ../../wiki/* .
