@@ -10,7 +10,7 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
-import { applyExponent } from '../base/functions/sbe.js';
+import { applyExponent, mantissa128ToNumber } from '../base/functions/sbe.js';
 import Client from '../base/ws/Client.js';
 import WsClient from '../base/ws/WsClient.js';
 
@@ -903,6 +903,7 @@ export default class binance extends binanceRest {
 
     handleFetchOrderBook (client: Client, message) {
         //
+        // JSON format:
         //    {
         //        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
         //        "status":200,
@@ -925,8 +926,61 @@ export default class binance extends binanceRest {
         //        }
         //    }
         //
+        // SBE format (DepthResponse):
+        //    {
+        //        "id":"...",
+        //        "status":200,
+        //        "result":{
+        //            "lastUpdateId":1027024,
+        //            "priceExponent": -8,
+        //            "qtyExponent": -8,
+        //            "bids":[
+        //                {
+        //                    "price": 400000000,    // mantissa
+        //                    "qty": 43100000000     // mantissa
+        //                }
+        //            ],
+        //            "asks":[
+        //                {
+        //                    "price": 400000200,
+        //                    "qty": 1200000000
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result');
+        let result = this.safeDict (message, 'result');
+        // Check if SBE format (has exponent fields)
+        const priceExponent = this.safeInteger (result, 'priceExponent');
+        if (priceExponent !== undefined) {
+            // SBE format - normalize to JSON format
+            const qtyExponent = this.safeInteger (result, 'qtyExponent', 0);
+            const normalized: any = {
+                'lastUpdateId': this.safeInteger (result, 'lastUpdateId'),
+                'E': this.safeInteger (result, 'E'),
+                'T': this.safeInteger (result, 'T'),
+                'bids': [],
+                'asks': [],
+            };
+            // Convert bids
+            const bidsArray = this.safeList (result, 'bids', []);
+            for (let i = 0; i < bidsArray.length; i++) {
+                const bid = bidsArray[i];
+                const price = applyExponent (this.safeInteger (bid, 'price', 0), priceExponent);
+                const qty = applyExponent (this.safeInteger (bid, 'qty', 0), qtyExponent);
+                normalized['bids'].push ([ String (price), String (qty) ]);
+            }
+            // Convert asks
+            const asksArray = this.safeList (result, 'asks', []);
+            for (let i = 0; i < asksArray.length; i++) {
+                const ask = asksArray[i];
+                const price = applyExponent (this.safeInteger (ask, 'price', 0), priceExponent);
+                const qty = applyExponent (this.safeInteger (ask, 'qty', 0), qtyExponent);
+                normalized['asks'].push ([ String (price), String (qty) ]);
+            }
+            result = normalized;
+        }
         const timestamp = this.safeInteger (result, 'T');
         const orderbook = this.parseOrderBook (result, undefined, timestamp);
         orderbook['nonce'] = this.safeInteger2 (result, 'lastUpdateId', 'u');
@@ -1856,6 +1910,7 @@ export default class binance extends binanceRest {
 
     handleFetchOHLCV (client: Client, message) {
         //
+        // JSON format:
         //    {
         //        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
         //        "status": 200,
@@ -1875,21 +1930,86 @@ export default class binance extends binanceRest {
         //                "0"                 // Unused field, ignore
         //            ]
         //        ],
-        //        "rateLimits": [
-        //            {
-        //                "rateLimitType": "REQUEST_WEIGHT",
-        //                "interval": "MINUTE",
-        //                "intervalNum": 1,
-        //                "limit": 6000,
-        //                "count": 2
-        //            }
-        //        ]
+        //        "rateLimits": [...]
         //    }
         //
-        const result = this.safeList (message, 'result');
-        const parsed = this.parseOHLCVs (result);
-        // use a reverse lookup in a static map instead
+        // SBE format (decoded):
+        //    {
+        //        "id": "...",
+        //        "status": 200,
+        //        "result": {
+        //            "priceExponent": -8,
+        //            "qtyExponent": -8,
+        //            "klines": [
+        //                {
+        //                    "openTime": 1655971200000000,    // microseconds
+        //                    "openPrice": 1086000,            // mantissa
+        //                    "highPrice": 1086600,
+        //                    "lowPrice": 1083600,
+        //                    "closePrice": 1083800,
+        //                    "volume": [...],                 // mantissa128 as byte array
+        //                    "closeTime": 1655974799999000,
+        //                    "quoteVolume": [...],
+        //                    "numTrades": 2283,
+        //                    "takerBuyBaseVolume": [...],
+        //                    "takerBuyQuoteVolume": [...]
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
+        const result = this.safeValue (message, 'result');
+        let parsed = [];
+        // Check if result is already decoded (SBE format) or needs parsing (JSON format)
+        if (result !== undefined) {
+            if (Array.isArray (result)) {
+                // JSON format - result is directly the array of klines (array of arrays)
+                parsed = this.parseOHLCVs (result);
+            } else if (typeof result === 'object') {
+                // SBE format - result is an object with klines array and exponents
+                const klinesArray = this.safeList (result, 'klines', []);
+                if (klinesArray.length > 0) {
+                    // Get exponents for converting mantissa values
+                    const priceExponent = this.safeInteger (result, 'priceExponent', 0);
+                    const qtyExponent = this.safeInteger (result, 'qtyExponent', 0);
+                    // Convert mantissa values to standard OHLCV format
+                    const normalizedKlines = klinesArray.map ((kline: any) => {
+                        // Convert mantissa128 byte arrays to numbers
+                        const volume = mantissa128ToNumber (kline.volume);
+                        const openTime = Math.floor (kline.openTime / 1000); // microseconds to milliseconds
+                        const openPrice = applyExponent (kline.openPrice, priceExponent);
+                        const highPrice = applyExponent (kline.highPrice, priceExponent);
+                        const lowPrice = applyExponent (kline.lowPrice, priceExponent);
+                        const closePrice = applyExponent (kline.closePrice, priceExponent);
+                        const vol = applyExponent (volume, qtyExponent);
+                        const closeTime = Math.floor (kline.closeTime / 1000);
+                        const quoteVolume = mantissa128ToNumber (kline.quoteVolume);
+                        const quoteVol = applyExponent (quoteVolume, priceExponent);
+                        const numTrades = kline.numTrades;
+                        const takerBuyBaseVolume = mantissa128ToNumber (kline.takerBuyBaseVolume);
+                        const takerBuyBase = applyExponent (takerBuyBaseVolume, qtyExponent);
+                        const takerBuyQuoteVolume = mantissa128ToNumber (kline.takerBuyQuoteVolume);
+                        const takerBuyQuote = applyExponent (takerBuyQuoteVolume, priceExponent);
+                        return [
+                            openTime,
+                            String (openPrice),
+                            String (highPrice),
+                            String (lowPrice),
+                            String (closePrice),
+                            String (vol),
+                            closeTime,
+                            String (quoteVol),
+                            numTrades,
+                            String (takerBuyBase),
+                            String (takerBuyQuote),
+                            '0',
+                        ];
+                    });
+                    parsed = this.parseOHLCVs (normalizedKlines);
+                }
+            }
+        }
         client.resolve (parsed, messageHash);
     }
 
@@ -2332,7 +2452,7 @@ export default class binance extends binanceRest {
 
     handleTickerWs (client: Client, message) {
         //
-        // ticker.price
+        // JSON format - ticker.price
         //    {
         //        "id":"1",
         //        "status":200,
@@ -2342,7 +2462,7 @@ export default class binance extends binanceRest {
         //            "time":1712527052374
         //        }
         //    }
-        // ticker.book
+        // JSON format - ticker.book
         //    {
         //        "id":"9d32157c-a556-4d27-9866-66760a174b57",
         //        "status":200,
@@ -2357,8 +2477,70 @@ export default class binance extends binanceRest {
         //        }
         //    }
         //
+        // SBE format - PriceTickerSymbolResponse
+        //    {
+        //        "id":"1",
+        //        "status":200,
+        //        "result":{
+        //            "priceExponent": -8,
+        //            "price": 7317850000000,  // mantissa
+        //            "symbol":"BTCUSDT"
+        //        }
+        //    }
+        // SBE format - BookTickerSymbolResponse
+        //    {
+        //        "id":"...",
+        //        "status":200,
+        //        "result":{
+        //            "priceExponent": -8,
+        //            "qtyExponent": -8,
+        //            "bidPrice": 400000000,    // mantissa
+        //            "bidQty": 43100000000,
+        //            "askPrice": 400000200,
+        //            "askQty": 900000000,
+        //            "symbol":"BTCUSDT"
+        //        }
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', {});
+        let result = this.safeValue (message, 'result', {});
+        // Check if SBE format (has exponent fields)
+        const priceExponent = this.safeInteger (result, 'priceExponent');
+        if (priceExponent !== undefined) {
+            // SBE format - normalize to JSON format
+            const qtyExponent = this.safeInteger (result, 'qtyExponent', 0);
+            const normalized: any = {
+                'symbol': this.safeString (result, 'symbol'),
+            };
+            // Handle price field (for ticker.price)
+            const priceMantissa = this.safeInteger (result, 'price');
+            if (priceMantissa !== undefined) {
+                normalized['price'] = String (applyExponent (priceMantissa, priceExponent));
+            }
+            // Handle bid/ask fields (for ticker.book)
+            const bidPriceMantissa = this.safeInteger (result, 'bidPrice');
+            if (bidPriceMantissa !== undefined) {
+                normalized['bidPrice'] = String (applyExponent (bidPriceMantissa, priceExponent));
+            }
+            const bidQtyMantissa = this.safeInteger (result, 'bidQty');
+            if (bidQtyMantissa !== undefined) {
+                normalized['bidQty'] = String (applyExponent (bidQtyMantissa, qtyExponent));
+            }
+            const askPriceMantissa = this.safeInteger (result, 'askPrice');
+            if (askPriceMantissa !== undefined) {
+                normalized['askPrice'] = String (applyExponent (askPriceMantissa, priceExponent));
+            }
+            const askQtyMantissa = this.safeInteger (result, 'askQty');
+            if (askQtyMantissa !== undefined) {
+                normalized['askQty'] = String (applyExponent (askQtyMantissa, qtyExponent));
+            }
+            // Copy other fields
+            const lastUpdateId = this.safeInteger (result, 'lastUpdateId');
+            if (lastUpdateId !== undefined) {
+                normalized['lastUpdateId'] = lastUpdateId;
+            }
+            result = normalized;
+        }
         const ticker = this.parseWsTicker (result, 'future');
         client.resolve (ticker, messageHash);
     }
@@ -2778,7 +2960,7 @@ export default class binance extends binanceRest {
 
     handleAccountStatusWs (client: Client, message) {
         //
-        // spot
+        // JSON format - spot
         //    {
         //        "id": "605a6d20-6588-4cb9-afa0-b0ab087507ba",
         //        "status": 200,
@@ -2821,10 +3003,90 @@ export default class binance extends binanceRest {
         //            ]
         //        }
         //    }
-        // swap
+        //
+        // SBE format (AccountResponse):
+        //    {
+        //        "id": "...",
+        //        "status": 200,
+        //        "result": {
+        //            "commissionExponent": -8,
+        //            "commissionRateMaker": 150000,      // mantissa
+        //            "commissionRateTaker": 150000,
+        //            "commissionRateBuyer": 0,
+        //            "commissionRateSeller": 0,
+        //            "canTrade": 1,                       // boolEnum
+        //            "canWithdraw": 1,
+        //            "canDeposit": 1,
+        //            "brokered": 0,
+        //            "requireSelfTradePrevention": 0,
+        //            "preventSor": 0,
+        //            "updateTime": 1660801833000000,      // microseconds
+        //            "accountType": 0,                    // enum
+        //            "uid": 12345,
+        //            "balances": [{
+        //                "exponent": -8,
+        //                "free": 0,                       // mantissa
+        //                "locked": 0,
+        //                "asset": "BNB"
+        //            }],
+        //            "permissions": ["SPOT"],
+        //            "reduceOnlyAssets": []
+        //        }
+        //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result', {});
+        let result = this.safeDict (message, 'result', {});
+        // Check if SBE format (has commissionExponent)
+        const commissionExponent = this.safeInteger (result, 'commissionExponent');
+        if (commissionExponent !== undefined) {
+            // SBE format - normalize to JSON format
+            const normalized: any = {};
+            // Convert commission rates from mantissa
+            const makerMantissa = this.safeInteger (result, 'commissionRateMaker');
+            const takerMantissa = this.safeInteger (result, 'commissionRateTaker');
+            const buyerMantissa = this.safeInteger (result, 'commissionRateBuyer');
+            const sellerMantissa = this.safeInteger (result, 'commissionRateSeller');
+            normalized['commissionRates'] = {
+                'maker': String (applyExponent (makerMantissa, commissionExponent)),
+                'taker': String (applyExponent (takerMantissa, commissionExponent)),
+                'buyer': String (applyExponent (buyerMantissa, commissionExponent)),
+                'seller': String (applyExponent (sellerMantissa, commissionExponent)),
+            };
+            // Note: makerCommission, takerCommission, buyerCommission, sellerCommission
+            // are NOT present in SBE format (as documented in the schema)
+            // Copy boolean fields
+            normalized['canTrade'] = this.safeValue (result, 'canTrade');
+            normalized['canWithdraw'] = this.safeValue (result, 'canWithdraw');
+            normalized['canDeposit'] = this.safeValue (result, 'canDeposit');
+            normalized['brokered'] = this.safeValue (result, 'brokered');
+            normalized['requireSelfTradePrevention'] = this.safeValue (result, 'requireSelfTradePrevention');
+            normalized['preventSor'] = this.safeValue (result, 'preventSor');
+            // Convert updateTime from microseconds to milliseconds
+            const updateTime = this.safeInteger (result, 'updateTime');
+            if (updateTime !== undefined) {
+                normalized['updateTime'] = Math.floor (updateTime / 1000);
+            }
+            // Copy other fields
+            normalized['accountType'] = this.safeValue (result, 'accountType');
+            normalized['tradeGroupId'] = this.safeInteger (result, 'tradeGroupId');
+            normalized['uid'] = this.safeInteger (result, 'uid');
+            // Convert balances array
+            const balances = this.safeList (result, 'balances', []);
+            normalized['balances'] = balances.map ((balance: any) => {
+                const exponent = this.safeInteger (balance, 'exponent', 0);
+                const freeMantissa = this.safeInteger (balance, 'free', 0);
+                const lockedMantissa = this.safeInteger (balance, 'locked', 0);
+                return {
+                    'asset': this.safeString (balance, 'asset'),
+                    'free': String (applyExponent (freeMantissa, exponent)),
+                    'locked': String (applyExponent (lockedMantissa, exponent)),
+                };
+            });
+            // Copy permissions and reduceOnlyAssets arrays as-is
+            normalized['permissions'] = this.safeList (result, 'permissions', []);
+            normalized['reduceOnlyAssets'] = this.safeList (result, 'reduceOnlyAssets', []);
+            result = normalized;
+        }
         const parsedBalances = this.parseBalanceCustom (result);
         client.resolve (parsedBalances, messageHash);
     }
@@ -3175,8 +3437,143 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
+    normalizeSbeOrder (order) {
+        // Check if this is SBE format (has exponent fields)
+        const priceExponent = this.safeInteger (order, 'priceExponent');
+        if (priceExponent === undefined) {
+            // Already in JSON format
+            return order;
+        }
+        // SBE format - normalize to JSON format
+        const qtyExponent = this.safeInteger (order, 'qtyExponent', 0);
+        const normalized: any = {};
+        // Copy non-price/qty fields directly
+        normalized['orderId'] = this.safeInteger (order, 'orderId');
+        normalized['orderListId'] = this.safeInteger (order, 'orderListId');
+        normalized['symbol'] = this.safeString (order, 'symbol');
+        normalized['clientOrderId'] = this.safeString (order, 'clientOrderId');
+        normalized['origClientOrderId'] = this.safeString (order, 'origClientOrderId');
+        // Convert timestamps from microseconds to milliseconds
+        const transactTime = this.safeInteger (order, 'transactTime');
+        if (transactTime !== undefined) {
+            normalized['transactTime'] = Math.floor (transactTime / 1000);
+        }
+        const workingTime = this.safeInteger (order, 'workingTime');
+        if (workingTime !== undefined) {
+            normalized['workingTime'] = Math.floor (workingTime / 1000);
+        }
+        const time = this.safeInteger (order, 'time');
+        if (time !== undefined) {
+            normalized['time'] = Math.floor (time / 1000);
+        }
+        const updateTime = this.safeInteger (order, 'updateTime');
+        if (updateTime !== undefined) {
+            normalized['updateTime'] = Math.floor (updateTime / 1000);
+        }
+        const trailingTime = this.safeInteger (order, 'trailingTime');
+        if (trailingTime !== undefined) {
+            normalized['trailingTime'] = Math.floor (trailingTime / 1000);
+        }
+        // Convert mantissa values to decimal strings
+        const priceMantissa = this.safeInteger (order, 'price');
+        if (priceMantissa !== undefined) {
+            normalized['price'] = String (applyExponent (priceMantissa, priceExponent));
+        }
+        const origQtyMantissa = this.safeInteger (order, 'origQty');
+        if (origQtyMantissa !== undefined) {
+            normalized['origQty'] = String (applyExponent (origQtyMantissa, qtyExponent));
+        }
+        const executedQtyMantissa = this.safeInteger (order, 'executedQty');
+        if (executedQtyMantissa !== undefined) {
+            normalized['executedQty'] = String (applyExponent (executedQtyMantissa, qtyExponent));
+        }
+        const cummulativeQuoteQtyMantissa = this.safeInteger (order, 'cummulativeQuoteQty');
+        if (cummulativeQuoteQtyMantissa !== undefined) {
+            normalized['cummulativeQuoteQty'] = String (applyExponent (cummulativeQuoteQtyMantissa, priceExponent));
+        }
+        const stopPriceMantissa = this.safeInteger (order, 'stopPrice');
+        if (stopPriceMantissa !== undefined) {
+            normalized['stopPrice'] = String (applyExponent (stopPriceMantissa, priceExponent));
+        }
+        const icebergQtyMantissa = this.safeInteger (order, 'icebergQty');
+        if (icebergQtyMantissa !== undefined) {
+            normalized['icebergQty'] = String (applyExponent (icebergQtyMantissa, qtyExponent));
+        }
+        const preventedQuantityMantissa = this.safeInteger (order, 'preventedQuantity');
+        if (preventedQuantityMantissa !== undefined) {
+            normalized['preventedQuantity'] = String (applyExponent (preventedQuantityMantissa, qtyExponent));
+        }
+        const origQuoteOrderQtyMantissa = this.safeInteger (order, 'origQuoteOrderQty');
+        if (origQuoteOrderQtyMantissa !== undefined) {
+            normalized['origQuoteOrderQty'] = String (applyExponent (origQuoteOrderQtyMantissa, priceExponent));
+        }
+        const peggedPriceMantissa = this.safeInteger (order, 'peggedPrice');
+        if (peggedPriceMantissa !== undefined) {
+            normalized['peggedPrice'] = String (applyExponent (peggedPriceMantissa, priceExponent));
+        }
+        // Copy enum fields - they need to be mapped to their string equivalents
+        // The parseOrder method handles this mapping
+        normalized['status'] = this.safeValue (order, 'status');
+        normalized['timeInForce'] = this.safeValue (order, 'timeInForce');
+        normalized['type'] = this.safeValue (order, 'orderType'); // Note: orderType maps to 'type' in JSON
+        normalized['side'] = this.safeValue (order, 'side');
+        normalized['orderCapacity'] = this.safeValue (order, 'orderCapacity');
+        normalized['workingFloor'] = this.safeValue (order, 'workingFloor');
+        normalized['selfTradePreventionMode'] = this.safeValue (order, 'selfTradePreventionMode');
+        normalized['usedSor'] = this.safeValue (order, 'usedSor');
+        normalized['isWorking'] = this.safeValue (order, 'isWorking');
+        normalized['pegPriceType'] = this.safeValue (order, 'pegPriceType');
+        normalized['pegOffsetType'] = this.safeValue (order, 'pegOffsetType');
+        normalized['pegOffsetValue'] = this.safeValue (order, 'pegOffsetValue');
+        // Copy other fields
+        normalized['trailingDelta'] = this.safeInteger (order, 'trailingDelta');
+        normalized['strategyId'] = this.safeInteger (order, 'strategyId');
+        normalized['strategyType'] = this.safeInteger (order, 'strategyType');
+        normalized['tradeGroupId'] = this.safeInteger (order, 'tradeGroupId');
+        // Handle fills array
+        const fills = this.safeList (order, 'fills', []);
+        if (fills.length > 0) {
+            normalized['fills'] = fills.map ((fill: any) => {
+                const commissionExponent = this.safeInteger (fill, 'commissionExponent', 0);
+                const priceMantissa = this.safeInteger (fill, 'price');
+                const qtyMantissa = this.safeInteger (fill, 'qty');
+                const commissionMantissa = this.safeInteger (fill, 'commission');
+                return {
+                    'price': priceMantissa !== undefined ? String (applyExponent (priceMantissa, priceExponent)) : undefined,
+                    'qty': qtyMantissa !== undefined ? String (applyExponent (qtyMantissa, qtyExponent)) : undefined,
+                    'commission': commissionMantissa !== undefined ? String (applyExponent (commissionMantissa, commissionExponent)) : undefined,
+                    'commissionAsset': this.safeString (fill, 'commissionAsset'),
+                    'tradeId': this.safeInteger (fill, 'tradeId'),
+                    'allocId': this.safeInteger (fill, 'allocId'),
+                    'matchType': this.safeValue (fill, 'matchType'),
+                };
+            });
+        } else {
+            normalized['fills'] = [];
+        }
+        // Handle preventedMatches array
+        const preventedMatches = this.safeList (order, 'preventedMatches', []);
+        if (preventedMatches.length > 0) {
+            normalized['preventedMatches'] = preventedMatches.map ((match: any) => {
+                const priceMantissa = this.safeInteger (match, 'price');
+                const takerPreventedQtyMantissa = this.safeInteger (match, 'takerPreventedQuantity');
+                const makerPreventedQtyMantissa = this.safeInteger (match, 'makerPreventedQuantity');
+                return {
+                    'preventedMatchId': this.safeInteger (match, 'preventedMatchId'),
+                    'makerOrderId': this.safeInteger (match, 'makerOrderId'),
+                    'price': priceMantissa !== undefined ? String (applyExponent (priceMantissa, priceExponent)) : undefined,
+                    'takerPreventedQuantity': takerPreventedQtyMantissa !== undefined ? String (applyExponent (takerPreventedQtyMantissa, qtyExponent)) : undefined,
+                    'makerPreventedQuantity': makerPreventedQtyMantissa !== undefined ? String (applyExponent (makerPreventedQtyMantissa, qtyExponent)) : undefined,
+                    'makerSymbol': this.safeString (match, 'makerSymbol'),
+                };
+            });
+        }
+        return normalized;
+    }
+
     handleOrderWs (client: Client, message) {
         //
+        // JSON format:
         //    {
         //        "id": 1,
         //        "status": 200,
@@ -3198,39 +3595,45 @@ export default class binance extends binanceRest {
         //          "fills": [],
         //          "selfTradePreventionMode": "NONE"
         //        },
-        //        "rateLimits": [
-        //          {
-        //            "rateLimitType": "ORDERS",
-        //            "interval": "SECOND",
-        //            "intervalNum": 10,
-        //            "limit": 50,
-        //            "count": 1
-        //          },
-        //          {
-        //            "rateLimitType": "ORDERS",
-        //            "interval": "DAY",
-        //            "intervalNum": 1,
-        //            "limit": 160000,
-        //            "count": 1
-        //          },
-        //          {
-        //            "rateLimitType": "REQUEST_WEIGHT",
-        //            "interval": "MINUTE",
-        //            "intervalNum": 1,
-        //            "limit": 1200,
-        //            "count": 12
-        //          }
-        //        ]
+        //        "rateLimits": [...]
+        //    }
+        //
+        // SBE format (NewOrderResultResponse/NewOrderFullResponse/NewOrderAckResponse):
+        //    {
+        //        "id": 1,
+        //        "status": 200,
+        //        "result": {
+        //          "priceExponent": -8,
+        //          "qtyExponent": -8,
+        //          "orderId": 7663053,
+        //          "orderListId": -1,
+        //          "transactTime": 1687642291434000, // microseconds
+        //          "price": 2500000000000,            // mantissa
+        //          "origQty": 100000,                 // mantissa
+        //          "executedQty": 0,
+        //          "cummulativeQuoteQty": 0,
+        //          "status": 0,                       // enum
+        //          "timeInForce": 0,                  // enum
+        //          "orderType": 1,                    // enum
+        //          "side": 1,                         // enum
+        //          "workingTime": 1687642291434000,
+        //          "fills": [...],                    // array of objects with mantissa values
+        //          "symbol": "BTCUSDT",
+        //          "clientOrderId": "..."
+        //        }
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result', {});
+        let result = this.safeDict (message, 'result', {});
+        // Normalize SBE format to JSON format if needed
+        result = this.normalizeSbeOrder (result);
         const order = this.parseOrder (result);
         client.resolve (order, messageHash);
     }
 
     handleOrdersWs (client: Client, message) {
         //
+        // JSON format:
         //    {
         //        "id": 1,
         //        "status": 200,
@@ -3258,19 +3661,36 @@ export default class binance extends binanceRest {
         //        },
         //        ...
         //        ],
-        //        "rateLimits": [{
-        //            "rateLimitType": "REQUEST_WEIGHT",
-        //            "interval": "MINUTE",
-        //            "intervalNum": 1,
-        //            "limit": 1200,
-        //            "count": 14
-        //        }]
+        //        "rateLimits": [...]
+        //    }
+        //
+        // SBE format (OrdersResponse) - array in result.orders:
+        //    {
+        //        "id": 1,
+        //        "status": 200,
+        //        "result": {
+        //            "orders": [{
+        //                "priceExponent": -8,
+        //                "qtyExponent": -8,
+        //                "orderId": 7665584,
+        //                ...
+        //            }]
+        //        }
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeList (message, 'result', []);
-        const orders = this.parseOrders (result);
-        client.resolve (orders, messageHash);
+        const result = this.safeValue (message, 'result');
+        let orders = [];
+        if (Array.isArray (result)) {
+            // JSON format - result is directly an array
+            orders = result.map ((order) => this.normalizeSbeOrder (order));
+        } else if (typeof result === 'object') {
+            // SBE format - result has an orders array
+            const ordersArray = this.safeList (result, 'orders', []);
+            orders = ordersArray.map ((order) => this.normalizeSbeOrder (order));
+        }
+        const parsedOrders = this.parseOrders (orders);
+        client.resolve (parsedOrders, messageHash);
     }
 
     /**
@@ -4374,16 +4794,22 @@ export default class binance extends binanceRest {
                 // SBE format - result is an object with trades array and exponents
                 const tradesArray = this.safeList (result, 'trades', []);
                 if (tradesArray.length > 0) {
-                    // Get exponents for converting mantissa values
-                    const priceExponent = this.safeInteger (result, 'priceExponent', 0);
-                    const qtyExponent = this.safeInteger (result, 'qtyExponent', 0);
                     // Convert mantissa values to decimal strings
+                    // Check if exponents are at parent level (TradesResponse) or per-trade (AccountTradesResponse)
+                    const parentPriceExponent = this.safeInteger (result, 'priceExponent');
+                    const parentQtyExponent = this.safeInteger (result, 'qtyExponent');
+                    const parentCommissionExponent = this.safeInteger (result, 'commissionExponent');
                     const normalizedTrades = tradesArray.map ((trade: any) => {
+                        // For TradesResponse (public trades), exponents are at parent level
+                        // For AccountTradesResponse (myTrades), each trade has its own exponents
+                        const priceExponent = this.safeInteger (trade, 'priceExponent', parentPriceExponent);
+                        const qtyExponent = this.safeInteger (trade, 'qtyExponent', parentQtyExponent);
+                        const commissionExponent = this.safeInteger (trade, 'commissionExponent', parentCommissionExponent);
                         const price = applyExponent (trade.price, priceExponent);
                         const qty = applyExponent (trade.qty, qtyExponent);
                         const quoteQty = applyExponent (trade.quoteQty, priceExponent);
                         const timestamp = Math.floor (trade.time / 1000); // microseconds to milliseconds
-                        return {
+                        const normalized: any = {
                             'id': String (trade.id),
                             'price': String (price),
                             'qty': String (qty),
@@ -4392,6 +4818,22 @@ export default class binance extends binanceRest {
                             'isBuyerMaker': trade.isBuyerMaker === 1,
                             'isBestMatch': trade.isBestMatch === 1,
                         };
+                        // Handle AccountTradesResponse specific fields
+                        const orderId = this.safeInteger (trade, 'orderId');
+                        if (orderId !== undefined) {
+                            normalized['orderId'] = orderId;
+                            normalized['orderListId'] = this.safeInteger (trade, 'orderListId');
+                            normalized['symbol'] = this.safeString (trade, 'symbol');
+                            // Convert commission from mantissa
+                            const commissionMantissa = this.safeInteger (trade, 'commission');
+                            if (commissionMantissa !== undefined) {
+                                normalized['commission'] = String (applyExponent (commissionMantissa, commissionExponent));
+                            }
+                            normalized['commissionAsset'] = this.safeString (trade, 'commissionAsset');
+                            normalized['isBuyer'] = trade.isBuyer === 1;
+                            normalized['isMaker'] = trade.isMaker === 1;
+                        }
+                        return normalized;
                     });
                     trades = this.parseTrades (normalizedTrades);
                 }
