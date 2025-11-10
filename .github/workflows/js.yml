@@ -31,7 +31,6 @@ jobs:
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
       with:
-        token: ${{ secrets.GH_TOKEN }}
         fetch-depth: 2
     - uses: actions/checkout@v4
       if: github.ref != 'refs/heads/master'
@@ -144,13 +143,11 @@ jobs:
           git push
     - name: Push To CCXT.WIKI
       if: github.ref == 'refs/heads/master'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         cd build/ccxt.wiki
         cp -R ../../wiki/* .
         git commit -a -m "[Automated changes] ${{ github.event.head_commit.message }}" || true
         git remote remove origin
-        git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.wiki.git
+        git remote add origin https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git
         git push origin HEAD:master
         cd ../..
