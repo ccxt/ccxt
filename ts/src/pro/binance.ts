@@ -10,6 +10,7 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
+import { applyExponent } from '../base/functions/sbe.js';
 import Client from '../base/ws/Client.js';
 import WsClient from '../base/ws/WsClient.js';
 
@@ -114,7 +115,6 @@ export default class binance extends binanceRest {
                 'keepAlive': 180000,
             },
             'options': {
-                'useSbe': true,
                 'returnRateLimits': false,
                 'streamLimits': {
                     'spot': 50, // max 1024
@@ -4363,17 +4363,40 @@ export default class binance extends binanceRest {
         // Will be decoded to same structure as JSON response
         //
         const messageHash = this.safeString (message, 'id');
-        let result = this.safeList (message, 'result', []);
-        // Check if result is binary (SBE format)
-        if (result instanceof ArrayBuffer || ArrayBuffer.isView (result) || (result && (result as any).byteLength !== undefined)) {
-            // Convert to ArrayBuffer if it's a typed array view
-            const buffer = result instanceof ArrayBuffer ? result : (result as any).buffer;
-            // Decode SBE trades using the refactored decodeSbeTrades from base class
-            const decodedTrades = (this as any).decodeSbeTrades (buffer);
-            result = decodedTrades;
+        const result = this.safeValue (message, 'result');
+        let trades = [];
+        // Check if result is already decoded (SBE format) or needs parsing (JSON format)
+        if (result !== undefined) {
+            if (Array.isArray (result)) {
+                // JSON format - result is directly the array of trades
+                trades = this.parseTrades (result);
+            } else {
+                // SBE format - result is an object with trades array and exponents
+                const tradesArray = this.safeList (result, 'trades', []);
+                if (tradesArray.length > 0) {
+                    // Get exponents for converting mantissa values
+                    const priceExponent = this.safeInteger (result, 'priceExponent', 0);
+                    const qtyExponent = this.safeInteger (result, 'qtyExponent', 0);
+                    // Convert mantissa values to decimal strings
+                    const normalizedTrades = tradesArray.map ((trade: any) => {
+                        const price = applyExponent (trade.price, priceExponent);
+                        const qty = applyExponent (trade.qty, qtyExponent);
+                        const quoteQty = applyExponent (trade.quoteQty, priceExponent);
+                        const timestamp = Math.floor (trade.time / 1000); // microseconds to milliseconds
+                        return {
+                            'id': String (trade.id),
+                            'price': String (price),
+                            'qty': String (qty),
+                            'quoteQty': String (quoteQty),
+                            'time': timestamp,
+                            'isBuyerMaker': trade.isBuyerMaker === 1,
+                            'isBestMatch': trade.isBestMatch === 1,
+                        };
+                    });
+                    trades = this.parseTrades (normalizedTrades);
+                }
+            }
         }
-        // Use existing parseTrades function for consistent parsing
-        const trades = this.parseTrades (result);
         client.resolve (trades, messageHash);
     }
 

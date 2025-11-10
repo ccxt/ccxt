@@ -4,9 +4,16 @@
  * This module provides utilities for working with SBE schemas and decoding binary messages.
  * SBE is a high-performance binary encoding used by some exchanges (OKX, Binance) for
  * low-latency market data.
+ *
+ * Supports both SBE versions:
+ * - SBE 1.0 (2016 namespace): 8-byte header, 2-field group dimensions
+ * - SBE 2.0 (2017+ namespace): 12-byte header, 4-field group dimensions
+ *
+ * Version is auto-detected from the XML namespace in the schema.
  */
 
 import { readFileSync } from 'fs';
+import { XMLParser } from 'fast-xml-parser';
 
 interface SbeSchema {
     package: string;
@@ -15,6 +22,7 @@ interface SbeSchema {
     messages: Map<number, SbeMessage>;
     types: Map<string, SbeType>;
     composites: Map<string, SbeComposite>;
+    sbeVersion: 1 | 2;  // 1 = SBE 1.0 (2016), 2 = SBE 2.0 (2017+)
 }
 
 interface SbeMessage {
@@ -41,6 +49,8 @@ interface SbeGroup {
     name: string;
     dimensionType: string;
     fields: SbeField[];
+    groups: SbeGroup[];  // Support nested groups
+    data: SbeDataField[];  // Support data fields within groups
 }
 
 interface SbeType {
@@ -65,145 +75,189 @@ interface SbeComposite {
 export function parseSbeSchema (schemaPath: string): SbeSchema {
     const xml = readFileSync(schemaPath, 'utf-8');
 
-    // Extract schema ID and byte order from root element
-    const schemaMatch = xml.match(/<sbe:messageSchema[^>]*\sid="(\d+)"[^>]*\sbyteOrder="(\w+)"/);
-    const packageMatch = xml.match(/package="([^"]+)"/);
+    // Detect SBE version from XML namespace
+    const namespaceMatch = xml.match(/xmlns:sbe="http:\/\/fixprotocol\.io\/(\d+)\/sbe"/);
+    const namespaceYear = namespaceMatch ? parseInt(namespaceMatch[1]) : 2016;
+    const sbeVersion: 1 | 2 = namespaceYear >= 2017 ? 2 : 1;
 
-    if (!schemaMatch || !packageMatch) {
+    // Configure XML parser
+    const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: '@_',
+        parseAttributeValue: true,
+        isArray: (tagName: string) => {
+            // These tags should always be arrays even if there's only one
+            return ['type', 'field', 'group', 'data', 'composite'].includes(tagName);
+        },
+    });
+
+    const parsed = parser.parse(xml);
+    const messageSchema = parsed['sbe:messageSchema'];
+
+    if (!messageSchema) {
         throw new Error('Invalid SBE schema format');
     }
 
     const schema: SbeSchema = {
-        package: packageMatch[1],
-        id: parseInt(schemaMatch[1]),
-        byteOrder: schemaMatch[2] as 'littleEndian' | 'bigEndian',
+        package: messageSchema['@_package'],
+        id: messageSchema['@_id'],
+        byteOrder: messageSchema['@_byteOrder'],
         messages: new Map(),
         types: new Map(),
         composites: new Map(),
+        sbeVersion,
     };
 
-    // Parse primitive types
-    // Updated regex to handle both self-closing tags and tags with content (descriptions)
-    // Matches: <type name="X" primitiveType="Y" /> or <type name="X" primitiveType="Y" description="..."/>
-    const typeRegex = /<type\s+name="([^"]+)"[^>]*primitiveType="([^"]+)"[^>]*(?:length="(\d+)")?[^>]*\/?>/gs;
-    let typeMatch;
-    while ((typeMatch = typeRegex.exec(xml)) !== null) {
-        const [, name, primitiveType, length] = typeMatch;
-        schema.types.set(name, {
-            primitiveType,
-            length: length ? parseInt(length) : undefined,
-        });
-    }
-
-    // Parse composite types
-    const compositeRegex = /<composite\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/composite>/g;
-    let compositeMatch;
-    while ((compositeMatch = compositeRegex.exec(xml)) !== null) {
-        const [, name, content] = compositeMatch;
-        const elements: Array<{name: string; type: string; primitiveType?: string; size: number}> = [];
-
-        // Parse type elements within composite
-        const elemRegex = /<type\s+name="([^"]+)"[^>]*primitiveType="([^"]+)"[^>]*(?:length="(\d+)")?/g;
-        let elemMatch;
-        while ((elemMatch = elemRegex.exec(content)) !== null) {
-            const [, elemName, primType, len] = elemMatch;
-            const length = len ? parseInt(len) : 1;
-            elements.push({
-                name: elemName,
-                type: primType,
-                primitiveType: primType,
-                size: getTypeSize(primType, schema) * length,
-            });
-        }
-
-        if (elements.length > 0) {
-            schema.composites.set(name, { name, elements });
-        }
-    }
-
-    // Parse messages - simplified extraction
-    const messageRegex = /<sbe:message\s+name="([^"]+)"\s+id="(\d+)"[^>]*>([\s\S]*?)<\/sbe:message>/g;
-    let messageMatch;
-
-    while ((messageMatch = messageRegex.exec(xml)) !== null) {
-        const [, name, id, content] = messageMatch;
-        const messageId = parseInt(id);
-
-        const message: SbeMessage = {
-            id: messageId,
-            name,
-            fields: [],
-            groups: [],
-            data: [],
-        };
-
-        // Parse fields
-        const fieldRegex = /<field\s+id="\d+"\s+name="([^"]+)"\s+type="([^"]+)"/g;
-        let fieldMatch;
-        let offset = 0;
-
-        while ((fieldMatch = fieldRegex.exec(content)) !== null) {
-            const [, fieldName, fieldType] = fieldMatch;
-            const size = getTypeSize(fieldType, schema);
-            message.fields.push({
-                name: fieldName,
-                type: fieldType,
-                offset,
-                size,
-            });
-            offset += size;
-        }
-
-        // Parse groups (dimensionType is optional in some schemas like Binance)
-        const groupRegex = /<group\s+id="\d+"\s+name="([^"]+)"(?:\s+dimensionType="([^"]+)")?[^>]*>([\s\S]*?)<\/group>/g;
-        let groupMatch;
-
-        while ((groupMatch = groupRegex.exec(content)) !== null) {
-            const [, groupName, dimensionType, groupContent] = groupMatch;
-            const group: SbeGroup = {
-                name: groupName,
-                dimensionType: dimensionType || 'groupSizeEncoding',  // Default dimension type
-                fields: [],
-            };
-
-            // Create a fresh regex for group fields (fieldRegex is stateful due to /g flag)
-            const groupFieldRegex = /<field\s+id="\d+"\s+name="([^"]+)"\s+type="([^"]+)"/g;
-            let groupFieldMatch;
-            let groupFieldOffset = 0;
-            while ((groupFieldMatch = groupFieldRegex.exec(groupContent)) !== null) {
-                const [, fieldName, fieldType] = groupFieldMatch;
-                const fieldSize = getTypeSize(fieldType, schema);
-                group.fields.push({
-                    name: fieldName,
-                    type: fieldType,
-                    offset: groupFieldOffset,
-                    size: fieldSize,
+    // Parse types
+    if (messageSchema.types && messageSchema.types.type) {
+        for (const type of messageSchema.types.type) {
+            if (type['@_name'] && type['@_primitiveType']) {
+                schema.types.set(type['@_name'], {
+                    primitiveType: type['@_primitiveType'],
+                    length: type['@_length'],
                 });
-                groupFieldOffset += fieldSize;
+            }
+        }
+    }
+
+    // Parse composites
+    if (messageSchema.types && messageSchema.types.composite) {
+        for (const composite of messageSchema.types.composite) {
+            const name = composite['@_name'];
+            const elements: Array<{name: string; type: string; primitiveType?: string; size: number}> = [];
+
+            if (composite.type) {
+                for (const elem of composite.type) {
+                    const elemName = elem['@_name'];
+                    const primType = elem['@_primitiveType'];
+                    const length = elem['@_length'] || 1;
+                    elements.push({
+                        name: elemName,
+                        type: primType,
+                        primitiveType: primType,
+                        size: getTypeSize(primType, schema) * length,
+                    });
+                }
             }
 
-            message.groups.push(group);
+            if (elements.length > 0) {
+                schema.composites.set(name, { name, elements });
+            }
         }
+    }
 
-        // Parse variable-length data fields
-        const dataRegex = /<data\s+id="\d+"\s+name="([^"]+)"\s+type="([^"]+)"/g;
-        let dataMatch;
-        while ((dataMatch = dataRegex.exec(content)) !== null) {
-            const [, dataName, dataType] = dataMatch;
-            message.data.push({
-                name: dataName,
-                type: dataType,
-            });
+    // Parse messages
+    if (messageSchema['sbe:message']) {
+        const messages = Array.isArray(messageSchema['sbe:message'])
+            ? messageSchema['sbe:message']
+            : [messageSchema['sbe:message']];
+
+        for (const msg of messages) {
+            const messageId = msg['@_id'];
+            const message: SbeMessage = {
+                id: messageId,
+                name: msg['@_name'],
+                fields: [],
+                groups: [],
+                data: [],
+            };
+
+            // Parse fields
+            if (msg.field) {
+                let offset = 0;
+                const fields = Array.isArray(msg.field) ? msg.field : [msg.field];
+                for (const field of fields) {
+                    const size = getTypeSize(field['@_type'], schema);
+                    message.fields.push({
+                        name: field['@_name'],
+                        type: field['@_type'],
+                        offset,
+                        size,
+                    });
+                    offset += size;
+                }
+            }
+
+            // Parse groups (handles nested groups)
+            if (msg.group) {
+                message.groups = parseGroupsFromXmlObject(msg.group, schema);
+            }
+
+            // Parse data fields
+            if (msg.data) {
+                const dataFields = Array.isArray(msg.data) ? msg.data : [msg.data];
+                for (const data of dataFields) {
+                    message.data.push({
+                        name: data['@_name'],
+                        type: data['@_type'],
+                    });
+                }
+            }
+
+            schema.messages.set(messageId, message);
         }
-
-        schema.messages.set(messageId, message);
     }
 
     return schema;
 }
 
+/**
+ * Parse groups recursively from parsed XML object
+ */
+function parseGroupsFromXmlObject(groupObj: any, schema: SbeSchema): SbeGroup[] {
+    const groups: SbeGroup[] = [];
+    const groupArray = Array.isArray(groupObj) ? groupObj : [groupObj];
+
+    for (const grp of groupArray) {
+        const group: SbeGroup = {
+            name: grp['@_name'],
+            dimensionType: grp['@_dimensionType'] || 'groupSizeEncoding',
+            fields: [],
+            groups: [],
+            data: [],
+        };
+
+        // Parse fields in this group
+        if (grp.field) {
+            let offset = 0;
+            const fields = Array.isArray(grp.field) ? grp.field : [grp.field];
+            for (const field of fields) {
+                const size = getTypeSize(field['@_type'], schema);
+                group.fields.push({
+                    name: field['@_name'],
+                    type: field['@_type'],
+                    offset,
+                    size,
+                });
+                offset += size;
+            }
+        }
+
+        // Parse nested groups recursively
+        if (grp.group) {
+            group.groups = parseGroupsFromXmlObject(grp.group, schema);
+        }
+
+        // Parse data fields in this group
+        if (grp.data) {
+            const dataFields = Array.isArray(grp.data) ? grp.data : [grp.data];
+            for (const data of dataFields) {
+                group.data.push({
+                    name: data['@_name'],
+                    type: data['@_type'],
+                });
+            }
+        }
+
+        groups.push(group);
+    }
+
+    return groups;
+}
+
 function getTypeSize (type: string, schema: SbeSchema): number {
     const primitiveSize: Record<string, number> = {
+        'char': 1,      // section 2.6.1
         'int8': 1,
         'uint8': 1,
         'int16': 2,
@@ -212,6 +266,8 @@ function getTypeSize (type: string, schema: SbeSchema): number {
         'uint32': 4,
         'int64': 8,
         'uint64': 8,
+        'float': 4,     // section 2.5 - IEEE 754 binary32
+        'double': 8,    // section 2.5 - IEEE 754 binary64
     };
 
     if (primitiveSize[type]) {
@@ -220,7 +276,9 @@ function getTypeSize (type: string, schema: SbeSchema): number {
 
     const customType = schema.types.get(type);
     if (customType) {
-        return getTypeSize(customType.primitiveType, schema);
+        // If type has a length attribute (for arrays), multiply by length
+        const length = customType.length || 1;
+        return getTypeSize(customType.primitiveType, schema) * length;
     }
 
     return 0;
@@ -240,9 +298,9 @@ export function createSbeDecoder (schema: SbeSchema) {
             const view = new DataView(buffer);
             let offset = 0;
 
-            // Read message header - standard 4-field format
-            // Some schemas may have additional fields (numGroups, numVarDataFields)
-            // but the first 4 are always: blockLength, templateId, schemaId, version
+            // Read message header based on SBE version
+            // SBE 1.0 (2016): 4 fields (8 bytes) - blockLength, templateId, schemaId, version
+            // SBE 2.0 (2017+): 6 fields (12 bytes) - adds numGroups, numVarDataFields
             const blockLength = view.getUint16(offset, littleEndian);
             offset += 2;
             const templateId = view.getUint16(offset, littleEndian);
@@ -252,13 +310,21 @@ export function createSbeDecoder (schema: SbeSchema) {
             const version = view.getUint16(offset, littleEndian);
             offset += 2;
 
-            console.log('SBE Header:', { blockLength, templateId, schemaId, version });
-            console.log('Available template IDs:', Array.from(schema.messages.keys()));
+
+            let numGroups = 0;
+            let numVarDataFields = 0;
+            if (schema.sbeVersion === 2) {
+                numGroups = view.getUint16(offset, littleEndian);
+                offset += 2;
+                numVarDataFields = view.getUint16(offset, littleEndian);
+                offset += 2;
+            }
 
             const message = schema.messages.get(templateId);
             if (!message) {
                 throw new Error(`Unknown message template ID: ${templateId}`);
             }
+
 
             const result: any = {
                 messageId: templateId,
@@ -268,81 +334,32 @@ export function createSbeDecoder (schema: SbeSchema) {
             // Save the start of the message body
             const messageBodyStart = offset;
 
-            // Decode fields
-            for (const field of message.fields) {
-                const value = decodeField(view, offset, field.type, littleEndian, schema);
-                result[field.name] = value;
-                offset += field.size;
+
+            // Only decode fields if blockLength > 0
+            // When blockLength is 0, all data is in repeating groups and variable-length fields
+            if (blockLength > 0) {
+                // Decode fields using their offsets relative to message start
+                // This matches SBE spec where field offsets are relative to block start
+                for (const field of message.fields) {
+                    const fieldOffset = messageBodyStart + field.offset;
+                    try {
+                        const value = decodeField(view, fieldOffset, field.type, littleEndian, schema);
+                        result[field.name] = value;
+                    } catch (e) {
+                        const errorMsg = e instanceof Error ? e.message : String(e);
+                        throw new Error(`Error decoding field ${field.name} (type: ${field.type}) at offset ${fieldOffset}: ${errorMsg}`);
+                    }
+                }
             }
 
             // Skip to the end of the fixed block using blockLength from header
             // This ensures we're at the correct position for repeating groups
             offset = messageBodyStart + blockLength;
 
-            // Decode groups
-            for (const group of message.groups) {
-                // Read group dimensions according to SBE spec section 3.4.8.2
-                // Group dimension encoding consists of:
-                // - blockLength (typically uint16)
-                // - numInGroup (uint8, uint16, or uint32)
-                // The dimensionType can be checked in schema.types
-                const groupBlockLength = view.getUint16(offset, littleEndian);
-                offset += 2;
-
-                // Read numInGroup according to dimensionType composite definition
-                // Per SBE spec section 3.4.8.2, dimension encoding contains blockLength + numInGroup
-                // numInGroup type varies: uint8, uint16, or uint32
-                let numInGroup: number;
-                const dimensionComposite = schema.composites.get(group.dimensionType);
-                if (dimensionComposite) {
-                    // Find the numInGroup element
-                    const numInGroupElem = dimensionComposite.elements.find(e => e.name === 'numInGroup');
-                    if (numInGroupElem) {
-                        if (numInGroupElem.primitiveType === 'uint32') {
-                            numInGroup = view.getUint32(offset, littleEndian);
-                            offset += 4;
-                        } else if (numInGroupElem.primitiveType === 'uint16') {
-                            numInGroup = view.getUint16(offset, littleEndian);
-                            offset += 2;
-                        } else if (numInGroupElem.primitiveType === 'uint8') {
-                            numInGroup = view.getUint8(offset);
-                            offset += 1;
-                        } else {
-                            // Fallback to uint16
-                            numInGroup = view.getUint16(offset, littleEndian);
-                            offset += 2;
-                        }
-                    } else {
-                        // No numInGroup element found, default to uint16
-                        numInGroup = view.getUint16(offset, littleEndian);
-                        offset += 2;
-                    }
-                } else {
-                    // No dimension composite found, default to uint16
-                    numInGroup = view.getUint16(offset, littleEndian);
-                    offset += 2;
-                }
-
-                console.log(`Group "${group.name}": blockLength=${groupBlockLength}, numInGroup=${numInGroup}`);
-
-                const groupItems = [];
-                for (let i = 0; i < numInGroup; i++) {
-                    const itemStart = offset;
-                    const item: any = {};
-                    for (const field of group.fields) {
-                        // Read field at its offset within the item
-                        const fieldOffset = itemStart + field.offset;
-                        const value = decodeField(view, fieldOffset, field.type, littleEndian, schema);
-                        item[field.name] = value;
-                    }
-                    // Skip to next item using groupBlockLength from the header
-                    // This ensures we handle padding correctly
-                    offset = itemStart + groupBlockLength;
-                    groupItems.push(item);
-                }
-
-                result[group.name] = groupItems;
-            }
+            // Decode groups recursively
+            const decodeResult = decodeGroups(view, offset, message.groups, littleEndian, schema, buffer);
+            Object.assign(result, decodeResult.result);
+            offset = decodeResult.offset;
 
             // Decode variable-length data fields
             for (const dataField of message.data) {
@@ -405,6 +422,159 @@ export function createSbeDecoder (schema: SbeSchema) {
     };
 }
 
+/**
+ * Recursively decode groups and return both the decoded result and new offset
+ */
+function decodeGroups(view: DataView, startOffset: number, groups: SbeGroup[], littleEndian: boolean, schema: SbeSchema, buffer: ArrayBuffer): { result: any; offset: number } {
+    const result: any = {};
+    let offset = startOffset;
+
+    for (const group of groups) {
+        // Check if offset is within bounds before reading dimensions
+        if (offset + 4 > buffer.byteLength) {
+            // No more groups to read - this is normal at end of buffer
+            break;
+        }
+
+        // Read group dimensions
+        const groupBlockLength = view.getUint16(offset, littleEndian);
+        offset += 2;
+
+        // Read numInGroup according to dimensionType
+        let numInGroup: number;
+        const dimensionComposite = schema.composites.get(group.dimensionType);
+        if (dimensionComposite) {
+            const numInGroupElem = dimensionComposite.elements.find(e => e.name === 'numInGroup');
+            if (numInGroupElem) {
+                if (numInGroupElem.primitiveType === 'uint32') {
+                    numInGroup = view.getUint32(offset, littleEndian);
+                    offset += 4;
+                } else if (numInGroupElem.primitiveType === 'uint16') {
+                    numInGroup = view.getUint16(offset, littleEndian);
+                    offset += 2;
+                } else if (numInGroupElem.primitiveType === 'uint8') {
+                    numInGroup = view.getUint8(offset);
+                    offset += 1;
+                } else {
+                    numInGroup = view.getUint16(offset, littleEndian);
+                    offset += 2;
+                }
+            } else {
+                numInGroup = view.getUint16(offset, littleEndian);
+                offset += 2;
+            }
+        } else {
+            numInGroup = view.getUint16(offset, littleEndian);
+            offset += 2;
+        }
+
+        // Validate numInGroup is reasonable (sanity check to catch corruption)
+        if (numInGroup > 1000000) {
+            throw new Error(`Invalid numInGroup value: ${numInGroup} for group ${group.name}. This likely indicates corrupted data or incorrect schema.`);
+        }
+
+        // SBE 2.0: Read numGroups and numVarDataFields
+        if (schema.sbeVersion === 2) {
+            offset += 2; // numGroups
+            offset += 2; // numVarDataFields
+        }
+
+        const groupItems = [];
+        for (let i = 0; i < numInGroup; i++) {
+            const itemStart = offset;
+            const item: any = {};
+
+            // Check we have enough space for this group item
+            if (itemStart + groupBlockLength > buffer.byteLength) {
+                throw new Error(`Buffer overflow: Group ${group.name} item ${i} would read past buffer end.`);
+            }
+
+            // Decode fixed fields in this group item (only read from fixed block)
+            for (const field of group.fields) {
+                const fieldOffset = itemStart + field.offset;
+                const value = decodeField(view, fieldOffset, field.type, littleEndian, schema);
+                item[field.name] = value;
+            }
+
+            // Move offset to end of fixed fields block
+            offset = itemStart + groupBlockLength;
+
+            // Now decode nested groups (they come AFTER fixed fields)
+            if (group.groups && group.groups.length > 0) {
+                const nestedResult = decodeGroups(view, offset, group.groups, littleEndian, schema, buffer);
+                Object.assign(item, nestedResult.result);
+                offset = nestedResult.offset;
+            }
+
+            // Finally decode var data fields (they come AFTER nested groups)
+            if (group.data && group.data.length > 0) {
+                for (const dataField of group.data) {
+                    // Check bounds before reading length
+                    if (offset + 1 > buffer.byteLength) {
+                        throw new Error(`Buffer overflow: Cannot read length for var data field ${dataField.name}`);
+                    }
+
+                    // Read length prefix
+                    let length: number;
+                    const varComposite = schema.composites.get(dataField.type);
+                    if (varComposite) {
+                        const lengthElem = varComposite.elements.find(e => e.name === 'length');
+                        if (lengthElem) {
+                            if (lengthElem.primitiveType === 'uint32') {
+                                length = view.getUint32(offset, littleEndian);
+                                offset += 4;
+                            } else if (lengthElem.primitiveType === 'uint16') {
+                                length = view.getUint16(offset, littleEndian);
+                                offset += 2;
+                            } else if (lengthElem.primitiveType === 'uint8') {
+                                length = view.getUint8(offset);
+                                offset += 1;
+                            } else {
+                                length = view.getUint16(offset, littleEndian);
+                                offset += 2;
+                            }
+                        } else {
+                            length = view.getUint16(offset, littleEndian);
+                            offset += 2;
+                        }
+                    } else {
+                        if (dataField.type.includes('8')) {
+                            length = view.getUint8(offset);
+                            offset += 1;
+                        } else {
+                            length = view.getUint16(offset, littleEndian);
+                            offset += 2;
+                        }
+                    }
+
+                    // Check bounds before reading data
+                    if (offset + length > buffer.byteLength) {
+                        throw new Error(`Buffer overflow: Var data field ${dataField.name} would read past buffer end.`);
+                    }
+
+                    // Extract data
+                    if (dataField.type.includes('String')) {
+                        const dataBytes = new Uint8Array(buffer, offset, length);
+                        const decoder = new TextDecoder('utf-8');
+                        item[dataField.name] = decoder.decode(dataBytes);
+                    } else if (dataField.type === 'messageData') {
+                        item[dataField.name] = buffer.slice(offset, offset + length);
+                    } else {
+                        item[dataField.name] = new Uint8Array(buffer, offset, length);
+                    }
+                    offset += length;
+                }
+            }
+
+            groupItems.push(item);
+        }
+
+        result[group.name] = groupItems;
+    }
+
+    return { result, offset };
+}
+
 function decodeField (view: DataView, offset: number, type: string, littleEndian: boolean, schema: SbeSchema): any {
     switch (type) {
         case 'int8':
@@ -423,6 +593,15 @@ function decodeField (view: DataView, offset: number, type: string, littleEndian
             return Number(view.getBigInt64(offset, littleEndian));
         case 'uint64':
             return Number(view.getBigUint64(offset, littleEndian));
+        case 'float':
+            // IEEE 754-2008 binary32 single precision (section 2.5)
+            return view.getFloat32(offset, littleEndian);
+        case 'double':
+            // IEEE 754-2008 binary64 double precision (section 2.5)
+            return view.getFloat64(offset, littleEndian);
+        case 'char':
+            // Single-byte character (section 2.6.1)
+            return String.fromCharCode(view.getUint8(offset));
         default:
             // Check if it's a custom type
             const customType = schema.types.get(type);

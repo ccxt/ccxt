@@ -4022,6 +4022,36 @@ export default class binance extends Exchange {
         //         "u": 1015939
         //     }
         //
+        // SBE response
+        //    {
+        //       messageId: 200,
+        //       messageName: "DepthResponse",
+        //       lastUpdateId: 11875115077,
+        //       priceExponent: -8,
+        //       qtyExponent: -8,
+        //       bids: [
+        //         {
+        //           price: 10456800000000,
+        //           qty: 52066000,
+        //         },
+        //         ...
+        //       ],
+        //    }
+        //
+        const priceExponent = this.safeInteger (response, 'priceExponent');
+        const qtyExponent = this.safeInteger (response, 'qtyExponent');
+        if (priceExponent !== undefined && qtyExponent !== undefined) {
+            const bids = this.safeList (response, 'bids', response);
+            const asks = this.safeList (response, 'asks', response);
+            for (let i = 0; i < bids.length; i++) {
+                bids[i] = [applyExponent (bids[i]['price'], priceExponent), applyExponent (bids[i]['qty'], qtyExponent)];
+            }
+            for (let i = 0; i < asks.length; i++) {
+                asks[i] = [applyExponent (asks[i]['price'], priceExponent), applyExponent (asks[i]['qty'], qtyExponent)];
+            }
+            response['bids'] = bids;
+            response['asks'] = asks;
+        }
         const timestamp = this.safeInteger (response, 'T');
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger2 (response, 'lastUpdateId', 'u');
@@ -4305,11 +4335,6 @@ export default class binance extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
-        // Check if SBE is enabled for spot bookTicker endpoint
-        const useSbe = this.safeBool (this.options, 'useSbe', false);
-        const sbeSchemaId = this.safeInteger (this.options, 'sbeSchemaId', 3);
-        const sbeSchemaVersion = this.safeInteger (this.options, 'sbeSchemaVersion', 1);
-        const isSpotBookTicker = type === 'spot';
         let response = undefined;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetTickerBookTicker (params);
@@ -4320,31 +4345,7 @@ export default class binance extends Exchange {
             if (symbols !== undefined) {
                 request['symbols'] = this.json (this.marketIds (symbols));
             }
-            if (useSbe && isSpotBookTicker) {
-                // Use SBE for spot bookTicker endpoint /api/v3/ticker/bookTicker
-                const sbeHeaders = {
-                    'Accept': 'application/sbe',
-                    'X-MBX-SBE': sbeSchemaId + ':' + sbeSchemaVersion,
-                };
-                // Call request directly with headers as a separate parameter
-                response = await this.request ('ticker/bookTicker', 'public', 'GET', this.extend (request, params), sbeHeaders, undefined);
-                // Decode SBE response
-                if (this.verbose) {
-                    this.log ('fetchBidsAsks SBE response type:', typeof response, 'is ArrayBuffer:', response instanceof ArrayBuffer, 'is View:', ArrayBuffer.isView (response));
-                }
-                if (response instanceof ArrayBuffer || ArrayBuffer.isView (response) || (response && (response as any).byteLength !== undefined)) {
-                    // Convert to ArrayBuffer if it's a typed array view
-                    const buffer = response instanceof ArrayBuffer ? response : (response as any).buffer;
-                    const decodedTickers = this.decodeSbeBookTicker (buffer, symbols);
-                    response = decodedTickers;
-                } else {
-                    if (this.verbose) {
-                        this.log ('fetchBidsAsks: Response is not binary, got:', response);
-                    }
-                }
-            } else {
-                response = await this.publicGetTickerBookTicker (this.extend (request, params));
-            }
+            response = await this.publicGetTickerBookTicker (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchBidsAsks() does not support ' + type + ' markets yet');
         }
@@ -5324,7 +5325,8 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        const trades =  this.parseTrades (response, market, since, limit);
+        const rawTrades = this.safeList (response, 'trades', response);
+        const trades = this.parseTrades (rawTrades, market, since, limit);
         return trades;
     }
 
@@ -12022,13 +12024,44 @@ export default class binance extends Exchange {
         return scheme + '//' + domain + '/';
     }
 
+    decodeSbeResponse (buffer: ArrayBuffer, url: string) {
+        // Use generic SBE decoder that follows the spec
+        // The decoder automatically handles all message types defined in the schema
+        if (this.verbose) {
+            this.log ('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength);
+        }
+        // Extract endpoint from URL for special handling
+        const urlParts = url.split ('/');
+        const endpoint = urlParts[urlParts.length - 1].split ('?')[0];
+        try {
+            const decoder = this.getSbeDecoder ();
+            const decoded = decoder.decode (buffer);
+            if (this.verbose) {
+                this.log ('decodeSbeResponse: Successfully decoded SBE message');
+                this.log ('decodeSbeResponse: Message type:', decoded.constructor.name);
+                if (decoded && typeof decoded === 'object') {
+                    this.log ('decodeSbeResponse: Message keys:', Object.keys (decoded).slice (0, 10)); // Show first 10 keys
+                }
+            }
+            return decoded;
+        } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : String (e);
+            const errorStack = e instanceof Error ? e.stack : '';
+            this.log ('decodeSbeResponse: Error decoding SBE buffer:', errorMessage);
+            this.log ('decodeSbeResponse: Stack trace:', errorStack);
+            this.log ('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes');
+            this.log ('decodeSbeResponse: Endpoint:', endpoint);
+            throw new ExchangeError (this.id + ' decodeSbeResponse() failed - SBE disabled. Error: ' + errorMessage + '. Try setting useSbe to false in options.');
+        }
+    }
+
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
         const responseHeaders = this.getResponseHeaders (response);
         const contentType = this.safeString (responseHeaders, 'Content-Type', '');
         if (this.verbose) {
             this.log ('handleRestResponse: Content-Type:', contentType, 'useSbe:', this.safeBool (this.options, 'useSbe', false));
         }
-        // Handle SBE binary responses
+        // Handle SBE binary responses - automatically decode based on endpoint
         if (contentType.includes ('application/sbe') || contentType.includes ('application/octet-stream')) {
             const useSbe = this.safeBool (this.options, 'useSbe', false);
             if (useSbe) {
@@ -12045,7 +12078,8 @@ export default class binance extends Exchange {
                     if (this.verbose) {
                         this.log ('handleRestResponse (SBE):\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, 'SBE binary data, buffer length:', responseBuffer.byteLength, '\n');
                     }
-                    return responseBuffer;
+                    // Automatically decode SBE response based on endpoint
+                    return this.decodeSbeResponse (responseBuffer, url);
                 });
             }
         }
@@ -12054,6 +12088,14 @@ export default class binance extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        // Check for SBE (Simple Binary Encoding) parameters in params or exchange options
+        // Params take precedence over exchange options
+        let useSbe;
+        let sbeSchemaId;
+        let sbeSchemaVersion;
+        [ useSbe, params ] = this.handleOptionAndParams (params, 'sign', 'useSbe', false);
+        [ sbeSchemaId, params ] = this.handleOptionAndParams (params, 'sign', 'sbeSchemaId', 3);
+        [ sbeSchemaVersion, params ] = this.handleOptionAndParams (params, 'sign', 'sbeSchemaVersion', 1);
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
@@ -12189,6 +12231,14 @@ export default class binance extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
+        }
+        const isSpotApi = (api === 'public' || api === 'private');
+        if (useSbe && sbeSchemaId !== undefined && sbeSchemaVersion !== undefined && isSpotApi) {
+            if (headers === undefined) {
+                headers = {};
+            }
+            headers['Accept'] = 'application/sbe';
+            headers['X-MBX-SBE'] = sbeSchemaId + ':' + sbeSchemaVersion;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

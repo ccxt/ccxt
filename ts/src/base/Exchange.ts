@@ -1,6 +1,7 @@
 // ----------------------------------------------------------------------------
 
 import path from 'path';
+import { fileURLToPath } from 'url';
 import * as functions from './functions.js';
 import {
     keys as keysFunc,
@@ -176,6 +177,8 @@ let protobufMexc = undefined;
         // TODO: handle error
     }
 }) ();
+// eslint-disable-next-line no-shadow
+const __dirname = path.dirname (fileURLToPath (import.meta.url));
 
 // -----------------------------------------------------------------------------
 /**
@@ -1125,7 +1128,7 @@ export default class Exchange {
 
             // Fallback: try relative to module location
             try {
-                schemaPath = path.join (__dirname, '..', '..', 'sbe', exchangeId, schemaName);
+                schemaPath = path.join (__dirname, '..', '..', '..', 'sbe', exchangeId, schemaName);
                 this.sbeSchema = parseSbeSchema (schemaPath);
                 return this.sbeSchema;
             } catch (error) {
@@ -1877,7 +1880,6 @@ export default class Exchange {
                 'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
-                'editOrderWithClientOrderId': undefined,
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
@@ -1956,7 +1958,6 @@ export default class Exchange {
                 'fetchOption': undefined,
                 'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
-                'fetchOrderWithClientOrderId': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrderBookWs': undefined,
