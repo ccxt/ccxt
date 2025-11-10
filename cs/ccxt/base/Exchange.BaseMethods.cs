@@ -507,7 +507,7 @@ public partial class Exchange
 
     public virtual object getCacheIndex(object orderbook, object deltas)
     {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1;
     }
 
