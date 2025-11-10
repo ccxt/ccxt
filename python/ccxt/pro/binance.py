@@ -67,6 +67,19 @@ class binance(ccxt.async_support.binance):
                 'fetchTradesWs': True,
                 'fetchTradingFeesWs': False,
                 'fetchWithdrawalsWs': False,
+                'unWatchTicker': True,
+                'unWatchTickers': True,
+                'unWatchOHLCV': True,
+                'unWatchOHLCVForSymbols': True,
+                'unWatchOrderBook': True,
+                'unWatchOrderBookForSymbols': True,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
+                'unWatchMyTrades': False,
+                'unWatchOrders': False,
+                'unWatchPositions': False,
+                'unWatchMarkPrices': True,
+                'unWatchMarkPrice': True,
             },
             'urls': {
                 'test': {
@@ -1737,27 +1750,6 @@ class binance(ccxt.async_support.binance):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def un_watch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
-        """
-        stops watching the mark price for all markets
-
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
-
-        :param str[] symbols: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
-        """
-        channelName = None
-        # for now watchmarkPrice uses the same messageHash
-        # so it's impossible to watch both at the same time
-        # refactor self to use different messageHashes
-        channelName, params = self.handle_option_and_params(params, 'watchMarkPrices', 'name', 'markPrice')
-        newTickers = await self.watch_multi_ticker_helper('watchMarkPrices', channelName, symbols, params)
-        if self.newUpdates:
-            return newTickers
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
-
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -1855,11 +1847,85 @@ class binance(ccxt.async_support.binance):
             'unsubscribe': True,
             'id': str(requestId),
             'subMessageHashes': subMessageHashes,
-            'messageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
             'symbols': symbols,
             'topic': 'ticker',
         }
-        return await self.watch_multiple(url, subMessageHashes, self.extend(request, params), subMessageHashes, subscription)
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscription)
+
+    async def un_watch_mark_prices(self, symbols: Strings = None, params={}) -> Any:
+        """
+        unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        channelName = None
+        channelName, params = self.handle_option_and_params(params, 'watchMarkPrices', 'name', 'markPrice')
+        await self.load_markets()
+        use1sFreq = self.safe_bool(params, 'use1sFreq', True)
+        suffix = '@1s' if (use1sFreq) else ''
+        methodName = 'watchMarkPrices'
+        symbols = self.market_symbols(symbols, None, True, False, True)
+        firstMarket = None
+        marketType = None
+        symbolsDefined = (symbols is not None)
+        if symbolsDefined:
+            firstMarket = self.market(symbols[0])
+        marketType, params = self.handle_market_type_and_params(methodName, firstMarket, params)
+        if marketType != 'swap' and marketType != 'future':
+            raise NotSupported(self.id + ' ' + methodName + '() only supports swap markets')
+        rawMarketType = 'future'
+        subscriptionArgs = []
+        subMessageHashes = []
+        messageHashes = []
+        if symbolsDefined:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.market(symbol)
+                msgHash = self.get_message_hash(channelName, market['symbol'], False)
+                subscriptionArgs.append(market['lowercaseId'] + '@' + channelName + suffix)
+                subMessageHashes.append(msgHash)
+                messageHashes.append('unsubscribe:' + msgHash)
+        else:
+            msgHashNoSymbol = self.get_message_hash(channelName, None, False)
+            subscriptionArgs.append('!' + channelName + '@arr')
+            subMessageHashes.append(msgHashNoSymbol)
+            messageHashes.append('unsubscribe:' + msgHashNoSymbol)
+        streamHash = channelName
+        if symbolsDefined:
+            streamHash = channelName + '::' + ','.join(symbols)
+        url = self.urls['api']['ws'][rawMarketType] + '/' + self.stream(rawMarketType, streamHash)
+        requestId = self.request_id(url)
+        request: dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': requestId,
+        }
+        subscription: dict = {
+            'unsubscribe': True,
+            'id': str(requestId),
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+            'symbols': symbols,
+            'topic': 'ticker',
+        }
+        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscription)
+
+    async def un_watch_mark_price(self, symbol: str, params={}) -> Any:
+        """
+        unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        return await self.un_watch_mark_prices([symbol], params)
 
     async def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
