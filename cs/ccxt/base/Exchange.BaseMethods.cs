@@ -8306,7 +8306,7 @@ public partial class Exchange
                         ((IDictionary<string,object>)futures).Remove((string)"fetchPositionsSnapshot");
                     }
                 }
-            } else if (isTrue(isTrue(isEqual(topic, "ticker")) && isTrue((!isEqual(this.tickers, null)))))
+            } else if (isTrue(isTrue((isTrue(isEqual(topic, "ticker")) || isTrue(isEqual(topic, "markPrice")))) && isTrue((!isEqual(this.tickers, null)))))
             {
                 object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))
