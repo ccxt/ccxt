@@ -3169,7 +3169,7 @@ export default class bybit extends Exchange {
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchTrades() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
