@@ -259,7 +259,7 @@ export default class xcoin extends xcoinRest {
             return;
         }
         const methods: Dict = {
-            'pong': this.handlePong,
+            'PONG': this.handlePong,
             'ticker24hr': this.handleTicker,
             'miniTicker': this.handleTicker,
             'trade': this.handleTrade,
@@ -323,14 +323,13 @@ export default class xcoin extends xcoinRest {
 
     handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
-        return message;
     }
 
     ping (client: Client) {
         //
         // Send ping message to keep connection alive
         //
-        return 'ping';
+        return 'PING';
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
