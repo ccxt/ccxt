@@ -33,6 +33,7 @@ func (this *ApexCore) Describe() interface{} {
 			"addMargin":                     false,
 			"borrowCrossMargin":             false,
 			"borrowIsolatedMargin":          false,
+			"borrowMargin":                  false,
 			"cancelAllOrders":               true,
 			"cancelAllOrdersAfter":          false,
 			"cancelOrder":                   true,
@@ -51,10 +52,14 @@ func (this *ApexCore) Describe() interface{} {
 			"createTriggerOrder":            true,
 			"editOrder":                     false,
 			"fetchAccounts":                 true,
+			"fetchAllGreeks":                false,
 			"fetchBalance":                  true,
 			"fetchBorrowInterest":           false,
+			"fetchBorrowRate":               false,
 			"fetchBorrowRateHistories":      false,
 			"fetchBorrowRateHistory":        false,
+			"fetchBorrowRates":              false,
+			"fetchBorrowRatesPerSymbol":     false,
 			"fetchCanceledAndClosedOrders":  false,
 			"fetchCanceledOrders":           false,
 			"fetchClosedOrders":             false,
@@ -70,6 +75,7 @@ func (this *ApexCore) Describe() interface{} {
 			"fetchFundingRate":              false,
 			"fetchFundingRateHistory":       true,
 			"fetchFundingRates":             false,
+			"fetchGreeks":                   false,
 			"fetchIndexOHLCV":               false,
 			"fetchIsolatedBorrowRate":       false,
 			"fetchIsolatedBorrowRates":      false,
@@ -88,6 +94,8 @@ func (this *ApexCore) Describe() interface{} {
 			"fetchOpenInterestHistory":      false,
 			"fetchOpenInterests":            false,
 			"fetchOpenOrders":               true,
+			"fetchOption":                   false,
+			"fetchOptionChain":              false,
 			"fetchOrder":                    true,
 			"fetchOrderBook":                true,
 			"fetchOrders":                   true,
@@ -105,6 +113,7 @@ func (this *ApexCore) Describe() interface{} {
 			"fetchTradingFees":              false,
 			"fetchTransfer":                 true,
 			"fetchTransfers":                true,
+			"fetchVolatilityHistory":        false,
 			"fetchWithdrawal":               false,
 			"fetchWithdrawals":              false,
 			"reduceMargin":                  false,
@@ -368,8 +377,8 @@ func (this *ApexCore) FetchBalance(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes3568 := (<-this.LoadMarkets())
-		PanicOnError(retRes3568)
+		retRes3658 := (<-this.LoadMarkets())
+		PanicOnError(retRes3658)
 
 		response := (<-this.PrivateGetV3AccountBalance(params))
 		PanicOnError(response)
@@ -407,8 +416,8 @@ func (this *ApexCore) FetchAccount(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes3818 := (<-this.LoadMarkets())
-		PanicOnError(retRes3818)
+		retRes3908 := (<-this.LoadMarkets())
+		PanicOnError(retRes3908)
 
 		response := (<-this.PrivateGetV3Account(params))
 		PanicOnError(response)
@@ -834,8 +843,8 @@ func (this *ApexCore) FetchTicker(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes7678 := (<-this.LoadMarkets())
-		PanicOnError(retRes7678)
+		retRes7768 := (<-this.LoadMarkets())
+		PanicOnError(retRes7768)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id2"),
@@ -872,8 +881,8 @@ func (this *ApexCore) FetchTickers(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes7888 := (<-this.LoadMarkets())
-		PanicOnError(retRes7888)
+		retRes7978 := (<-this.LoadMarkets())
+		PanicOnError(retRes7978)
 
 		response := (<-this.PublicGetV3DataAllTickerInfo(params))
 		PanicOnError(response)
@@ -913,8 +922,8 @@ func (this *ApexCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes8088 := (<-this.LoadMarkets())
-		PanicOnError(retRes8088)
+		retRes8178 := (<-this.LoadMarkets())
+		PanicOnError(retRes8178)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -981,8 +990,8 @@ func (this *ApexCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes8638 := (<-this.LoadMarkets())
-		PanicOnError(retRes8638)
+		retRes8728 := (<-this.LoadMarkets())
+		PanicOnError(retRes8728)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id2"),
@@ -1057,8 +1066,8 @@ func (this *ApexCore) FetchTrades(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes9208 := (<-this.LoadMarkets())
-		PanicOnError(retRes9208)
+		retRes9298 := (<-this.LoadMarkets())
+		PanicOnError(retRes9298)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id2"),
@@ -1156,8 +1165,8 @@ func (this *ApexCore) FetchOpenInterest(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes10038 := (<-this.LoadMarkets())
-		PanicOnError(retRes10038)
+		retRes10128 := (<-this.LoadMarkets())
+		PanicOnError(retRes10128)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id2"),
@@ -1239,8 +1248,8 @@ func (this *ApexCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-cha
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes10648 := (<-this.LoadMarkets())
-		PanicOnError(retRes10648)
+		retRes10738 := (<-this.LoadMarkets())
+		PanicOnError(retRes10738)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1425,14 +1434,14 @@ func (this *ApexCore) ParseOrderStatus(status interface{}) interface{} {
 }
 func (this *ApexCore) ParseOrderType(typeVar interface{}) interface{} {
 	var types interface{} = map[string]interface{}{
-		"LIMIT":              "LIMIT",
-		"MARKET":             "MARKET",
-		"STOP_LIMIT":         "STOP_LIMIT",
-		"STOP_MARKET":        "STOP_MARKET",
-		"TAKE_PROFIT_LIMIT":  "TAKE_PROFIT_LIMIT",
-		"TAKE_PROFIT_MARKET": "TAKE_PROFIT_MARKET",
+		"LIMIT":              "limit",
+		"MARKET":             "market",
+		"STOP_LIMIT":         "limit",
+		"STOP_MARKET":        "market",
+		"TAKE_PROFIT_LIMIT":  "limit",
+		"TAKE_PROFIT_MARKET": "market",
 	}
-	return this.SafeStringUpper(types, typeVar, typeVar)
+	return this.SafeString(types, typeVar, typeVar)
 }
 func (this *ApexCore) SafeMarket(optionalArgs ...interface{}) interface{} {
 	marketId := GetArg(optionalArgs, 0, nil)
@@ -1515,6 +1524,8 @@ func (this *ApexCore) GetAccountId() <-chan interface{} {
  * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+ * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+ * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
  * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
  * @param {bool} [params.postOnly] true or false
  * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1531,8 +1542,8 @@ func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13278 := (<-this.LoadMarkets())
-		PanicOnError(retRes13278)
+		retRes13388 := (<-this.LoadMarkets())
+		PanicOnError(retRes13388)
 		var market interface{} = this.Market(symbol)
 		var orderType interface{} = ToUpper(typeVar)
 		var orderSide interface{} = ToUpper(side)
@@ -1542,11 +1553,20 @@ func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 			orderPrice = this.PriceToPrecision(symbol, price)
 		}
 		var fees interface{} = this.SafeDict(this.Fees, "swap", map[string]interface{}{})
-		var taker interface{} = this.SafeNumber(fees, "taker", 0.0005)
-		var maker interface{} = this.SafeNumber(fees, "maker", 0.0002)
-		var limitFee interface{} = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), ToString(taker)), ToString(GetValue(GetValue(market, "precision"), "price"))), TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
+		var taker interface{} = this.SafeString(fees, "taker", "0.0005")
+		var maker interface{} = this.SafeString(fees, "maker", "0.0002")
+		var limitFee interface{} = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(GetValue(GetValue(market, "precision"), "price"))), TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
 		var timeNow interface{} = this.Milliseconds()
-		// const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+		var triggerPrice interface{} = this.SafeString(params, "triggerPrice")
+		var stopLossPrice interface{} = this.SafeString(params, "stopLossPrice")
+		var takeProfitPrice interface{} = this.SafeString(params, "takeProfitPrice")
+		if IsTrue(!IsEqual(stopLossPrice, nil)) {
+			orderType = Ternary(IsTrue((IsEqual(orderType, "MARKET"))), "STOP_MARKET", "STOP_LIMIT")
+			triggerPrice = stopLossPrice
+		} else if IsTrue(!IsEqual(takeProfitPrice, nil)) {
+			orderType = Ternary(IsTrue((IsEqual(orderType, "MARKET"))), "TAKE_PROFIT_MARKET", "TAKE_PROFIT_LIMIT")
+			triggerPrice = takeProfitPrice
+		}
 		var isMarket interface{} = IsEqual(orderType, "MARKET")
 		if IsTrue(IsTrue(isMarket) && IsTrue((IsEqual(price, nil)))) {
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument for market orders")))
@@ -1572,7 +1592,7 @@ func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 		if IsTrue(IsEqual(clientOrderId, nil)) {
 			clientOrderId = this.GenerateRandomClientIdOmni(accountId)
 		}
-		params = this.Omit(params, []interface{}{"clientId", "clientOrderId", "client_order_id"})
+		params = this.Omit(params, []interface{}{"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"})
 		var orderToSign interface{} = map[string]interface{}{
 			"accountId":    accountId,
 			"slotId":       clientOrderId,
@@ -1581,8 +1601,11 @@ func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 			"size":         orderSize,
 			"price":        orderPrice,
 			"direction":    orderSide,
-			"makerFeeRate": ToString(maker),
-			"takerFeeRate": ToString(taker),
+			"makerFeeRate": maker,
+			"takerFeeRate": taker,
+		}
+		if IsTrue(!IsEqual(triggerPrice, nil)) {
+			AddElementToObject(orderToSign, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 		}
 
 		signature := (<-this.GetZKContractSignatureObj(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
@@ -1598,6 +1621,9 @@ func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 			"timeInForce": timeInForce,
 			"clientId":    clientOrderId,
 			"brokerId":    this.SafeString(this.Options, "brokerId", "6956"),
+		}
+		if IsTrue(!IsEqual(triggerPrice, nil)) {
+			AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 		}
 		AddElementToObject(request, "signature", signature)
 
@@ -1632,8 +1658,8 @@ func (this *ApexCore) Transfer(code interface{}, amount interface{}, fromAccount
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes14098 := (<-this.LoadMarkets())
-		PanicOnError(retRes14098)
+		retRes14358 := (<-this.LoadMarkets())
+		PanicOnError(retRes14358)
 
 		configResponse := (<-this.PublicGetV3Symbols(params))
 		PanicOnError(configResponse)
@@ -1811,8 +1837,8 @@ func (this *ApexCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15588 := (<-this.LoadMarkets())
-		PanicOnError(retRes15588)
+		retRes15848 := (<-this.LoadMarkets())
+		PanicOnError(retRes15848)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1896,8 +1922,8 @@ func (this *ApexCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes16098 := (<-this.LoadMarkets())
-		PanicOnError(retRes16098)
+		retRes16358 := (<-this.LoadMarkets())
+		PanicOnError(retRes16358)
 		var request interface{} = map[string]interface{}{}
 		var clientOrderId interface{} = this.SafeStringN(params, []interface{}{"clientId", "clientOrderId", "client_order_id"})
 		var response interface{} = nil
@@ -1947,8 +1973,8 @@ func (this *ApexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16378 := (<-this.LoadMarkets())
-		PanicOnError(retRes16378)
+		retRes16638 := (<-this.LoadMarkets())
+		PanicOnError(retRes16638)
 
 		response := (<-this.PrivateGetV3OpenOrders(params))
 		PanicOnError(response)
@@ -1992,8 +2018,8 @@ func (this *ApexCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16618 := (<-this.LoadMarkets())
-		PanicOnError(retRes16618)
+		retRes16878 := (<-this.LoadMarkets())
+		PanicOnError(retRes16878)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2050,8 +2076,8 @@ func (this *ApexCore) FetchOrderTrades(id interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16988 := (<-this.LoadMarkets())
-		PanicOnError(retRes16988)
+		retRes17248 := (<-this.LoadMarkets())
+		PanicOnError(retRes17248)
 		var request interface{} = map[string]interface{}{}
 		var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "clientId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
@@ -2102,8 +2128,8 @@ func (this *ApexCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17298 := (<-this.LoadMarkets())
-		PanicOnError(retRes17298)
+		retRes17558 := (<-this.LoadMarkets())
+		PanicOnError(retRes17558)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2162,8 +2188,8 @@ func (this *ApexCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17688 := (<-this.LoadMarkets())
-		PanicOnError(retRes17688)
+		retRes17948 := (<-this.LoadMarkets())
+		PanicOnError(retRes17948)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2249,8 +2275,8 @@ func (this *ApexCore) SetLeverage(leverage interface{}, optionalArgs ...interfac
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes18378 := (<-this.LoadMarkets())
-		PanicOnError(retRes18378)
+		retRes18638 := (<-this.LoadMarkets())
+		PanicOnError(retRes18638)
 		var market interface{} = this.Market(symbol)
 		var leverageString interface{} = this.NumberToString(leverage)
 		var initialMarginRate interface{} = Precise.StringDiv("1", leverageString, 4)
@@ -2289,8 +2315,8 @@ func (this *ApexCore) FetchPositions(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes18608 := (<-this.LoadMarkets())
-		PanicOnError(retRes18608)
+		retRes18868 := (<-this.LoadMarkets())
+		PanicOnError(retRes18868)
 
 		response := (<-this.PrivateGetV3Account(params))
 		PanicOnError(response)

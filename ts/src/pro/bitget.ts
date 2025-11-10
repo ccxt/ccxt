@@ -1518,6 +1518,7 @@ export default class bitget extends bitgetRest {
      * @name bitget#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+     * @see https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
      * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
@@ -2756,7 +2757,9 @@ export default class bitget extends bitgetRest {
             delete client.subscriptions[messageHash];
         }
         const error = new UnsubscribeError (this.id + ' orderbook ' + symbol);
-        client.reject (error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject (error, subMessageHash);
+        }
         client.resolve (true, messageHash);
     }
 
@@ -2782,7 +2785,9 @@ export default class bitget extends bitgetRest {
             delete client.subscriptions[messageHash];
         }
         const error = new UnsubscribeError (this.id + ' trades ' + symbol);
-        client.reject (error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject (error, subMessageHash);
+        }
         client.resolve (true, messageHash);
     }
 
@@ -2808,7 +2813,9 @@ export default class bitget extends bitgetRest {
             delete client.subscriptions[messageHash];
         }
         const error = new UnsubscribeError (this.id + ' ticker ' + symbol);
-        client.reject (error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject (error, subMessageHash);
+        }
         client.resolve (true, messageHash);
     }
 

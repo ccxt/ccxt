@@ -370,6 +370,7 @@ public partial class coincatch : Exchange
                     { "ChilizChain", "ChilizChain" },
                     { "StellarLumens", "XLM" },
                     { "CronosChain", "CRO" },
+                    { "Optimism", "Optimism" },
                 } },
             } },
             { "features", new Dictionary<string, object>() {

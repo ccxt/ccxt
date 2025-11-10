@@ -187,6 +187,7 @@ class phemex extends Exchange {
                         'accounts/accountPositions' => 1, // ?currency=<currency>
                         'g-accounts/accountPositions' => 1, // ?currency=<currency>
                         'g-accounts/positions' => 25, // ?currency=<currency>
+                        'g-accounts/risk-unit' => 1,
                         'api-data/futures/funding-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/funding-fees' => 5, // ?symbol=<symbol>
                         'api-data/futures/orders' => 5, // ?symbol=<symbol>
@@ -3350,19 +3351,21 @@ class phemex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $request = array();
         if ($limit !== null) {
             $limit = min (200, $limit);
             $request['limit'] = $limit;
         }
-        $isUSDTSettled = ($symbol === null) || ($this->safe_string($market, 'settle') === 'USDT');
+        $isUSDTSettled = ($type !== 'spot') && (($symbol === null) || ($this->safe_string($market, 'settle') === 'USDT'));
         if ($isUSDTSettled) {
             $request['currency'] = 'USDT';
             $request['offset'] = 0;
             if ($limit === null) {
                 $request['limit'] = 200;
             }
-        } else {
+        } elseif ($symbol !== null) {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
@@ -3371,7 +3374,8 @@ class phemex extends Exchange {
         $response = null;
         if ($isUSDTSettled) {
             $response = $this->privateGetExchangeOrderV2TradingList ($this->extend($request, $params));
-        } elseif ($market['swap']) {
+        } elseif ($type === 'swap') {
+            $request['tradeType'] = 'Trade';
             $response = $this->privateGetExchangeOrderTrade ($this->extend($request, $params));
         } else {
             $response = $this->privateGetExchangeSpotOrderTrades ($this->extend($request, $params));

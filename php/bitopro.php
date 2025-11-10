@@ -1235,7 +1235,7 @@ class bitopro extends Exchange {
         return $orders;
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()): array {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): array {
         /**
          * cancel multiple orders
          *

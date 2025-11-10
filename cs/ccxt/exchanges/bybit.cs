@@ -170,7 +170,7 @@ public partial class bybit : Exchange
                 { "www", "https://www.bybit.com" },
                 { "doc", new List<object>() {"https://bybit-exchange.github.io/docs/inverse/", "https://bybit-exchange.github.io/docs/linear/", "https://github.com/bybit-exchange"} },
                 { "fees", "https://help.bybit.com/hc/en-us/articles/360039261154" },
-                { "referral", "https://www.bybit.com/register?affiliate_id=35953" },
+                { "referral", "https://www.bybit.com/invite?ref=XDK12WP" },
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
@@ -305,6 +305,7 @@ public partial class bybit : Exchange
                         { "v5/pre-upgrade/asset/settlement-record", 5 },
                         { "v5/account/wallet-balance", 1 },
                         { "v5/account/borrow-history", 1 },
+                        { "v5/account/instruments-info", 1 },
                         { "v5/account/collateral-info", 1 },
                         { "v5/asset/coin-greeks", 1 },
                         { "v5/account/fee-rate", 10 },
@@ -334,6 +335,7 @@ public partial class bybit : Exchange
                         { "v5/asset/deposit/query-address", 10 },
                         { "v5/asset/deposit/query-sub-member-address", 10 },
                         { "v5/asset/coin/query-info", 28 },
+                        { "v5/asset/withdraw/query-address", 10 },
                         { "v5/asset/withdraw/query-record", 10 },
                         { "v5/asset/withdraw/withdrawable-amount", 5 },
                         { "v5/asset/withdraw/vasp/list", 5 },
@@ -348,6 +350,10 @@ public partial class bybit : Exchange
                         { "v5/spot-lever-token/order-record", 1 },
                         { "v5/spot-margin-trade/interest-rate-history", 5 },
                         { "v5/spot-margin-trade/state", 5 },
+                        { "v5/spot-margin-trade/max-borrowable", 5 },
+                        { "v5/spot-margin-trade/position-tiers", 5 },
+                        { "v5/spot-margin-trade/coinstate", 5 },
+                        { "v5/spot-margin-trade/repayment-available-amount", 5 },
                         { "v5/spot-cross-margin-trade/loan-info", 1 },
                         { "v5/spot-cross-margin-trade/account", 1 },
                         { "v5/spot-cross-margin-trade/orders", 1 },
@@ -454,6 +460,9 @@ public partial class bybit : Exchange
                         { "v5/account/set-hedging-mode", 5 },
                         { "v5/account/mmp-modify", 5 },
                         { "v5/account/mmp-reset", 5 },
+                        { "v5/account/borrow", 5 },
+                        { "v5/account/repay", 5 },
+                        { "v5/account/no-convert-repay", 5 },
                         { "v5/asset/exchange/quote-apply", 1 },
                         { "v5/asset/exchange/convert-execute", 1 },
                         { "v5/asset/transfer/inter-transfer", 50 },
@@ -4094,7 +4103,7 @@ public partial class bybit : Exchange
      * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
      * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
      * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
-     * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+     * @param {string} [params.tpslMode] *contract only* 'Full' or 'Partial'
      * @param {string} [params.mmp] *option only* market maker protection
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -4213,25 +4222,37 @@ public partial class bybit : Exchange
             }
             if (isTrue(isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder)))
             {
+                object tpslMode = this.safeString(parameters, "tpslMode", "Partial");
+                object isFullTpsl = isEqual(tpslMode, "Full");
+                object isPartialTpsl = isEqual(tpslMode, "Partial");
+                if (isTrue(isTrue(isLimit) && isTrue(isFullTpsl)))
+                {
+                    throw new InvalidOrder ((string)add(this.id, " tpsl orders with \"full\" tpslMode only support \"market\" type")) ;
+                }
+                ((IDictionary<string,object>)request)["tpslMode"] = tpslMode;
                 if (isTrue(isStopLossTriggerOrder))
                 {
                     ((IDictionary<string,object>)request)["stopLoss"] = this.getPrice(symbol, stopLossTriggerPrice);
+                    if (isTrue(isPartialTpsl))
+                    {
+                        ((IDictionary<string,object>)request)["slSize"] = amountString;
+                    }
                     if (isTrue(isLimit))
                     {
-                        ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
                         ((IDictionary<string,object>)request)["slOrderType"] = "Limit";
                         ((IDictionary<string,object>)request)["slLimitPrice"] = priceString;
-                        ((IDictionary<string,object>)request)["slSize"] = amountString;
                     }
                 } else if (isTrue(isTakeProfitTriggerOrder))
                 {
                     ((IDictionary<string,object>)request)["takeProfit"] = this.getPrice(symbol, takeProfitTriggerPrice);
+                    if (isTrue(isPartialTpsl))
+                    {
+                        ((IDictionary<string,object>)request)["tpSize"] = amountString;
+                    }
                     if (isTrue(isLimit))
                     {
-                        ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
                         ((IDictionary<string,object>)request)["tpOrderType"] = "Limit";
                         ((IDictionary<string,object>)request)["tpLimitPrice"] = priceString;
-                        ((IDictionary<string,object>)request)["tpSize"] = amountString;
                     }
                 }
             }
@@ -4263,7 +4284,7 @@ public partial class bybit : Exchange
                 if (isTrue(!isEqual(triggerPrice, null)))
                 {
                     ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
-                } else if (isTrue(isTrue(isTrue(isTrue(!isEqual(stopLossTriggerPrice, null)) || isTrue(!isEqual(takeProfitTriggerPrice, null))) || isTrue(isStopLoss)) || isTrue(isTakeProfit)))
+                } else if (isTrue(isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder)))
                 {
                     ((IDictionary<string,object>)request)["orderFilter"] = "tpslOrder";
                 }
@@ -4291,7 +4312,8 @@ public partial class bybit : Exchange
         parameters = this.omit(parameters, "cost");
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         object isMarketBuyAndCostInferable = isTrue(isTrue((isEqual(lowerCaseType, "market"))) && isTrue((isEqual(side, "buy")))) && isTrue((isTrue((!isEqual(price, null))) || isTrue((!isEqual(cost, null)))));
-        if (isTrue(isTrue(isTrue(isTrue(getValue(market, "spot")) && isTrue((isEqual(type, "market")))) && isTrue(isUTA)) && !isTrue(isMarketBuyAndCostInferable)))
+        object isMarketOrder = isEqual(lowerCaseType, "market");
+        if (isTrue(isTrue(isTrue(isTrue(getValue(market, "spot")) && isTrue(isMarketOrder)) && isTrue(isUTA)) && !isTrue(isMarketBuyAndCostInferable)))
         {
             // UTA account can specify the cost of the order on both sides
             if (isTrue(isTrue((!isEqual(cost, null))) || isTrue((!isEqual(price, null)))))
@@ -4312,7 +4334,7 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)request)["marketUnit"] = "baseCoin";
                 ((IDictionary<string,object>)request)["qty"] = amountString;
             }
-        } else if (isTrue(isTrue(isTrue(getValue(market, "spot")) && isTrue((isEqual(type, "market")))) && isTrue((isEqual(side, "buy")))))
+        } else if (isTrue(isTrue(isTrue(getValue(market, "spot")) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
         {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
@@ -4403,6 +4425,18 @@ public partial class bybit : Exchange
                     ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
                     ((IDictionary<string,object>)request)["slOrderType"] = "Limit";
                     ((IDictionary<string,object>)request)["slLimitPrice"] = this.getPrice(symbol, slLimitPrice);
+                } else
+                {
+                    // for spot market, we need to add this
+                    if (isTrue(getValue(market, "spot")))
+                    {
+                        ((IDictionary<string,object>)request)["slOrderType"] = "Market";
+                    }
+                }
+                // for spot market, we need to add this
+                if (isTrue(isTrue(getValue(market, "spot")) && isTrue(isMarketOrder)))
+                {
+                    throw new InvalidOrder ((string)add(this.id, " createOrder(): attached stopLoss is not supported for spot market orders")) ;
                 }
             }
             if (isTrue(isTakeProfit))
@@ -4415,6 +4449,18 @@ public partial class bybit : Exchange
                     ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
                     ((IDictionary<string,object>)request)["tpOrderType"] = "Limit";
                     ((IDictionary<string,object>)request)["tpLimitPrice"] = this.getPrice(symbol, tpLimitPrice);
+                } else
+                {
+                    // for spot market, we need to add this
+                    if (isTrue(getValue(market, "spot")))
+                    {
+                        ((IDictionary<string,object>)request)["tpOrderType"] = "Market";
+                    }
+                }
+                // for spot market, we need to add this
+                if (isTrue(isTrue(getValue(market, "spot")) && isTrue(isMarketOrder)))
+                {
+                    throw new InvalidOrder ((string)add(this.id, " createOrder(): attached takeProfit is not supported for spot market orders")) ;
                 }
             }
         }
@@ -4427,7 +4473,7 @@ public partial class bybit : Exchange
             }
             ((IDictionary<string,object>)request)["positionIdx"] = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 2;
         }
-        parameters = this.omit(parameters, new List<object>() {"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"});
+        parameters = this.omit(parameters, new List<object>() {"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged", "tpslMode"});
         return this.extend(request, parameters);
     }
 
@@ -7056,7 +7102,7 @@ public partial class bybit : Exchange
         }
         object notional = this.safeString2(position, "positionValue", "cumExitValue");
         object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
-        object initialMarginString = this.safeStringN(position, new List<object>() {"positionIM", "cumEntryValue"});
+        object initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         object maintenanceMarginString = this.safeString(position, "positionMM");
         object timestamp = this.safeIntegerN(position, new List<object>() {"createdTime", "createdAt"});
         object lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
@@ -7099,7 +7145,7 @@ public partial class bybit : Exchange
                     object maintenanceMarginPriceDifference = Precise.stringAbs(Precise.stringSub(liquidationPrice, bustPrice));
                     maintenanceMarginString = Precise.stringMul(maintenanceMarginPriceDifference, size);
                     // Initial Margin = Contracts x Entry Price / Leverage
-                    if (isTrue(!isEqual(entryPrice, null)))
+                    if (isTrue(isTrue((!isEqual(entryPrice, null))) && isTrue((isEqual(initialMarginString, null)))))
                     {
                         initialMarginString = Precise.stringDiv(Precise.stringMul(size, entryPrice), leverage);
                     }
@@ -7113,7 +7159,7 @@ public partial class bybit : Exchange
                     object multiply = Precise.stringMul(bustPrice, liquidationPrice);
                     maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
-                    if (isTrue(!isEqual(entryPrice, null)))
+                    if (isTrue(isTrue((!isEqual(entryPrice, null))) && isTrue((isEqual(initialMarginString, null)))))
                     {
                         initialMarginString = Precise.stringDiv(size, Precise.stringMul(entryPrice, leverage));
                     }

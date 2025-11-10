@@ -184,7 +184,7 @@ class bybit extends bybit$1["default"] {
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
+                'referral': 'https://www.bybit.com/invite?ref=XDK12WP',
             },
             'api': {
                 'public': {
@@ -338,6 +338,7 @@ class bybit extends bybit$1["default"] {
                         // account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
+                        'v5/account/instruments-info': 1,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,
@@ -368,6 +369,7 @@ class bybit extends bybit$1["default"] {
                         'v5/asset/deposit/query-address': 10,
                         'v5/asset/deposit/query-sub-member-address': 10,
                         'v5/asset/coin/query-info': 28,
+                        'v5/asset/withdraw/query-address': 10,
                         'v5/asset/withdraw/query-record': 10,
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         'v5/asset/withdraw/vasp/list': 5,
@@ -386,6 +388,10 @@ class bybit extends bybit$1["default"] {
                         // spot margin trade
                         'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
+                        'v5/spot-margin-trade/max-borrowable': 5,
+                        'v5/spot-margin-trade/position-tiers': 5,
+                        'v5/spot-margin-trade/coinstate': 5,
+                        'v5/spot-margin-trade/repayment-available-amount': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1,
                         'v5/spot-cross-margin-trade/account': 1,
                         'v5/spot-cross-margin-trade/orders': 1,
@@ -506,6 +512,9 @@ class bybit extends bybit$1["default"] {
                         'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
+                        'v5/account/borrow': 5,
+                        'v5/account/repay': 5,
+                        'v5/account/no-convert-repay': 5,
                         // asset
                         'v5/asset/exchange/quote-apply': 1,
                         'v5/asset/exchange/convert-execute': 1,
@@ -3940,7 +3949,7 @@ class bybit extends bybit$1["default"] {
      * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
      * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
      * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
-     * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+     * @param {string} [params.tpslMode] *contract only* 'Full' or 'Partial'
      * @param {string} [params.mmp] *option only* market maker protection
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -4064,22 +4073,31 @@ class bybit extends bybit$1["default"] {
                 throw new errors.InvalidOrder(this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                const tpslMode = this.safeString(params, 'tpslMode', 'Partial');
+                const isFullTpsl = tpslMode === 'Full';
+                const isPartialTpsl = tpslMode === 'Partial';
+                if (isLimit && isFullTpsl) {
+                    throw new errors.InvalidOrder(this.id + ' tpsl orders with "full" tpslMode only support "market" type');
+                }
+                request['tpslMode'] = tpslMode;
                 if (isStopLossTriggerOrder) {
                     request['stopLoss'] = this.getPrice(symbol, stopLossTriggerPrice);
+                    if (isPartialTpsl) {
+                        request['slSize'] = amountString;
+                    }
                     if (isLimit) {
-                        request['tpslMode'] = 'Partial';
                         request['slOrderType'] = 'Limit';
                         request['slLimitPrice'] = priceString;
-                        request['slSize'] = amountString;
                     }
                 }
                 else if (isTakeProfitTriggerOrder) {
                     request['takeProfit'] = this.getPrice(symbol, takeProfitTriggerPrice);
+                    if (isPartialTpsl) {
+                        request['tpSize'] = amountString;
+                    }
                     if (isLimit) {
-                        request['tpslMode'] = 'Partial';
                         request['tpOrderType'] = 'Limit';
                         request['tpLimitPrice'] = priceString;
-                        request['tpSize'] = amountString;
                     }
                 }
             }
@@ -4107,7 +4125,7 @@ class bybit extends bybit$1["default"] {
                 if (triggerPrice !== undefined) {
                     request['orderFilter'] = 'StopOrder';
                 }
-                else if (stopLossTriggerPrice !== undefined || takeProfitTriggerPrice !== undefined || isStopLoss || isTakeProfit) {
+                else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                     request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4130,7 +4148,8 @@ class bybit extends bybit$1["default"] {
         params = this.omit(params, 'cost');
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
-        if (market['spot'] && (type === 'market') && isUTA && !isMarketBuyAndCostInferable) {
+        const isMarketOrder = lowerCaseType === 'market';
+        if (market['spot'] && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
             // UTA account can specify the cost of the order on both sides
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
@@ -4149,7 +4168,7 @@ class bybit extends bybit$1["default"] {
                 request['qty'] = amountString;
             }
         }
-        else if (market['spot'] && (type === 'market') && (side === 'buy')) {
+        else if (market['spot'] && isMarketOrder && (side === 'buy')) {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
@@ -4225,6 +4244,16 @@ class bybit extends bybit$1["default"] {
                     request['slOrderType'] = 'Limit';
                     request['slLimitPrice'] = this.getPrice(symbol, slLimitPrice);
                 }
+                else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['slOrderType'] = 'Market';
+                    }
+                }
+                // for spot market, we need to add this
+                if (market['spot'] && isMarketOrder) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder(): attached stopLoss is not supported for spot market orders');
+                }
             }
             if (isTakeProfit) {
                 const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
@@ -4235,6 +4264,16 @@ class bybit extends bybit$1["default"] {
                     request['tpOrderType'] = 'Limit';
                     request['tpLimitPrice'] = this.getPrice(symbol, tpLimitPrice);
                 }
+                else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['tpOrderType'] = 'Market';
+                    }
+                }
+                // for spot market, we need to add this
+                if (market['spot'] && isMarketOrder) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder(): attached takeProfit is not supported for spot market orders');
+                }
             }
         }
         if (!market['spot'] && hedged) {
@@ -4244,7 +4283,7 @@ class bybit extends bybit$1["default"] {
             }
             request['positionIdx'] = (side === 'buy') ? 1 : 2;
         }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged']);
+        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged', 'tpslMode']);
         return this.extend(request, params);
     }
     /**
@@ -6629,7 +6668,7 @@ class bybit extends bybit$1["default"] {
         }
         const notional = this.safeString2(position, 'positionValue', 'cumExitValue');
         const unrealisedPnl = this.omitZero(this.safeString(position, 'unrealisedPnl'));
-        let initialMarginString = this.safeStringN(position, ['positionIM', 'cumEntryValue']);
+        let initialMarginString = this.safeString2(position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString(position, 'positionMM');
         const timestamp = this.safeIntegerN(position, ['createdTime', 'createdAt']);
         let lastUpdateTimestamp = this.parse8601(this.safeString(position, 'updated_at'));
@@ -6666,7 +6705,7 @@ class bybit extends bybit$1["default"] {
                     const maintenanceMarginPriceDifference = Precise["default"].stringAbs(Precise["default"].stringSub(liquidationPrice, bustPrice));
                     maintenanceMarginString = Precise["default"].stringMul(maintenanceMarginPriceDifference, size);
                     // Initial Margin = Contracts x Entry Price / Leverage
-                    if (entryPrice !== undefined) {
+                    if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise["default"].stringDiv(Precise["default"].stringMul(size, entryPrice), leverage);
                     }
                 }
@@ -6679,7 +6718,7 @@ class bybit extends bybit$1["default"] {
                     const multiply = Precise["default"].stringMul(bustPrice, liquidationPrice);
                     maintenanceMarginString = Precise["default"].stringDiv(Precise["default"].stringMul(size, difference), multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
-                    if (entryPrice !== undefined) {
+                    if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise["default"].stringDiv(size, Precise["default"].stringMul(entryPrice, leverage));
                     }
                 }

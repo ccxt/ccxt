@@ -89,7 +89,7 @@ class bitget extends Exchange {
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingInterval' => true,
-                'fetchFundingIntervals' => false,
+                'fetchFundingIntervals' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -1406,6 +1406,7 @@ class bitget extends Exchange {
             'commonCurrencies' => array(
                 'APX' => 'AstroPepeX',
                 'DEGEN' => 'DegenReborn',
+                'EVA' => 'Evadore', // conflict with EverValue Coin
                 'JADE' => 'Jade Protocol',
                 'OMNI' => 'omni', // conflict with Omni Network
                 'TONCOIN' => 'TON',
@@ -1786,8 +1787,20 @@ class bitget extends Exchange {
         ));
     }
 
-    public function set_sandbox_mode($enabled) {
+    public function set_sandbox_mode(bool $enabled) {
+        /**
+         * enables or disables demo trading mode, if $enabled will send PAPTRADING=1 in headers
+         * @param $enabled
+         */
         $this->options['sandboxMode'] = $enabled;
+    }
+
+    public function enable_demo_trading(bool $enabled) {
+        /**
+         * enables or disables demo trading mode, if $enabled will send PAPTRADING=1 in headers
+         * @param $enabled
+         */
+        $this->set_sandbox_mode($enabled);
     }
 
     public function handle_product_type_and_params($market = null, $params = array ()) {
@@ -2444,15 +2457,26 @@ class bitget extends Exchange {
             $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
             for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
-                $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
+                $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
                 $code = $this->safe_currency_code($id);
                 $chains = $this->safe_value($entry, 'chains', array());
                 $networks = array();
-                for ($j = 0; $j < count($chains); $j++) {
+                $withdraw = null;
+                $deposit = null;
+                $chainsLength = count($chains);
+                if ($chainsLength === 0) {
+                    $withdraw = false;
+                    $deposit = false;
+                }
+                for ($j = 0; $j < $chainsLength; $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
                     $network = $this->network_id_to_code($networkId, $code);
                     $network = strtoupper($network);
+                    $withdrawable = ($this->safe_string($chain, 'withdrawable') === 'true');
+                    $rechargeable = ($this->safe_string($chain, 'rechargeable') === 'true');
+                    $withdraw = ($withdraw === null) ? $withdrawable : ($withdraw || $withdrawable);
+                    $deposit = ($deposit === null) ? $rechargeable : ($deposit || $rechargeable);
                     $networks[$network] = array(
                         'info' => $chain,
                         'id' => $networkId,
@@ -2468,12 +2492,13 @@ class bitget extends Exchange {
                             ),
                         ),
                         'active' => null,
-                        'withdraw' => $this->safe_string($chain, 'withdrawable') === 'true',
-                        'deposit' => $this->safe_string($chain, 'rechargeable') === 'true',
+                        'withdraw' => $withdrawable,
+                        'deposit' => $rechargeable,
                         'fee' => $this->safe_number($chain, 'withdrawFee'),
                         'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawMinScale'))),
                     );
                 }
+                $active = $withdraw && $deposit;
                 $isFiat = $this->in_array($code, $fiatCurrencies);
                 $result[$code] = $this->safe_currency_structure(array(
                     'info' => $entry,
@@ -2482,9 +2507,9 @@ class bitget extends Exchange {
                     'networks' => $networks,
                     'type' => $isFiat ? 'fiat' : 'crypto',
                     'name' => null,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
+                    'active' => $active,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
                     'fee' => null,
                     'precision' => null,
                     'limits' => array(
@@ -6014,7 +6039,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple $orders
@@ -7933,7 +7958,10 @@ class bitget extends Exchange {
             $market = null;
             if ($symbols !== null) {
                 $first = $this->safe_string($symbols, 0);
-                $market = $this->market($first);
+                // $symbols can be null or array()
+                if ($first !== null) {
+                    $market = $this->market($first);
+                }
             }
             $productType = null;
             list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -7947,7 +7975,7 @@ class bitget extends Exchange {
                 $response = Async\await($this->privateUtaGetV3PositionCurrentPosition ($this->extend($request, $params)));
             } elseif ($method === 'privateMixGetV2MixPositionAllPosition') {
                 $marginCoin = $this->safe_string($params, 'marginCoin', 'USDT');
-                if ($symbols !== null) {
+                if ($market !== null) {
                     $marginCoin = $market['settleId'];
                 } elseif ($productType === 'USDT-FUTURES') {
                     $marginCoin = 'USDT';
@@ -8518,6 +8546,7 @@ class bitget extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
              * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+             * @param {string} [$params->method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
              */
             Async\await($this->load_markets());
@@ -8529,43 +8558,85 @@ class bitget extends Exchange {
             $request = array();
             $productType = null;
             list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+            $method = 'publicMixGetV2MixMarketTickers';
+            list($method, $params) = $this->handle_option_and_params($params, 'fetchFundingRates', 'method', $method);
+            $response = null;
             $request['productType'] = $productType;
-            $response = Async\await($this->publicMixGetV2MixMarketTickers ($this->extend($request, $params)));
-            // {
-            //     "code" => "00000",
-            //     "msg" => "success",
-            //     "requestTime" => 1700533773477,
-            //     "data" => array(
-            //         array(
-            //             "symbol" => "BTCUSD",
-            //             "lastPr" => "29904.5",
-            //             "askPr" => "29904.5",
-            //             "bidPr" => "29903.5",
-            //             "bidSz" => "0.5091",
-            //             "askSz" => "2.2694",
-            //             "high24h" => "0",
-            //             "low24h" => "0",
-            //             "ts" => "1695794271400",
-            //             "change24h" => "0",
-            //             "baseVolume" => "0",
-            //             "quoteVolume" => "0",
-            //             "usdtVolume" => "0",
-            //             "openUtc" => "0",
-            //             "changeUtc24h" => "0",
-            //             "indexPrice" => "29132.353333",
-            //             "fundingRate" => "-0.0007",
-            //             "holdingAmount" => "125.6844",
-            //             "deliveryStartTime" => null,
-            //             "deliveryTime" => null,
-            //             "deliveryStatus" => "delivery_normal",
-            //             "open24h" => "0",
-            //             "markPrice" => "12345"
-            //         ),
-            //     )
-            // }
+            if ($method === 'publicMixGetV2MixMarketTickers') {
+                // {
+                //     "code" => "00000",
+                //     "msg" => "success",
+                //     "requestTime" => 1700533773477,
+                //     "data" => array(
+                //         array(
+                //             "symbol" => "BTCUSD",
+                //             "lastPr" => "29904.5",
+                //             "askPr" => "29904.5",
+                //             "bidPr" => "29903.5",
+                //             "bidSz" => "0.5091",
+                //             "askSz" => "2.2694",
+                //             "high24h" => "0",
+                //             "low24h" => "0",
+                //             "ts" => "1695794271400",
+                //             "change24h" => "0",
+                //             "baseVolume" => "0",
+                //             "quoteVolume" => "0",
+                //             "usdtVolume" => "0",
+                //             "openUtc" => "0",
+                //             "changeUtc24h" => "0",
+                //             "indexPrice" => "29132.353333",
+                //             "fundingRate" => "-0.0007",
+                //             "holdingAmount" => "125.6844",
+                //             "deliveryStartTime" => null,
+                //             "deliveryTime" => null,
+                //             "deliveryStatus" => "delivery_normal",
+                //             "open24h" => "0",
+                //             "markPrice" => "12345"
+                //         ),
+                //     )
+                // }
+                $response = Async\await($this->publicMixGetV2MixMarketTickers ($this->extend($request, $params)));
+            } elseif ($method === 'publicMixGetV2MixMarketCurrentFundRate') {
+                //
+                //     {
+                //         "code" => "00000",
+                //         "msg" => "success",
+                //         "requestTime":1761659449917,
+                //         "data":array(
+                //             {
+                //                 "symbol" => "BTCUSDT",
+                //                 "fundingRate" => "-0.000024",
+                //                 "fundingRateInterval" => "8",
+                //                 "nextUpdate" => "1761667200000",
+                //                 "minFundingRate" => "-0.003",
+                //                 "maxFundingRate" => "0.003"
+                //             }
+                //         )
+                //     }
+                //
+                $response = Async\await($this->publicMixGetV2MixMarketCurrentFundRate ($this->extend($request, $params)));
+            }
             $symbols = $this->market_symbols($symbols);
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_funding_rates($data, $symbols);
+        }) ();
+    }
+
+    public function fetch_funding_intervals(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch the funding rate interval for multiple markets
+             *
+             * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+             *
+             * @param {string[]} [$symbols] list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+             */
+            Async\await($this->load_markets());
+            $params = $this->extend(array( 'method' => 'publicMixGetV2MixMarketCurrentFundRate' ), $params);
+            return Async\await($this->fetch_funding_rates($symbols, $params));
         }) ();
     }
 

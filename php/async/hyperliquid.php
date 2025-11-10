@@ -225,6 +225,20 @@ class hyperliquid extends Exchange {
                 'sandboxMode' => false,
                 'defaultSlippage' => 0.05,
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
+                'spotCurrencyMapping' => array(
+                    'UDZ' => '2Z',
+                    'UBONK' => 'BONK',
+                    'UBTC' => 'BTC',
+                    'UETH' => 'ETH',
+                    'UFART' => 'FARTCOIN',
+                    'HPENGU' => 'PENGU',
+                    'UPUMP' => 'PUMP',
+                    'USOL' => 'SOL',
+                    'UUUSPX' => 'SPX',
+                    'USDT0' => 'USDT',
+                    'XAUT0' => 'XAUT',
+                    'UXPL' => 'XPL',
+                ),
             ),
             'features' => array(
                 'default' => array(
@@ -342,6 +356,57 @@ class hyperliquid extends Exchange {
         $this->options['sandboxMode'] = $enabled;
     }
 
+    public function market(string $symbol): array {
+        if ($this->markets === null) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
+        if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+            $market = $this->markets[$symbol];
+            if ($market['spot']) {
+                $baseName = $this->safe_string($market, 'baseName');
+                $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+                if (is_array($spotCurrencyMapping) && array_key_exists($baseName, $spotCurrencyMapping)) {
+                    $unifiedBaseName = $this->safe_string($spotCurrencyMapping, $baseName);
+                    $quote = $this->safe_string($market, 'quote');
+                    $newSymbol = $this->safe_currency_code($unifiedBaseName) . '/' . $quote;
+                    if (is_array($this->markets) && array_key_exists($newSymbol, $this->markets)) {
+                        return $this->markets[$newSymbol];
+                    }
+                }
+            }
+        }
+        $res = parent::market($symbol);
+        return $res;
+    }
+
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
+        if ($marketId !== null) {
+            if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+                $markets = $this->markets_by_id[$marketId];
+                $numMarkets = count($markets);
+                if ($numMarkets === 1) {
+                    return $markets[0];
+                } else {
+                    if ($numMarkets > 2) {
+                        throw new ExchangeError($this->id . ' safeMarket() found more than two $markets with the same $market id ' . $marketId);
+                    }
+                    $firstMarket = $markets[0];
+                    $secondMarket = $markets[1];
+                    if ($this->safe_string($firstMarket, 'type') !== $this->safe_string($secondMarket, 'type')) {
+                        throw new ExchangeError($this->id . ' safeMarket() found two different $market types with the same $market id ' . $marketId);
+                    }
+                    $baseCurrency = $this->safe_string($firstMarket, 'base');
+                    $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+                    if (is_array($spotCurrencyMapping) && array_key_exists($baseCurrency, $spotCurrencyMapping)) {
+                        return $secondMarket;
+                    }
+                    return $firstMarket;
+                }
+            }
+        }
+        return parent::safe_market($marketId, $market, $delimiter, $marketType);
+    }
+
     public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -353,7 +418,7 @@ class hyperliquid extends Exchange {
              * @return {array} an associative dictionary of currencies
              */
             if ($this->check_required_credentials(false)) {
-                Async\await($this->handle_builder_fee_approval());
+                Async\await($this->initialize_client());
             }
             $request = array(
                 'type' => 'meta',
@@ -622,9 +687,13 @@ class hyperliquid extends Exchange {
                 $quoteTokenInfo = $this->safe_dict($tokens, $quoteTokenPos, array());
                 $baseName = $this->safe_string($baseTokenInfo, 'name');
                 $quoteId = $this->safe_string($quoteTokenInfo, 'name');
-                $base = $this->safe_currency_code($baseName);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
+                // do spot currency mapping
+                $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+                $mappedBaseName = $this->safe_string($spotCurrencyMapping, $baseName, $baseName);
+                $mappedQuoteId = $this->safe_string($spotCurrencyMapping, $quoteId, $quoteId);
+                $mappedBase = $this->safe_currency_code($mappedBaseName);
+                $mappedQuote = $this->safe_currency_code($mappedQuoteId);
+                $mappedSymbol = $mappedBase . '/' . $mappedQuote;
                 $innerBaseTokenInfo = $this->safe_dict($baseTokenInfo, 'spec', $baseTokenInfo);
                 // $innerQuoteTokenInfo = $this->safe_dict($quoteTokenInfo, 'spec', $quoteTokenInfo);
                 $amountPrecisionStr = $this->safe_string($innerBaseTokenInfo, 'szDecimals');
@@ -637,11 +706,11 @@ class hyperliquid extends Exchange {
                 $pricePrecisionStr = $this->number_to_string($pricePrecision);
                 // $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($innerQuoteTokenInfo, 'szDecimals')));
                 $baseId = $this->number_to_string($index + 10000);
-                $markets[] = $this->safe_market_structure(array(
+                $entry = array(
                     'id' => $marketName,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
+                    'symbol' => $mappedSymbol,
+                    'base' => $mappedBase,
+                    'quote' => $mappedQuote,
                     'settle' => null,
                     'baseId' => $baseId,
                     'baseName' => $baseName,
@@ -689,7 +758,20 @@ class hyperliquid extends Exchange {
                     ),
                     'created' => null,
                     'info' => $this->extend($extraData, $market),
-                ));
+                );
+                $markets[] = $this->safe_market_structure($entry);
+                // backward support
+                $base = $this->safe_currency_code($baseName);
+                $quote = $this->safe_currency_code($quoteId);
+                $newEntry = $this->extend(array(), $entry);
+                $symbol = $base . '/' . $quote;
+                if ($symbol !== $mappedSymbol) {
+                    $newEntry['symbol'] = $symbol;
+                    $newEntry['base'] = $base;
+                    $newEntry['quote'] = $quote;
+                    $newEntry['baseName'] = $baseName;
+                    $markets[] = $this->safe_market_structure($newEntry);
+                }
             }
             return $markets;
         }) ();
@@ -1154,6 +1236,9 @@ class hyperliquid extends Exchange {
                     // optimization if $limit is provided
                     $timeframeInMilliseconds = $this->parse_timeframe($timeframe) * 1000;
                     $since = $this->sum($until, $timeframeInMilliseconds * $limit * -1);
+                    if ($since < 0) {
+                        $since = 0;
+                    }
                     $useTail = false;
                 } else {
                     $since = 0;
@@ -1438,6 +1523,34 @@ class hyperliquid extends Exchange {
         return $this->sign_user_signed_action($messageTypes, $message);
     }
 
+    public function set_ref() {
+        return Async\async(function ()  {
+            if ($this->safe_bool($this->options, 'refSet', false)) {
+                return true;
+            }
+            $this->options['refSet'] = true;
+            $action = array(
+                'type' => 'setReferrer',
+                'code' => $this->safe_string($this->options, 'ref', 'CCXT1'),
+            );
+            $nonce = $this->milliseconds();
+            $signature = $this->sign_l1_action($action, $nonce);
+            $request = array(
+                'action' => $action,
+                'nonce' => $nonce,
+                'signature' => $signature,
+            );
+            $response = null;
+            try {
+                $response = Async\await($this->privatePostExchange ($request));
+                return $response;
+            } catch (Exception $e) {
+                $response = null; // ignore this
+            }
+            return $response;
+        }) ();
+    }
+
     public function approve_builder_fee(string $builder, string $maxFeeRate) {
         return Async\async(function () use ($builder, $maxFeeRate) {
             $nonce = $this->milliseconds();
@@ -1472,6 +1585,17 @@ class hyperliquid extends Exchange {
             // }
             //
             return Async\await($this->privatePostExchange ($request));
+        }) ();
+    }
+
+    public function initialize_client() {
+        return Async\async(function ()  {
+            try {
+                Async\await(Promise\all(array( $this->handle_builder_fee_approval(), $this->set_ref() )));
+            } catch (Exception $e) {
+                return false;
+            }
+            return true;
         }) ();
     }
 
@@ -1532,14 +1656,14 @@ class hyperliquid extends Exchange {
             /**
              * create a list of trade $orders
              *
-             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-$order
              *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
-            Async\await($this->handle_builder_fee_approval());
+            Async\await($this->initialize_client());
             $request = $this->create_orders_request($orders, $params);
             $response = Async\await($this->privatePostExchange ($request));
             //
@@ -1562,7 +1686,16 @@ class hyperliquid extends Exchange {
             $responseObj = $this->safe_dict($response, 'response', array());
             $data = $this->safe_dict($responseObj, 'data', array());
             $statuses = $this->safe_list($data, 'statuses', array());
-            return $this->parse_orders($statuses, null);
+            $ordersToBeParsed = array();
+            for ($i = 0; $i < count($statuses); $i++) {
+                $order = $statuses[$i];
+                if ($order === 'waitingForTrigger') {
+                    $ordersToBeParsed[] = array( 'status' => $order ); // tp/sl $orders can return a string like "waitingForTrigger",
+                } else {
+                    $ordersToBeParsed[] = $order;
+                }
+            }
+            return $this->parse_orders($ordersToBeParsed, null);
         }) ();
     }
 
@@ -1686,10 +1819,10 @@ class hyperliquid extends Exchange {
             if ($isTrigger) {
                 // $grouping opposed $orders for sl/tp
                 $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
-                $stopLossOrderType = $this->safe_string($stopLoss, 'type');
+                $stopLossOrderType = $this->safe_string($stopLoss, 'type', 'limit');
                 $stopLossOrderLimitPrice = $this->safe_string_n($stopLoss, array( 'price', 'stopLossPrice' ), $stopLossOrderTriggerPrice);
                 $takeProfitOrderTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
-                $takeProfitOrderType = $this->safe_string($takeProfit, 'type');
+                $takeProfitOrderType = $this->safe_string($takeProfit, 'type', 'limit');
                 $takeProfitOrderLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
                 $grouping = 'normalTpsl';
                 $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
@@ -1783,6 +1916,7 @@ class hyperliquid extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
+            Async\await($this->initialize_client());
             $request = $this->cancel_orders_request($ids, $symbol, $params);
             $response = Async\await($this->privatePostExchange ($request));
             //
@@ -1887,6 +2021,7 @@ class hyperliquid extends Exchange {
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
+            Async\await($this->initialize_client());
             $nonce = $this->milliseconds();
             $request = array(
                 'nonce' => $nonce,
@@ -1962,6 +2097,7 @@ class hyperliquid extends Exchange {
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
+            Async\await($this->initialize_client());
             $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
             $nonce = $this->milliseconds();
             $request = array(
@@ -2159,6 +2295,7 @@ class hyperliquid extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            Async\await($this->initialize_client());
             $request = $this->edit_orders_request($orders, $params);
             $response = Async\await($this->privatePostExchange ($request));
             //
@@ -2959,8 +3096,14 @@ class hyperliquid extends Exchange {
         }
         $rawUnrealizedPnl = $this->safe_string($entry, 'unrealizedPnl');
         $absRawUnrealizedPnl = Precise::string_abs($rawUnrealizedPnl);
-        $initialMargin = $this->safe_string($entry, 'marginUsed');
-        $percentage = Precise::string_mul(Precise::string_div($absRawUnrealizedPnl, $initialMargin), '100');
+        $marginUsed = $this->safe_string($entry, 'marginUsed');
+        $initialMargin = null;
+        if ($isIsolated) {
+            $initialMargin = Precise::string_sub($marginUsed, $rawUnrealizedPnl);
+        } else {
+            $initialMargin = $marginUsed;
+        }
+        $percentage = Precise::string_mul(Precise::string_div($absRawUnrealizedPnl, $marginUsed), '100');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2976,7 +3119,7 @@ class hyperliquid extends Exchange {
             'markPrice' => null,
             'notional' => $this->safe_number($entry, 'positionValue'),
             'leverage' => $this->safe_number($leverage, 'value'),
-            'collateral' => $this->safe_number($entry, 'marginUsed'),
+            'collateral' => $this->parse_number($marginUsed),
             'initialMargin' => $this->parse_number($initialMargin),
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,

@@ -12,6 +12,46 @@
         "leverageBrackets":{"BTC/USDT:USDT":[["0","0.004"],["50000","0.005"],["250000","0.01"],["3000000","0.025"],["20000000","0.05"],["40000000","0.1"],["100000000","0.125"],["120000000","0.15"],["200000000","0.25"],["300000000","0.5"]],"ETH/USDT:USDT":[["0","0.005"],["100000","0.0065"],["250000","0.01"],["2000000","0.02"],["15000000","0.05"],["30000000","0.1"],["60000000","0.125"],["80000000","0.15"],["100000000","0.25"],["150000000","0.5"]],"LTC/USDT:USDT":[["0","0.0065"],["10000","0.01"],["50000","0.02"],["250000","0.05"],["1000000","0.1"],["2000000","0.125"],["5000000","0.15"],["10000000","0.25"]],"ADA/USDT:USDT":[["0","0.0065"],["10000","0.01"],["50000","0.02"],["250000","0.05"],["1000000","0.1"],["2000000","0.125"],["5000000","0.15"],["10000000","0.25"]],"BTC/USD:BTC":[["0","0.004"],["5","0.005"],["10","0.01"],["20","0.025"],["50","0.05"],["100","0.1"],["200","0.125"],["400","0.15"],["1000","0.25"],["1500","0.5"]]}
     },
     "methods": {
+        "cancelOrderWithClientOrderId": [
+            {
+                "description": "cancel order with clientOrderId",
+                "method": "cancelOrderWithClientOrderId",
+                "url": "https://demo-fapi.binance.com/fapi/v1/order?timestamp=1762259428215&symbol=LTCUSDT&origClientOrderId=myid123&recvWindow=10000&signature=daf4d5fb32379b627965552800d412f40252494e7bd40bafab3cef56435378a5",
+                "input": [
+                    "myid123",
+                    "LTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "editOrderWithClientOrderId": [
+            {
+                "description": "edit  order with clientOrderId",
+                "method": "editOrderWithClientOrderId",
+                "url": "https://demo-fapi.binance.com/fapi/v1/order",
+                "input": [
+                    "myid123",
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    55
+                ],
+                "output": "timestamp=1762259388167&symbol=LTCUSDT&side=BUY&orderId=&quantity=0.2&price=55&origClientOrderId=myid123&clientOrderId=myid123&recvWindow=10000&signature=e8aba7b4fca2658e23f74d60acb374cb2691155b531c2f01b978545502bb81c3"
+            }
+        ],
+        "fetchOrderWithClientOrderId": [
+            {
+                "description": "fetch order with clientOrderId",
+                "method": "fetchOrderWithClientOrderId",
+                "url": "https://demo-fapi.binance.com/fapi/v1/order?timestamp=1762259346959&symbol=LTCUSDT&origClientOrderId=myid123&recvWindow=10000&signature=220e2d45dbeeae63cd2474359959e3917f902744db78bb7c9efd0db8880b6ffc",
+                "input": [
+                    "myid123",
+                    "LTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot +selfTradePrevention +iceberg",
@@ -2725,6 +2765,18 @@
         ],
         "fetchAccountPositions": [
             {
+                "description": "fetch accountPositions using v2",
+                "method": "fetchAccountPositions",
+                "url": "https://papi.binance.com/papi/v2/um/account?timestamp=1761645071513&recvWindow=10000&signature=36c55ff1cbc7609dc42073c7c4b53be76503ef5f777e7a640bd9750f81f46ec0",
+                "input": [
+                    null,
+                    {
+                        "papi": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch Account Positions - linear",
                 "method": "fetchAccountPositions",
                 "url": "https://fapi.binance.com/fapi/v3/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
@@ -2761,7 +2813,7 @@
             {
                 "description": "Linear portfolio margin fetch account positions",
                 "method": "fetchAccountPositions",
-                "url": "https://papi.binance.com/papi/v1/um/account?timestamp=1707464139103&recvWindow=10000&signature=2d245f910f1fe4d4a5481bdfe529e9e1815cea7085e6dc4e1d7640e4e9d5bb12",
+                "url": "https://papi.binance.com/papi/v2/um/account?timestamp=1707464139103&recvWindow=10000&signature=2d245f910f1fe4d4a5481bdfe529e9e1815cea7085e6dc4e1d7640e4e9d5bb12",
                 "input": [
                     null,
                     {

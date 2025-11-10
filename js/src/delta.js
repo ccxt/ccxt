@@ -68,6 +68,7 @@ export default class delta extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOption': true,
                 'fetchOptionChain': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
@@ -146,6 +147,8 @@ export default class delta extends Exchange {
                 'private': {
                     'get': [
                         'orders',
+                        'orders/{order_id}',
+                        'orders/client_order_id/{client_oid}',
                         'products/{product_id}/orders/leverage',
                         'positions/margined',
                         'positions',
@@ -159,8 +162,8 @@ export default class delta extends Exchange {
                         'users/trading_preferences',
                         'sub_accounts',
                         'profile',
+                        'heartbeat',
                         'deposits/address',
-                        'orders/leverage',
                     ],
                     'post': [
                         'orders',
@@ -170,6 +173,8 @@ export default class delta extends Exchange {
                         'positions/change_margin',
                         'positions/close_all',
                         'wallets/sub_account_balance_transfer',
+                        'heartbeat/create',
+                        'heartbeat',
                         'orders/cancel_after',
                         'orders/leverage',
                     ],
@@ -1886,9 +1891,40 @@ export default class delta extends Exchange {
         //         "user_id":22142
         //     }
         //
+        // fetchOrder
+        //
+        //     {
+        //         "id": 123,
+        //         "user_id": 453671,
+        //         "size": 10,
+        //         "unfilled_size": 2,
+        //         "side": "buy",
+        //         "order_type": "limit_order",
+        //         "limit_price": "59000",
+        //         "stop_order_type": "stop_loss_order",
+        //         "stop_price": "55000",
+        //         "paid_commission": "0.5432",
+        //         "commission": "0.5432",
+        //         "reduce_only": false,
+        //         "client_order_id": "my_signal_34521712",
+        //         "state": "open",
+        //         "created_at": "1725865012000000",
+        //         "product_id": 27,
+        //         "product_symbol": "BTCUSD"
+        //     }
+        //
         const id = this.safeString(order, 'id');
         const clientOrderId = this.safeString(order, 'client_order_id');
-        const timestamp = this.parse8601(this.safeString(order, 'created_at'));
+        const createdAt = this.safeString(order, 'created_at');
+        let timestamp = undefined;
+        if (createdAt !== undefined) {
+            if (createdAt.indexOf('-') >= 0) {
+                timestamp = this.parse8601(createdAt);
+            }
+            else {
+                timestamp = this.safeIntegerProduct(order, 'created_at', 0.001);
+            }
+        }
         const marketId = this.safeString(order, 'product_id');
         const marketsByNumericId = this.safeDict(this.options, 'marketsByNumericId', {});
         market = this.safeValue(marketsByNumericId, marketId, market);
@@ -1896,7 +1932,9 @@ export default class delta extends Exchange {
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const side = this.safeString(order, 'side');
         let type = this.safeString(order, 'order_type');
-        type = type.replace('_order', '');
+        if (type !== undefined) {
+            type = type.replace('_order', '');
+        }
         const price = this.safeString(order, 'limit_price');
         const amount = this.safeString(order, 'size');
         const remaining = this.safeString(order, 'unfilled_size');
@@ -2160,6 +2198,63 @@ export default class delta extends Exchange {
                 'info': response,
             }),
         ];
+    }
+    /**
+     * @method
+     * @name delta#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.delta.exchange/#get-order-by-id
+     * @see https://docs.delta.exchange/#get-order-by-client-oid
+     * @param {string} id the order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id of the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const clientOrderId = this.safeStringN(params, ['clientOrderId', 'client_oid', 'clientOid']);
+        params = this.omit(params, ['clientOrderId', 'client_oid', 'clientOid']);
+        const request = {};
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            request['client_oid'] = clientOrderId;
+            response = await this.privateGetOrdersClientOrderIdClientOid(this.extend(request, params));
+        }
+        else {
+            request['order_id'] = id;
+            response = await this.privateGetOrdersOrderId(this.extend(request, params));
+        }
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "id": 123,
+        //             "user_id": 453671,
+        //             "size": 10,
+        //             "unfilled_size": 2,
+        //             "side": "buy",
+        //             "order_type": "limit_order",
+        //             "limit_price": "59000",
+        //             "stop_order_type": "stop_loss_order",
+        //             "stop_price": "55000",
+        //             "paid_commission": "0.5432",
+        //             "commission": "0.5432",
+        //             "reduce_only": false,
+        //             "client_order_id": "my_signal_34521712",
+        //             "state": "open",
+        //             "created_at": "1725865012000000",
+        //             "product_id": 27,
+        //             "product_symbol": "BTCUSD"
+        //         }
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        return this.parseOrder(result, market);
     }
     /**
      * @method

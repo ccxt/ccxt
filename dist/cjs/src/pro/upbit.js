@@ -402,12 +402,36 @@ class upbit extends upbit$1["default"] {
             'hostname': this.hostname,
         });
         url += '/private';
+        const client = this.client(url);
+        // Track private channel subscriptions to support multiple concurrent watches
+        const subscriptionsKey = 'upbitPrivateSubscriptions';
+        if (!(subscriptionsKey in client.subscriptions)) {
+            client.subscriptions[subscriptionsKey] = {};
+        }
+        let channelKey = channel;
+        if (symbol !== undefined) {
+            channelKey = channel + ':' + symbol;
+        }
+        const subscriptions = client.subscriptions[subscriptionsKey];
+        const isNewChannel = !(channelKey in subscriptions);
+        if (isNewChannel) {
+            subscriptions[channelKey] = request;
+        }
+        // Build subscription message with all requested private channels
+        // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
+        const requests = [];
+        const channelKeys = Object.keys(subscriptions);
+        for (let i = 0; i < channelKeys.length; i++) {
+            requests.push(subscriptions[channelKeys[i]]);
+        }
         const message = [
             {
                 'ticket': this.uuid(),
             },
-            request,
         ];
+        for (let i = 0; i < requests.length; i++) {
+            message.push(requests[i]);
+        }
         return await this.watch(url, messageHash, message, messageHash);
     }
     /**
@@ -681,7 +705,7 @@ class upbit extends upbit$1["default"] {
         };
         const methodName = this.safeString(message, 'type');
         const method = this.safeValue(methods, methodName);
-        if (method) {
+        if (method !== undefined) {
             method.call(this, client, message);
         }
     }

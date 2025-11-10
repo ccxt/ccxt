@@ -350,7 +350,7 @@ class xt(Exchange, ImplicitAPI):
                             'user/account/api-key': 1,
                         },
                         'delete': {
-                            'user/account/{apikeyId}': 1,
+                            'user/account/{apiKeyId}': 1,
                         },
                     },
                 },

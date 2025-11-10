@@ -1924,7 +1924,7 @@ class digifinex(Exchange, ImplicitAPI):
             }))
         return result
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids

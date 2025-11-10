@@ -290,6 +290,7 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}': 1,
                             'brokerage/payment_methods': 1,
                             'brokerage/payment_methods/{payment_method_id}': 1,
+                            'brokerage/key_permissions': 1,
                         },
                         'post': {
                             'brokerage/orders': 1,
@@ -3261,7 +3262,7 @@ class coinbase(Exchange, ImplicitAPI):
         orders = await self.cancel_orders([id], symbol, params)
         return self.safe_dict(orders, 0, {})
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 

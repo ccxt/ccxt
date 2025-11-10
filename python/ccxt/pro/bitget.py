@@ -1443,6 +1443,7 @@ class bitget(ccxt.async_support.bitget):
         watches information on multiple orders made by the user
 
         https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+        https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
         https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
         https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
         https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
@@ -2584,7 +2585,8 @@ class bitget(ccxt.async_support.bitget):
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
         error = UnsubscribeError(self.id + ' orderbook ' + symbol)
-        client.reject(error, subMessageHash)
+        if subMessageHash in client.futures:
+            client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
     def handle_trades_un_subscription(self, client: Client, message):
@@ -2606,7 +2608,8 @@ class bitget(ccxt.async_support.bitget):
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
         error = UnsubscribeError(self.id + ' trades ' + symbol)
-        client.reject(error, subMessageHash)
+        if subMessageHash in client.futures:
+            client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
     def handle_ticker_un_subscription(self, client: Client, message):
@@ -2628,7 +2631,8 @@ class bitget(ccxt.async_support.bitget):
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
         error = UnsubscribeError(self.id + ' ticker ' + symbol)
-        client.reject(error, subMessageHash)
+        if subMessageHash in client.futures:
+            client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
     def handle_ohlcv_un_subscription(self, client: Client, message):

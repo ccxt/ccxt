@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
 import math
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -230,6 +230,20 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'sandboxMode': False,
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'spotCurrencyMapping': {
+                    'UDZ': '2Z',
+                    'UBONK': 'BONK',
+                    'UBTC': 'BTC',
+                    'UETH': 'ETH',
+                    'UFART': 'FARTCOIN',
+                    'HPENGU': 'PENGU',
+                    'UPUMP': 'PUMP',
+                    'USOL': 'SOL',
+                    'UUUSPX': 'SPX',
+                    'USDT0': 'USDT',
+                    'XAUT0': 'XAUT',
+                    'UXPL': 'XPL',
+                },
             },
             'features': {
                 'default': {
@@ -345,6 +359,44 @@ class hyperliquid(Exchange, ImplicitAPI):
         super(hyperliquid, self).set_sandbox_mode(enabled)
         self.options['sandboxMode'] = enabled
 
+    def market(self, symbol: str) -> MarketInterface:
+        if self.markets is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if symbol in self.markets:
+            market = self.markets[symbol]
+            if market['spot']:
+                baseName = self.safe_string(market, 'baseName')
+                spotCurrencyMapping = self.safe_dict(self.options, 'spotCurrencyMapping', {})
+                if baseName in spotCurrencyMapping:
+                    unifiedBaseName = self.safe_string(spotCurrencyMapping, baseName)
+                    quote = self.safe_string(market, 'quote')
+                    newSymbol = self.safe_currency_code(unifiedBaseName) + '/' + quote
+                    if newSymbol in self.markets:
+                        return self.markets[newSymbol]
+        res = super(hyperliquid, self).market(symbol)
+        return res
+
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
+        if marketId is not None:
+            if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
+                markets = self.markets_by_id[marketId]
+                numMarkets = len(markets)
+                if numMarkets == 1:
+                    return markets[0]
+                else:
+                    if numMarkets > 2:
+                        raise ExchangeError(self.id + ' safeMarket() found more than two markets with the same market id ' + marketId)
+                    firstMarket = markets[0]
+                    secondMarket = markets[1]
+                    if self.safe_string(firstMarket, 'type') != self.safe_string(secondMarket, 'type'):
+                        raise ExchangeError(self.id + ' safeMarket() found two different market types with the same market id ' + marketId)
+                    baseCurrency = self.safe_string(firstMarket, 'base')
+                    spotCurrencyMapping = self.safe_dict(self.options, 'spotCurrencyMapping', {})
+                    if baseCurrency in spotCurrencyMapping:
+                        return secondMarket
+                    return firstMarket
+        return super(hyperliquid, self).safe_market(marketId, market, delimiter, marketType)
+
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
@@ -355,7 +407,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if self.check_required_credentials(False):
-            self.handle_builder_fee_approval()
+            self.initialize_client()
         request: dict = {
             'type': 'meta',
         }
@@ -608,9 +660,13 @@ class hyperliquid(Exchange, ImplicitAPI):
             quoteTokenInfo = self.safe_dict(tokens, quoteTokenPos, {})
             baseName = self.safe_string(baseTokenInfo, 'name')
             quoteId = self.safe_string(quoteTokenInfo, 'name')
-            base = self.safe_currency_code(baseName)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            # do spot currency mapping
+            spotCurrencyMapping = self.safe_dict(self.options, 'spotCurrencyMapping', {})
+            mappedBaseName = self.safe_string(spotCurrencyMapping, baseName, baseName)
+            mappedQuoteId = self.safe_string(spotCurrencyMapping, quoteId, quoteId)
+            mappedBase = self.safe_currency_code(mappedBaseName)
+            mappedQuote = self.safe_currency_code(mappedQuoteId)
+            mappedSymbol = mappedBase + '/' + mappedQuote
             innerBaseTokenInfo = self.safe_dict(baseTokenInfo, 'spec', baseTokenInfo)
             # innerQuoteTokenInfo = self.safe_dict(quoteTokenInfo, 'spec', quoteTokenInfo)
             amountPrecisionStr = self.safe_string(innerBaseTokenInfo, 'szDecimals')
@@ -622,11 +678,11 @@ class hyperliquid(Exchange, ImplicitAPI):
             pricePrecisionStr = self.number_to_string(pricePrecision)
             # quotePrecision = self.parse_number(self.parse_precision(self.safe_string(innerQuoteTokenInfo, 'szDecimals')))
             baseId = self.number_to_string(index + 10000)
-            markets.append(self.safe_market_structure({
+            entry = {
                 'id': marketName,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
+                'symbol': mappedSymbol,
+                'base': mappedBase,
+                'quote': mappedQuote,
                 'settle': None,
                 'baseId': baseId,
                 'baseName': baseName,
@@ -674,7 +730,19 @@ class hyperliquid(Exchange, ImplicitAPI):
                 },
                 'created': None,
                 'info': self.extend(extraData, market),
-            }))
+            }
+            markets.append(self.safe_market_structure(entry))
+            # backward support
+            base = self.safe_currency_code(baseName)
+            quote = self.safe_currency_code(quoteId)
+            newEntry = self.extend({}, entry)
+            symbol = base + '/' + quote
+            if symbol != mappedSymbol:
+                newEntry['symbol'] = symbol
+                newEntry['base'] = base
+                newEntry['quote'] = quote
+                newEntry['baseName'] = baseName
+                markets.append(self.safe_market_structure(newEntry))
         return markets
 
     def parse_market(self, market: dict) -> Market:
@@ -1110,6 +1178,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 # optimization if limit is provided
                 timeframeInMilliseconds = self.parse_timeframe(timeframe) * 1000
                 since = self.sum(until, timeframeInMilliseconds * limit * -1)
+                if since < 0:
+                    since = 0
                 useTail = False
             else:
                 since = 0
@@ -1370,6 +1440,29 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         return self.sign_user_signed_action(messageTypes, message)
 
+    def set_ref(self):
+        if self.safe_bool(self.options, 'refSet', False):
+            return True
+        self.options['refSet'] = True
+        action = {
+            'type': 'setReferrer',
+            'code': self.safe_string(self.options, 'ref', 'CCXT1'),
+        }
+        nonce = self.milliseconds()
+        signature = self.sign_l1_action(action, nonce)
+        request: dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+        }
+        response = None
+        try:
+            response = self.privatePostExchange(request)
+            return response
+        except Exception as e:
+            response = None  # ignore self
+        return response
+
     def approve_builder_fee(self, builder: str, maxFeeRate: str):
         nonce = self.milliseconds()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
@@ -1403,6 +1496,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         # }
         #
         return self.privatePostExchange(request)
+
+    def initialize_client(self):
+        try:
+            [self.handle_builder_fee_approval(), self.set_ref()]
+        except Exception as e:
+            return False
+        return True
 
     def handle_builder_fee_approval(self):
         buildFee = self.safe_bool(self.options, 'builderFee', True)
@@ -1458,7 +1558,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        self.handle_builder_fee_approval()
+        self.initialize_client()
         request = self.create_orders_request(orders, params)
         response = self.privatePostExchange(request)
         #
@@ -1481,7 +1581,14 @@ class hyperliquid(Exchange, ImplicitAPI):
         responseObj = self.safe_dict(response, 'response', {})
         data = self.safe_dict(responseObj, 'data', {})
         statuses = self.safe_list(data, 'statuses', [])
-        return self.parse_orders(statuses, None)
+        ordersToBeParsed = []
+        for i in range(0, len(statuses)):
+            order = statuses[i]
+            if order == 'waitingForTrigger':
+                ordersToBeParsed.append({'status': order})  # tp/sl orders can return a string like "waitingForTrigger",
+            else:
+                ordersToBeParsed.append(order)
+        return self.parse_orders(ordersToBeParsed, None)
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: str, price: Str = None, params={}):
         market = self.market(symbol)
@@ -1591,10 +1698,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             if isTrigger:
                 # grouping opposed orders for sl/tp
                 stopLossOrderTriggerPrice = self.safe_string_n(stopLoss, ['triggerPrice', 'stopPrice'])
-                stopLossOrderType = self.safe_string(stopLoss, 'type')
+                stopLossOrderType = self.safe_string(stopLoss, 'type', 'limit')
                 stopLossOrderLimitPrice = self.safe_string_n(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice)
                 takeProfitOrderTriggerPrice = self.safe_string_n(takeProfit, ['triggerPrice', 'stopPrice'])
-                takeProfitOrderType = self.safe_string(takeProfit, 'type')
+                takeProfitOrderType = self.safe_string(takeProfit, 'type', 'limit')
                 takeProfitOrderLimitPrice = self.safe_string_n(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice)
                 grouping = 'normalTpsl'
                 orderParams = self.omit(orderParams, ['stopLoss', 'takeProfit'])
@@ -1675,6 +1782,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         self.load_markets()
+        self.initialize_client()
         request = self.cancel_orders_request(ids, symbol, params)
         response = self.privatePostExchange(request)
         #
@@ -1769,6 +1877,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         self.check_required_credentials()
         self.load_markets()
+        self.initialize_client()
         nonce = self.milliseconds()
         request: dict = {
             'nonce': nonce,
@@ -1836,6 +1945,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         self.check_required_credentials()
         self.load_markets()
+        self.initialize_client()
         params = self.omit(params, ['clientOrderId', 'client_id'])
         nonce = self.milliseconds()
         request: dict = {
@@ -2011,6 +2121,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
+        self.initialize_client()
         request = self.edit_orders_request(orders, params)
         response = self.privatePostExchange(request)
         #
@@ -2750,8 +2861,13 @@ class hyperliquid(Exchange, ImplicitAPI):
             size = Precise.string_abs(size)
         rawUnrealizedPnl = self.safe_string(entry, 'unrealizedPnl')
         absRawUnrealizedPnl = Precise.string_abs(rawUnrealizedPnl)
-        initialMargin = self.safe_string(entry, 'marginUsed')
-        percentage = Precise.string_mul(Precise.string_div(absRawUnrealizedPnl, initialMargin), '100')
+        marginUsed = self.safe_string(entry, 'marginUsed')
+        initialMargin = None
+        if isIsolated:
+            initialMargin = Precise.string_sub(marginUsed, rawUnrealizedPnl)
+        else:
+            initialMargin = marginUsed
+        percentage = Precise.string_mul(Precise.string_div(absRawUnrealizedPnl, marginUsed), '100')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -2767,7 +2883,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'markPrice': None,
             'notional': self.safe_number(entry, 'positionValue'),
             'leverage': self.safe_number(leverage, 'value'),
-            'collateral': self.safe_number(entry, 'marginUsed'),
+            'collateral': self.parse_number(marginUsed),
             'initialMargin': self.parse_number(initialMargin),
             'maintenanceMargin': None,
             'initialMarginPercentage': None,

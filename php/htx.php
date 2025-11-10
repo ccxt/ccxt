@@ -5919,7 +5919,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          * @param {string[]} $ids order $ids
@@ -6649,6 +6649,7 @@ class htx extends Exchange {
             'repealed' => 'failed',
             'wallet-transfer' => 'pending',
             'pre-transfer' => 'pending',
+            'verifying' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }

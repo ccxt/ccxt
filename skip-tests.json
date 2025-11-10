@@ -3,6 +3,27 @@
         "skip": "private endpoints, todo",
         "skipWs": "private endpoints, todo"
     },
+    "arkham": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed",
+                "taker": "tmp",
+                "maker": "tmp"
+            },
+            "fetchCurrencies": {
+                "deposit": "not provided",
+                "withdraw": "not provided",
+                "precision": "not provided",
+                "activeMajorCurrencies": "todo"
+            },
+            "ticker": {
+                "timestamp": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
+    },
     "apex": {
         "skipMethods": {
             "loadMarkets": {
@@ -429,7 +450,8 @@
             },
             "fetchCurrencies": {
                 "precision": "not provided",
-                "currencyIdAndCode": "broken currencies"
+                "currencyIdAndCode": "broken currencies",
+                "maxInactiveCurrenciesPercentage": 70
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164"
@@ -635,6 +657,7 @@
             "ticker": {
                 "spread": "broken bid-ask",
                 "baseVolume": "negative value",
+                "open": "negative",
                 "compareQuoteVolumeBaseVolume":"todo",
                 "compareOHLC": "open below low https://github.com/ccxt/ccxt/actions/runs/17983223201/job/51154949662?pr=25258#step:9:228"
             },
@@ -978,6 +1001,7 @@
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "type": "todo",
+                "precision": "not provided",
                 "activeMajorCurrencies": "todo"
             },
             "loadMarkets": "strike is set when option is not true",

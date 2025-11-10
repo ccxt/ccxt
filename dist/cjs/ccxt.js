@@ -8,6 +8,7 @@ var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
+var arkham = require('./src/arkham.js');
 var ascendex = require('./src/ascendex.js');
 var backpack = require('./src/backpack.js');
 var bequant = require('./src/bequant.js');
@@ -89,7 +90,6 @@ var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
 var novadax = require('./src/novadax.js');
 var oceanex = require('./src/oceanex.js');
-var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
@@ -114,6 +114,7 @@ var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
+var arkham$1 = require('./src/pro/arkham.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
 var backpack$1 = require('./src/pro/backpack.js');
 var bequant$1 = require('./src/pro/bequant.js');
@@ -169,7 +170,6 @@ var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
 var myokx$1 = require('./src/pro/myokx.js');
 var ndax$1 = require('./src/pro/ndax.js');
-var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
 var okxus$1 = require('./src/pro/okxus.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
@@ -189,11 +189,12 @@ var xt$1 = require('./src/pro/xt.js');
 // ----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.10';
+const version = '4.5.17';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
+    'arkham': arkham["default"],
     'ascendex': ascendex["default"],
     'backpack': backpack["default"],
     'bequant': bequant["default"],
@@ -275,7 +276,6 @@ const exchanges = {
     'ndax': ndax["default"],
     'novadax': novadax["default"],
     'oceanex': oceanex["default"],
-    'okcoin': okcoin["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
     'onetrading': onetrading["default"],
@@ -302,6 +302,7 @@ const exchanges = {
 const pro = {
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
+    'arkham': arkham$1["default"],
     'ascendex': ascendex$1["default"],
     'backpack': backpack$1["default"],
     'bequant': bequant$1["default"],
@@ -357,7 +358,6 @@ const pro = {
     'modetrade': modetrade$1["default"],
     'myokx': myokx$1["default"],
     'ndax': ndax$1["default"],
-    'okcoin': okcoin$1["default"],
     'okx': okx$1["default"],
     'okxus': okxus$1["default"],
     'onetrading': onetrading$1["default"],
@@ -427,6 +427,7 @@ exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
+exports.arkham = arkham["default"];
 exports.ascendex = ascendex["default"];
 exports.backpack = backpack["default"];
 exports.bequant = bequant["default"];
@@ -508,7 +509,6 @@ exports.myokx = myokx["default"];
 exports.ndax = ndax["default"];
 exports.novadax = novadax["default"];
 exports.oceanex = oceanex["default"];
-exports.okcoin = okcoin["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];

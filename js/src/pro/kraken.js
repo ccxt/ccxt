@@ -589,7 +589,7 @@ export default class kraken extends krakenRest {
         }
         client.resolve(stored, messageHash);
     }
-    handleOHLCV(client, message, subscription) {
+    handleOHLCV(client, message) {
         //
         //     {
         //         "channel": "ohlc",
@@ -614,7 +614,11 @@ export default class kraken extends krakenRest {
         //
         const data = this.safeList(message, 'data', []);
         const first = data[0];
-        const symbol = this.safeString(first, 'symbol');
+        const marketId = this.safeString(first, 'symbol');
+        const symbol = this.safeSymbol(marketId);
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
         const interval = this.safeInteger(first, 'interval');
         const timeframe = this.findTimeframe(interval);
         const messageHash = this.getMessageHash('ohlcv', undefined, symbol);

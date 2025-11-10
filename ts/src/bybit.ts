@@ -184,7 +184,7 @@ export default class bybit extends Exchange {
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
+                'referral': 'https://www.bybit.com/invite?ref=XDK12WP',
             },
             'api': {
                 'public': {
@@ -338,6 +338,7 @@ export default class bybit extends Exchange {
                         // account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
+                        'v5/account/instruments-info': 1,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10, // 5/s = 1000 / (20 * 10)
@@ -368,6 +369,7 @@ export default class bybit extends Exchange {
                         'v5/asset/deposit/query-address': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-address': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/coin/query-info': 28, // should be 25 but exceeds ratelimit unless the weight is 28 or higher
+                        'v5/asset/withdraw/query-address': 10,
                         'v5/asset/withdraw/query-record': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         'v5/asset/withdraw/vasp/list': 5,
@@ -386,6 +388,10 @@ export default class bybit extends Exchange {
                         // spot margin trade
                         'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
+                        'v5/spot-margin-trade/max-borrowable': 5,
+                        'v5/spot-margin-trade/position-tiers': 5,
+                        'v5/spot-margin-trade/coinstate': 5,
+                        'v5/spot-margin-trade/repayment-available-amount': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account': 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1, // 50/s => cost = 50 / 50 = 1
@@ -506,6 +512,9 @@ export default class bybit extends Exchange {
                         'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
+                        'v5/account/borrow': 5,
+                        'v5/account/repay': 5,
+                        'v5/account/no-convert-repay': 5,
                         // asset
                         'v5/asset/exchange/quote-apply': 1, // 50/s
                         'v5/asset/exchange/convert-execute': 1, // 50/s
@@ -3931,7 +3940,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
      * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
      * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
-     * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+     * @param {string} [params.tpslMode] *contract only* 'Full' or 'Partial'
      * @param {string} [params.mmp] *option only* market maker protection
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -4053,21 +4062,30 @@ export default class bybit extends Exchange {
                 throw new InvalidOrder (this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                const tpslMode = this.safeString (params, 'tpslMode', 'Partial');
+                const isFullTpsl = tpslMode === 'Full';
+                const isPartialTpsl = tpslMode === 'Partial';
+                if (isLimit && isFullTpsl) {
+                    throw new InvalidOrder (this.id + ' tpsl orders with "full" tpslMode only support "market" type');
+                }
+                request['tpslMode'] = tpslMode;
                 if (isStopLossTriggerOrder) {
                     request['stopLoss'] = this.getPrice (symbol, stopLossTriggerPrice);
+                    if (isPartialTpsl) {
+                        request['slSize'] = amountString;
+                    }
                     if (isLimit) {
-                        request['tpslMode'] = 'Partial';
                         request['slOrderType'] = 'Limit';
                         request['slLimitPrice'] = priceString;
-                        request['slSize'] = amountString;
                     }
                 } else if (isTakeProfitTriggerOrder) {
                     request['takeProfit'] = this.getPrice (symbol, takeProfitTriggerPrice);
+                    if (isPartialTpsl) {
+                        request['tpSize'] = amountString;
+                    }
                     if (isLimit) {
-                        request['tpslMode'] = 'Partial';
                         request['tpOrderType'] = 'Limit';
                         request['tpLimitPrice'] = priceString;
-                        request['tpSize'] = amountString;
                     }
                 }
             }
@@ -4090,7 +4108,7 @@ export default class bybit extends Exchange {
                 // only works for spot market
                 if (triggerPrice !== undefined) {
                     request['orderFilter'] = 'StopOrder';
-                } else if (stopLossTriggerPrice !== undefined || takeProfitTriggerPrice !== undefined || isStopLoss || isTakeProfit) {
+                } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                     request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4112,7 +4130,8 @@ export default class bybit extends Exchange {
         params = this.omit (params, 'cost');
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
-        if (market['spot'] && (type === 'market') && isUTA && !isMarketBuyAndCostInferable) {
+        const isMarketOrder = lowerCaseType === 'market';
+        if (market['spot'] && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
             // UTA account can specify the cost of the order on both sides
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
@@ -4128,7 +4147,7 @@ export default class bybit extends Exchange {
                 request['marketUnit'] = 'baseCoin';
                 request['qty'] = amountString;
             }
-        } else if (market['spot'] && (type === 'market') && (side === 'buy')) {
+        } else if (market['spot'] && isMarketOrder && (side === 'buy')) {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
@@ -4194,6 +4213,15 @@ export default class bybit extends Exchange {
                     request['tpslMode'] = 'Partial';
                     request['slOrderType'] = 'Limit';
                     request['slLimitPrice'] = this.getPrice (symbol, slLimitPrice);
+                } else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['slOrderType'] = 'Market';
+                    }
+                }
+                // for spot market, we need to add this
+                if (market['spot'] && isMarketOrder) {
+                    throw new InvalidOrder (this.id + ' createOrder(): attached stopLoss is not supported for spot market orders');
                 }
             }
             if (isTakeProfit) {
@@ -4204,6 +4232,15 @@ export default class bybit extends Exchange {
                     request['tpslMode'] = 'Partial';
                     request['tpOrderType'] = 'Limit';
                     request['tpLimitPrice'] = this.getPrice (symbol, tpLimitPrice);
+                } else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['tpOrderType'] = 'Market';
+                    }
+                }
+                // for spot market, we need to add this
+                if (market['spot'] && isMarketOrder) {
+                    throw new InvalidOrder (this.id + ' createOrder(): attached takeProfit is not supported for spot market orders');
                 }
             }
         }
@@ -4214,7 +4251,7 @@ export default class bybit extends Exchange {
             }
             request['positionIdx'] = (side === 'buy') ? 1 : 2;
         }
-        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged' ]);
+        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged', 'tpslMode' ]);
         return this.extend (request, params);
     }
 
@@ -4591,7 +4628,7 @@ export default class bybit extends Exchange {
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}): Promise<Order[]> {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -6626,7 +6663,7 @@ export default class bybit extends Exchange {
         }
         const notional = this.safeString2 (position, 'positionValue', 'cumExitValue');
         const unrealisedPnl = this.omitZero (this.safeString (position, 'unrealisedPnl'));
-        let initialMarginString = this.safeStringN (position, [ 'positionIM', 'cumEntryValue' ]);
+        let initialMarginString = this.safeString2 (position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString (position, 'positionMM');
         const timestamp = this.safeIntegerN (position, [ 'createdTime', 'createdAt' ]);
         let lastUpdateTimestamp = this.parse8601 (this.safeString (position, 'updated_at'));
@@ -6662,7 +6699,7 @@ export default class bybit extends Exchange {
                     const maintenanceMarginPriceDifference = Precise.stringAbs (Precise.stringSub (liquidationPrice, bustPrice));
                     maintenanceMarginString = Precise.stringMul (maintenanceMarginPriceDifference, size);
                     // Initial Margin = Contracts x Entry Price / Leverage
-                    if (entryPrice !== undefined) {
+                    if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise.stringDiv (Precise.stringMul (size, entryPrice), leverage);
                     }
                 } else {
@@ -6674,7 +6711,7 @@ export default class bybit extends Exchange {
                     const multiply = Precise.stringMul (bustPrice, liquidationPrice);
                     maintenanceMarginString = Precise.stringDiv (Precise.stringMul (size, difference), multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
-                    if (entryPrice !== undefined) {
+                    if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise.stringDiv (size, Precise.stringMul (entryPrice, leverage));
                     }
                 }

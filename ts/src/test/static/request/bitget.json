@@ -7,6 +7,27 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchFundingIntervals": [
+            {
+                "description": "fetchFundingIntervals with params",
+                "method": "fetchFundingIntervals",
+                "url": "https://api.bitget.com/api/v2/mix/market/current-fund-rate?productType=COIN-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "productType": "COIN-FUTURES"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchFundingIntervals without params",
+                "method": "fetchFundingIntervals",
+                "url": "https://api.bitget.com/api/v2/mix/market/current-fund-rate?productType=USDT-FUTURES",
+                "input": [],
+                "output": null
+            }
+        ],
         "createTakeProfitOrder": [
             {
                 "description": "place tk order on a short position in one-way  mode",
@@ -1293,6 +1314,15 @@
             }
         ],
         "fetchPositions": [
+            {
+                "description": "fetch positions empty list",
+                "method": "fetchPositions",
+                "url": "https://api.bitget.com/api/v2/mix/position/all-position?marginCoin=USDT&productType=USDT-FUTURES",
+                "input": [
+                    []
+                ],
+                "output": null
+            },
             {
                 "description": "Fetch linear positions",
                 "method": "fetchPositions",
@@ -2808,6 +2838,18 @@
             }
         ],
         "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates with publicMixGetV2MixMarketCurrentFundRate",
+                "method": "fetchFundingRates",
+                "url": "https://api.bitget.com/api/v2/mix/market/current-fund-rate?productType=USDT-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "method": "publicMixGetV2MixMarketCurrentFundRate"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetchFundingRates",
                 "method": "fetchFundingRates",

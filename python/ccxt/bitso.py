@@ -1101,7 +1101,7 @@ class bitso(Exchange, ImplicitAPI):
             'id': orderId,
         })
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}) -> List[Order]:
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 

@@ -21,6 +21,7 @@ class Exchange extends \ccxt\async\Exchange {
 Exchange::$exchanges = array(
     'alpaca',
     'apex',
+    'arkham',
     'ascendex',
     'backpack',
     'bequant',
@@ -76,7 +77,6 @@ Exchange::$exchanges = array(
     'modetrade',
     'myokx',
     'ndax',
-    'okcoin',
     'okx',
     'okxus',
     'onetrading',

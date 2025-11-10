@@ -4411,6 +4411,9 @@ func (this *PoloniexCore) Sign(path interface{}, optionalArgs ...interface{}) in
 	if IsTrue(this.InArray(api, []interface{}{"swapPublic", "swapPrivate"})) {
 		url = GetValue(GetValue(this.Urls, "api"), "swap")
 	}
+	if IsTrue(InOp(params, "symbol")) {
+		AddElementToObject(params, "symbol", this.EncodeURIComponent(GetValue(params, "symbol"))) // handle symbols like 索拉拉/USDT'
+	}
 	var query interface{} = this.Omit(params, this.ExtractParams(path))
 	var implodedPath interface{} = this.ImplodeParams(path, params)
 	if IsTrue(IsTrue(IsEqual(api, "public")) || IsTrue(IsEqual(api, "swapPublic"))) {

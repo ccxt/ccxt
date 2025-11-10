@@ -600,7 +600,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, $message, $subscription) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         "channel" => "ohlc",
@@ -625,7 +625,11 @@ class kraken extends \ccxt\async\kraken {
         //
         $data = $this->safe_list($message, 'data', array());
         $first = $data[0];
-        $symbol = $this->safe_string($first, 'symbol');
+        $marketId = $this->safe_string($first, 'symbol');
+        $symbol = $this->safe_symbol($marketId);
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            $this->ohlcvs[$symbol] = array();
+        }
         $interval = $this->safe_integer($first, 'interval');
         $timeframe = $this->find_timeframe($interval);
         $messageHash = $this->get_message_hash('ohlcv', null, $symbol);

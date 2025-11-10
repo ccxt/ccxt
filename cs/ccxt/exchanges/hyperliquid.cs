@@ -210,6 +210,20 @@ public partial class hyperliquid : Exchange
                 { "sandboxMode", false },
                 { "defaultSlippage", 0.05 },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
+                { "spotCurrencyMapping", new Dictionary<string, object>() {
+                    { "UDZ", "2Z" },
+                    { "UBONK", "BONK" },
+                    { "UBTC", "BTC" },
+                    { "UETH", "ETH" },
+                    { "UFART", "FARTCOIN" },
+                    { "HPENGU", "PENGU" },
+                    { "UPUMP", "PUMP" },
+                    { "USOL", "SOL" },
+                    { "UUUSPX", "SPX" },
+                    { "USDT0", "USDT" },
+                    { "XAUT0", "XAUT" },
+                    { "UXPL", "XPL" },
+                } },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -328,6 +342,71 @@ public partial class hyperliquid : Exchange
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enabled;
     }
 
+    public override object market(object symbol)
+    {
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
+        }
+        if (isTrue(inOp(this.markets, symbol)))
+        {
+            object market = getValue(this.markets, symbol);
+            if (isTrue(getValue(market, "spot")))
+            {
+                object baseName = this.safeString(market, "baseName");
+                object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
+                if (isTrue(inOp(spotCurrencyMapping, baseName)))
+                {
+                    object unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
+                    object quote = this.safeString(market, "quote");
+                    object newSymbol = add(add(this.safeCurrencyCode(unifiedBaseName), "/"), quote);
+                    if (isTrue(inOp(this.markets, newSymbol)))
+                    {
+                        return getValue(this.markets, newSymbol);
+                    }
+                }
+            }
+        }
+        object res = base.market(symbol);
+        return res;
+    }
+
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
+    {
+        if (isTrue(!isEqual(marketId, null)))
+        {
+            if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, marketId)))))
+            {
+                object markets = getValue(this.markets_by_id, marketId);
+                object numMarkets = getArrayLength(markets);
+                if (isTrue(isEqual(numMarkets, 1)))
+                {
+                    return getValue(markets, 0);
+                } else
+                {
+                    if (isTrue(isGreaterThan(numMarkets, 2)))
+                    {
+                        throw new ExchangeError ((string)add(add(this.id, " safeMarket() found more than two markets with the same market id "), marketId)) ;
+                    }
+                    object firstMarket = getValue(markets, 0);
+                    object secondMarket = getValue(markets, 1);
+                    if (isTrue(!isEqual(this.safeString(firstMarket, "type"), this.safeString(secondMarket, "type"))))
+                    {
+                        throw new ExchangeError ((string)add(add(this.id, " safeMarket() found two different market types with the same market id "), marketId)) ;
+                    }
+                    object baseCurrency = this.safeString(firstMarket, "base");
+                    object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
+                    if (isTrue(inOp(spotCurrencyMapping, baseCurrency)))
+                    {
+                        return secondMarket;
+                    }
+                    return firstMarket;
+                }
+            }
+        }
+        return base.safeMarket(marketId, market, delimiter, marketType);
+    }
+
     /**
      * @method
      * @name hyperliquid#fetchCurrencies
@@ -341,7 +420,7 @@ public partial class hyperliquid : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(this.checkRequiredCredentials(false)))
         {
-            await this.handleBuilderFeeApproval();
+            await this.initializeClient();
         }
         object request = new Dictionary<string, object>() {
             { "type", "meta" },
@@ -615,9 +694,13 @@ public partial class hyperliquid : Exchange
             object quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, new Dictionary<string, object>() {});
             object baseName = this.safeString(baseTokenInfo, "name");
             object quoteId = this.safeString(quoteTokenInfo, "name");
-            object bs = this.safeCurrencyCode(baseName);
-            object quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
+            // do spot currency mapping
+            object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
+            object mappedBaseName = this.safeString(spotCurrencyMapping, baseName, baseName);
+            object mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
+            object mappedBase = this.safeCurrencyCode(mappedBaseName);
+            object mappedQuote = this.safeCurrencyCode(mappedQuoteId);
+            object mappedSymbol = add(add(mappedBase, "/"), mappedQuote);
             object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             object amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
@@ -631,11 +714,11 @@ public partial class hyperliquid : Exchange
             object pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             object baseId = this.numberToString(add(index, 10000));
-            ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            object entry = new Dictionary<string, object>() {
                 { "id", marketName },
-                { "symbol", symbol },
-                { "base", bs },
-                { "quote", quote },
+                { "symbol", mappedSymbol },
+                { "base", mappedBase },
+                { "quote", mappedQuote },
                 { "settle", null },
                 { "baseId", baseId },
                 { "baseName", baseName },
@@ -683,7 +766,21 @@ public partial class hyperliquid : Exchange
                 } },
                 { "created", null },
                 { "info", this.extend(extraData, market) },
-            }));
+            };
+            ((IList<object>)markets).Add(this.safeMarketStructure(entry));
+            // backward support
+            object bs = this.safeCurrencyCode(baseName);
+            object quote = this.safeCurrencyCode(quoteId);
+            object newEntry = this.extend(new Dictionary<string, object>() {}, entry);
+            object symbol = add(add(bs, "/"), quote);
+            if (isTrue(!isEqual(symbol, mappedSymbol)))
+            {
+                ((IDictionary<string,object>)newEntry)["symbol"] = symbol;
+                ((IDictionary<string,object>)newEntry)["base"] = bs;
+                ((IDictionary<string,object>)newEntry)["quote"] = quote;
+                ((IDictionary<string,object>)newEntry)["baseName"] = baseName;
+                ((IList<object>)markets).Add(this.safeMarketStructure(newEntry));
+            }
         }
         return markets;
     }
@@ -1172,6 +1269,10 @@ public partial class hyperliquid : Exchange
                 // optimization if limit is provided
                 object timeframeInMilliseconds = multiply(this.parseTimeframe(timeframe), 1000);
                 since = this.sum(until, multiply(multiply(timeframeInMilliseconds, limit), -1));
+                if (isTrue(isLessThan(since, 0)))
+                {
+                    since = 0;
+                }
                 useTail = false;
             } else
             {
@@ -1502,6 +1603,36 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
+    public async virtual Task<object> setRef()
+    {
+        if (isTrue(this.safeBool(this.options, "refSet", false)))
+        {
+            return true;
+        }
+        ((IDictionary<string,object>)this.options)["refSet"] = true;
+        object action = new Dictionary<string, object>() {
+            { "type", "setReferrer" },
+            { "code", this.safeString(this.options, "ref", "CCXT1") },
+        };
+        object nonce = this.milliseconds();
+        object signature = this.signL1Action(action, nonce);
+        object request = new Dictionary<string, object>() {
+            { "action", action },
+            { "nonce", nonce },
+            { "signature", signature },
+        };
+        object response = null;
+        try
+        {
+            response = await this.privatePostExchange(request);
+            return response;
+        } catch(Exception e)
+        {
+            response = null; // ignore this
+        }
+        return response;
+    }
+
     public async virtual Task<object> approveBuilderFee(object builder, object maxFeeRate)
     {
         object nonce = this.milliseconds();
@@ -1536,6 +1667,18 @@ public partial class hyperliquid : Exchange
         // }
         //
         return await this.privatePostExchange(request);
+    }
+
+    public async virtual Task<object> initializeClient()
+    {
+        try
+        {
+            await promiseAll(new List<object> {this.handleBuilderFeeApproval(), this.setRef()});
+        } catch(Exception e)
+        {
+            return false;
+        }
+        return true;
     }
 
     public async virtual Task<object> handleBuilderFeeApproval()
@@ -1608,7 +1751,7 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        await this.handleBuilderFeeApproval();
+        await this.initializeClient();
         object request = this.createOrdersRequest(orders, parameters);
         object response = await this.privatePostExchange(request);
         //
@@ -1631,7 +1774,21 @@ public partial class hyperliquid : Exchange
         object responseObj = this.safeDict(response, "response", new Dictionary<string, object>() {});
         object data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
         object statuses = this.safeList(data, "statuses", new List<object>() {});
-        return this.parseOrders(statuses, null);
+        object ordersToBeParsed = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+        {
+            object order = getValue(statuses, i);
+            if (isTrue(isEqual(order, "waitingForTrigger")))
+            {
+                ((IList<object>)ordersToBeParsed).Add(new Dictionary<string, object>() {
+                    { "status", order },
+                }); // tp/sl orders can return a string like "waitingForTrigger",
+            } else
+            {
+                ((IList<object>)ordersToBeParsed).Add(order);
+            }
+        }
+        return this.parseOrders(ordersToBeParsed, null);
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1775,10 +1932,10 @@ public partial class hyperliquid : Exchange
             {
                 // grouping opposed orders for sl/tp
                 object stopLossOrderTriggerPrice = this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice"});
-                object stopLossOrderType = this.safeString(stopLoss, "type");
+                object stopLossOrderType = this.safeString(stopLoss, "type", "limit");
                 object stopLossOrderLimitPrice = this.safeStringN(stopLoss, new List<object>() {"price", "stopLossPrice"}, stopLossOrderTriggerPrice);
                 object takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice"});
-                object takeProfitOrderType = this.safeString(takeProfit, "type");
+                object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
                 object takeProfitOrderLimitPrice = this.safeStringN(takeProfit, new List<object>() {"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice);
                 grouping = "normalTpsl";
                 orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});
@@ -1884,6 +2041,7 @@ public partial class hyperliquid : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
         await this.loadMarkets();
+        await this.initializeClient();
         object request = this.cancelOrdersRequest(ids, symbol, parameters);
         object response = await this.privatePostExchange(request);
         //
@@ -2000,6 +2158,7 @@ public partial class hyperliquid : Exchange
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
+        await this.initializeClient();
         object nonce = this.milliseconds();
         object request = new Dictionary<string, object>() {
             { "nonce", nonce },
@@ -2085,6 +2244,7 @@ public partial class hyperliquid : Exchange
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
+        await this.initializeClient();
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         object nonce = this.milliseconds();
         object request = new Dictionary<string, object>() {
@@ -2305,6 +2465,7 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.initializeClient();
         object request = this.editOrdersRequest(orders, parameters);
         object response = await this.privatePostExchange(request);
         //
@@ -3156,8 +3317,16 @@ public partial class hyperliquid : Exchange
         }
         object rawUnrealizedPnl = this.safeString(entry, "unrealizedPnl");
         object absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
-        object initialMargin = this.safeString(entry, "marginUsed");
-        object percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, initialMargin), "100");
+        object marginUsed = this.safeString(entry, "marginUsed");
+        object initialMargin = null;
+        if (isTrue(isIsolated))
+        {
+            initialMargin = Precise.stringSub(marginUsed, rawUnrealizedPnl);
+        } else
+        {
+            initialMargin = marginUsed;
+        }
+        object percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, marginUsed), "100");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3173,7 +3342,7 @@ public partial class hyperliquid : Exchange
             { "markPrice", null },
             { "notional", this.safeNumber(entry, "positionValue") },
             { "leverage", this.safeNumber(leverage, "value") },
-            { "collateral", this.safeNumber(entry, "marginUsed") },
+            { "collateral", this.parseNumber(marginUsed) },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
