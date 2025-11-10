@@ -1992,7 +1992,7 @@ export default class binance extends binanceRest {
 
     /**
      * @method
-     * @name binance#unWatchTickers
+     * @name binance#unWatchMarkPrices
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
