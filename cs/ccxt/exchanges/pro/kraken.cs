@@ -672,7 +672,12 @@ public partial class kraken : ccxt.kraken
         //
         object data = this.safeList(message, "data", new List<object>() {});
         object first = getValue(data, 0);
-        object symbol = this.safeString(first, "symbol");
+        object marketId = this.safeString(first, "symbol");
+        object symbol = this.safeSymbol(marketId);
+        if (!isTrue((inOp(this.ohlcvs, symbol))))
+        {
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+        }
         object interval = this.safeInteger(first, "interval");
         object timeframe = this.findTimeframe(interval);
         object messageHash = this.getMessageHash("ohlcv", null, symbol);
