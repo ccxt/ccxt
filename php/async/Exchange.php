@@ -7161,7 +7161,7 @@ class Exchange extends \ccxt\Exchange {
                         unset($futures['fetchPositionsSnapshot']);
                     }
                 }
-            } elseif ($topic === 'ticker' && ($this->tickers !== null)) {
+            } elseif (($topic === 'ticker' || $topic === 'markPrice') && ($this->tickers !== null)) {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
                     $tickerSymbol = $tickerSymbols[$i];
