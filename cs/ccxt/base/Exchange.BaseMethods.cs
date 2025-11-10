@@ -2823,7 +2823,7 @@ public partial class Exchange
             }
             if (!isTrue(feesDefined))
             {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 fees = new List<object>() {fee};
             }
             // 'fees' were set, so reparse them

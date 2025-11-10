@@ -3072,7 +3072,7 @@ func (this *Exchange) ParsedFeeAndFees(container interface{}) interface{} {
 			fee = this.ParseFeeNumeric(fee)
 		}
 		if !IsTrue(feesDefined) {
-			// just set it directly, no further processing needed
+			// just set it directly, no further processing needed.
 			fees = []interface{}{fee}
 		}
 		// 'fees' were set, so reparse them

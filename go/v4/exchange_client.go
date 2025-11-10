@@ -20,6 +20,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gorilla/websocket"
 )
@@ -197,7 +198,7 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		"StartedConnecting":     false,
 		"gunzip":                false,
 		"inflate":               false,
-		"decompressBinary":      true,
+		"DecompressBinary":      true,
 	}
 
 	// Apply config overrides if provided
@@ -243,7 +244,7 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		ReadLoopClosed:        make(chan struct{}),
 		Connected:             NewFuture(),
 		Disconnected:          NewFuture(),
-		DecompressBinary:      finalConfig["decompressBinary"].(bool),
+		DecompressBinary:      finalConfig["DecompressBinary"].(bool),
 	}
 
 	return c
@@ -475,6 +476,11 @@ func gunzipData(data []byte) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
+func IsJSON(b []byte) bool {
+	var js interface{}
+	return json.Unmarshal(b, &js) == nil
+}
+
 func (this *Client) OnMessage(messageEvent interface{}) {
 	// if we use onmessage we get MessageEvent objects
 	// MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
@@ -489,6 +495,8 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 	}
 
 	var messageStr string
+	var messageIsBinary = false
+	var messageBytes []byte
 	if str, ok := message.(string); ok {
 		messageStr = str
 	} else if bytes, ok := message.([]byte); ok {
@@ -501,7 +509,14 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 			// Would need to implement zlib inflation
 			messageStr = string(bytes)
 		} else {
-			messageStr = string(bytes) // TODO: don't convert blindly here, todo: read decompressBinary message
+			// some exchanges send a regular json/string message as a binary frame
+			// so we check if it is json/string first to avoid unnecessary conversion
+			if this.DecompressBinary || IsJSON(bytes) || utf8.Valid(bytes) {
+				messageStr = string(bytes)
+			} else {
+				messageIsBinary = true
+				messageBytes = bytes
+			}
 		}
 	} else {
 		messageStr = fmt.Sprintf("%v", message)
@@ -523,7 +538,9 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 	}
 
 	if this.Verbose {
-		if parsedMessage != nil {
+		if messageIsBinary && !this.DecompressBinary {
+			this.Log(time.Now(), "onMessage [binary]", messageBytes)
+		} else if parsedMessage != nil {
 			this.Log(time.Now(), "onMessage", parsedMessage)
 		} else {
 			this.Log(time.Now(), "onMessage", messageStr)
@@ -532,7 +549,9 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 		// this.Log(time.Now(), "onMessage", util.inspect(message, false, null, true))
 		// this.Log(time.Now(), "onMessage", JSON.stringify(message, null, 4))
 	}
-	if parsedMessage != nil {
+	if messageIsBinary && !this.DecompressBinary {
+		this.OnMessageCallback(this, messageBytes)
+	} else if parsedMessage != nil {
 		this.OnMessageCallback(this, parsedMessage)
 	} else {
 		this.OnMessageCallback(this, messageStr)
