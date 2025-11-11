@@ -16,15 +16,15 @@ jobs:
 
       - name: Clone wiki repository
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WIKI_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          git clone https://${GITHUB_TOKEN}@github.com/${{ github.repository }}.wiki.git wiki-repo
+          git clone https://${WIKI_TOKEN}@github.com/${{ github.repository }}.wiki.git wiki-repo
           cd wiki-repo
           ls -la
 
       - name: Update wiki
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WIKI_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           cd wiki-repo
           echo "# Test Page" > Test-Page.md
