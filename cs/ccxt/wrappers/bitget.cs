@@ -832,6 +832,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Modify-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order"/>  <br/>
