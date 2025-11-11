@@ -1256,9 +1256,9 @@ public partial class kucoin : Exchange
         return await this.callAsync ("utaGetMarketCrossConfig",parameters);
     }
 
-    public async Task<object> utaGetMarketServerStatus (object parameters = null)
+    public async Task<object> utaGetServerStatus (object parameters = null)
     {
-        return await this.callAsync ("utaGetMarketServerStatus",parameters);
+        return await this.callAsync ("utaGetServerStatus",parameters);
     }
 
 }
