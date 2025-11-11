@@ -5,7 +5,7 @@ import Exchange from './abstract/okx.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { decodeSbeOrderbook } from './base/functions/sbe.js';
+import { decodeSbeOrderbook, createSbeDecoder } from './base/functions/sbe.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
 
@@ -1012,6 +1012,7 @@ export default class okx extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'sandboxMode': false,
+                'useSbe': false, // use SBE (Simple Binary Encoding) for market data when available
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'ETH': 'ERC20',
@@ -2095,15 +2096,58 @@ export default class okx extends Exchange {
             'instIdCode': instIdCode,
             'source': source,
         };
-        const response = await (this as any).publicGetMarketBooksSbe (this.extend (request, params));
-        // Response is binary data (ArrayBuffer) if successful
-        // If error, it will be JSON with code/msg
-        if (typeof response === 'object' && 'code' in response) {
-            throw new ExchangeError (this.id + ' fetchOrderBookSbe() error: ' + this.json (response));
+        // Temporarily enable SBE for this request
+        const previousUseSbe = this.safeBool (this.options, 'useSbe', false);
+        this.options['useSbe'] = true;
+        try {
+            // Use the standard publicGetMarketBooksSbe method with useSbe enabled in options
+            const response = await (this as any).publicGetMarketBooksSbe (this.extend (request, params));
+            // Response is already decoded by handleRestResponse
+            // Response should have template ID 1006 (SnapshotDepthResponseEvent)
+            if (typeof response === 'object' && 'code' in response) {
+                throw new ExchangeError (this.id + ' fetchOrderBookSbe() error: ' + this.json (response));
+            }
+            // Extract orderbook data from SBE decoded response
+            const timestamp = this.safeInteger (response, 'tsUs');
+            const timestampMs = timestamp !== undefined ? Math.floor (timestamp / 1000) : undefined;
+            const pxExponent = this.safeInteger (response, 'pxExponent', 0);
+            const szExponent = this.safeInteger (response, 'szExponent', 0);
+            // Parse asks and bids
+            const asks = this.safeList (response, 'asks', []);
+            const bids = this.safeList (response, 'bids', []);
+            const orderbook: any = {
+                'bids': [],
+                'asks': [],
+                'timestamp': timestampMs,
+                'datetime': timestampMs !== undefined ? this.iso8601 (timestampMs) : undefined,
+                'nonce': undefined,
+                'symbol': symbol,
+            };
+            // Convert asks with exponents
+            for (let i = 0; i < asks.length; i++) {
+                const ask = asks[i];
+                const pxMantissa = this.safeInteger (ask, 'pxMantissa', 0);
+                const szMantissa = this.safeInteger (ask, 'szMantissa', 0);
+                const ordCount = this.safeInteger (ask, 'ordCount', 0);
+                const price = pxMantissa * Math.pow (10, pxExponent);
+                const size = szMantissa * Math.pow (10, szExponent);
+                orderbook['asks'].push ([ price, size, ordCount ]);
+            }
+            // Convert bids with exponents
+            for (let i = 0; i < bids.length; i++) {
+                const bid = bids[i];
+                const pxMantissa = this.safeInteger (bid, 'pxMantissa', 0);
+                const szMantissa = this.safeInteger (bid, 'szMantissa', 0);
+                const ordCount = this.safeInteger (bid, 'ordCount', 0);
+                const price = pxMantissa * Math.pow (10, pxExponent);
+                const size = szMantissa * Math.pow (10, szExponent);
+                orderbook['bids'].push ([ price, size, ordCount ]);
+            }
+            return orderbook as OrderBook;
+        } finally {
+            // Restore previous useSbe setting
+            this.options['useSbe'] = previousUseSbe;
         }
-        const decoded = this.decodeSbeOrderBook (response);
-        const timestamp = decoded['timestamp'];
-        return this.parseOrderBook (decoded, symbol, timestamp, 'bids', 'asks', 0, 1);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -6457,12 +6501,22 @@ export default class okx extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isArray = Array.isArray (params);
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
+        // Check for SBE (Simple Binary Encoding) parameters and remove from query
+        let useSbe;
+        [ useSbe, query ] = this.handleOptionAndParams (query, 'sign', 'useSbe', false);
         let url = this.implodeHostname (this.urls['api']['rest']) + request;
         // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
+            // Add SBE headers for public API if enabled
+            if (useSbe) {
+                if (headers === undefined) {
+                    headers = {};
+                }
+                headers['Accept'] = 'application/sbe';
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -6514,6 +6568,76 @@ export default class okx extends Exchange {
             headers['OK-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    getSbeDecoder (schemaName = 'okx_sbe_1_0.xml') {
+        if (this['sbeDecoder'] === undefined) {
+            try {
+                // Use loadSbeSchema from base Exchange class
+                const schema = this.loadSbeSchema (schemaName);
+                this['sbeDecoder'] = createSbeDecoder (schema);
+            } catch (e) {
+                // If schema file not found, disable SBE
+                this.options['useSbe'] = false;
+                throw new ExchangeError (this.id + ' getSbeDecoder() failed to load SBE schema: ' + e);
+            }
+        }
+        return this['sbeDecoder'];
+    }
+
+    decodeSbeResponse (buffer: ArrayBuffer, url: string) {
+        // Use generic SBE decoder that follows the spec
+        if (this.verbose) {
+            this.log ('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength);
+        }
+        try {
+            const decoder = this.getSbeDecoder ();
+            const decoded = decoder.decode (buffer);
+            if (this.verbose) {
+                this.log ('decodeSbeResponse: Successfully decoded SBE message');
+                this.log ('decodeSbeResponse: Message ID:', decoded.messageId, 'Message Name:', decoded.messageName);
+            }
+            return decoded;
+        } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : String (e);
+            const errorStack = e instanceof Error ? e.stack : '';
+            this.log ('decodeSbeResponse: Error decoding SBE buffer:', errorMessage);
+            this.log ('decodeSbeResponse: Stack trace:', errorStack);
+            this.log ('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes');
+            throw new ExchangeError (this.id + ' decodeSbeResponse() failed. Error: ' + errorMessage + '. Try setting useSbe to false in options.');
+        }
+    }
+
+    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
+        const responseHeaders = this.getResponseHeaders (response);
+        const contentType = this.safeString (responseHeaders, 'Content-Type', '');
+        if (this.verbose) {
+            this.log ('handleRestResponse: Content-Type:', contentType, 'useSbe:', this.safeBool (this.options, 'useSbe', false));
+        }
+        // Handle SBE binary responses
+        if (contentType.includes ('application/sbe')) {
+            const useSbe = this.safeBool (this.options, 'useSbe', false);
+            if (useSbe) {
+                if (this.verbose) {
+                    this.log ('handleRestResponse: Detected SBE response, calling arrayBuffer()');
+                }
+                return response.arrayBuffer ().then ((responseBuffer) => {
+                    if (this.enableLastResponseHeaders) {
+                        this.last_response_headers = responseHeaders;
+                    }
+                    if (this.enableLastHttpResponse) {
+                        this.last_http_response = responseBuffer;
+                    }
+                    if (this.verbose) {
+                        this.log ('handleRestResponse (SBE):\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, 'SBE binary data, buffer length:', responseBuffer.byteLength, '\n');
+                    }
+                    // Automatically decode SBE response
+                    return this.decodeSbeResponse (responseBuffer, url);
+                });
+            }
+        }
+        // Fallback to parent implementation
+        return super.handleRestResponse (response, url, method, requestHeaders, requestBody);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

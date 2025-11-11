@@ -5,6 +5,7 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { createSbeDecoder } from '../base/functions/sbe.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -45,12 +46,15 @@ export default class okx extends okxRest {
             'urls': {
                 'api': {
                     'ws': 'wss://ws.okx.com:8443/ws/v5',
+                    'wsSbe': 'wss://ws.okx.com:8443/ws/v5/public-sbe',
                 },
                 'test': {
                     'ws': 'wss://wspap.okx.com:8443/ws/v5',
+                    'wsSbe': 'wss://wspap.okx.com:8443/ws/v5/public-sbe',
                 },
             },
             'options': {
+                'useSbe': false, // use SBE (Simple Binary Encoding) for WebSocket channels (trades, bbo-tbt, books-l2-tbt)
                 'watchOrderBook': {
                     'checksum': true,
                     //
@@ -116,7 +120,17 @@ export default class okx extends okxRest {
         const sandboxSuffix = isSandbox ? '?brokerId=9999' : '';
         const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
-        const url = this.urls['api']['ws'];
+        // Check if we should use SBE WebSocket
+        // Check both this.options.useSbe and this.useSbe to support both config styles
+        const useSbe = this.safeBool (this.options, 'useSbe', this.safeBool (this, 'useSbe', false));
+        const sbeChannels = [ 'trades', 'bbo-tbt', 'books-l2-tbt' ];
+        const isSbeChannel = sbeChannels.indexOf (channel) >= 0;
+        let url = this.urls['api']['ws'];
+        if (useSbe && isSbeChannel && isPublic) {
+            // Use SBE WebSocket URL for supported channels
+            url = this.urls['api']['wsSbe'];
+            return url + sandboxSuffix;
+        }
         if (isBusiness || (channel.indexOf ('candle') > -1) || (channel === 'orders-algo')) {
             return url + '/business' + sandboxSuffix;
         } else if (isPublic) {
@@ -210,14 +224,22 @@ export default class okx extends okxRest {
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
         const topics = [];
         const messageHashes = [];
+        const useSbe = this.safeBool (this.options, 'useSbe', this.safeBool (this, 'useSbe', false));
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push (channel + ':' + symbol);
-            const marketId = this.marketId (symbol);
+            const market = this.market (symbol);
             const topic: Dict = {
                 'channel': channel,
-                'instId': marketId,
             };
+            // Use instIdCode for SBE, instId for JSON
+            if (useSbe && channel === 'trades') {
+                const instIdCode = this.safeInteger (market['info'], 'instIdCode');
+                topic['instIdCode'] = instIdCode;
+            } else {
+                const marketId = this.marketId (symbol);
+                topic['instId'] = marketId;
+            }
             topics.push (topic);
         }
         const request: Dict = {
@@ -1216,14 +1238,22 @@ export default class okx extends okxRest {
         }
         const topics = [];
         const messageHashes = [];
+        const useSbe = this.safeBool (this.options, 'useSbe', this.safeBool (this, 'useSbe', false));
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push (depth + ':' + symbol);
-            const marketId = this.marketId (symbol);
+            const market = this.market (symbol);
             const topic: Dict = {
                 'channel': depth,
-                'instId': marketId,
             };
+            // Use instIdCode for SBE, instId for JSON
+            if (useSbe && ((depth === 'bbo-tbt') || (depth === 'books-l2-tbt'))) {
+                const instIdCode = this.safeInteger (market['info'], 'instIdCode');
+                topic['instIdCode'] = instIdCode;
+            } else {
+                const marketId = this.marketId (symbol);
+                topic['instId'] = marketId;
+            }
             topics.push (topic);
         }
         const request: Dict = {
@@ -2397,6 +2427,13 @@ export default class okx extends okxRest {
     }
 
     handleMessage (client: Client, message) {
+        // Check if message is binary (SBE)
+        if (message instanceof ArrayBuffer || ArrayBuffer.isView (message)) {
+            const useSbe = this.safeBool (this.options, 'useSbe', this.safeBool (this, 'useSbe', false));
+            if (useSbe) {
+                return this.handleSbeMessage (client, message);
+            }
+        }
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -2498,6 +2535,231 @@ export default class okx extends okxRest {
                 method.call (this, client, message);
             }
         }
+    }
+
+    getSbeWsDecoder (schemaName = 'okx_sbe_1_0.xml') {
+        if (this['sbeWsDecoder'] === undefined) {
+            try {
+                const schema = this.loadSbeSchema (schemaName);
+                this['sbeWsDecoder'] = createSbeDecoder (schema);
+            } catch (e) {
+                this.options['useSbe'] = false;
+                throw new ExchangeError (this.id + ' getSbeWsDecoder() failed to load SBE schema: ' + e);
+            }
+        }
+        return this['sbeWsDecoder'];
+    }
+
+    handleSbeMessage (client: Client, message) {
+        // Convert to Buffer if ArrayBuffer or TypedArray
+        let buffer;
+        if (message instanceof ArrayBuffer) {
+            buffer = Buffer.from (message);
+        } else if (ArrayBuffer.isView (message)) {
+            buffer = Buffer.from (message.buffer, message.byteOffset, message.byteLength);
+        } else {
+            buffer = message;
+        }
+        if (this.verbose) {
+            this.log ('handleSbeMessage: Received binary message, size:', buffer.length);
+        }
+        try {
+            const decoder = this.getSbeWsDecoder ();
+            const decoded = decoder.decode (buffer);
+            const templateId = this.safeInteger (decoded, 'messageId');
+            const messageName = this.safeString (decoded, 'messageName');
+            if (this.verbose) {
+                this.log ('handleSbeMessage: Decoded SBE message, ID:', templateId, 'Name:', messageName);
+            }
+            // Route based on template ID
+            // 1000: BboTbtChannelEvent
+            // 1001: BooksL2TbtChannelEvent
+            // 1002: BooksL2TbtExponentUpdateEvent
+            // 1005: TradesChannelEvent
+            if (templateId === 1000) {
+                this.handleSbeBboTbt (client, decoded);
+            } else if (templateId === 1001) {
+                this.handleSbeBooksL2Tbt (client, decoded);
+            } else if (templateId === 1002) {
+                this.handleSbeBooksL2TbtExponentUpdate (client, decoded);
+            } else if (templateId === 1005) {
+                this.handleSbeTrades (client, decoded);
+            } else {
+                if (this.verbose) {
+                    this.log ('handleSbeMessage: Unknown template ID:', templateId);
+                }
+            }
+        } catch (e) {
+            if (this.verbose) {
+                this.log ('handleSbeMessage: Failed to decode SBE message:', e);
+            }
+        }
+    }
+
+    handleSbeBboTbt (client: Client, message) {
+        // BboTbtChannelEvent (Template ID 1000)
+        // Contains best bid/offer data
+        const instIdCode = this.safeInteger (message, 'instIdCode');
+        const symbol = this.safeSymbolFromInstIdCode (instIdCode);
+        if (symbol === undefined) {
+            return;
+        }
+        const channel = 'bbo-tbt';
+        const messageHash = channel + ':' + symbol;
+        const pxExponent = this.safeInteger (message, 'pxExponent', 0);
+        const szExponent = this.safeInteger (message, 'szExponent', 0);
+        const bidPxMantissa = this.safeInteger (message, 'bidPxMantissa');
+        const bidSzMantissa = this.safeInteger (message, 'bidSzMantissa');
+        const askPxMantissa = this.safeInteger (message, 'askPxMantissa');
+        const askSzMantissa = this.safeInteger (message, 'askSzMantissa');
+        const timestamp = this.safeInteger (message, 'ts');
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
+        }
+        const orderbook = this.orderbooks[symbol];
+        const bidPrice = bidPxMantissa * Math.pow (10, pxExponent);
+        const bidSize = bidSzMantissa * Math.pow (10, szExponent);
+        const askPrice = askPxMantissa * Math.pow (10, pxExponent);
+        const askSize = askSzMantissa * Math.pow (10, szExponent);
+        const snapshot = {
+            'bids': [ [ bidPrice, bidSize ] ],
+            'asks': [ [ askPrice, askSize ] ],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
+        orderbook.reset (snapshot);
+        client.resolve (orderbook, messageHash);
+    }
+
+    handleSbeBooksL2Tbt (client: Client, message) {
+        // BooksL2TbtChannelEvent (Template ID 1001)
+        // Contains orderbook updates
+        const instIdCode = this.safeInteger (message, 'instIdCode');
+        const symbol = this.safeSymbolFromInstIdCode (instIdCode);
+        if (symbol === undefined) {
+            return;
+        }
+        const channel = 'books-l2-tbt';
+        const messageHash = channel + ':' + symbol;
+        const pxExponent = this.safeInteger (message, 'pxExponent', 0);
+        const szExponent = this.safeInteger (message, 'szExponent', 0);
+        const bids = this.safeValue (message, 'bids', []);
+        const asks = this.safeValue (message, 'asks', []);
+        const timestamp = this.safeInteger (message, 'ts');
+        const seqId = this.safeInteger (message, 'seqId');
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
+        }
+        const orderbook = this.orderbooks[symbol];
+        const parsedBids = [];
+        for (let i = 0; i < bids.length; i++) {
+            const bid = bids[i];
+            const pxMantissa = this.safeInteger (bid, 'pxMantissa');
+            const szMantissa = this.safeInteger (bid, 'szMantissa');
+            const price = pxMantissa * Math.pow (10, pxExponent);
+            const size = szMantissa * Math.pow (10, szExponent);
+            parsedBids.push ([ price, size ]);
+        }
+        const parsedAsks = [];
+        for (let i = 0; i < asks.length; i++) {
+            const ask = asks[i];
+            const pxMantissa = this.safeInteger (ask, 'pxMantissa');
+            const szMantissa = this.safeInteger (ask, 'szMantissa');
+            const price = pxMantissa * Math.pow (10, pxExponent);
+            const size = szMantissa * Math.pow (10, szExponent);
+            parsedAsks.push ([ price, size ]);
+        }
+        const snapshot = {
+            'bids': parsedBids,
+            'asks': parsedAsks,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': seqId,
+        };
+        orderbook.reset (snapshot);
+        client.resolve (orderbook, messageHash);
+    }
+
+    handleSbeBooksL2TbtExponentUpdate (client: Client, message) {
+        // BooksL2TbtExponentUpdateEvent (Template ID 1002)
+        // Contains exponent updates for orderbook data
+        // Store exponents for future updates
+        const instIdCode = this.safeInteger (message, 'instIdCode');
+        const pxExponent = this.safeInteger (message, 'pxExponent');
+        const szExponent = this.safeInteger (message, 'szExponent');
+        if (this['sbeExponents'] === undefined) {
+            this['sbeExponents'] = {};
+        }
+        this['sbeExponents'][instIdCode] = {
+            'pxExponent': pxExponent,
+            'szExponent': szExponent,
+        };
+    }
+
+    handleSbeTrades (client: Client, message) {
+        // TradesChannelEvent (Template ID 1005)
+        const instIdCode = this.safeInteger (message, 'instIdCode');
+        const symbol = this.safeSymbolFromInstIdCode (instIdCode);
+        if (symbol === undefined) {
+            return;
+        }
+        const channel = 'trades';
+        const messageHash = channel + ':' + symbol;
+        const pxExponent = this.safeInteger (message, 'pxExponent', 0);
+        const szExponent = this.safeInteger (message, 'szExponent', 0);
+        const trades = this.safeValue (message, 'trades', []);
+        const parsed = [];
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            const pxMantissa = this.safeInteger (trade, 'pxMantissa');
+            const szMantissa = this.safeInteger (trade, 'szMantissa');
+            const price = pxMantissa * Math.pow (10, pxExponent);
+            const amount = szMantissa * Math.pow (10, szExponent);
+            const timestamp = this.safeInteger (trade, 'ts');
+            const side = this.safeString (trade, 'side'); // 'B' or 'S'
+            const tradeId = this.safeString (trade, 'tradeId');
+            parsed.push ({
+                'id': tradeId,
+                'info': trade,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'symbol': symbol,
+                'order': undefined,
+                'type': undefined,
+                'side': (side === 'B') ? 'buy' : 'sell',
+                'takerOrMaker': undefined,
+                'price': price,
+                'amount': amount,
+                'cost': price * amount,
+                'fee': undefined,
+            });
+        }
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        for (let i = 0; i < parsed.length; i++) {
+            stored.append (parsed[i]);
+        }
+        client.resolve (stored, messageHash);
+    }
+
+    safeSymbolFromInstIdCode (instIdCode) {
+        // Convert instIdCode back to symbol
+        // Need to find the market with matching instIdCode
+        const marketIds = Object.keys (this.markets_by_id);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.markets_by_id[marketId];
+            const marketInstIdCode = this.safeInteger (market['info'], 'instIdCode');
+            if (marketInstIdCode === instIdCode) {
+                return market['symbol'];
+            }
+        }
+        return undefined;
     }
 
     handleUnSubscriptionTrades (client: Client, symbol: string, channel: string) {
