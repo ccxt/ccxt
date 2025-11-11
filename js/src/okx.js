@@ -22,7 +22,7 @@ export default class okx extends Exchange {
             'name': 'OKX',
             'countries': ['CN', 'US'],
             'version': 'v5',
-            'rateLimit': 100 * 1.03,
+            'rateLimit': 100 * 1.10,
             'pro': true,
             'certified': true,
             'has': {
@@ -185,7 +185,7 @@ export default class okx extends Exchange {
                 'referral': {
                     // old reflink 0% discount https://www.okx.com/join/1888677
                     // new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    'url': 'https://www.okx.com/join/CCXT2023',
+                    'url': 'https://www.okx.com/join/CCXTCOM',
                     'discount': 0.2,
                 },
                 'test': {
@@ -1303,7 +1303,8 @@ export default class okx extends Exchange {
                     },
                     'fetchOHLCV': {
                         'limit': 300,
-                        'historical': 100,
+                        'mark': 100,
+                        'index': 100,
                     },
                 },
                 'spot': {
@@ -1328,6 +1329,13 @@ export default class okx extends Exchange {
                         'extends': 'default',
                     },
                 },
+            },
+            'currencies': {
+                'USD': this.safeCurrencyStructure({ 'id': 'USD', 'code': 'USD', 'precision': this.parseNumber('0.0001') }),
+                'EUR': this.safeCurrencyStructure({ 'id': 'EUR', 'code': 'EUR', 'precision': this.parseNumber('0.0001') }),
+                'AED': this.safeCurrencyStructure({ 'id': 'AED', 'code': 'AED', 'precision': this.parseNumber('0.0001') }),
+                'GBP': this.safeCurrencyStructure({ 'id': 'GBP', 'code': 'GBP', 'precision': this.parseNumber('0.0001') }),
+                'AUD': this.safeCurrencyStructure({ 'id': 'AUD', 'code': 'AUD', 'precision': this.parseNumber('0.0001') }),
             },
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
@@ -1651,6 +1659,12 @@ export default class okx extends Exchange {
         //         "uly": "BTC-USD"
         //     }
         //
+        // for swap "preopen" markets, only `instId` and `instType` are present
+        //
+        //         instId: "ETH-USD_UM-SWAP",
+        //         instType: "SWAP",
+        //         state: "preopen",
+        //
         const id = this.safeString(market, 'instId');
         let type = this.safeStringLower(market, 'instType');
         if (type === 'futures') {
@@ -1671,9 +1685,19 @@ export default class okx extends Exchange {
             baseId = this.safeString(parts, 0);
             quoteId = this.safeString(parts, 1);
         }
+        if (((baseId === '') || (quoteId === '')) && spot) { // to fix weird preopen markets
+            const instId = this.safeString(market, 'instId', '');
+            const parts = instId.split('-');
+            baseId = this.safeString(parts, 0);
+            quoteId = this.safeString(parts, 1);
+        }
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = base + '/' + quote;
+        // handle preopen empty markets
+        if (base === '' || quote === '') {
+            symbol = id;
+        }
         let expiry = undefined;
         let strikePrice = undefined;
         let optionType = undefined;
@@ -1703,6 +1727,7 @@ export default class okx extends Exchange {
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise.stringMax(maxLeverage, '1');
         const maxSpotCost = this.safeNumber(market, 'maxMktSz');
+        const status = this.safeString(market, 'state');
         return this.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -1718,7 +1743,7 @@ export default class okx extends Exchange {
             'swap': swap,
             'future': future,
             'option': option,
-            'active': true,
+            'active': status === 'live',
             'contract': contract,
             'linear': contract ? (quoteId === settleId) : undefined,
             'inverse': contract ? (baseId === settleId) : undefined,
@@ -2471,16 +2496,18 @@ export default class okx extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 200);
         }
-        const price = this.safeString(params, 'price');
+        const priceType = this.safeString(params, 'price');
+        const isMarkOrIndex = this.inArray(priceType, ['mark', 'index']);
         params = this.omit(params, 'price');
         const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const timezone = this.safeString(options, 'timezone', 'UTC');
         const limitIsUndefined = (limit === undefined);
         if (limit === undefined) {
-            limit = 100; // default 100, max 100
+            limit = 100; // default 100, max 300
         }
         else {
-            limit = Math.min(limit, 300); // max 100
+            const maxLimit = isMarkOrIndex ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
+            limit = Math.min(limit, maxLimit);
         }
         const duration = this.parseTimeframe(timeframe);
         let bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2500,8 +2527,8 @@ export default class okx extends Exchange {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
-                const maxLimit = (price !== undefined) ? 100 : 300;
-                limit = Math.min(limit, maxLimit); // max 300 for historical endpoint
+                const maxLimit = isMarkOrIndex ? 100 : 300;
+                limit = Math.min(limit, maxLimit);
             }
             const startTime = Math.max(since - 1, 0);
             request['before'] = startTime;
@@ -2517,7 +2544,7 @@ export default class okx extends Exchange {
         params = this.omit(params, 'type');
         const isHistoryCandles = (type === 'HistoryCandles');
         let response = undefined;
-        if (price === 'mark') {
+        if (priceType === 'mark') {
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryMarkPriceCandles(this.extend(request, params));
             }
@@ -2525,7 +2552,7 @@ export default class okx extends Exchange {
                 response = await this.publicGetMarketMarkPriceCandles(this.extend(request, params));
             }
         }
-        else if (price === 'index') {
+        else if (priceType === 'index') {
             request['instId'] = market['info']['instFamily']; // okx index candles require instFamily instead of instId
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryIndexCandles(this.extend(request, params));

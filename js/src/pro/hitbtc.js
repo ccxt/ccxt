@@ -88,7 +88,7 @@ export default class hitbtc extends hitbtcRest {
         const url = this.urls['api']['ws']['private'];
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.milliseconds();

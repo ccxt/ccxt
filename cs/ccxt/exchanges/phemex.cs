@@ -180,6 +180,7 @@ public partial class phemex : Exchange
                         { "accounts/accountPositions", 1 },
                         { "g-accounts/accountPositions", 1 },
                         { "g-accounts/positions", 25 },
+                        { "g-accounts/risk-unit", 1 },
                         { "api-data/futures/funding-fees", 5 },
                         { "api-data/g-futures/funding-fees", 5 },
                         { "api-data/futures/orders", 5 },
@@ -3557,13 +3558,17 @@ public partial class phemex : Exchange
         {
             market = this.market(symbol);
         }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
             limit = mathMin(200, limit);
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object isUSDTSettled = isTrue((isEqual(symbol, null))) || isTrue((isEqual(this.safeString(market, "settle"), "USDT")));
+        object isUSDTSettled = isTrue((!isEqual(type, "spot"))) && isTrue((isTrue((isEqual(symbol, null))) || isTrue((isEqual(this.safeString(market, "settle"), "USDT")))));
         if (isTrue(isUSDTSettled))
         {
             ((IDictionary<string,object>)request)["currency"] = "USDT";
@@ -3572,7 +3577,7 @@ public partial class phemex : Exchange
             {
                 ((IDictionary<string,object>)request)["limit"] = 200;
             }
-        } else
+        } else if (isTrue(!isEqual(symbol, null)))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
@@ -3584,8 +3589,9 @@ public partial class phemex : Exchange
         if (isTrue(isUSDTSettled))
         {
             response = await this.privateGetExchangeOrderV2TradingList(this.extend(request, parameters));
-        } else if (isTrue(getValue(market, "swap")))
+        } else if (isTrue(isEqual(type, "swap")))
         {
+            ((IDictionary<string,object>)request)["tradeType"] = "Trade";
             response = await this.privateGetExchangeOrderTrade(this.extend(request, parameters));
         } else
         {
@@ -4624,14 +4630,28 @@ public partial class phemex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (isTrue(isTrue(!isTrue(getValue(market, "swap")) || isTrue(isEqual(getValue(market, "settle"), "USDT"))) || isTrue(isEqual(getValue(market, "settle"), "USDC"))))
+        if (!isTrue(getValue(market, "swap")))
         {
-            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports swap (non USDT/USDC based) contracts only")) ;
+            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports swap contracts only")) ;
         }
         marginMode = ((string)marginMode).ToLower();
         if (isTrue(isTrue(!isEqual(marginMode, "isolated")) && isTrue(!isEqual(marginMode, "cross"))))
         {
             throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object isCross = isEqual(marginMode, "cross");
+        if (isTrue(this.inArray(getValue(market, "settle"), new List<object>() {"USDT", "USDC"})))
+        {
+            object currentLeverage = this.safeString(parameters, "leverage");
+            if (isTrue(isEqual(currentLeverage, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a \"leverage\" parameter for USDT markets")) ;
+            }
+            ((IDictionary<string,object>)request)["leverageRr"] = ((bool) isTrue(isCross)) ? Precise.stringNeg(Precise.stringAbs(currentLeverage)) : Precise.stringAbs(currentLeverage);
+            return await this.privatePutGPositionsLeverage(this.extend(request, parameters));
         }
         object leverage = this.safeInteger(parameters, "leverage");
         if (isTrue(isEqual(marginMode, "cross")))
@@ -4642,10 +4662,7 @@ public partial class phemex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a leverage parameter")) ;
         }
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "leverage", leverage },
-        };
+        ((IDictionary<string,object>)request)["leverage"] = leverage;
         return await this.privatePutPositionsLeverage(this.extend(request, parameters));
     }
 

@@ -47,6 +47,19 @@ export default class binance extends binanceRest {
             fetchTradesWs: boolean;
             fetchTradingFeesWs: boolean;
             fetchWithdrawalsWs: boolean;
+            unWatchTicker: boolean;
+            unWatchTickers: boolean;
+            unWatchOHLCV: boolean;
+            unWatchOHLCVForSymbols: boolean;
+            unWatchOrderBook: boolean;
+            unWatchOrderBookForSymbols: boolean;
+            unWatchTrades: boolean;
+            unWatchTradesForSymbols: boolean;
+            unWatchMyTrades: boolean;
+            unWatchOrders: boolean;
+            unWatchPositions: boolean;
+            unWatchMarkPrices: boolean;
+            unWatchMarkPrice: boolean;
         };
         urls: {
             test: {
@@ -522,6 +535,26 @@ export default class binance extends binanceRest {
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @method
+     * @name binance#unWatchMarkPrices
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    unWatchMarkPrices(symbols?: Strings, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name binance#unWatchMarkPrice
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
+    /**
+     * @method
      * @name binance#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
@@ -556,7 +589,8 @@ export default class binance extends binanceRest {
     getMessageHash(channelName: string, symbol: Str, isBidAsk: boolean): string;
     signParams(params?: {}): any;
     /**
-     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @name binance#ensureUserDataStreamWsSubscribeSignature
+     * @description watches best bid & ask for symbols
      * @param marketType {string} only support on 'spot'
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
@@ -681,7 +715,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name binance#fetchOrderWs

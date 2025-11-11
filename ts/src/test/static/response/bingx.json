@@ -2180,53 +2180,55 @@
                 "method": "fetchBalance",
                 "input": [],
                 "httpResponse": {
-                    "code": "0",
+                    "code": 0,
                     "msg": "",
-                    "data": {
-                        "balance": {
-                            "userId": "1177064765068660742",
+                    "data": [
+                        {
+                            "userId": "116***295",
                             "asset": "USDT",
-                            "balance": "44.1897",
-                            "equity": "44.1897",
-                            "unrealizedProfit": "0.0000",
-                            "realisedProfit": "0.0000",
-                            "availableMargin": "43.5882",
-                            "usedMargin": "0.0000",
-                            "freezedMargin": "0.6015"
+                            "balance": "194.8212",
+                            "equity": "196.7431",
+                            "unrealizedProfit": "1.9219",
+                            "realisedProfit": "-109.2504",
+                            "availableMargin": "193.7609",
+                            "usedMargin": "1.0602",
+                            "freezedMargin": "0.0000",
+                            "shortUid": "12851936"
                         }
-                    }
+                    ]
                 },
                 "parsedResponse": {
                     "info": {
-                        "code": "0",
+                        "code": 0,
                         "msg": "",
-                        "data": {
-                            "balance": {
-                                "userId": "1177064765068660742",
+                        "data": [
+                            {
+                                "userId": "116***295",
                                 "asset": "USDT",
-                                "balance": "44.1897",
-                                "equity": "44.1897",
-                                "unrealizedProfit": "0.0000",
-                                "realisedProfit": "0.0000",
-                                "availableMargin": "43.5882",
-                                "usedMargin": "0.0000",
-                                "freezedMargin": "0.6015"
+                                "balance": "194.8212",
+                                "equity": "196.7431",
+                                "unrealizedProfit": "1.9219",
+                                "realisedProfit": "-109.2504",
+                                "availableMargin": "193.7609",
+                                "usedMargin": "1.0602",
+                                "freezedMargin": "0.0000",
+                                "shortUid": "12851936"
                             }
-                        }
+                        ]
                     },
                     "USDT": {
-                        "free": 43.5882,
-                        "used": 0,
-                        "total": 43.5882
+                        "free": 193.7609,
+                        "used": 1.0602,
+                        "total": 194.8211
                     },
                     "free": {
-                        "USDT": 43.5882
+                        "USDT": 193.7609
                     },
                     "used": {
-                        "USDT": 0
+                        "USDT": 1.0602
                     },
                     "total": {
-                        "USDT": 43.5882
+                        "USDT": 194.8211
                     }
                 }
             }

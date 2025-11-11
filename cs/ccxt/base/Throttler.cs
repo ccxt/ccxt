@@ -80,9 +80,9 @@ public class Throttler
         lock (throttlerLock)
         {
             var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config["cost"]);
-            if (this.queue.Count > (int)this.config["maxCapacity"])
+            if (Convert.ToInt64(this.queue.Count) > (long)this.config["maxCapacity"])
             {
-                throw new Exception("throttle queue is over maxCapacity (" + this.config["maxCapacity"].ToString() + "), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526");
+                throw new Exception("throttle queue is over maxCapacity (" + this.config["maxCapacity"].ToString() + "), see https://docs.ccxt.com/#/README?id=maximum-requests-capacity");
             }
             var t = new Task(() => { });
             this.queue.Enqueue((t, cost));

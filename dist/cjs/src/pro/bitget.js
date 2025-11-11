@@ -1492,6 +1492,7 @@ class bitget extends bitget$1["default"] {
      * @name bitget#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+     * @see https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
      * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
@@ -2476,7 +2477,7 @@ class bitget extends bitget$1["default"] {
         const url = this.safeString(params, 'url');
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.seconds().toString();
@@ -2743,7 +2744,9 @@ class bitget extends bitget$1["default"] {
             delete client.subscriptions[messageHash];
         }
         const error = new errors.UnsubscribeError(this.id + ' orderbook ' + symbol);
-        client.reject(error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject(error, subMessageHash);
+        }
         client.resolve(true, messageHash);
     }
     handleTradesUnSubscription(client, message) {
@@ -2768,7 +2771,9 @@ class bitget extends bitget$1["default"] {
             delete client.subscriptions[messageHash];
         }
         const error = new errors.UnsubscribeError(this.id + ' trades ' + symbol);
-        client.reject(error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject(error, subMessageHash);
+        }
         client.resolve(true, messageHash);
     }
     handleTickerUnSubscription(client, message) {
@@ -2793,7 +2798,9 @@ class bitget extends bitget$1["default"] {
             delete client.subscriptions[messageHash];
         }
         const error = new errors.UnsubscribeError(this.id + ' ticker ' + symbol);
-        client.reject(error, subMessageHash);
+        if (subMessageHash in client.futures) {
+            client.reject(error, subMessageHash);
+        }
         client.resolve(true, messageHash);
     }
     handleOHLCVUnSubscription(client, message) {

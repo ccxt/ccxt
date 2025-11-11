@@ -192,6 +192,7 @@ class phemex extends phemex$1["default"] {
                         'accounts/accountPositions': 1,
                         'g-accounts/accountPositions': 1,
                         'g-accounts/positions': 25,
+                        'g-accounts/risk-unit': 1,
                         'api-data/futures/funding-fees': 5,
                         'api-data/g-futures/funding-fees': 5,
                         'api-data/futures/orders': 5,
@@ -3390,12 +3391,14 @@ class phemex extends phemex$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         const request = {};
         if (limit !== undefined) {
             limit = Math.min(200, limit);
             request['limit'] = limit;
         }
-        const isUSDTSettled = (symbol === undefined) || (this.safeString(market, 'settle') === 'USDT');
+        const isUSDTSettled = (type !== 'spot') && ((symbol === undefined) || (this.safeString(market, 'settle') === 'USDT'));
         if (isUSDTSettled) {
             request['currency'] = 'USDT';
             request['offset'] = 0;
@@ -3403,7 +3406,7 @@ class phemex extends phemex$1["default"] {
                 request['limit'] = 200;
             }
         }
-        else {
+        else if (symbol !== undefined) {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
@@ -3413,7 +3416,8 @@ class phemex extends phemex$1["default"] {
         if (isUSDTSettled) {
             response = await this.privateGetExchangeOrderV2TradingList(this.extend(request, params));
         }
-        else if (market['swap']) {
+        else if (type === 'swap') {
+            request['tradeType'] = 'Trade';
             response = await this.privateGetExchangeOrderTrade(this.extend(request, params));
         }
         else {
@@ -4384,12 +4388,24 @@ class phemex extends phemex$1["default"] {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap'] || market['settle'] === 'USDT' || market['settle'] === 'USDC') {
-            throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap (non USDT/USDC based) contracts only');
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap contracts only');
         }
         marginMode = marginMode.toLowerCase();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new errors.BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const isCross = marginMode === 'cross';
+        if (this.inArray(market['settle'], ['USDT', 'USDC'])) {
+            const currentLeverage = this.safeString(params, 'leverage');
+            if (currentLeverage === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a "leverage" parameter for USDT markets');
+            }
+            request['leverageRr'] = isCross ? Precise["default"].stringNeg(Precise["default"].stringAbs(currentLeverage)) : Precise["default"].stringAbs(currentLeverage);
+            return await this.privatePutGPositionsLeverage(this.extend(request, params));
         }
         let leverage = this.safeInteger(params, 'leverage');
         if (marginMode === 'cross') {
@@ -4398,10 +4414,7 @@ class phemex extends phemex$1["default"] {
         if (leverage === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a leverage parameter');
         }
-        const request = {
-            'symbol': market['id'],
-            'leverage': leverage,
-        };
+        request['leverage'] = leverage;
         return await this.privatePutPositionsLeverage(this.extend(request, params));
     }
     /**

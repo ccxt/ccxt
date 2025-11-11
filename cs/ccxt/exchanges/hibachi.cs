@@ -1147,7 +1147,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object orders = new List<object>() {};
@@ -1333,12 +1333,12 @@ public partial class hibachi : Exchange
         } else
         {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-            object hash = this.hash(this.encode(message), sha256, "hex");
+            object hash = this.hash(message, sha256, "hex");
             object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
             object r = getValue(signature, "r");
             object s = getValue(signature, "s");
-            object v = getValue(signature, "v");
-            return add(add((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (this.intToBase16(v) as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0")));
+            object v = this.intToBase16(getValue(signature, "v"));
+            return add(add((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (v as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0")));
         }
     }
 

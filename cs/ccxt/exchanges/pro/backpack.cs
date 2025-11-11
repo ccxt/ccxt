@@ -393,7 +393,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async virtual Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -503,7 +503,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -993,8 +993,8 @@ public partial class backpack : ccxt.backpack
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "u");
-        object bids = this.safeDict(delta, "b", new List<object>() {});
-        object asks = this.safeDict(delta, "a", new List<object>() {});
+        object bids = this.safeList(delta, "b", new List<object>() {});
+        object asks = this.safeList(delta, "a", new List<object>() {});
         object storedBids = getValue(orderbook, "bids");
         object storedAsks = getValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);

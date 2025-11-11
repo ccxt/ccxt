@@ -200,7 +200,7 @@ class bybit(Exchange, ImplicitAPI):
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
+                'referral': 'https://www.bybit.com/invite?ref=XDK12WP',
             },
             'api': {
                 'public': {
@@ -354,6 +354,7 @@ class bybit(Exchange, ImplicitAPI):
                         # account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
+                        'v5/account/instruments-info': 1,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
@@ -384,6 +385,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/deposit/query-address': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-address': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/coin/query-info': 28,  # should be 25 but exceeds ratelimit unless the weight is 28 or higher
+                        'v5/asset/withdraw/query-address': 10,
                         'v5/asset/withdraw/query-record': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         'v5/asset/withdraw/vasp/list': 5,
@@ -402,6 +404,10 @@ class bybit(Exchange, ImplicitAPI):
                         # spot margin trade
                         'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
+                        'v5/spot-margin-trade/max-borrowable': 5,
+                        'v5/spot-margin-trade/position-tiers': 5,
+                        'v5/spot-margin-trade/coinstate': 5,
+                        'v5/spot-margin-trade/repayment-available-amount': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
@@ -429,8 +435,11 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
                         # earn
+                        'v5/earn/product': 5,
                         'v5/earn/order': 5,
                         'v5/earn/position': 5,
+                        'v5/earn/yield': 5,
+                        'v5/earn/hourly-yield': 5,
                     },
                     'post': {
                         # spot
@@ -522,6 +531,9 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
+                        'v5/account/borrow': 5,
+                        'v5/account/repay': 5,
+                        'v5/account/no-convert-repay': 5,
                         # asset
                         'v5/asset/exchange/quote-apply': 1,  # 50/s
                         'v5/asset/exchange/convert-execute': 1,  # 50/s
@@ -2499,7 +2511,7 @@ class bybit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3789,7 +3801,7 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.positionIdx]: *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
         :param bool [params.hedged]: *contracts only* True for hedged mode, False for one way mode, default is False
         :param int [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
-        :param str [params.tpslMode]: *contract only* 'full' or 'partial'
+        :param str [params.tpslMode]: *contract only* 'Full' or 'Partial'
         :param str [params.mmp]: *option only* market maker protection
         :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'ascending' or 'descending'
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
@@ -3904,20 +3916,26 @@ class bybit(Exchange, ImplicitAPI):
             if isStopLoss or isTakeProfit or isTriggerOrder or market['spot']:
                 raise InvalidOrder(self.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders')
             if isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                tpslMode = self.safe_string(params, 'tpslMode', 'Partial')
+                isFullTpsl = tpslMode == 'Full'
+                isPartialTpsl = tpslMode == 'Partial'
+                if isLimit and isFullTpsl:
+                    raise InvalidOrder(self.id + ' tpsl orders with "full" tpslMode only support "market" type')
+                request['tpslMode'] = tpslMode
                 if isStopLossTriggerOrder:
                     request['stopLoss'] = self.get_price(symbol, stopLossTriggerPrice)
+                    if isPartialTpsl:
+                        request['slSize'] = amountString
                     if isLimit:
-                        request['tpslMode'] = 'Partial'
                         request['slOrderType'] = 'Limit'
                         request['slLimitPrice'] = priceString
-                        request['slSize'] = amountString
                 elif isTakeProfitTriggerOrder:
                     request['takeProfit'] = self.get_price(symbol, takeProfitTriggerPrice)
+                    if isPartialTpsl:
+                        request['tpSize'] = amountString
                     if isLimit:
-                        request['tpslMode'] = 'Partial'
                         request['tpOrderType'] = 'Limit'
                         request['tpLimitPrice'] = priceString
-                        request['tpSize'] = amountString
         else:
             request['side'] = self.capitalize(side)
             request['orderType'] = self.capitalize(lowerCaseType)
@@ -3936,7 +3954,7 @@ class bybit(Exchange, ImplicitAPI):
                 # only works for spot market
                 if triggerPrice is not None:
                     request['orderFilter'] = 'StopOrder'
-                elif stopLossTriggerPrice is not None or takeProfitTriggerPrice is not None or isStopLoss or isTakeProfit:
+                elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                     request['orderFilter'] = 'tpslOrder'
             clientOrderId = self.safe_string(params, 'clientOrderId')
             if clientOrderId is not None:
@@ -3953,7 +3971,8 @@ class bybit(Exchange, ImplicitAPI):
         params = self.omit(params, 'cost')
         # if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         isMarketBuyAndCostInferable = (lowerCaseType == 'market') and (side == 'buy') and ((price is not None) or (cost is not None))
-        if market['spot'] and (type == 'market') and isUTA and not isMarketBuyAndCostInferable:
+        isMarketOrder = lowerCaseType == 'market'
+        if market['spot'] and isMarketOrder and isUTA and not isMarketBuyAndCostInferable:
             # UTA account can specify the cost of the order on both sides
             if (cost is not None) or (price is not None):
                 request['marketUnit'] = 'quoteCoin'
@@ -3967,7 +3986,7 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 request['marketUnit'] = 'baseCoin'
                 request['qty'] = amountString
-        elif market['spot'] and (type == 'market') and (side == 'buy'):
+        elif market['spot'] and isMarketOrder and (side == 'buy'):
             # classic accounts
             # for market buy it requires the amount of quote currency to spend
             createMarketBuyOrderRequiresPrice = True
@@ -4022,6 +4041,13 @@ class bybit(Exchange, ImplicitAPI):
                     request['tpslMode'] = 'Partial'
                     request['slOrderType'] = 'Limit'
                     request['slLimitPrice'] = self.get_price(symbol, slLimitPrice)
+                else:
+                    # for spot market, we need to add self
+                    if market['spot']:
+                        request['slOrderType'] = 'Market'
+                # for spot market, we need to add self
+                if market['spot'] and isMarketOrder:
+                    raise InvalidOrder(self.id + ' createOrder(): attached stopLoss is not supported for spot market orders')
             if isTakeProfit:
                 tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
                 request['takeProfit'] = self.get_price(symbol, tpTriggerPrice)
@@ -4030,12 +4056,19 @@ class bybit(Exchange, ImplicitAPI):
                     request['tpslMode'] = 'Partial'
                     request['tpOrderType'] = 'Limit'
                     request['tpLimitPrice'] = self.get_price(symbol, tpLimitPrice)
+                else:
+                    # for spot market, we need to add self
+                    if market['spot']:
+                        request['tpOrderType'] = 'Market'
+                # for spot market, we need to add self
+                if market['spot'] and isMarketOrder:
+                    raise InvalidOrder(self.id + ' createOrder(): attached takeProfit is not supported for spot market orders')
         if not market['spot'] and hedged:
             if reduceOnly:
                 params = self.omit(params, 'reduceOnly')
                 side = 'sell' if (side == 'buy') else 'buy'
             request['positionIdx'] = 1 if (side == 'buy') else 2
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged', 'tpslMode'])
         return self.extend(request, params)
 
     async def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
@@ -4374,7 +4407,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 
@@ -6299,7 +6332,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 side = None
         notional = self.safe_string_2(position, 'positionValue', 'cumExitValue')
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
-        initialMarginString = self.safe_string_n(position, ['positionIM', 'cumEntryValue'])
+        initialMarginString = self.safe_string_2(position, 'positionIM', 'cumEntryValue')
         maintenanceMarginString = self.safe_string(position, 'positionMM')
         timestamp = self.safe_integer_n(position, ['createdTime', 'createdAt'])
         lastUpdateTimestamp = self.parse8601(self.safe_string(position, 'updated_at'))
@@ -6332,7 +6365,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     maintenanceMarginPriceDifference = Precise.string_abs(Precise.string_sub(liquidationPrice, bustPrice))
                     maintenanceMarginString = Precise.string_mul(maintenanceMarginPriceDifference, size)
                     # Initial Margin = Contracts x Entry Price / Leverage
-                    if entryPrice is not None:
+                    if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(Precise.string_mul(size, entryPrice), leverage)
                 else:
                     # Contracts * (1 / Entry price - 1 / Bust price) = Collateral
@@ -6343,7 +6376,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     multiply = Precise.string_mul(bustPrice, liquidationPrice)
                     maintenanceMarginString = Precise.string_div(Precise.string_mul(size, difference), multiply)
                     # Initial Margin = Leverage x Contracts / EntryPrice
-                    if entryPrice is not None:
+                    if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)

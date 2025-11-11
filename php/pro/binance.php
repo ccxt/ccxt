@@ -66,6 +66,19 @@ class binance extends \ccxt\async\binance {
                 'fetchTradesWs' => true,
                 'fetchTradingFeesWs' => false,
                 'fetchWithdrawalsWs' => false,
+                'unWatchTicker' => true,
+                'unWatchTickers' => true,
+                'unWatchOHLCV' => true,
+                'unWatchOHLCVForSymbols' => true,
+                'unWatchOrderBook' => true,
+                'unWatchOrderBookForSymbols' => true,
+                'unWatchTrades' => true,
+                'unWatchTradesForSymbols' => true,
+                'unWatchMyTrades' => false,
+                'unWatchOrders' => false,
+                'unWatchPositions' => false,
+                'unWatchMarkPrices' => true,
+                'unWatchMarkPrice' => true,
             ),
             'urls' => array(
                 'test' => array(
@@ -436,7 +449,7 @@ class binance extends \ccxt\async\binance {
         //    }
         //
         $marketId = $this->safe_string($liquidation, 's');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'swap');
         $timestamp = $this->safe_integer($liquidation, 'T');
         return $this->safe_liquidation(array(
             'info' => $liquidation,
@@ -562,8 +575,8 @@ class binance extends \ccxt\async\binance {
             return;
         }
         $marketId = $this->safe_string($message, 's');
-        $market = $this->safe_market($marketId);
-        $symbol = $this->safe_symbol($marketId);
+        $market = $this->safe_market($marketId, null, null, 'swap');
+        $symbol = $this->safe_symbol($marketId, $market);
         $liquidation = $this->parse_ws_liquidation($message, $market);
         $myLiquidations = $this->safe_value($this->myLiquidations, $symbol);
         if ($myLiquidations === null) {
@@ -958,7 +971,7 @@ class binance extends \ccxt\async\binance {
         //     }
         //
         $isSpot = $this->is_spot_url($client);
-        $marketType = ($isSpot) ? 'spot' : 'contract';
+        $marketType = ($isSpot) ? 'spot' : 'swap';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
@@ -1445,7 +1458,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve ($tradesArray, $messageHash);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1531,7 +1544,8 @@ class binance extends \ccxt\async\binance {
                 'id' => $requestId,
             );
             $params = $this->omit($params, 'callerMethodName');
-            list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscribe));
+            $res = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscribe));
+            list($symbol, $timeframe, $candles) = $res;
             if ($this->newUpdates) {
                 $limit = $candles->getLimit ($symbol, $limit);
             }
@@ -1610,7 +1624,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1740,7 +1754,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * query historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -2015,11 +2029,96 @@ class binance extends \ccxt\async\binance {
                 'unsubscribe' => true,
                 'id' => (string) $requestId,
                 'subMessageHashes' => $subMessageHashes,
-                'messageHashes' => $subMessageHashes,
+                'messageHashes' => $messageHashes,
                 'symbols' => $symbols,
                 'topic' => 'ticker',
             );
-            return Async\await($this->watch_multiple($url, $subMessageHashes, $this->extend($request, $params), $subMessageHashes, $subscription));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
+        }) ();
+    }
+
+    public function un_watch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Mark-Price-Stream
+             *
+             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            $channelName = null;
+            list($channelName, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
+            Async\await($this->load_markets());
+            $use1sFreq = $this->safe_bool($params, 'use1sFreq', true);
+            $suffix = ($use1sFreq) ? '@1s' : '';
+            $methodName = 'watchMarkPrices';
+            $symbols = $this->market_symbols($symbols, null, true, false, true);
+            $firstMarket = null;
+            $marketType = null;
+            $symbolsDefined = ($symbols !== null);
+            if ($symbolsDefined) {
+                $firstMarket = $this->market($symbols[0]);
+            }
+            list($marketType, $params) = $this->handle_market_type_and_params($methodName, $firstMarket, $params);
+            if ($marketType !== 'swap' && $marketType !== 'future') {
+                throw new NotSupported($this->id . ' ' . $methodName . '() only supports swap markets');
+            }
+            $rawMarketType = 'future';
+            $subscriptionArgs = array();
+            $subMessageHashes = array();
+            $messageHashes = array();
+            if ($symbolsDefined) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    $msgHash = $this->get_message_hash($channelName, $market['symbol'], false);
+                    $subscriptionArgs[] = $market['lowercaseId'] . '@' . $channelName . $suffix;
+                    $subMessageHashes[] = $msgHash;
+                    $messageHashes[] = 'unsubscribe:' . $msgHash;
+                }
+            } else {
+                $msgHashNoSymbol = $this->get_message_hash($channelName, null, false);
+                $subscriptionArgs[] = '!' . $channelName . '@arr';
+                $subMessageHashes[] = $msgHashNoSymbol;
+                $messageHashes[] = 'unsubscribe:' . $msgHashNoSymbol;
+            }
+            $streamHash = $channelName;
+            if ($symbolsDefined) {
+                $streamHash = $channelName . '::' . implode(',', $symbols);
+            }
+            $url = $this->urls['api']['ws'][$rawMarketType] . '/' . $this->stream($rawMarketType, $streamHash);
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'UNSUBSCRIBE',
+                'params' => $subscriptionArgs,
+                'id' => $requestId,
+            );
+            $subscription = array(
+                'unsubscribe' => true,
+                'id' => (string) $requestId,
+                'subMessageHashes' => $subMessageHashes,
+                'messageHashes' => $messageHashes,
+                'symbols' => $symbols,
+                'topic' => 'ticker',
+            );
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
+        }) ();
+    }
+
+    public function un_watch_mark_price(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            return Async\await($this->un_watch_mark_prices(array( $symbol ), $params));
         }) ();
     }
 
@@ -2402,10 +2501,6 @@ class binance extends \ccxt\async\binance {
 
     public function sign_params($params = array ()) {
         $this->check_required_credentials();
-        $extendedParams = $this->extend(array(
-            'timestamp' => $this->nonce(),
-            'apiKey' => $this->apiKey,
-        ), $params);
         $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
         if ($defaultRecvWindow !== null) {
             $params['recvWindow'] = $defaultRecvWindow;
@@ -2414,8 +2509,12 @@ class binance extends \ccxt\async\binance {
         if ($recvWindow !== null) {
             $params['recvWindow'] = $recvWindow;
         }
+        $extendedParams = $this->extend(array(
+            'timestamp' => $this->nonce(),
+            'apiKey' => $this->apiKey,
+        ), $params);
         $extendedParams = $this->keysort($extendedParams);
-        $query = $this->urlencode($extendedParams);
+        $query = $this->rawencode($extendedParams);
         $signature = null;
         if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
             if (strlen($this->secret) > 120) {
@@ -2433,7 +2532,7 @@ class binance extends \ccxt\async\binance {
     public function ensure_user_data_stream_ws_subscribe_signature(string $marketType = 'spot') {
         return Async\async(function () use ($marketType) {
             /**
-             * Ensures a User Data Stream WebSocket $subscription is active for the specified scope
+             * watches best bid & ask for symbols
              * @param $marketType {string} only support on 'spot'
              *
              * @see array(@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-$subscription-user_data Binance User Data Stream Documentation)
@@ -3668,7 +3767,7 @@ class binance extends \ccxt\async\binance {
             } elseif ($this->isInverse ($type, $subType)) {
                 $type = 'delivery';
             }
-            $params = $this->extend($params, array( 'type' => $type, 'symbol' => $symbol )); // needed inside authenticate for isolated margin
+            $params = $this->extend($params, array( 'type' => $type, 'symbol' => $symbol, 'subType' => $subType )); // needed inside authenticate for isolated margin
             Async\await($this->authenticate($params));
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('watchOrders', $params);
@@ -4147,7 +4246,7 @@ class binance extends \ccxt\async\binance {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_symbol($marketId, null, null, 'contract'),
+            'symbol' => $this->safe_symbol($marketId, null, null, 'swap'),
             'notional' => null,
             'marginMode' => $this->safe_string($position, 'mt'),
             'liquidationPrice' => null,
@@ -4358,7 +4457,7 @@ class binance extends \ccxt\async\binance {
                 $messageHash .= ':' . $symbol;
                 $params = $this->extend($params, array( 'type' => $market['type'], 'symbol' => $symbol ));
             }
-            Async\await($this->authenticate($params));
+            Async\await($this->authenticate($this->extend(array( 'type' => $type, 'subType' => $subType ), $params)));
             $urlType = $type; // we don't change $type because the listening key is different
             if ($type === 'margin') {
                 $urlType = 'spot'; // spot-margin shares the same stream spot

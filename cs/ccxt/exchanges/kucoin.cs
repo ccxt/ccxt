@@ -118,6 +118,7 @@ public partial class kucoin : Exchange
                     { "webExchange", "https://kucoin.com/_api" },
                     { "broker", "https://api-broker.kucoin.com" },
                     { "earn", "https://api.kucoin.com" },
+                    { "uta", "https://api.kucoin.com" },
                 } },
                 { "www", "https://www.kucoin.com" },
                 { "doc", new List<object>() {"https://docs.kucoin.com"} },
@@ -149,6 +150,7 @@ public partial class kucoin : Exchange
                         { "mark-price/all-symbols", 3 },
                         { "margin/config", 25 },
                         { "announcements", 20 },
+                        { "margin/collateralRatio", 10 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "bullet-public", 15 },
@@ -224,6 +226,9 @@ public partial class kucoin : Exchange
                         { "redeem/orders", 10 },
                         { "purchase/orders", 10 },
                         { "broker/api/rebase/download", 3 },
+                        { "broker/queryMyCommission", 3 },
+                        { "broker/queryUser", 3 },
+                        { "broker/queryDetailByUid", 3 },
                         { "migrate/user/account/status", 3 },
                         { "affiliate/inviter/statistics", 30 },
                     } },
@@ -331,6 +336,8 @@ public partial class kucoin : Exchange
                         { "margin/maxWithdrawMargin", 15 },
                         { "contracts/risk-limit/{symbol}", 7.5 },
                         { "funding-history", 7.5 },
+                        { "copy-trade/futures/get-max-open-size", 6 },
+                        { "copy-trade/futures/position/margin/max-withdraw-margin", 15 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "transfer-out", 30 },
@@ -342,6 +349,17 @@ public partial class kucoin : Exchange
                         { "margin/withdrawMargin", 15 },
                         { "position/margin/deposit-margin", 6 },
                         { "position/risk-limit-level/change", 6 },
+                        { "copy-trade/futures/orders", 3 },
+                        { "copy-trade/futures/orders/test", 3 },
+                        { "copy-trade/futures/st-orders", 3 },
+                        { "copy-trade/futures/position/margin/deposit-margin", 6 },
+                        { "copy-trade/futures/position/margin/withdraw-margin", 15 },
+                        { "copy-trade/futures/position/risk-limit-level/change", 3 },
+                        { "copy-trade/futures/position/margin/auto-deposit-status", 6 },
+                        { "copy-trade/futures/position/changeMarginMode", 3 },
+                        { "copy-trade/futures/position/changeCrossUserLeverage", 3 },
+                        { "copy-trade/getCrossModeMarginRequirement", 4.5 },
+                        { "copy-trade/position/switchPositionMode", 3 },
                         { "bullet-private", 15 },
                     } },
                     { "delete", new Dictionary<string, object>() {
@@ -349,6 +367,8 @@ public partial class kucoin : Exchange
                         { "orders/client-order/{clientOid}", 1.5 },
                         { "orders", 45 },
                         { "stopOrders", 22.5 },
+                        { "copy-trade/futures/orders", 1.5 },
+                        { "copy-trade/futures/orders/client-order", 1.5 },
                     } },
                 } },
                 { "webExchange", new Dictionary<string, object>() {
@@ -396,6 +416,21 @@ public partial class kucoin : Exchange
                         { "earn/orders", 7.5 },
                     } },
                 } },
+                { "uta", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "market/announcement", 20 },
+                        { "market/currency", 3 },
+                        { "market/instrument", 4 },
+                        { "market/ticker", 15 },
+                        { "market/orderbook", 3 },
+                        { "market/trade", 3 },
+                        { "market/kline", 3 },
+                        { "market/funding-rate", 2 },
+                        { "market/funding-rate-history", 5 },
+                        { "market/cross-config", 25 },
+                        { "market/server/status", 3 },
+                    } },
+                } },
             } },
             { "timeframes", new Dictionary<string, object>() {
                 { "1m", "1min" },
@@ -416,12 +451,14 @@ public partial class kucoin : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "Order not exist or not allow to be cancelled", typeof(OrderNotFound) },
                     { "The order does not exist.", typeof(OrderNotFound) },
                     { "order not exist", typeof(OrderNotFound) },
                     { "order not exist.", typeof(OrderNotFound) },
                     { "order_not_exist", typeof(OrderNotFound) },
                     { "order_not_exist_or_not_allow_to_cancel", typeof(InvalidOrder) },
                     { "Order size below the minimum requirement.", typeof(InvalidOrder) },
+                    { "Order size increment invalid.", typeof(InvalidOrder) },
                     { "The withdrawal amount is below the minimum requirement.", typeof(ExchangeError) },
                     { "Unsuccessful! Exceeded the max. funds out-transfer limit", typeof(InsufficientFunds) },
                     { "The amount increment is invalid.", typeof(BadRequest) },
@@ -1457,7 +1494,7 @@ public partial class kucoin : Exchange
                 object networkCodeNew = this.networkIdToCode(this.safeString(chain, "chainId"), this.safeString(currency, "code"));
                 ((IDictionary<string,object>)getValue(resultNew, "networks"))[(string)networkCodeNew] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
-                        { "fee", this.safeNumber(chain, "withdrawMinFee") },
+                        { "fee", this.safeNumber2(chain, "withdrawalMinFee", "withdrawMinFee") },
                         { "percentage", false },
                     } },
                     { "deposit", new Dictionary<string, object>() {
@@ -5261,6 +5298,10 @@ public partial class kucoin : Exchange
         if (isTrue(isEqual(api, "earn")))
         {
             endpoint = add("/api/v1/", this.implodeParams(path, parameters));
+        }
+        if (isTrue(isEqual(api, "uta")))
+        {
+            endpoint = add("/api/ua/v1/", this.implodeParams(path, parameters));
         }
         object query = this.omit(parameters, this.extractParams(path));
         object endpart = "";

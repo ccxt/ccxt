@@ -823,7 +823,7 @@ class apex extends apex$1["default"] {
         const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256.sha256, 'base64');
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             // auth sign
@@ -944,6 +944,7 @@ class apex extends apex$1["default"] {
             'recentlyTrade': this.handleTrades,
             'pong': this.handlePong,
             'auth': this.handleAuthenticate,
+            'ping': this.handlePing,
         };
         const exacMethod = this.safeValue(methods, topic);
         if (exacMethod !== undefined) {
@@ -966,12 +967,25 @@ class apex extends apex$1["default"] {
         }
     }
     ping(client) {
-        const timeStamp = this.milliseconds().toString();
-        client.lastPong = timeStamp; // server won't send a pong, so we set it here
+        const timeStamp = this.milliseconds();
+        client.lastPong = timeStamp;
         return {
-            'args': [timeStamp],
+            'args': [timeStamp.toString()],
             'op': 'ping',
         };
+    }
+    async pong(client, message) {
+        //
+        //     {"op": "ping", "args": ["1761069137485"]}
+        //
+        const timeStamp = this.milliseconds();
+        try {
+            await client.send({ 'args': [timeStamp.toString()], 'op': 'pong' });
+        }
+        catch (e) {
+            const error = new errors.NetworkError(this.id + ' handlePing failed with error ' + this.json(e));
+            client.reset(error);
+        }
     }
     handlePong(client, message) {
         //
@@ -986,6 +1000,9 @@ class apex extends apex$1["default"] {
         //
         client.lastPong = this.safeInteger(message, 'pong');
         return message;
+    }
+    handlePing(client, message) {
+        this.spawn(this.pong, client, message);
     }
     handleAccount(client, message) {
         const contents = this.safeDict(message, 'contents', {});

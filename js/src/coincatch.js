@@ -373,7 +373,8 @@ export default class coincatch extends Exchange {
                     'StratisEVM': 'STRAT',
                     'ChilizChain': 'ChilizChain',
                     'StellarLumens': 'XLM',
-                    'CronosChain': 'CRO', // todo check
+                    'CronosChain': 'CRO',
+                    'Optimism': 'Optimism',
                 },
             },
             'features': {

@@ -64,6 +64,19 @@ export default class binance extends binanceRest {
                 'fetchTradesWs': true,
                 'fetchTradingFeesWs': false,
                 'fetchWithdrawalsWs': false,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
+                'unWatchMyTrades': false,
+                'unWatchOrders': false,
+                'unWatchPositions': false,
+                'unWatchMarkPrices': true,
+                'unWatchMarkPrice': true,
             },
             'urls': {
                 'test': {
@@ -425,7 +438,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const marketId = this.safeString(liquidation, 's');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger(liquidation, 'T');
         return this.safeLiquidation({
             'info': liquidation,
@@ -547,8 +560,8 @@ export default class binance extends binanceRest {
             return;
         }
         const marketId = this.safeString(message, 's');
-        const market = this.safeMarket(marketId);
-        const symbol = this.safeSymbol(marketId);
+        const market = this.safeMarket(marketId, undefined, undefined, 'swap');
+        const symbol = this.safeSymbol(marketId, market);
         const liquidation = this.parseWsLiquidation(message, market);
         let myLiquidations = this.safeValue(this.myLiquidations, symbol);
         if (myLiquidations === undefined) {
@@ -922,7 +935,7 @@ export default class binance extends binanceRest {
         //     }
         //
         const isSpot = this.isSpotUrl(client);
-        const marketType = (isSpot) ? 'spot' : 'contract';
+        const marketType = (isSpot) ? 'spot' : 'swap';
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -1479,7 +1492,8 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         params = this.omit(params, 'callerMethodName');
-        const [symbol, timeframe, candles] = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscribe);
+        const res = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscribe);
+        const [symbol, timeframe, candles] = res;
         if (this.newUpdates) {
             limit = candles.getLimit(symbol, limit);
         }
@@ -1941,11 +1955,91 @@ export default class binance extends binanceRest {
             'unsubscribe': true,
             'id': requestId.toString(),
             'subMessageHashes': subMessageHashes,
-            'messageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
             'symbols': symbols,
             'topic': 'ticker',
         };
-        return await this.watchMultiple(url, subMessageHashes, this.extend(request, params), subMessageHashes, subscription);
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscription);
+    }
+    /**
+     * @method
+     * @name binance#unWatchMarkPrices
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchMarkPrices(symbols = undefined, params = {}) {
+        let channelName = undefined;
+        [channelName, params] = this.handleOptionAndParams(params, 'watchMarkPrices', 'name', 'markPrice');
+        await this.loadMarkets();
+        const use1sFreq = this.safeBool(params, 'use1sFreq', true);
+        const suffix = (use1sFreq) ? '@1s' : '';
+        const methodName = 'watchMarkPrices';
+        symbols = this.marketSymbols(symbols, undefined, true, false, true);
+        let firstMarket = undefined;
+        let marketType = undefined;
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            firstMarket = this.market(symbols[0]);
+        }
+        [marketType, params] = this.handleMarketTypeAndParams(methodName, firstMarket, params);
+        if (marketType !== 'swap' && marketType !== 'future') {
+            throw new NotSupported(this.id + ' ' + methodName + '() only supports swap markets');
+        }
+        const rawMarketType = 'future';
+        const subscriptionArgs = [];
+        const subMessageHashes = [];
+        const messageHashes = [];
+        if (symbolsDefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market(symbol);
+                const msgHash = this.getMessageHash(channelName, market['symbol'], false);
+                subscriptionArgs.push(market['lowercaseId'] + '@' + channelName + suffix);
+                subMessageHashes.push(msgHash);
+                messageHashes.push('unsubscribe:' + msgHash);
+            }
+        }
+        else {
+            const msgHashNoSymbol = this.getMessageHash(channelName, undefined, false);
+            subscriptionArgs.push('!' + channelName + '@arr');
+            subMessageHashes.push(msgHashNoSymbol);
+            messageHashes.push('unsubscribe:' + msgHashNoSymbol);
+        }
+        let streamHash = channelName;
+        if (symbolsDefined) {
+            streamHash = channelName + '::' + symbols.join(',');
+        }
+        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream(rawMarketType, streamHash);
+        const requestId = this.requestId(url);
+        const request = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': requestId,
+        };
+        const subscription = {
+            'unsubscribe': true,
+            'id': requestId.toString(),
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+            'symbols': symbols,
+            'topic': 'ticker',
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscription);
+    }
+    /**
+     * @method
+     * @name binance#unWatchMarkPrice
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchMarkPrice(symbol, params = {}) {
+        return await this.unWatchMarkPrices([symbol], params);
     }
     /**
      * @method
@@ -2322,10 +2416,6 @@ export default class binance extends binanceRest {
     }
     signParams(params = {}) {
         this.checkRequiredCredentials();
-        let extendedParams = this.extend({
-            'timestamp': this.nonce(),
-            'apiKey': this.apiKey,
-        }, params);
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
         if (defaultRecvWindow !== undefined) {
             params['recvWindow'] = defaultRecvWindow;
@@ -2334,8 +2424,12 @@ export default class binance extends binanceRest {
         if (recvWindow !== undefined) {
             params['recvWindow'] = recvWindow;
         }
+        let extendedParams = this.extend({
+            'timestamp': this.nonce(),
+            'apiKey': this.apiKey,
+        }, params);
         extendedParams = this.keysort(extendedParams);
-        const query = this.urlencode(extendedParams);
+        const query = this.rawencode(extendedParams);
         let signature = undefined;
         if (this.secret.indexOf('PRIVATE KEY') > -1) {
             if (this.secret.length > 120) {
@@ -2352,7 +2446,8 @@ export default class binance extends binanceRest {
         return extendedParams;
     }
     /**
-     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @name binance#ensureUserDataStreamWsSubscribeSignature
+     * @description watches best bid & ask for symbols
      * @param marketType {string} only support on 'spot'
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
@@ -3554,7 +3649,7 @@ export default class binance extends binanceRest {
         else if (this.isInverse(type, subType)) {
             type = 'delivery';
         }
-        params = this.extend(params, { 'type': type, 'symbol': symbol }); // needed inside authenticate for isolated margin
+        params = this.extend(params, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
         await this.authenticate(params);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
@@ -4028,7 +4123,7 @@ export default class binance extends binanceRest {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol(marketId, undefined, undefined, 'contract'),
+            'symbol': this.safeSymbol(marketId, undefined, undefined, 'swap'),
             'notional': undefined,
             'marginMode': this.safeString(position, 'mt'),
             'liquidationPrice': undefined,
@@ -4233,7 +4328,7 @@ export default class binance extends binanceRest {
             messageHash += ':' + symbol;
             params = this.extend(params, { 'type': market['type'], 'symbol': symbol });
         }
-        await this.authenticate(params);
+        await this.authenticate(this.extend({ 'type': type, 'subType': subType }, params));
         let urlType = type; // we don't change type because the listening key is different
         if (type === 'margin') {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot

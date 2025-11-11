@@ -926,6 +926,7 @@ class mexc extends Exchange {
                     '30029' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum order limit
                     '30032' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum position
                     '30041' => '\\ccxt\\InvalidOrder', // current order type can not place order
+                    '30087' => '\\ccxt\\InvalidOrder', // array("msg":"Order price exceeds allowed range","code":30087)
                     '60005' => '\\ccxt\\ExchangeError', // your account is abnormal
                     '700001' => '\\ccxt\\AuthenticationError', // array("code":700002,"msg":"Signature for this request is not valid.") // same message for expired API keys
                     '700002' => '\\ccxt\\AuthenticationError', // Signature for this request is not valid // or the API secret is incorrect
@@ -1745,7 +1746,7 @@ class mexc extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-$data
@@ -3222,7 +3223,7 @@ class mexc extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          *
@@ -3563,7 +3564,8 @@ class mexc extends Exchange {
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null, // TODO => this might be 'updateTime' if $order-status is filled, otherwise cancellation time. needs to be checked
+            'lastTradeTimestamp' => null,
+            'lastUpdateTimestamp' => $this->safe_integer($order, 'updateTime'),
             'status' => $this->parse_order_status($this->safe_string_2($order, 'status', 'state')),
             'symbol' => $market['symbol'],
             'type' => $this->parse_order_type($typeRaw),

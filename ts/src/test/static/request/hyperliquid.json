@@ -1,7 +1,8 @@
 {
     "exchange": "hyperliquid",
     "options": {
-        "approvedBuilderFee": true
+        "approvedBuilderFee": true,
+        "refSet": true
     },
     "skipKeys": [
         "startTime",
@@ -14,6 +15,23 @@
     ],
     "outputType": "json",
     "methods": {
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "create order with tp and sl",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    "HYPE/USDC:USDC",
+                    "market",
+                    "buy",
+                    1,
+                    39,
+                    30,
+                    10
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":159,\"b\":true,\"p\":\"40.95\",\"s\":\"1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}},{\"a\":159,\"b\":false,\"p\":\"30\",\"s\":\"1\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":false,\"triggerPx\":\"30\",\"tpsl\":\"tp\"}}},{\"a\":159,\"b\":false,\"p\":\"10\",\"s\":\"1\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":false,\"triggerPx\":\"10\",\"tpsl\":\"sl\"}}}],\"grouping\":\"normalTpsl\",\"builder\":{\"b\":\"0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6\",\"f\":10}},\"nonce\":1761312148755,\"signature\":{\"r\":\"0x2f8d89bf83ab93613a0921714ebdd8d36199d5b29b1ed812639dd170d464646\",\"s\":\"0x28b500ae2c78927d23213238e56a1404e1bd7c47db8c5cb328ca6cbd7bbc4e17\",\"v\":27}}"
+            }
+        ],
         "cancelAllOrdersAfter": [
             {
                 "description": "request with vaultAddress in options",
@@ -698,6 +716,46 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv using HPENGU/USDC",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "HPENGU/USDC",
+                    "1h"
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"@184\",\"interval\":\"1h\",\"startTime\":0,\"endTime\":1761732517134}}"
+            },
+            {
+                "description": "fetch symbol using UBTC/USDC",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "UBTC/USDC",
+                    "1h"
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"@142\",\"interval\":\"1h\",\"startTime\":0,\"endTime\":1761732492326}}"
+            },
+            {
+                "description": "fetch ohlcv  using standard name",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "BTC/USDC",
+                    "1h"
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"@142\",\"interval\":\"1h\",\"startTime\":0,\"endTime\":1761578683994}}"
+            },
+            {
+                "description": "fetch ohlcv  using standard name",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "PENGU/USDC",
+                    "1h"
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"@184\",\"interval\":\"1h\",\"startTime\":0,\"endTime\":1761578639495}}"
+            },
             {
                 "description": "fetch ohlcv  with kilo pair",
                 "method": "fetchOHLCV",

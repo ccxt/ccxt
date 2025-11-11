@@ -272,7 +272,7 @@ export default class ascendex extends ascendexRest {
         const orderbook = await this.watchPublic(channel, params);
         return orderbook.limit();
     }
-    async fetchOrderBookSnapshot(symbol, limit = undefined, params = {}) {
+    async fetchOrderBookSnapshotCustom(symbol, limit = undefined, params = {}) {
         const restOrderBook = await this.fetchRestOrderBookSafe(symbol, limit, params);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
@@ -962,7 +962,7 @@ export default class ascendex extends ascendexRest {
         }
         this.orderbooks[symbol] = this.orderBook({});
         if (this.options['defaultType'] === 'swap' || market['contract']) {
-            this.spawn(this.fetchOrderBookSnapshot, symbol);
+            this.spawn(this.fetchOrderBookSnapshotCustom, symbol);
         }
         else {
             this.spawn(this.watchOrderBookSnapshot, symbol);

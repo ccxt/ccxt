@@ -20,7 +20,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 // ----------------------------------------------------------------------------
 //
 import { axolotl } from './functions/crypto.js';
-import totp from './functions/totp.js';
+import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
@@ -296,6 +296,7 @@ export default class Exchange {
         this.token = undefined; // reserved for HTTP auth in some cases
         // placeholders for cached data
         this.balance = {};
+        this.bidsasks = {};
         this.orderbooks = {};
         this.tickers = {};
         this.liquidations = {};
@@ -1299,7 +1300,7 @@ export default class Exchange {
     }
     starknetSign(msgHash, pri) {
         // TODO: unify to ecdsa
-        const signature = starknetCurveSign(msgHash.replace('0x', ''), pri.slice(-64));
+        const signature = starknetCurveSign(msgHash.replace('0x', ''), pri.replace('0x', ''));
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
     async getZKContractSignatureObj(seed, params = {}) {
@@ -1439,8 +1440,10 @@ export default class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
                 'cancelOrder': true,
+                'cancelOrderWithClientOrderId': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
+                'cancelOrdersWithClientOrderId': undefined,
                 'cancelOrdersWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
@@ -1490,6 +1493,7 @@ export default class Exchange {
                 'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
+                'editOrderWithClientOrderId': undefined,
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
@@ -1568,6 +1572,7 @@ export default class Exchange {
                 'fetchOption': undefined,
                 'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
+                'fetchOrderWithClientOrderId': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrderBookWs': undefined,
@@ -1857,7 +1862,7 @@ export default class Exchange {
         }
     }
     getCacheIndex(orderbook, deltas) {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1;
     }
     arraysConcat(arraysOfArrays) {
@@ -2247,6 +2252,12 @@ export default class Exchange {
     async unWatchTicker(symbol, params = {}) {
         throw new NotSupported(this.id + ' unWatchTicker() is not supported yet');
     }
+    async unWatchMarkPrice(symbol, params = {}) {
+        throw new NotSupported(this.id + ' unWatchMarkPrice() is not supported yet');
+    }
+    async unWatchMarkPrices(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' unWatchMarkPrices() is not supported yet');
+    }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
     }
@@ -2534,7 +2545,7 @@ export default class Exchange {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': 1000,
+            'maxCapacity': this.safeInteger(this.options, 'maxRequestsQueue', 1000),
             'refillRate': refillRate,
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
@@ -2632,22 +2643,21 @@ export default class Exchange {
         }
         return featuresObj;
     }
-    featureValue(symbol, methodName = undefined, paramName = undefined, subParamName = undefined, defaultValue = undefined) {
+    featureValue(symbol, methodName = undefined, paramName = undefined, defaultValue = undefined) {
         /**
          * @method
          * @name exchange#featureValue
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
-         * @param {string} [paramName] unified param value (check docs for supported param names)
-         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
         const market = this.market(symbol);
-        return this.featureValueByType(market['type'], market['subType'], methodName, paramName, subParamName, defaultValue);
+        return this.featureValueByType(market['type'], market['subType'], methodName, paramName, defaultValue);
     }
-    featureValueByType(marketType, subType, methodName = undefined, paramName = undefined, subParamName = undefined, defaultValue = undefined) {
+    featureValueByType(marketType, subType, methodName = undefined, paramName = undefined, defaultValue = undefined) {
         /**
          * @method
          * @name exchange#featureValueByType
@@ -2656,13 +2666,15 @@ export default class Exchange {
          * @param {string} [subType] supported only: "linear", "inverse"
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
          * @param {string} [paramName] unified param value (check docs for supported param names)
-         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
         // if exchange does not yet have features manually implemented
         if (this.features === undefined) {
             return defaultValue;
+        }
+        if (marketType === undefined) {
+            return defaultValue; // marketType is required
         }
         // if marketType (e.g. 'option') does not exist in features
         if (!(marketType in this.features)) {
@@ -2690,7 +2702,7 @@ export default class Exchange {
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (methodName === undefined) {
-            return methodsContainer;
+            return (defaultValue !== undefined) ? defaultValue : methodsContainer;
         }
         if (!(methodName in methodsContainer)) {
             return defaultValue; // unsupported method, check "exchange.features" for details');
@@ -2701,26 +2713,29 @@ export default class Exchange {
         }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (paramName === undefined) {
-            return methodDict;
+            return (defaultValue !== undefined) ? defaultValue : methodDict;
         }
-        if (!(paramName in methodDict)) {
+        const splited = paramName.split('.'); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        const parentKey = splited[0];
+        const subKey = this.safeString(splited, 1);
+        if (!(parentKey in methodDict)) {
             return defaultValue; // unsupported paramName, check "exchange.features" for details');
         }
-        const dictionary = this.safeDict(methodDict, paramName);
+        const dictionary = this.safeDict(methodDict, parentKey);
         if (dictionary === undefined) {
             // if the value is not dictionary but a scalar value (or undefined), return as is
-            return methodDict[paramName];
+            return methodDict[parentKey];
         }
         else {
-            // return as is, when calling without `subParamName` eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
-            if (subParamName === undefined) {
-                return methodDict[paramName];
+            // return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
+            if (subKey === undefined) {
+                return methodDict[parentKey];
             }
-            // throw an exception for unsupported subParamName
-            if (!(subParamName in methodDict[paramName])) {
-                return defaultValue; // unsupported subParamName, check "exchange.features" for details
+            // throw an exception for unsupported subKey
+            if (!(subKey in methodDict[parentKey])) {
+                return defaultValue; // unsupported subKey, check "exchange.features" for details
             }
-            return methodDict[paramName][subParamName];
+            return methodDict[parentKey][subKey];
         }
     }
     orderbookChecksumMessage(symbol) {
@@ -3624,7 +3639,7 @@ export default class Exchange {
                 fee = this.parseFeeNumeric(fee);
             }
             if (!feesDefined) {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 fees = [fee];
             }
             // 'fees' were set, so reparse them
@@ -4682,9 +4697,12 @@ export default class Exchange {
         const i_count = 6;
         const tradesLength = trades.length;
         const oldest = Math.min(tradesLength, limit);
+        const options = this.safeDict(this.options, 'buildOHLCVC', {});
+        const skipZeroPrices = this.safeBool(options, 'skipZeroPrices', true);
         for (let i = 0; i < oldest; i++) {
             const trade = trades[i];
             const ts = trade['timestamp'];
+            const price = trade['price'];
             if (ts < since) {
                 continue;
             }
@@ -4694,23 +4712,27 @@ export default class Exchange {
             }
             const ohlcv_length = ohlcvs.length;
             const candle = ohlcv_length - 1;
-            if ((candle === -1) || (openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms))) {
+            if (skipZeroPrices && !(price > 0) && !(price < 0)) {
+                continue;
+            }
+            const isFirstCandle = candle === -1;
+            if (isFirstCandle || openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms)) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.push([
                     openingTime,
-                    trade['price'],
-                    trade['price'],
-                    trade['price'],
-                    trade['price'],
+                    price,
+                    price,
+                    price,
+                    price,
                     trade['amount'],
                     1, // count
                 ]);
             }
             else {
                 // still processing the same timeframe -> update opening trade
-                ohlcvs[candle][i_high] = Math.max(ohlcvs[candle][i_high], trade['price']);
-                ohlcvs[candle][i_low] = Math.min(ohlcvs[candle][i_low], trade['price']);
-                ohlcvs[candle][i_close] = trade['price'];
+                ohlcvs[candle][i_high] = Math.max(ohlcvs[candle][i_high], price);
+                ohlcvs[candle][i_low] = Math.min(ohlcvs[candle][i_low], price);
+                ohlcvs[candle][i_close] = price;
                 ohlcvs[candle][i_volume] = this.sum(ohlcvs[candle][i_volume], trade['amount']);
                 ohlcvs[candle][i_count] = this.sum(ohlcvs[candle][i_count], 1);
             }
@@ -4733,6 +4755,9 @@ export default class Exchange {
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrder(id, symbol);
         return await this.createOrder(symbol, type, side, amount, price, params);
+    }
+    async editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        return await this.editOrder('', symbol, type, side, amount, price, this.extend({ 'clientOrderId': clientOrderId }, params));
     }
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrderWs(id, symbol);
@@ -5224,6 +5249,19 @@ export default class Exchange {
     async fetchOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrder() is not supported yet');
     }
+    /**
+     * @method
+     * @name fetchOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrderWithClientOrderId(clientOrderId, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.fetchOrder('', symbol, extendedParams);
+    }
     async fetchOrderWs(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderWs() is not supported yet');
     }
@@ -5678,8 +5716,37 @@ export default class Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrder() is not supported yet');
     }
+    /**
+     * @method
+     * @name cancelOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrderWithClientOrderId(clientOrderId, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.cancelOrder('', symbol, extendedParams);
+    }
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrderWs() is not supported yet');
+    }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelOrders() is not supported yet');
+    }
+    /**
+     * @method
+     * @name cancelOrdersWithClientOrderIds
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string[]} clientOrderIds client order Ids
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrdersWithClientOrderIds(clientOrderIds, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderIds': clientOrderIds });
+        return await this.cancelOrders([], symbol, extendedParams);
     }
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrdersWs() is not supported yet');
@@ -7535,6 +7602,99 @@ export default class Exchange {
          */
         throw new NotSupported(this.id + ' fetchTransfers () is not supported yet');
     }
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        /**
+         * @method
+         * @name exchange#unWatchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        throw new NotSupported(this.id + ' unWatchOHLCV () is not supported yet');
+    }
+    async watchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name exchange#watchMarkPrice
+         * @description watches a mark price for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        throw new NotSupported(this.id + ' watchMarkPrice () is not supported yet');
+    }
+    async watchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#watchMarkPrices
+         * @description watches the mark price for all markets
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        throw new NotSupported(this.id + ' watchMarkPrices () is not supported yet');
+    }
+    async withdrawWs(code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#withdrawWs
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        throw new NotSupported(this.id + ' withdrawWs () is not supported yet');
+    }
+    async unWatchMyTrades(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#unWatchMyTrades
+         * @description unWatches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        throw new NotSupported(this.id + ' unWatchMyTrades () is not supported yet');
+    }
+    async createOrdersWs(orders, params = {}) {
+        /**
+         * @method
+         * @name exchange#createOrdersWs
+         * @description create a list of trade orders
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        throw new NotSupported(this.id + ' createOrdersWs () is not supported yet');
+    }
+    async fetchOrdersByStatusWs(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchOrdersByStatusWs
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        throw new NotSupported(this.id + ' fetchOrdersByStatusWs () is not supported yet');
+    }
+    async unWatchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#unWatchBidsAsks
+         * @description unWatches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        throw new NotSupported(this.id + ' unWatchBidsAsks () is not supported yet');
+    }
     cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix = false) {
         if (unsubHash in client.subscriptions) {
             delete client.subscriptions[unsubHash];
@@ -7572,9 +7732,9 @@ export default class Exchange {
         const symbols = this.safeList(subscription, 'symbols', []);
         const symbolsLength = symbols.length;
         if (topic === 'ohlcv') {
-            const symbolsAndTimeFrames = this.safeList(subscription, 'symbolsAndTimeframes', []);
-            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
-                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
+            const symbolsAndTimeframes = this.safeList(subscription, 'symbolsAndTimeframes', []);
+            for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+                const symbolAndTimeFrame = symbolsAndTimeframes[i];
                 const symbol = this.safeString(symbolAndTimeFrame, 0);
                 const timeframe = this.safeString(symbolAndTimeFrame, 1);
                 if ((this.ohlcvs !== undefined) && (symbol in this.ohlcvs)) {
@@ -7602,6 +7762,11 @@ export default class Exchange {
                         delete this.tickers[symbol];
                     }
                 }
+                else if (topic === 'bidsasks') {
+                    if (symbol in this.bidsasks) {
+                        delete this.bidsasks[symbol];
+                    }
+                }
             }
         }
         else {
@@ -7622,12 +7787,21 @@ export default class Exchange {
                     }
                 }
             }
-            else if (topic === 'ticker' && (this.tickers !== undefined)) {
+            else if ((topic === 'ticker' || topic === 'markPrice') && (this.tickers !== undefined)) {
                 const tickerSymbols = Object.keys(this.tickers);
                 for (let i = 0; i < tickerSymbols.length; i++) {
                     const tickerSymbol = tickerSymbols[i];
                     if (tickerSymbol in this.tickers) {
                         delete this.tickers[tickerSymbol];
+                    }
+                }
+            }
+            else if (topic === 'bidsasks' && (this.bidsasks !== undefined)) {
+                const bidsaskSymbols = Object.keys(this.bidsasks);
+                for (let i = 0; i < bidsaskSymbols.length; i++) {
+                    const bidsaskSymbol = bidsaskSymbols[i];
+                    if (bidsaskSymbol in this.bidsasks) {
+                        delete this.bidsasks[bidsaskSymbol];
                     }
                 }
             }

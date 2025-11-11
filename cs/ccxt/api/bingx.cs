@@ -86,6 +86,21 @@ public partial class bingx : Exchange
         return await this.callAsync ("spotV1PrivateGetAccountBalance",parameters);
     }
 
+    public async Task<object> spotV1PrivateGetOcoOrderList (object parameters = null)
+    {
+        return await this.callAsync ("spotV1PrivateGetOcoOrderList",parameters);
+    }
+
+    public async Task<object> spotV1PrivateGetOcoOpenOrderList (object parameters = null)
+    {
+        return await this.callAsync ("spotV1PrivateGetOcoOpenOrderList",parameters);
+    }
+
+    public async Task<object> spotV1PrivateGetOcoHistoryOrderList (object parameters = null)
+    {
+        return await this.callAsync ("spotV1PrivateGetOcoHistoryOrderList",parameters);
+    }
+
     public async Task<object> spotV1PrivatePostTradeOrder (object parameters = null)
     {
         return await this.callAsync ("spotV1PrivatePostTradeOrder",parameters);
@@ -119,6 +134,16 @@ public partial class bingx : Exchange
     public async Task<object> spotV1PrivatePostTradeCancelAllAfter (object parameters = null)
     {
         return await this.callAsync ("spotV1PrivatePostTradeCancelAllAfter",parameters);
+    }
+
+    public async Task<object> spotV1PrivatePostOcoOrder (object parameters = null)
+    {
+        return await this.callAsync ("spotV1PrivatePostOcoOrder",parameters);
+    }
+
+    public async Task<object> spotV1PrivatePostOcoCancel (object parameters = null)
+    {
+        return await this.callAsync ("spotV1PrivatePostOcoCancel",parameters);
     }
 
     public async Task<object> spotV2PublicGetMarketDepth (object parameters = null)
@@ -174,6 +199,11 @@ public partial class bingx : Exchange
     public async Task<object> swapV1PublicGetTradeMultiAssetsRules (object parameters = null)
     {
         return await this.callAsync ("swapV1PublicGetTradeMultiAssetsRules",parameters);
+    }
+
+    public async Task<object> swapV1PublicGetTradingRules (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PublicGetTradingRules",parameters);
     }
 
     public async Task<object> swapV1PrivateGetPositionSideDual (object parameters = null)
@@ -269,6 +299,16 @@ public partial class bingx : Exchange
     public async Task<object> swapV1PrivatePostTradeAssetMode (object parameters = null)
     {
         return await this.callAsync ("swapV1PrivatePostTradeAssetMode",parameters);
+    }
+
+    public async Task<object> swapV1PrivatePostTradeReverse (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivatePostTradeReverse",parameters);
+    }
+
+    public async Task<object> swapV1PrivatePostTradeAutoAddMargin (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivatePostTradeAutoAddMargin",parameters);
     }
 
     public async Task<object> swapV2PublicGetServerTime (object parameters = null)
@@ -459,6 +499,11 @@ public partial class bingx : Exchange
     public async Task<object> swapV3PublicGetQuoteKlines (object parameters = null)
     {
         return await this.callAsync ("swapV3PublicGetQuoteKlines",parameters);
+    }
+
+    public async Task<object> swapV3PrivateGetUserBalance (object parameters = null)
+    {
+        return await this.callAsync ("swapV3PrivateGetUserBalance",parameters);
     }
 
     public async Task<object> cswapV1PublicGetMarketContracts (object parameters = null)
@@ -799,6 +844,46 @@ public partial class bingx : Exchange
     public async Task<object> apiAssetV1PublicGetTransferSupportCoins (object parameters = null)
     {
         return await this.callAsync ("apiAssetV1PublicGetTransferSupportCoins",parameters);
+    }
+
+    public async Task<object> agentV1PrivateGetAccountInviteAccountList (object parameters = null)
+    {
+        return await this.callAsync ("agentV1PrivateGetAccountInviteAccountList",parameters);
+    }
+
+    public async Task<object> agentV1PrivateGetRewardCommissionDataList (object parameters = null)
+    {
+        return await this.callAsync ("agentV1PrivateGetRewardCommissionDataList",parameters);
+    }
+
+    public async Task<object> agentV1PrivateGetAccountInviteRelationCheck (object parameters = null)
+    {
+        return await this.callAsync ("agentV1PrivateGetAccountInviteRelationCheck",parameters);
+    }
+
+    public async Task<object> agentV1PrivateGetAssetDepositDetailList (object parameters = null)
+    {
+        return await this.callAsync ("agentV1PrivateGetAssetDepositDetailList",parameters);
+    }
+
+    public async Task<object> agentV1PrivateGetRewardThirdCommissionDataList (object parameters = null)
+    {
+        return await this.callAsync ("agentV1PrivateGetRewardThirdCommissionDataList",parameters);
+    }
+
+    public async Task<object> agentV1PrivateGetAssetPartnerData (object parameters = null)
+    {
+        return await this.callAsync ("agentV1PrivateGetAssetPartnerData",parameters);
+    }
+
+    public async Task<object> agentV1PrivateGetCommissionDataListReferralCode (object parameters = null)
+    {
+        return await this.callAsync ("agentV1PrivateGetCommissionDataListReferralCode",parameters);
+    }
+
+    public async Task<object> agentV1PrivateGetAccountSuperiorCheck (object parameters = null)
+    {
+        return await this.callAsync ("agentV1PrivateGetAccountSuperiorCheck",parameters);
     }
 
 }

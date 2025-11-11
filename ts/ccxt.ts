@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.7';
+const version = '4.5.18';
 
 (Exchange as any).ccxtVersion = version
 
@@ -48,6 +48,7 @@ const version = '4.5.7';
 
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
+import arkham from  './src/arkham.js'
 import ascendex from  './src/ascendex.js'
 import backpack from  './src/backpack.js'
 import bequant from  './src/bequant.js'
@@ -95,6 +96,7 @@ import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
 import cryptomus from  './src/cryptomus.js'
+import deepcoin from  './src/deepcoin.js'
 import defx from  './src/defx.js'
 import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
@@ -129,7 +131,6 @@ import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
-import okcoin from  './src/okcoin.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
@@ -157,6 +158,7 @@ import zonda from  './src/zonda.js'
 // pro exchanges
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
+import arkhamPro from  './src/pro/arkham.js'
 import ascendexPro from  './src/pro/ascendex.js'
 import backpackPro from  './src/pro/backpack.js'
 import bequantPro from  './src/pro/bequant.js'
@@ -188,6 +190,7 @@ import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
 import cryptocomPro from  './src/pro/cryptocom.js'
+import deepcoinPro from  './src/pro/deepcoin.js'
 import defxPro from  './src/pro/defx.js'
 import deribitPro from  './src/pro/deribit.js'
 import derivePro from  './src/pro/derive.js'
@@ -212,7 +215,6 @@ import mexcPro from  './src/pro/mexc.js'
 import modetradePro from  './src/pro/modetrade.js'
 import myokxPro from  './src/pro/myokx.js'
 import ndaxPro from  './src/pro/ndax.js'
-import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
 import okxusPro from  './src/pro/okxus.js'
 import onetradingPro from  './src/pro/onetrading.js'
@@ -232,6 +234,7 @@ import xtPro from  './src/pro/xt.js'
 const exchanges = {
     'alpaca':                 alpaca,
     'apex':                   apex,
+    'arkham':                 arkham,
     'ascendex':               ascendex,
     'backpack':               backpack,
     'bequant':                bequant,
@@ -279,6 +282,7 @@ const exchanges = {
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
     'cryptomus':              cryptomus,
+    'deepcoin':               deepcoin,
     'defx':                   defx,
     'delta':                  delta,
     'deribit':                deribit,
@@ -313,7 +317,6 @@ const exchanges = {
     'ndax':                   ndax,
     'novadax':                novadax,
     'oceanex':                oceanex,
-    'okcoin':                 okcoin,
     'okx':                    okx,
     'okxus':                  okxus,
     'onetrading':             onetrading,
@@ -341,6 +344,7 @@ const exchanges = {
 const pro = {
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
+    'arkham':                 arkhamPro,
     'ascendex':               ascendexPro,
     'backpack':               backpackPro,
     'bequant':                bequantPro,
@@ -372,6 +376,7 @@ const pro = {
     'coinex':                 coinexPro,
     'coinone':                coinonePro,
     'cryptocom':              cryptocomPro,
+    'deepcoin':               deepcoinPro,
     'defx':                   defxPro,
     'deribit':                deribitPro,
     'derive':                 derivePro,
@@ -396,7 +401,6 @@ const pro = {
     'modetrade':              modetradePro,
     'myokx':                  myokxPro,
     'ndax':                   ndaxPro,
-    'okcoin':                 okcoinPro,
     'okx':                    okxPro,
     'okxus':                  okxusPro,
     'onetrading':             onetradingPro,
@@ -558,6 +562,7 @@ export {
     LeverageTiers,
     alpaca,
     apex,
+    arkham,
     ascendex,
     backpack,
     bequant,
@@ -605,6 +610,7 @@ export {
     coinspot,
     cryptocom,
     cryptomus,
+    deepcoin,
     defx,
     delta,
     deribit,
@@ -639,7 +645,6 @@ export {
     ndax,
     novadax,
     oceanex,
-    okcoin,
     okx,
     okxus,
     onetrading,

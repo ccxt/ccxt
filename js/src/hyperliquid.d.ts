@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -7,6 +7,8 @@ import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fundi
 export default class hyperliquid extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
+    market(symbol: string): MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     /**
      * @method
      * @name hyperliquid#fetchCurrencies
@@ -180,7 +182,9 @@ export default class hyperliquid extends Exchange {
         s: string;
         v: any;
     };
+    setRef(): Promise<any>;
     approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
+    initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
     /**
      * @method
@@ -245,7 +249,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<any[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     cancelOrdersRequest(ids: string[], symbol?: Str, params?: {}): Dict;
     /**
      * @method
@@ -569,6 +573,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.vaultAddress] vault address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -582,6 +587,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.vaultAddress] vault address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;

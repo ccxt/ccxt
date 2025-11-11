@@ -71,7 +71,7 @@ export default class htx extends htxRest {
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     /**
      * @method
-     * @name binance#unWatchOHLCV
+     * @name htx#unWatchOHLCV
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003

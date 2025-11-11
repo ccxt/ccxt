@@ -1,18 +1,25 @@
 package ccxt
 
 type Htx struct {
-	*htx
-	Core          *htx
+	*HtxCore
+	Core          *HtxCore
 	exchangeTyped *ExchangeTyped
 }
 
 func NewHtx(userConfig map[string]interface{}) *Htx {
-	p := &htx{}
+	p := NewHtxCore()
 	p.Init(userConfig)
 	return &Htx{
-		htx:           p,
+		HtxCore:       p,
 		Core:          p,
 		exchangeTyped: NewExchangeTyped(&p.Exchange),
+	}
+}
+func NewHtxFromCore(core *HtxCore) *Htx {
+	return &Htx{
+		HtxCore:       core,
+		Core:          core,
+		exchangeTyped: NewExchangeTyped(&core.Exchange),
 	}
 }
 
@@ -1259,7 +1266,7 @@ func (this *Htx) CancelOrder(id string, options ...CancelOrderOptions) (Order, e
  * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Htx) CancelOrders(ids interface{}, options ...CancelOrdersOptions) ([]map[string]interface{}, error) {
+func (this *Htx) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
 	opts := CancelOrdersOptionsStruct{}
 
@@ -1280,7 +1287,7 @@ func (this *Htx) CancelOrders(ids interface{}, options ...CancelOrdersOptions) (
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return NewOrderArray(res), nil
 }
 
 /**
@@ -2289,6 +2296,12 @@ func (this *Htx) SetPositionMode(hedged bool, options ...SetPositionModeOptions)
 func (this *Htx) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Htx) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
+func (this *Htx) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Htx) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
 }
@@ -2363,6 +2376,9 @@ func (this *Htx) EditLimitSellOrder(id string, symbol string, amount float64, op
 }
 func (this *Htx) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
+}
+func (this *Htx) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Htx) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
@@ -2469,6 +2485,9 @@ func (this *Htx) FetchOption(symbol string, options ...FetchOptionOptions) (Opti
 func (this *Htx) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
 }
+func (this *Htx) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Htx) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
@@ -2519,4 +2538,226 @@ func (this *Htx) SetMargin(symbol string, amount float64, options ...SetMarginOp
 }
 func (this *Htx) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
+}
+func (this *Htx) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelAllOrdersWs(options...)
+}
+func (this *Htx) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWs(ids, options...)
+}
+func (this *Htx) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWs(id, options...)
+}
+func (this *Htx) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
+}
+func (this *Htx) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
+}
+func (this *Htx) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
+}
+func (this *Htx) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
+}
+func (this *Htx) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
+}
+func (this *Htx) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
+}
+func (this *Htx) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
+}
+func (this *Htx) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CreateOrdersWs(orders, options...)
+}
+func (this *Htx) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Htx) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Htx) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Htx) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Htx) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
+}
+func (this *Htx) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Htx) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
+}
+func (this *Htx) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Htx) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Htx) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Htx) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Htx) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Htx) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
+}
+func (this *Htx) FetchBalanceWs(params ...interface{}) (Balances, error) {
+	return this.exchangeTyped.FetchBalanceWs(params...)
+}
+func (this *Htx) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchClosedOrdersWs(options...)
+}
+func (this *Htx) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+	return this.exchangeTyped.FetchDepositsWs(options...)
+}
+func (this *Htx) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
+	return this.exchangeTyped.FetchMyTradesWs(options...)
+}
+func (this *Htx) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
+	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
+}
+func (this *Htx) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOpenOrdersWs(options...)
+}
+func (this *Htx) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
+	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
+}
+func (this *Htx) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
+}
+func (this *Htx) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOrdersWs(options...)
+}
+func (this *Htx) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWs(id, options...)
+}
+func (this *Htx) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
+}
+func (this *Htx) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionsWs(options...)
+}
+func (this *Htx) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionWs(symbol, options...)
+}
+func (this *Htx) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
+	return this.exchangeTyped.FetchTickersWs(options...)
+}
+func (this *Htx) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
+	return this.exchangeTyped.FetchTickerWs(symbol, options...)
+}
+func (this *Htx) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
+	return this.exchangeTyped.FetchTradesWs(symbol, options...)
+}
+func (this *Htx) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+	return this.exchangeTyped.FetchTradingFeesWs(params...)
+}
+func (this *Htx) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+	return this.exchangeTyped.FetchWithdrawalsWs(options...)
+}
+func (this *Htx) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchBidsAsks(options...)
+}
+func (this *Htx) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchMyTrades(options...)
+}
+func (this *Htx) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
+}
+func (this *Htx) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
+}
+func (this *Htx) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
+}
+func (this *Htx) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
+}
+func (this *Htx) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrders(options...)
+}
+func (this *Htx) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTicker(symbol, options...)
+}
+func (this *Htx) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTickers(options...)
+}
+func (this *Htx) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTrades(symbol, options...)
+}
+func (this *Htx) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
+}
+func (this *Htx) WatchBalance(params ...interface{}) (Balances, error) {
+	return this.exchangeTyped.WatchBalance(params...)
+}
+func (this *Htx) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchBidsAsks(options...)
+}
+func (this *Htx) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchLiquidations(symbol, options...)
+}
+func (this *Htx) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
+	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
+}
+func (this *Htx) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchMarkPrices(options...)
+}
+func (this *Htx) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
+}
+func (this *Htx) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
+}
+func (this *Htx) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchMyTrades(options...)
+}
+func (this *Htx) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
+	return this.exchangeTyped.WatchOHLCV(symbol, options...)
+}
+func (this *Htx) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
+	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
+}
+func (this *Htx) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
+	return this.exchangeTyped.WatchOrderBook(symbol, options...)
+}
+func (this *Htx) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
+	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
+}
+func (this *Htx) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.WatchOrders(options...)
+}
+func (this *Htx) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
+	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
+}
+func (this *Htx) WatchPosition(options ...WatchPositionOptions) (Position, error) {
+	return this.exchangeTyped.WatchPosition(options...)
+}
+func (this *Htx) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
+	return this.exchangeTyped.WatchPositions(options...)
+}
+func (this *Htx) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
+	return this.exchangeTyped.WatchTicker(symbol, options...)
+}
+func (this *Htx) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchTickers(options...)
+}
+func (this *Htx) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchTrades(symbol, options...)
+}
+func (this *Htx) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
+}
+func (this *Htx) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
+	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

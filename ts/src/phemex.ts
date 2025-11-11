@@ -192,6 +192,7 @@ export default class phemex extends Exchange {
                         'accounts/accountPositions': 1, // ?currency=<currency>
                         'g-accounts/accountPositions': 1, // ?currency=<currency>
                         'g-accounts/positions': 25, // ?currency=<currency>
+                        'g-accounts/risk-unit': 1,
                         'api-data/futures/funding-fees': 5, // ?symbol=<symbol>
                         'api-data/g-futures/funding-fees': 5, // ?symbol=<symbol>
                         'api-data/futures/orders': 5, // ?symbol=<symbol>
@@ -1368,7 +1369,7 @@ export default class phemex extends Exchange {
      * @param {int} [params.until] *USDT settled/ linear swaps only* end time in ms
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const userLimit = limit;
@@ -3361,19 +3362,21 @@ export default class phemex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const request: Dict = {};
         if (limit !== undefined) {
             limit = Math.min (200, limit);
             request['limit'] = limit;
         }
-        const isUSDTSettled = (symbol === undefined) || (this.safeString (market, 'settle') === 'USDT');
+        const isUSDTSettled = (type !== 'spot') && ((symbol === undefined) || (this.safeString (market, 'settle') === 'USDT'));
         if (isUSDTSettled) {
             request['currency'] = 'USDT';
             request['offset'] = 0;
             if (limit === undefined) {
                 request['limit'] = 200;
             }
-        } else {
+        } else if (symbol !== undefined) {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
@@ -3382,7 +3385,8 @@ export default class phemex extends Exchange {
         let response = undefined;
         if (isUSDTSettled) {
             response = await this.privateGetExchangeOrderV2TradingList (this.extend (request, params));
-        } else if (market['swap']) {
+        } else if (type === 'swap') {
+            request['tradeType'] = 'Trade';
             response = await this.privateGetExchangeOrderTrade (this.extend (request, params));
         } else {
             response = await this.privateGetExchangeSpotOrderTrades (this.extend (request, params));
@@ -4355,12 +4359,24 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['swap'] || market['settle'] === 'USDT' || market['settle'] === 'USDC') {
-            throw new BadSymbol (this.id + ' setMarginMode() supports swap (non USDT/USDC based) contracts only');
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
         marginMode = marginMode.toLowerCase ();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const isCross = marginMode === 'cross';
+        if (this.inArray (market['settle'], [ 'USDT', 'USDC' ])) {
+            const currentLeverage = this.safeString (params, 'leverage');
+            if (currentLeverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a "leverage" parameter for USDT markets');
+            }
+            request['leverageRr'] = isCross ? Precise.stringNeg (Precise.stringAbs (currentLeverage)) : Precise.stringAbs (currentLeverage);
+            return await this.privatePutGPositionsLeverage (this.extend (request, params));
         }
         let leverage = this.safeInteger (params, 'leverage');
         if (marginMode === 'cross') {
@@ -4369,10 +4385,7 @@ export default class phemex extends Exchange {
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
         }
-        const request: Dict = {
-            'symbol': market['id'],
-            'leverage': leverage,
-        };
+        request['leverage'] = leverage;
         return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 

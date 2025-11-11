@@ -550,6 +550,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_spot_post_v2_spot_trade_cancel_plan_order($params = array()) {
         return $this->request('v2/spot/trade/cancel-plan-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_spot_post_v2_spot_trade_cancel_replace_order($params = array()) {
+        return $this->request('v2/spot/trade/cancel-replace-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_spot_post_v2_spot_trade_batch_cancel_plan_order($params = array()) {
         return $this->request('v2/spot/trade/batch-cancel-plan-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -2262,6 +2265,9 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateSpotPostV2SpotTradeCancelPlanOrder($params = array()) {
         return $this->request('v2/spot/trade/cancel-plan-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotPostV2SpotTradeCancelReplaceOrder($params = array()) {
+        return $this->request('v2/spot/trade/cancel-replace-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateSpotPostV2SpotTradeBatchCancelPlanOrder($params = array()) {
         return $this->request('v2/spot/trade/batch-cancel-plan-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));

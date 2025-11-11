@@ -595,7 +595,7 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1664,6 +1664,7 @@ public partial class bitget : ccxt.bitget
      * @name bitget#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+     * @see https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
      * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
@@ -2771,7 +2772,7 @@ public partial class bitget : ccxt.bitget
         object url = this.safeString(parameters, "url");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -3078,7 +3079,10 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, " orderbook "), symbol));
-        ((WebSocketClient)client).reject(error, subMessageHash);
+        if (isTrue(inOp(client.futures, subMessageHash)))
+        {
+            ((WebSocketClient)client).reject(error, subMessageHash);
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
@@ -3108,7 +3112,10 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, " trades "), symbol));
-        ((WebSocketClient)client).reject(error, subMessageHash);
+        if (isTrue(inOp(client.futures, subMessageHash)))
+        {
+            ((WebSocketClient)client).reject(error, subMessageHash);
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
@@ -3138,7 +3145,10 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, " ticker "), symbol));
-        ((WebSocketClient)client).reject(error, subMessageHash);
+        if (isTrue(inOp(client.futures, subMessageHash)))
+        {
+            ((WebSocketClient)client).reject(error, subMessageHash);
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 

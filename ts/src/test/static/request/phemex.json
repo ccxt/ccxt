@@ -5,6 +5,34 @@
     ],
     "outputType": "json",
     "methods": {
+        "setMarginMode": [
+            {
+                "description": "cross",
+                "method": "setMarginMode",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=-5&leverage=5",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT",
+                    {
+                        "leverage": 5
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "isolated",
+                "method": "setMarginMode",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=5&leverage=5",
+                "input": [
+                    "isolated",
+                    "BTC/USDT:USDT",
+                    {
+                        "leverage": 5
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -346,6 +374,13 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "by default uses spot",
+                "method": "fetchMyTrades",
+                "url": "https://api.phemex.com/exchange/spot/order/trades",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "Spot private trades",
                 "method": "fetchMyTrades",
                 "url": "https://api.phemex.com/exchange/spot/order/trades?limit=5&symbol=sLTCUSDT&start=1699457638000",
@@ -368,7 +403,7 @@
             {
                 "description": "Swap private trades - inverse",
                 "method": "fetchMyTrades",
-                "url": "https://api.phemex.com/exchange/order/trade?limit=5&symbol=BTCUSD&start=1699457638000",
+                "url": "https://api.phemex.com/exchange/order/trade?limit=5&symbol=BTCUSD&start=1699457638000&tradeType=Trade",
                 "input": [
                     "BTC/USD:BTC",
                     1699457638000,
@@ -379,7 +414,12 @@
                 "description": "my trades without symbol should return usdt settled trades",
                 "method": "fetchMyTrades",
                 "url": "https://testnet-api.phemex.com/exchange/order/v2/tradingList?currency=USDT&offset=0&limit=200",
-                "input": []
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {"type": "swap"}
+                ]
             }
         ],
         "fetchOpenOrders": [

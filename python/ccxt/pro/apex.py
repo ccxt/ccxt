@@ -14,6 +14,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import NetworkError
 
 
 class apex(ccxt.async_support.apex):
@@ -403,7 +404,7 @@ class apex(ccxt.async_support.apex):
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -787,7 +788,7 @@ class apex(ccxt.async_support.apex):
         signature = self.hmac(self.encode(messageString), self.encode(self.string_to_base64(self.secret)), hashlib.sha256, 'base64')
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             # auth sign
@@ -897,6 +898,7 @@ class apex(ccxt.async_support.apex):
             'recentlyTrade': self.handle_trades,
             'pong': self.handle_pong,
             'auth': self.handle_authenticate,
+            'ping': self.handle_ping,
         }
         exacMethod = self.safe_value(methods, topic)
         if exacMethod is not None:
@@ -915,12 +917,23 @@ class apex(ccxt.async_support.apex):
             self.handle_authenticate(client, message)
 
     def ping(self, client: Client):
-        timeStamp = str(self.milliseconds())
-        client.lastPong = timeStamp  # server won't send a pong, so we set it here
+        timeStamp = self.milliseconds()
+        client.lastPong = timeStamp
         return {
-            'args': [timeStamp],
+            'args': [str(timeStamp)],
             'op': 'ping',
         }
+
+    async def pong(self, client, message):
+        #
+        #     {"op": "ping", "args": ["1761069137485"]}
+        #
+        timeStamp = self.milliseconds()
+        try:
+            await client.send({'args': [str(timeStamp)], 'op': 'pong'})
+        except Exception as e:
+            error = NetworkError(self.id + ' handlePing failed with error ' + self.json(e))
+            client.reset(error)
 
     def handle_pong(self, client: Client, message):
         #
@@ -935,6 +948,9 @@ class apex(ccxt.async_support.apex):
         #
         client.lastPong = self.safe_integer(message, 'pong')
         return message
+
+    def handle_ping(self, client: Client, message):
+        self.spawn(self.pong, client, message)
 
     def handle_account(self, client: Client, message):
         contents = self.safe_dict(message, 'contents', {})

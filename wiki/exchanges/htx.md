@@ -67,6 +67,7 @@
 * [watchTrades](#watchtrades)
 * [unWatchTrades](#unwatchtrades)
 * [watchOHLCV](#watchohlcv)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchOrderBook](#watchorderbook)
 * [unWatchOrderBook](#unwatchorderbook)
 * [watchMyTrades](#watchmytrades)
@@ -1718,6 +1719,34 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 htx.watchOHLCV (symbol, timeframe[, since, limit, params])
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>htx</code>](#htx)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**
+
+- https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
+- https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
+- https://www.htx.com/en-us/opend/newApiPages/?id=28c33563-77ae-11ed-9966-0242ac110003
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.timezone | <code>object</code> | No | if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00' |
+
+
+```javascript
+htx.unWatchOHLCV (symbol, timeframe[, params])
 ```
 
 

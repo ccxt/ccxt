@@ -207,6 +207,7 @@ class phemex(Exchange, ImplicitAPI):
                         'accounts/accountPositions': 1,  # ?currency=<currency>
                         'g-accounts/accountPositions': 1,  # ?currency=<currency>
                         'g-accounts/positions': 25,  # ?currency=<currency>
+                        'g-accounts/risk-unit': 1,
                         'api-data/futures/funding-fees': 5,  # ?symbol=<symbol>
                         'api-data/g-futures/funding-fees': 5,  # ?symbol=<symbol>
                         'api-data/futures/orders': 5,  # ?symbol=<symbol>
@@ -1329,7 +1330,7 @@ class phemex(Exchange, ImplicitAPI):
             baseVolume,
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3190,24 +3191,27 @@ class phemex(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request: dict = {}
         if limit is not None:
             limit = min(200, limit)
             request['limit'] = limit
-        isUSDTSettled = (symbol is None) or (self.safe_string(market, 'settle') == 'USDT')
+        isUSDTSettled = (type != 'spot') and ((symbol is None) or (self.safe_string(market, 'settle') == 'USDT'))
         if isUSDTSettled:
             request['currency'] = 'USDT'
             request['offset'] = 0
             if limit is None:
                 request['limit'] = 200
-        else:
+        elif symbol is not None:
             request['symbol'] = market['id']
         if since is not None:
             request['start'] = since
         response = None
         if isUSDTSettled:
             response = await self.privateGetExchangeOrderV2TradingList(self.extend(request, params))
-        elif market['swap']:
+        elif type == 'swap':
+            request['tradeType'] = 'Trade'
             response = await self.privateGetExchangeOrderTrade(self.extend(request, params))
         else:
             response = await self.privateGetExchangeSpotOrderTrades(self.extend(request, params))
@@ -4130,20 +4134,27 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        if not market['swap'] or market['settle'] == 'USDT' or market['settle'] == 'USDC':
-            raise BadSymbol(self.id + ' setMarginMode() supports swap(non USDT/USDC based) contracts only')
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        isCross = marginMode == 'cross'
+        if self.in_array(market['settle'], ['USDT', 'USDC']):
+            currentLeverage = self.safe_string(params, 'leverage')
+            if currentLeverage is None:
+                raise ArgumentsRequired(self.id + ' setMarginMode() requires a "leverage" parameter for USDT markets')
+            request['leverageRr'] = Precise.string_neg(Precise.string_abs(currentLeverage)) if isCross else Precise.string_abs(currentLeverage)
+            return await self.privatePutGPositionsLeverage(self.extend(request, params))
         leverage = self.safe_integer(params, 'leverage')
         if marginMode == 'cross':
             leverage = 0
         if leverage is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
-        request: dict = {
-            'symbol': market['id'],
-            'leverage': leverage,
-        }
+        request['leverage'] = leverage
         return await self.privatePutPositionsLeverage(self.extend(request, params))
 
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):

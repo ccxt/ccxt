@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.7'
+__version__ = '4.5.18'
 
 # -----------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool
+from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool, Order
 
 # -----------------------------------------------------------------------------
 
@@ -49,6 +49,11 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 # ecdsa signing
 from ccxt.static_dependencies import ecdsa
 from ccxt.static_dependencies import keccak
+
+try:
+    import coincurve
+except ImportError:
+    coincurve = None
 
 # eddsa signing
 try:
@@ -1401,6 +1406,21 @@ class Exchange(object):
 
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
+        """
+        ECDSA signing with support for multiple algorithms and coincurve for SECP256K1.
+        Args:
+            request: The message to sign
+            secret: The private key (hex string or PEM format)
+            algorithm: The elliptic curve algorithm ('p192', 'p224', 'p256', 'p384', 'p521', 'secp256k1')
+            hash: The hash function to use (defaults to algorithm-specific hash)
+            fixed_length: Whether to ensure fixed-length signatures (for deterministic signing)
+            Note: coincurve produces non-deterministic signatures
+        Returns:
+            dict: {'r': r_value, 's': s_value, 'v': v_value}
+        Note:
+            If coincurve is not available or fails for SECP256K1, the method automatically
+            falls back to the standard ecdsa implementation.
+        """
         # your welcome - frosty00
         algorithms = {
             'p192': [ecdsa.NIST192p, 'sha256'],
@@ -1412,6 +1432,14 @@ class Exchange(object):
         }
         if algorithm not in algorithms:
             raise ArgumentsRequired(algorithm + ' is not a supported algorithm')
+        # Use coincurve for SECP256K1 if available
+        if algorithm == 'secp256k1' and coincurve is not None:
+            try:
+                return Exchange._ecdsa_secp256k1_coincurve(request, secret, hash, fixed_length)
+            except Exception:
+                # If coincurve fails, fall back to ecdsa implementation
+                pass
+        # Fall back to original ecdsa implementation for other algorithms or when deterministic signing is needed
         curve_info = algorithms[algorithm]
         hash_function = getattr(hashlib, curve_info[1])
         encoded_request = Exchange.encode(request)
@@ -1447,6 +1475,53 @@ class Exchange(object):
 
 
     @staticmethod
+    def _ecdsa_secp256k1_coincurve(request, secret, hash=None, fixed_length=False):
+        """
+        Use coincurve library for SECP256K1 ECDSA signing.
+        This method provides faster SECP256K1 signing using the coincurve library,
+        which is a Python binding to libsecp256k1. This implementation produces
+        deterministic signatures (RFC 6979) using coincurve's sign_recoverable method.
+        Args:
+            request: The message to sign
+            secret: The private key (hex string or PEM format)
+            hash: The hash function to use
+            fixed_length: Not used in coincurve implementation (signatures are always fixed length)
+        Returns:
+            dict: {'r': r_value, 's': s_value, 'v': v_value}
+        Raises:
+            ArgumentsRequired: If coincurve library is not available
+        """
+        encoded_request = Exchange.encode(request)
+        if hash is not None:
+            digest = Exchange.hash(encoded_request, hash, 'binary')
+        else:
+            digest = base64.b16decode(encoded_request, casefold=True)
+        if isinstance(secret, str):
+            secret = Exchange.encode(secret)
+        # Handle PEM format
+        if secret.find(b'-----BEGIN EC PRIVATE KEY-----') > -1:
+            secret = base64.b16decode(secret.replace(b'-----BEGIN EC PRIVATE KEY-----', b'').replace(b'-----END EC PRIVATE KEY-----', b'').replace(b'\n', b'').replace(b'\r', b''), casefold=True)
+        else:
+            # Assume hex format
+            secret = base64.b16decode(secret, casefold=True)
+        # Create coincurve PrivateKey
+        private_key = coincurve.PrivateKey(secret)
+        # Sign the digest using sign_recoverable which produces deterministic signatures (RFC 6979)
+        # The signature format is: 32 bytes r + 32 bytes s + 1 byte recovery_id (v)
+        signature = private_key.sign_recoverable(digest, hasher=None)
+        # Extract r, s, and v from the recoverable signature (65 bytes total)
+        r_binary = signature[:32]
+        s_binary = signature[32:64]
+        v = signature[64]
+        # Convert to hex strings
+        r = Exchange.decode(base64.b16encode(r_binary)).lower()
+        s = Exchange.decode(base64.b16encode(s_binary)).lower()
+        return {
+            'r': r,
+            's': s,
+            'v': v,
+        }
+
     def binary_to_urlencoded_base64(data: bytes) -> str:
         encoded = base64.urlsafe_b64encode(data).decode("utf-8")
         return encoded.rstrip("=")
@@ -1946,8 +2021,10 @@ class Exchange(object):
                 'cancelAllOrders': None,
                 'cancelAllOrdersWs': None,
                 'cancelOrder': True,
+                'cancelOrderWithClientOrderId': None,
                 'cancelOrderWs': None,
                 'cancelOrders': None,
+                'cancelOrdersWithClientOrderId': None,
                 'cancelOrdersWs': None,
                 'closeAllPositions': None,
                 'closePosition': None,
@@ -1997,6 +2074,7 @@ class Exchange(object):
                 'createTriggerOrderWs': None,
                 'deposit': None,
                 'editOrder': 'emulated',
+                'editOrderWithClientOrderId': None,
                 'editOrders': None,
                 'editOrderWs': None,
                 'fetchAccounts': None,
@@ -2075,6 +2153,7 @@ class Exchange(object):
                 'fetchOption': None,
                 'fetchOptionChain': None,
                 'fetchOrder': None,
+                'fetchOrderWithClientOrderId': None,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': None,
                 'fetchOrderBookWs': None,
@@ -2347,7 +2426,7 @@ class Exchange(object):
             bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, deltas):
-        # return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        # return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1
 
     def arrays_concat(self, arraysOfArrays: List[Any]):
@@ -2673,6 +2752,12 @@ class Exchange(object):
     def un_watch_ticker(self, symbol: str, params={}):
         raise NotSupported(self.id + ' unWatchTicker() is not supported yet')
 
+    def un_watch_mark_price(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchMarkPrice() is not supported yet')
+
+    def un_watch_mark_prices(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchMarkPrices() is not supported yet')
+
     def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
@@ -2942,7 +3027,7 @@ class Exchange(object):
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': 1000,
+            'maxCapacity': self.safe_integer(self.options, 'maxRequestsQueue', 1000),
             'refillRate': refillRate,
         }
         existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
@@ -3024,33 +3109,33 @@ class Exchange(object):
                     featureBlock['symbolRequired'] = self.in_array(key, ['createOrder', 'createOrders', 'fetchOHLCV'])
         return featuresObj
 
-    def feature_value(self, symbol: str, methodName: Str = None, paramName: Str = None, subParamName: Str = None, defaultValue: Any = None):
+    def feature_value(self, symbol: str, methodName: Str = None, paramName: Str = None, defaultValue: Any = None):
         """
         self method is a very deterministic to help users to know what feature is supported by the exchange
         :param str [symbol]: unified symbol
         :param str [methodName]: view currently supported methods: https://docs.ccxt.com/#/README?id=features
-        :param str [paramName]: unified param value(check docs for supported param names)
-        :param str [subParamName]: unified sub-param value(eg. stopLoss->triggerPriceType)
+        :param str [paramName]: unified param value, like: `triggerPrice`, `stopLoss.triggerPrice`(check docs for supported param names)
         :param dict [defaultValue]: return default value if no result found
         :returns dict: returns feature value
         """
         market = self.market(symbol)
-        return self.feature_value_by_type(market['type'], market['subType'], methodName, paramName, subParamName, defaultValue)
+        return self.feature_value_by_type(market['type'], market['subType'], methodName, paramName, defaultValue)
 
-    def feature_value_by_type(self, marketType: str, subType: Str, methodName: Str = None, paramName: Str = None, subParamName: Str = None, defaultValue: Any = None):
+    def feature_value_by_type(self, marketType: str, subType: Str, methodName: Str = None, paramName: Str = None, defaultValue: Any = None):
         """
         self method is a very deterministic to help users to know what feature is supported by the exchange
         :param str [marketType]: supported only: "spot", "swap", "future"
         :param str [subType]: supported only: "linear", "inverse"
         :param str [methodName]: view currently supported methods: https://docs.ccxt.com/#/README?id=features
         :param str [paramName]: unified param value(check docs for supported param names)
-        :param str [subParamName]: unified sub-param value(eg. stopLoss->triggerPriceType)
         :param dict [defaultValue]: return default value if no result found
         :returns dict: returns feature value
         """
         # if exchange does not yet have features manually implemented
         if self.features is None:
             return defaultValue
+        if marketType is None:
+            return defaultValue  # marketType is required
         # if marketType(e.g. 'option') does not exist in features
         if not (marketType in self.features):
             return defaultValue  # unsupported marketType, check "exchange.features" for details
@@ -3070,7 +3155,7 @@ class Exchange(object):
             methodsContainer = self.features[marketType][subType]
         # if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if methodName is None:
-            return methodsContainer
+            return defaultValue if (defaultValue is not None) else methodsContainer
         if not (methodName in methodsContainer):
             return defaultValue  # unsupported method, check "exchange.features" for details')
         methodDict = methodsContainer[methodName]
@@ -3078,21 +3163,24 @@ class Exchange(object):
             return defaultValue
         # if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if paramName is None:
-            return methodDict
-        if not (paramName in methodDict):
+            return defaultValue if (defaultValue is not None) else methodDict
+        splited = paramName.split('.')  # can be only parent key(`stopLoss`) or with child(`stopLoss.triggerPrice`)
+        parentKey = splited[0]
+        subKey = self.safe_string(splited, 1)
+        if not (parentKey in methodDict):
             return defaultValue  # unsupported paramName, check "exchange.features" for details')
-        dictionary = self.safe_dict(methodDict, paramName)
+        dictionary = self.safe_dict(methodDict, parentKey)
         if dictionary is None:
             # if the value is not dictionary but a scalar value(or None), return
-            return methodDict[paramName]
+            return methodDict[parentKey]
         else:
-            # return, when calling without `subParamName` eg: featureValueByType('spot', None, 'createOrder', 'stopLoss')
-            if subParamName is None:
-                return methodDict[paramName]
-            # raise an exception for unsupported subParamName
-            if not (subParamName in methodDict[paramName]):
-                return defaultValue  # unsupported subParamName, check "exchange.features" for details
-            return methodDict[paramName][subParamName]
+            # return, when calling without subKey eg: featureValueByType('spot', None, 'createOrder', 'stopLoss')
+            if subKey is None:
+                return methodDict[parentKey]
+            # raise an exception for unsupported subKey
+            if not (subKey in methodDict[parentKey]):
+                return defaultValue  # unsupported subKey, check "exchange.features" for details
+            return methodDict[parentKey][subKey]
 
     def orderbook_checksum_message(self, symbol: Str):
         return symbol + '  = False'
@@ -3856,7 +3944,7 @@ class Exchange(object):
             if feeDefined:
                 fee = self.parse_fee_numeric(fee)
             if not feesDefined:
-                # just set it directly, no further processing needed
+                # just set it directly, no further processing needed.
                 fees = [fee]
             # 'fees' were set, so reparse them
             reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
@@ -4739,9 +4827,12 @@ class Exchange(object):
         i_count = 6
         tradesLength = len(trades)
         oldest = min(tradesLength, limit)
+        options = self.safe_dict(self.options, 'buildOHLCVC', {})
+        skipZeroPrices = self.safe_bool(options, 'skipZeroPrices', True)
         for i in range(0, oldest):
             trade = trades[i]
             ts = trade['timestamp']
+            price = trade['price']
             if ts < since:
                 continue
             openingTime = int(math.floor(ts / ms)) * ms  # shift to the edge of m/h/d(but not M)
@@ -4749,22 +4840,25 @@ class Exchange(object):
                 continue
             ohlcv_length = len(ohlcvs)
             candle = ohlcv_length - 1
-            if (candle == -1) or (openingTime >= self.sum(ohlcvs[candle][i_timestamp], ms)):
+            if skipZeroPrices and not (price > 0) and not (price < 0):
+                continue
+            isFirstCandle = candle == -1
+            if isFirstCandle or openingTime >= self.sum(ohlcvs[candle][i_timestamp], ms):
                 # moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.append([
                     openingTime,  # timestamp
-                    trade['price'],  # O
-                    trade['price'],  # H
-                    trade['price'],  # L
-                    trade['price'],  # C
+                    price,  # O
+                    price,  # H
+                    price,  # L
+                    price,  # C
                     trade['amount'],  # V
                     1,  # count
                 ])
             else:
                 # still processing the same timeframe -> update opening trade
-                ohlcvs[candle][i_high] = max(ohlcvs[candle][i_high], trade['price'])
-                ohlcvs[candle][i_low] = min(ohlcvs[candle][i_low], trade['price'])
-                ohlcvs[candle][i_close] = trade['price']
+                ohlcvs[candle][i_high] = max(ohlcvs[candle][i_high], price)
+                ohlcvs[candle][i_low] = min(ohlcvs[candle][i_low], price)
+                ohlcvs[candle][i_close] = price
                 ohlcvs[candle][i_volume] = self.sum(ohlcvs[candle][i_volume], trade['amount'])
                 ohlcvs[candle][i_count] = self.sum(ohlcvs[candle][i_count], 1)
         return ohlcvs
@@ -4785,6 +4879,9 @@ class Exchange(object):
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.cancel_order(id, symbol)
         return self.create_order(symbol, type, side, amount, price, params)
+
+    def edit_order_with_client_order_id(self, clientOrderId: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        return self.edit_order('', symbol, type, side, amount, price, self.extend({'clientOrderId': clientOrderId}, params))
 
     def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.cancel_order_ws(id, symbol)
@@ -5200,6 +5297,17 @@ class Exchange(object):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
 
+    def fetch_order_with_client_order_id(self, clientOrderId: str, symbol: Str = None, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+        :param str clientOrderId: client order Id
+        :param str symbol: unified symbol of the market to create an order in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        extendedParams = self.extend(params, {'clientOrderId': clientOrderId})
+        return self.fetch_order('', symbol, extendedParams)
+
     def fetch_order_ws(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchOrderWs() is not supported yet')
 
@@ -5581,8 +5689,33 @@ class Exchange(object):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
+    def cancel_order_with_client_order_id(self, clientOrderId: str, symbol: Str = None, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+        :param str clientOrderId: client order Id
+        :param str symbol: unified symbol of the market to create an order in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        extendedParams = self.extend(params, {'clientOrderId': clientOrderId})
+        return self.cancel_order('', symbol, extendedParams)
+
     def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrderWs() is not supported yet')
+
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelOrders() is not supported yet')
+
+    def cancel_orders_with_client_order_ids(self, clientOrderIds: List[str], symbol: Str = None, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+        :param str[] clientOrderIds: client order Ids
+        :param str symbol: unified symbol of the market to create an order in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        extendedParams = self.extend(params, {'clientOrderIds': clientOrderIds})
+        return self.cancel_orders([], symbol, extendedParams)
 
     def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrdersWs() is not supported yet')
@@ -5599,7 +5732,7 @@ class Exchange(object):
     def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrdersWs() is not supported yet')
 
-    def cancel_unified_order(self, order, params={}):
+    def cancel_unified_order(self, order: Order, params={}):
         return self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -7158,6 +7291,83 @@ class Exchange(object):
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
 
+    def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        raise NotSupported(self.id + ' unWatchOHLCV() is not supported yet')
+
+    def watch_mark_price(self, symbol: str, params={}):
+        """
+        watches a mark price for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        raise NotSupported(self.id + ' watchMarkPrice() is not supported yet')
+
+    def watch_mark_prices(self, symbols: Strings = None, params={}):
+        """
+        watches the mark price for all markets
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        raise NotSupported(self.id + ' watchMarkPrices() is not supported yet')
+
+    def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag:
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        raise NotSupported(self.id + ' withdrawWs() is not supported yet')
+
+    def un_watch_my_trades(self, symbol: Str = None, params={}):
+        """
+        unWatches information on multiple trades made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        raise NotSupported(self.id + ' unWatchMyTrades() is not supported yet')
+
+    def create_orders_ws(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        raise NotSupported(self.id + ' createOrdersWs() is not supported yet')
+
+    def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        raise NotSupported(self.id + ' fetchOrdersByStatusWs() is not supported yet')
+
+    def un_watch_bids_asks(self, symbols: Strings = None, params={}):
+        """
+        unWatches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        raise NotSupported(self.id + ' unWatchBidsAsks() is not supported yet')
+
     def clean_unsubscription(self, client, subHash: str, unsubHash: str, subHashIsPrefix=False):
         if unsubHash in client.subscriptions:
             del client.subscriptions[unsubHash]
@@ -7186,9 +7396,9 @@ class Exchange(object):
         symbols = self.safe_list(subscription, 'symbols', [])
         symbolsLength = len(symbols)
         if topic == 'ohlcv':
-            symbolsAndTimeFrames = self.safe_list(subscription, 'symbolsAndTimeframes', [])
-            for i in range(0, len(symbolsAndTimeFrames)):
-                symbolAndTimeFrame = symbolsAndTimeFrames[i]
+            symbolsAndTimeframes = self.safe_list(subscription, 'symbolsAndTimeframes', [])
+            for i in range(0, len(symbolsAndTimeframes)):
+                symbolAndTimeFrame = symbolsAndTimeframes[i]
                 symbol = self.safe_string(symbolAndTimeFrame, 0)
                 timeframe = self.safe_string(symbolAndTimeFrame, 1)
                 if (self.ohlcvs is not None) and (symbol in self.ohlcvs):
@@ -7206,6 +7416,9 @@ class Exchange(object):
                 elif topic == 'ticker':
                     if symbol in self.tickers:
                         del self.tickers[symbol]
+                elif topic == 'bidsasks':
+                    if symbol in self.bidsasks:
+                        del self.bidsasks[symbol]
         else:
             if topic == 'myTrades' and (self.myTrades is not None):
                 self.myTrades = None
@@ -7219,9 +7432,15 @@ class Exchange(object):
                     futures = client.futures
                     if (futures is not None) and ('fetchPositionsSnapshot' in futures):
                         del futures['fetchPositionsSnapshot']
-            elif topic == 'ticker' and (self.tickers is not None):
+            elif (topic == 'ticker' or topic == 'markPrice') and (self.tickers is not None):
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):
                     tickerSymbol = tickerSymbols[i]
                     if tickerSymbol in self.tickers:
                         del self.tickers[tickerSymbol]
+            elif topic == 'bidsasks' and (self.bidsasks is not None):
+                bidsaskSymbols = list(self.bidsasks.keys())
+                for i in range(0, len(bidsaskSymbols)):
+                    bidsaskSymbol = bidsaskSymbols[i]
+                    if bidsaskSymbol in self.bidsasks:
+                        del self.bidsasks[bidsaskSymbol]

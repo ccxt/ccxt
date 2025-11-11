@@ -13,6 +13,7 @@
 - API Spec by Exchange
 	- [alpaca](exchanges/alpaca.md)
 	- [apex](exchanges/apex.md)
+	- [arkham](exchanges/arkham.md)
 	- [ascendex](exchanges/ascendex.md)
 	- [backpack](exchanges/backpack.md)
 	- [bigone](exchanges/bigone.md)
@@ -55,6 +56,7 @@
 	- [coinspot](exchanges/coinspot.md)
 	- [cryptocom](exchanges/cryptocom.md)
 	- [cryptomus](exchanges/cryptomus.md)
+	- [deepcoin](exchanges/deepcoin.md)
 	- [defx](exchanges/defx.md)
 	- [delta](exchanges/delta.md)
 	- [deribit](exchanges/deribit.md)
@@ -85,7 +87,6 @@
 	- [ndax](exchanges/ndax.md)
 	- [novadax](exchanges/novadax.md)
 	- [oceanex](exchanges/oceanex.md)
-	- [okcoin](exchanges/okcoin.md)
 	- [okx](exchanges/okx.md)
 	- [onetrading](exchanges/onetrading.md)
 	- [oxfun](exchanges/oxfun.md)
