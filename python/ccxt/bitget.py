@@ -5820,9 +5820,8 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
         https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
         https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-        https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-        https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-        https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+        https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+        https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5870,26 +5869,7 @@ class bitget(Exchange, ImplicitAPI):
             #
         elif market['spot']:
             if marginMode is not None:
-                if marginMode == 'cross':
-                    response = self.privateMarginPostMarginV1CrossOrderBatchCancelOrder(self.extend(request, params))
-                else:
-                    response = self.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(self.extend(request, params))
-                #
-                #     {
-                #         "code": "00000",
-                #         "msg": "success",
-                #         "requestTime": 1700717155622,
-                #         "data": {
-                #             "resultList": [
-                #                 {
-                #                     "orderId": "1111453253721796609",
-                #                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-                #                 },
-                #             ],
-                #             "failure": []
-                #         }
-                #     }
-                #
+                raise NotSupported(self.id + ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead')
             else:
                 if trigger:
                     stopRequest: dict = {
