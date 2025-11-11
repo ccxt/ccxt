@@ -1387,7 +1387,7 @@ export default class kucoin extends Exchange {
 
     async fetchUtaMarkets (params = {}): Promise<Market[]> {
         const promises = [];
-        promises.push (this.utaGetMarketInstrument ({ 'tradeType': 'SPOT' }));
+        promises.push (this.utaGetMarketInstrument (this.extend (params, { 'tradeType': 'SPOT' })));
         //
         //     {
         //         "code": "200000",
@@ -1420,7 +1420,7 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        promises.push (this.utaGetMarketInstrument ({ 'tradeType': 'FUTURES' }));
+        promises.push (this.utaGetMarketInstrument (this.extend (params, { 'tradeType': 'FUTURES' })));
         //
         //     {
         //         "code": "200000",
@@ -1523,7 +1523,7 @@ export default class kucoin extends Exchange {
                 'swap': swap,
                 'future': future,
                 'option': false,
-                'active': (active === '1') ? true : false,
+                'active': (active === '1'),
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
