@@ -217,6 +217,17 @@ import {version, exchanges} from 'ccxt';
 console.log(version, Object.keys(exchanges));
 ```
 
+**💡 Tip:** For enhanced IntelliSense and JSDoc documentation support when using `require('ccxt')`, add a `jsconfig.json` file to your project root:
+
+```json
+{
+  "compilerOptions": {
+    "moduleResolution": "node"
+  }
+}
+```
+
+This helps TypeScript properly resolve type definitions and display full method documentation in your IDE.
 ### JavaScript (for use with the `<script>` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
