@@ -431,26 +431,27 @@ export default class xcoin extends xcoinRest {
         //        "ts": 1762239293767
         //    }
         //
-        //
         // myTrades (from tradeList in order)
         //
+        //    {
+        //         "fillPrice": "0.5821",
+        //         "tradeId": "4503599627842563",
+        //         "role": "taker",
+        //         "fillQty": "10",
+        //         "fillTime": "1762860557866",
+        //         "feeCurrency": "ADA",
+        //         "fee": "-0.0016",
+        //         "eventId": "1",
+        //         "clientOrderId": "1437886926220787712",
+        //         "orderId": "1437886926220787712",
+        //         "businessType": "spot",
+        //         "symbol": "ADA-USDT",
+        //         "orderType": "market",
+        //         "side": "buy",
+        //         "lever": "0"
+        //     }
         //
-        const timestamp = this.safeInteger (trade, 'time');
-        return this.safeTrade ({
-            'id': this.safeString (trade, 'id'),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeSymbol (this.safeString (trade, 'symbol'), market),
-            'order': undefined,
-            'type': this.safeStringLower (trade, 'orderType'),
-            'side': this.safeStringLower (trade, 'side'),
-            'takerOrMaker': undefined,
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'qty'),
-            'cost': undefined,
-            'fee': undefined,
-        }, market);
+        return this.parseTrade (trade, market);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -965,6 +966,54 @@ export default class xcoin extends xcoinRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
+    handlePosition (client: Client, message: any) {
+        //
+        //    {
+        //        "stream": "position",
+        //        "ts": "1762786664306",
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "businessType": "linear_perpetual",
+        //                "symbol": "ADA-USDT-PERP",
+        //                "positionQty": "50",
+        //                "avgPrice": "0.58322",
+        //                "upl": "-0.021",
+        //                "lever": "5",
+        //                "liquidationPrice": "0",
+        //                "markPrice": "0.5828",
+        //                "im": "5.828",
+        //                "indexPrice": "0.5828",
+        //                "pnl": "-0.00466576",
+        //                "fee": "-0.00466576",
+        //                "fundingFee": "0",
+        //                "createTime": "1762786498154",
+        //                "updateTime": "1762786664301",
+        //                "positionId": "4503599627373602",
+        //                "pid": "1981204053820035072",
+        //                "tradedType": "OPEN"
+        //            }
+        //        ]
+        //    }
+        //
+        const data = this.safeList (message, 'data', []);
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolById ();
+        }
+        const positions = this.positions;
+        for (let i = 0; i < data.length; i++) {
+            const position = this.parseWsPosition (data[i]);
+            positions.append (position);
+        }
+        const messageHash = 'positions';
+        client.resolve (positions, messageHash);
+    }
+
+    parseWsPosition (position: any, market: any = undefined): Position {
+        // almost same as REST response
+        return this.parsePosition (position, market);
+    }
+
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * watches information on multiple orders made by the user
@@ -988,43 +1037,6 @@ export default class xcoin extends xcoinRest {
             return newOrders;
         }
         return this.filterBySymbolsSinceLimit (this.orders, symbols, since, limit, true);
-    }
-
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * watches information on multiple trades made by the user (from order fills)
-         * @see https://xcoin.com/docs/coinApi/websocket-stream/private-channel/order-channel
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
-        // Note: xcoin sends trades within order updates, so we reuse watchOrders
-        await this.loadMarkets ();
-        await this.authenticate (params);
-        let market = undefined;
-        let messageHash = 'myTrades';
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = 'myTrades:' + symbol;
-        }
-        const url = this.urls['api']['ws']['private'];
-        const subscribe = {
-            'event': 'subscribe',
-            'data': [
-                {
-                    'stream': 'order',
-                },
-            ],
-        };
-        const request = this.deepExtend (subscribe, params);
-        const trades = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleOrder (client: Client, message: any) {
@@ -1087,169 +1099,68 @@ export default class xcoin extends xcoinRest {
         //        ]
         //    }
         //
-        const order = this.parseOrder (message);
-        const symbol = order['symbol'];
+        const data = this.safeList (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const orders = this.orders;
-        orders.append (order);
-        client.resolve (orders, 'orders');
-        if (symbol !== undefined) {
-            client.resolve (orders, 'orders::' + symbol);
-        }
-        // // Handle trades from tradeList
-        // const tradeList = this.safeValue (message, 'tradeList', []);
-        // if (tradeList.length > 0) {
-        //     if (this.myTrades === undefined) {
-        //         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        //         this.myTrades = new ArrayCacheBySymbolById (limit);
-        //     }
-        //     const myTrades = this.myTrades;
-        //     for (let i = 0; i < tradeList.length; i++) {
-        //         const trade = this.parseTrade (tradeList[i]);
-        //         myTrades.append (trade);
-        //     }
-        //     messageHash = 'myTrades';
-        //     client.resolve (myTrades, messageHash);
-        //     if (symbol !== undefined) {
-        //         messageHash = 'myTrades:' + symbol;
-        //         client.resolve (myTrades, messageHash);
-        //     }
-        // }
-    }
-
-    parseOrder (order: any, market: any = undefined): Order {
-        //
-        // {
-        //     "pid": "1915030429994115073",
-        //     "businessType": "linear_futures",
-        //     "symbol": "BTC-USDT-27JUN25",
-        //     "orderId": "1374073495124123648",
-        //     "clientOrderId": "1374073495124123648",
-        //     "price": "104186.15",
-        //     "qty": "1",
-        //     "orderType": "market",
-        //     "side": "buy",
-        //     "totalFillQty": "1",
-        //     "avgPrice": "104186.15",
-        //     "status": "filled",
-        //     "lever": "1",
-        //     "quoteFee": "-0.52093075",
-        //     "createTime": "1747646250290",
-        //     "updateTime": "1747646250302"
-        // }
-        //
-        const id = this.safeString (order, 'orderId');
-        const clientOrderId = this.safeString (order, 'clientOrderId');
-        const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const timestamp = this.safeInteger (order, 'createTime');
-        const lastTradeTimestamp = this.safeInteger (order, 'updateTime');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const side = this.safeStringLower (order, 'side');
-        const type = this.safeStringLower (order, 'orderType');
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'qty');
-        const filled = this.safeString (order, 'totalFillQty');
-        const average = this.safeString (order, 'avgPrice');
-        
-        let fee = undefined;
-        const feeCost = this.safeString (order, 'quoteFee');
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': Precise.stringAbs (feeCost),
-                'currency': market['quote'],
-            };
-        }
-        
-        return this.safeOrder ({
-            'id': id,
-            'clientOrderId': clientOrderId,
-            'info': order,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': this.safeString (order, 'timeInForce'),
-            'postOnly': undefined,
-            'reduceOnly': this.safeValue (order, 'reduceOnly'),
-            'side': side,
-            'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': amount,
-            'filled': filled,
-            'remaining': undefined,
-            'cost': undefined,
-            'average': average,
-            'fee': fee,
-            'trades': undefined,
-        }, market);
-    }
-
-    parseOrderStatus (status: Str): Str {
-        const statuses = {
-            'new': 'open',
-            'partial_filled': 'open',
-            'filled': 'closed',
-            'cancelled': 'canceled',
-            'rejected': 'rejected',
-            'expired': 'expired',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    handlePosition (client: Client, message: any) {
-        //
-        //    {
-        //        "stream": "position",
-        //        "ts": "1762786664306",
-        //        "code": "0",
-        //        "data": [
-        //            {
-        //                "businessType": "linear_perpetual",
-        //                "symbol": "ADA-USDT-PERP",
-        //                "positionQty": "50",
-        //                "avgPrice": "0.58322",
-        //                "upl": "-0.021",
-        //                "lever": "5",
-        //                "liquidationPrice": "0",
-        //                "markPrice": "0.5828",
-        //                "im": "5.828",
-        //                "indexPrice": "0.5828",
-        //                "pnl": "-0.00466576",
-        //                "fee": "-0.00466576",
-        //                "fundingFee": "0",
-        //                "createTime": "1762786498154",
-        //                "updateTime": "1762786664301",
-        //                "positionId": "4503599627373602",
-        //                "pid": "1981204053820035072",
-        //                "tradedType": "OPEN"
-        //            }
-        //        ]
-        //    }
-        //
-        const data = this.safeList (message, 'data', []);
-        if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById ();
-        }
-        const positions = this.positions;
         for (let i = 0; i < data.length; i++) {
-            const position = this.parseWsPosition (data[i]);
-            positions.append (position);
+            const rawOrder = data[i];
+            const order = this.parseWsOrder (rawOrder);
+            const symbol = order['symbol'];
+            const orders = this.orders;
+            orders.append (order);
+            client.resolve (orders, 'orders');
+            if (symbol !== undefined) {
+                client.resolve (orders, 'orders::' + symbol);
+            }
+            // Handle myTrades
+            const trades = this.safeList (order, 'trades');
+            if (trades !== undefined) {
+                if (this.myTrades === undefined) {
+                    const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                    this.myTrades = new ArrayCacheBySymbolById (limit);
+                }
+                const myTrades = this.myTrades;
+                for (let j = 0; j < trades.length; j++) {
+                    const parsedTrade = trades[j];
+                    myTrades.append (parsedTrade);
+                }
+                if (symbol !== undefined) {
+                    client.resolve (myTrades, 'myTrades::' + symbol);
+                }
+                client.resolve (myTrades, 'myTrades');
+            }
         }
-        const messageHash = 'positions';
-        client.resolve (positions, messageHash);
     }
 
-    parseWsPosition (position: any, market: any = undefined): Position {
-        // almost same as REST response
-        return this.parsePosition (position, market);
+    parseWsOrder (order: any, market: any = undefined): Order {
+        return this.parseOrder (order, market);
+    }
+
+    /**
+     * @method
+     * @name xcoin#watchMyTrades
+     * @see https://xcoin.com/docs/coinApi/websocket-stream/private-channel/order-channel
+     * @description watches information on multiple trades made by the user
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await Promise.all ([ this.loadMarkets (), this.authenticate (params) ]);
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        const symbols = (symbol !== undefined) ? [ symbol ] : undefined;
+        const trades = await this.watchPrivate ('myTrades', 'order', symbols, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleErrorMessage (client: Client, message: any) {

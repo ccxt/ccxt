@@ -893,23 +893,69 @@ export default class xcoin extends Exchange {
         //         "uid": "174594041178400"
         //       }
         //
+        // fetchMyTrades
+        //
+        //         {
+        //             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //             "activity_type": "FILL",
+        //             "transaction_time": "2022-12-28T12:19:29.579352Z",
+        //             "type": "fill",
+        //             "price": "67.31",
+        //             "qty": "0.07",
+        //             "side": "sell",
+        //             "symbol": "LTC/USD",
+        //             "leaves_qty": "0",
+        //             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //             "cum_qty": "0.07",
+        //             "order_status": "filled",
+        //             "swap_rate": "1"
+        //         },
+        //
+        // from WS> order > tradeList
+        //
+        //         {
+        //             "fillPrice": "0.589",
+        //             "tradeId": "4503599627840140",
+        //             "role": "taker",
+        //             "fillQty": "10",
+        //             "fillTime": "1762788970362",
+        //             "feeCurrency": "ADA",
+        //             "fee": "-0.0016",
+        //             "eventId": "1",
+        //             "clientOrderId": "1437586666466402304",
+        //             "orderId": "1437586666466402304",
+        //             "businessType": "spot",
+        //             "symbol": "ADA-USDT",
+        //             "side": "buy",
+        //             "orderType": "market",
+        //             "lever": "0"
+        //           }
+        //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger2 (trade, 'time', 'createTime');
+        const timestamp = this.safeIntegerN (trade, [ 'time', 'createTime', 'fillTime' ]);
+        let fee = undefined;
+        const feeRaw = this.safeString (trade, 'fee');
+        if (feeRaw !== undefined) {
+            fee = {
+                'cost': this.parseNumber (Precise.stringAbs (feeRaw)),
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
+            };
+        }
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString2 (trade, 'id', 'orderId'),
-            'order': undefined,
+            'id': this.safeStringN (trade, [ 'id', 'orderId', 'tradeId' ]),
+            'order': this.safeString (trade, 'orderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': this.safeString (trade, 'role'),
             'side': this.safeString (trade, 'side'),
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'qty'),
+            'price': this.safeString2 (trade, 'price', 'fillPrice'),
+            'amount': this.safeString2 (trade, 'qty', 'fillQty'),
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
 
@@ -2560,8 +2606,8 @@ export default class xcoin extends Exchange {
         //
         // WS order has additionally this fields in watchOrders:
         //
-        //     "tradeList": [
-        //         {
+        //        "tradeList": [
+        //           {
         //             "fillPrice": "0.589",
         //             "tradeId": "4503599627840140",
         //             "role": "taker",
@@ -2577,8 +2623,7 @@ export default class xcoin extends Exchange {
         //             "orderType": "market",
         //             "side": "buy",
         //             "lever": "0"
-        //         }
-        //     ],
+        //           }
         //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -2606,6 +2651,11 @@ export default class xcoin extends Exchange {
             triggerPrice = this.safeString (triggerOrder, 'triggerPrice');
             price = this.safeString (triggerOrder, 'triggerOrderPrice');
         }
+        let trades = undefined;
+        const rawTrades = this.safeList (order, 'tradeList');
+        if (rawTrades !== undefined) {
+            trades = this.parseTrades (rawTrades, market);
+        }
         return this.safeOrder ({
             'id': this.safeString2 (order, 'orderId', 'complexOId'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
@@ -2626,7 +2676,7 @@ export default class xcoin extends Exchange {
             'amount': this.safeString (order, 'qty'),
             'filled': this.safeString (order, 'totalFillQty'),
             'remaining': undefined,
-            'trades': undefined,
+            'trades': trades,
             'fee': fee,
             'info': order,
         }, market);
