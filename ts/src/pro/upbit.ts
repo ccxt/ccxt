@@ -33,17 +33,14 @@ export default class upbit extends upbitRest {
             },
             'options': {
                 'tradesLimit': 1000,
-                'subscriptionsMap': {},
             },
         });
     }
 
-    addToSubscriptions (messageHash: string, requestPart: any) {
-        const subscriptionsMap = this.safeValue (this.options, 'subscriptionsMap', {});
-        if (!(messageHash in subscriptionsMap)) {
-            subscriptionsMap[messageHash] = requestPart;
+    addToSubscriptions (client, messageHash: string, requestPart: any) {
+        if (!(messageHash in client.subscriptions)) {
+            client.subscriptions[messageHash] = requestPart;
         }
-        this.options['subscriptionsMap'] = subscriptionsMap;
     }
 
     async watchPublic (symbol: string, channel, params = {}) {
@@ -65,21 +62,20 @@ export default class upbit extends upbitRest {
             // 'isOnlySnapshot': false,
             // 'isOnlyRealtime': false,
         };
-        this.addToSubscriptions (messageHash, newItem);
+        const client = this.client (url);
+        this.addToSubscriptions (client, messageHash, newItem);
         let request = [
             {
                 'ticket': this.uuid (),
             },
         ];
-        const subscriptionsMap = this.safeDict (this.options, 'subscriptionsMap', {});
         const subscriptionsArray = [];
-        const client = this.client (url);
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             // skip current messageHash
-            if (messageHash !== key && (key in subscriptionsMap)) {
-                subscriptionsArray.push (subscriptionsMap[key]);
+            if (messageHash !== key && (key in client.subscriptions)) {
+                subscriptionsArray.push (client.subscriptions[key]);
             }
         }
         request = this.arrayConcat (request, subscriptionsArray);
