@@ -6,8 +6,14 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./js/ccxt.js",
-      "require": "./dist/ccxt.cjs"
+      "import": {
+        "types": "./js/ccxt.d.ts",
+        "default": "./js/ccxt.js"
+      },
+      "require": {
+        "types": "./dist/ccxt.d.ts",
+        "default": "./dist/ccxt.cjs"
+      }
     }
   },
   "engines": {
@@ -104,8 +110,9 @@
     "check-php-syntax": "npm run check-rest-php-syntax && npm run check-ws-php-syntax",
     "check-rest-php-syntax": "php -f php/test/custom/syntax.php",
     "check-ws-php-syntax": "php -f php/pro/test/custom/syntax.php",
-    "bundle": "npm run bundle-cjs && npm run bundle-browser",
+    "bundle": "npm run bundle-cjs && npm run bundle-browser && npm run copy-types",
     "bundle-cjs": "rollup -c rollup.config.js",
+    "copy-types": "node build/copy-cjs-types.js",
     "bundle-browser": "webpack build -c webpack.config.js && webpack build -c webpack.config.js --optimization-minimize --output-filename ccxt.browser.min.js",
     "copy-python-files": "npm run copy-python-package && npm run copy-python-license && npm run copy-python-keys && npm run copy-python-readme",
     "copy-python-package": "node build/copy package.json python/package.json",
