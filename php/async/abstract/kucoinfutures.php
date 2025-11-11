@@ -838,8 +838,8 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function uta_get_market_cross_config($params = array()) {
         return $this->request('market/cross-config', 'uta', 'GET', $params, null, null, array("cost" => 25));
     }
-    public function uta_get_market_server_status($params = array()) {
-        return $this->request('market/server/status', 'uta', 'GET', $params, null, null, array("cost" => 3));
+    public function uta_get_server_status($params = array()) {
+        return $this->request('server/status', 'uta', 'GET', $params, null, null, array("cost" => 3));
     }
     public function publicGetCurrencies($params = array()) {
         return $this->request('currencies', 'public', 'GET', $params, null, null, array("cost" => 4.5));
@@ -1672,7 +1672,7 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function utaGetMarketCrossConfig($params = array()) {
         return $this->request('market/cross-config', 'uta', 'GET', $params, null, null, array("cost" => 25));
     }
-    public function utaGetMarketServerStatus($params = array()) {
-        return $this->request('market/server/status', 'uta', 'GET', $params, null, null, array("cost" => 3));
+    public function utaGetServerStatus($params = array()) {
+        return $this->request('server/status', 'uta', 'GET', $params, null, null, array("cost" => 3));
     }
 }
