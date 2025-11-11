@@ -37,12 +37,6 @@ export default class upbit extends upbitRest {
         });
     }
 
-    addToSubscriptions (client, messageHash: string, requestPart: any) {
-        if (!(messageHash in client.subscriptions)) {
-            client.subscriptions[messageHash] = requestPart;
-        }
-    }
-
     async watchPublic (symbol: string, channel, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -51,37 +45,34 @@ export default class upbit extends upbitRest {
         const url = this.implodeParams (this.urls['api']['ws'], {
             'hostname': this.hostname,
         });
-        this.options[channel] = this.safeValue (this.options, channel, {});
-        this.options[channel][symbol] = true;
-        const symbols = Object.keys (this.options[channel]);
-        const marketIds = this.marketIds (symbols);
-        const messageHash = channel + ':' + marketId;
-        const newItem = {
-            'type': channel,
-            'codes': marketIds,
-            // 'isOnlySnapshot': false,
-            // 'isOnlyRealtime': false,
-        };
         const client = this.client (url);
-        this.addToSubscriptions (client, messageHash, newItem);
-        let request = [
+        const subscriptionsKey = 'upbitPublicSubscriptions';
+        if (!(subscriptionsKey in client.subscriptions)) {
+            client.subscriptions[subscriptionsKey] = {};
+        }
+        const subscriptions = client.subscriptions[subscriptionsKey];
+        let messageHash = channel;
+        const request: Dict = {
+            'type': channel,
+        };
+        if (symbol !== undefined) {
+            messageHash = channel + ':' + symbol;
+            request['codes'] = [ marketId ];
+        }
+        if (!(messageHash in subscriptions)) {
+            subscriptions[messageHash] = request;
+        }
+        const finalMessage = [
             {
                 'ticket': this.uuid (),
             },
         ];
-        const subscriptionsArray = [];
-        const keys = Object.keys (client.subscriptions);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            // skip current messageHash
-            if (messageHash !== key && (key in client.subscriptions)) {
-                subscriptionsArray.push (client.subscriptions[key]);
-            }
+        const channelKeys = Object.keys (subscriptions);
+        for (let i = 0; i < channelKeys.length; i++) {
+            const key = channelKeys[i];
+            finalMessage.push (subscriptions[key]);
         }
-        request = this.arrayConcat (request, subscriptionsArray);
-        // @ts-ignore
-        request.push (newItem);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, finalMessage, messageHash);
     }
 
     async watchPublicMultiple (symbols: Strings, channel, params = {}) {
