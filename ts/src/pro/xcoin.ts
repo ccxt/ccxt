@@ -184,7 +184,7 @@ export default class xcoin extends xcoinRest {
                     'stream': exchangeChannel,
                     'businessType': this.marketTypeToBusinessType (market['type']),
                 });
-                messageHashes.push (unifiedHash + '::' + market['id']);
+                messageHashes.push (unifiedHash + '::' + market['symbol']);
             }
         } else {
             subs.push ({
