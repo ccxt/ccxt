@@ -1974,7 +1974,9 @@ export default class binance extends binanceRest {
                     const priceExponent = this.safeInteger (result, 'priceExponent', 0);
                     const qtyExponent = this.safeInteger (result, 'qtyExponent', 0);
                     // Convert mantissa values to standard OHLCV format
-                    const normalizedKlines = klinesArray.map ((kline: any) => {
+                    const normalizedKlines = [];
+                    for (let i = 0; i < klinesArray.length; i++) {
+                        const kline = klinesArray[i];
                         // Convert mantissa128 byte arrays to numbers
                         const volume = mantissa128ToNumber (kline.volume);
                         const openTime = Math.floor (kline.openTime / 1000); // microseconds to milliseconds
@@ -1991,7 +1993,7 @@ export default class binance extends binanceRest {
                         const takerBuyBase = applyExponent (takerBuyBaseVolume, qtyExponent);
                         const takerBuyQuoteVolume = mantissa128ToNumber (kline.takerBuyQuoteVolume);
                         const takerBuyQuote = applyExponent (takerBuyQuoteVolume, priceExponent);
-                        return [
+                        normalizedKlines.push ([
                             openTime,
                             String (openPrice),
                             String (highPrice),
@@ -2004,8 +2006,8 @@ export default class binance extends binanceRest {
                             String (takerBuyBase),
                             String (takerBuyQuote),
                             '0',
-                        ];
-                    });
+                        ]);
+                    }
                     parsed = this.parseOHLCVs (normalizedKlines);
                 }
             }
@@ -3072,16 +3074,18 @@ export default class binance extends binanceRest {
             normalized['uid'] = this.safeInteger (result, 'uid');
             // Convert balances array
             const balances = this.safeList (result, 'balances', []);
-            normalized['balances'] = balances.map ((balance: any) => {
+            normalized['balances'] = [];
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
                 const exponent = this.safeInteger (balance, 'exponent', 0);
                 const freeMantissa = this.safeInteger (balance, 'free', 0);
                 const lockedMantissa = this.safeInteger (balance, 'locked', 0);
-                return {
+                normalized['balances'].push ({
                     'asset': this.safeString (balance, 'asset'),
                     'free': String (applyExponent (freeMantissa, exponent)),
                     'locked': String (applyExponent (lockedMantissa, exponent)),
-                };
-            });
+                });
+            }
             // Copy permissions and reduceOnlyAssets arrays as-is
             normalized['permissions'] = this.safeList (result, 'permissions', []);
             normalized['reduceOnlyAssets'] = this.safeList (result, 'reduceOnlyAssets', []);
@@ -3533,40 +3537,44 @@ export default class binance extends binanceRest {
         // Handle fills array
         const fills = this.safeList (order, 'fills', []);
         if (fills.length > 0) {
-            normalized['fills'] = fills.map ((fill: any) => {
+            normalized['fills'] = [];
+            for (let i = 0; i < fills.length; i++) {
+                const fill = fills[i];
                 const commissionExponent = this.safeInteger (fill, 'commissionExponent', 0);
-                const priceMantissa = this.safeInteger (fill, 'price');
+                const fillPriceMantissa = this.safeInteger (fill, 'price');
                 const qtyMantissa = this.safeInteger (fill, 'qty');
                 const commissionMantissa = this.safeInteger (fill, 'commission');
-                return {
-                    'price': priceMantissa !== undefined ? String (applyExponent (priceMantissa, priceExponent)) : undefined,
+                normalized['fills'].push ({
+                    'price': fillPriceMantissa !== undefined ? String (applyExponent (fillPriceMantissa, priceExponent)) : undefined,
                     'qty': qtyMantissa !== undefined ? String (applyExponent (qtyMantissa, qtyExponent)) : undefined,
                     'commission': commissionMantissa !== undefined ? String (applyExponent (commissionMantissa, commissionExponent)) : undefined,
                     'commissionAsset': this.safeString (fill, 'commissionAsset'),
                     'tradeId': this.safeInteger (fill, 'tradeId'),
                     'allocId': this.safeInteger (fill, 'allocId'),
                     'matchType': this.safeValue (fill, 'matchType'),
-                };
-            });
+                });
+            }
         } else {
             normalized['fills'] = [];
         }
         // Handle preventedMatches array
         const preventedMatches = this.safeList (order, 'preventedMatches', []);
         if (preventedMatches.length > 0) {
-            normalized['preventedMatches'] = preventedMatches.map ((match: any) => {
-                const priceMantissa = this.safeInteger (match, 'price');
+            normalized['preventedMatches'] = [];
+            for (let i = 0; i < preventedMatches.length; i++) {
+                const match = preventedMatches[i];
+                const matchPriceMantissa = this.safeInteger (match, 'price');
                 const takerPreventedQtyMantissa = this.safeInteger (match, 'takerPreventedQuantity');
                 const makerPreventedQtyMantissa = this.safeInteger (match, 'makerPreventedQuantity');
-                return {
+                normalized['preventedMatches'].push ({
                     'preventedMatchId': this.safeInteger (match, 'preventedMatchId'),
                     'makerOrderId': this.safeInteger (match, 'makerOrderId'),
-                    'price': priceMantissa !== undefined ? String (applyExponent (priceMantissa, priceExponent)) : undefined,
+                    'price': matchPriceMantissa !== undefined ? String (applyExponent (matchPriceMantissa, priceExponent)) : undefined,
                     'takerPreventedQuantity': takerPreventedQtyMantissa !== undefined ? String (applyExponent (takerPreventedQtyMantissa, qtyExponent)) : undefined,
                     'makerPreventedQuantity': makerPreventedQtyMantissa !== undefined ? String (applyExponent (makerPreventedQtyMantissa, qtyExponent)) : undefined,
                     'makerSymbol': this.safeString (match, 'makerSymbol'),
-                };
-            });
+                });
+            }
         }
         return normalized;
     }
@@ -3683,11 +3691,17 @@ export default class binance extends binanceRest {
         let orders = [];
         if (Array.isArray (result)) {
             // JSON format - result is directly an array
-            orders = result.map ((order) => this.normalizeSbeOrder (order));
+            orders = [];
+            for (let i = 0; i < result.length; i++) {
+                orders.push (this.normalizeSbeOrder (result[i]));
+            }
         } else if (typeof result === 'object') {
             // SBE format - result has an orders array
             const ordersArray = this.safeList (result, 'orders', []);
-            orders = ordersArray.map ((order) => this.normalizeSbeOrder (order));
+            orders = [];
+            for (let i = 0; i < ordersArray.length; i++) {
+                orders.push (this.normalizeSbeOrder (ordersArray[i]));
+            }
         }
         const parsedOrders = this.parseOrders (orders);
         client.resolve (parsedOrders, messageHash);
@@ -4799,7 +4813,9 @@ export default class binance extends binanceRest {
                     const parentPriceExponent = this.safeInteger (result, 'priceExponent');
                     const parentQtyExponent = this.safeInteger (result, 'qtyExponent');
                     const parentCommissionExponent = this.safeInteger (result, 'commissionExponent');
-                    const normalizedTrades = tradesArray.map ((trade: any) => {
+                    const normalizedTrades = [];
+                    for (let i = 0; i < tradesArray.length; i++) {
+                        const trade = tradesArray[i];
                         // For TradesResponse (public trades), exponents are at parent level
                         // For AccountTradesResponse (myTrades), each trade has its own exponents
                         const priceExponent = this.safeInteger (trade, 'priceExponent', parentPriceExponent);
@@ -4833,8 +4849,8 @@ export default class binance extends binanceRest {
                             normalized['isBuyer'] = trade.isBuyer === 1;
                             normalized['isMaker'] = trade.isMaker === 1;
                         }
-                        return normalized;
-                    });
+                        normalizedTrades.push (normalized);
+                    }
                     trades = this.parseTrades (normalizedTrades);
                 }
             }

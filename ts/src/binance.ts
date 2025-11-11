@@ -5093,12 +5093,14 @@ export default class binance extends Exchange {
             }
         }
         // Convert SBE trades to standard format and use parseTrades
-        const normalizedTrades = trades.map ((trade: any) => {
+        const normalizedTrades = [];
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
             const price = applyExponent (trade.price, priceExponent);
             const qty = applyExponent (trade.qty, qtyExponent);
             const quoteQty = applyExponent (trade.quoteQty, priceExponent);
             const timestamp = Math.floor (trade.time / 1000); // microseconds to milliseconds
-            return {
+            normalizedTrades.push ({
                 'id': String (trade.id),
                 'price': String (price),
                 'qty': String (qty),
@@ -5106,11 +5108,10 @@ export default class binance extends Exchange {
                 'time': timestamp,
                 'isBuyerMaker': trade.isBuyerMaker === 1,
                 'isBestMatch': trade.isBestMatch === 1,
-            };
-        });
+            });
+        }
         // Reuse existing parseTrades function to ensure consistent trade structure
         return normalizedTrades;
-        return this.parseTrades (normalizedTrades, market);
     }
 
     decodeSbeBookTicker (buffer: ArrayBuffer, symbols: Strings = undefined): Tickers {
@@ -5141,19 +5142,21 @@ export default class binance extends Exchange {
             }
         }
         // Convert SBE tickers to standard format
-        const normalizedTickers = tickers.map ((ticker: any) => {
+        const normalizedTickers = [];
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = tickers[i];
             const bidPrice = applyExponent (ticker.bidPrice, priceExponent);
             const bidQty = applyExponent (ticker.bidQty, qtyExponent);
             const askPrice = applyExponent (ticker.askPrice, priceExponent);
             const askQty = applyExponent (ticker.askQty, qtyExponent);
-            return {
+            normalizedTickers.push ({
                 'symbol': this.safeString (ticker, 'symbol'),
                 'bidPrice': String (bidPrice),
                 'bidQty': String (bidQty),
                 'askPrice': String (askPrice),
                 'askQty': String (askQty),
-            };
-        });
+            });
+        }
         // Reuse existing parseTickers function to ensure consistent ticker structure
         return this.parseTickers (normalizedTickers, symbols);
     }
