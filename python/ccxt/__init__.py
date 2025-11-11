@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.14'
+__version__ = '4.5.18'
 
 # ----------------------------------------------------------------------------
 
@@ -134,6 +134,7 @@ from ccxt.coinsph import coinsph                                      # noqa: F4
 from ccxt.coinspot import coinspot                                    # noqa: F401
 from ccxt.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.cryptomus import cryptomus                                  # noqa: F401
+from ccxt.deepcoin import deepcoin                                    # noqa: F401
 from ccxt.defx import defx                                            # noqa: F401
 from ccxt.delta import delta                                          # noqa: F401
 from ccxt.deribit import deribit                                      # noqa: F401
@@ -242,6 +243,7 @@ exchanges = [
     'coinspot',
     'cryptocom',
     'cryptomus',
+    'deepcoin',
     'defx',
     'delta',
     'deribit',

@@ -59,6 +59,19 @@ public partial class binance : ccxt.binance
                 { "fetchTradesWs", true },
                 { "fetchTradingFeesWs", false },
                 { "fetchWithdrawalsWs", false },
+                { "unWatchTicker", true },
+                { "unWatchTickers", true },
+                { "unWatchOHLCV", true },
+                { "unWatchOHLCVForSymbols", true },
+                { "unWatchOrderBook", true },
+                { "unWatchOrderBookForSymbols", true },
+                { "unWatchTrades", true },
+                { "unWatchTradesForSymbols", true },
+                { "unWatchMyTrades", false },
+                { "unWatchOrders", false },
+                { "unWatchPositions", false },
+                { "unWatchMarkPrices", true },
+                { "unWatchMarkPrice", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "test", new Dictionary<string, object>() {
@@ -2179,11 +2192,106 @@ public partial class binance : ccxt.binance
             { "unsubscribe", true },
             { "id", ((object)requestId).ToString() },
             { "subMessageHashes", subMessageHashes },
-            { "messageHashes", subMessageHashes },
+            { "messageHashes", messageHashes },
             { "symbols", symbols },
             { "topic", "ticker" },
         };
-        return await this.watchMultiple(url, subMessageHashes, this.extend(request, parameters), subMessageHashes, subscription);
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription);
+    }
+
+    /**
+     * @method
+     * @name binance#unWatchMarkPrices
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object channelName = null;
+        var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchMarkPrices", "name", "markPrice");
+        channelName = ((IList<object>)channelNameparametersVariable)[0];
+        parameters = ((IList<object>)channelNameparametersVariable)[1];
+        await this.loadMarkets();
+        object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+        object suffix = ((bool) isTrue((use1sFreq))) ? "@1s" : "";
+        object methodName = "watchMarkPrices";
+        symbols = this.marketSymbols(symbols, null, true, false, true);
+        object firstMarket = null;
+        object marketType = null;
+        object symbolsDefined = (!isEqual(symbols, null));
+        if (isTrue(symbolsDefined))
+        {
+            firstMarket = this.market(getValue(symbols, 0));
+        }
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, firstMarket, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(isTrue(!isEqual(marketType, "swap")) && isTrue(!isEqual(marketType, "future"))))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " "), methodName), "() only supports swap markets")) ;
+        }
+        object rawMarketType = "future";
+        object subscriptionArgs = new List<object>() {};
+        object subMessageHashes = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        if (isTrue(symbolsDefined))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                object market = this.market(symbol);
+                object msgHash = this.getMessageHash(channelName, getValue(market, "symbol"), false);
+                ((IList<object>)subscriptionArgs).Add(add(add(add(getValue(market, "lowercaseId"), "@"), channelName), suffix));
+                ((IList<object>)subMessageHashes).Add(msgHash);
+                ((IList<object>)messageHashes).Add(add("unsubscribe:", msgHash));
+            }
+        } else
+        {
+            object msgHashNoSymbol = this.getMessageHash(channelName, null, false);
+            ((IList<object>)subscriptionArgs).Add(add(add("!", channelName), "@arr"));
+            ((IList<object>)subMessageHashes).Add(msgHashNoSymbol);
+            ((IList<object>)messageHashes).Add(add("unsubscribe:", msgHashNoSymbol));
+        }
+        object streamHash = channelName;
+        if (isTrue(symbolsDefined))
+        {
+            streamHash = add(add(channelName, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
+        }
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), rawMarketType), "/"), this.stream(rawMarketType, streamHash));
+        object requestId = this.requestId(url);
+        object request = new Dictionary<string, object>() {
+            { "method", "UNSUBSCRIBE" },
+            { "params", subscriptionArgs },
+            { "id", requestId },
+        };
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", true },
+            { "id", ((object)requestId).ToString() },
+            { "subMessageHashes", subMessageHashes },
+            { "messageHashes", messageHashes },
+            { "symbols", symbols },
+            { "topic", "ticker" },
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription);
+    }
+
+    /**
+     * @method
+     * @name binance#unWatchMarkPrice
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchMarkPrices(new List<object>() {symbol}, parameters);
     }
 
     /**
@@ -2623,7 +2731,7 @@ public partial class binance : ccxt.binance
             { "apiKey", this.apiKey },
         }, parameters);
         extendedParams = this.keysort(extendedParams);
-        object query = this.urlencode(extendedParams);
+        object query = this.rawencode(extendedParams);
         object signature = null;
         if (isTrue(isGreaterThan(getIndexOf(this.secret, "PRIVATE KEY"), -1)))
         {
@@ -2643,7 +2751,8 @@ public partial class binance : ccxt.binance
     }
 
     /**
-     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @name binance#ensureUserDataStreamWsSubscribeSignature
+     * @description watches best bid & ask for symbols
      * @param marketType {string} only support on 'spot'
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream

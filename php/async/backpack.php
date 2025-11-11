@@ -1497,14 +1497,14 @@ class backpack extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->network] the network to withdraw on (mandatory)
+             * @param {string} $params->network the network to withdraw on (mandatory)
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'symbol' => $currency['id'],
-                'amount' => $this->number_to_string($amount),
+                'quantity' => $this->number_to_string($amount),
                 'address' => $address,
             );
             if ($tag !== null) {

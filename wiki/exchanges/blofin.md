@@ -1029,7 +1029,11 @@ watches information on multiple orders made by the user across multiple symbols
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
 
-**See**: https://docs.blofin.com/index.html#ws-order-channel  
+**See**
+
+- https://docs.blofin.com/index.html#ws-order-channel
+- https://docs.blofin.com/index.html#ws-algo-orders-channel
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1037,6 +1041,7 @@ watches information on multiple orders made by the user across multiple symbols
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | set to true for trigger orders |
 
 
 ```javascript

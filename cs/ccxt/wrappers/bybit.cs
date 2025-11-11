@@ -449,7 +449,7 @@ public partial class bybit
     /// <item>
     /// <term>params.tpslMode</term>
     /// <description>
-    /// string : *contract only* 'full' or 'partial'
+    /// string : *contract only* 'Full' or 'Partial'
     /// </description>
     /// </item>
     /// <item>

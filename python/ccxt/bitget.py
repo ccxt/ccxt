@@ -1419,6 +1419,7 @@ class bitget(Exchange, ImplicitAPI):
             'commonCurrencies': {
                 'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'EVA': 'Evadore',  # conflict with EverValue Coin
                 'JADE': 'Jade Protocol',
                 'OMNI': 'omni',  # conflict with Omni Network
                 'TONCOIN': 'TON',
@@ -2428,11 +2429,21 @@ class bitget(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             chains = self.safe_value(entry, 'chains', [])
             networks: dict = {}
-            for j in range(0, len(chains)):
+            withdraw = None
+            deposit = None
+            chainsLength = len(chains)
+            if chainsLength == 0:
+                withdraw = False
+                deposit = False
+            for j in range(0, chainsLength):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
                 network = self.network_id_to_code(networkId, code)
                 network = network.upper()
+                withdrawable = (self.safe_string(chain, 'withdrawable') == 'true')
+                rechargeable = (self.safe_string(chain, 'rechargeable') == 'true')
+                withdraw = withdrawable if (withdraw is None) else (withdraw or withdrawable)
+                deposit = rechargeable if (deposit is None) else (deposit or rechargeable)
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -2448,11 +2459,12 @@ class bitget(Exchange, ImplicitAPI):
                         },
                     },
                     'active': None,
-                    'withdraw': self.safe_string(chain, 'withdrawable') == 'true',
-                    'deposit': self.safe_string(chain, 'rechargeable') == 'true',
+                    'withdraw': withdrawable,
+                    'deposit': rechargeable,
                     'fee': self.safe_number(chain, 'withdrawFee'),
                     'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
                 }
+            active = withdraw and deposit
             isFiat = self.in_array(code, fiatCurrencies)
             result[code] = self.safe_currency_structure({
                 'info': entry,
@@ -2461,9 +2473,9 @@ class bitget(Exchange, ImplicitAPI):
                 'networks': networks,
                 'type': 'fiat' if isFiat else 'crypto',
                 'name': None,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
+                'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': None,
                 'precision': None,
                 'limits': {
@@ -5808,9 +5820,8 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
         https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
         https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-        https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-        https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-        https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+        https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+        https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5858,26 +5869,7 @@ class bitget(Exchange, ImplicitAPI):
             #
         elif market['spot']:
             if marginMode is not None:
-                if marginMode == 'cross':
-                    response = self.privateMarginPostMarginV1CrossOrderBatchCancelOrder(self.extend(request, params))
-                else:
-                    response = self.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(self.extend(request, params))
-                #
-                #     {
-                #         "code": "00000",
-                #         "msg": "success",
-                #         "requestTime": 1700717155622,
-                #         "data": {
-                #             "resultList": [
-                #                 {
-                #                     "orderId": "1111453253721796609",
-                #                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-                #                 },
-                #             ],
-                #             "failure": []
-                #         }
-                #     }
-                #
+                raise NotSupported(self.id + ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead')
             else:
                 if trigger:
                     stopRequest: dict = {

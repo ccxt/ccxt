@@ -1728,7 +1728,7 @@ func (this *BackpackCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan i
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.network] the network to withdraw on (mandatory)
+ * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
 func (this *BackpackCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
@@ -1745,9 +1745,9 @@ func (this *BackpackCore) Withdraw(code interface{}, amount interface{}, address
 		PanicOnError(retRes14708)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
-			"symbol":  GetValue(currency, "id"),
-			"amount":  this.NumberToString(amount),
-			"address": address,
+			"symbol":   GetValue(currency, "id"),
+			"quantity": this.NumberToString(amount),
+			"address":  address,
 		}
 		if IsTrue(!IsEqual(tag, nil)) {
 			AddElementToObject(request, "clientId", tag) // memo or tag

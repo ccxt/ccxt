@@ -1401,6 +1401,7 @@ export default class bitget extends Exchange {
             'commonCurrencies': {
                 'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'EVA': 'Evadore',
                 'JADE': 'Jade Protocol',
                 'OMNI': 'omni',
                 'TONCOIN': 'TON',
@@ -2461,11 +2462,22 @@ export default class bitget extends Exchange {
             const code = this.safeCurrencyCode(id);
             const chains = this.safeValue(entry, 'chains', []);
             const networks = {};
-            for (let j = 0; j < chains.length; j++) {
+            let withdraw = undefined;
+            let deposit = undefined;
+            const chainsLength = chains.length;
+            if (chainsLength === 0) {
+                withdraw = false;
+                deposit = false;
+            }
+            for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
                 let network = this.networkIdToCode(networkId, code);
                 network = network.toUpperCase();
+                const withdrawable = (this.safeString(chain, 'withdrawable') === 'true');
+                const rechargeable = (this.safeString(chain, 'rechargeable') === 'true');
+                withdraw = (withdraw === undefined) ? withdrawable : (withdraw || withdrawable);
+                deposit = (deposit === undefined) ? rechargeable : (deposit || rechargeable);
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -2481,12 +2493,13 @@ export default class bitget extends Exchange {
                         },
                     },
                     'active': undefined,
-                    'withdraw': this.safeString(chain, 'withdrawable') === 'true',
-                    'deposit': this.safeString(chain, 'rechargeable') === 'true',
+                    'withdraw': withdrawable,
+                    'deposit': rechargeable,
                     'fee': this.safeNumber(chain, 'withdrawFee'),
                     'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'withdrawMinScale'))),
                 };
             }
+            const active = withdraw && deposit;
             const isFiat = this.inArray(code, fiatCurrencies);
             result[code] = this.safeCurrencyStructure({
                 'info': entry,
@@ -2495,9 +2508,9 @@ export default class bitget extends Exchange {
                 'networks': networks,
                 'type': isFiat ? 'fiat' : 'crypto',
                 'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
@@ -6165,9 +6178,8 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
      * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-     * @see https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
@@ -6219,28 +6231,7 @@ export default class bitget extends Exchange {
         }
         else if (market['spot']) {
             if (marginMode !== undefined) {
-                if (marginMode === 'cross') {
-                    response = await this.privateMarginPostMarginV1CrossOrderBatchCancelOrder(this.extend(request, params));
-                }
-                else {
-                    response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(this.extend(request, params));
-                }
-                //
-                //     {
-                //         "code": "00000",
-                //         "msg": "success",
-                //         "requestTime": 1700717155622,
-                //         "data": {
-                //             "resultList": [
-                //                 {
-                //                     "orderId": "1111453253721796609",
-                //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-                //                 },
-                //             ],
-                //             "failure": []
-                //         }
-                //     }
-                //
+                throw new NotSupported(this.id + ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead');
             }
             else {
                 if (trigger) {

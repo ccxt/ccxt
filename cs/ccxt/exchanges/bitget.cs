@@ -1359,6 +1359,7 @@ public partial class bitget : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "APX", "AstroPepeX" },
                 { "DEGEN", "DegenReborn" },
+                { "EVA", "Evadore" },
                 { "JADE", "Jade Protocol" },
                 { "OMNI", "omni" },
                 { "TONCOIN", "TON" },
@@ -2447,12 +2448,24 @@ public partial class bitget : Exchange
             object code = this.safeCurrencyCode(id);
             object chains = this.safeValue(entry, "chains", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            object withdraw = null;
+            object deposit = null;
+            object chainsLength = getArrayLength(chains);
+            if (isTrue(isEqual(chainsLength, 0)))
+            {
+                withdraw = false;
+                deposit = false;
+            }
+            for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");
                 object network = this.networkIdToCode(networkId, code);
                 network = ((string)network).ToUpper();
+                object withdrawable = (isEqual(this.safeString(chain, "withdrawable"), "true"));
+                object rechargeable = (isEqual(this.safeString(chain, "rechargeable"), "true"));
+                withdraw = ((bool) isTrue((isEqual(withdraw, null)))) ? withdrawable : (isTrue(withdraw) || isTrue(withdrawable));
+                deposit = ((bool) isTrue((isEqual(deposit, null)))) ? rechargeable : (isTrue(deposit) || isTrue(rechargeable));
                 ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", networkId },
@@ -2468,12 +2481,13 @@ public partial class bitget : Exchange
                         } },
                     } },
                     { "active", null },
-                    { "withdraw", isEqual(this.safeString(chain, "withdrawable"), "true") },
-                    { "deposit", isEqual(this.safeString(chain, "rechargeable"), "true") },
+                    { "withdraw", withdrawable },
+                    { "deposit", rechargeable },
                     { "fee", this.safeNumber(chain, "withdrawFee") },
                     { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawMinScale"))) },
                 };
             }
+            object active = isTrue(withdraw) && isTrue(deposit);
             object isFiat = this.inArray(code, fiatCurrencies);
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", entry },
@@ -2482,9 +2496,9 @@ public partial class bitget : Exchange
                 { "networks", networks },
                 { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "name", null },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
+                { "active", active },
+                { "deposit", deposit },
+                { "withdraw", withdraw },
                 { "fee", null },
                 { "precision", null },
                 { "limits", new Dictionary<string, object>() {
@@ -6525,9 +6539,8 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
      * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-     * @see https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
@@ -6577,13 +6590,7 @@ public partial class bitget : Exchange
         {
             if (isTrue(!isEqual(marginMode, null)))
             {
-                if (isTrue(isEqual(marginMode, "cross")))
-                {
-                    response = await this.privateMarginPostMarginV1CrossOrderBatchCancelOrder(this.extend(request, parameters));
-                } else
-                {
-                    response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(this.extend(request, parameters));
-                }
+                throw new NotSupported ((string)add(this.id, " cancelAllOrders() does not support margin markets, you can use cancelOrders() instead")) ;
             } else
             {
                 if (isTrue(trigger))

@@ -330,6 +330,18 @@ public partial class apex
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// float : The price a stop loss order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// float : The price a take profit order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
     /// string : "GTC", "IOC", or "POST_ONLY"

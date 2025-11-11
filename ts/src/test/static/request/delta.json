@@ -12,6 +12,29 @@
                 "output": null
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "Fetch Order",
+                "method": "fetchOrder",
+                "url": "https://api.delta.exchange/v2/orders/123",
+                "input": [
+                    "123",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch Order by clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api.delta.exchange/v2/orders/client_order_id/123",
+                "input": [
+                    "123",
+                    "BTC/USDT",
+                    {
+                        "clientOrderId": "123"
+                    }
+                ]
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Fetch Open Orders",

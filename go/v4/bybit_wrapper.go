@@ -484,7 +484,7 @@ func (this *Bybit) CreateMarketSellOrderWithCost(symbol string, cost float64, op
  * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
  * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
  * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
- * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+ * @param {string} [params.tpslMode] *contract only* 'Full' or 'Partial'
  * @param {string} [params.mmp] *option only* market maker protection
  * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
  * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -2870,6 +2870,12 @@ func (this *Bybit) FetchLongShortRatioHistory(options ...FetchLongShortRatioHist
 func (this *Bybit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Bybit) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
+func (this *Bybit) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Bybit) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 	return this.exchangeTyped.CreateDepositAddress(code, options...)
 }
@@ -2935,6 +2941,9 @@ func (this *Bybit) EditLimitOrder(id string, symbol string, side string, amount 
 }
 func (this *Bybit) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
+}
+func (this *Bybit) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Bybit) FetchAccounts(params ...interface{}) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
@@ -3010,6 +3019,9 @@ func (this *Bybit) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, 
 }
 func (this *Bybit) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
 	return this.exchangeTyped.FetchOpenInterests(options...)
+}
+func (this *Bybit) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Bybit) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)

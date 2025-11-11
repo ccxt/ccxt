@@ -376,8 +376,11 @@ public partial class bybit : Exchange
                         { "v5/broker/earnings-info", 5 },
                         { "v5/broker/account-info", 5 },
                         { "v5/broker/asset/query-sub-member-deposit-record", 10 },
+                        { "v5/earn/product", 5 },
                         { "v5/earn/order", 5 },
                         { "v5/earn/position", 5 },
+                        { "v5/earn/yield", 5 },
+                        { "v5/earn/hourly-yield", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "spot/v3/private/order", 2.5 },
@@ -462,6 +465,7 @@ public partial class bybit : Exchange
                         { "v5/account/mmp-reset", 5 },
                         { "v5/account/borrow", 5 },
                         { "v5/account/repay", 5 },
+                        { "v5/account/no-convert-repay", 5 },
                         { "v5/asset/exchange/quote-apply", 1 },
                         { "v5/asset/exchange/convert-execute", 1 },
                         { "v5/asset/transfer/inter-transfer", 50 },
@@ -4102,7 +4106,7 @@ public partial class bybit : Exchange
      * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
      * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
      * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
-     * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+     * @param {string} [params.tpslMode] *contract only* 'Full' or 'Partial'
      * @param {string} [params.mmp] *option only* market maker protection
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -4221,25 +4225,37 @@ public partial class bybit : Exchange
             }
             if (isTrue(isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder)))
             {
+                object tpslMode = this.safeString(parameters, "tpslMode", "Partial");
+                object isFullTpsl = isEqual(tpslMode, "Full");
+                object isPartialTpsl = isEqual(tpslMode, "Partial");
+                if (isTrue(isTrue(isLimit) && isTrue(isFullTpsl)))
+                {
+                    throw new InvalidOrder ((string)add(this.id, " tpsl orders with \"full\" tpslMode only support \"market\" type")) ;
+                }
+                ((IDictionary<string,object>)request)["tpslMode"] = tpslMode;
                 if (isTrue(isStopLossTriggerOrder))
                 {
                     ((IDictionary<string,object>)request)["stopLoss"] = this.getPrice(symbol, stopLossTriggerPrice);
+                    if (isTrue(isPartialTpsl))
+                    {
+                        ((IDictionary<string,object>)request)["slSize"] = amountString;
+                    }
                     if (isTrue(isLimit))
                     {
-                        ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
                         ((IDictionary<string,object>)request)["slOrderType"] = "Limit";
                         ((IDictionary<string,object>)request)["slLimitPrice"] = priceString;
-                        ((IDictionary<string,object>)request)["slSize"] = amountString;
                     }
                 } else if (isTrue(isTakeProfitTriggerOrder))
                 {
                     ((IDictionary<string,object>)request)["takeProfit"] = this.getPrice(symbol, takeProfitTriggerPrice);
+                    if (isTrue(isPartialTpsl))
+                    {
+                        ((IDictionary<string,object>)request)["tpSize"] = amountString;
+                    }
                     if (isTrue(isLimit))
                     {
-                        ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
                         ((IDictionary<string,object>)request)["tpOrderType"] = "Limit";
                         ((IDictionary<string,object>)request)["tpLimitPrice"] = priceString;
-                        ((IDictionary<string,object>)request)["tpSize"] = amountString;
                     }
                 }
             }
@@ -4460,7 +4476,7 @@ public partial class bybit : Exchange
             }
             ((IDictionary<string,object>)request)["positionIdx"] = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 2;
         }
-        parameters = this.omit(parameters, new List<object>() {"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"});
+        parameters = this.omit(parameters, new List<object>() {"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged", "tpslMode"});
         return this.extend(request, parameters);
     }
 

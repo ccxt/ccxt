@@ -12,3 +12,4 @@ mypy==1.6.1
 pyopenssl
 psutil
 protobuf==5.29.5
+coincurve==20.0.0
