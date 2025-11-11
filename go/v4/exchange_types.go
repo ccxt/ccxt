@@ -105,6 +105,10 @@ type MarketInterface struct {
 
 // CreateMarketInterface initializes the MarketInterface struct
 func NewMarketInterface(data interface{}) MarketInterface {
+	if data == nil {
+		return MarketInterface{}
+	}
+
 	m := data.(map[string]interface{})
 
 	// Handle limits if present
