@@ -689,6 +689,9 @@ export default class kucoin extends Exchange {
                 'fetchMarkets': {
                     'fetchTickersFees': true,
                 },
+                'fetchOrderBook': {
+                    'adjustLimit': true, // to automatically ceil the limit number to the nearest supported value
+                },
                 'withdraw': {
                     'includeFee': false,
                 },
@@ -2171,29 +2174,36 @@ export default class kucoin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.adjustLimit] true/false, to automatically ceil the limit to the nearest supported value
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const level = this.safeInteger (params, 'level', 2);
         const request: Dict = { 'symbol': market['id'] };
-        const isAuthenticated = this.checkRequiredCredentials (false);
+        const authenticated = this.checkRequiredCredentials (false);
         let response = undefined;
-        if (!isAuthenticated || limit !== undefined) {
-            if (level === 2) {
-                request['level'] = level;
-                if (limit !== undefined) {
-                    if ((limit === 20) || (limit === 100)) {
-                        request['limit'] = limit;
-                    } else {
-                        throw new ExchangeError (this.id + ' fetchOrderBook() limit argument must be 20 or 100');
-                    }
+        if (limit === undefined) {
+            limit = 100;
+        }
+        if (!this.inArray (limit, [ 20, 100 ])) {
+            if (this.handleOption ('fetchOrderBook', 'adjustLimit', true)) {
+                limit = this.findNearestCeiling ([ 20, 100, limit ], limit);
+            } else {
+                if (limit > 100 && !authenticated) {
+                    throw new ExchangeError (this.id + " fetchOrderBook 'limit' argument must be undefined, 20 or 100 for public endpoint, for more limit you need authenticated request with API keys");
                 }
-                request['limit'] = limit ? limit : 100;
             }
-            response = await this.publicGetMarketOrderbookLevelLevelLimit (this.extend (request, params));
+        }
+        if (limit === 20) {
+            response = await this.publicGetMarketOrderbookLevel220 (this.extend (request, params));
+        } else if (limit === 100) {
+            response = await this.publicGetMarketOrderbookLevel2100 (this.extend (request, params));
         } else {
+            // full orderbook, auth required for this endpoint
+            if (!authenticated) {
+                throw new AuthenticationError (this.id + ' fetchOrderBook(): full orderbook (more than 100 limit) requires an authentication');
+            }
             response = await this.privateGetMarketOrderbookLevel2 (this.extend (request, params));
         }
         //
@@ -2229,7 +2239,7 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'time');
-        const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1);
+        const orderbook = this.parseOrderBook (data, market['symbol'], timestamp);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
     }
