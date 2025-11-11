@@ -413,6 +413,7 @@ class bitget extends Exchange {
                             'v2/spot/trade/place-plan-order' => 1,
                             'v2/spot/trade/modify-plan-order' => 1,
                             'v2/spot/trade/cancel-plan-order' => 1,
+                            'v2/spot/trade/cancel-replace-order' => 2,
                             'v2/spot/trade/batch-cancel-plan-order' => 2,
                             'v2/spot/wallet/transfer' => 2,
                             'v2/spot/wallet/subaccount-transfer' => 2,
@@ -5633,6 +5634,7 @@ class bitget extends Exchange {
              * edit a trade order
              *
              * @see https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+             * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
              * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
              * @see https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
              * @see https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -5666,8 +5668,15 @@ class bitget extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'orderId' => $id,
+                // 'orderId' => $id,
             );
+            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientOid');
+            if ($clientOrderId !== null) {
+                $params = $this->omit($params, array( 'clientOrderId' ));
+                $request['clientOid'] = $clientOrderId;
+            } else {
+                $request['orderId'] = $id;
+            }
             $isMarketOrder = $type === 'market';
             $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
             $isTriggerOrder = $triggerPrice !== null;
@@ -5684,10 +5693,6 @@ class bitget extends Exchange {
             $isTrailingPercentOrder = $trailingPercent !== null;
             if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder, $isTrailingPercentOrder) > 1) {
                 throw new ExchangeError($this->id . ' editOrder() $params can only contain one of $triggerPrice, $stopLossPrice, $takeProfitPrice, trailingPercent');
-            }
-            $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['clientOid'] = $clientOrderId;
             }
             $params = $this->omit($params, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ));
             $response = null;
@@ -5730,26 +5735,34 @@ class bitget extends Exchange {
                     $response = Async\await($this->privateUtaPostV3TradeModifyOrder ($this->extend($request, $params)));
                 }
             } elseif ($market['spot']) {
-                if ($triggerPrice === null) {
-                    throw new NotSupported($this->id . ' editOrder() only supports plan/trigger spot orders');
-                }
+                $cost = $this->safe_string($params, 'cost');
+                $params = $this->omit($params, 'cost');
                 $editMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'editMarketBuyOrderRequiresPrice', true);
-                if ($editMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . ' editOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $editMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                if (($editMarketBuyOrderRequiresPrice || ($cost !== null)) && $isMarketOrder && ($side === 'buy')) {
+                    if ($price === null && $cost === null) {
+                        throw new InvalidOrder($this->id . ' editOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively provide `$cost` in the params');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                        $request['size'] = $this->price_to_precision($symbol, $cost);
+                        $finalCost = ($cost === null) ? (Precise::string_mul($amountString, $priceString)) : $cost;
+                        $request['size'] = $this->price_to_precision($symbol, $finalCost);
                     }
                 } else {
                     $request['size'] = $this->amount_to_precision($symbol, $amount);
                 }
                 $request['orderType'] = $type;
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                $request['executePrice'] = $this->price_to_precision($symbol, $price);
-                $response = Async\await($this->privateSpotPostV2SpotTradeModifyPlanOrder ($this->extend($request, $params)));
+                if ($triggerPrice !== null) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                } else {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                }
+                if ($triggerPrice !== null) {
+                    $response = Async\await($this->privateSpotPostV2SpotTradeModifyPlanOrder ($this->extend($request, $params)));
+                } else {
+                    $request['symbol'] = $market['id'];
+                    $response = Async\await($this->privateSpotPostV2SpotTradeCancelReplaceOrder ($this->extend($request, $params)));
+                }
             } else {
                 if ((!$market['swap']) && (!$market['future'])) {
                     throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders');
