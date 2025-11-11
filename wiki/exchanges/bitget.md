@@ -706,6 +706,7 @@ edit a trade order
 **See**
 
 - https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+- https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
 - https://www.bitget.com/api-doc/contract/trade/Modify-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -3144,6 +3145,7 @@ edit a trade order
 **See**
 
 - https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+- https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
 - https://www.bitget.com/api-doc/contract/trade/Modify-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
