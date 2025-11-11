@@ -1141,11 +1141,13 @@ export default class kucoin extends Exchange {
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchStatus', 'uta', false);
         let response = undefined;
         if (uta) {
-            const tradeType = this.safeStringUpper (params, 'tradeType');
-            if (tradeType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchStatus() requires a tradeType parameter for uta, either SPOT or FUTURES');
-            }
-            response = await this.utaGetServerStatus (params);
+            const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+            const defaultTradeType = (defaultType === 'spot') ? 'SPOT' : 'FUTURES';
+            const tradeType = this.safeStringUpper (params, 'tradeType', defaultTradeType);
+            const request = {
+                'tradeType': tradeType,
+            };
+            response = await this.utaGetServerStatus (this.extend (request, params));
             //
             //     {
             //         "code": "200000",
