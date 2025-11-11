@@ -46,6 +46,16 @@ export default class xcoin extends Exchange {
                 'setLeverage': true,
                 'fetchLeverage': true,
                 'setMarginMode': true,
+                'createOrder': true,
+                'createOrders': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
+                'cancelAllOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchOrder': true,
+                'fetchOrderTrades': true,
+                'fetchMyTrades': true,
             },
             'hostname': 'xcoin.com',
             'urls': {
@@ -2511,7 +2521,7 @@ export default class xcoin extends Exchange {
         //         "complexClOrdId": "66"
         //     }
         //
-        // fetchOpenOrders
+        // fetchOpenOrders / fetchClosedOrders
         //
         //      regular
         //
