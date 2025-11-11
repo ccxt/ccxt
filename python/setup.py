@@ -99,7 +99,7 @@ setup(
             'coincurve==20.0.0',
         ],
         ':sys_platform=="win32" and python_version>="3.8" and python_version<"3.13"': [
-            'coincurve==20.0.0'
+            'coincurve==21.0.0'
         ],
         'qa': [
             'ruff==0.0.292',
