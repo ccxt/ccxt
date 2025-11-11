@@ -304,6 +304,8 @@ class Client(object):
                 send_msg = json.dumps(message, separators=(',', ':'))
             else:
                 send_msg = orjson.dumps(message).decode('utf-8')
+        if self.closed():
+            raise ConnectionError('Cannot Send Message: Connection closed before send')
         return await self.connection.send_str(send_msg)
 
     async def close(self, code=1000):
