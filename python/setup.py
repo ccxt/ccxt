@@ -92,8 +92,11 @@ setup(
             'aiodns>=1.1.1',
             'yarl>=1.7.2',
         ],
-        ':python_version>="3.9"': [
+        ':sys_platform!="win32" and python_version>="3.9"': [
             'coincurve==20.0.0',
+        ],
+        ':sys_platform=="win32" and python_version>="3.8" and python_version<"3.13"': [
+            'coincurve==20.0.0'
         ],
         'qa': [
             'ruff==0.0.292',
