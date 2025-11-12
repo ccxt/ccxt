@@ -2,7 +2,7 @@
 import Exchange from './abstract/lighter.js';
 import { ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Dict, int } from './base/types.js';
+import { Dict, Int, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -103,9 +103,10 @@ export default class lighter extends Exchange {
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchStatus': true,
                 'fetchTicker': false,
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -265,20 +266,65 @@ export default class lighter extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name lighter#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://apidocs.lighter.xyz/reference/status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
+    async fetchStatus (params = {}) {
+        const response = await this.rootGet (params);
+        //
+        //     {
+        //         "status": "1",
+        //         "network_id": "1",
+        //         "timestamp": "1717777777"
+        //     }
+        //
+        const status = this.safeString (response, 'status');
+        return {
+            'status': status === '200' ? 'ok' : 'error', // if there's no Errors, status = 'ok'
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://apidocs.lighter.xyz/reference/status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    async fetchTime (params = {}): Promise<Int> {
+        const response = await this.rootGet (params);
+        //
+        //     {
+        //         "status": "1",
+        //         "network_id": "1",
+        //         "timestamp": "1717777777"
+        //     }
+        //
+        return this.safeTimestamp (response, 'timestamp');
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = undefined;
         if (api === 'root') {
             url = this.implodeHostname (this.urls['api']['public']);
-            if (Object.keys (params).length) {
-                url += '?' + this.rawencode (params);
-            }
-        } else if (api === 'public') {
+        } else {
             url = this.implodeHostname (this.urls['api'][api]) + '/api/' + this.version + '/' + path;
+        }
+        if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.rawencode (params);
             }
         } else if (api === 'private') {
-            url = this.implodeHostname (this.urls['api'][api]) + '/api/' + this.version + '/' + path;
             this.checkRequiredCredentials ();
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
