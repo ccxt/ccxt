@@ -1160,7 +1160,7 @@ export default class binance extends binanceRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        const trades = await this.watchTradesForSymbolsHelper (symbols, since, limit, params, true);
+        const trades = await this.watchTradesForSymbolsHelper (symbols, since, limit, params, false);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
