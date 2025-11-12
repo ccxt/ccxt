@@ -1120,7 +1120,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
         const request: Dict = {
-            'method': (isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE'),
+            'method': isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE',
             'params': subParams,
             'id': requestId,
         };
