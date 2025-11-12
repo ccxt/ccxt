@@ -2562,29 +2562,6 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
 
-    unWatch (url: string, messageHash: string, message = undefined, subscribeHash = undefined, subscription = undefined) {
-        const promise = this.watch (url, messageHash, message, subscribeHash, subscription);
-        const client = this.client (url) as WsClient;
-        if (subscribeHash !== undefined && subscribeHash in client.subscriptions) {
-            delete client.subscriptions[subscribeHash];
-        }
-        return promise;
-    }
-
-    unWatchMultiple (url: string, messageHashes: string[], message = undefined, subscribeHashes = undefined, subscription = undefined) {
-        const promise = this.watchMultiple (url, messageHashes, message, subscribeHashes, subscription);
-        const client = this.client (url) as WsClient;
-        if (subscribeHashes !== undefined) {
-            for (let i = 0; i < subscribeHashes.length; i++) {
-                const subscribeHash = subscribeHashes[i];
-                if (subscribeHash in client.subscriptions) {
-                    delete client.subscriptions[subscribeHash];
-                }
-            }
-        }
-        return promise;
-    }
-
     async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         if (this.has['watchLiquidationsForSymbols']) {
             return await this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
@@ -8408,36 +8385,36 @@ export default class Exchange {
         throw new NotSupported (this.id + ' unWatchBidsAsks () is not supported yet');
     }
 
-    cleanUnsubscription (client, subHash: string, unsubHash: string, subHashIsPrefix = false) {
-        if (unsubHash in client.subscriptions) {
-            delete client.subscriptions[unsubHash];
+    cleanUnsubscription (client, subMessageHash: string, unsubMessageHash: string, subHashIsPrefix = false) {
+        if (unsubMessageHash in client.subscriptions) {
+            delete client.subscriptions[unsubMessageHash];
         }
         if (!subHashIsPrefix) {
-            if (subHash in client.subscriptions) {
-                delete client.subscriptions[subHash];
+            if (subMessageHash in client.subscriptions) {
+                delete client.subscriptions[subMessageHash];
             }
-            if (subHash in client.futures) {
-                const error = new UnsubscribeError (this.id + ' ' + subHash);
-                client.reject (error, subHash);
+            if (subMessageHash in client.futures) {
+                const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
+                client.reject (error, subMessageHash);
             }
         } else {
             const clientSubscriptions = Object.keys (client.subscriptions);
             for (let i = 0; i < clientSubscriptions.length; i++) {
                 const sub = clientSubscriptions[i];
-                if (sub.startsWith (subHash)) {
+                if (sub.startsWith (subMessageHash)) {
                     delete client.subscriptions[sub];
                 }
             }
             const clientFutures = Object.keys (client.futures);
             for (let i = 0; i < clientFutures.length; i++) {
                 const future = clientFutures[i];
-                if (future.startsWith (subHash)) {
+                if (future.startsWith (subMessageHash)) {
                     const error = new UnsubscribeError (this.id + ' ' + future);
                     client.reject (error, future);
                 }
             }
         }
-        client.resolve (true, unsubHash);
+        client.resolve (true, unsubMessageHash);
     }
 
     cleanCache (subscription: Dict) {

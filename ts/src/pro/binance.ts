@@ -1076,9 +1076,9 @@ export default class binance extends binanceRest {
         const messageHashes = this.safeList (subscription, 'messageHashes', []);
         const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
         for (let j = 0; j < messageHashes.length; j++) {
-            const unsubHash = messageHashes[j];
-            const subHash = subMessageHashes[j];
-            this.cleanUnsubscription (client, subHash, unsubHash);
+            const unsubMessageHash = messageHashes[j];
+            const subMessageHash = subMessageHashes[j];
+            this.cleanUnsubscription (client, subMessageHash, unsubMessageHash);
         }
         this.cleanCache (subscription);
     }
@@ -1099,6 +1099,16 @@ export default class binance extends binanceRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        const trades = await this.watchTradesForSymbolsHelper (symbols, since, limit, params, true);
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async watchTradesForSymbolsHelper (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}, isUnsubscribe: boolean = false) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         let streamHash = 'multipleTrades';
@@ -1118,33 +1128,44 @@ export default class binance extends binanceRest {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const messageHashes = [];
+        const unsubscribeMessageHashes = [];
         const subParams = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            messageHashes.push ('trade::' + symbol);
+            const messageHash = 'trade::' + symbol;
+            messageHashes.push (messageHash);
             const rawHash = market['lowercaseId'] + '@' + name;
             subParams.push (rawHash);
+            if (isUnsubscribe) {
+                unsubscribeMessageHashes.push ('unsubscribe::' + messageHash);
+            }
         }
         const query = this.omit (params, 'type');
         const subParamsLength = subParams.length;
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
         const request: Dict = {
-            'method': 'SUBSCRIBE',
+            'method': (isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE'),
             'params': subParams,
             'id': requestId,
         };
-        const subscribe: Dict = {
-            'id': requestId,
-        };
-        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
-        if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+        let subscription: Dict = undefined;
+        if (!isUnsubscribe) {
+            subscription = {
+                'id': requestId,
+            };
+        } else {
+            subscription = {
+                'unsubscribe': true,
+                'id': requestId.toString (),
+                'subMessageHashes': messageHashes,
+                'messageHashes': unsubscribeMessageHashes,
+                'symbols': symbols,
+                'topic': 'trades',
+            };
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscription);
     }
 
     /**
@@ -1161,53 +1182,7 @@ export default class binance extends binanceRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        let streamHash = 'multipleTrades';
-        if (symbols !== undefined) {
-            const symbolsLength = symbols.length;
-            if (symbolsLength > 200) {
-                throw new BadRequest (this.id + ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times');
-            }
-            streamHash += '::' + symbols.join (',');
-        }
-        let name = undefined;
-        [ name, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
-        params = this.omit (params, 'callerMethodName');
-        const firstMarket = this.market (symbols[0]);
-        let type = firstMarket['type'];
-        if (firstMarket['contract']) {
-            type = firstMarket['linear'] ? 'future' : 'delivery';
-        }
-        const subMessageHashes = [];
-        const subParams = [];
-        const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const market = this.market (symbol);
-            subMessageHashes.push ('trade::' + symbol);
-            messageHashes.push ('unsubscribe:trade:' + symbol);
-            const rawHash = market['lowercaseId'] + '@' + name;
-            subParams.push (rawHash);
-        }
-        const query = this.omit (params, 'type');
-        const subParamsLength = subParams.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
-        const requestId = this.requestId (url);
-        const request: Dict = {
-            'method': 'UNSUBSCRIBE',
-            'params': subParams,
-            'id': requestId,
-        };
-        const subscription: Dict = {
-            'unsubscribe': true,
-            'id': requestId.toString (),
-            'subMessageHashes': subMessageHashes,
-            'messageHashes': messageHashes,
-            'symbols': symbols,
-            'topic': 'trades',
-        };
-        return await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscription);
+        return await this.watchTradesForSymbolsHelper (symbols, undefined, undefined, params, true);
     }
 
     /**
