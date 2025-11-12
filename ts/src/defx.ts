@@ -851,7 +851,7 @@ export default class defx extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const maxLimit = 1000;
@@ -1183,7 +1183,8 @@ export default class defx extends Exchange {
         //
         const markPrice = this.safeNumber (contract, 'markPrice');
         const indexPrice = this.safeNumber (contract, 'indexPrice');
-        const fundingRate = this.safeNumber (contract, 'payoutFundingRate');
+        const fundingRateRaw = this.safeString (contract, 'payoutFundingRate');
+        const fundingRate = Precise.stringDiv (fundingRateRaw, '100');
         const fundingTime = this.safeInteger (contract, 'nextFundingPayout');
         return {
             'info': contract,
@@ -1194,7 +1195,7 @@ export default class defx extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': fundingRate,
+            'fundingRate': this.parseNumber (fundingRate),
             'fundingTimestamp': fundingTime,
             'fundingDatetime': this.iso8601 (fundingTime),
             'nextFundingRate': undefined,
@@ -1479,7 +1480,7 @@ export default class defx extends Exchange {
         } else {
             extendParams['id'] = id;
         }
-        return this.extend (this.parseOrder (response), extendParams);
+        return this.extend (this.parseOrder (response), extendParams) as Order;
     }
 
     /**
@@ -1505,7 +1506,7 @@ export default class defx extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
@@ -1985,7 +1986,7 @@ export default class defx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -2046,7 +2047,7 @@ export default class defx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

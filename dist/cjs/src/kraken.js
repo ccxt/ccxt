@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var kraken$1 = require('./abstract/kraken.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +16,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class kraken extends kraken$1 {
+class kraken extends kraken$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kraken',
@@ -44,6 +46,7 @@ class kraken extends kraken$1 {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -233,6 +236,24 @@ class kraken extends kraken$1 {
                 'UST': 'USTC',
                 'XBT': 'BTC',
                 'XDG': 'DOGE',
+                'FEE': 'KFEE',
+                'XETC': 'ETC',
+                'XETH': 'ETH',
+                'XLTC': 'LTC',
+                'XMLN': 'MLN',
+                'XREP': 'REP',
+                'XXBT': 'BTC',
+                'XXDG': 'DOGE',
+                'XXLM': 'XLM',
+                'XXMR': 'XMR',
+                'XXRP': 'XRP',
+                'XZEC': 'ZEC',
+                'ZAUD': 'AUD',
+                'ZCAD': 'CAD',
+                'ZEUR': 'EUR',
+                'ZGBP': 'GBP',
+                'ZJPY': 'JPY',
+                'ZUSD': 'USD',
             },
             'options': {
                 'timeDifference': 0,
@@ -426,6 +447,7 @@ class kraken extends kraken$1 {
                     'OriginTrail': 'OTP',
                     'Celestia': 'TIA',
                 },
+                'marketHelperProps': ['marketsByAltname', 'delistedMarketsById'], // used by setMarketsFromExchange
             },
             'features': {
                 'spot': {
@@ -452,7 +474,11 @@ class kraken extends kraken$1 {
                         'selfTradePrevention': true,
                         'iceberg': true, // todo implement
                     },
-                    'createOrders': undefined,
+                    'createOrders': {
+                        'min': 2,
+                        'max': 15,
+                        'sameSymbolOnly': true,
+                    },
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': undefined,
@@ -612,10 +638,12 @@ class kraken extends kraken$1 {
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
             const market = markets[id];
-            const baseId = this.safeString(market, 'base');
-            const quoteId = this.safeString(market, 'quote');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
+            const baseIdRaw = this.safeString(market, 'base');
+            const quoteIdRaw = this.safeString(market, 'quote');
+            const baseId = this.safeCurrencyCode(baseIdRaw);
+            const quoteId = this.safeCurrencyCode(quoteIdRaw);
+            const base = baseId;
+            const quote = quoteId;
             const makerFees = this.safeList(market, 'fees_maker', []);
             const firstMakerFee = this.safeList(makerFees, 0, []);
             const firstMakerFeeRate = this.safeString(firstMakerFee, 1);
@@ -702,18 +730,6 @@ class kraken extends kraken$1 {
         }
         this.options['marketsByAltname'] = this.indexBy(result, 'altname');
         return result;
-    }
-    safeCurrency(currencyId, currency = undefined) {
-        if (currencyId !== undefined) {
-            if (currencyId.length > 3) {
-                if ((currencyId.indexOf('X') === 0) || (currencyId.indexOf('Z') === 0)) {
-                    if (!(currencyId.indexOf('.') > 0) && (currencyId !== 'ZEUS')) {
-                        currencyId = currencyId.slice(1);
-                    }
-                }
-            }
-        }
-        return super.safeCurrency(currencyId, currency);
     }
     /**
      * @method
@@ -1667,6 +1683,79 @@ class kraken extends kraken$1 {
         // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder(result);
     }
+    /**
+     * @method
+     * @name kraken#createOrders
+     * @description create a list of trade orders
+     * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrders(orders, params = {}) {
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let orderSymbols = [];
+        let symbol = undefined;
+        let market = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            }
+            else {
+                if (symbol !== marketId) {
+                    throw new errors.BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            market = this.market(marketId);
+            orderSymbols.push(marketId);
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeDict(rawOrder, 'params', {});
+            const req = {
+                'type': side,
+                'ordertype': type,
+                'volume': this.amountToPrecision(market['symbol'], amount),
+            };
+            const orderRequest = this.orderRequest('createOrders', marketId, type, req, amount, price, orderParams);
+            ordersRequests.push(orderRequest[0]);
+        }
+        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        let response = undefined;
+        let request = {
+            'orders': ordersRequests,
+            'pair': market['id'],
+        };
+        request = this.extend(request, params);
+        response = await this.privatePostAddOrderBatch(request);
+        //
+        //         {
+        //    "error":[
+        //    ],
+        //    "result":{
+        //       "orders":[
+        //          {
+        //             "txid":"OEPPJX-34RMM-OROGZE",
+        //             "descr":{
+        //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+        //             }
+        //          },
+        //          {
+        //             "txid":"OLQY7O-OYBXW-W23PGL",
+        //             "descr":{
+        //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+        //             }
+        //          }
+        //       ]
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        return this.parseOrders(this.safeList(result, 'orders'));
+    }
     findMarketByAltnameOrId(id) {
         const marketsByAltname = this.safeValue(this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
@@ -1717,6 +1806,10 @@ class kraken extends kraken$1 {
         const statuses = {
             'pending': 'open',
             'open': 'open',
+            'pending_new': 'open',
+            'new': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
             'closed': 'closed',
             'canceled': 'canceled',
             'expired': 'expired',
@@ -2537,7 +2630,7 @@ class kraken extends kraken$1 {
      * @name kraken#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -3202,22 +3295,25 @@ class kraken extends kraken$1 {
      * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
+     * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
         if ('key' in params) {
             await this.loadMarkets();
             const currency = this.currency(code);
             const request = {
                 'asset': currency['id'],
                 'amount': amount,
-                'address': address,
+                // 'address': address,
             };
+            if (address !== undefined && address !== '') {
+                request['address'] = address;
+                this.checkAddress(address);
+            }
             const response = await this.privatePostWithdraw(this.extend(request, params));
             //
             //     {
@@ -3452,10 +3548,11 @@ class kraken extends kraken$1 {
                 isTriggerPercent = (price.endsWith('%')) ? true : false;
             }
             const isCancelOrderBatch = (path === 'CancelOrderBatch');
+            const isBatchOrder = (path === 'AddOrderBatch');
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if (isCancelOrderBatch || isTriggerPercent) {
+            if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
                 body = this.json(this.extend({ 'nonce': nonce }, params));
             }
             else {
@@ -3471,7 +3568,7 @@ class kraken extends kraken$1 {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,
             };
-            if (isCancelOrderBatch || isTriggerPercent) {
+            if (isCancelOrderBatch || isTriggerPercent || isBatchOrder) {
                 headers['Content-Type'] = 'application/json';
             }
             else {
@@ -3496,10 +3593,10 @@ class kraken extends kraken$1 {
         }
         if (body[0] === '{') {
             if (typeof response !== 'string') {
+                const message = this.id + ' ' + body;
                 if ('error' in response) {
                     const numErrors = response['error'].length;
                     if (numErrors) {
-                        const message = this.id + ' ' + body;
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
                             this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
@@ -3508,10 +3605,26 @@ class kraken extends kraken$1 {
                         throw new errors.ExchangeError(message);
                     }
                 }
+                // handleCreateOrdersErrors:
+                if ('result' in response) {
+                    const result = this.safeDict(response, 'result', {});
+                    if ('orders' in result) {
+                        const orders = this.safeList(result, 'orders', []);
+                        for (let i = 0; i < orders.length; i++) {
+                            const order = orders[i];
+                            const error = this.safeString(order, 'error');
+                            if (error !== undefined) {
+                                this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
+                                this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
+                                throw new errors.ExchangeError(message);
+                            }
+                        }
+                    }
+                }
             }
         }
         return undefined;
     }
 }
 
-module.exports = kraken;
+exports["default"] = kraken;

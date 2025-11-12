@@ -1,5 +1,5 @@
 import phemexRest from '../phemex.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class phemex extends phemexRest {
     describe(): any;
@@ -8,8 +8,8 @@ export default class phemex extends phemexRest {
     fromEv(ev: any, market?: any): any;
     fromEr(er: any, market?: any): any;
     requestId(): any;
-    parseSwapTicker(ticker: any, market?: any): Dict;
-    parsePerpetualTicker(ticker: any, market?: any): Dict;
+    parseSwapTicker(ticker: any, market?: any): Ticker;
+    parsePerpetualTicker(ticker: any, market?: any): Ticker;
     handleTicker(client: Client, message: any): void;
     /**
      * @method

@@ -1,11 +1,13 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var paradex$1 = require('../paradex.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class paradex extends paradex$1 {
+class paradex extends paradex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -366,4 +368,4 @@ class paradex extends paradex$1 {
     }
 }
 
-module.exports = paradex;
+exports["default"] = paradex;

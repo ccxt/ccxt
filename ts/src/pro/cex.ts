@@ -2,7 +2,7 @@
 
 import cexRest from '../cex.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num, Dict } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num, Dict, Bool } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
@@ -1051,6 +1051,7 @@ export default class cex extends cexRest {
         if (incrementalId !== storedOrderBook['nonce'] + 1) {
             delete client.subscriptions[messageHash];
             client.reject (this.id + ' watchOrderBook() skipped a message', messageHash);
+            return;
         }
         const timestamp = this.safeInteger (data, 'time');
         const asks = this.safeValue (data, 'asks', []);
@@ -1086,7 +1087,7 @@ export default class cex extends cexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -1471,7 +1472,7 @@ export default class cex extends cexRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "e": "get-balance",
@@ -1493,6 +1494,7 @@ export default class cex extends cexRest {
             const future = this.safeValue (client['futures'], messageHash);
             if (future !== undefined) {
                 client.reject (error, messageHash);
+                return true;
             } else {
                 throw error;
             }
@@ -1556,7 +1558,7 @@ export default class cex extends cexRest {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const future = client.future ('authenticated');
+        const future = client.reusableFuture ('authenticated');
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials ();
@@ -1571,7 +1573,7 @@ export default class cex extends cexRest {
                     'timestamp': nonce,
                 },
             };
-            await this.watch (url, messageHash, this.extend (request, params), messageHash);
+            this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
         return await future;
     }

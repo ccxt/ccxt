@@ -439,9 +439,12 @@ class coinmetro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetMarkets(params)
+        promises = []
+        promises.append(self.publicGetMarkets(params))
         if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
-            self.fetch_currencies()
+            promises.append(self.fetch_currencies())
+        responses = promises
+        response = responses[0]
         #
         #     [
         #         {
@@ -457,7 +460,14 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_markets(response)
+        result = []
+        for i in range(0, len(response)):
+            market = self.parse_market(response[i])
+            # there are several broken(unavailable info) markets
+            if market['base'] is None or market['quote'] is None:
+                continue
+            result.append(market)
+        return result
 
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'pair')
@@ -548,6 +558,14 @@ class coinmetro(Exchange, ImplicitAPI):
                         baseId = restId
                         quoteId = currencyId
                     break
+        if baseId is None or quoteId is None:
+            # https://github.com/ccxt/ccxt/issues/26820
+            if marketId.endswith('USDT'):
+                baseId = marketId.replace('USDT', '')
+                quoteId = 'USDT'
+            if marketId.endswith('USD'):
+                baseId = marketId.replace('USD', '')
+                quoteId = 'USD'
         result: dict = {
             'baseId': baseId,
             'quoteId': quoteId,
@@ -566,7 +584,7 @@ class coinmetro(Exchange, ImplicitAPI):
         }
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

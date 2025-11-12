@@ -1,11 +1,13 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var hashkey$1 = require('../hashkey.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class hashkey extends hashkey$1 {
+class hashkey extends hashkey$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -839,4 +841,4 @@ class hashkey extends hashkey$1 {
     }
 }
 
-module.exports = hashkey;
+exports["default"] = hashkey;

@@ -530,7 +530,7 @@ export default class digifinex extends Exchange {
             const networks = {};
             for (let j = 0; j < networkEntries.length; j++) {
                 const networkEntry = networkEntries[j];
-                const networkId = this.safeString (networkEntry, 'chain');
+                const networkId = this.safeString2 (networkEntry, 'chain', 'currency');
                 const networkCode = this.networkIdToCode (networkId);
                 networks[networkCode] = {
                     'id': networkId,
@@ -1544,7 +1544,7 @@ export default class digifinex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {};
@@ -1977,7 +1977,7 @@ export default class digifinex extends Exchange {
                 throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
             }
             const orders = this.parseCancelOrders (response);
-            return this.safeDict (orders, 0);
+            return this.safeDict (orders, 0) as Order;
         } else {
             return this.safeOrder ({
                 'info': response,
@@ -2019,7 +2019,7 @@ export default class digifinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const orderType = this.safeString (params, 'type', defaultType);
@@ -2041,7 +2041,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        return this.parseCancelOrders (response);
+        return this.parseCancelOrders (response) as Order[];
     }
 
     parseOrderStatus (status: Str) {
@@ -3086,7 +3086,7 @@ export default class digifinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -3805,7 +3805,7 @@ export default class digifinex extends Exchange {
      * @param {string} [params.side] either 'long' or 'short', required for isolated markets only
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

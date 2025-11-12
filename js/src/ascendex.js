@@ -45,6 +45,7 @@ export default class ascendex extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchAccounts': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -1632,7 +1633,7 @@ export default class ascendex extends Exchange {
         //         "code": "0",
         //         "data": {
         //           "domain": "spot",
-        //           "userUID": "U1479576458",
+        //           "userUID": "U1479576457",
         //           "vipLevel": "0",
         //           "fees": [
         //             { symbol: 'HT/USDT', fee: { taker: '0.001', maker: "0.001" } },
@@ -2543,9 +2544,9 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        return this.safeOrder({
-            'info': response,
-        });
+        return [this.safeOrder({
+                'info': response,
+            })];
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //

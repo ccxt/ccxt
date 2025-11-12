@@ -224,7 +224,7 @@ export default class bittrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name bittrade#cancelOrders
@@ -234,7 +234,7 @@ export default class bittrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     parseCancelOrders(orders: any): any[];
     /**
      * @method
@@ -287,7 +287,7 @@ export default class bittrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

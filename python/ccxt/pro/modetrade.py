@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -82,7 +82,7 @@ class modetrade(ccxt.async_support.modetrade):
     async def watch_public(self, messageHash, message):
         # the default id
         id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY'
-        if self.accountId is not None:
+        if self.accountId is not None and self.accountId != '':
             id = self.accountId
         url = self.urls['api']['ws']['public'] + '/' + id
         requestId = self.request_id(url)
@@ -355,7 +355,7 @@ class modetrade(ccxt.async_support.modetrade):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -583,7 +583,7 @@ class modetrade(ccxt.async_support.modetrade):
         client = self.client(url)
         messageHash = 'authenticated'
         event = 'auth'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             ts = str(self.nonce())
@@ -1176,7 +1176,7 @@ class modetrade(ccxt.async_support.modetrade):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         # {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         #

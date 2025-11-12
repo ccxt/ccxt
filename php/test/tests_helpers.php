@@ -42,14 +42,16 @@ use React\Promise;
 //
 //
 // the below one is the accepted way of handling assertion errors nowadays (however, keep this also commented here for a while)
-//
-// set_exception_handler( function (\Throwable $e) {
-//     if ($e instanceof \AssertionError) {
-//         dump('[ASSERT_ERROR] -' . exception_message($e));
-//         exit_script(0);
-//     }
-//     throw $e;
-// } );
+
+set_exception_handler( function (\Throwable $e) {
+    dump('[TEST_FAILURE]', exception_message($e));
+    exit_script(1);
+    // if ($e instanceof \AssertionError) {
+    //     dump(exception_message($e));
+    //     exit_script(1);
+    // }
+    // throw $e;
+} );
 
 $zend_assert_value = ini_get('zend.assertions');
 if ($zend_assert_value !== '1') {
@@ -226,7 +228,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
             class '. $newClassName . ' extends ' . $originalClass . ' {
                 public $fetch_result = null;
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
-                    if ($this->fetch_result) {
+                    if ($this->fetch_result !== null) {
                         return $this->fetch_result;
                     }
                     return parent::fetch($url, $method, $headers, $body);
@@ -242,7 +244,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
                 public $fetch_result = null;
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
                     return Async\async (function() use ($url, $method, $headers, $body){
-                        if ($this->fetch_result) {
+                        if ($this->fetch_result !== null) {
                             return $this->fetch_result;
                         }
                         return  Async\await(parent::fetch($url, $method, $headers, $body));

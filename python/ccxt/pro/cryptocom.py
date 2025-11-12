@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -662,7 +662,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -685,7 +685,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1188,7 +1188,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #    {
         #        "id": 0,
@@ -1300,7 +1300,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         url = self.urls['api']['ws']['private']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             method = 'public/auth'

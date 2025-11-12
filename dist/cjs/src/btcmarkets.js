@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var btcmarkets$1 = require('./abstract/btcmarkets.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class btcmarkets
  * @augments Exchange
  */
-class btcmarkets extends btcmarkets$1 {
+class btcmarkets extends btcmarkets$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'btcmarkets',
@@ -52,6 +54,7 @@ class btcmarkets extends btcmarkets$1 {
                 'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -1009,11 +1012,13 @@ class btcmarkets extends btcmarkets$1 {
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         await this.loadMarkets();
+        const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = parseInt(ids[i]);
+            // numericIds[i] = parseInt (ids[i]);
+            numericIds.push(parseInt(ids[i]));
         }
         const request = {
-            'ids': ids,
+            'ids': numericIds,
         };
         const response = await this.privateDeleteBatchordersIds(this.extend(request, params));
         //
@@ -1414,4 +1419,4 @@ class btcmarkets extends btcmarkets$1 {
     }
 }
 
-module.exports = btcmarkets;
+exports["default"] = btcmarkets;

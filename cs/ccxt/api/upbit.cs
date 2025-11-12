@@ -116,6 +116,11 @@ public partial class upbit : Exchange
         return await this.callAsync ("publicGetOrderbook",parameters);
     }
 
+    public async Task<object> publicGetOrderbookInstruments (object parameters = null)
+    {
+        return await this.callAsync ("publicGetOrderbookInstruments",parameters);
+    }
+
     public async Task<object> publicGetOrderbookSupportedLevels (object parameters = null)
     {
         return await this.callAsync ("publicGetOrderbookSupportedLevels",parameters);

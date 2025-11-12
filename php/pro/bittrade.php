@@ -194,7 +194,7 @@ class bittrade extends \ccxt\async\bittrade {
         return $message;
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -570,7 +570,7 @@ class bittrade extends \ccxt\async\bittrade {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "ts" => 1586323747018,

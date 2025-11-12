@@ -1624,7 +1624,7 @@ export default class bitmex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
@@ -2008,7 +2008,7 @@ export default class bitmex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
+     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
      * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -2038,7 +2038,7 @@ export default class bitmex extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTriggerOrder || isTrailingAmountOrder) {
             const triggerDirection = this.safeString (params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
             }
@@ -2092,7 +2092,7 @@ export default class bitmex extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTrailingAmountOrder) {
             const triggerDirection = this.safeString (params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
             }
@@ -2184,7 +2184,7 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         // return await this.cancelOrder (ids, symbol, params);
         await this.loadMarkets ();
         // https://github.com/ccxt/ccxt/issues/6507
@@ -2582,7 +2582,7 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -2773,7 +2773,7 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3043,6 +3043,7 @@ export default class bitmex extends Exchange {
             'contracts': undefined,
             'contractSize': this.safeNumber (market, 'contractSize'),
             'price': this.safeNumber (liquidation, 'price'),
+            'side': this.safeStringLower (liquidation, 'side'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': undefined,

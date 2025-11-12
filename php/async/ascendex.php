@@ -48,6 +48,7 @@ class ascendex extends Exchange {
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -1289,7 +1290,7 @@ class ascendex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1656,7 +1657,7 @@ class ascendex extends Exchange {
             //         "code" => "0",
             //         "data" => {
             //           "domain" => "spot",
-            //           "userUID" => "U1479576458",
+            //           "userUID" => "U1479576457",
             //           "vipLevel" => "0",
             //           "fees" => array(
             //             array( $symbol => 'HT/USDT', $fee => array( taker => '0.001', maker => "0.001" ) ),
@@ -2569,9 +2570,9 @@ class ascendex extends Exchange {
             //         }
             //     }
             //
-            return $this->safe_order(array(
+            return array( $this->safe_order(array(
                 'info' => $response,
-            ));
+            )) );
         }) ();
     }
 
@@ -3138,7 +3139,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

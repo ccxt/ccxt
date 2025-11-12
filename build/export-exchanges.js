@@ -93,6 +93,27 @@ function indexBy (x, k, out = {}) {
     return out;
 };
 
+function posToLineCol(str, pos) {
+    let line = 1, col = 1;
+    for (let i = 0; i < pos; i++) {
+        if (str[i] === '\n') { line++; col = 1; }
+        else { col++; }
+    }
+    return { line, col };
+}
+
+function printAround(str, pos, radius = 150) {
+    const start = Math.max(0, pos - radius);
+    const end = Math.min(str.length, pos + radius);
+    const snippet = str.slice(start, end);
+    const caretPad = ' '.repeat(pos - start);
+    console.error('--- JSON snippet around error ---');
+    console.error(snippet);
+    console.error(caretPad + '^ here');
+    const { line, col } = posToLineCol(str, pos);
+    console.error(`At computed line ${line}, column ${col} within the JSON being parsed`);
+}
+
 // ----------------------------------------------------------------------------
 
 function createExchange (id, content) {
@@ -122,7 +143,22 @@ function createExchange (id, content) {
         sliced = sliced.replace(/\s*\/\/\s+.*$/gm, ''); // remove comments
         sliced = sliced.replace(/(,)(\n\s*[}|\]])/g, '$2'); //remove trailing comma
         sliced = sliced.replace(/undefined/gm, 'null');
-        const parsedUrls = JSON.parse(sliced);
+
+        let parsedUrls;
+        try {
+            parsedUrls = JSON.parse(sliced);
+        } catch (e) {
+            // only for this exchange to reduce noise
+            console.error(`[${id}] Failed to parse urls JSON: ${e.message}`);
+            const m = /position\\s+(\\d+)/.exec(e.message);
+            if (m) {
+                const pos = Number(m[1]);
+                printAround(sliced, pos);
+            }
+            // persist the full JSON for inspection
+            console.error(`[${id}] chunk starts with:\n\n${chunk.slice(0, 80).replace(/\n/g, '\n')}\n\n`);
+            throw e;
+        }
         const name = content.matchAll(nameRegex).next().value[1];
         const versionMatches = content.matchAll(versionRegex).next().value
         const version = versionMatches ? versionMatches[1] : undefined;
@@ -439,8 +475,53 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     }
 
     const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
+    // certified exchanges are sorted according to the following order
+    const certifiedExchangesSortingOrder = [
+        'binance',
+        'binanceusdm',
+        'binancecoinm',
+        'bybit',
+        'okx',
+        'gate',
+        'kucoin',
+        'kucoinfutures',
+        'bitget',
+        'hyperliquid',
+        'bitmex',
+        'bingx',
+        'htx',
+        'mexc',
+        'bitmart',
+        'cryptocom',
+        'coinex',
+        'hashkey',
+        'woo',
+        'woofipro',
+    ]
+
+    let copyOfCertifiedExchanges = certifiedExchanges.slice (); // makes a new array with the same elements
+    let reorderedCertifiedExchanges = []
+    for (let i = 0; i < certifiedExchangesSortingOrder.length; i++) {
+        const exchangeId = certifiedExchangesSortingOrder[i]
+        const index = copyOfCertifiedExchanges.findIndex (exchange => exchange.id == exchangeId)
+        if (index >= 0) {
+            const splicedExchanges = copyOfCertifiedExchanges.splice (index, 1)
+            const exchange = splicedExchanges[0]
+            reorderedCertifiedExchanges.push (exchange)
+        } else {
+            const errorMessage = exchangeId + ' not certified in export-exchanges.js'
+            console.log (errorMessage)
+            throw new Error (errorMessage)
+        }
+    }
+    if (copyOfCertifiedExchanges.length > 0) {
+            const errorMessage = 'Not all certified exchanges listed in export-exchanges.js'
+            console.log (errorMessage)
+            throw new Error (errorMessage)
+    }
+
     if (certifiedExchangesPaths && certifiedExchanges.length) {
-        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
+        const certifiedExchangesMarkdownTable = createMarkdownTable (reorderedCertifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
             , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
             , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
         for (const exchangePath of certifiedExchangesPaths) {
@@ -710,7 +791,12 @@ async function exportEverything () {
         {
             file: './go/v4/exchange_metadata.go',
             regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
-            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${capitalize(i)}"`).join(', ')} }`,
+            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${i}"`).join(', ')} }`,
+        },
+        {
+            file: './go/v4/pro/exchange_metadata.go',
+            regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
+            replacement: `var Exchanges []string = []string{ ${wsIds.map(i=>`"${i}"`).join(', ')} }`,
         },
     ]
 

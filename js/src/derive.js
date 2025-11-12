@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/derive.js';
-import Precise from './base/Precise.js';
+import { Precise } from './base/Precise.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
@@ -1663,7 +1663,7 @@ export default class derive extends Exchange {
         //     "result": "ok"
         // }
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

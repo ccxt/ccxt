@@ -376,11 +376,9 @@ export default class bitrue extends Exchange {
             // exchange-specific options
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarkets': [
-                    'spot',
-                    'linear',
-                    'inverse',
-                ],
+                'fetchMarkets': {
+                    'types': [ 'spot', 'linear', 'inverse' ],
+                },
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -835,9 +833,17 @@ export default class bitrue extends Exchange {
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const promisesRaw = [];
-        const fetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
-        for (let i = 0; i < fetchMarkets.length; i++) {
-            const marketType = fetchMarkets[i];
+        let types = undefined;
+        const defaultTypes = [ 'spot', 'linear', 'inverse' ];
+        const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
+        if (fetchMarketsOptions !== undefined) {
+            types = this.safeList (fetchMarketsOptions, 'types', defaultTypes);
+        } else {
+            // for backward-compatibility
+            types = this.safeList (this.options, 'fetchMarkets', defaultTypes);
+        }
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
             if (marketType === 'spot') {
                 promisesRaw.push (this.spotV1PublicGetExchangeInfo (params));
             } else if (marketType === 'linear') {
@@ -1444,7 +1450,7 @@ export default class bitrue extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframes = this.safeDict (this.options, 'timeframes', {});
@@ -2864,7 +2870,7 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -3106,7 +3112,7 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

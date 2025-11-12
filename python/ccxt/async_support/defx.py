@@ -828,7 +828,7 @@ class defx(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://api-docs.defx.com/#54b71951-1472-4670-b5af-4c2dc41e73d0
@@ -1156,7 +1156,8 @@ class defx(Exchange, ImplicitAPI):
         #
         markPrice = self.safe_number(contract, 'markPrice')
         indexPrice = self.safe_number(contract, 'indexPrice')
-        fundingRate = self.safe_number(contract, 'payoutFundingRate')
+        fundingRateRaw = self.safe_string(contract, 'payoutFundingRate')
+        fundingRate = Precise.string_div(fundingRateRaw, '100')
         fundingTime = self.safe_integer(contract, 'nextFundingPayout')
         return {
             'info': contract,
@@ -1167,7 +1168,7 @@ class defx(Exchange, ImplicitAPI):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': fundingRate,
+            'fundingRate': self.parse_number(fundingRate),
             'fundingTimestamp': fundingTime,
             'fundingDatetime': self.iso8601(fundingTime),
             'nextFundingRate': None,
@@ -1455,7 +1456,7 @@ class defx(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     async def fetch_position(self, symbol: str, params={}):
         """
@@ -1894,7 +1895,7 @@ class defx(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -1955,7 +1956,7 @@ class defx(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

@@ -802,7 +802,7 @@ export default class deribit extends deribitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const ohlcvs = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
@@ -1070,7 +1070,8 @@ export default class deribit extends deribitRest {
         if (future === undefined) {
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
-            const signature = this.hmac (this.encode (timeString + '\n' + nonce + '\n'), this.encode (this.secret), sha256);
+            const lineBreak = "\n"; // eslint-disable-line quotes
+            const signature = this.hmac (this.encode (timeString + lineBreak + nonce + lineBreak), this.encode (this.secret), sha256);
             const request: Dict = {
                 'jsonrpc': '2.0',
                 'id': requestId,

@@ -78,7 +78,7 @@ public partial class upbit
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : not used by upbit fetchOrderBooks ()
+    /// int : the maximum amount of order book entries to return
     /// </description>
     /// </item>
     /// <item>
@@ -310,7 +310,13 @@ public partial class upbit
     /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
-    /// string : 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+    /// string : 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.selfTradePrevention</term>
+    /// <description>
+    /// string : 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
     /// </description>
     /// </item>
     /// </list>
@@ -371,7 +377,7 @@ public partial class upbit
     /// <item>
     /// <term>params.newTimeInForce</term>
     /// <description>
-    /// string : 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+    /// string : 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
     /// </description>
     /// </item>
     /// <item>
@@ -384,6 +390,12 @@ public partial class upbit
     /// <term>params.newOrdType</term>
     /// <description>
     /// string : this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.selfTradePrevention</term>
+    /// <description>
+    /// string : 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
     /// </description>
     /// </item>
     /// </list>
@@ -755,7 +767,7 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

@@ -1026,7 +1026,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': True,
+                'active': self.safe_string_lower_2(market, 'status', 'trade_status') == 'trading',
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -1141,7 +1141,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'swap': isSwap,
                 'future': isFutures,
                 'option': False,
-                'active': True,
+                'active': self.safe_string_lower(market, 'status') == 'trading',
                 'contract': True,
                 'linear': True,
                 'inverse': False,
@@ -2048,7 +2048,7 @@ class bitmart(Exchange, ImplicitAPI):
                 self.safe_number_2(ohlcv, 'volume', 'v'),
             ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3083,7 +3083,7 @@ class bitmart(Exchange, ImplicitAPI):
         #     }
         #
         if market['swap']:
-            return response
+            return self.safe_order({'info': response})
         data = self.safe_value(response, 'data')
         if data is True:
             return self.safe_order({'id': id}, market)
@@ -3200,7 +3200,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         #     }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if symbol is None:
@@ -3606,7 +3606,7 @@ class bitmart(Exchange, ImplicitAPI):
             'tag': self.safe_string_2(depositAddress, 'address_memo', 'memo'),
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -4466,7 +4466,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -4517,12 +4517,15 @@ class bitmart(Exchange, ImplicitAPI):
         #         "code": 1000,
         #         "message": "Ok",
         #         "data": {
-        #             "timestamp": 1695184410697,
         #             "symbol": "BTCUSDT",
-        #             "rate_value": "-0.00002614",
-        #             "expected_rate": "-0.00002"
+        #             "expected_rate": "-0.0000238",
+        #             "rate_value": "0.000009601106",
+        #             "funding_time": 1761292800000,
+        #             "funding_upper_limit": "0.0375",
+        #             "funding_lower_limit": "-0.0375",
+        #             "timestamp": 1761291544336
         #         },
-        #         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        #         "trace": "64b7a589-e1e-4ac2-86b1-41058757421"
         #     }
         #
         data = self.safe_dict(response, 'data', {})
@@ -4587,14 +4590,18 @@ class bitmart(Exchange, ImplicitAPI):
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #     {
-        #         "timestamp": 1695184410697,
         #         "symbol": "BTCUSDT",
-        #         "rate_value": "-0.00002614",
-        #         "expected_rate": "-0.00002"
+        #         "expected_rate": "-0.0000238",
+        #         "rate_value": "0.000009601106",
+        #         "funding_time": 1761292800000,
+        #         "funding_upper_limit": "0.0375",
+        #         "funding_lower_limit": "-0.0375",
+        #         "timestamp": 1761291544336
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
         timestamp = self.safe_integer(contract, 'timestamp')
+        fundingTimestamp = self.safe_integer(contract, 'funding_time')
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market),
@@ -4605,8 +4612,8 @@ class bitmart(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fundingRate': self.safe_number(contract, 'expected_rate'),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': None,
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,

@@ -623,24 +623,26 @@ class deribit extends Exchange {
             $response = Async\await($this->publicGetGetCurrencies ($params));
             //
             //    {
-            //      "jsonrpc" => "2.0",
-            //      "result" => array(
-            //        array(
-            //          "withdrawal_priorities" => array(),
-            //          "withdrawal_fee" => 0.01457324,
-            //          "min_withdrawal_fee" => 0.000001,
-            //          "min_confirmations" => 1,
-            //          "fee_precision" => 8,
-            //          "currency_long" => "Solana",
-            //          "currency" => "SOL",
-            //          "coin_type" => "SOL"
+            //        "jsonrpc" => "2.0",
+            //        "result" => array(
+            //            array(
+            //                "currency" => "XRP",
+            //                "network_fee" => "1.5e-5",
+            //                "min_withdrawal_fee" => "0.0001",
+            //                "apr" => "0.0",
+            //                "withdrawal_fee" => "0.0001",
+            //                "network_currency" => "XRP",
+            //                "coin_type" => "XRP",
+            //                "withdrawal_priorities" => array(),
+            //                "min_confirmations" => "1",
+            //                "currency_long" => "XRP",
+            //                "in_cross_collateral_pool" => false
+            //            ),
             //        ),
-            //        ...
-            //      ),
-            //      "usIn" => 1688652701456124,
-            //      "usOut" => 1688652701456390,
-            //      "usDiff" => 266,
-            //      "testnet" => true
+            //        "usIn" => "1760110326693923",
+            //        "usOut" => "1760110326944891",
+            //        "usDiff" => "250968",
+            //        "testnet" => false
             //    }
             //
             $data = $this->safe_list($response, 'result', array());
@@ -659,7 +661,7 @@ class deribit extends Exchange {
                     'withdraw' => null,
                     'type' => 'crypto',
                     'fee' => $this->safe_number($currency, 'withdrawal_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'fee_precision'))),
+                    'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -1442,7 +1444,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -2382,6 +2384,11 @@ class deribit extends Exchange {
             $request = array();
             $market = null;
             $response = null;
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            } else {
+                $request['count'] = 1000; // max value
+            }
             if ($symbol === null) {
                 $code = $this->code_from_options('fetchClosedOrders', $params);
                 $currency = $this->currency($code);
@@ -2756,25 +2763,26 @@ class deribit extends Exchange {
         $unrealizedPnl = $this->safe_string($position, 'floating_profit_loss');
         $initialMarginString = $this->safe_string($position, 'initial_margin');
         $notionalString = $this->safe_string($position, 'size_currency');
+        $notionalStringAbs = Precise::string_abs($notionalString);
         $maintenanceMarginString = $this->safe_string($position, 'maintenance_margin');
-        $currentTime = $this->milliseconds();
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
-            'timestamp' => $currentTime,
-            'datetime' => $this->iso8601($currentTime),
+            'timestamp' => null,
+            'datetime' => null,
             'lastUpdateTimestamp' => null,
             'initialMargin' => $this->parse_number($initialMarginString),
-            'initialMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($initialMarginString, $notionalString), '100')),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($initialMarginString, $notionalStringAbs), '100')),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
-            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($maintenanceMarginString, $notionalString), '100')),
+            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($maintenanceMarginString, $notionalStringAbs), '100')),
             'entryPrice' => $this->safe_number($position, 'average_price'),
-            'notional' => $this->parse_number($notionalString),
+            'notional' => $this->parse_number($notionalStringAbs),
             'leverage' => $this->safe_integer($position, 'leverage'),
             'unrealizedPnl' => $this->parse_number($unrealizedPnl),
-            'contracts' => null,
-            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'realizedPnl' => $this->safe_number($position, 'realized_profit_loss'),
+            'contracts' => $this->safe_number($position, 'size'),
+            'contractSize' => $this->safe_number($position, 'contractSize'),
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'estimated_liquidation_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
@@ -3121,7 +3129,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

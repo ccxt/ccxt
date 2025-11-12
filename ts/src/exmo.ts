@@ -961,7 +961,7 @@ export default class exmo extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const until = this.safeIntegerProduct (params, 'until', 0.001);
@@ -983,7 +983,7 @@ export default class exmo extends Exchange {
             request['from'] = to - (limit * duration) - 1;
             request['to'] = to;
         } else {
-            request['from'] = this.parseToInt (since / 1000) - 1;
+            request['from'] = this.parseToInt (since / 1000);
             if (untilIsDefined) {
                 request['to'] = Math.min (until, now);
             } else {
@@ -2321,7 +2321,7 @@ export default class exmo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);

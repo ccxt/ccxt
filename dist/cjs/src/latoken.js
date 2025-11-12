@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var latoken$1 = require('./abstract/latoken.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class latoken
  * @augments Exchange
  */
-class latoken extends latoken$1 {
+class latoken extends latoken$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'latoken',
@@ -26,6 +28,10 @@ class latoken extends latoken$1 {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closeAllPositions': false,
@@ -35,9 +41,14 @@ class latoken extends latoken$1 {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -52,12 +63,34 @@ class latoken extends latoken$1 {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
+                'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchLeverages': false,
+                'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -68,6 +101,8 @@ class latoken extends latoken$1 {
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -77,6 +112,15 @@ class latoken extends latoken$1 {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': true,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
             },
             'urls': {
@@ -1561,6 +1605,8 @@ class latoken extends latoken$1 {
             'TRANSACTION_STATUS_EXECUTED': 'ok',
             'TRANSACTION_STATUS_CHECKING': 'pending',
             'TRANSACTION_STATUS_CANCELLED': 'canceled',
+            'TRANSACTION_STATUS_FAILED': 'failed',
+            'TRANSACTION_STATUS_REJECTED': 'rejected',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1778,4 +1824,4 @@ class latoken extends latoken$1 {
     }
 }
 
-module.exports = latoken;
+exports["default"] = latoken;

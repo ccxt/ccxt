@@ -4,7 +4,7 @@
 import bittradeRest from '../bittrade.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -203,7 +203,7 @@ export default class bittrade extends bittradeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -564,7 +564,7 @@ export default class bittrade extends bittradeRest {
         this.spawn (this.pong, client, message);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "ts": 1586323747018,

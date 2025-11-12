@@ -288,7 +288,7 @@ export default class bitmart extends Exchange {
      * @param {boolean} [params.trailing] *swap only* whether the order is a stop order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name bitmart#cancelOrders
@@ -312,7 +312,7 @@ export default class bitmart extends Exchange {
      * @param {string} [params.side] *spot only* 'buy' or 'sell'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
@@ -404,7 +404,7 @@ export default class bitmart extends Exchange {
      * @param {string} [params.network] the network name for this withdrawal
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     fetchTransactionsByType(type: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     /**
      * @method
@@ -575,7 +575,7 @@ export default class bitmart extends Exchange {
      * @param {string} [params.marginMode] 'isolated' or 'cross'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name bitmart#fetchFundingRate

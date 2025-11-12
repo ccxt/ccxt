@@ -9,7 +9,7 @@ import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError, NotSupported } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import Precise from '../base/Precise.js';
+import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
     describe() {
@@ -491,11 +491,16 @@ export default class gemini extends geminiRest {
         currentBidAsk['timestamp'] = timestamp;
         currentBidAsk['datetime'] = this.iso8601(timestamp);
         currentBidAsk['info'] = rawBidAskChanges;
+        const bidsAsksDict = {};
+        bidsAsksDict[symbol] = currentBidAsk;
         this.bidsasks[symbol] = currentBidAsk;
-        client.resolve(currentBidAsk, messageHash);
+        client.resolve(bidsAsksDict, messageHash);
     }
-    async helperForWatchMultipleConstruct(itemHashName, symbols, params = {}) {
+    async helperForWatchMultipleConstruct(itemHashName, symbols = undefined, params = {}) {
         await this.loadMarkets();
+        if (symbols === undefined) {
+            throw new NotSupported(this.id + ' watchMultiple requires at least one symbol');
+        }
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbols[0]);
         if (!firstMarket['spot'] && !firstMarket['linear']) {

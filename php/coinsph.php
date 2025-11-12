@@ -27,6 +27,9 @@ class coinsph extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -37,6 +40,8 @@ class coinsph extends Exchange {
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
                 'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
@@ -48,8 +53,11 @@ class coinsph extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => true,
@@ -64,24 +72,42 @@ class coinsph extends Exchange {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchL3OrderBook' => false,
                 'fetchLedger' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
+                'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
@@ -95,6 +121,7 @@ class coinsph extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -107,12 +134,14 @@ class coinsph extends Exchange {
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
+                'repayMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -296,6 +325,9 @@ class coinsph extends Exchange {
             'features' => array(
                 'spot' => array(
                     'sandbox' => false,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => false,
                         'triggerPrice' => true,
@@ -492,7 +524,7 @@ class coinsph extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         $response = $this->privateGetOpenapiWalletV1ConfigGetall ($params);
         //
@@ -994,7 +1026,7 @@ class coinsph extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1798,7 +1830,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal to coins_ph account
          *

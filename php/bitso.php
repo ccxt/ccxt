@@ -48,6 +48,7 @@ class bitso extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -748,7 +749,7 @@ class bitso extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -1126,7 +1127,7 @@ class bitso extends Exchange {
         ));
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()): array {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): array {
         /**
          * cancel multiple $orders
          *
@@ -1690,7 +1691,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

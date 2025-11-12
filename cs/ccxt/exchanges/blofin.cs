@@ -932,6 +932,7 @@ public partial class blofin : Exchange
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -948,7 +949,7 @@ public partial class blofin : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters);
+            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100);
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -961,6 +962,12 @@ public partial class blofin : Exchange
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["after"] = until;
+            parameters = this.omit(parameters, "until");
         }
         object response = await this.publicGetMarketFundingRateHistory(this.extend(request, parameters));
         object rates = new List<object>() {};
@@ -1358,12 +1365,15 @@ public partial class blofin : Exchange
         {
             timeInForce = "IOC";
             type = "limit";
+        } else if (isTrue(isEqual(type, "conditional")))
+        {
+            type = "trigger";
         }
         object marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
         object symbol = this.safeSymbol(marketId, market, "-");
         object filled = this.safeString(order, "filledSize");
-        object price = this.safeString2(order, "px", "price");
+        object price = this.safeStringN(order, new List<object>() {"px", "price", "orderPrice"});
         object average = this.safeString(order, "averagePrice");
         object status = this.parseOrderStatus(this.safeString(order, "state"));
         object feeCostString = this.safeString(order, "fee");
@@ -1472,7 +1482,7 @@ public partial class blofin : Exchange
         parameters = ((IList<object>)methodparametersVariable)[1];
         object isStopLossPriceDefined = !isEqual(this.safeString(parameters, "stopLossPrice"), null);
         object isTakeProfitPriceDefined = !isEqual(this.safeString(parameters, "takeProfitPrice"), null);
-        object isTriggerOrder = !isEqual(this.safeString(parameters, "triggerPrice"), null);
+        object hasTriggerPrice = !isEqual(this.safeString(parameters, "triggerPrice"), null);
         object isType2Order = (isTrue(isStopLossPriceDefined) || isTrue(isTakeProfitPriceDefined));
         object response = null;
         object reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -1480,11 +1490,13 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)parameters)["reduceOnly"] = ((bool) isTrue(reduceOnly)) ? "true" : "false";
         }
-        if (isTrue(isTrue(isTrue(tpsl) || isTrue((isEqual(method, "privatePostTradeOrderTpsl")))) || isTrue(isType2Order)))
+        object isTpslOrder = isTrue(isTrue(tpsl) || isTrue((isEqual(method, "privatePostTradeOrderTpsl")))) || isTrue(isType2Order);
+        object isTriggerOrder = isTrue(hasTriggerPrice) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")));
+        if (isTrue(isTpslOrder))
         {
             object tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrderTpsl(tpslRequest);
-        } else if (isTrue(isTrue(isTriggerOrder) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")))))
+        } else if (isTrue(isTriggerOrder))
         {
             object triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrderAlgo(triggerRequest);
@@ -1493,11 +1505,10 @@ public partial class blofin : Exchange
             object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrder(request);
         }
-        if (isTrue(isTrue(isTriggerOrder) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")))))
+        if (isTrue(isTrue(isTpslOrder) || isTrue(isTriggerOrder)))
         {
             object dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            object triggerOrder = this.parseOrder(dataDict, market);
-            return triggerOrder;
+            return this.parseOrder(dataDict, market);
         }
         object data = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(data, 0);
@@ -2068,7 +2079,7 @@ public partial class blofin : Exchange
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         parameters ??= new Dictionary<string, object>();
@@ -2700,7 +2711,7 @@ public partial class blofin : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseMarginMode(data, market);
+        return ((object)this.parseMarginMode(data, market));
     }
 
     /**

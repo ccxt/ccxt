@@ -679,7 +679,7 @@ class htx(Exchange, ImplicitAPI):
                             'api/v1/contract_batchorder': 1,
                             'api/v1/contract_cancel': 1,
                             'api/v1/contract_cancelall': 1,
-                            'api/v1/contract_switch_lever_rate': 1,
+                            'api/v1/contract_switch_lever_rate': 30,
                             'api/v1/lightning_close_position': 1,
                             'api/v1/contract_order_info': 1,
                             'api/v1/contract_order_detail': 1,
@@ -738,7 +738,7 @@ class htx(Exchange, ImplicitAPI):
                             'swap-api/v1/swap_cancel': 1,
                             'swap-api/v1/swap_cancelall': 1,
                             'swap-api/v1/swap_lightning_close_position': 1,
-                            'swap-api/v1/swap_switch_lever_rate': 1,
+                            'swap-api/v1/swap_switch_lever_rate': 30,
                             'swap-api/v1/swap_order_info': 1,
                             'swap-api/v1/swap_order_detail': 1,
                             'swap-api/v1/swap_openorders': 1,
@@ -812,8 +812,8 @@ class htx(Exchange, ImplicitAPI):
                             'linear-swap-api/v1/swap_cross_cancel': 1,
                             'linear-swap-api/v1/swap_cancelall': 1,
                             'linear-swap-api/v1/swap_cross_cancelall': 1,
-                            'linear-swap-api/v1/swap_switch_lever_rate': 1,
-                            'linear-swap-api/v1/swap_cross_switch_lever_rate': 1,
+                            'linear-swap-api/v1/swap_switch_lever_rate': 30,
+                            'linear-swap-api/v1/swap_cross_switch_lever_rate': 30,
                             'linear-swap-api/v1/swap_lightning_close_position': 1,
                             'linear-swap-api/v1/swap_cross_lightning_close_position': 1,
                             'linear-swap-api/v1/swap_order_info': 1,
@@ -2716,7 +2716,15 @@ class htx(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        id = self.safe_string_n(trade, ['trade_id', 'trade-id', 'id'])
+        # htx's multi-market trade-id is a bit complex to parse accordingly.
+        # - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2(self happens mostly for contract markets)
+        # - otherwise the least priority is given to the `id` key
+        id: Str = None
+        safeId = self.safe_string(trade, 'id')
+        if safeId is not None and safeId.find('-') >= 0:
+            id = safeId
+        else:
+            id = self.safe_string_n(trade, ['trade_id', 'trade-id', 'id'])
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -3027,7 +3035,7 @@ class htx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -5016,7 +5024,7 @@ class htx(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
+    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -5629,7 +5637,7 @@ class htx(Exchange, ImplicitAPI):
             'status': 'canceled',
         })
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -6305,10 +6313,11 @@ class htx(Exchange, ImplicitAPI):
             'repealed': 'failed',
             'wallet-transfer': 'pending',
             'pre-transfer': 'pending',
+            'verifying': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
 
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
@@ -6576,12 +6585,16 @@ class htx(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50)
+            return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50)
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
             'contract_code': market['id'],
         }
+        if limit is not None:
+            request['page_size'] = limit
+        else:
+            request['page_size'] = 50  # max
         response = None
         if market['inverse']:
             response = self.contractPublicGetSwapApiV1SwapHistoricalFundingRate(self.extend(request, params))
@@ -7129,7 +7142,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -8848,6 +8861,7 @@ class htx(Exchange, ImplicitAPI):
             'contracts': self.safe_number(liquidation, 'volume'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number(liquidation, 'price'),
+            'side': self.safe_string_lower(liquidation, 'direction'),
             'baseValue': self.safe_number(liquidation, 'amount'),
             'quoteValue': self.safe_number(liquidation, 'trade_turnover'),
             'timestamp': timestamp,

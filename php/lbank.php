@@ -455,6 +455,9 @@ class lbank extends Exchange {
             for ($j = 0; $j < count($networksRaw); $j++) {
                 $networkEntry = $networksRaw[$j];
                 $networkId = $this->safe_string($networkEntry, 'chain');
+                if ($networkId === null) {
+                    $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
+                }
                 $networkCode = $this->network_id_to_code($networkId);
                 $networks[$networkCode] = array(
                     'id' => $networkId,
@@ -666,7 +669,7 @@ class lbank extends Exchange {
                 'active' => true,
                 'contract' => true,
                 'linear' => true,
-                'inverse' => null,
+                'inverse' => false,
                 'contractSize' => $this->safe_number($market, 'volumeMultiple'),
                 'expiry' => null,
                 'expiryDatetime' => null,
@@ -971,7 +974,7 @@ class lbank extends Exchange {
         if ($market['swap']) {
             return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
         }
-        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 1, 0);
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks');
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1154,7 +1157,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -2322,7 +2325,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

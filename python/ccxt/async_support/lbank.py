@@ -470,6 +470,8 @@ class lbank(Exchange, ImplicitAPI):
             for j in range(0, len(networksRaw)):
                 networkEntry = networksRaw[j]
                 networkId = self.safe_string(networkEntry, 'chain')
+                if networkId is None:
+                    networkId = self.safe_string(networkEntry, 'assetCode')  # use type if networkId is not present
                 networkCode = self.network_id_to_code(networkId)
                 networks[networkCode] = {
                     'id': networkId,
@@ -675,7 +677,7 @@ class lbank(Exchange, ImplicitAPI):
                 'active': True,
                 'contract': True,
                 'linear': True,
-                'inverse': None,
+                'inverse': False,
                 'contractSize': self.safe_number(market, 'volumeMultiple'),
                 'expiry': None,
                 'expiryDatetime': None,
@@ -968,7 +970,7 @@ class lbank(Exchange, ImplicitAPI):
         timestamp = self.milliseconds()
         if market['swap']:
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
-        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks')
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1135,7 +1137,7 @@ class lbank(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),  # volume
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2235,7 +2237,7 @@ class lbank(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

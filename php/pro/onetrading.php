@@ -1064,7 +1064,7 @@ class onetrading extends \ccxt\async\onetrading {
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1241,7 +1241,7 @@ class onetrading extends \ccxt\async\onetrading {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "error" => "MALFORMED_JSON",
@@ -1372,7 +1372,7 @@ class onetrading extends \ccxt\async\onetrading {
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ('authenticated');
+            $future = $client->reusableFuture ('authenticated');
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $this->check_required_credentials();

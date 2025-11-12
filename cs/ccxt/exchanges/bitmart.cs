@@ -921,7 +921,7 @@ public partial class bitmart : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "active", true },
+                { "active", isEqual(this.safeStringLower2(market, "status", "trade_status"), "trading") },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },
@@ -1043,7 +1043,7 @@ public partial class bitmart : Exchange
                 { "swap", isSwap },
                 { "future", isFutures },
                 { "option", false },
-                { "active", true },
+                { "active", isEqual(this.safeStringLower(market, "status"), "trading") },
                 { "contract", true },
                 { "linear", true },
                 { "inverse", false },
@@ -3218,7 +3218,9 @@ public partial class bitmart : Exchange
         //
         if (isTrue(getValue(market, "swap")))
         {
-            return response;
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "info", response },
+            });
         }
         object data = this.safeValue(response, "data");
         if (isTrue(isEqual(data, true)))
@@ -3262,7 +3264,7 @@ public partial class bitmart : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3383,7 +3385,9 @@ public partial class bitmart : Exchange
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async virtual Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -4931,12 +4935,15 @@ public partial class bitmart : Exchange
         //         "code": 1000,
         //         "message": "Ok",
         //         "data": {
-        //             "timestamp": 1695184410697,
         //             "symbol": "BTCUSDT",
-        //             "rate_value": "-0.00002614",
-        //             "expected_rate": "-0.00002"
+        //             "expected_rate": "-0.0000238",
+        //             "rate_value": "0.000009601106",
+        //             "funding_time": 1761292800000,
+        //             "funding_upper_limit": "0.0375",
+        //             "funding_lower_limit": "-0.0375",
+        //             "timestamp": 1761291544336
         //         },
-        //         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        //         "trace": "64b7a589-e1e-4ac2-86b1-41058757421"
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -5012,14 +5019,18 @@ public partial class bitmart : Exchange
     {
         //
         //     {
-        //         "timestamp": 1695184410697,
         //         "symbol": "BTCUSDT",
-        //         "rate_value": "-0.00002614",
-        //         "expected_rate": "-0.00002"
+        //         "expected_rate": "-0.0000238",
+        //         "rate_value": "0.000009601106",
+        //         "funding_time": 1761292800000,
+        //         "funding_upper_limit": "0.0375",
+        //         "funding_lower_limit": "-0.0375",
+        //         "timestamp": 1761291544336
         //     }
         //
         object marketId = this.safeString(contract, "symbol");
         object timestamp = this.safeInteger(contract, "timestamp");
+        object fundingTimestamp = this.safeInteger(contract, "funding_time");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -5030,8 +5041,8 @@ public partial class bitmart : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "fundingRate", this.safeNumber(contract, "expected_rate") },
-            { "fundingTimestamp", null },
-            { "fundingDatetime", null },
+            { "fundingTimestamp", fundingTimestamp },
+            { "fundingDatetime", this.iso8601(fundingTimestamp) },
             { "nextFundingRate", null },
             { "nextFundingTimestamp", null },
             { "nextFundingDatetime", null },

@@ -244,6 +244,7 @@ class mexc(Exchange, ImplicitAPI):
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                             'selfSymbols': 1,
+                            'asset/internal/transfer/record': 10,
                         },
                         'post': {
                             'order': 1,
@@ -448,6 +449,7 @@ class mexc(Exchange, ImplicitAPI):
                         },
                     },
                 },
+                'useCcxtTradeId': True,
                 'timeframes': {
                     'spot': {
                         '1m': '1m',
@@ -486,6 +488,12 @@ class mexc(Exchange, ImplicitAPI):
                     'ZKSYNC': 'ZKSYNCERA',
                     'TRC20': 'TRX',
                     'TON': 'TONCOIN',
+                    'ARBITRUM': 'ARB',
+                    'STX': 'STACKS',
+                    'LUNC': 'LUNA',
+                    'STARK': 'STARKNET',
+                    'APT': 'APTOS',
+                    'PEAQ': 'PEAQEVM',
                     'AVAXC': 'AVAX_CCHAIN',
                     'ERC20': 'ETH',
                     'ACA': 'ACALA',
@@ -515,6 +523,7 @@ class mexc(Exchange, ImplicitAPI):
                     # 'DNX': 'Dynex(DNX)',
                     # 'DOGE': 'Dogecoin(DOGE)',
                     # 'DOT': 'Polkadot(DOT)',
+                    'DOT': 'DOTASSETHUB',
                     # 'DYM': 'Dymension(DYM)',
                     'ETHF': 'ETF',
                     'HRC20': 'HECO',
@@ -672,6 +681,7 @@ class mexc(Exchange, ImplicitAPI):
                     'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
+                    'Ethereum(ERC20)': 'ERC20',
                     # TODO: uncomment below after deciding unified name
                     # 'PEPE COIN BSC':
                     # 'SMART BLOCKCHAIN':
@@ -766,6 +776,9 @@ class mexc(Exchange, ImplicitAPI):
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                 },
                 'forDerivs': {
                     'extends': 'default',
@@ -930,6 +943,7 @@ class mexc(Exchange, ImplicitAPI):
                     '30029': InvalidOrder,  # Cannot exceed the maximum order limit
                     '30032': InvalidOrder,  # Cannot exceed the maximum position
                     '30041': InvalidOrder,  # current order type can not place order
+                    '30087': InvalidOrder,  # {"msg":"Order price exceeds allowed range","code":30087}
                     '60005': ExchangeError,  # your account is abnormal
                     '700001': AuthenticationError,  # {"code":700002,"msg":"Signature for self request is not valid."}  # same message for expired API keys
                     '700002': AuthenticationError,  # Signature for self request is not valid  # or the API secret is incorrect
@@ -1052,7 +1066,7 @@ class mexc(Exchange, ImplicitAPI):
         # therefore we check the keys here
         # and fallback to generating the currencies from the markets
         if not self.check_required_credentials(False):
-            return None
+            return {}
         response = self.spotPrivateGetCapitalConfigGetall(params)
         #
         # {
@@ -1694,8 +1708,8 @@ class mexc(Exchange, ImplicitAPI):
                         'cost': self.safe_string(trade, 'commission'),
                         'currency': self.safe_currency_code(feeAsset),
                     }
-        if id is None:
-            id = self.synthetic_trade_id(market, timestamp, side, amountString, priceString, type, takerOrMaker)
+        if id is None and self.safe_bool(self.options, 'useCcxtTradeId', True):
+            id = self.create_ccxt_trade_id(timestamp, side, amountString, priceString, takerOrMaker)
         return self.safe_trade({
             'id': id,
             'order': orderId,
@@ -1712,24 +1726,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def synthetic_trade_id(self, market=None, timestamp=None, side=None, amount=None, price=None, orderType=None, takerOrMaker=None):
-        # TODO: can be unified method? self approach is being used by multiple exchanges(mexc, woo-coinsbit, dydx, ...)
-        id = ''
-        if timestamp is not None:
-            id = self.number_to_string(timestamp) + '-' + self.safe_string(market, 'id', '_')
-            if side is not None:
-                id += '-' + side
-            if amount is not None:
-                id += '-' + self.number_to_string(amount)
-            if price is not None:
-                id += '-' + self.number_to_string(price)
-            if takerOrMaker is not None:
-                id += '-' + takerOrMaker
-            if orderType is not None:
-                id += '-' + orderType
-        return id
-
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
@@ -3097,7 +3094,7 @@ class mexc(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg)
         return self.parse_order(data, market)
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -3425,7 +3422,8 @@ class mexc(Exchange, ImplicitAPI):
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,  # TODO: self might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
+            'lastTradeTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
             'status': self.parse_order_status(self.safe_string_2(order, 'status', 'state')),
             'symbol': market['symbol'],
             'type': self.parse_order_type(typeRaw),
@@ -4071,7 +4069,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -4651,11 +4649,14 @@ class mexc(Exchange, ImplicitAPI):
         #         "network": "TRX",
         #         "status": "5",
         #         "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        #         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        #         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
         #         "insertTime": "1664805021000",
         #         "unlockConfirm": "200",
         #         "confirmTimes": "203",
-        #         "memo": "xxyy1122"
+        #         "memo": "xxyy1122",
+        #         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        #         "updateTime": "1664805621000",
+        #         "netWork: "TRX"
         #     }
         # ]
         #
@@ -4696,7 +4697,7 @@ class mexc(Exchange, ImplicitAPI):
         # [
         #     {
         #       "id": "adcd1c8322154de691b815eedcd10c42",
-        #       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        #       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
         #       "coin": "USDC-MATIC",
         #       "network": "MATIC",
         #       "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4707,7 +4708,11 @@ class mexc(Exchange, ImplicitAPI):
         #       "confirmNo": null,
         #       "applyTime": "1664882739000",
         #       "remark": '',
-        #       "memo": null
+        #       "memo": null,
+        #       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        #       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        #       "updateTime": "1664882799000",
+        #       "netWork: "MATIC"
         #     }
         # ]
         #
@@ -4723,18 +4728,21 @@ class mexc(Exchange, ImplicitAPI):
         #     "network": "TRX",
         #     "status": "5",
         #     "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        #     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        #     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
         #     "insertTime": "1664805021000",
         #     "unlockConfirm": "200",
         #     "confirmTimes": "203",
-        #     "memo": "xxyy1122"
+        #     "memo": "xxyy1122",
+        #     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        #     "updateTime": "1664805621000",
+        #     "netWork: "TRX"
         # }
         #
         # fetchWithdrawals
         #
         # {
         #     "id": "adcd1c8322154de691b815eedcd10c42",
-        #     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        #     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
         #     "coin": "USDC-MATIC",
         #     "network": "MATIC",
         #     "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4744,8 +4752,12 @@ class mexc(Exchange, ImplicitAPI):
         #     "transactionFee": "1",
         #     "confirmNo": null,
         #     "applyTime": "1664882739000",
-        #     "remark": '',
-        #     "memo": null
+        #     "remark": "",
+        #     "memo": null,
+        #     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        #     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        #     "updateTime": "1664882799000",
+        #     "netWork: "MATIC"
         #   }
         #
         # withdraw
@@ -4754,9 +4766,16 @@ class mexc(Exchange, ImplicitAPI):
         #         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # internal withdraw(aka internal-transfer)
+        #
+        #     {
+        #         "tranId":"ad36f0e9c9a24ae794b36fa4f152e471"
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'tranId')
         type = 'deposit' if (id is None) else 'withdrawal'
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
+        updated = self.safe_integer(transaction, 'updateTime')
         currencyId = None
         currencyWithNetwork = self.safe_string(transaction, 'coin')
         if currencyWithNetwork is not None:
@@ -4769,7 +4788,7 @@ class mexc(Exchange, ImplicitAPI):
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amountString = self.safe_string(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
-        txid = self.safe_string(transaction, 'txId')
+        txid = self.safe_string_2(transaction, 'transHash', 'txId')
         fee = None
         feeCostString = self.safe_string(transaction, 'transactionFee')
         if feeCostString is not None:
@@ -4797,8 +4816,8 @@ class mexc(Exchange, ImplicitAPI):
             'amount': self.parse_number(amountString),
             'currency': code,
             'status': status,
-            'updated': None,
-            'comment': None,
+            'updated': updated,
+            'comment': self.safe_string(transaction, 'remark'),
             'internal': None,
             'fee': fee,
         }
@@ -4954,7 +4973,7 @@ class mexc(Exchange, ImplicitAPI):
         #        positionShowStatus: 'CLOSED'
         #    }
         #
-        market = self.safe_market(self.safe_string(position, 'symbol'), market)
+        market = self.safe_market(self.safe_string(position, 'symbol'), market, None, 'swap')
         symbol = market['symbol']
         contracts = self.safe_string(position, 'holdVol')
         entryPrice = self.safe_number(position, 'openAvgPrice')
@@ -5013,7 +5032,7 @@ class mexc(Exchange, ImplicitAPI):
             request: dict = {
                 'transact_id': id,
             }
-            response = self.spot2PrivateGetAssetInternalTransferInfo(self.extend(request, query))
+            response = self.spotPrivateGetAssetInternalTransferRecord(self.extend(request, query))
             #
             #     {
             #         "code": "200",
@@ -5039,54 +5058,74 @@ class mexc(Exchange, ImplicitAPI):
 
         https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
         https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
+        https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history    :param str code: unified currency code of the currency transferred
 
-        :param str code: unified currency code of the currency transferred
+ @param code
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.fromAccountType]: 'SPOT' for spot wallet, 'FUTURES' for contract wallet
+        :param str [params.toAccountType]: 'SPOT' for spot wallet, 'FUTURES' for contract wallet
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
-        marketType, query = self.handle_market_type_and_params('fetchTransfers', None, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchTransfers', None, params)
         self.load_markets()
         request: dict = {}
         currency = None
-        resultList = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id']
+        fromAccountType = None
+        fromAccountType, params = self.handle_option_and_params(params, 'fetchTransfers', 'fromAccountType')
+        accountTypes = {
+            'spot': 'SPOT',
+            'swap': 'FUTURES',
+            'futures': 'FUTURES',
+            'future': 'FUTURES',
+            'margin': 'SPOT',
+        }
+        if fromAccountType is not None:
+            request['fromAccountType'] = self.safe_string(accountTypes, fromAccountType, fromAccountType)
+        else:
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a fromAccountType parameter, one of "SPOT", "FUTURES"')
+        toAccountType = None
+        toAccountType, params = self.handle_option_and_params(params, 'fetchTransfers', 'toAccountType')
+        if toAccountType is not None:
+            request['toAccountType'] = self.safe_string(accountTypes, toAccountType, toAccountType)
+        else:
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"')
+        resultList = []
         if marketType == 'spot':
             if since is not None:
-                request['start_time'] = since
+                request['startTime'] = since
             if limit is not None:
-                if limit > 50:
+                if limit > 100:
                     raise ExchangeError('This exchange supports a maximum limit of 50')
-                request['page-size'] = limit
-            response = self.spot2PrivateGetAssetInternalTransferRecord(self.extend(request, query))
+                request['size'] = limit
+            response = self.spotPrivateGetCapitalTransfer(self.extend(request, params))
             #
-            #     {
-            #         "code": "200",
-            #         "data": {
-            #             "total_page": "1",
-            #             "total_size": "5",
-            #             "result_list": [{
-            #                     "currency": "USDT",
-            #                     "amount": "1",
-            #                     "transact_id": "954877a2ef54499db9b28a7cf9ebcf41",
-            #                     "from": "MAIN",
-            #                     "to": "CONTRACT",
-            #                     "transact_state": "SUCCESS"
-            #                 },
-            #                 ...
-            #             ]
+            #
+            # {
+            #     "rows": [
+            #         {
+            #         "tranId": "cdf0d2a618b5458c965baefe6b1d0859",
+            #         "clientTranId": null,
+            #         "asset": "USDT",
+            #         "amount": "1",
+            #         "fromAccountType": "FUTURES",
+            #         "toAccountType": "SPOT",
+            #         "symbol": null,
+            #         "status": "SUCCESS",
+            #         "timestamp": 1759328309000
             #         }
-            #     }
-            #
-            data = self.safe_value(response, 'data', {})
-            resultList = self.safe_value(data, 'result_list', [])
+            #     ],
+            #     "total": 1
+            # }
+            resultList = self.safe_list(response, 'rows', [])
         elif marketType == 'swap':
             if limit is not None:
                 request['page_size'] = limit
-            response = self.contractPrivateGetAccountTransferRecord(self.extend(request, query))
+            response = self.contractPrivateGetAccountTransferRecord(self.extend(request, params))
             data = self.safe_value(response, 'data')
             resultList = self.safe_value(data, 'resultList')
             #
@@ -5134,10 +5173,10 @@ class mexc(Exchange, ImplicitAPI):
         accounts: dict = {
             'spot': 'SPOT',
             'swap': 'FUTURES',
-            'margin': 'ISOLATED_MARGIN',
+            'future': 'FUTURES',
         }
-        fromId = self.safe_string(accounts, fromAccount)
-        toId = self.safe_string(accounts, toAccount)
+        fromId = self.safe_string(accounts, fromAccount, fromAccount)
+        toId = self.safe_string(accounts, toAccount, toAccount)
         if fromId is None:
             keys = list(accounts.keys())
             raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
@@ -5195,6 +5234,17 @@ class mexc(Exchange, ImplicitAPI):
         #         "createTime": "1648849076000",
         #         "updateTime": "1648849076000"
         #     }
+        #         {
+        #         "tranId": "cdf0d2a618b5458c965baefe6b1d0859",
+        #         "clientTranId": null,
+        #         "asset": "USDT",
+        #         "amount": "1",
+        #         "fromAccountType": "FUTURES",
+        #         "toAccountType": "SPOT",
+        #         "symbol": null,
+        #         "status": "SUCCESS",
+        #         "timestamp": 1759328309000
+        #         }
         #
         # transfer
         #
@@ -5202,14 +5252,19 @@ class mexc(Exchange, ImplicitAPI):
         #         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         #     }
         #
-        currencyId = self.safe_string(transfer, 'currency')
+        currencyId = self.safe_string_2(transfer, 'currency', 'asset')
         id = self.safe_string_n(transfer, ['transact_id', 'txid', 'tranId'])
-        timestamp = self.safe_integer(transfer, 'createTime')
+        timestamp = self.safe_integer_2(transfer, 'createTime', 'timestamp')
         datetime = self.iso8601(timestamp) if (timestamp is not None) else None
         direction = self.safe_string(transfer, 'type')
         accountFrom = None
         accountTo = None
-        if direction is not None:
+        fromAccountType = self.safe_string(transfer, 'fromAccountType')
+        toAccountType = self.safe_string(transfer, 'toAccountType')
+        if (fromAccountType is not None) and (toAccountType is not None):
+            accountFrom = fromAccountType
+            accountTo = toAccountType
+        elif direction is not None:
             accountFrom = 'MAIN' if (direction == 'IN') else 'CONTRACT'
             accountTo = 'CONTRACT' if (direction == 'IN') else 'MAIN'
         else:
@@ -5224,11 +5279,13 @@ class mexc(Exchange, ImplicitAPI):
             'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': self.parse_account_id(accountFrom),
             'toAccount': self.parse_account_id(accountTo),
-            'status': self.parse_transfer_status(self.safe_string_2(transfer, 'transact_state', 'state')),
+            'status': self.parse_transfer_status(self.safe_string_n(transfer, ['transact_state', 'state', 'status'])),
         }
 
     def parse_account_id(self, status):
         statuses: dict = {
+            'SPOT': 'spot',
+            'FUTURES': 'swap',
             'MAIN': 'spot',
             'CONTRACT': 'swap',
         }
@@ -5242,22 +5299,43 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
         https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
+        https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.internal]: False by default, set to True for an "internal transfer"
+        :param dict [params.toAccountType]: skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        internal = self.safe_bool(params, 'internal', False)
+        if internal:
+            params = self.omit(params, 'internal')
+            requestForInternal = {
+                'asset': currency['id'],
+                'amount': amount,
+                'toAccount': address,
+            }
+            toAccountType = self.safe_string(params, 'toAccountType')
+            if toAccountType is None:
+                raise ArgumentsRequired(self.id + ' withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE')
+            responseForInternal = self.spotPrivatePostCapitalTransferInternal(self.extend(requestForInternal, params))
+            #
+            #     {
+            #       "id":"7213fea8e94b4a5593d507237e5a555b"
+            #     }
+            #
+            return self.parse_transaction(responseForInternal, currency)
         networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_2(params, 'network', 'netWork')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
@@ -5704,7 +5782,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         # {success: True, code: '0'}
         #
-        return self.parse_leverage(response, market)
+        return self.parse_leverage(response, market)  # tmp revert type
 
     def nonce(self):
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)

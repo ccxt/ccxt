@@ -182,6 +182,7 @@ interface Exchange {
     privateSpotPostV2SpotTradePlacePlanOrder(params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotTradeModifyPlanOrder(params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotTradeCancelPlanOrder(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostV2SpotTradeCancelReplaceOrder(params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotTradeBatchCancelPlanOrder(params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotWalletTransfer(params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotWalletSubaccountTransfer(params?: {}): Promise<implicitReturnType>;
@@ -524,6 +525,7 @@ interface Exchange {
     privateCommonGetV2CommonTradeRate(params?: {}): Promise<implicitReturnType>;
     privateUtaGetV3AccountAssets(params?: {}): Promise<implicitReturnType>;
     privateUtaGetV3AccountSettings(params?: {}): Promise<implicitReturnType>;
+    privateUtaGetV3AccountDepositRecords(params?: {}): Promise<implicitReturnType>;
     privateUtaGetV3AccountFinancialRecords(params?: {}): Promise<implicitReturnType>;
     privateUtaGetV3AccountRepayableCoins(params?: {}): Promise<implicitReturnType>;
     privateUtaGetV3AccountPaymentCoins(params?: {}): Promise<implicitReturnType>;
@@ -542,7 +544,9 @@ interface Exchange {
     privateUtaGetV3PositionHistoryPosition(params?: {}): Promise<implicitReturnType>;
     privateUtaGetV3TradeOrderInfo(params?: {}): Promise<implicitReturnType>;
     privateUtaGetV3TradeUnfilledOrders(params?: {}): Promise<implicitReturnType>;
+    privateUtaGetV3TradeUnfilledStrategyOrders(params?: {}): Promise<implicitReturnType>;
     privateUtaGetV3TradeHistoryOrders(params?: {}): Promise<implicitReturnType>;
+    privateUtaGetV3TradeHistoryStrategyOrders(params?: {}): Promise<implicitReturnType>;
     privateUtaGetV3TradeFills(params?: {}): Promise<implicitReturnType>;
     privateUtaGetV3UserSubList(params?: {}): Promise<implicitReturnType>;
     privateUtaGetV3UserSubApiList(params?: {}): Promise<implicitReturnType>;
@@ -554,8 +558,11 @@ interface Exchange {
     privateUtaPostV3AccountMaxOpenAvailable(params?: {}): Promise<implicitReturnType>;
     privateUtaPostV3InsLoanBindUid(params?: {}): Promise<implicitReturnType>;
     privateUtaPostV3TradePlaceOrder(params?: {}): Promise<implicitReturnType>;
+    privateUtaPostV3TradePlaceStrategyOrder(params?: {}): Promise<implicitReturnType>;
     privateUtaPostV3TradeModifyOrder(params?: {}): Promise<implicitReturnType>;
+    privateUtaPostV3TradeModifyStrategyOrder(params?: {}): Promise<implicitReturnType>;
     privateUtaPostV3TradeCancelOrder(params?: {}): Promise<implicitReturnType>;
+    privateUtaPostV3TradeCancelStrategyOrder(params?: {}): Promise<implicitReturnType>;
     privateUtaPostV3TradePlaceBatch(params?: {}): Promise<implicitReturnType>;
     privateUtaPostV3TradeBatchModifyOrder(params?: {}): Promise<implicitReturnType>;
     privateUtaPostV3TradeCancelBatch(params?: {}): Promise<implicitReturnType>;

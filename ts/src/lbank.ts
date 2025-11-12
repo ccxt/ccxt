@@ -463,7 +463,10 @@ export default class lbank extends Exchange {
             const networks = {};
             for (let j = 0; j < networksRaw.length; j++) {
                 const networkEntry = networksRaw[j];
-                const networkId = this.safeString (networkEntry, 'chain');
+                let networkId = this.safeString (networkEntry, 'chain');
+                if (networkId === undefined) {
+                    networkId = this.safeString (networkEntry, 'assetCode'); // use type as fallback if networkId is not present
+                }
                 const networkCode = this.networkIdToCode (networkId);
                 networks[networkCode] = {
                     'id': networkId,
@@ -675,7 +678,7 @@ export default class lbank extends Exchange {
                 'active': true,
                 'contract': true,
                 'linear': true,
-                'inverse': undefined,
+                'inverse': false,
                 'contractSize': this.safeNumber (market, 'volumeMultiple'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -980,7 +983,7 @@ export default class lbank extends Exchange {
         if (market['swap']) {
             return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
-        return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0);
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks');
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1175,7 +1178,7 @@ export default class lbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         // endpoint doesnt work
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2343,7 +2346,7 @@ export default class lbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

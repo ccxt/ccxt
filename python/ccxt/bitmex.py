@@ -1549,7 +1549,7 @@ class bitmex(Exchange, ImplicitAPI):
             volume,
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1924,7 +1924,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.triggerPrice]: the price at which a trigger order is triggered at
-        :param dict [params.triggerDirection]: the direction whenever the trigger happens with relation to price - 'above' or 'below'
+        :param dict [params.triggerDirection]: the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
         :param float [params.trailingAmount]: the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
@@ -1951,7 +1951,7 @@ class bitmex(Exchange, ImplicitAPI):
         isTrailingAmountOrder = trailingAmount is not None
         if isTriggerOrder or isTrailingAmountOrder:
             triggerDirection = self.safe_string(params, 'triggerDirection')
-            triggerAbove = (triggerDirection == 'above')
+            triggerAbove = ((triggerDirection == 'ascending') or (triggerDirection == 'above'))
             if (type == 'limit') or (type == 'market'):
                 self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
             if type == 'limit':
@@ -1994,7 +1994,7 @@ class bitmex(Exchange, ImplicitAPI):
         isTrailingAmountOrder = trailingAmount is not None
         if isTrailingAmountOrder:
             triggerDirection = self.safe_string(params, 'triggerDirection')
-            triggerAbove = (triggerDirection == 'above')
+            triggerAbove = ((triggerDirection == 'ascending') or (triggerDirection == 'above'))
             if (type == 'limit') or (type == 'market'):
                 self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
             orderType = None
@@ -2061,7 +2061,7 @@ class bitmex(Exchange, ImplicitAPI):
                 raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
         return self.parse_order(order)
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -2446,7 +2446,7 @@ class bitmex(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -2625,7 +2625,7 @@ class bitmex(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -2883,6 +2883,7 @@ class bitmex(Exchange, ImplicitAPI):
             'contracts': None,
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number(liquidation, 'price'),
+            'side': self.safe_string_lower(liquidation, 'side'),
             'baseValue': None,
             'quoteValue': None,
             'timestamp': None,

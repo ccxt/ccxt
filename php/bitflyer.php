@@ -30,6 +30,7 @@ class bitflyer extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => false,
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
@@ -914,7 +915,7 @@ class bitflyer extends Exchange {
         return $response;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

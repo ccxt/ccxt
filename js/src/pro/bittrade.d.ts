@@ -1,5 +1,5 @@
 import bittradeRest from '../bittrade.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bittrade extends bittradeRest {
     describe(): any;
@@ -61,6 +61,6 @@ export default class bittrade extends bittradeRest {
     handleSubject(client: Client, message: any): void;
     pong(client: any, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
 }
