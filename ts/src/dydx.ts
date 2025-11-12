@@ -1223,6 +1223,9 @@ export default class dydx extends Exchange {
             ],
         };
         const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' signOnboardingAction() requires a privateKey to be set.');
+        }
         const signature = this.signMessage (msg, this.privateKey);
         return signature;
     }
@@ -1250,7 +1253,7 @@ export default class dydx extends Exchange {
         return credentials;
     }
 
-    async fetchDydxAccount (params: Dict = undefined) {
+    async fetchDydxAccount () {
         // required in js
         await this.loadDydxProtos ();
         const dydxAccount = this.safeDict (this.options, 'dydxAccount');
@@ -1841,7 +1844,6 @@ export default class dydx extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
-        this.checkRequiredCredentials ();
         if (code !== 'USDC') {
             throw new NotSupported (this.id + ' transfer() only support USDC');
         }
@@ -2060,7 +2062,6 @@ export default class dydx extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        this.checkRequiredCredentials ();
         if (code !== 'USDC') {
             throw new NotSupported (this.id + ' withdraw() only support USDC');
         }
