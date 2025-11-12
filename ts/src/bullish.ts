@@ -1492,7 +1492,7 @@ export default class bullish extends Exchange {
      * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         await this.handleToken ();
         let tradingAccountId: Str = undefined;
@@ -1518,7 +1518,8 @@ export default class bullish extends Exchange {
         //         "requestId": "633900538459062272"
         //     }
         //
-        return this.parseOrder (response, market);
+        const orders = [ response ];
+        return this.parseOrders (orders, market);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
