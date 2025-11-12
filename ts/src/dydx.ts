@@ -1257,6 +1257,12 @@ export default class dydx extends Exchange {
         if (dydxAccount !== undefined) {
             return dydxAccount;
         }
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
+        }
+        if (!this.walletAddress.startsWith ('dydx')) {
+            throw new ArgumentsRequired (this.id + ' fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.');
+        }
         const request = {
             'dydxAddress': this.walletAddress,
         };
@@ -1459,8 +1465,9 @@ export default class dydx extends Exchange {
         const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
         const lastBlockHeight = await this.fetchLatestBlockHeight ();
-        params['latestBlockHeight'] = lastBlockHeight;
-        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
+        // params['latestBlockHeight'] = lastBlockHeight;
+        const newParams = this.extend (params, { 'latestBlockHeight': lastBlockHeight });
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, newParams);
         const chainName = this.options['chainName'];
         const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', chainName, account, undefined);
         const request = {
