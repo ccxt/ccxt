@@ -2562,6 +2562,29 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
 
+    unWatch (url: string, messageHash: string, message = undefined, subscribeHash = undefined, subscription = undefined) {
+        const promise = this.watch (url, messageHash, message, subscribeHash, subscription);
+        const client = this.client (url) as WsClient;
+        if (subscribeHash !== undefined && subscribeHash in client.subscriptions) {
+            delete client.subscriptions[subscribeHash];
+        }
+        return promise;
+    }
+
+    unWatchMultiple (url: string, messageHashes: string[], message = undefined, subscribeHashes = undefined, subscription = undefined) {
+        const promise = this.watchMultiple (url, messageHashes, message, subscribeHashes, subscription);
+        const client = this.client (url) as WsClient;
+        if (subscribeHashes !== undefined) {
+            for (let i = 0; i < subscribeHashes.length; i++) {
+                const subscribeHash = subscribeHashes[i];
+                if (subscribeHash in client.subscriptions) {
+                    delete client.subscriptions[subscribeHash];
+                }
+            }
+        }
+        return promise;
+    }
+
     async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         if (this.has['watchLiquidationsForSymbols']) {
             return await this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
