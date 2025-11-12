@@ -1423,7 +1423,9 @@ export default class dydx extends Exchange {
 
     createOrderIdFromParts (address: string, subAccountNumber: number, clientOrderId: number, orderFlags: number, clobPairId: number): string {
         const namespace = this.safeString (this.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
-        const orderInfo = address + '-' + this.numberToString (clientOrderId) + '-' + this.numberToString (clobPairId) + '-' + this.numberToString (orderFlags);
+        const prefixAddress = address + '-' + subAccountNumber.toString ();
+        const prefix = this.uuid5 (namespace, prefixAddress);
+        const orderInfo = prefix + '-' + this.numberToString (clientOrderId) + '-' + this.numberToString (clobPairId) + '-' + this.numberToString (orderFlags);
         return this.uuid5 (namespace, orderInfo);
     }
 
@@ -1478,7 +1480,7 @@ export default class dydx extends Exchange {
         // params['latestBlockHeight'] = lastBlockHeight;
         const newParams = this.extend (params, { 'latestBlockHeight': lastBlockHeight });
         const orderRequestRes = this.createOrderRequest (symbol, type, side, amount, price, newParams);
-        // const orderId = orderRequestRes[0];
+        const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
         const chainName = this.options['chainName'];
         const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', chainName, account, undefined);
@@ -1503,7 +1505,7 @@ export default class dydx extends Exchange {
         const result = this.safeDict (response, 'result');
         return this.safeOrder ({
             'info': result,
-            'id': undefined,
+            'id': orderId,
             'clientOrderId': orderRequest['value']['order']['orderId']['clientId'],
         });
     }
