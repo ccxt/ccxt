@@ -914,6 +914,10 @@ class Exchange(object):
         return str(uuid.uuid1()).replace('-', '')
 
     @staticmethod
+    def uuid5(namespace, name):
+        return str(uuid.uuid5(namespace, name))
+
+    @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
         # the native pythonic .capitalize() method lowercases all other characters
         # which is an unwanted behaviour, therefore we use this custom implementation

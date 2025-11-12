@@ -51,6 +51,7 @@ import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 
@@ -644,6 +645,28 @@ export default class Exchange {
         if (this.safeBool (userConfig, 'sandbox') || this.safeBool (userConfig, 'testnet')) {
             this.setSandboxMode (true);
         }
+    }
+
+    uuid5 (namespace: string, name: string): string {
+        const nsBytes = namespace
+            .replace (/-/g, '')
+            .match (/.{1,2}/g)
+            .map ((byte) => parseInt (byte, 16));
+        const nameBytes = new TextEncoder ().encode (name);
+        const data = new Uint8Array ([ ...nsBytes, ...nameBytes ]);
+        const hash = sha1 (data);
+        hash[6] = (hash[6] & 0x0f) | 0x50;
+        hash[8] = (hash[8] & 0x3f) | 0x80;
+        const hex = [ ...hash.slice (0, 16) ]
+            .map ((b) => b.toString (16).padStart (2, '0'))
+            .join ('');
+        return [
+            hex.substring (0, 8),
+            hex.substring (8, 12),
+            hex.substring (12, 16),
+            hex.substring (16, 20),
+            hex.substring (20, 32),
+        ].join ('-');
     }
 
     encodeURIComponent (...args) {

@@ -1417,7 +1417,14 @@ export default class dydx extends Exchange {
             'value': orderPayload,
         };
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
-        return this.extend (signingPayload, params);
+        const orderId = this.createOrderIdFromParts (this.getWalletAddress (), subaccountId, clientOrderId, orderFlag, marketInfo['clobPairId']);
+        return [ orderId, this.extend (signingPayload, params) ];
+    }
+
+    createOrderIdFromParts (address: string, subAccountNumber: number, clientOrderId: number, orderFlags: number, clobPairId: number): string {
+        const namespace = this.safeString (this.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
+        const orderInfo = address + '-' + this.numberToString (clientOrderId) + '-' + this.numberToString (clobPairId) + '-' + this.numberToString (orderFlags);
+        return this.uuid5 (namespace, orderInfo);
     }
 
     async fetchLatestBlockHeight (params = {}): Promise<int> {
@@ -1470,7 +1477,9 @@ export default class dydx extends Exchange {
         const lastBlockHeight = await this.fetchLatestBlockHeight ();
         // params['latestBlockHeight'] = lastBlockHeight;
         const newParams = this.extend (params, { 'latestBlockHeight': lastBlockHeight });
-        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, newParams);
+        const orderRequestRes = this.createOrderRequest (symbol, type, side, amount, price, newParams);
+        // const orderId = orderRequestRes[0];
+        const orderRequest = orderRequestRes[1];
         const chainName = this.options['chainName'];
         const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', chainName, account, undefined);
         const request = {
@@ -1494,6 +1503,7 @@ export default class dydx extends Exchange {
         const result = this.safeDict (response, 'result');
         return this.safeOrder ({
             'info': result,
+            'id': undefined,
             'clientOrderId': orderRequest['value']['order']['orderId']['clientId'],
         });
     }
