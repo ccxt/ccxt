@@ -198,8 +198,11 @@ interface Exchange {
     privateGetV5BrokerEarningsInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerAccountInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerAssetQuerySubMemberDepositRecord(params?: {}): Promise<implicitReturnType>;
+    privateGetV5EarnProduct(params?: {}): Promise<implicitReturnType>;
     privateGetV5EarnOrder(params?: {}): Promise<implicitReturnType>;
     privateGetV5EarnPosition(params?: {}): Promise<implicitReturnType>;
+    privateGetV5EarnYield(params?: {}): Promise<implicitReturnType>;
+    privateGetV5EarnHourlyYield(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateCancelOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateCancelOrders(params?: {}): Promise<implicitReturnType>;

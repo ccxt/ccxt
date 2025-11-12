@@ -832,39 +832,6 @@ func (this *Binance) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (cc
 }
 /**
  * @method
- * @name binance#unWatchMarkPrices
- * @description stops watching the mark price for all markets
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
- * @param {string[]} symbols unified symbol of the market to fetch the ticker for
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
- */
-func (this *Binance) UnWatchMarkPrices(options ...ccxt.UnWatchMarkPricesOptions) (interface{}, error) {
-
-    opts := ccxt.UnWatchMarkPricesOptionsStruct{}
-
-    for _, opt := range options {
-        opt(&opts)
-    }
-
-    var symbols interface{} = nil
-    if opts.Symbols != nil {
-        symbols = *opts.Symbols
-    }
-
-    var params interface{} = nil
-    if opts.Params != nil {
-        params = *opts.Params
-    }
-    res := <- this.Core.UnWatchMarkPrices(symbols, params)
-    if ccxt.IsError(res) {
-        return nil, ccxt.CreateReturnError(res)
-    }
-    return res, nil
-}
-/**
- * @method
  * @name binance#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
@@ -932,6 +899,65 @@ func (this *Binance) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (inte
         params = *opts.Params
     }
     res := <- this.Core.UnWatchTickers(symbols, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
+}
+/**
+ * @method
+ * @name binance#unWatchMarkPrices
+ * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+ * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
+func (this *Binance) UnWatchMarkPrices(options ...ccxt.UnWatchMarkPricesOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchMarkPricesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchMarkPrices(symbols, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
+}
+/**
+ * @method
+ * @name binance#unWatchMarkPrice
+ * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
+func (this *Binance) UnWatchMarkPrice(symbol string, options ...ccxt.UnWatchMarkPriceOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchMarkPriceOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchMarkPrice(symbol, params)
     if ccxt.IsError(res) {
         return nil, ccxt.CreateReturnError(res)
     }

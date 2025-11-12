@@ -706,6 +706,7 @@ edit a trade order
 **See**
 
 - https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+- https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
 - https://www.bitget.com/api-doc/contract/trade/Modify-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -828,9 +829,8 @@ cancel all open orders
 - https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
 - https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
 - https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-- https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+- https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+- https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
 
 
 | Param | Type | Required | Description |
@@ -3145,6 +3145,7 @@ edit a trade order
 **See**
 
 - https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+- https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
 - https://www.bitget.com/api-doc/contract/trade/Modify-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -3267,9 +3268,8 @@ cancel all open orders
 - https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
 - https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
 - https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-- https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+- https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+- https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
 
 
 | Param | Type | Required | Description |

@@ -63,6 +63,19 @@ class binance extends binance$1["default"] {
                 'fetchTradesWs': true,
                 'fetchTradingFeesWs': false,
                 'fetchWithdrawalsWs': false,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
+                'unWatchMyTrades': false,
+                'unWatchOrders': false,
+                'unWatchPositions': false,
+                'unWatchMarkPrices': true,
+                'unWatchMarkPrice': true,
             },
             'urls': {
                 'test': {
@@ -1831,28 +1844,6 @@ class binance extends binance$1["default"] {
     }
     /**
      * @method
-     * @name binance#unWatchMarkPrices
-     * @description stops watching the mark price for all markets
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-     */
-    async unWatchMarkPrices(symbols = undefined, params = {}) {
-        let channelName = undefined;
-        // for now watchmarkPrice uses the same messageHash as watchTicker
-        // so it's impossible to watch both at the same time
-        // refactor this to use different messageHashes
-        [channelName, params] = this.handleOptionAndParams(params, 'watchMarkPrices', 'name', 'markPrice');
-        const newTickers = await this.watchMultiTickerHelper('watchMarkPrices', channelName, symbols, params);
-        if (this.newUpdates) {
-            return newTickers;
-        }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
-    }
-    /**
-     * @method
      * @name binance#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
@@ -1925,12 +1916,14 @@ class binance extends binance$1["default"] {
         const isBidAsk = (channelName === 'bookTicker');
         const subscriptionArgs = [];
         const subMessageHashes = [];
+        const messageHashes = [];
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market(symbol);
                 subscriptionArgs.push(market['lowercaseId'] + '@' + channelName);
                 subMessageHashes.push(this.getMessageHash(channelName, market['symbol'], isBidAsk));
+                messageHashes.push('unsubscribe:ticker:' + symbol);
             }
         }
         else {
@@ -1944,6 +1937,7 @@ class binance extends binance$1["default"] {
                 subscriptionArgs.push('!' + channelName + '@arr');
             }
             subMessageHashes.push(this.getMessageHash(channelName, undefined, isBidAsk));
+            messageHashes.push('unsubscribe:ticker');
         }
         let streamHash = channelName;
         if (symbolsDefined) {
@@ -1960,11 +1954,91 @@ class binance extends binance$1["default"] {
             'unsubscribe': true,
             'id': requestId.toString(),
             'subMessageHashes': subMessageHashes,
-            'messageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
             'symbols': symbols,
             'topic': 'ticker',
         };
-        return await this.watchMultiple(url, subMessageHashes, this.extend(request, params), subMessageHashes, subscription);
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscription);
+    }
+    /**
+     * @method
+     * @name binance#unWatchMarkPrices
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchMarkPrices(symbols = undefined, params = {}) {
+        let channelName = undefined;
+        [channelName, params] = this.handleOptionAndParams(params, 'watchMarkPrices', 'name', 'markPrice');
+        await this.loadMarkets();
+        const use1sFreq = this.safeBool(params, 'use1sFreq', true);
+        const suffix = (use1sFreq) ? '@1s' : '';
+        const methodName = 'watchMarkPrices';
+        symbols = this.marketSymbols(symbols, undefined, true, false, true);
+        let firstMarket = undefined;
+        let marketType = undefined;
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            firstMarket = this.market(symbols[0]);
+        }
+        [marketType, params] = this.handleMarketTypeAndParams(methodName, firstMarket, params);
+        if (marketType !== 'swap' && marketType !== 'future') {
+            throw new errors.NotSupported(this.id + ' ' + methodName + '() only supports swap markets');
+        }
+        const rawMarketType = 'future';
+        const subscriptionArgs = [];
+        const subMessageHashes = [];
+        const messageHashes = [];
+        if (symbolsDefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market(symbol);
+                const msgHash = this.getMessageHash(channelName, market['symbol'], false);
+                subscriptionArgs.push(market['lowercaseId'] + '@' + channelName + suffix);
+                subMessageHashes.push(msgHash);
+                messageHashes.push('unsubscribe:' + msgHash);
+            }
+        }
+        else {
+            const msgHashNoSymbol = this.getMessageHash(channelName, undefined, false);
+            subscriptionArgs.push('!' + channelName + '@arr');
+            subMessageHashes.push(msgHashNoSymbol);
+            messageHashes.push('unsubscribe:' + msgHashNoSymbol);
+        }
+        let streamHash = channelName;
+        if (symbolsDefined) {
+            streamHash = channelName + '::' + symbols.join(',');
+        }
+        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream(rawMarketType, streamHash);
+        const requestId = this.requestId(url);
+        const request = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': requestId,
+        };
+        const subscription = {
+            'unsubscribe': true,
+            'id': requestId.toString(),
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+            'symbols': symbols,
+            'topic': 'ticker',
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscription);
+    }
+    /**
+     * @method
+     * @name binance#unWatchMarkPrice
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchMarkPrice(symbol, params = {}) {
+        return await this.unWatchMarkPrices([symbol], params);
     }
     /**
      * @method

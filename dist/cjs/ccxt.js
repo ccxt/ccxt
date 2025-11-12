@@ -56,6 +56,7 @@ var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
 var cryptocom = require('./src/cryptocom.js');
 var cryptomus = require('./src/cryptomus.js');
+var deepcoin = require('./src/deepcoin.js');
 var defx = require('./src/defx.js');
 var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
@@ -146,6 +147,7 @@ var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
+var deepcoin$1 = require('./src/pro/deepcoin.js');
 var defx$1 = require('./src/pro/defx.js');
 var deribit$1 = require('./src/pro/deribit.js');
 var derive$1 = require('./src/pro/derive.js');
@@ -189,7 +191,7 @@ var xt$1 = require('./src/pro/xt.js');
 // ----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.17';
+const version = '4.5.18';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca["default"],
@@ -242,6 +244,7 @@ const exchanges = {
     'coinspot': coinspot["default"],
     'cryptocom': cryptocom["default"],
     'cryptomus': cryptomus["default"],
+    'deepcoin': deepcoin["default"],
     'defx': defx["default"],
     'delta': delta["default"],
     'deribit': deribit["default"],
@@ -334,6 +337,7 @@ const pro = {
     'coinex': coinex$1["default"],
     'coinone': coinone$1["default"],
     'cryptocom': cryptocom$1["default"],
+    'deepcoin': deepcoin$1["default"],
     'defx': defx$1["default"],
     'deribit': deribit$1["default"],
     'derive': derive$1["default"],
@@ -475,6 +479,7 @@ exports.coinsph = coinsph["default"];
 exports.coinspot = coinspot["default"];
 exports.cryptocom = cryptocom["default"];
 exports.cryptomus = cryptomus["default"];
+exports.deepcoin = deepcoin["default"];
 exports.defx = defx["default"];
 exports.delta = delta["default"];
 exports.deribit = deribit["default"];

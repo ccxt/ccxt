@@ -120,9 +120,10 @@
 * [watchTicker](#watchticker)
 * [watchMarkPrice](#watchmarkprice)
 * [watchMarkPrices](#watchmarkprices)
-* [unWatchMarkPrices](#unwatchmarkprices)
 * [watchTickers](#watchtickers)
 * [unWatchTickers](#unwatchtickers)
+* [unWatchMarkPrices](#unwatchmarkprices)
+* [unWatchMarkPrice](#unwatchmarkprice)
 * [unWatchTicker](#unwatchticker)
 * [watchBidsAsks](#watchbidsasks)
 * [fetchBalanceWs](#fetchbalancews)
@@ -3332,28 +3333,6 @@ binance.watchMarkPrices (symbols[, params])
 ```
 
 
-<a name="unWatchMarkPrices" id="unwatchmarkprices"></a>
-
-### unWatchMarkPrices{docsify-ignore}
-stops watching the mark price for all markets
-
-**Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
-
-**See**: https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.use1sFreq | <code>boolean</code> | No | *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds |
-
-
-```javascript
-binance.unWatchMarkPrices (symbols[, params])
-```
-
-
 <a name="watchTickers" id="watchtickers"></a>
 
 ### watchTickers{docsify-ignore}
@@ -3409,6 +3388,48 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 ```javascript
 binance.unWatchTickers (symbols[, params])
+```
+
+
+<a name="unWatchMarkPrices" id="unwatchmarkprices"></a>
+
+### unWatchMarkPrices{docsify-ignore}
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+binance.unWatchMarkPrices (symbols[, params])
+```
+
+
+<a name="unWatchMarkPrice" id="unwatchmarkprice"></a>
+
+### unWatchMarkPrice{docsify-ignore}
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+binance.unWatchMarkPrice (symbol[, params])
 ```
 
 

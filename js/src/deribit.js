@@ -2334,6 +2334,12 @@ export default class deribit extends Exchange {
         const request = {};
         let market = undefined;
         let response = undefined;
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        else {
+            request['count'] = 1000; // max value
+        }
         if (symbol === undefined) {
             const code = this.codeFromOptions('fetchClosedOrders', params);
             const currency = this.currency(code);
