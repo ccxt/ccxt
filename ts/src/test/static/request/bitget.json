@@ -1896,6 +1896,18 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "fetch 3min candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/spot/market/candles?symbol=BTCUSDT&granularity=3min&limit=100",
+                "input": [
+                    "BTC/USDT",
+                    "3m",
+                    null,
+                    100
+                ],
+                "output": null
+            },
+            {
                 "description": "spot ohlcv should retrieve 1000 candles",
                 "method": "fetchOHLCV",
                 "url": "https://api.bitget.com/api/v2/spot/market/candles?symbol=BTCUSDT&granularity=1h&limit=1000",
