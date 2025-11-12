@@ -1223,7 +1223,7 @@ export default class dydx extends Exchange {
             ],
         };
         const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
-        if (this.privateKey === undefined) {
+        if (this.privateKey === undefined || this.privateKey === '') {
             throw new ArgumentsRequired (this.id + ' signOnboardingAction() requires a privateKey to be set.');
         }
         const signature = this.signMessage (msg, this.privateKey);
@@ -2415,7 +2415,7 @@ export default class dydx extends Exchange {
     }
 
     getWalletAddress () {
-        if (this.walletAddress !== undefined) {
+        if (this.walletAddress !== undefined && this.walletAddress !== '') {
             return this.walletAddress;
         }
         const dydxAccount = this.safeDict (this.options, 'dydxAccount');
