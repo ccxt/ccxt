@@ -1392,7 +1392,7 @@ export default class dydx extends Exchange {
             'order': {
                 'orderId': {
                     'subaccountId': {
-                        'owner': this.walletAddress,
+                        'owner': this.getWalletAddress (),
                         'number': subaccountId,
                     },
                     'clientId': clientOrderId,
@@ -1549,7 +1549,7 @@ export default class dydx extends Exchange {
         const cancelPayload = {
             'orderId': {
                 'subaccountId': {
-                    'owner': this.walletAddress,
+                    'owner': this.getWalletAddress (),
                     'number': subaccountId,
                 },
                 'clientId': clientOrderId,
@@ -1621,7 +1621,7 @@ export default class dydx extends Exchange {
         };
         const cancelPayload = {
             'subaccountId': {
-                'owner': this.walletAddress,
+                'owner': this.getWalletAddress (),
                 'number': subaccountId,
             },
             'shortTermCancels': [ cancelOrders ],
@@ -1871,9 +1871,9 @@ export default class dydx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' transfer() requeire toSubaccoutnId.');
             }
             payload = {
-                'sender': this.walletAddress,
+                'sender': this.getWalletAddress (),
                 'recipient': {
-                    'owner': this.walletAddress,
+                    'owner': this.getWalletAddress (),
                     'number': toSubaccountId,
                 },
                 'assetId': 0,
@@ -2078,7 +2078,7 @@ export default class dydx extends Exchange {
         const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
         const payload = {
             'sender': {
-                'owner': this.walletAddress,
+                'owner': this.getWalletAddress (),
                 'number': subaccountId,
             },
             'recipient': address,
@@ -2400,6 +2400,21 @@ export default class dydx extends Exchange {
 
     nonce () {
         return this.milliseconds () - this.options['timeDifference'];
+    }
+
+    getWalletAddress () {
+        if (this.walletAddress !== undefined) {
+            return this.walletAddress;
+        }
+        const dydxAccount = this.safeDict (this.options, 'dydxAccount');
+        if (dydxAccount !== undefined) {
+            // return dydxAccount;
+            const wallet = this.safeString (dydxAccount, 'address');
+            if (wallet !== undefined) {
+                return wallet;
+            }
+        }
+        throw new ArgumentsRequired (this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
 
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
