@@ -8385,36 +8385,36 @@ export default class Exchange {
         throw new NotSupported (this.id + ' unWatchBidsAsks () is not supported yet');
     }
 
-    cleanUnsubscription (client, subMessageHash: string, unsubMessageHash: string, subHashIsPrefix = false) {
-        if (unsubMessageHash in client.subscriptions) {
-            delete client.subscriptions[unsubMessageHash];
+    cleanUnsubscription (client, subHash: string, unsubHash: string, subHashIsPrefix = false) {
+        if (unsubHash in client.subscriptions) {
+            delete client.subscriptions[unsubHash];
         }
         if (!subHashIsPrefix) {
-            if (subMessageHash in client.subscriptions) {
-                delete client.subscriptions[subMessageHash];
+            if (subHash in client.subscriptions) {
+                delete client.subscriptions[subHash];
             }
-            if (subMessageHash in client.futures) {
-                const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
-                client.reject (error, subMessageHash);
+            if (subHash in client.futures) {
+                const error = new UnsubscribeError (this.id + ' ' + subHash);
+                client.reject (error, subHash);
             }
         } else {
             const clientSubscriptions = Object.keys (client.subscriptions);
             for (let i = 0; i < clientSubscriptions.length; i++) {
                 const sub = clientSubscriptions[i];
-                if (sub.startsWith (subMessageHash)) {
+                if (sub.startsWith (subHash)) {
                     delete client.subscriptions[sub];
                 }
             }
             const clientFutures = Object.keys (client.futures);
             for (let i = 0; i < clientFutures.length; i++) {
                 const future = clientFutures[i];
-                if (future.startsWith (subMessageHash)) {
+                if (future.startsWith (subHash)) {
                     const error = new UnsubscribeError (this.id + ' ' + future);
                     client.reject (error, future);
                 }
             }
         }
-        client.resolve (true, unsubMessageHash);
+        client.resolve (true, unsubHash);
     }
 
     cleanCache (subscription: Dict) {
