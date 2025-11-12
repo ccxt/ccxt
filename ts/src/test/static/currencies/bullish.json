@@ -107,5 +107,99 @@
                 "bpmTransitionDateTimeEnd": "2025-05-08T08:00:00.000Z"
             }
         }
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "name": "Tether",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0,
+        "precision": 1e-7,
+        "limits": {
+            "amount": { "min": null, "max": null },
+            "withdraw": { "min": null, "max": null }
+        },
+        "networks": {},
+        "type": "crypto",
+        "info": {
+            "assetId": "15",
+            "symbol": "USDT",
+            "name": "Tether",
+            "precision": "7",
+            "minBalanceInterest": "0.0000000",
+            "apr": "0.00",
+            "minFee": "0.0000000",
+            "maxBorrow": "0.0000000",
+            "totalOfferedLoanQuantity": "0.0000000",
+            "loanBorrowedQuantity": "0.0000000",
+            "collateralBands": [
+            { "collateralPercentage": "100.00", "bandLimitUSD": "1000000.0000" },
+            { "collateralPercentage": "90.00", "bandLimitUSD": "5000000.0000" },
+            { "collateralPercentage": "74.00", "bandLimitUSD": "7000000.0000" },
+            { "collateralPercentage": "61.00", "bandLimitUSD": "10000000.0000" },
+            { "collateralPercentage": "45.00", "bandLimitUSD": "12000000.0000" }
+            ],
+            "underlyingAsset": {
+            "symbol": "USDT",
+            "assetId": "15",
+            "bpmMinReturnStart": "0.9984",
+            "bpmMinReturnEnd": "0.9985",
+            "bpmMaxReturnStart": "1.0018",
+            "bpmMaxReturnEnd": "1.0018",
+            "marketRiskFloorPctStart": "0.06",
+            "marketRiskFloorPctEnd": "0.06",
+            "bpmTransitionDateTimeStart": "2025-11-10T08:00:00.000Z",
+            "bpmTransitionDateTimeEnd": "2025-11-13T08:00:00.000Z"
+            }
+        }
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "name": "Ether",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0,
+        "precision": 1e-8,
+        "limits": {
+            "amount": { "min": null, "max": null },
+            "withdraw": { "min": null, "max": null }
+        },
+        "networks": {},
+        "type": "crypto",
+        "info": {
+            "assetId": "4",
+            "symbol": "ETH",
+            "name": "Ether",
+            "precision": "8",
+            "minBalanceInterest": "0.00000000",
+            "apr": "3.00",
+            "minFee": "0.00000000",
+            "maxBorrow": "60000.00000000",
+            "totalOfferedLoanQuantity": "5061.97724675",
+            "loanBorrowedQuantity": "367.73102903",
+            "collateralBands": [
+            { "collateralPercentage": "100.00", "bandLimitUSD": "500000.0000" },
+            { "collateralPercentage": "97.00", "bandLimitUSD": "10000000.0000" },
+            { "collateralPercentage": "85.00", "bandLimitUSD": "30000000.0000" },
+            { "collateralPercentage": "46.00", "bandLimitUSD": "40000000.0000" },
+            { "collateralPercentage": "28.00", "bandLimitUSD": "60000000.0000" }
+            ],
+            "underlyingAsset": {
+            "symbol": "ETH",
+            "assetId": "4",
+            "bpmMinReturnStart": "0.8674",
+            "bpmMinReturnEnd": "0.8653",
+            "bpmMaxReturnStart": "1.1216",
+            "bpmMaxReturnEnd": "1.1233",
+            "marketRiskFloorPctStart": "4.42",
+            "marketRiskFloorPctEnd": "4.49",
+            "bpmTransitionDateTimeStart": "2025-11-10T08:00:00.000Z",
+            "bpmTransitionDateTimeEnd": "2025-11-13T08:00:00.000Z"
+            }
+        }
     }
 }
