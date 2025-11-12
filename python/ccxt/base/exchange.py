@@ -914,8 +914,8 @@ class Exchange(object):
         return str(uuid.uuid1()).replace('-', '')
 
     @staticmethod
-    def uuid5(namespace, name):
-        return str(uuid.uuid5(namespace, name))
+    def uuid5(namespace: str, name):
+        return str(uuid.uuid5(uuid.UUID(namespace), name))
 
     @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
