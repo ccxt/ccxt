@@ -1,16 +1,16 @@
-import { PubKey } from './cosmos/crypto/secp256k1/keys';
-import { TxExtension } from './dydxprotocol/accountplus/tx';
+import { PubKey } from './cosmos/crypto/secp256k1/keys.js';
+import { TxExtension } from './dydxprotocol/accountplus/tx.js';
 import {
   MsgPlaceOrder,
   MsgCancelOrder,
   MsgBatchCancel,
-} from './dydxprotocol/clob/tx';
+} from './dydxprotocol/clob/tx.js';
 import {
   MsgWithdrawFromSubaccount,
   MsgDepositToSubaccount,
-} from './dydxprotocol/sending/transfer';
-import { MsgCreateTransfer } from './dydxprotocol/sending/tx';
-import { Any } from "./google/protobuf/any";
+} from './dydxprotocol/sending/transfer.js';
+import { MsgCreateTransfer } from './dydxprotocol/sending/tx.js';
+import { Any } from "./google/protobuf/any.js";
 
 export const registry: Record<string, any> = {
   // clob

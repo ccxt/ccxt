@@ -1,13 +1,13 @@
-import { Order, OrderSDKType, OrderId, OrderIdSDKType } from "./order";
-import { SubaccountId, SubaccountIdSDKType } from "../subaccounts/subaccount";
-import { ClobPair, ClobPairSDKType } from "./clob_pair";
-import { EquityTierLimitConfiguration, EquityTierLimitConfigurationSDKType } from "./equity_tier_limit_config";
-import { BlockRateLimitConfiguration, BlockRateLimitConfigurationSDKType } from "./block_rate_limit_config";
-import { LiquidationsConfig, LiquidationsConfigSDKType } from "./liquidations_config";
-import { ClobMatch, ClobMatchSDKType } from "./matches";
-import { OrderRemoval, OrderRemovalSDKType } from "./order_removals";
+import { Order, OrderSDKType, OrderId, OrderIdSDKType } from "./order.js";
+import { SubaccountId, SubaccountIdSDKType } from "../subaccounts/subaccount.js";
+import { ClobPair, ClobPairSDKType } from "./clob_pair.js";
+import { EquityTierLimitConfiguration, EquityTierLimitConfigurationSDKType } from "./equity_tier_limit_config.js";
+import { BlockRateLimitConfiguration, BlockRateLimitConfigurationSDKType } from "./block_rate_limit_config.js";
+import { LiquidationsConfig, LiquidationsConfigSDKType } from "./liquidations_config.js";
+import { ClobMatch, ClobMatchSDKType } from "./matches.js";
+import { OrderRemoval, OrderRemovalSDKType } from "./order_removals.js";
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial } from "../../helpers";
+import { DeepPartial } from "../../helpers.js";
 /** MsgCreateClobPair is a message used by x/gov for creating a new clob pair. */
 
 export interface MsgCreateClobPair {

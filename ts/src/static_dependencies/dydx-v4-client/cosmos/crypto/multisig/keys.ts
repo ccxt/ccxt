@@ -1,6 +1,6 @@
-import { Any, AnySDKType } from "../../../google/protobuf/any";
+import { Any, AnySDKType } from "../../../google/protobuf/any.js";
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial } from "../../../helpers";
+import { DeepPartial } from "../../../helpers.js";
 /**
  * LegacyAminoPubKey specifies a public key type
  * which nests multiple public keys and a threshold,

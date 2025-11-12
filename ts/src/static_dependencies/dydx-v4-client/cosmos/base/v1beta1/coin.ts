@@ -1,5 +1,5 @@
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial } from "../../../helpers";
+import { DeepPartial } from "../../../helpers.js";
 /**
  * Coin defines a token with a denomination and an amount.
  * 

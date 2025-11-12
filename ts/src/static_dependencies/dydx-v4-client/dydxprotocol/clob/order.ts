@@ -1,7 +1,7 @@
-import { SubaccountId, SubaccountIdSDKType } from "../subaccounts/subaccount";
-import { PerpetualLiquidationInfo, PerpetualLiquidationInfoSDKType } from "./liquidations";
+import { SubaccountId, SubaccountIdSDKType } from "../subaccounts/subaccount.js";
+import { PerpetualLiquidationInfo, PerpetualLiquidationInfoSDKType } from "./liquidations.js";
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial, Long } from "../../helpers";
+import { DeepPartial, Long } from "../../helpers.js";
 /**
  * Represents the side of the orderbook the order will be placed on.
  * Note that Side.SIDE_UNSPECIFIED is an invalid order and cannot be

@@ -1,6 +1,6 @@
-import { SubaccountId, SubaccountIdSDKType } from "../subaccounts/subaccount";
-import { Coin, CoinSDKType } from "../../cosmos/base/v1beta1/coin";
-import { Long, DeepPartial } from "../../helpers";
+import { SubaccountId, SubaccountIdSDKType } from "../subaccounts/subaccount.js";
+import { Coin, CoinSDKType } from "../../cosmos/base/v1beta1/coin.js";
+import { Long, DeepPartial } from "../../helpers.js";
 import _m0 from "protobufjs/minimal.js";
 /** Transfer represents a single transfer between two subaccounts. */
 

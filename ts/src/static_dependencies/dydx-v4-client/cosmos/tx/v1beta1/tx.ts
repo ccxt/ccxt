@@ -1,9 +1,9 @@
-import { Any, AnySDKType } from "../../../google/protobuf/any";
+import { Any, AnySDKType } from "../../../google/protobuf/any.js";
 import { SignMode } from "../signing/v1beta1/signing";
-import { CompactBitArray, CompactBitArraySDKType } from "../../crypto/multisig/v1beta1/multisig";
-import { Coin, CoinSDKType } from "../../base/v1beta1/coin";
+import { CompactBitArray, CompactBitArraySDKType } from "../../crypto/multisig/v1beta1/multisig.js";
+import { Coin, CoinSDKType } from "../../base/v1beta1/coin.js";
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial, Long } from "../../../helpers";
+import { DeepPartial, Long } from "../../../helpers.js";
 /** Tx is the standard type used for broadcasting transactions. */
 
 export interface Tx {

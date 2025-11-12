@@ -1,5 +1,5 @@
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial, Long } from "../../helpers";
+import { DeepPartial, Long } from "../../helpers.js";
 /** LiquidationsConfig stores all configurable fields related to liquidations. */
 
 export interface LiquidationsConfig {

@@ -1,5 +1,5 @@
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial } from "../../../helpers";
+import { DeepPartial } from "../../../helpers.js";
 /**
  * PubKey defines a secp256k1 public key
  * Key is the compressed form of the pubkey. The first byte depends is a 0x02 byte

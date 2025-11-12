@@ -1,4 +1,4 @@
-import { Long, DeepPartial } from "../../helpers";
+import { Long, DeepPartial } from "../../helpers.js";
 import * as _m0 from "protobufjs/minimal.js";
 /**
  * AssetPositions define an account’s positions of an `Asset`.

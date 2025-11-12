@@ -1,6 +1,6 @@
-import { OrderId, OrderIdSDKType } from "./order";
+import { OrderId, OrderIdSDKType } from "./order.js";
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial } from "../../helpers";
+import { DeepPartial } from "../../helpers.js";
 export enum OrderRemoval_RemovalReason {
   /**
    * REMOVAL_REASON_UNSPECIFIED - REMOVAL_REASON_UNSPECIFIED represents an unspecified removal reason. This

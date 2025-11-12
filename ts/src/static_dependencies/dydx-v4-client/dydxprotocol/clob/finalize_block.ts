@@ -1,6 +1,6 @@
-import { ClobPair, ClobPairSDKType } from "./clob_pair";
+import { ClobPair, ClobPairSDKType } from "./clob_pair.js";
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial } from "../../helpers";
+import { DeepPartial } from "../../helpers.js";
 /**
  * ClobStagedFinalizeBlockEvent defines a CLOB event staged during
  * FinalizeBlock.

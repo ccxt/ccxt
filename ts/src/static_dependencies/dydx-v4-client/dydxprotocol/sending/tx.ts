@@ -1,6 +1,6 @@
-import { Transfer, TransferSDKType } from "./transfer";
+import { Transfer, TransferSDKType } from "./transfer.js";
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial } from "../../helpers";
+import { DeepPartial } from "../../helpers.js";
 /** MsgCreateTransfer is a request type used for initiating new transfers. */
 
 export interface MsgCreateTransfer {

@@ -1,7 +1,7 @@
-import { CompactBitArray, CompactBitArraySDKType } from "../../../crypto/multisig/v1beta1/multisig";
-import { Any, AnySDKType } from "../../../../google/protobuf/any";
+import { CompactBitArray, CompactBitArraySDKType } from "../../../crypto/multisig/v1beta1/multisig.js";
+import { Any, AnySDKType } from "../../../../google/protobuf/any.js";
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial, Long } from "../../../../helpers";
+import { DeepPartial, Long } from "../../../../helpers.js";
 /**
  * SignMode represents a signing mode with its own security guarantees.
  * 

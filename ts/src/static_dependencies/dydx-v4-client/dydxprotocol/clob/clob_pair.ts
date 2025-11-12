@@ -1,5 +1,5 @@
 import _m0 from "protobufjs/minimal.js";
-import { DeepPartial, Long } from "../../helpers";
+import { DeepPartial, Long } from "../../helpers.js";
 /** Status of the CLOB. */
 
 export enum ClobPair_Status {

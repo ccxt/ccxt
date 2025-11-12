@@ -1,5 +1,5 @@
 import * as _m0 from "protobufjs/minimal.js";
-import { DeepPartial } from "../../helpers";
+import { DeepPartial } from "../../helpers.js";
 /**
  * PerpetualPositions are an account’s positions of a `Perpetual`.
  * Therefore they hold any information needed to trade perpetuals.
