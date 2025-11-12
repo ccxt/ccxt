@@ -1076,9 +1076,9 @@ export default class binance extends binanceRest {
         const messageHashes = this.safeList (subscription, 'messageHashes', []);
         const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
         for (let j = 0; j < messageHashes.length; j++) {
-            const unsubMessageHash = messageHashes[j];
-            const subMessageHash = subMessageHashes[j];
-            this.cleanUnsubscription (client, subMessageHash, unsubMessageHash);
+            const unsubHash = messageHashes[j];
+            const subHash = subMessageHashes[j];
+            this.cleanUnsubscription (client, subHash, unsubHash);
         }
         this.cleanCache (subscription);
     }
