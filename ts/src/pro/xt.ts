@@ -246,7 +246,7 @@ export default class xt extends xtRest {
 
     /**
      * @method
-     * @name hitbtc#watchOHLCV
+     * @name xt#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://doc.xt.com/#websocket_publicsymbolKline
      * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
