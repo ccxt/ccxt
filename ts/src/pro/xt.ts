@@ -166,7 +166,7 @@ export default class xt extends xtRest {
         const isContract = (type !== 'spot');
         const subscribe = {
             'method': isContract ? 'SUBSCRIBE' : 'subscribe',
-            'id': this.numberToString (this.milliseconds ()) + name,  // call back ID
+            'id': 'this.numberToString (this.milliseconds ())' + name,  // call back ID
         };
         if (privateAccess) {
             if (!isContract) {
@@ -195,6 +195,64 @@ export default class xt extends xtRest {
     }
 
     /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @see https://doc.xt.com/#websocket_privaterequestFormat
+     * @see https://doc.xt.com/#futures_market_websocket_v2base
+     * @param {string} name name of the channel
+     * @param {string} access public or private
+     * @param {string} methodName the name of the CCXT class method
+     * @param {object} [market] CCXT market
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} params extra parameters specific to the xt api
+     * @returns {object} data from the websocket stream
+     */
+    async unSubscribe (messageHash: string, name: string, access: string, methodName: string, topic: string, market: Market = undefined, symbols: string[] = undefined, params = {}) {
+        const privateAccess = access === 'private';
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        const isContract = (type !== 'spot');
+        const id = this.numberToString (this.milliseconds ()) + name,  // call back ID
+        const unsubscribe = {
+            'method': isContract ? 'UNSUBSCRIBE' : 'unsubscribe',
+            'id': id,
+        };
+        if (privateAccess) {
+            if (!isContract) {
+                unsubscribe['params'] = [ name ];
+                unsubscribe['listenKey'] = await this.getListenKey (isContract);
+            } else {
+                const listenKey = await this.getListenKey (isContract);
+                const param = name + '@' + listenKey;
+                unsubscribe['params'] = [ param ];
+            }
+        } else {
+            unsubscribe['params'] = [ name ];
+        }
+        const tradeType = isContract ? 'contract' : 'spot';
+        let subMessageHash = name + '::' + tradeType;
+        if (symbols !== undefined) {
+            subMessageHash = subMessageHash + '::' + symbols.join (',');
+        }
+        const request = this.extend (unsubscribe, params);
+        let tail = access;
+        if (isContract) {
+            tail = privateAccess ? 'user' : 'market';
+        }
+        const url = this.urls['api']['ws'][tradeType] + '/' + tail;
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': id,
+            'subMessageHashes': [ subMessageHash ],
+            'messageHashes': [ messageHash ],
+            'symbols': symbols,
+            'topic': topic,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), subMessageHash, subscription);
+    }
+
+    /**
      * @method
      * @name xt#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -214,6 +272,40 @@ export default class xt extends xtRest {
         const method = this.safeString (params, 'method', defaultMethod);
         const name = method + '@' + market['id'];
         return await this.subscribe (name, 'public', 'watchTicker', market, undefined, params);
+    }
+
+    /**
+     * @method
+     * @name xt#unWatchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.xt.com/#websocket_publictickerRealTime
+     * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
+     * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeDict (this.options, 'watchTicker');
+        const defaultMethod = this.safeString (options, 'method', 'ticker');
+        const method = this.safeString (params, 'method', defaultMethod);
+        const name = method + '@' + market['id'];
+        const messageHash = 'unsubscribe::' + name;
+        return await this.unSubscribe (messageHash, name, 'public', 'watchTicker', defaultMethod, market, undefined, params);
+    }
+
+    async test () {
+        await this.loadMarkets ();
+        await this.watchTicker ('ETH/USDT');
+        this.sleep (2000);
+        console.log ('Cache after subscribing <---------------');
+        console.log (this.tickers);
+        await this.unWatchTicker ('ETH/USDT');
+        console.log ('Cache after unsubscribing <---------------');
+        console.log (this.tickers);
     }
 
     /**
