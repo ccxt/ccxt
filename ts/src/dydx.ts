@@ -1409,7 +1409,7 @@ export default class dydx extends Exchange {
                 'clientMetadata': clientMetadata,
                 'conditionType': conditionalType,
                 'conditionalOrderTriggerSubticks': this.toDydxLong (conditionalOrderTriggerSubticks),
-                'order_router_address': this.safeString (this.options, 'routerAddress', 'dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn'),
+                'orderRouterAddress': this.safeString (this.options, 'routerAddress', 'dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn'),
             },
         };
         const signingPayload = {
