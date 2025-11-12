@@ -1125,6 +1125,7 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         let subscription: Dict = undefined;
+        let hashes = messageHashes;
         if (!isUnsubscribe) {
             subscription = {
                 'id': requestId,
@@ -1138,8 +1139,9 @@ export default class binance extends binanceRest {
                 'symbols': symbols,
                 'topic': 'trades',
             };
+            hashes = unsubscribeMessageHashes;
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscription);
+        return await this.watchMultiple (url, hashes, this.extend (request, query), hashes, subscription);
     }
 
     /**
