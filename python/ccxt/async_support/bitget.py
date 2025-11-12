@@ -1434,6 +1434,7 @@ class bitget(Exchange, ImplicitAPI):
                     'spot': {
                         '1m': '1min',
                         '5m': '5min',
+                        '3m': '3min',
                         '15m': '15min',
                         '30m': '30min',
                         '1h': '1h',
