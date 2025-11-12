@@ -11,7 +11,7 @@
         "default": "./js/ccxt.js"
       },
       "require": {
-        "types": "./dist/ccxt.d.ts",
+        "types": "./index.d.ts",
         "default": "./dist/ccxt.cjs"
       }
     }
@@ -198,7 +198,7 @@
     "test-types-go": "go run -C go ./tests/types/types.go",
     "test-go": "npm run test-types-go && npm run response-go && npm run request-go && npm run test-base-rest-go && npm run test-base-ws-go"
   },
-  "types": "./js/ccxt.d.ts",
+  "types": "./index.d.ts",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.3",
     "@rollup/plugin-json": "^4.1.0",
