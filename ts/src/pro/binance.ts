@@ -1133,12 +1133,11 @@ export default class binance extends binanceRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const messageHash = 'trade::' + symbol;
-            messageHashes.push (messageHash);
+            messageHashes.push ('trade::' + symbol);
             const rawHash = market['lowercaseId'] + '@' + name;
             subParams.push (rawHash);
             if (isUnsubscribe) {
-                unsubscribeMessageHashes.push ('unsubscribe::' + messageHash);
+                unsubscribeMessageHashes.push ('unsubscribe::trade::' + symbol);
             }
         }
         const query = this.omit (params, 'type');
