@@ -2,7 +2,7 @@
 import Exchange from './abstract/lighter.js';
 import { ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Dict, Int, int } from './base/types.js';
+import type { Dict, Int, int, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -83,7 +83,7 @@ export default class lighter extends Exchange {
                 'fetchLiquidations': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': false,
@@ -313,6 +313,133 @@ export default class lighter extends Exchange {
         return this.safeTimestamp (response, 'timestamp');
     }
 
+    /**
+     * @method
+     * @name lighter#fetchMarkets
+     * @description retrieves data on all markets for lighter
+     * @see https://apidocs.lighter.xyz/reference/orderbookdetails
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const response = await this.publicGetOrderBookDetails (params);
+        //
+        //     {
+        //         "code": 200,
+        //         "order_book_details": [
+        //             {
+        //                 "symbol": "ETH",
+        //                 "market_id": 0,
+        //                 "status": "active",
+        //                 "taker_fee": "0.0000",
+        //                 "maker_fee": "0.0000",
+        //                 "liquidation_fee": "1.0000",
+        //                 "min_base_amount": "0.0050",
+        //                 "min_quote_amount": "10.000000",
+        //                 "order_quote_limit": "",
+        //                 "supported_size_decimals": 4,
+        //                 "supported_price_decimals": 2,
+        //                 "supported_quote_decimals": 6,
+        //                 "size_decimals": 4,
+        //                 "price_decimals": 2,
+        //                 "quote_multiplier": 1,
+        //                 "default_initial_margin_fraction": 500,
+        //                 "min_initial_margin_fraction": 200,
+        //                 "maintenance_margin_fraction": 120,
+        //                 "closeout_margin_fraction": 80,
+        //                 "last_trade_price": 3550.69,
+        //                 "daily_trades_count": 1197349,
+        //                 "daily_base_token_volume": 481297.3509,
+        //                 "daily_quote_token_volume": 1671431095.263844,
+        //                 "daily_price_low": 3402.41,
+        //                 "daily_price_high": 3571.45,
+        //                 "daily_price_change": 0.5294300840859545,
+        //                 "open_interest": 39559.3278,
+        //                 "daily_chart": {},
+        //                 "market_config": {
+        //                     "market_margin_mode": 0,
+        //                     "insurance_fund_account_index": 281474976710655,
+        //                     "liquidation_mode": 0,
+        //                     "force_reduce_only": false,
+        //                     "trading_hours": ""
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const markets = this.safeList (response, 'order_book_details', []);
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'market_id');
+            const baseId = this.safeString (market, 'symbol');
+            const quoteId = 'USDC';
+            const settleId = 'USDC';
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const amountDecimals = this.safeString2 (market, 'size_decimals', 'supported_size_decimals');
+            const priceDecimals = this.safeString2 (market, 'price_decimals', 'supported_price_decimals');
+            const amountPrecision = (amountDecimals === undefined) ? undefined : this.parseNumber (this.parsePrecision (amountDecimals));
+            const pricePrecision = (priceDecimals === undefined) ? undefined : this.parseNumber (this.parsePrecision (priceDecimals));
+            const quoteMultiplier = this.safeNumber (market, 'quote_multiplier');
+            const minInitialMarginFraction = this.safeNumber (market, 'min_initial_margin_fraction');
+            const leverageMax = (minInitialMarginFraction === undefined) ? undefined : this.parseNumber (this.numberToString (10000 / minInitialMarginFraction));
+            result.push ({
+                'id': id,
+                'symbol': base + '/' + quote + ':' + settle,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'active': this.safeString (market, 'status') === 'active',
+                'contract': true,
+                'linear': true,
+                'inverse': false,
+                'taker': this.safeNumber (market, 'taker_fee'),
+                'maker': this.safeNumber (market, 'maker_fee'),
+                'contractSize': quoteMultiplier,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': leverageMax,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'min_base_amount'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_quote_amount'),
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+                'info': market,
+            });
+        }
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = undefined;
         if (api === 'root') {
@@ -342,7 +469,7 @@ export default class lighter extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        if (code !== undefined && code !== '0') {
+        if (code !== undefined && code !== '0' && code !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
@@ -351,4 +478,3 @@ export default class lighter extends Exchange {
         return undefined;
     }
 }
-
