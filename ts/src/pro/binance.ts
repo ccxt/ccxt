@@ -2085,7 +2085,7 @@ export default class binance extends binanceRest {
                 subscriptionArgs.push (market['lowercaseId'] + '@' + channelName + suffix);
                 messageHashes.push (this.getMessageHash (channelName, market['symbol'], isBidAsk));
                 if (isUnsubscribe) {
-                    unsubscribeMessageHashes.push ('unsubscribe:' + this.getMessageHash (channelName, market['symbol'], isBidAsk));
+                    unsubscribeMessageHashes.push ('unsubscribe::' + this.getMessageHash (channelName, market['symbol'], isBidAsk));
                 }
             }
         } else {
@@ -2100,7 +2100,7 @@ export default class binance extends binanceRest {
                 subscriptionArgs.push ('!' + channelName + '@arr');
             }
             messageHashes.push (this.getMessageHash (channelName, undefined, isBidAsk));
-            unsubscribeMessageHashes.push ('unsubscribe:' + channelName);
+            unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
         }
         let streamHash = channelName;
         if (symbolsDefined) {
