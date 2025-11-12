@@ -866,7 +866,7 @@ public partial class hibachi : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
-        object feeRate = mathMax(this.safeNumber(market, "taker"), this.safeNumber(market, "maker"));
+        object feeRate = mathMax(this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045)), this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015)));
         object sideInternal = "";
         if (isTrue(isEqual(side, "sell")))
         {
