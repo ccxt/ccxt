@@ -217,7 +217,7 @@ export default class bullish extends Exchange {
                     'EOS': 'EOS',
                     'ERC20': 'ETH',
                 },
-                'tradingAccountId': '111309424211255', // todo remove before release
+                'tradingAccountId': '111795880131063', // todo remove before release
             },
             'features': {
                 'spot': {
@@ -830,8 +830,7 @@ export default class bullish extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1266,8 +1265,7 @@ export default class bullish extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let market = undefined;
         const request: Dict = {
         };
@@ -1327,8 +1325,7 @@ export default class bullish extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1394,8 +1391,7 @@ export default class bullish extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const market = this.market (symbol);
         const request: Dict = {
             'commandType': 'V3CreateOrder',
@@ -1453,8 +1449,7 @@ export default class bullish extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1493,8 +1488,7 @@ export default class bullish extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'tradingAccountId');
         if (tradingAccountId === undefined) {
@@ -1650,8 +1644,7 @@ export default class bullish extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
         const until = this.safeInteger (request, 'createdAtDatetime[lte]');
@@ -1707,9 +1700,8 @@ export default class bullish extends Exchange {
      * @param {string} params.network network for withdraw (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
-        await this.loadMarkets ();
-        await this.handleToken ();
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const currency = this.currency (code);
         const request: Dict = {
             'command': {
@@ -1831,8 +1823,7 @@ export default class bullish extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const response = await this.privateGetV1AccountsTradingAccounts (params);
         //
         //     [
@@ -1935,8 +1926,7 @@ export default class bullish extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
@@ -1982,8 +1972,7 @@ export default class bullish extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'tradingAccountId');
         if (tradingAccountId === undefined) {
@@ -2056,8 +2045,7 @@ export default class bullish extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'tradingAccountId');
         if (tradingAccountId === undefined) {
@@ -2171,8 +2159,7 @@ export default class bullish extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         // todo add pagination support
         let request: Dict = {};
         let currency: Currency = undefined;
@@ -2232,8 +2219,7 @@ export default class bullish extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const currency = this.currency (code);
         const request: Dict = {
             'command': {
@@ -2328,8 +2314,7 @@ export default class bullish extends Exchange {
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
      */
     async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        await this.handleToken ();
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const currency = this.currency (code);
         let request: Dict = {
             'assetSymbol': currency['id'],
