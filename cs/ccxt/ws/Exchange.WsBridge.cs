@@ -146,7 +146,7 @@ public partial class Exchange
         return this.clients.GetOrAdd(url, (url) =>
         {
             object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() { });
-            var wsOptions = this.safeValue(ws, "options", ws);
+            var wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() { });
             wsOptions = this.deepExtend(this.streaming, wsOptions);
             var keepAliveValue = this.safeInteger(wsOptions, "keepAlive", 30000) ?? 30000;
             var keepAlive = keepAliveValue;
@@ -162,12 +162,6 @@ public partial class Exchange
                 {
                     client.webSocket.Options.SetRequestHeader(key, headers[key].ToString());
                 }
-            }
-            var wsCookies = this.safeDict(ws, "cookies", new Dictionary<string, object>() { }) as Dictionary<string, object>;
-            if (wsCookies != null && wsCookies.Count > 0)
-            {
-                var cookieString = string.Join("; ", wsCookies.Select(kvp => $"{kvp.Key}={kvp.Value}"));
-                client.webSocket.Options.SetRequestHeader("Cookie", cookieString);
             }
             return client;
         });
