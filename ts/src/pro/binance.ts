@@ -1922,72 +1922,7 @@ export default class binance extends binanceRest {
         if (channelName === 'bookTicker') {
             throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
-        await this.loadMarkets ();
-        const methodName = 'watchTickers';
-        symbols = this.marketSymbols (symbols, undefined, true, false, true);
-        let firstMarket = undefined;
-        let marketType = undefined;
-        const symbolsDefined = (symbols !== undefined);
-        if (symbolsDefined) {
-            firstMarket = this.market (symbols[0]);
-        }
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
-        let rawMarketType = undefined;
-        if (this.isLinear (marketType, subType)) {
-            rawMarketType = 'future';
-        } else if (this.isInverse (marketType, subType)) {
-            rawMarketType = 'delivery';
-        } else if (marketType === 'spot') {
-            rawMarketType = marketType;
-        } else {
-            throw new NotSupported (this.id + ' ' + methodName + '() does not support options markets');
-        }
-        const isBidAsk = (channelName === 'bookTicker');
-        const subscriptionArgs = [];
-        const subMessageHashes = [];
-        const messageHashes = [];
-        if (symbolsDefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.market (symbol);
-                subscriptionArgs.push (market['lowercaseId'] + '@' + channelName);
-                subMessageHashes.push (this.getMessageHash (channelName, market['symbol'], isBidAsk));
-                messageHashes.push ('unsubscribe:ticker:' + symbol);
-            }
-        } else {
-            if (isBidAsk) {
-                if (marketType === 'spot') {
-                    throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
-                }
-                subscriptionArgs.push ('!' + channelName);
-            } else {
-                subscriptionArgs.push ('!' + channelName + '@arr');
-            }
-            subMessageHashes.push (this.getMessageHash (channelName, undefined, isBidAsk));
-            messageHashes.push ('unsubscribe:ticker');
-        }
-        let streamHash = channelName;
-        if (symbolsDefined) {
-            streamHash = channelName + '::' + symbols.join (',');
-        }
-        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream (rawMarketType, streamHash);
-        const requestId = this.requestId (url);
-        const request: Dict = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': requestId,
-        };
-        const subscription: Dict = {
-            'unsubscribe': true,
-            'id': requestId.toString (),
-            'subMessageHashes': subMessageHashes,
-            'messageHashes': messageHashes,
-            'symbols': symbols,
-            'topic': 'ticker',
-        };
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
+        return await this.watchMultiTickerHelper ('unWatchTickers', channelName, symbols, params, true);
     }
 
     /**
@@ -2110,7 +2045,7 @@ export default class binance extends binanceRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    async watchMultiTickerHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
+    async watchMultiTickerHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}, isUnsubscribe: boolean = false) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
         const isBidAsk = (channelName === 'bookTicker');
@@ -2138,6 +2073,7 @@ export default class binance extends binanceRest {
         }
         const subscriptionArgs = [];
         const messageHashes = [];
+        const unsubscribeMessageHashes = [];
         let suffix = '';
         if (isMarkPrice) {
             suffix = (use1sFreq) ? '@1s' : '';
@@ -2148,6 +2084,9 @@ export default class binance extends binanceRest {
                 const market = this.market (symbol);
                 subscriptionArgs.push (market['lowercaseId'] + '@' + channelName + suffix);
                 messageHashes.push (this.getMessageHash (channelName, market['symbol'], isBidAsk));
+                if (isUnsubscribe) {
+                    unsubscribeMessageHashes.push ('unsubscribe:' + this.getMessageHash (channelName, market['symbol'], isBidAsk));
+                }
             }
         } else {
             if (isBidAsk) {
@@ -2161,6 +2100,7 @@ export default class binance extends binanceRest {
                 subscriptionArgs.push ('!' + channelName + '@arr');
             }
             messageHashes.push (this.getMessageHash (channelName, undefined, isBidAsk));
+            unsubscribeMessageHashes.push ('unsubscribe:' + channelName);
         }
         let streamHash = channelName;
         if (symbolsDefined) {
@@ -2169,14 +2109,29 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream (rawMarketType, streamHash);
         const requestId = this.requestId (url);
         const request: Dict = {
-            'method': 'SUBSCRIBE',
+            'method': (isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE'),
             'params': subscriptionArgs,
             'id': requestId,
         };
-        const subscribe: Dict = {
+        let hashes = messageHashes;
+        let subscription: Dict = {
             'id': requestId,
         };
-        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionArgs, subscribe);
+        if (isUnsubscribe) {
+            subscription = {
+                'unsubscribe': true,
+                'id': requestId.toString (),
+                'subMessageHashes': messageHashes,
+                'messageHashes': unsubscribeMessageHashes,
+                'symbols': symbols,
+                'topic': 'ticker',
+            };
+            hashes = unsubscribeMessageHashes;
+        }
+        const result = await this.watchMultiple (url, hashes, this.deepExtend (request, params), hashes, subscription);
+        if (isUnsubscribe) {
+            return result;
+        }
         // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
         // ticker dict comes in, otherwise all-tickers dict comes in
         if (!symbolsDefined) {
