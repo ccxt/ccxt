@@ -2029,14 +2029,22 @@ export default class binance extends binanceRest {
         if (isMarkPrice) {
             suffix = (use1sFreq) ? '@1s' : '';
         }
+        let unifiedPrefix: Str = undefined;
+        if (isBidAsk) {
+            unifiedPrefix = 'bidask';
+        } else if (isMarkPrice) {
+            unifiedPrefix = 'markPrice';
+        } else {
+            unifiedPrefix = 'ticker';
+        }
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
                 subscriptionArgs.push (market['lowercaseId'] + '@' + channelName + suffix);
-                messageHashes.push (this.getMessageHash (channelName, market['symbol'], isBidAsk));
+                messageHashes.push (unifiedPrefix + ':' + channelName + '@' + symbol);
                 if (isUnsubscribe) {
-                    unsubscribeMessageHashes.push ('unsubscribe::' + this.getMessageHash (channelName, market['symbol'], isBidAsk));
+                    unsubscribeMessageHashes.push ('unsubscribe::' + unifiedPrefix + ':' + channelName + '@' + symbol);
                 }
             }
         } else {
@@ -2050,7 +2058,7 @@ export default class binance extends binanceRest {
             } else {
                 subscriptionArgs.push ('!' + channelName + '@arr');
             }
-            messageHashes.push (this.getMessageHash (channelName, undefined, isBidAsk));
+            messageHashes.push (unifiedPrefix + 's:' + channelName);
             unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
         }
         let streamHash = channelName;
@@ -2296,10 +2304,23 @@ export default class binance extends binanceRest {
         this.handleTickersAndBidsAsks (client, message, 'tickers');
     }
 
+    handleMarkPrices (client: Client, message) {
+        this.handleTickersAndBidsAsks (client, message, 'markPrices');
+    }
+
     handleTickersAndBidsAsks (client: Client, message, methodType) {
         const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const isBidAsk = (methodType === 'bidasks');
+        const isMarkPrice = (methodType === 'markPrices');
+        let unifiedPrefix: Str = undefined;
+        if (isBidAsk) {
+            unifiedPrefix = 'bidask';
+        } else if (isMarkPrice) {
+            unifiedPrefix = 'markPrice';
+        } else {
+            unifiedPrefix = 'ticker';
+        }
         let channelName = undefined;
         const resolvedMessageHashes = [];
         let rawTickers = [];
@@ -2327,24 +2348,15 @@ export default class binance extends binanceRest {
             } else {
                 this.tickers[symbol] = parsedTicker;
             }
-            const messageHash = this.getMessageHash (channelName, symbol, isBidAsk);
+            const messageHash = unifiedPrefix + ':' + channelName + '@' + symbol;
             resolvedMessageHashes.push (messageHash);
             client.resolve (parsedTicker, messageHash);
         }
         // resolve batch endpoint
         const length = resolvedMessageHashes.length;
         if (length > 0) {
-            const batchMessageHash = this.getMessageHash (channelName, undefined, isBidAsk);
+            const batchMessageHash = unifiedPrefix + 's:' + channelName;
             client.resolve (newTickers, batchMessageHash);
-        }
-    }
-
-    getMessageHash (channelName: string, symbol: Str, isBidAsk: boolean) {
-        const prefix = isBidAsk ? 'bidask' : 'ticker';
-        if (symbol !== undefined) {
-            return prefix + ':' + channelName + '@' + symbol;
-        } else {
-            return prefix + 's' + ':' + channelName;
         }
     }
 
@@ -4502,8 +4514,8 @@ export default class binance extends binanceRest {
             '1dTicker': this.handleTickers,
             '24hrTicker': this.handleTickers,
             '24hrMiniTicker': this.handleTickers,
-            'markPriceUpdate': this.handleTickers,
-            'markPriceUpdate@arr': this.handleTickers,
+            'markPriceUpdate': this.handleMarkPrices,
+            'markPriceUpdate@arr': this.handleMarkPrices,
             'bookTicker': this.handleBidsAsks, // there is no "bookTicker@arr" endpoint
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,
