@@ -129,7 +129,7 @@ export default class dydx extends Exchange {
                 '1d': '1DAY',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1',
                 'api': {
                     'indexer': 'https://indexer.dydx.trade/v4',
                     'nodeRpc': 'https://dydx-ops-rpc.kingnodes.com',
@@ -1400,6 +1400,7 @@ export default class dydx extends Exchange {
                 'clientMetadata': clientMetadata,
                 'conditionType': conditionalType,
                 'conditionalOrderTriggerSubticks': this.toDydxLong (conditionalOrderTriggerSubticks),
+                'order_router_address': this.safeString (this.options, 'routerAddress', 'dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn'),
             },
         };
         const signingPayload = {
