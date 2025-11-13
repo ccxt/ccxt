@@ -1514,6 +1514,7 @@ export default class dydx extends Exchange {
      * @method
      * @name dydx#cancelOrder
      * @description cancels an open order
+     * @see https://docs.dydx.xyz/interaction/trading/#cancel-an-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1532,6 +1533,9 @@ export default class dydx extends Exchange {
         await this.loadMarkets ();
         const market: Market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
+        }
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         const goodTillBlockTimeInSeconds = this.safeInteger (params, 'goodTillBlockTimeInSeconds');
         let goodTillBlockTime = undefined;
@@ -1540,7 +1544,7 @@ export default class dydx extends Exchange {
         const subaccountId = this.safeInteger (params, 'subaccountId', 0);
         params = this.omit (params, [ 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
-            throw new InvalidOrder (this.id + ' invalid orderFlags (0, 64, 32).');
+            throw new InvalidOrder (this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
         if (orderFlags > 0) {
             if (goodTillBlockTimeInSeconds === undefined) {
