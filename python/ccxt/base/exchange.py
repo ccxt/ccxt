@@ -3517,6 +3517,7 @@ class Exchange(object):
         self.symbols = sourceExchange.symbols
         self.ids = sourceExchange.ids
         self.currencies = sourceExchange.currencies
+        self.currencies_by_id = sourceExchange.currencies_by_id
         self.baseCurrencies = sourceExchange.baseCurrencies
         self.quoteCurrencies = sourceExchange.quoteCurrencies
         self.codes = sourceExchange.codes
