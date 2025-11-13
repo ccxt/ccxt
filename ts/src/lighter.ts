@@ -2,7 +2,7 @@
 import Exchange from './abstract/lighter.js';
 import { ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, int, Market, OrderBook } from './base/types.js';
+import type { Dict, Int, int, Market, OrderBook, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -455,8 +455,11 @@ export default class lighter extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'market_id': market['id'],
-            'limit': limit === undefined ? 100 : Math.min (limit, 100),
+            'limit': 100,
         };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 100);
+        }
         const response = await this.publicGetOrderBookOrders (this.extend (request, params));
         //
         //     {
@@ -489,6 +492,148 @@ export default class lighter extends Exchange {
         //
         const result = this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'remaining_base_amount');
         return result;
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "symbol": "ETH",
+        //         "market_id": 0,
+        //         "status": "active",
+        //         "taker_fee": "0.0000",
+        //         "maker_fee": "0.0000",
+        //         "liquidation_fee": "1.0000",
+        //         "min_base_amount": "0.0050",
+        //         "min_quote_amount": "10.000000",
+        //         "order_quote_limit": "",
+        //         "supported_size_decimals": 4,
+        //         "supported_price_decimals": 2,
+        //         "supported_quote_decimals": 6,
+        //         "size_decimals": 4,
+        //         "price_decimals": 2,
+        //         "quote_multiplier": 1,
+        //         "default_initial_margin_fraction": 500,
+        //         "min_initial_margin_fraction": 200,
+        //         "maintenance_margin_fraction": 120,
+        //         "closeout_margin_fraction": 80,
+        //         "last_trade_price": 3550.69,
+        //         "daily_trades_count": 1197349,
+        //         "daily_base_token_volume": 481297.3509,
+        //         "daily_quote_token_volume": 1671431095.263844,
+        //         "daily_price_low": 3402.41,
+        //         "daily_price_high": 3571.45,
+        //         "daily_price_change": 0.5294300840859545,
+        //         "open_interest": 39559.3278,
+        //         "daily_chart": {},
+        //         "market_config": {
+        //             "market_margin_mode": 0,
+        //             "insurance_fund_account_index": 281474976710655,
+        //             "liquidation_mode": 0,
+        //             "force_reduce_only": false,
+        //             "trading_hours": ""
+        //         }
+        //     }
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const symbol = market['symbol'];
+        const last = this.safeString (ticker, 'last_trade_price');
+        const high = this.safeString (ticker, 'daily_price_high');
+        const low = this.safeString (ticker, 'daily_price_low');
+        const baseVolume = this.safeString (ticker, 'daily_base_token_volume');
+        const quoteVolume = this.safeString (ticker, 'daily_quote_token_volume');
+        const change = this.safeString (ticker, 'daily_price_change');
+        const openInterest = this.safeString (ticker, 'open_interest');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': high,
+            'low': low,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'openInterest': openInterest,
+            'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://apidocs.lighter.xyz/reference/orderbookdetails
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market_id': market['id'],
+        };
+        const response = await this.publicGetOrderBookDetails (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "order_book_details": [
+        //             {
+        //                 "symbol": "ETH",
+        //                 "market_id": 0,
+        //                 "status": "active",
+        //                 "taker_fee": "0.0000",
+        //                 "maker_fee": "0.0000",
+        //                 "liquidation_fee": "1.0000",
+        //                 "min_base_amount": "0.0050",
+        //                 "min_quote_amount": "10.000000",
+        //                 "order_quote_limit": "",
+        //                 "supported_size_decimals": 4,
+        //                 "supported_price_decimals": 2,
+        //                 "supported_quote_decimals": 6,
+        //                 "size_decimals": 4,
+        //                 "price_decimals": 2,
+        //                 "quote_multiplier": 1,
+        //                 "default_initial_margin_fraction": 500,
+        //                 "min_initial_margin_fraction": 200,
+        //                 "maintenance_margin_fraction": 120,
+        //                 "closeout_margin_fraction": 80,
+        //                 "last_trade_price": 3550.69,
+        //                 "daily_trades_count": 1197349,
+        //                 "daily_base_token_volume": 481297.3509,
+        //                 "daily_quote_token_volume": 1671431095.263844,
+        //                 "daily_price_low": 3402.41,
+        //                 "daily_price_high": 3571.45,
+        //                 "daily_price_change": 0.5294300840859545,
+        //                 "open_interest": 39559.3278,
+        //                 "daily_chart": {},
+        //                 "market_config": {
+        //                     "market_margin_mode": 0,
+        //                     "insurance_fund_account_index": 281474976710655,
+        //                     "liquidation_mode": 0,
+        //                     "force_reduce_only": false,
+        //                     "trading_hours": ""
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'order_book_details', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parseTicker (first, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
