@@ -2190,6 +2190,7 @@ class Exchange extends \ccxt\Exchange {
         $this->symbols = $sourceExchange->symbols;
         $this->ids = $sourceExchange->ids;
         $this->currencies = $sourceExchange->currencies;
+        $this->currencies_by_id = $sourceExchange->currencies_by_id;
         $this->baseCurrencies = $sourceExchange->baseCurrencies;
         $this->quoteCurrencies = $sourceExchange->quoteCurrencies;
         $this->codes = $sourceExchange->codes;
