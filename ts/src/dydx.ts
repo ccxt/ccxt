@@ -1307,7 +1307,8 @@ export default class dydx extends Exchange {
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
-        const subaccountId = this.safeInteger (params, 'subaccountId', 0);
+        let subaccountId = 0;
+        [ subaccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'subAccountId', subaccountId);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
@@ -1519,9 +1520,10 @@ export default class dydx extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
-     * @param {float} [params.orderFlags] orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
+     * @param {float} [params.orderFlags] default is 0, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
      * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+     * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -1541,14 +1543,15 @@ export default class dydx extends Exchange {
         let goodTillBlockTime = undefined;
         const defaultOrderFlags = (isTrigger) ? 32 : undefined;
         const orderFlags = this.safeInteger (params, 'orderFlags', defaultOrderFlags);
-        const subaccountId = this.safeInteger (params, 'subaccountId', 0);
+        let subAccountId = 0;
+        [ subAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'subAccountId', subAccountId);
         params = this.omit (params, [ 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new InvalidOrder (this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
         if (orderFlags > 0) {
             if (goodTillBlockTimeInSeconds === undefined) {
-                throw new ArgumentsRequired (this.id + ' goodTillBlockTimeInSeconds is required for long term or conditional order.');
+                throw new ArgumentsRequired (this.id + ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.');
             }
             if (goodTillBlock !== undefined && goodTillBlock > 0) {
                 throw new InvalidOrder (this.id + ' goodTillBlock should be 0 for long term or conditional order.');
@@ -1566,7 +1569,7 @@ export default class dydx extends Exchange {
             'orderId': {
                 'subaccountId': {
                     'owner': this.getWalletAddress (),
-                    'number': subaccountId,
+                    'number': subAccountId,
                 },
                 'clientId': clientOrderId,
                 'orderFlags': orderFlags,
@@ -1612,7 +1615,8 @@ export default class dydx extends Exchange {
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+     * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+     * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
@@ -1622,7 +1626,8 @@ export default class dydx extends Exchange {
         if (!clientOrderIds) {
             throw new NotSupported (this.id + ' cancelOrders only support clientOrderIds.');
         }
-        const subaccountId = this.safeInteger (params, 'subaccountId', 0);
+        let subAccountId = 0;
+        [ subAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'subAccountId', subAccountId);
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         if (goodTillBlock === undefined) {
             const latestBlockHeight = await this.fetchLatestBlockHeight ();
@@ -1638,7 +1643,7 @@ export default class dydx extends Exchange {
         const cancelPayload = {
             'subaccountId': {
                 'owner': this.getWalletAddress (),
-                'number': subaccountId,
+                'number': subAccountId,
             },
             'shortTermCancels': [ cancelOrders ],
             'goodTilBlock': goodTillBlock,
