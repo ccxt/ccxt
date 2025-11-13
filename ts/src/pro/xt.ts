@@ -164,9 +164,10 @@ export default class xt extends xtRest {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
+        const id = this.numberToString (this.milliseconds ()) + name; // call back ID
         const subscribe = {
             'method': isContract ? 'SUBSCRIBE' : 'subscribe',
-            'id': 'this.numberToString (this.milliseconds ())' + name,  // call back ID
+            'id': id,
         };
         if (privateAccess) {
             if (!isContract) {
@@ -190,8 +191,11 @@ export default class xt extends xtRest {
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
         }
+        const subscription: Dict = {
+            'id': id,
+        };
         const url = this.urls['api']['ws'][tradeType] + '/' + tail;
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     /**
@@ -208,12 +212,12 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    async unSubscribe (messageHash: string, name: string, access: string, methodName: string, topic: string, market: Market = undefined, symbols: string[] = undefined, params = {}) {
+    async unSubscribe (messageHash: string, name: string, access: string, methodName: string, topic: string, market: Market = undefined, symbols: string[] = undefined, params = {}, subscriptionParams = {}): Promise<any> {
         const privateAccess = access === 'private';
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
-        const id = this.numberToString (this.milliseconds ()) + name,  // call back ID
+        const id = this.numberToString (this.milliseconds ()) + name; // call back ID
         const unsubscribe = {
             'method': isContract ? 'UNSUBSCRIBE' : 'unsubscribe',
             'id': id,
@@ -249,7 +253,7 @@ export default class xt extends xtRest {
             'symbols': symbols,
             'topic': topic,
         };
-        return await this.watch (url, messageHash, this.extend (request, params), subMessageHash, subscription);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, this.extend (subscription, subscriptionParams));
     }
 
     /**
@@ -299,11 +303,16 @@ export default class xt extends xtRest {
 
     async test () {
         await this.loadMarkets ();
+        const client = this.client (this.urls['api']['ws']['spot'] + '/' + 'public');
         await this.watchTicker ('ETH/USDT');
+        console.log ('Subscription after watch <---------------');
+        console.log (client.subscriptions);
         this.sleep (2000);
         console.log ('Cache after subscribing <---------------');
         console.log (this.tickers);
         await this.unWatchTicker ('ETH/USDT');
+        console.log ('Subscription after unwatch <---------------');
+        console.log (client.subscriptions);
         console.log ('Cache after unsubscribing <---------------');
         console.log (this.tickers);
     }
@@ -1318,12 +1327,44 @@ export default class xt extends xtRest {
             if (method !== undefined) {
                 method.call (this, client, message);
             }
+        } else {
+            this.handleSubscriptionStatus (client, message);
         }
     }
 
     ping (client: Client) {
         client.lastPong = this.milliseconds ();
         return 'ping';
+    }
+
+    handleSubscriptionStatus (client, message) {
+        //
+        //     {
+        //         id: '1763045665228ticker@eth_usdt',
+        //         code: 0,
+        //         msg: 'SUCCESS',
+        //         method: 'unsubscribe'
+        //     }
+        //
+        const method = this.safeStringLower (message, 'method');
+        if (method === 'unsubscribe') {
+            const id = this.safeString (message, 'id');
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subscription = this.safeValue (subscriptionsById, id, {});
+            this.handleUnSubscription (client, subscription);
+        }
+        return message;
+    }
+
+    handleUnSubscription (client: Client, subscription: Dict) {
+        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        for (let j = 0; j < messageHashes.length; j++) {
+            const unsubHash = messageHashes[j];
+            const subHash = subMessageHashes[j];
+            this.cleanUnsubscription (client, subHash, unsubHash);
+        }
+        this.cleanCache (subscription);
     }
 
     handleErrorMessage (client: Client, message: Dict) {
