@@ -36,6 +36,7 @@ class bitflyer extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => false,
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,

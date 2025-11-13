@@ -53,6 +53,7 @@ class krakenfutures extends Exchange {
                 'fetchClosedOrders' => true, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
@@ -103,7 +104,7 @@ class krakenfutures extends Exchange {
                 ),
                 'www' => 'https://futures.kraken.com/',
                 'doc' => array(
-                    'https://docs.futures.kraken.com/#introduction',
+                    'https://docs.kraken.com/api/docs/futures-api/trading/market-data/',
                 ),
                 'fees' => 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral' => null,
@@ -368,7 +369,7 @@ class krakenfutures extends Exchange {
             /**
              * Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple $currencies
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-$instruments
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-$instruments
              *
              * @param {array} [$params] exchange specific $params
              * @return An array of $market structures
@@ -488,7 +489,7 @@ class krakenfutures extends Exchange {
                     'future' => $future,
                     'option' => false,
                     'index' => $index,
-                    'active' => null,
+                    'active' => $this->safe_bool($market, 'tradeable'),
                     'contract' => $contract,
                     'linear' => $linear,
                     'inverse' => $inverse,
@@ -544,7 +545,7 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-orderbook
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-orderbook
              *
              * Fetches a list of open orders in a $market
              * @param {string} $symbol Unified $market $symbol
@@ -598,7 +599,7 @@ class krakenfutures extends Exchange {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-$tickers
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-$tickers
              *
              * @param {string[]} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -716,11 +717,11 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-charts-$candles
+             * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
              *
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -806,8 +807,8 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-trade-history
-             * @see https://docs.futures.kraken.com/#http-api-history-$market-history-get-public-execution-events
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
+             * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
              *
              * Fetch a history of filled trades that this account has made
              * @param {string} $symbol Unified CCXT $market $symbol
@@ -1254,7 +1255,7 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$order-management-edit-$order
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/edit-$order-spring
              *
              * Edit an open $order on the exchange
              * @param {string} $id $order $id
@@ -1289,7 +1290,7 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$order-management-cancel-$order
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-$order
              *
              * Cancel an open $order on the exchange
              * @param {string} $id Order $id
@@ -1314,7 +1315,7 @@ class krakenfutures extends Exchange {
             /**
              * cancel multiple $orders
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
              *
              * @param {string[]} $ids order $ids
              * @param {string} [$symbol] unified market $symbol
@@ -1379,7 +1380,7 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$order-management-cancel-all-$orders
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-$orders
              *
              * Cancels all $orders on the exchange, including trigger $orders
              * @param {str} $symbol Unified market $symbol
@@ -1439,7 +1440,7 @@ class krakenfutures extends Exchange {
             /**
              * dead man's switch, cancel all orders after the given $timeout
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
              *
              * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1468,7 +1469,7 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-$orders
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-open-$orders
              *
              * Gets all open $orders, including trigger $orders, for an account from the exchange api
              * @param {string} $symbol Unified $market $symbol
@@ -1537,7 +1538,7 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-$order-events
+             * @see https://docs.kraken.com/api/docs/futures-api/history/get-$order-events
              *
              * Gets all canceled orders, including trigger orders, for an account from the exchange api
              * @param {string} $symbol Unified $market $symbol
@@ -1879,6 +1880,22 @@ class krakenfutures extends Exchange {
         //        }
         //    }
         //
+        //   {
+        //     uid => '85805e01-9eed-4395-8360-ed1a228237c9',
+        //     accountUid => '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //     tradeable => 'PF_LTCUSD',
+        //     direction => 'Buy',
+        //     quantity => '0',
+        //     $filled => '0.1',
+        //     $timestamp => '1707258274849',
+        //     limitPrice => '69.2200000000',
+        //     orderType => 'IoC',
+        //     clientId => '',
+        //     reduceOnly => false,
+        //     $lastUpdateTimestamp => '1707258274849',
+        //     $status => 'closed'
+        //   }
+        //
         $orderEvents = $this->safe_value($order, 'orderEvents', array());
         $errorStatus = $this->safe_string($order, 'status');
         $orderEventsLength = count($orderEvents);
@@ -1996,20 +2013,25 @@ class krakenfutures extends Exchange {
         if ($type === 'ioc' || $this->parse_order_type($type) === 'market') {
             $timeInForce = 'ioc';
         }
+        $symbol = $this->safe_string($market, 'symbol');
+        if (is_array($details) && array_key_exists('tradeable', $details)) {
+            $symbol = $this->safe_symbol($this->safe_string($details, 'tradeable'), $market);
+        }
+        $ts = $this->safe_integer($details, 'timestamp', $timestamp);
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $this->safe_string_n($details, array( 'clientOrderId', 'clientId', 'cliOrdId' )),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => $ts,
+            'datetime' => $this->iso8601($ts),
             'lastTradeTimestamp' => null,
-            'lastUpdateTimestamp' => $lastUpdateTimestamp,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'lastUpdateTimestamp' => $this->safe_integer($details, 'lastUpdateTimestamp', $lastUpdateTimestamp),
+            'symbol' => $symbol,
             'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
             'postOnly' => $type === 'post',
             'reduceOnly' => $this->safe_bool_2($details, 'reduceOnly', 'reduce_only'),
-            'side' => $this->safe_string($details, 'side'),
+            'side' => $this->safe_string_lower_2($details, 'side', 'direction'),
             'price' => $price,
             'triggerPrice' => $this->safe_string($details, 'triggerPrice'),
             'amount' => $amount,
@@ -2029,7 +2051,7 @@ class krakenfutures extends Exchange {
             /**
              * fetch all trades made by the user
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-data-get-your-fills
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fills
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] *not used by the  api* the earliest time in ms to fetch trades for
@@ -2073,7 +2095,7 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$account-information-get-wallets
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-$accounts
              *
              * Fetch the $balance for a sub-$account, all sub-$account balances are inside 'info' in the $response
              * @param {array} [$params] Exchange specific parameters
@@ -2299,7 +2321,7 @@ class krakenfutures extends Exchange {
             /**
              * fetch the current funding rates for multiple markets
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-$tickers
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-$tickers
              *
              * @param {string[]} $symbols unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2328,59 +2350,69 @@ class krakenfutures extends Exchange {
 
     public function parse_funding_rate($ticker, ?array $market = null): array {
         //
-        // {"ask" => 26.283,
-        //  "askSize" => 4.6,
-        //  "bid" => 26.201,
-        //  "bidSize" => 190,
-        //  "fundingRate" => -0.000944642727438883,
-        //  "fundingRatePrediction" => -0.000872671532340275,
-        //  "indexPrice" => 26.253,
-        //  "last" => 26.3,
-        //  "lastSize" => 0.1,
-        //  "lastTime" => "2023-06-11T18:55:28.958Z",
-        //  "markPrice" => 26.239,
-        //  "open24h" => 26.3,
-        //  "openInterest" => 641.1,
-        //  "pair" => "COMP:USD",
-        //  "postOnly" => False,
-        //  "suspended" => False,
-        //  "symbol" => "pf_compusd",
-        //  "tag" => "perpetual",
-        //  "vol24h" => 0.1,
-        //  "volumeQuote" => 2.63}
+        //     {
+        //         "symbol" => "PF_ENJUSD",
+        //         "last" => 0.0433,
+        //         "lastTime" => "2025-10-22T11:02:25.599Z",
+        //         "tag" => "perpetual",
+        //         "pair" => "ENJ:USD",
+        //         "markPrice" => 0.0434,
+        //         "bid" => 0.0433,
+        //         "bidSize" => 4609,
+        //         "ask" => 0.0435,
+        //         "askSize" => 4609,
+        //         "vol24h" => 1696,
+        //         "volumeQuote" => 73.5216,
+        //         "openInterest" => 72513.00000000000,
+        //         "open24h" => 0.0435,
+        //         "high24h" => 0.0435,
+        //         "low24h" => 0.0433,
+        //         "lastSize" => 1272,
+        //         "fundingRate" => -0.000000756414717067,
+        //         "fundingRatePrediction" => 0.000000195218676,
+        //         "suspended" => false,
+        //         "indexPrice" => 0.043392,
+        //         "postOnly" => false,
+        //         "change24h" => -0.46
+        //     }
         //
-        $fundingRateMultiplier = '8';  // https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->symbol($marketId);
         $timestamp = $this->parse8601($this->safe_string($ticker, 'lastTime'));
-        $indexPrice = $this->safe_number($ticker, 'indexPrice');
         $markPriceString = $this->safe_string($ticker, 'markPrice');
-        $markPrice = $this->parse_number($markPriceString);
         $fundingRateString = $this->safe_string($ticker, 'fundingRate');
-        $fundingRateResult = Precise::string_div(Precise::string_mul($fundingRateString, $fundingRateMultiplier), $markPriceString);
-        $fundingRate = $this->parse_number($fundingRateResult);
+        $fundingRateResult = Precise::string_div($fundingRateString, $markPriceString);
         $nextFundingRateString = $this->safe_string($ticker, 'fundingRatePrediction');
-        $nextFundingRateResult = Precise::string_div(Precise::string_mul($nextFundingRateString, $fundingRateMultiplier), $markPriceString);
-        $nextFundingRate = $this->parse_number($nextFundingRateResult);
+        $nextFundingRateResult = Precise::string_div($nextFundingRateString, $markPriceString);
+        if ($fundingRateResult > '0.25') {
+            $fundingRateResult = '0.25';
+        } elseif ($fundingRateResult > '-0.25') {
+            $fundingRateResult = '-0.25';
+        }
+        if ($nextFundingRateResult > '0.25') {
+            $nextFundingRateResult = '0.25';
+        } elseif ($nextFundingRateResult > '-0.25') {
+            $nextFundingRateResult = '-0.25';
+        }
         return array(
             'info' => $ticker,
             'symbol' => $symbol,
-            'markPrice' => $markPrice,
-            'indexPrice' => $indexPrice,
+            'markPrice' => $this->parse_number($markPriceString),
+            'indexPrice' => $this->safe_number($ticker, 'indexPrice'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fundingRate' => $fundingRate,
+            'fundingRate' => $this->parse_number($fundingRateResult),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
-            'nextFundingRate' => $nextFundingRate,
+            'nextFundingRate' => $this->parse_number($nextFundingRateResult),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => '1h',
         );
     }
 
@@ -2389,7 +2421,7 @@ class krakenfutures extends Exchange {
             /**
              * fetches historical funding rate prices
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-funding-$rates-historical-funding-$rates
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/historical-funding-$rates
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
@@ -2443,7 +2475,7 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-open-positions
              *
              * Fetches current contract trading positions
              * @param {string[]} $symbols List of unified $symbols
@@ -2545,7 +2577,7 @@ class krakenfutures extends Exchange {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
              *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2738,8 +2770,8 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-$transfer
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/transfer
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/sub-account-$transfer
              *
              * transfers currencies between sub-accounts
              * @param {string} $code Unified $currency $code
@@ -2790,7 +2822,7 @@ class krakenfutures extends Exchange {
             /**
              * set the level of $leverage for a market
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-$leverage-setting-for-a-market
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/set-$leverage-setting
              *
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified market $symbol
@@ -2817,7 +2849,7 @@ class krakenfutures extends Exchange {
             /**
              * fetch the set leverage for all contract and margin markets
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
              *
              * @param {string[]} [$symbols] a list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2847,7 +2879,7 @@ class krakenfutures extends Exchange {
             /**
              * fetch the set leverage for a $market
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-$market
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

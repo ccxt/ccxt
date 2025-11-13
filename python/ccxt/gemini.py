@@ -275,7 +275,7 @@ class gemini(Exchange, ImplicitAPI):
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': False,
-                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL'],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': True,  # fetches from WEB
@@ -309,6 +309,7 @@ class gemini(Exchange, ImplicitAPI):
                         'quote': 'USD',
                     },
                 },
+                'brokenPairs': ['efilusd', 'maticrlusd', 'maticusdc', 'eurusdc', 'maticgusd', 'maticusd', 'efilfil', 'eurusd'],
             },
             'features': {
                 'default': {
@@ -395,7 +396,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         data = self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGet', True, '="currencyData">', '</script>')
         if data is None:
-            return None
+            return {}
         #
         #    {
         #        "tradingPairs": [['BTCUSD', 2, 8, '0.00001', 10, True],  ...],
@@ -626,10 +627,10 @@ class gemini(Exchange, ImplicitAPI):
         #
         result = []
         options = self.safe_dict(self.options, 'fetchMarketsFromAPI', {})
-        bugSymbol = 'efilfil'  # we skip self inexistent test symbol, which bugs other functions
+        brokenPairs = self.safe_list(self.options, 'brokenPairs', [])
         marketIds = []
         for i in range(0, len(marketIdsRaw)):
-            if marketIdsRaw[i] != bugSymbol:
+            if not self.in_array(marketIdsRaw[i], brokenPairs):
                 marketIds.append(marketIdsRaw[i])
         if self.safe_bool(options, 'fetchDetailsForAllSymbols', False):
             promises = []
@@ -661,12 +662,13 @@ class gemini(Exchange, ImplicitAPI):
                 indexedTradingPairs = self.index_by(tradingPairs, 0)
                 for i in range(0, len(marketIds)):
                     marketId = marketIds[i]
-                    tradingPair = self.safe_list(indexedTradingPairs, marketId.upper())
-                    if tradingPair is not None:
-                        result.append(self.parse_market(tradingPair))
+                    pairInfo = self.safe_list(indexedTradingPairs, marketId.upper())
+                    if pairInfo is not None and not self.in_array(marketId, brokenPairs):
+                        result.append(self.parse_market(pairInfo))
             else:
                 for i in range(0, len(marketIds)):
-                    result.append(self.parse_market(marketIds[i]))
+                    if not self.in_array(marketIds[i], brokenPairs):
+                        result.append(self.parse_market(marketIds[i]))
         return result
 
     def parse_market(self, response) -> Market:
@@ -679,8 +681,8 @@ class gemini(Exchange, ImplicitAPI):
         #
         #     [
         #         'BTCUSD',   # symbol
-        #         2,          # priceTickDecimalPlaces
-        #         8,          # quantityTickDecimalPlaces
+        #         2,          # tick precision(priceTickDecimalPlaces)
+        #         8,          # amount precision(quantityTickDecimalPlaces)
         #         '0.00001',  # quantityMinimum
         #         10,         # quantityRoundDecimalPlaces
         #         True        # minimumsAreInclusive
@@ -699,7 +701,7 @@ class gemini(Exchange, ImplicitAPI):
         #         "wrap_enabled": False
         #         "product_type": "swap",  # only in perps
         #         "contract_type": "linear",  # only in perps
-        #         "contract_price_currency": "GUSD"  # only in perps
+        #         "contract_price_currency": "GUSD"
         #     }
         #
         marketId = None
@@ -1031,7 +1033,9 @@ class gemini(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_tickers(response, symbols)
+        result = self.parse_tickers(response, symbols)
+        brokenPairs = self.safe_list(self.options, 'brokenPairs', [])
+        return self.remove_keys_from_dict(result, brokenPairs)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1407,7 +1411,7 @@ class gemini(Exchange, ImplicitAPI):
         #          "is_hidden":false,
         #          "was_forced":false,
         #          "executed_amount":"0",
-        #          "client_order_id":"1650398445709",
+        #          "client_order_id":"1650398445701",
         #          "options":[],
         #          "price":"2000.00",
         #          "original_amount":"0.01",
@@ -1898,7 +1902,7 @@ class gemini(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

@@ -22,6 +22,9 @@ $main = function() use ($argv) {
         $verbose = count(array_filter($argv, function ($option) { return strstr($option, '--verbose') !== false; })) > 0;
         $args = array_values(array_filter($argv, function ($option) { return strstr($option, '--verbose') === false; }));
 
+        $demo = count(array_filter($argv, function ($option) { return strstr($option, '--demo') !== false; })) > 0;
+        $args = array_values(array_filter($argv, function ($option) { return strstr($option, '--demo') === false; }));
+
         $test = count(array_filter($args, function ($option) { return strstr($option, '--test') !== false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--test') === false && strstr($option, '--testnet') === false && strstr($option, '--sandbox') === false; }));
 
@@ -89,6 +92,8 @@ $main = function() use ($argv) {
 
             if ($test) {
                 $exchange->set_sandbox_mode(true);
+            } else if ($demo) {
+                $exchange->enable_demo_trading(true);
             }
 
             if (!$no_keys) {

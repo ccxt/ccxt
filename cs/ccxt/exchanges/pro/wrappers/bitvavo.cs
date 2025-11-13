@@ -365,10 +365,10 @@ public partial class bitvavo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrderWs(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel all open orders
@@ -385,10 +385,10 @@ public partial class bitvavo
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersWs(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetches information on an order made by the user
@@ -530,7 +530,7 @@ public partial class bitvavo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Dictionary<string, object>> WithdrawWs(string code, object amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> WithdrawWs(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdrawWs(code, amount, address, tag, parameters);
         return ((Dictionary<string, object>)res);
@@ -692,10 +692,10 @@ public partial class bitvavo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
-    public async Task<Dictionary<string, object>> FetchCurrenciesWs(Dictionary<string, object> parameters = null)
+    public async Task<Currencies> FetchCurrenciesWs(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCurrenciesWs(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Currencies(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders

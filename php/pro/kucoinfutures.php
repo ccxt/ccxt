@@ -87,9 +87,9 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         return Async\async(function () use ($privateChannel, $params) {
             $connectId = $privateChannel ? 'private' : 'public';
             $urls = $this->safe_value($this->options, 'urls', array());
-            $spawaned = $this->safe_value($urls, $connectId);
-            if ($spawaned !== null) {
-                return Async\await($spawaned);
+            $future = $this->safe_value($urls, $connectId);
+            if ($future !== null) {
+                return Async\await($future);
             }
             // we store an awaitable to the url
             // so that multiple calls don't asynchronously
@@ -702,7 +702,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         return $message;
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *

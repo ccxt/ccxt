@@ -143,6 +143,19 @@ public partial class Exchange
         //     return (List<string>)a;
         // }
 
+        if (a is IDictionary<string, object>)
+        {
+            // var b = (Dictionary<string, object>)a;
+            var b2 = (IDictionary<string, object>)a;
+            var outList2 = new List<object>();
+            var keys2 = new List<string>(((IDictionary<string, object>)a).Keys);
+            foreach (string key in keys2)
+            {
+                outList2.Add(b2[key]);
+            }
+            return outList2;
+        }
+
         var b = (dict)a;
         var outList = new List<object>();
         var keys = new List<string>(((dict)a).Keys);
@@ -276,16 +289,8 @@ public partial class Exchange
 
     public bool isJsonEncodedObject(object str)
     {
-        var str2 = (string)str;
-        if (str2 != null && (str2.StartsWith("{") || str2.StartsWith("[")))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-
+        var str2 = str as string;
+        return str2 != null && (str2.StartsWith("{") || str2.StartsWith("["));
     }
 
     public string json(object obj)

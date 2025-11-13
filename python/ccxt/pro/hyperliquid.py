@@ -104,6 +104,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         await self.load_markets()
         order, globalParams = self.parseCreateEditOrderArgs(None, symbol, type, side, amount, price, params)
         orders = await self.create_orders_ws([order], globalParams)
+        ordersLength = len(orders)
+        if ordersLength == 0:
+            # not sure why but it is happening sometimes
+            return self.safe_order({})
         parsedOrder = orders[0]
         return parsedOrder
 
@@ -449,8 +453,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             assetObject = spotAssets[i]
             marketId = self.safe_string(assetObject, 'coin')
             market = self.safe_market(marketId, None, None, 'spot')
+            symbol = market['symbol']
             ticker = self.parse_ws_ticker(assetObject, market)
             parsedTickers.append(ticker)
+            self.tickers[symbol] = ticker
         # perpetuals
         meta = self.safe_dict(rawData, 'meta', {})
         universe = self.safe_list(meta, 'universe', [])
@@ -462,7 +468,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             )
             id = data['name'] + '/USDC:USDC'
             market = self.safe_market(id, None, None, 'swap')
+            symbol = market['symbol']
             ticker = self.parse_ws_ticker(data, market)
+            self.tickers[symbol] = ticker
             parsedTickers.append(ticker)
         tickers = self.index_by(parsedTickers, 'symbol')
         client.resolve(tickers, 'tickers')
@@ -676,7 +684,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'fee': {'cost': fee, 'currency': 'USDC'},
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -708,7 +716,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -905,6 +913,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             return True
         data = self.safe_dict(message, 'data', {})
         id = self.safe_string(message, 'id')
+        if id is None:
+            id = self.safe_string(data, 'id')
         response = self.safe_dict(data, 'response', {})
         payload = self.safe_dict(response, 'payload', {})
         status = self.safe_string(payload, 'status')

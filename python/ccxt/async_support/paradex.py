@@ -304,7 +304,7 @@ class paradex(Exchange, ImplicitAPI):
             'commonCurrencies': {
             },
             'options': {
-                'paradexAccount': None,  # add {"privateKey": A, "publicKey": B, "address": C}
+                'paradexAccount': None,  # add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard(optional)", "address": "copy Paradex Address from UI"}
                 'broker': 'CCXT',
             },
             'features': {
@@ -620,7 +620,7 @@ class paradex(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

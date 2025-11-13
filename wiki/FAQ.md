@@ -81,10 +81,38 @@
 
 
   ## How to create an order with takeProfit+stopLoss?
-  To create an order with both takeProfit and stopLoss parameters, you'll need to use a method that supports setting these parameters directly if the exchange allows it. You can check by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`.
+  Some exchanges support `createOrder` with the additional "attached" `stopLoss` & `takeProfit` sub-orders - view [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position). 
+  However, some exchanges might not support that feature and you will need to run separate `createOrder` methods to add conditional order (e.g. ***trigger order | stoploss order | takeprofit order**) to the already open position - view [Conditional orders](Manual.md#Conditional Orders).
+  You can also check them by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`, however they are not as precise as `.features` property.
 
-  Some exchanges might require you to create separate orders for takeProfit and stopLoss. For exchanges that support it directly, you would typically use the createOrder method with additional parameters for takeProfit and stopLoss.
-  See more at [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position)
+  ## What is the difference between `takeProfit/stopLoss` and `takeProfitPrice/stopLossPrice` orders
+
+  At CCXT, we distinguish between several types of takeProfit/stopLoss orders. If you want to place an order that opens a position and simultaneously attaches a take-profit or stop-loss order within the same request (provided the exchange supports this feature), you should use the `takeProfit/stopLoss` syntax.
+  We refer to these attached TP/SL orders **type 3**.
+
+  Example:
+  ```Python
+    params = {
+      'stopLoss': {
+          'triggerPrice': 12.34,  # at what price it will trigger
+          'price': 12.00,  # if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
+        },
+        'takeProfit': {
+            # similar params here
+        }
+    }
+    order = exchange.create_order ('SOL/USDT', 'limit', 'buy', 0.5, 13, params)
+  ```
+
+  If the exchange does not support these attached orders, or you want to place an independent order that will act as a stop Loss/take profit order then you can place a `stopLossPrice` **or** `takeProfitPrice` order, we call these independent sl/tp orders **type 2**.
+
+  Example
+  ```Python
+      symbol = 'ADA/USDT:USDT'
+      main_order = await binance.create_order(symbol, 'market', 'buy', 50) # open position
+      tp_order = await binance.create_order(symbol, 'limit', 'sell', 50, 1.5, {"takeProfitPrice": 1.6}) # take profit order
+      sl_order = await binance.create_order(symbol, 'limit', 'sell', 50, 0.24, {"stopLossPrice": 0.25}) # stop loss order
+  ```
 
   ## How to create a spot market buy with cost?
   To create a market-buy order with cost, first, you need to check if the exchange supports that feature (`exchange.has['createMarketBuyOrderWithCost']).

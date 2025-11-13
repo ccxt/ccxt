@@ -1022,7 +1022,7 @@ class oxfun extends oxfun$1["default"] {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeDict(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials();

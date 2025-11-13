@@ -849,7 +849,7 @@ class defx extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1206,7 +1206,8 @@ class defx extends Exchange {
         //
         $markPrice = $this->safe_number($contract, 'markPrice');
         $indexPrice = $this->safe_number($contract, 'indexPrice');
-        $fundingRate = $this->safe_number($contract, 'payoutFundingRate');
+        $fundingRateRaw = $this->safe_string($contract, 'payoutFundingRate');
+        $fundingRate = Precise::string_div($fundingRateRaw, '100');
         $fundingTime = $this->safe_integer($contract, 'nextFundingPayout');
         return array(
             'info' => $contract,
@@ -1217,7 +1218,7 @@ class defx extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'fundingRate' => $fundingRate,
+            'fundingRate' => $this->parse_number($fundingRate),
             'fundingTimestamp' => $fundingTime,
             'fundingDatetime' => $this->iso8601($fundingTime),
             'nextFundingRate' => null,

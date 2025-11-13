@@ -337,7 +337,7 @@ export default class xt extends Exchange {
                             'user/account/api-key': 1,
                         },
                         'delete': {
-                            'user/account/{apikeyId}': 1,
+                            'user/account/{apiKeyId}': 1,
                         },
                     },
                 },
@@ -1402,7 +1402,7 @@ export default class xt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
@@ -4370,6 +4370,7 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
      * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} params.paginate true/false whether to use the pagination helper to aumatically paginate through the results
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4377,6 +4378,11 @@ export default class xt extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200) as FundingRateHistory[];
+        }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap contracts only');
@@ -4386,6 +4392,8 @@ export default class xt extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit;
+        } else {
+            request['limit'] = 200; // max
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRateHistory', market, params);

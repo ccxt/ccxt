@@ -528,7 +528,7 @@ class digifinex extends digifinex$1["default"] {
             const networks = {};
             for (let j = 0; j < networkEntries.length; j++) {
                 const networkEntry = networkEntries[j];
-                const networkId = this.safeString(networkEntry, 'chain');
+                const networkId = this.safeString2(networkEntry, 'chain', 'currency');
                 const networkCode = this.networkIdToCode(networkId);
                 networks[networkCode] = {
                     'id': networkId,

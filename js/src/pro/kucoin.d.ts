@@ -7,6 +7,7 @@ export default class kucoin extends kucoinRest {
     negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
     requestId(): any;
     subscribe(url: any, messageHash: any, subscriptionHash: any, params?: {}, subscription?: any): Promise<any>;
+    unSubscribe(url: any, messageHash: any, topic: any, subscriptionHash: any, params?: {}, subscription?: Dict): Promise<any>;
     subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: any): Promise<any>;
     unSubscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: Dict): Promise<any>;
     /**
@@ -19,6 +20,16 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    /**
+     * @method
+     * @name kucoin#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    unWatchTicker(symbol: string, params?: {}): Promise<Ticker>;
     /**
      * @method
      * @name kucoin#watchTickers
@@ -57,6 +68,17 @@ export default class kucoin extends kucoinRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    /**
+     * @method
+     * @name kucoin#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
     /**
      * @method

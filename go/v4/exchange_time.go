@@ -86,7 +86,7 @@ func Iso8601(ts2 interface{}) interface{} {
 	// }
 	startdatetime := ts
 
-	if startdatetime < 0 {
+	if startdatetime <= 0 {
 		return nil
 	}
 
