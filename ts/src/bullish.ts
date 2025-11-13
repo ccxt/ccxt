@@ -35,12 +35,15 @@ export default class bullish extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': false,
+                'createLimitBuyOrder': true,
+                'createLimitOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketOrder': true,
+                'createMarketSellOrder': true,
                 'createOrder': true,
-                'createPostOnlyOrder': false,
-                'createReduceOnlyOrder': false,
-                'createStopLimitOrder': false,
-                'createStopMarketOrder': false,
-                'createStopOrder': false,
+                'createPostOnlyOrder': true,
+                'createTriggerOrder': true,
                 'deposit': false,
                 'editOrder': false,
                 'fetchAccounts': true,
@@ -840,7 +843,7 @@ export default class bullish extends Exchange {
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
         } else {
-            throw new ArgumentsRequired (this.id + 'fetchMyTrades() requires a tradingAccountId parameter');
+            throw new ArgumentsRequired (this.id + 'fetchMyTrades() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         const orderId = this.safeString (params, 'orderId');
         if (orderId !== undefined) {
@@ -1278,7 +1281,7 @@ export default class bullish extends Exchange {
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
         } else {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a tradingAccountId parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         const response = await this.privateGetV2Orders (this.extend (request, params));
         //
@@ -1338,7 +1341,7 @@ export default class bullish extends Exchange {
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
         } else {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a tradingAccountId parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         const response = await this.privateGetV2OrdersOrderId (this.extend (request, params));
         //
@@ -1399,15 +1402,16 @@ export default class bullish extends Exchange {
             'side': side.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        const postOnly = this.safeBool (params, 'postOnly', false);
+        const isMarketOrder = ((type === 'market') || type === 'MARKET');
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'POST_ONLY', params);
         if (postOnly) {
             type = 'POST_ONLY';
-            params = this.omit (params, 'postOnly');
         }
-        let timeInForce = 'GTC';
+        let timeInForce = 'GTC'; // is mandatory
         [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', timeInForce);
         params['timeInForce'] = timeInForce.toUpperCase ();
-        if (type === 'limit') {
+        if (!isMarketOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         let tradingAccountId: Str = undefined;
@@ -1415,10 +1419,13 @@ export default class bullish extends Exchange {
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
         } else {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a tradingAccountId parameter');
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         const triggerPrice = this.safeString (params, 'triggerPrice');
         if (triggerPrice !== undefined) {
+            if (isMarketOrder) {
+                throw new NotSupported (this.id + ' createOrder() does not support market trigger orders');
+            }
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             type = 'STOP_LIMIT';
             params = this.omit (params, 'triggerPrice');
@@ -1457,7 +1464,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -1492,7 +1499,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a tradingAccountId parameter');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
@@ -1976,7 +1983,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a tradingAccountId parameter');
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
@@ -2049,7 +2056,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a tradingAccountId parameter');
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
@@ -2170,7 +2177,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a tradingAccountId parameter');
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         request['tradingAccountId'] = tradingAccountId;
         const now = this.milliseconds ();
@@ -2322,7 +2329,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBorrowRateHistory', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBorrowRateHistory() requires a tradingAccountId parameter');
+            throw new ArgumentsRequired (this.id + ' fetchBorrowRateHistory() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         request['tradingAccountId'] = tradingAccountId;
         const now = this.milliseconds ();
