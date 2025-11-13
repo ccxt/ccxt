@@ -654,10 +654,10 @@ export default class Exchange {
             .map ((byte) => parseInt (byte, 16));
         const nameBytes = new TextEncoder ().encode (name);
         const data = new Uint8Array ([ ...nsBytes, ...nameBytes ]);
-        const hash = sha1 (data);
-        hash[6] = (hash[6] & 0x0f) | 0x50;
-        hash[8] = (hash[8] & 0x3f) | 0x80;
-        const hex = [ ...hash.slice (0, 16) ]
+        const nsHash = sha1 (data);
+        nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
+        nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
+        const hex = [ ...nsHash.slice (0, 16) ]
             .map ((b) => b.toString (16).padStart (2, '0'))
             .join ('');
         return [
