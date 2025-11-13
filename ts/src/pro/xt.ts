@@ -4,6 +4,7 @@ import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { NotSupported } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +16,9 @@ export default class xt extends xtRest {
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchTicker': true,
+                'unWatchTicker': true,
                 'watchTickers': true,
+                'unWatchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchBalance': true,
@@ -293,33 +296,33 @@ export default class xt extends xtRest {
     async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const options = this.safeDict (this.options, 'watchTicker');
+        const options = this.safeDict (this.options, 'unWatchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker');
         const method = this.safeString (params, 'method', defaultMethod);
         const name = method + '@' + market['id'];
         const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe (messageHash, name, 'public', 'watchTicker', defaultMethod, market, undefined, params);
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTicker', defaultMethod, market, undefined, params);
     }
 
     async test () {
         await this.loadMarkets ();
         const client = this.client (this.urls['api']['ws']['spot'] + '/' + 'public');
-        await this.watchTicker ('ETH/USDT');
+        await this.watchTickers ( [ 'BTC/USDT', 'ETH/USDT' ] );
         console.log ('Subscription after watch <---------------');
         console.log (client.subscriptions);
-        this.sleep (2000);
-        console.log ('Cache after subscribing <---------------');
+        console.log ('Cash after watch <---------------');
         console.log (this.tickers);
-        await this.unWatchTicker ('ETH/USDT');
+        this.sleep (2000);
+        await this.unWatchTickers ();
         console.log ('Subscription after unwatch <---------------');
         console.log (client.subscriptions);
-        console.log ('Cache after unsubscribing <---------------');
+        console.log ('Cash after unwatch <---------------');
         console.log (this.tickers);
     }
 
     /**
      * @method
-     * @name xt#watchTicker
+     * @name xt#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://doc.xt.com/#websocket_publicallTicker
      * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
@@ -339,6 +342,34 @@ export default class xt extends xtRest {
             market = this.market (symbols[0]);
         }
         const tickers = await this.subscribe (name, 'public', 'watchTickers', market, symbols, params);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name xt#unWatchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.xt.com/#websocket_publicallTicker
+     * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
+     * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+     * @param {string} [symbols] unified market symbols
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        const options = this.safeDict (this.options, 'unWatchTickers');
+        const defaultMethod = this.safeString (options, 'method', 'tickers');
+        const name = this.safeString (params, 'method', defaultMethod);
+        if (symbols !== undefined) {
+            throw new NotSupported (this.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
+        }
+        const messageHash = 'unsubscribe::' + name;
+        const tickers = await this.unSubscribe (messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
         if (this.newUpdates) {
             return tickers;
         }
