@@ -494,6 +494,9 @@ export default class xcoin extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const settle = this.safeCurrencyCode (settleId);
+        let expiry = this.safeInteger (item, 'deliveryTime');
+        let strike = undefined;
+        let optionType = undefined;
         const businessType = this.safeString (item, 'businessType');
         let marketType = undefined;
         let symbol = base + '/' + quote;
@@ -504,8 +507,19 @@ export default class xcoin extends Exchange {
             marketType = 'swap';
             subType = 'linear';
             symbol = symbol + ':' + settle;
+        } else if (businessType === 'options') {
+            marketType = 'option';
+            subType = 'linear';
+            const splited = id.split ('-'); // eg: 'BTC-USDT-26JUN26-85000-P'
+            const expiryRaw = this.safeString (splited, 2);
+            const expiryStr = this.convertMarketIdExpireDate (expiryRaw);
+            const expiryDate = this.convertExpireDate (expiryStr);
+            expiry = this.parse8601 (expiryDate);
+            strike = this.safeString (splited, 3);
+            optionType = this.safeStringLower (splited, 4);
+            symbol = symbol + ':' + quote + '-' + strike + '-' + expiryStr + '-' + optionType;
         }
-        const expiry = this.safeInteger (item, 'deliveryTime');
+        const parameters = this.safeDict (item, 'orderParameters', {});
         return {
             'id': id,
             'symbol': symbol,
@@ -542,7 +556,7 @@ export default class xcoin extends Exchange {
                     'max': this.safeInteger (item, 'maxLeverage'),
                 },
                 'amount': {
-                    'min': undefined,
+                    'min': this.safeNumber (parameters, 'minOrderQty'),
                     'max': undefined,
                 },
                 'price': {
@@ -550,7 +564,7 @@ export default class xcoin extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.safeNumber (parameters, 'minOrderAmt'),
                     'max': undefined,
                 },
             },
@@ -1223,7 +1237,7 @@ export default class xcoin extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         let defaultType = undefined;
-        [ defaultType, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'defaultType');
+        [ defaultType, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'type');
         let response = undefined;
         if (defaultType === 'funding') {
             response = await this.privateGetV1AssetBalances (params);
@@ -1338,15 +1352,20 @@ export default class xcoin extends Exchange {
         };
         const data = this.safeDict (response, 'data');
         const details = this.safeList (data, 'details');
+        const isTradingAccount = (details !== undefined);
         const finalArray = this.safeList (response, 'data', details); // handle "funding" response too
         for (let i = 0; i < finalArray.length; i++) {
             const balanceRaw = finalArray[i];
             const code = this.safeCurrencyCode (this.safeString (balanceRaw, 'currency'));
             const account = this.account ();
-            // balances are very complex, it is also borrowable in totalAmount, as opposed to equeity (for funding & WS balance)
-            account['total'] = this.safeString2 (balanceRaw, 'totalBalance', 'equity');
-            account['free'] = this.safeString (balanceRaw, 'balance');
-            account['used'] = this.safeString (balanceRaw, 'freeze');
+            // balances are very complex, it is also borrowable in totalAmount, as opposed to equity (for funding & WS balance)
+            if (isTradingAccount) {
+                account['total'] = this.safeString (balanceRaw, 'totalBalance');
+                account['free'] = this.safeString (balanceRaw, 'equity');
+            } else {
+                account['total'] = this.safeString (balanceRaw, 'equity');
+                account['used'] = this.safeString (balanceRaw, 'freeze');
+            }
             result[code] = account;
         }
         return this.safeBalance (result);

@@ -2017,6 +2017,15 @@
             }
         }
     },
+    "xcoin": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker":"is undefined",
+                "maker":"is undefined",
+                "type": "todo"
+            }
+        }
+    },
     "xt": {
         "skipMethods": {
             "loadMarkets": {

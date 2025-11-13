@@ -5,7 +5,413 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchPositions": [
+            {
+                "description": "fetchPositions with symbols",
+                "method": "fetchPositions",
+                "url": "https://api.xcoin.com/api/v2/trade/positions",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchPositions no args",
+                "method": "fetchPositions",
+                "url": "https://api.xcoin.com/api/v2/trade/positions",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders symbol perp",
+                "method": "fetchOpenOrders",
+                "url": "https://api.xcoin.com/api/v2/trade/openOrders?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOpenOrders symbol spot",
+                "method": "fetchOpenOrders",
+                "url": "https://api.xcoin.com/api/v2/trade/openOrders?symbol=ETH-USDT-27MAR26",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOpenOrders no args",
+                "method": "fetchOpenOrders",
+                "url": "https://api.xcoin.com/api/v2/trade/openOrders",
+                "input": [],
+                "output": null
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders symbol perp",
+                "method": "cancelAllOrders",
+                "url": "https://api.xcoin.com/api/v1/trade/cancelAllOrder",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\"}"
+            },
+            {
+                "description": "cancelAllOrders symbol spot",
+                "method": "cancelAllOrders",
+                "url": "https://api.xcoin.com/api/v1/trade/cancelAllOrder",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-27MAR26\"}"
+            },
+            {
+                "description": "cancelAllOrders no args",
+                "method": "cancelAllOrders",
+                "url": "https://api.xcoin.com/api/v1/trade/cancelAllOrder",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder perp sell market",
+                "method": "createOrder",
+                "url": "https://api.xcoin.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    "0.001"
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"sell\",\"qty\":\"0.001\",\"orderType\":\"market\"}"
+            },
+            {
+                "description": "createOrder perp buy market",
+                "method": "createOrder",
+                "url": "https://api.xcoin.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "buy",
+                    "0.001"
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"qty\":\"0.001\",\"orderType\":\"market\"}"
+            },
+            {
+                "description": "createOrder perp sell limit",
+                "method": "createOrder",
+                "url": "https://api.xcoin.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "sell",
+                    "0.001",
+                    7234
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"sell\",\"qty\":\"0.001\",\"orderType\":\"limit\",\"price\":\"7234\"}"
+            },
+            {
+                "description": "createOrder perp buy limit",
+                "method": "createOrder",
+                "url": "https://api.xcoin.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    "0.001",
+                    1234
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"qty\":\"0.001\",\"orderType\":\"limit\",\"price\":\"1234\"}"
+            },
+            {
+                "description": "createOrder spot sell market",
+                "method": "createOrder",
+                "url": "https://api.xcoin.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.005
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-27MAR26\",\"side\":\"sell\",\"qty\":\"0.005\",\"orderType\":\"market\"}"
+            },
+            {
+                "description": "createOrder spot buy market",
+                "method": "createOrder",
+                "url": "https://api.xcoin.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0.005
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-27MAR26\",\"side\":\"buy\",\"qty\":\"0.005\",\"orderType\":\"market\"}"
+            },
+            {
+                "description": "createOrder spot sell limit",
+                "method": "createOrder",
+                "url": "https://api.xcoin.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "sell",
+                    0.005,
+                    7234
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-27MAR26\",\"side\":\"sell\",\"qty\":\"0.005\",\"orderType\":\"limit\",\"price\":\"7234\"}"
+            },
+            {
+                "description": "createOrder spot buy limit",
+                "method": "createOrder",
+                "url": "https://api.xcoin.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.005,
+                    1234
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-27MAR26\",\"side\":\"buy\",\"qty\":\"0.005\",\"orderType\":\"limit\",\"price\":\"1234\"}"
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers with currency",
+                "method": "fetchTransfers",
+                "url": "https://api.xcoin.com/api/v1/asset/transfer/history?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTransfers no args",
+                "method": "fetchTransfers",
+                "url": "https://api.xcoin.com/api/v1/asset/transfer/history",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals with currency",
+                "method": "fetchWithdrawals",
+                "url": "https://api.xcoin.com/api/v1/asset/withdrawal/record?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchWithdrawals no args",
+                "method": "fetchWithdrawals",
+                "url": "https://api.xcoin.com/api/v1/asset/withdrawal/record",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits with currency",
+                "method": "fetchDeposits",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/record?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDeposits no args",
+                "method": "fetchDeposits",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/record",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades symbol perp",
+                "method": "fetchMyTrades",
+                "url": "https://api.xcoin.com/api/v2/history/trades?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchMyTrades symbol spot",
+                "method": "fetchMyTrades",
+                "url": "https://api.xcoin.com/api/v2/history/trades?symbol=ETH-USDT-27MAR26",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchMyTrades no args",
+                "method": "fetchMyTrades",
+                "url": "https://api.xcoin.com/api/v2/history/trades",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger no args",
+                "method": "fetchLedger",
+                "url": "https://api.xcoin.com/api/v1/history/bill",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage symbol perp",
+                "method": "fetchLeverage",
+                "url": "https://api.xcoin.com/api/v1/trade/lever?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/address?currency=BTC",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress ETH on ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/address?currency=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/address?currency=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/address?currency=USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/address?currency=USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders symbol perp",
+                "method": "fetchClosedOrders",
+                "url": "https://api.xcoin.com/api/v2/history/orders?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchClosedOrders symbol spot",
+                "method": "fetchClosedOrders",
+                "url": "https://api.xcoin.com/api/v2/history/orders?symbol=ETH-USDT-27MAR26",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchClosedOrders no args",
+                "method": "fetchClosedOrders",
+                "url": "https://api.xcoin.com/api/v2/history/orders",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate with symbol",
+                "method": "fetchFundingRate",
+                "url": "https://api.xcoin.com/api/v1/market/fundingRate",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchBalance": [
+            {
+                "description": "fetchBalance type perp",
+                "method": "fetchBalance",
+                "url": "https://api.xcoin.com/api/v1/account/balance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchBalance type spot",
+                "method": "fetchBalance",
+                "url": "https://api.xcoin.com/api/v1/account/balance",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchBalance no args",
+                "method": "fetchBalance",
+                "url": "https://api.xcoin.com/api/v1/account/balance",
+                "input": [],
+                "output": null
+            },
             {
                 "description": "default",
                 "method": "fetchBalance",
@@ -16,6 +422,13 @@
         ],
         "fetchCurrencies": [
             {
+                "description": "fetchCurrencies no args",
+                "method": "fetchCurrencies",
+                "url": "https://api.xcoin.com/api/v1/asset/currencies",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api.xcoin.com/api/v1/asset/currencies",
@@ -25,6 +438,13 @@
         ],
         "fetchTime": [
             {
+                "description": "fetchTime no args",
+                "method": "fetchTime",
+                "url": "https://api.xcoin.com/api/v1/market/time",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "default",
                 "method": "fetchTime",
                 "url": "https://api.xcoin.com/api/v1/market/time",
@@ -33,6 +453,15 @@
             }
         ],
         "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory perp symbol",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.xcoin.com/api/v1/market/fundingRate/history?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
             {
                 "description": "default",
                 "method": "fetchFundingRateHistory",
@@ -45,6 +474,24 @@
         ],
         "fetchFundingRates": [
             {
+                "description": "fetchFundingRates perp symbol",
+                "method": "fetchFundingRates",
+                "url": "https://api.xcoin.com/api/v1/market/fundingRate",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchFundingRates no args",
+                "method": "fetchFundingRates",
+                "url": "https://api.xcoin.com/api/v1/market/fundingRate",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "default",
                 "method": "fetchFundingRates",
                 "url": "https://api.xcoin.com/api/v1/market/fundingRate",
@@ -53,6 +500,66 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV 1d perp",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1d&symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1d"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1h perp",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1h&symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1m perp",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1m&symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1d spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1d&symbol=ETH-USDT-27MAR26",
+                "input": [
+                    "ETH/USDT",
+                    "1d"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1h spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1h&symbol=ETH-USDT-27MAR26",
+                "input": [
+                    "ETH/USDT",
+                    "1h"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1m spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1m&symbol=ETH-USDT-27MAR26",
+                "input": [
+                    "ETH/USDT",
+                    "1m"
+                ],
+                "output": null
+            },
             {
                 "description": "+symbol +tiemframe +since +limit",
                 "method": "fetchOHLCV",
@@ -68,6 +575,24 @@
         ],
         "fetchTickers": [
             {
+                "description": "fetchTickers symbol perp",
+                "method": "fetchTickers",
+                "url": "https://api.xcoin.com/api/v1/market/ticker/24hr?symbol=ETH-USDT-PERP&businessType=linear_perpetual",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTickers no args",
+                "method": "fetchTickers",
+                "url": "https://api.xcoin.com/api/v1/market/ticker/24hr?businessType=spot",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "default",
                 "method": "fetchTickers",
                 "url": "https://api.xcoin.com/api/v1/market/ticker/24hr?businessType=spot",
@@ -76,6 +601,24 @@
             }
         ],
         "fetchTrades": [
+            {
+                "description": "fetchTrades symbol perp",
+                "method": "fetchTrades",
+                "url": "https://api.xcoin.com/api/v1/market/trade?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTrades symbol spot",
+                "method": "fetchTrades",
+                "url": "https://api.xcoin.com/api/v1/market/trade?symbol=ETH-USDT-27MAR26",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
             {
                 "description": "+symbol +limit",
                 "method": "fetchTrades",
@@ -90,6 +633,42 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "fetchOrderBook perp + limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.xcoin.com/api/v1/market/depth?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOrderBook spot + limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.xcoin.com/api/v1/market/depth?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOrderBook perp",
+                "method": "fetchOrderBook",
+                "url": "https://api.xcoin.com/api/v1/market/depth?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOrderBook spot",
+                "method": "fetchOrderBook",
+                "url": "https://api.xcoin.com/api/v1/market/depth?symbol=ETH-USDT-27MAR26",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "+symbol +limit",
                 "method": "fetchOrderBook",
                 "url": "https://api.xcoin.com/api/v1/market/depth?symbol=BTC-USDT-27MAR26&limit=2",
@@ -101,6 +680,13 @@
             }
         ],
         "fetchMarkets": [
+            {
+                "description": "fetchMarkets no args",
+                "method": "fetchMarkets",
+                "url": "https://api.xcoin.com/api/v2/public/symbols",
+                "input": [],
+                "output": null
+            },
             {
                 "description": "default",
                 "method": "fetchMarkets",
