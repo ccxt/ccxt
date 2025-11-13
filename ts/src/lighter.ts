@@ -2,7 +2,7 @@
 import Exchange from './abstract/lighter.js';
 import { ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, int, Market, OrderBook, Ticker } from './base/types.js';
+import type { Dict, Int, int, Market, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ export default class lighter extends Exchange {
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -104,8 +104,8 @@ export default class lighter extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
@@ -534,7 +534,7 @@ export default class lighter extends Exchange {
         //         }
         //     }
         //
-        const marketId = this.safeString (ticker, 'symbol');
+        const marketId = this.safeString (ticker, 'market_id');
         market = this.safeMarket (marketId, market, undefined, 'swap');
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last_trade_price');
@@ -634,6 +634,23 @@ export default class lighter extends Exchange {
         const data = this.safeList (response, 'order_book_details', []);
         const first = this.safeDict (data, 0, {});
         return this.parseTicker (first, market);
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://apidocs.lighter.xyz/reference/orderbookdetails
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetOrderBookDetails (params);
+        const tickers = this.safeList (response, 'order_book_details', []);
+        return this.parseTickers (tickers, symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
