@@ -1423,11 +1423,11 @@ export default class dydx extends Exchange {
     }
 
     createOrderIdFromParts (address: string, subAccountNumber: number, clientOrderId: number, orderFlags: number, clobPairId: number): string {
-        const namespace = this.safeString (this.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
+        const nameSp = this.safeString (this.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
         const prefixAddress = address + '-' + subAccountNumber.toString ();
-        const prefix = this.uuid5 (namespace, prefixAddress);
+        const prefix = this.uuid5 (nameSp, prefixAddress);
         const orderInfo = prefix + '-' + this.numberToString (clientOrderId) + '-' + this.numberToString (clobPairId) + '-' + this.numberToString (orderFlags);
-        return this.uuid5 (namespace, orderInfo);
+        return this.uuid5 (nameSp, orderInfo);
     }
 
     async fetchLatestBlockHeight (params = {}): Promise<int> {
