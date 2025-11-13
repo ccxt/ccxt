@@ -118,6 +118,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
     case "cryptocom":
         itf := NewCryptocom(options)
         return itf
+    case "deepcoin":
+        itf := NewDeepcoin(options)
+        return itf
     case "defx":
         itf := NewDefx(options)
         return itf

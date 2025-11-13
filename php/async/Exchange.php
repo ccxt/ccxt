@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.17';
+$version = '4.5.18';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.17';
+    const VERSION = '4.5.18';
 
     public $browser;
     public $marketsLoading = null;
@@ -837,7 +837,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function get_cache_index($orderbook, $deltas) {
-        // return the first index of the cache that can be applied to the $orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the $orderbook or -1 if not possible.
         return -1;
     }
 
@@ -2701,7 +2701,7 @@ class Exchange extends \ccxt\Exchange {
                 $fee = $this->parse_fee_numeric($fee);
             }
             if (!$feesDefined) {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 $fees = array( $fee );
             }
             // 'fees' were set, so reparse them
@@ -7161,7 +7161,7 @@ class Exchange extends \ccxt\Exchange {
                         unset($futures['fetchPositionsSnapshot']);
                     }
                 }
-            } elseif ($topic === 'ticker' && ($this->tickers !== null)) {
+            } elseif (($topic === 'ticker' || $topic === 'markPrice') && ($this->tickers !== null)) {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
                     $tickerSymbol = $tickerSymbols[$i];

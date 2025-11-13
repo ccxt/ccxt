@@ -423,8 +423,11 @@ class bybit extends Exchange {
                         'v5/broker/account-info' => 5,
                         'v5/broker/asset/query-sub-member-deposit-record' => 10,
                         // earn
+                        'v5/earn/product' => 5,
                         'v5/earn/order' => 5,
                         'v5/earn/position' => 5,
+                        'v5/earn/yield' => 5,
+                        'v5/earn/hourly-yield' => 5,
                     ),
                     'post' => array(
                         // spot

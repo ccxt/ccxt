@@ -293,6 +293,7 @@ public partial class blofin
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.blofin.com/index.html#ws-order-channel"/>  <br/>
+    /// See <see href="https://docs.blofin.com/index.html#ws-algo-orders-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -310,6 +311,12 @@ public partial class blofin
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for trigger orders
     /// </description>
     /// </item>
     /// </list>

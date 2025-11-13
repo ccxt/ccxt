@@ -2384,6 +2384,11 @@ class deribit extends Exchange {
             $request = array();
             $market = null;
             $response = null;
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            } else {
+                $request['count'] = 1000; // max value
+            }
             if ($symbol === null) {
                 $code = $this->code_from_options('fetchClosedOrders', $params);
                 $currency = $this->currency($code);

@@ -2250,6 +2250,10 @@ class deribit(Exchange, ImplicitAPI):
         request: dict = {}
         market = None
         response = None
+        if limit is not None:
+            request['count'] = limit
+        else:
+            request['count'] = 1000  # max value
         if symbol is None:
             code = self.code_from_options('fetchClosedOrders', params)
             currency = self.currency(code)

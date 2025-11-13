@@ -66,6 +66,19 @@ class binance extends \ccxt\async\binance {
                 'fetchTradesWs' => true,
                 'fetchTradingFeesWs' => false,
                 'fetchWithdrawalsWs' => false,
+                'unWatchTicker' => true,
+                'unWatchTickers' => true,
+                'unWatchOHLCV' => true,
+                'unWatchOHLCVForSymbols' => true,
+                'unWatchOrderBook' => true,
+                'unWatchOrderBookForSymbols' => true,
+                'unWatchTrades' => true,
+                'unWatchTradesForSymbols' => true,
+                'unWatchMyTrades' => false,
+                'unWatchOrders' => false,
+                'unWatchPositions' => false,
+                'unWatchMarkPrices' => true,
+                'unWatchMarkPrice' => true,
             ),
             'urls' => array(
                 'test' => array(
@@ -2016,11 +2029,96 @@ class binance extends \ccxt\async\binance {
                 'unsubscribe' => true,
                 'id' => (string) $requestId,
                 'subMessageHashes' => $subMessageHashes,
-                'messageHashes' => $subMessageHashes,
+                'messageHashes' => $messageHashes,
                 'symbols' => $symbols,
                 'topic' => 'ticker',
             );
-            return Async\await($this->watch_multiple($url, $subMessageHashes, $this->extend($request, $params), $subMessageHashes, $subscription));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
+        }) ();
+    }
+
+    public function un_watch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Mark-Price-Stream
+             *
+             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            $channelName = null;
+            list($channelName, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
+            Async\await($this->load_markets());
+            $use1sFreq = $this->safe_bool($params, 'use1sFreq', true);
+            $suffix = ($use1sFreq) ? '@1s' : '';
+            $methodName = 'watchMarkPrices';
+            $symbols = $this->market_symbols($symbols, null, true, false, true);
+            $firstMarket = null;
+            $marketType = null;
+            $symbolsDefined = ($symbols !== null);
+            if ($symbolsDefined) {
+                $firstMarket = $this->market($symbols[0]);
+            }
+            list($marketType, $params) = $this->handle_market_type_and_params($methodName, $firstMarket, $params);
+            if ($marketType !== 'swap' && $marketType !== 'future') {
+                throw new NotSupported($this->id . ' ' . $methodName . '() only supports swap markets');
+            }
+            $rawMarketType = 'future';
+            $subscriptionArgs = array();
+            $subMessageHashes = array();
+            $messageHashes = array();
+            if ($symbolsDefined) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    $msgHash = $this->get_message_hash($channelName, $market['symbol'], false);
+                    $subscriptionArgs[] = $market['lowercaseId'] . '@' . $channelName . $suffix;
+                    $subMessageHashes[] = $msgHash;
+                    $messageHashes[] = 'unsubscribe:' . $msgHash;
+                }
+            } else {
+                $msgHashNoSymbol = $this->get_message_hash($channelName, null, false);
+                $subscriptionArgs[] = '!' . $channelName . '@arr';
+                $subMessageHashes[] = $msgHashNoSymbol;
+                $messageHashes[] = 'unsubscribe:' . $msgHashNoSymbol;
+            }
+            $streamHash = $channelName;
+            if ($symbolsDefined) {
+                $streamHash = $channelName . '::' . implode(',', $symbols);
+            }
+            $url = $this->urls['api']['ws'][$rawMarketType] . '/' . $this->stream($rawMarketType, $streamHash);
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'UNSUBSCRIBE',
+                'params' => $subscriptionArgs,
+                'id' => $requestId,
+            );
+            $subscription = array(
+                'unsubscribe' => true,
+                'id' => (string) $requestId,
+                'subMessageHashes' => $subMessageHashes,
+                'messageHashes' => $messageHashes,
+                'symbols' => $symbols,
+                'topic' => 'ticker',
+            );
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
+        }) ();
+    }
+
+    public function un_watch_mark_price(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            return Async\await($this->un_watch_mark_prices(array( $symbol ), $params));
         }) ();
     }
 
@@ -2434,7 +2532,7 @@ class binance extends \ccxt\async\binance {
     public function ensure_user_data_stream_ws_subscribe_signature(string $marketType = 'spot') {
         return Async\async(function () use ($marketType) {
             /**
-             * Ensures a User Data Stream WebSocket $subscription is active for the specified scope
+             * watches best bid & ask for symbols
              * @param $marketType {string} only support on 'spot'
              *
              * @see array(@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-$subscription-user_data Binance User Data Stream Documentation)
