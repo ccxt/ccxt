@@ -2,7 +2,7 @@
 import Exchange from './abstract/lighter.js';
 import { ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, int, Market } from './base/types.js';
+import type { Dict, Int, int, Market, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -437,6 +437,57 @@ export default class lighter extends Exchange {
                 'info': market,
             });
         }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://apidocs.lighter.xyz/reference/orderbookorders
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market_id': market['id'],
+            'limit': limit === undefined ? 100 : Math.min (limit, 100),
+        };
+        const response = await this.publicGetOrderBookOrders (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "total_asks": 1,
+        //         "asks": [
+        //             {
+        //                 "order_index": 281475565888172,
+        //                 "order_id": "281475565888172",
+        //                 "owner_account_index": 134436,
+        //                 "initial_base_amount": "0.2000",
+        //                 "remaining_base_amount": "0.2000",
+        //                 "price": "3430.00",
+        //                 "order_expiry": 1765419046807
+        //             }
+        //         ],
+        //         "total_bids": 1,
+        //         "bids": [
+        //             {
+        //                 "order_index": 562949401225099,
+        //                 "order_id": "562949401225099",
+        //                 "owner_account_index": 314236,
+        //                 "initial_base_amount": "1.7361",
+        //                 "remaining_base_amount": "1.3237",
+        //                 "price": "3429.80",
+        //                 "order_expiry": 1765419047587
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'remaining_base_amount');
         return result;
     }
 
