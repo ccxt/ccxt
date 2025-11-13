@@ -1,6 +1,8 @@
 {
     "exchange": "dydx",
     "skipKeys": [],
+    "walletAddress": "dydx:wallet",
+    "options": {},
     "disabledPHP": true,
     "disabledCS": true,
     "disabledGO": true,
@@ -258,7 +260,7 @@
             {
                 "description": "fetchBalance",
                 "method": "fetchBalance",
-                "url": "https://indexer.v4testnet.dydx.exchange/v4/addresses/wallet/subaccountNumber/0",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/addresses/dydx:wallet/subaccountNumber/0",
                 "input": []
             }
         ]
