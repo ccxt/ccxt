@@ -2022,3 +2022,5 @@ func (this *Exchange) IsBinaryMessage(message interface{}) bool {
 func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
 	return nil //tmp add protobuf
 }
+
+func (this *Exchange) uuid5()

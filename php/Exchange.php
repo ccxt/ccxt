@@ -858,6 +858,11 @@ class Exchange {
         }
     }
 
+
+    public static function uuid5($namesp, $name) {
+        return "";
+    }
+
     public static function implode_params($string, $params) {
         if (static::is_associative($params)) {
             foreach ($params as $key => $value) {
