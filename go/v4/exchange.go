@@ -1308,7 +1308,7 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 	return ch
 }
 
-func (this *Exchange) LoadDydxProtos () <-chan interface{} {
+func (this *Exchange) LoadDydxProtos() <-chan interface{} {
 	ch := make(chan interface{})
 
 	go func() {
@@ -1324,15 +1324,15 @@ func (this *Exchange) LoadDydxProtos () <-chan interface{} {
 	return ch
 }
 
-func (this *Exchange) ToDydxLong (numStr interface{}) interface{} {
+func (this *Exchange) ToDydxLong(numStr interface{}) interface{} {
 	return nil
 }
 
-func (this *Exchange) RetrieveDydxCredentials (entropy interface{}) interface{} {
+func (this *Exchange) RetrieveDydxCredentials(entropy interface{}) interface{} {
 	return nil
 }
 
-func (this *Exchange) EncodeDydxTxForSimulation (
+func (this *Exchange) EncodeDydxTxForSimulation(
 	message interface{},
 	memo interface{},
 	sequence interface{},
@@ -1340,7 +1340,7 @@ func (this *Exchange) EncodeDydxTxForSimulation (
 	return nil
 }
 
-func (this *Exchange) EncodeDydxTxForSigning (
+func (this *Exchange) EncodeDydxTxForSigning(
 	message interface{},
 	memo interface{},
 	chainId interface{},
@@ -1350,7 +1350,7 @@ func (this *Exchange) EncodeDydxTxForSigning (
 	return nil
 }
 
-func (this *Exchange) EncodeDydxTxRaw (signDoc interface{}, signature interface{}) interface{} {
+func (this *Exchange) EncodeDydxTxRaw(signDoc interface{}, signature interface{}) interface{} {
 	return nil
 }
 
@@ -2023,4 +2023,6 @@ func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
 	return nil //tmp add protobuf
 }
 
-func (this *Exchange) uuid5()
+func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
+	return ""
+}
