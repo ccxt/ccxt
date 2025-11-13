@@ -1,0 +1,60 @@
+{
+    "exchange": "lighter",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://mainnet.zklighter.elliot.ai",
+                "input": []
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://mainnet.zklighter.elliot.ai",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookOrders?market_id=0&limit=5",
+                "input": [
+                    "ETH/USDC:USDC",
+                    5
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails?market_id=0",
+                "input": [
+                    "ETH/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails",
+                "input": []
+            }
+        ]
+    }
+}

@@ -1,0 +1,98 @@
+{
+    "ETH/USDC:USDC": {
+        "id": "0",
+        "lowercaseId": null,
+        "symbol": "ETH/USDC:USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0,
+        "maker": 0,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 50
+            },
+            "amount": {
+                "min": 0.005,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "ETH",
+            "market_id": "0",
+            "status": "active",
+            "taker_fee": "0.0000",
+            "maker_fee": "0.0000",
+            "liquidation_fee": "1.0000",
+            "min_base_amount": "0.0050",
+            "min_quote_amount": "10.000000",
+            "order_quote_limit": "",
+            "supported_size_decimals": "4",
+            "supported_price_decimals": "2",
+            "supported_quote_decimals": "6",
+            "size_decimals": "4",
+            "price_decimals": "2",
+            "quote_multiplier": "1",
+            "default_initial_margin_fraction": "500",
+            "min_initial_margin_fraction": "200",
+            "maintenance_margin_fraction": "120",
+            "closeout_margin_fraction": "80",
+            "last_trade_price": "3432.73",
+            "daily_trades_count": "1250868",
+            "daily_base_token_volume": "515865.0437",
+            "daily_quote_token_volume": "1784065263.491814",
+            "daily_price_low": "3367.41",
+            "daily_price_high": "3587.56",
+            "daily_price_change": "-0.08613665463857526",
+            "open_interest": "38155.1528",
+            "daily_chart": {},
+            "market_config": {
+                "market_margin_mode": "0",
+                "insurance_fund_account_index": "281474976710655",
+                "liquidation_mode": "0",
+                "force_reduce_only": false,
+                "trading_hours": ""
+            }
+        },
+        "tierBased": null,
+        "percentage": null
+    }
+}
