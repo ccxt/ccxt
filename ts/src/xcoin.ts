@@ -24,16 +24,17 @@ export default class xcoin extends Exchange {
             'has': {
                 'CORS': true,
                 'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
+                'margin': true,
+                'swap': true,
+                'future': true,
+                'option': true,
                 'fetchCurrencies': true,
                 'fetchTime': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchOHLCV': true,
+                'fetchTickers': true,
                 'fetchFundingRates': true,
                 'fetchFundingRateHistory': true,
                 'fetchCrossBorrowRates': true,
@@ -490,10 +491,10 @@ export default class xcoin extends Exchange {
         const id = this.safeString (item, 'symbol');
         const baseId = this.safeString (item, 'baseCurrency');
         const quoteId = this.safeString (item, 'quoteCurrency');
-        const settleId = this.safeString (item, 'settleCurrency');
+        let settleId = this.safeString (item, 'settleCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const settle = this.safeCurrencyCode (settleId);
+        let settle = this.safeCurrencyCode (settleId);
         let expiry = this.safeInteger (item, 'deliveryTime');
         let strike = undefined;
         let optionType = undefined;
@@ -510,7 +511,7 @@ export default class xcoin extends Exchange {
         } else if (businessType === 'linear_futures') {
             marketType = 'future';
             subType = 'linear';
-            symbol = symbol + ':' + settle;
+            symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
         } else if (businessType === 'options') {
             marketType = 'option';
             subType = 'linear';
@@ -520,10 +521,21 @@ export default class xcoin extends Exchange {
             const expiryDate = this.convertExpireDate (expiryStr);
             expiry = this.parse8601 (expiryDate);
             strike = this.safeString (splited, 3);
-            optionType = this.safeStringLower (splited, 4);
-            symbol = symbol + ':' + quote + '-' + strike + '-' + expiryStr + '-' + optionType;
+            const optionTypeRaw = this.safeString (splited, 4);
+            optionType = (optionTypeRaw === 'C') ? 'call' : 'put';
+            symbol = symbol + ':' + quote + '-' + strike + '-' + expiryStr + '-' + optionTypeRaw;
         }
         const parameters = this.safeDict (item, 'orderParameters', {});
+        const contractSize = this.parseNumber ('1'); // 'ctVal' does not seem the right one
+        const isSpot = (marketType === 'spot');
+        const isSwap = (marketType === 'swap');
+        const isFuture = (marketType === 'future');
+        const isOption = (marketType === 'option');
+        const isContract = isSwap || isFuture || isOption;
+        if (isSpot) {
+            settleId = undefined;
+            settle = undefined;
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -534,22 +546,22 @@ export default class xcoin extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': marketType,
-            'spot': (marketType === 'spot'),
-            'margin': false,
-            'swap': (marketType === 'swap'),
-            'future': false,
-            'option': false,
+            'spot': isSpot,
+            'margin': undefined,
+            'swap': isSwap,
+            'future': isFuture,
+            'option': isOption,
             'active': (this.safeString (item, 'status') === 'trading'),
-            'contract': (marketType === 'swap'),
+            'contract': isSwap || isFuture || isOption,
             'linear': (subType === 'linear') ? true : undefined,
             'inverse': (subType === 'linear') ? false : undefined,
             'taker': undefined,
             'maker': undefined,
-            'contractSize': this.parseNumber ('1'), // 'ctVal' does not seem the right one
+            'contractSize': isContract ? contractSize : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
-            'optionType': undefined,
-            'strike': undefined,
+            'optionType': optionType,
+            'strike': this.parseNumber (strike),
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (item, 'quantityPrecision'))),
                 'price': this.safeNumber (item, 'tickSize'), // strange, but pricePrecision is different
@@ -2314,7 +2326,8 @@ export default class xcoin extends Exchange {
             // }
             //
         }
-        return this.parseOrder (response, market);
+        const order = this.safeDict (response, 'data', {});
+        return this.parseOrder (order, market);
     }
 
     /**
@@ -2334,7 +2347,10 @@ export default class xcoin extends Exchange {
             }
         }
         const ordersRequests = this.createOrdersRequest (orders);
-        const response = await this.privatePostV2TradeBatchOrder (ordersRequests);
+        const request = {
+            'orderReqList': ordersRequests,
+        };
+        const response = await this.privatePostV2TradeBatchOrder (this.extend (request, params));
         return this.parseOrders (response);
     }
 
@@ -2759,7 +2775,7 @@ export default class xcoin extends Exchange {
             orders.push (cancelReq);
         }
         const request = {
-            'orderReqList': orders,
+            'orderCreateReq': orders,
         };
         const response = await this.privatePostV1TradeBatchCancelOrder (this.extend (request, params));
         //
