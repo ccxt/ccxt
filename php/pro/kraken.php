@@ -1303,8 +1303,7 @@ class kraken extends \ccxt\async\kraken {
              * @param {array} [$params] maximum number of orderic to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $params['snap_orders'] = true;
-            return Async\await($this->watch_private('orders', $symbol, $since, $limit, $params));
+            return Async\await($this->watch_private('orders', $symbol, $since, $limit, $this->extend($params, array( 'snap_orders' => true ))));
         }) ();
     }
 
@@ -1366,7 +1365,9 @@ class kraken extends \ccxt\async\kraken {
                     }
                 }
                 $stored->append ($newOrder);
-                $symbols[$symbol] = true;
+                if ($symbol !== null) {
+                    $symbols[$symbol] = true;
+                }
             }
             $name = 'orders';
             $client->resolve ($this->orders, $name);
