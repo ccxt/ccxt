@@ -132,9 +132,7 @@ public partial class dydx : Exchange
                 { "www", "https://www.dydx.xyz" },
                 { "doc", new List<object>() {"https://docs.dydx.xyz"} },
                 { "fees", new List<object>() {"https://docs.dydx.exchange/introduction-trading_fees"} },
-                { "referral", new Dictionary<string, object>() {
-                    { "url", "dydx.trade?ref=ccxt" },
-                } },
+                { "referral", "dydx.trade?ref=ccxt" },
             } },
             { "api", new Dictionary<string, object>() {
                 { "indexer", new Dictionary<string, object>() {
