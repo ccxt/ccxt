@@ -68,6 +68,14 @@
                     100
                 ]
             }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "//mainnet.zklighter.elliot.ai/api/v1/funding-rates",
+                "input": []
+            }
         ]
     }
 }

@@ -497,6 +497,51 @@
                     ]
                 ]
             }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "input": [],
+                "httpResponse": {
+                    "code": 200,
+                    "funding_rates": [
+                        {
+                            "market_id": 0,
+                            "exchange": "lighter",
+                            "symbol": "ETH",
+                            "rate": 0.00009599999999999999
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ETH/USDC:USDC": {
+                        "info": {
+                            "market_id": 0,
+                            "exchange": "lighter",
+                            "symbol": "ETH",
+                            "rate": 0.00009599999999999999
+                        },
+                        "symbol": "ETH/USDC:USDC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.00009599999999999999,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": null
+                    }
+                }
+            }
         ]
     }
 }

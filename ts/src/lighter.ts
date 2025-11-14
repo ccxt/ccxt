@@ -2,7 +2,7 @@
 import Exchange from './abstract/lighter.js';
 import { ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ export default class lighter extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
@@ -87,7 +87,7 @@ export default class lighter extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
@@ -747,6 +747,74 @@ export default class lighter extends Exchange {
         //
         const ohlcvs = this.safeValue (response, 'candlesticks', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "market_id": 0,
+        //         "exchange": "lighter",
+        //         "symbol": "ETH",
+        //         "rate": 0.00009599999999999999
+        //     }
+        //
+        const marketId = this.safeString (contract, 'market_id');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'rate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': undefined,
+        } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchFundingRates
+     * @description fetch the current funding rate for multiple symbols
+     * @see https://apidocs.lighter.xyz/reference/funding-rates
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        const response = await this.publicGetFundingRates (this.extend (params));
+        //
+        //     {
+        //         "code": 200,
+        //         "funding_rates": [
+        //             {
+        //                 "market_id": 0,
+        //                 "exchange": "lighter",
+        //                 "symbol": "ETH",
+        //                 "rate": 0.00009599999999999999
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'funding_rates', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const exchange = this.safeString (data[i], 'exchange');
+            if (exchange === 'lighter') {
+                result.push (data[i]);
+            }
+        }
+        return this.parseFundingRates (result, symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
