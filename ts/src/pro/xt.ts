@@ -309,22 +309,6 @@ export default class xt extends xtRest {
         return await this.unSubscribe (messageHash, name, 'public', 'unWatchTicker', defaultMethod, market, undefined, params);
     }
 
-    async test () {
-        await this.loadMarkets ();
-        const client = this.client (this.urls['api']['ws']['spot'] + '/' + 'public');
-        await this.watchOrderBook ('BTC/USDT');
-        console.log ('Subscription after watch <---------------');
-        console.log (client.subscriptions);
-        console.log ('Cash after watch <---------------');
-        console.log (this.tickers);
-        this.sleep (2000);
-        await this.unWatchOrderBook ('BTC/USDT');
-        console.log ('Subscription after unwatch <---------------');
-        console.log (client.subscriptions);
-        console.log ('Cash after unwatch <---------------');
-        console.log (this.tickers);
-    }
-
     /**
      * @method
      * @name xt#watchTickers
@@ -374,11 +358,7 @@ export default class xt extends xtRest {
             throw new NotSupported (this.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
         const messageHash = 'unsubscribe::' + name;
-        const tickers = await this.unSubscribe (messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
-        if (this.newUpdates) {
-            return tickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
     }
 
     /**
