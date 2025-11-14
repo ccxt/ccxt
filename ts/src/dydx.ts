@@ -1517,12 +1517,12 @@ export default class dydx extends Exchange {
      * @name dydx#cancelOrder
      * @description cancels an open order
      * @see https://docs.dydx.xyz/interaction/trading/#cancel-an-order
-     * @param {string} id order id
+     * @param {string} id it should be the clientOrderId in this case
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id used when creating the order
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
-     * @param {float} [params.orderFlags] default is 0, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
+     * @param {float} [params.orderFlags] default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
      * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
      * @param {int} [params.subAccountId] sub account id, default is 0
@@ -1536,14 +1536,17 @@ export default class dydx extends Exchange {
         }
         await this.loadMarkets ();
         const market: Market = this.market (symbol);
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId', id);
         if (clientOrderId === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
+        }
+        if (id !== undefined && id.indexOf ('-') >= 0) {
+            throw new NotSupported (this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         const goodTillBlockTimeInSeconds = this.safeInteger (params, 'goodTillBlockTimeInSeconds');
         let goodTillBlockTime = undefined;
-        const defaultOrderFlags = (isTrigger) ? 32 : undefined;
+        const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger (params, 'orderFlags', defaultOrderFlags);
         let subAccountId = 0;
         [ subAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'subAccountId', subAccountId);
