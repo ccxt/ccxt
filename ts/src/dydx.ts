@@ -147,9 +147,7 @@ export default class dydx extends Exchange {
                 'fees': [
                     'https://docs.dydx.exchange/introduction-trading_fees',
                 ],
-                'referral': {
-                    'url': 'dydx.trade?ref=ccxt',
-                },
+                'referral': 'dydx.trade?ref=ccxt',
             },
             'api': {
                 'indexer': {
