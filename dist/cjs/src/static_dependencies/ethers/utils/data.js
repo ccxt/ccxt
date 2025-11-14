@@ -4,7 +4,12 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var errors = require('./errors.js');
 
-// ----------------------------------------------------------------------------
+/**
+ *  Some data helpers.
+ *
+ *
+ *  @_subsection api/utils:Data Helpers  [about-data]
+ */
 function _getBytes(value, name, copy) {
     if (value instanceof Uint8Array) {
         if (copy) {

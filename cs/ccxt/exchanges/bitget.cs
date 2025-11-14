@@ -6101,7 +6101,7 @@ public partial class bitget : Exchange
             } else
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-                response = await ((Task<object>)callDynamically(this, "privateSpotPostV2SpotTradeCancelReplaceOrder", new object[] { this.extend(request, parameters) }));
+                response = await this.privateSpotPostV2SpotTradeCancelReplaceOrder(this.extend(request, parameters));
             }
         } else
         {

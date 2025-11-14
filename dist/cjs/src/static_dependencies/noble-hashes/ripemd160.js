@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var _sha2 = require('./_sha2.js');
 var utils = require('./utils.js');
 
-// ----------------------------------------------------------------------------
 // https://homes.esat.kuleuven.be/~bosselae/ripemd160.html
 // https://homes.esat.kuleuven.be/~bosselae/ripemd160/pdf/AB-9601/AB-9601.pdf
 const Rho = new Uint8Array([7, 4, 13, 1, 10, 6, 15, 3, 12, 0, 9, 5, 2, 14, 11, 8]);

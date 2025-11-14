@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var hashkey$1 = require('../hashkey.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class hashkey extends hashkey$1["default"] {
     describe() {

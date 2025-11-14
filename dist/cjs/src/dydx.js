@@ -10,7 +10,7 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class dydx
@@ -25,7 +25,7 @@ class dydx extends dydx$1["default"] {
             'rateLimit': 100,
             'version': 'v4',
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -147,9 +147,7 @@ class dydx extends dydx$1["default"] {
                 'fees': [
                     'https://docs.dydx.exchange/introduction-trading_fees',
                 ],
-                'referral': {
-                    'url': '',
-                },
+                'referral': 'dydx.trade?ref=ccxt',
             },
             'api': {
                 'indexer': {
