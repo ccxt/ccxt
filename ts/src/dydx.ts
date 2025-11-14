@@ -1374,7 +1374,8 @@ export default class dydx extends Exchange {
         const latestBlockHeight = this.safeInteger (params, 'latestBlockHeight');
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         let goodTillBlockTime = undefined;
-        const goodTillBlockTimeInSeconds = this.safeInteger (params, 'goodTillBlockTimeInSeconds', 2592000); // default is 30 days
+        let goodTillBlockTimeInSeconds = 2592000;
+        [ goodTillBlockTimeInSeconds, params ] = this.handleOptionAndParams (params, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
