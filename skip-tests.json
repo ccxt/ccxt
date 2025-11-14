@@ -2023,6 +2023,15 @@
                 "taker":"is undefined",
                 "maker":"is undefined",
                 "type": "todo"
+            },
+            "fetchCurrencies":{
+                "type": "todo"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "broken"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
