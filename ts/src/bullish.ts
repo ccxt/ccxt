@@ -1981,7 +1981,8 @@ export default class bullish extends Exchange {
         const array = this.toArray (response);
         const length = array.length;
         let data = this.safeDict (array, 0, {});
-        let network = this.safeString (params, 'network');
+        let network = undefined;
+        [ network, params ] = this.handleNetworkCodeAndParams (params);
         const networkDefinedByUser = network !== undefined;
         if ((length > 1) || (networkDefinedByUser)) {
             // some currencies have multiple networks
