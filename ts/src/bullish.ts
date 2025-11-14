@@ -220,6 +220,10 @@ export default class bullish extends Exchange {
                     'EOS': 'EOS',
                     'ERC20': 'ETH',
                 },
+                'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'USDC': 'ERC20',
+                },
                 'tradingAccountId': '111795880131063', // todo remove before release
             },
             'features': {
@@ -1955,6 +1959,7 @@ export default class bullish extends Exchange {
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/deposit-instructions/crypto/-symbol-
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] network for deposit address
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
@@ -1973,19 +1978,42 @@ export default class bullish extends Exchange {
         //         }
         //     ]
         //
-        const depositAddress = this.safeDict (response, 0);
-        return this.parseDepositAddress (depositAddress, currency);
+        const array = this.toArray (response);
+        const length = array.length;
+        let data = this.safeDict (array, 0, {});
+        let network = this.safeString (params, 'network');
+        const networkDefinedByUser = network !== undefined;
+        if ((length > 1) || (networkDefinedByUser)) {
+            // some currencies have multiple networks
+            if (network === undefined) {
+                // use default network if not specified and multiple are available
+                network = this.defaultNetworkCode (code);
+            }
+            if (network !== undefined) {
+                // find the entry that matches the network or return first entry if not found and user did not specify a network
+                for (let i = 0; i < array.length; i++) {
+                    const entry = this.safeDict (array, i, {});
+                    const networkId = this.safeString (entry, 'network');
+                    const networkCode = this.networkIdToCode (networkId);
+                    if (network === networkCode) {
+                        data = entry;
+                        break;
+                    }
+                }
+                if (networkDefinedByUser) {
+                    data = {}; // return an empty structure if the user-defined network was not found
+                }
+            }
+        }
+        return this.parseDepositAddress (data, currency);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
-        let parsedCurrency = undefined;
-        if (currency !== undefined) {
-            parsedCurrency = currency['id'];
-        }
+        const id = this.safeString (depositAddress, 'symbol');
         const network = this.safeString (depositAddress, 'network');
         return {
             'info': depositAddress,
-            'currency': parsedCurrency,
+            'currency': this.safeCurrencyCode (id, currency),
             'network': this.networkIdToCode (network),
             'address': this.safeString (depositAddress, 'address'),
             'tag': undefined,
