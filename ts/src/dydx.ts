@@ -1805,8 +1805,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        params['methodName'] = 'fetchLedger';
-        const response = await this.fetchTransactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchLedger' }));
         return this.parseLedger (response, currency, since, limit);
     }
 
@@ -2016,8 +2015,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        params['methodName'] = 'fetchTransfers';
-        const response = await this.fetchTransactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchTransfers' }));
         const transferIn = this.filterBy (response, 'type', 'TRANSFER_IN');
         const transferOut = this.filterBy (response, 'type', 'TRANSFER_OUT');
         const rows = this.arrayConcat (transferIn, transferOut);
@@ -2161,8 +2159,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        params['methodName'] = 'fetchWithdrawals';
-        const response = await this.fetchTransactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchWithdrawals' }));
         const rows = this.filterBy (response, 'type', 'WITHDRAWAL');
         return this.parseTransactions (rows, currency, since, limit);
     }
@@ -2186,8 +2183,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        params['methodName'] = 'fetchDeposits';
-        const response = await this.fetchTransactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDeposits' }));
         const rows = this.filterBy (response, 'type', 'DEPOSIT');
         return this.parseTransactions (rows, currency, since, limit);
     }
@@ -2211,8 +2207,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        params['methodName'] = 'fetchDepositsWithdrawals';
-        const response = await this.fetchTransactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDepositsWithdrawals' }));
         const withdrawals = this.filterBy (response, 'type', 'WITHDRAWAL');
         const deposits = this.filterBy (response, 'type', 'DEPOSIT');
         const rows = this.arrayConcat (withdrawals, deposits);
