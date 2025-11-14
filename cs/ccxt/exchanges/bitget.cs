@@ -1433,6 +1433,7 @@ public partial class bitget : Exchange
                         { "15m", 30 },
                         { "30m", 30 },
                         { "1h", 60 },
+                        { "2h", 120 },
                         { "4h", 240 },
                         { "6h", 360 },
                         { "12h", 720 },
@@ -4399,12 +4400,20 @@ public partial class bitget : Exchange
             if (!isTrue(untilDefined))
             {
                 calculatedEndTime = this.sum(calculatedStartTime, limitMultipliedDuration);
+                if (isTrue(isGreaterThan(calculatedEndTime, now)))
+                {
+                    calculatedEndTime = now;
+                }
                 ((IDictionary<string,object>)request)["endTime"] = calculatedEndTime;
             }
         }
         if (isTrue(untilDefined))
         {
             calculatedEndTime = until;
+            if (isTrue(isGreaterThan(calculatedEndTime, now)))
+            {
+                calculatedEndTime = now;
+            }
             ((IDictionary<string,object>)request)["endTime"] = calculatedEndTime;
             if (!isTrue(sinceDefined))
             {
