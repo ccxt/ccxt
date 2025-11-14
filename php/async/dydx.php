@@ -25,7 +25,7 @@ class dydx extends Exchange {
             'rateLimit' => 100,
             'version' => 'v4',
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -148,7 +148,7 @@ class dydx extends Exchange {
                     'https://docs.dydx.exchange/introduction-trading_fees',
                 ),
                 'referral' => array(
-                    'url' => '',
+                    'url' => 'dydx.trade?ref=ccxt',
                 ),
             ),
             'api' => array(
