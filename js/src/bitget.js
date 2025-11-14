@@ -1478,6 +1478,7 @@ export default class bitget extends Exchange {
                         '15m': 30,
                         '30m': 30,
                         '1h': 60,
+                        '2h': 120,
                         '4h': 240,
                         '6h': 360,
                         '12h': 720,
@@ -4248,11 +4249,17 @@ export default class bitget extends Exchange {
             request['startTime'] = since;
             if (!untilDefined) {
                 calculatedEndTime = this.sum(calculatedStartTime, limitMultipliedDuration);
+                if (calculatedEndTime > now) {
+                    calculatedEndTime = now;
+                }
                 request['endTime'] = calculatedEndTime;
             }
         }
         if (untilDefined) {
             calculatedEndTime = until;
+            if (calculatedEndTime > now) {
+                calculatedEndTime = now;
+            }
             request['endTime'] = calculatedEndTime;
             if (!sinceDefined) {
                 calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
