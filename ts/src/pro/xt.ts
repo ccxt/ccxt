@@ -212,12 +212,15 @@ export default class xt extends xtRest {
      * @description Connects to a websocket channel
      * @see https://doc.xt.com/#websocket_privaterequestFormat
      * @see https://doc.xt.com/#futures_market_websocket_v2base
+     * @param {string} messageHash the message hash of the subscription
      * @param {string} name name of the channel
      * @param {string} access public or private
      * @param {string} methodName the name of the CCXT class method
+     * @param {string} topic topic of the subscription
      * @param {object} [market] CCXT market
      * @param {string[]} [symbols] unified market symbols
      * @param {object} params extra parameters specific to the xt api
+     * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
     async unSubscribe (messageHash: string, name: string, access: string, methodName: string, topic: string, market: Market = undefined, symbols: string[] = undefined, params = {}, subscriptionParams = {}): Promise<any> {
@@ -393,8 +396,6 @@ export default class xt extends xtRest {
      * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
-     * @param {int} [since] not used by xt watchOHLCV
-     * @param {int} [limit] not used by xt watchOHLCV
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -437,8 +438,6 @@ export default class xt extends xtRest {
      * @see https://doc.xt.com/#websocket_publicdealRecord
      * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
      * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
@@ -486,7 +485,6 @@ export default class xt extends xtRest {
      * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
      * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] not used by xt watchOrderBook
      * @param {object} params extra parameters specific to the xt api endpoint
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
