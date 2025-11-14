@@ -242,6 +242,34 @@ function unsafeWrapper(fn) {
         catch (e) { }
     };
 }
+function checksum(len, fn) {
+    assertNumber(len);
+    if (typeof fn !== 'function')
+        throw new Error('checksum fn should be function');
+    return {
+        encode(data) {
+            if (!(data instanceof Uint8Array))
+                throw new Error('checksum.encode: input should be Uint8Array');
+            const checksum = fn(data).slice(0, len);
+            const res = new Uint8Array(data.length + len);
+            res.set(data);
+            res.set(checksum, data.length);
+            return res;
+        },
+        decode(data) {
+            if (!(data instanceof Uint8Array))
+                throw new Error('checksum.decode: input should be Uint8Array');
+            const payload = data.slice(0, -len);
+            const newChecksum = fn(payload).slice(0, len);
+            const oldChecksum = data.slice(-len);
+            for (let i = 0; i < len; i++)
+                if (newChecksum[i] !== oldChecksum[i])
+                    throw new Error('Invalid checksum');
+            return payload;
+        },
+    };
+}
+const utils = { alphabet, chain, checksum, radix, radix2, join, padding };
 // RFC 4648 aka RFC 3548
 // ---------------------
 const base16 = chain(radix2(4), alphabet('0123456789abcdef'), join(''));
@@ -387,3 +415,4 @@ exports.base64 = base64;
 exports.base64url = base64url;
 exports.hex = hex;
 exports.utf8 = utf8;
+exports.utils = utils;
