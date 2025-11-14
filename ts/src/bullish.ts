@@ -1580,7 +1580,7 @@ export default class bullish extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'createdAtTimestamp');
-        const type = this.parseOrderType (this.safeString (order, 'type'));
+        const type = this.safeString (order, 'type');
         const side = this.safeStringLower (order, 'side');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'quantity');
@@ -1604,9 +1604,9 @@ export default class bullish extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': type,
+            'type': this.parseOrderType (type),
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': type === 'POST_ONLY',
             'side': side,
             'price': price,
             'triggerPrice': stopPrice,
@@ -1635,6 +1635,8 @@ export default class bullish extends Exchange {
         const types: Dict = {
             'LMT': 'limit',
             'MKT': 'market',
+            'POST_ONLY': 'limit',
+            'STOP_LIMIT': 'limit',
         };
         return this.safeString (types, type, type);
     }
@@ -1663,33 +1665,45 @@ export default class bullish extends Exchange {
         }
         const response = await this.privateGetV1WalletsTransactions (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "custodyTransactionId": "DB:9e6304a08c9cc2a33e6bc6429a088eae2a6b940c8e312aede3a3780257b9b979",
-        //             "direction": "DEPOSIT",
-        //             "quantity": "100000.00",
-        //             "symbol": "USDC",
-        //             "network": "EOS",
-        //             "fee": "3.00",
-        //             "memo": "925891241",
-        //             "createdAtDateTime": "2022-09-16T07:56:15.000Z",
-        //             "status": "COMPLETE",
-        //             "transactionDetails":
-        //                 {
-        //                     "address": "0xb0a64d976972d87b0783eeb1ff88306cd1891f02",
-        //                     "blockchainTxId": "0xec557f2c7278d2dae2d98a27b9bd43f386789a4209090cbbd11595f1bed4a4c2",
-        //                     "swiftUetr": "b55aa5cd-baa2-4122-8c17-ae9b856ae36a"
+        //     {
+        //         "data": [
+        //             {
+        //                 "custodyTransactionId": "0x791fc85f16a84cbd5250d5517ecad497f564d2e5cc54d31466fe70b952fd58da",
+        //                 "direction": "DEPOSIT",
+        //                 "quantity": "150",
+        //                 "symbol": "USDC",
+        //                 "fee": "0",
+        //                 "memo": "0x34625d5f0b6575503a0669994dea24271bfbd443",
+        //                 "createdAtDateTime": "2025-11-04T14:31:17.000Z",
+        //                 "updatedAtDateTime": "2025-11-04T14:44:17.500Z",
+        //                 "status": "COMPLETE",
+        //                 "statusReason": "OK",
+        //                 "network": "ETH",
+        //                 "transactionDetails": {
+        //                     "address": "0x34625d5f0b6575503a0669994dea24271bfbd443",
+        //                     "blockchainTxId": "0x791fc85f16a84cbd5250d5517ecad497f564d2e5cc54d31466fe70b952fd58da",
+        //                     "swiftUetr": null,
+        //                     "sources": [
+        //                         {
+        //                             "address": "0x2653435d52a5f49551ebb757f25b2c8bb954859b"
+        //                         }
+        //                     ]
         //                 }
-        //         }
-        //     ]
+        //             }
+        //         ],
+        //         "links": {
+        //             "previous": null,
+        //             "next": null
+        //         },
+        //         "totalCount": 1
+        //     }
         //
+        const data = this.safeList (response, 'data', []);
         let currency = undefined;
-        for (let i = 0; i < response.length; i++) {
-            const transaction = response[i];
-            const currencyId = this.safeString (transaction, 'symbol');
-            currency = this.safeCurrencyCode (currencyId);
+        if (code !== undefined) {
+            currency = this.currency (code);
         }
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     /**
@@ -1742,33 +1756,44 @@ export default class bullish extends Exchange {
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
-        //         "custodyTransactionId": "DB:9e6304a08c9cc2a33e6bc6429a088eae2a6b940c8e312aede3a3780257b9b979",
+        //         "custodyTransactionId": "0x791fc85f16a84cbd5250d5517ecad497f564d2e5cc54d31466fe70b952fd58da",
         //         "direction": "DEPOSIT",
-        //         "quantity": "100000.00",
+        //         "quantity": "150",
         //         "symbol": "USDC",
-        //         "network": "EOS",
-        //         "fee": "3.00",
-        //         "memo": "925891241",
-        //         "createdAtDateTime": "2022-09-16T07:56:15.000Z",
+        //         "fee": "0",
+        //         "memo": "0x34625d5f0b6575503a0669994dea24271bfbd443",
+        //         "createdAtDateTime": "2025-11-04T14:31:17.000Z",
+        //         "updatedAtDateTime": "2025-11-04T14:44:17.500Z",
         //         "status": "COMPLETE",
-        //         "transactionDetails":
-        //             {
-        //                 "address": "0xb0a64d976972d87b0783eeb1ff88306cd1891f02",
-        //                 "blockchainTxId": "0xec557f2c7278d2dae2d98a27b9bd43f386789a4209090cbbd11595f1bed4a4c2",
-        //                 "swiftUetr": "b55aa5cd-baa2-4122-8c17-ae9b856ae36a"
-        //             }
+        //         "statusReason": "OK",
+        //         "network": "ETH",
+        //         "transactionDetails": {
+        //             "address": "0x34625d5f0b6575503a0669994dea24271bfbd443",
+        //             "blockchainTxId": "0x791fc85f16a84cbd5250d5517ecad497f564d2e5cc54d31466fe70b952fd58da",
+        //             "swiftUetr": null,
+        //             "sources": [
+        //                 {
+        //                     "address": "0x2653435d52a5f49551ebb757f25b2c8bb954859b"
+        //                 }
+        //             ]
+        //         }
         //     }
         //
         const id = this.safeString (transaction, 'custodyTransactionId');
         const type = this.safeString (transaction, 'direction');
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAtDateTime'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedAtDateTime'));
         const network = this.safeString (transaction, 'network');
         const transactionDetails = this.safeDict (transaction, 'transactionDetails');
+        const txid = this.safeString (transactionDetails, 'blockchainTxId');
         const address = this.safeString (transactionDetails, 'address');
         const amount = this.safeNumber (transaction, 'quantity');
         const currencyId = this.safeString (transaction, 'symbol');
-        const code = this.safeCurrencyCode (currencyId);
+        const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.safeString (transaction, 'status');
+        const sources = this.safeList (transactionDetails, 'sources', []);
+        const source = this.safeDict (sources, 0, {});
+        const sourceAddress = this.safeString (source, 'address');
         const fee = {
             'currency': undefined,
             'cost': undefined,
@@ -1777,22 +1802,22 @@ export default class bullish extends Exchange {
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee['cost'] = feeCost;
-            fee['currency'] = currency['code'];
+            fee['currency'] = code;
         }
         return {
             'id': id,
-            'txid': undefined,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
-            'addressFrom': undefined,
+            'network': this.networkIdToCode (network),
+            'addressFrom': sourceAddress,
             'address': address,
-            'addressTo': undefined,
+            'addressTo': address,
             'amount': amount,
             'type': this.parseTransactionType (type),
             'currency': code,
             'status': this.parseTransactionStatus (status),
-            'updated': undefined,
+            'updated': updated,
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
@@ -2167,7 +2192,6 @@ export default class bullish extends Exchange {
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
-        // todo add pagination support
         let request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
