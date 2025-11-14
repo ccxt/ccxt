@@ -1889,6 +1889,18 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "futures 2h candle",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/mix/market/candles?symbol=BTCUSDT&granularity=2H&limit=10&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "2h",
+                    null,
+                    10
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch 3min candles",
                 "method": "fetchOHLCV",
                 "url": "https://api.bitget.com/api/v2/spot/market/candles?symbol=BTCUSDT&granularity=3min&limit=100",
