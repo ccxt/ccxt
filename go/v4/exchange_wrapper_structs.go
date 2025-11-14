@@ -5656,6 +5656,39 @@ func WithFetchOrdersWithMethodParams(params map[string]interface{}) FetchOrdersW
 	}
 }
 
+type FetchTransactionsHelperOptionsStruct struct {
+	Code   *string
+	Since  *int64
+	Limit  *int64
+	Params *map[string]interface{}
+}
+
+type FetchTransactionsHelperOptions func(opts *FetchTransactionsHelperOptionsStruct)
+
+func WithFetchTransactionsHelperCode(code string) FetchTransactionsHelperOptions {
+	return func(opts *FetchTransactionsHelperOptionsStruct) {
+		opts.Code = &code
+	}
+}
+
+func WithFetchTransactionsHelperSince(since int64) FetchTransactionsHelperOptions {
+	return func(opts *FetchTransactionsHelperOptionsStruct) {
+		opts.Since = &since
+	}
+}
+
+func WithFetchTransactionsHelperLimit(limit int64) FetchTransactionsHelperOptions {
+	return func(opts *FetchTransactionsHelperOptionsStruct) {
+		opts.Limit = &limit
+	}
+}
+
+func WithFetchTransactionsHelperParams(params map[string]interface{}) FetchTransactionsHelperOptions {
+	return func(opts *FetchTransactionsHelperOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchNetworkDepositAddressOptionsStruct struct {
 	Params *map[string]interface{}
 }
@@ -6216,39 +6249,6 @@ func WithFetchLedgerByEntriesLimit(limit interface{}) FetchLedgerByEntriesOption
 
 func WithFetchLedgerByEntriesParams(params map[string]interface{}) FetchLedgerByEntriesOptions {
 	return func(opts *FetchLedgerByEntriesOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type FetchTransactionsHelperOptionsStruct struct {
-	Code   *string
-	Since  *int64
-	Limit  *int64
-	Params *map[string]interface{}
-}
-
-type FetchTransactionsHelperOptions func(opts *FetchTransactionsHelperOptionsStruct)
-
-func WithFetchTransactionsHelperCode(code string) FetchTransactionsHelperOptions {
-	return func(opts *FetchTransactionsHelperOptionsStruct) {
-		opts.Code = &code
-	}
-}
-
-func WithFetchTransactionsHelperSince(since int64) FetchTransactionsHelperOptions {
-	return func(opts *FetchTransactionsHelperOptionsStruct) {
-		opts.Since = &since
-	}
-}
-
-func WithFetchTransactionsHelperLimit(limit int64) FetchTransactionsHelperOptions {
-	return func(opts *FetchTransactionsHelperOptionsStruct) {
-		opts.Limit = &limit
-	}
-}
-
-func WithFetchTransactionsHelperParams(params map[string]interface{}) FetchTransactionsHelperOptions {
-	return func(opts *FetchTransactionsHelperOptionsStruct) {
 		opts.Params = &params
 	}
 }
