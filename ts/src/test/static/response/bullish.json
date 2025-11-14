@@ -2,9 +2,68 @@
     "exchange": "bullish",
     "skipKeys": [],
     "options": {
+        "tradingAccountId": "123456789",
         "tokenExpires": 9999999999999
     },
     "methods": {
+        "createTriggerOrder": [
+            {
+                "description": "Create spot trigger order",
+                "method": "createTriggerOrder",
+                "input": [
+                    "USDT/USDC",
+                    "limit",
+                    "buy",
+                    20,
+                    0.5,
+                    1.2
+                ],
+                "httpResponse": {
+                    "message": "Command acknowledged - CreateOrder",
+                    "requestId": "909340721248994304",
+                    "orderId": "909340721248994305",
+                    "clientOrderId": null
+                },
+                "parsedResponse": {
+                    "id": "909340721248994305",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "USDT/USDC",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {},
+                    "info": {
+                        "message": "Command acknowledged - CreateOrder",
+                        "requestId": "909340721248994304",
+                        "orderId": "909340721248994305",
+                        "clientOrderId": null
+                    },
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "Fetch trades with since and until",
@@ -306,53 +365,108 @@
         ],
         "cancelAllOrders": [
             {
+                "description": "Cancel all orders for ETH/USDT market",
+                "method": "cancelAllOrders",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "httpResponse": {
+                    "message": "Command acknowledged - CancelAllOrdersByMarket",
+                    "requestId": "909338410812441600",
+                    "orderId": null,
+                    "clientOrderId": null
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": null,
+                        "symbol": "ETH/USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "trades": [],
+                        "fee": {},
+                        "info": {
+                            "message": "Command acknowledged - CancelAllOrdersByMarket",
+                            "requestId": "909338410812441600",
+                            "orderId": null,
+                            "clientOrderId": null
+                        },
+                        "average": null,
+                        "fees": [
+                            {
+                                "cost": null
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
                 "description": "Cancel all orders",
                 "method": "cancelAllOrders",
                 "input": [],
                 "httpResponse": {
                     "message": "Command acknowledged - CancelAllOrders",
-                    "requestId": "847514682357448704",
+                    "requestId": "909335685865406464",
                     "orderId": null,
                     "clientOrderId": null
                 },
-                "parsedResponse": {
-                    "id": null,
-                    "clientOrderId": null,
-                    "timestamp": null,
-                    "datetime": null,
-                    "lastTradeTimestamp": null,
-                    "status": null,
-                    "symbol": null,
-                    "type": null,
-                    "timeInForce": null,
-                    "postOnly": null,
-                    "side": null,
-                    "price": null,
-                    "triggerPrice": null,
-                    "amount": null,
-                    "filled": null,
-                    "remaining": null,
-                    "cost": null,
-                    "trades": [],
-                    "fee": {},
-                    "info": {
-                        "message": "Command acknowledged - CancelAllOrders",
-                        "requestId": "847514682357448704",
-                        "orderId": null,
-                        "clientOrderId": null
-                    },
-                    "average": null,
-                    "fees": [
-                        {
-                            "cost": null
-                        }
-                    ],
-                    "lastUpdateTimestamp": null,
-                    "reduceOnly": null,
-                    "stopPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
-                }
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": null,
+                        "symbol": null,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "trades": [],
+                        "fee": {},
+                        "info": {
+                            "message": "Command acknowledged - CancelAllOrders",
+                            "requestId": "909335685865406464",
+                            "orderId": null,
+                            "clientOrderId": null
+                        },
+                        "average": null,
+                        "fees": [
+                            {
+                                "cost": null
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
             }
         ],
         "cancelOrder": [
@@ -514,7 +628,65 @@
         ],
         "createOrder": [
             {
-                "description": "Create order",
+                "description": "Create spot limit sell postOnly order",
+                "method": "createOrder",
+                "input": [
+                    "USDT/USDC",
+                    "limit",
+                    "sell",
+                    20,
+                    2,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "httpResponse": {
+                    "message": "Command acknowledged - CreateOrder",
+                    "requestId": "909325222523961344",
+                    "orderId": "909325222523961345",
+                    "clientOrderId": null
+                },
+                "parsedResponse": {
+                    "id": "909325222523961345",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "USDT/USDC",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {},
+                    "info": {
+                        "message": "Command acknowledged - CreateOrder",
+                        "requestId": "909325222523961344",
+                        "orderId": "909325222523961345",
+                        "clientOrderId": null
+                    },
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "Create spot market buy order",
                 "method": "createOrder",
                 "input": [
                     "BTC/USDC",
