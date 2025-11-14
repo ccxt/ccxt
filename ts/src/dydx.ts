@@ -1518,6 +1518,7 @@ export default class dydx extends Exchange {
      * @see https://docs.dydx.xyz/interaction/trading/#cancel-an-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [params.clientOrderId] client order id used when creating the order
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {float} [params.orderFlags] default is 0, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
@@ -1534,7 +1535,7 @@ export default class dydx extends Exchange {
         }
         await this.loadMarkets ();
         const market: Market = this.market (symbol);
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId');
         if (clientOrderId === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
         }
@@ -1545,7 +1546,7 @@ export default class dydx extends Exchange {
         const orderFlags = this.safeInteger (params, 'orderFlags', defaultOrderFlags);
         let subAccountId = 0;
         [ subAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'subAccountId', subAccountId);
-        params = this.omit (params, [ 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
+        params = this.omit (params, [ 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId' ]);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new InvalidOrder (this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
