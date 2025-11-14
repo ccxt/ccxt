@@ -398,7 +398,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
@@ -442,7 +442,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    async unWatchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async unWatchTrades (symbol: string, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'trade@' + market['id'];
@@ -491,7 +491,7 @@ export default class xt extends xtRest {
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
-    async unWatchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async unWatchOrderBook (symbol: string, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const levels = this.safeString (params, 'levels');
