@@ -21,6 +21,7 @@ export default class xt extends xtRest {
                 'watchTickers': true,
                 'unWatchTickers': true,
                 'watchTrades': true,
+                'unWatchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchBalance': true,
                 'watchOrders': true,
@@ -310,13 +311,13 @@ export default class xt extends xtRest {
     async test () {
         await this.loadMarkets ();
         const client = this.client (this.urls['api']['ws']['spot'] + '/' + 'public');
-        await this.watchOHLCV ('BTC/USDT', '1m');
+        await this.watchTrades ('BTC/USDT');
         console.log ('Subscription after watch <---------------');
         console.log (client.subscriptions);
         console.log ('Cash after watch <---------------');
         console.log (this.tickers);
         this.sleep (2000);
-        await this.unWatchOHLCV ('BTC/USDT', '1m');
+        await this.unWatchTrades ('BTC/USDT');
         console.log ('Subscription after unwatch <---------------');
         console.log (client.subscriptions);
         console.log ('Cash after unwatch <---------------');
@@ -446,6 +447,26 @@ export default class xt extends xtRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+    }
+
+    /**
+     * @method
+     * @name xt#unWatchTrades
+     * @description stops watching the list of most recent trades for a particular symbol
+     * @see https://doc.xt.com/#websocket_publicdealRecord
+     * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+     */
+    async unWatchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const name = 'trade@' + market['id'];
+        const messageHash = 'unsubscribe::' + name;
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTrades', 'trade', market, undefined, params);
     }
 
     /**
