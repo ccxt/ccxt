@@ -1540,11 +1540,13 @@ export default class dydx extends Exchange {
         if (clientOrderId === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
         }
-        if (id !== undefined && id.indexOf ('-') >= 0) {
+        const idString = id.toString ();
+        if (id !== undefined && (idString).indexOf ('-') >= 0) {
             throw new NotSupported (this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
-        const goodTillBlockTimeInSeconds = this.safeInteger (params, 'goodTillBlockTimeInSeconds');
+        let goodTillBlockTimeInSeconds = 2592000;
+        [ goodTillBlockTimeInSeconds, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime = undefined;
         const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger (params, 'orderFlags', defaultOrderFlags);
