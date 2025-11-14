@@ -57,6 +57,9 @@ export default class xcoin extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderTrades': true,
                 'fetchMyTrades': true,
+                'withdraw': true,
+                'fetchTransfers': true,
+                'fetchWithdrawals': true,
             },
             'hostname': 'xcoin.com',
             'urls': {
@@ -2385,26 +2388,6 @@ export default class xcoin extends Exchange {
             'qty': this.amountToPrecision (symbol, amount),
             // 'marketUnit': todo
         };
-        const cost = this.safeNumber (params, 'cost');
-        if (cost !== undefined) {
-            request['marketUnit'] = 'quote_currency';
-        }
-        const isMarketOrder = type === 'market';
-        let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
-        if (postOnly) {
-            request['orderType'] = 'post_only';
-        } else {
-            request['orderType'] = type;
-        }
-        const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
-        if (timeInForce !== 'GTC' && !postOnly) {
-            request['timeInForce'] = timeInForce.toLowerCase ();
-        }
-        const isReduceOnly = this.safeBool (params, 'reduceOnly');
-        if (!market['spot'] && isReduceOnly) {
-            request['reduceOnly'] = true;
-        }
         const triggerPriceTypes = {
             'last': 'last_price',
             'index': 'index_price',
@@ -2458,10 +2441,8 @@ export default class xcoin extends Exchange {
                 'descending': 'falling',
             };
             const triggerOrder = {};
-            const triggerPriceType = this.safeString (params, 'triggerPriceType');
-            if (triggerPriceType !== undefined) {
-                triggerOrder['triggerPriceType'] = this.safeString (triggerPriceTypes, triggerPriceType);
-            }
+            const triggerPriceType = this.safeString (params, 'triggerPriceType', 'last'); // default to last
+            triggerOrder['triggerPriceType'] = this.safeString (triggerPriceTypes, triggerPriceType);
             const triggerDirection = this.safeString (params, 'triggerDirection');
             if (triggerPrice !== undefined) {
                 if (triggerDirection === undefined) {
@@ -2475,15 +2456,43 @@ export default class xcoin extends Exchange {
                     triggerOrder['triggerDirection'] = (side === 'buy') ? 'rising' : 'falling';
                 }
             }
-            request['triggerPrice'] = this.priceToPrecision (symbol, conditionalPrice);
+            triggerOrder['triggerPrice'] = this.priceToPrecision (symbol, conditionalPrice);
+            triggerOrder['triggerOrderType'] = 'market';
             if (type === 'limit') {
-                request['triggerOrderPrice'] = this.priceToPrecision (symbol, price);
+                triggerOrder['triggerOrderPrice'] = this.priceToPrecision (symbol, price);
+                triggerOrder['triggerOrderType'] = 'limit';
             }
+            request['triggerOrder'] = triggerOrder;
         } else {
             if (type === 'limit') {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
         }
+        //
+        const isRegularOrder = !isConditional;
+        const cost = this.safeNumber (params, 'cost');
+        if (cost !== undefined) {
+            request['marketUnit'] = 'quote_currency';
+        }
+        if (isRegularOrder) {
+            const isMarketOrder = type === 'market';
+            let postOnly = false;
+            [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
+            if (postOnly) {
+                request['orderType'] = 'post_only';
+            } else {
+                request['orderType'] = type;
+            }
+            const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
+            if (timeInForce !== 'GTC' && !postOnly) {
+                request['timeInForce'] = timeInForce.toLowerCase ();
+            }
+            const isReduceOnly = this.safeBool (params, 'reduceOnly');
+            if (!market['spot'] && isReduceOnly) {
+                request['reduceOnly'] = true;
+            }
+        }
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerDirection', 'triggerPriceType', 'stopLoss', 'takeProfit' ]);
         return this.extend (request, params);
     }
 
@@ -2765,6 +2774,9 @@ export default class xcoin extends Exchange {
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
         const market = this.market (symbol);
         const orders = [];
         for (let i = 0; i < ids.length; i++) {
