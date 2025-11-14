@@ -165,7 +165,7 @@ export default class dydx extends Exchange {
                         'fills/parentSubaccountNumber': 1,
                         'fundingPayments': 1,
                         'fundingPayments/parentSubaccount': 1,
-                        'height': 1,
+                        'height': 0.1,
                         'historical-pnl': 1,
                         'historical-pnl/parentSubaccountNumber': 1,
                         'historicalBlockTradingRewards/{address}': 1,
@@ -1541,7 +1541,7 @@ export default class dydx extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
         }
         const idString = id.toString ();
-        if (id !== undefined && (idString).indexOf ('-') >= 0) {
+        if (id !== undefined && (idString).indexOf ('-') > -1) {
             throw new NotSupported (this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
@@ -1565,8 +1565,8 @@ export default class dydx extends Exchange {
             }
             goodTillBlockTime = this.seconds () + goodTillBlockTimeInSeconds;
         } else {
-            const latestBlockHeight = await this.fetchLatestBlockHeight ();
             if (goodTillBlock === undefined) {
+                const latestBlockHeight = await this.fetchLatestBlockHeight ();
                 goodTillBlock = latestBlockHeight + 20;
             }
         }
