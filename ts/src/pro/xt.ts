@@ -190,9 +190,7 @@ export default class xt extends xtRest {
         const tradeType = isContract ? 'contract' : 'spot';
         let messageHash = name + '::' + tradeType;
         if (symbols !== undefined) {
-            if (methodName !== 'watchTickers') {
-                messageHash = messageHash + '::' + symbols.join (',');
-            }
+            messageHash = messageHash + '::' + symbols.join (',');
         }
         const request = this.extend (subscribe, params);
         let tail = access;
@@ -361,7 +359,11 @@ export default class xt extends xtRest {
             throw new NotSupported (this.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
         const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
+        const tickers = await this.unSubscribe (messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     /**
