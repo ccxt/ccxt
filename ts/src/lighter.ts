@@ -2,7 +2,7 @@
 import Exchange from './abstract/lighter.js';
 import { ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, int, Market, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -126,18 +126,15 @@ export default class lighter extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1',
-                '5m': '5',
-                '15m': '15',
-                '30m': '30',
-                '1h': '60',
-                '2h': '120',
-                '4h': '240',
-                '6h': '360',
-                '12h': '720',
-                '1d': 'D',
-                '1w': 'W',
-                '1M': 'M',
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '4h': '4h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
@@ -285,7 +282,7 @@ export default class lighter extends Exchange {
         //
         const status = this.safeString (response, 'status');
         return {
-            'status': status === '200' ? 'ok' : 'error', // if there's no Errors, status = 'ok'
+            'status': (status === '200') ? 'ok' : 'error', // if there's no Errors, status = 'ok'
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -383,8 +380,6 @@ export default class lighter extends Exchange {
             const amountPrecision = (amountDecimals === undefined) ? undefined : this.parseNumber (this.parsePrecision (amountDecimals));
             const pricePrecision = (priceDecimals === undefined) ? undefined : this.parseNumber (this.parsePrecision (priceDecimals));
             const quoteMultiplier = this.safeNumber (market, 'quote_multiplier');
-            const minInitialMarginFraction = this.safeNumber (market, 'min_initial_margin_fraction');
-            const leverageMax = (minInitialMarginFraction === undefined) ? undefined : this.parseNumber (this.numberToString (10000 / minInitialMarginFraction));
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -418,7 +413,7 @@ export default class lighter extends Exchange {
                 'limits': {
                     'leverage': {
                         'min': undefined,
-                        'max': leverageMax,
+                        'max': undefined,
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'min_base_amount'),
@@ -651,6 +646,107 @@ export default class lighter extends Exchange {
         const response = await this.publicGetOrderBookDetails (params);
         const tickers = this.safeList (response, 'order_book_details', []);
         return this.parseTickers (tickers, symbols);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "timestamp": 1763001300000,
+        //         "open": 3438.49,
+        //         "high": 3445.58,
+        //         "low": 3435.38,
+        //         "close": 3439.19,
+        //         "open_raw": 0,
+        //         "high_raw": 0,
+        //         "low_raw": 0,
+        //         "close_raw": 0,
+        //         "volume0": 1253.4977,
+        //         "volume1": 4314077.600513,
+        //         "last_trade_id": 464354353
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 'timestamp'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume0'),
+        ];
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://apidocs.lighter.xyz/reference/candlesticks
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
+        const now = this.milliseconds ();
+        let startTs = undefined;
+        let endTs = undefined;
+        if (since !== undefined) {
+            startTs = since;
+            if (until !== undefined) {
+                endTs = until;
+            } else if (limit !== undefined) {
+                const duration = this.parseTimeframe (timeframe);
+                endTs = this.sum (since, duration * limit * 1000);
+            } else {
+                endTs = now;
+            }
+        } else {
+            endTs = (until !== undefined) ? until : now;
+            const defaultLimit = 100;
+            if (limit !== undefined) {
+                startTs = endTs - this.parseTimeframe (timeframe) * 1000 * limit;
+            } else {
+                startTs = endTs - this.parseTimeframe (timeframe) * 1000 * defaultLimit;
+            }
+        }
+        const request: Dict = {
+            'market_id': market['id'],
+            'count_back': 0,
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
+            'start_timestamp': startTs,
+            'end_timestamp': endTs,
+        };
+        const response = await this.publicGetCandlesticks (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "resolution": "5m",
+        //         "candlesticks": [
+        //             {
+        //                 "timestamp": 1763001300000,
+        //                 "open": 3438.49,
+        //                 "high": 3445.58,
+        //                 "low": 3435.38,
+        //                 "close": 3439.19,
+        //                 "open_raw": 0,
+        //                 "high_raw": 0,
+        //                 "low_raw": 0,
+        //                 "close_raw": 0,
+        //                 "volume0": 1253.4977,
+        //                 "volume1": 4314077.600513,
+        //                 "last_trade_id": 464354353
+        //             }
+        //         ]
+        //     }
+        //
+        const ohlcvs = this.safeValue (response, 'candlesticks', []);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

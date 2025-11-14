@@ -120,7 +120,7 @@
                         "limits": {
                             "leverage": {
                                 "min": null,
-                                "max": 50
+                                "max": null
                             },
                             "amount": {
                                 "min": 0.005,
@@ -454,6 +454,48 @@
                         }
                     }
                 }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "1m",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "resolution": "1m",
+                    "candlesticks": [
+                        {
+                            "timestamp": 1763090460000,
+                            "open": 3223.32,
+                            "high": 3224.61,
+                            "low": 3221.1,
+                            "close": 3223.56,
+                            "open_raw": 0,
+                            "high_raw": 0,
+                            "low_raw": 0,
+                            "close_raw": 0,
+                            "volume0": 183.81289999999998,
+                            "volume1": 592414.835547,
+                            "last_trade_id": 476396604
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1763090460000,
+                        3223.32,
+                        3224.61,
+                        3221.1,
+                        3223.56,
+                        183.81289999999998
+                    ]
+                ]
             }
         ]
     }
