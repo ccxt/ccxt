@@ -14,6 +14,7 @@ export default class xt extends xtRest {
             'has': {
                 'ws': true,
                 'watchOHLCV': true,
+                'unWatchOHLCV': true,
                 'watchOrderBook': true,
                 'watchTicker': true,
                 'unWatchTicker': true,
@@ -286,7 +287,7 @@ export default class xt extends xtRest {
     /**
      * @method
      * @name xt#unWatchTicker
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://doc.xt.com/#websocket_publictickerRealTime
      * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
      * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
@@ -309,13 +310,13 @@ export default class xt extends xtRest {
     async test () {
         await this.loadMarkets ();
         const client = this.client (this.urls['api']['ws']['spot'] + '/' + 'public');
-        await this.watchTickers ();
+        await this.watchOHLCV ('BTC/USDT', '1m');
         console.log ('Subscription after watch <---------------');
         console.log (client.subscriptions);
         console.log ('Cash after watch <---------------');
         console.log (this.tickers);
         this.sleep (2000);
-        await this.unWatchTickers ();
+        await this.unWatchOHLCV ('BTC/USDT', '1m');
         console.log ('Subscription after unwatch <---------------');
         console.log (client.subscriptions);
         console.log ('Cash after unwatch <---------------');
@@ -353,7 +354,7 @@ export default class xt extends xtRest {
     /**
      * @method
      * @name xt#unWatchTickers
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://doc.xt.com/#websocket_publicallTicker
      * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
      * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
@@ -400,6 +401,28 @@ export default class xt extends xtRest {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name xt#unWatchOHLCV
+     * @description stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://doc.xt.com/#websocket_publicsymbolKline
+     * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
+     * @param {int} [since] not used by xt watchOHLCV
+     * @param {int} [limit] not used by xt watchOHLCV
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const name = 'kline@' + market['id'] + ',' + timeframe;
+        const messageHash = 'unsubscribe::' + name;
+        params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOHLCV', 'kline', market, undefined, params);
     }
 
     /**
