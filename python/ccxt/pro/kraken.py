@@ -1176,8 +1176,7 @@ class kraken(ccxt.async_support.kraken):
         :param dict [params]: maximum number of orderic to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['snap_orders'] = True
-        return await self.watch_private('orders', symbol, since, limit, params)
+        return await self.watch_private('orders', symbol, since, limit, self.extend(params, {'snap_orders': True}))
 
     def handle_orders(self, client: Client, message, subscription=None):
         #
@@ -1233,7 +1232,8 @@ class kraken(ccxt.async_support.kraken):
                     if first['id'] in symbolsByOrderId:
                         del symbolsByOrderId[first['id']]
                 stored.append(newOrder)
-                symbols[symbol] = True
+                if symbol is not None:
+                    symbols[symbol] = True
             name = 'orders'
             client.resolve(self.orders, name)
             keys = list(symbols.keys())
