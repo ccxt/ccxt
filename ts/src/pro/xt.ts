@@ -16,6 +16,7 @@ export default class xt extends xtRest {
                 'watchOHLCV': true,
                 'unWatchOHLCV': true,
                 'watchOrderBook': true,
+                'unWatchOrderBook': true,
                 'watchTicker': true,
                 'unWatchTicker': true,
                 'watchTickers': true,
@@ -311,13 +312,13 @@ export default class xt extends xtRest {
     async test () {
         await this.loadMarkets ();
         const client = this.client (this.urls['api']['ws']['spot'] + '/' + 'public');
-        await this.watchTrades ('BTC/USDT');
+        await this.watchOrderBook ('BTC/USDT');
         console.log ('Subscription after watch <---------------');
         console.log (client.subscriptions);
         console.log ('Cash after watch <---------------');
         console.log (this.tickers);
         this.sleep (2000);
-        await this.unWatchTrades ('BTC/USDT');
+        await this.unWatchOrderBook ('BTC/USDT');
         console.log ('Subscription after unwatch <---------------');
         console.log (client.subscriptions);
         console.log ('Cash after unwatch <---------------');
@@ -494,6 +495,33 @@ export default class xt extends xtRest {
         }
         const orderbook = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, params);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name xt#unWatchOrderBook
+     * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://doc.xt.com/#websocket_publiclimitDepth
+     * @see https://doc.xt.com/#websocket_publicincreDepth
+     * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
+     * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] not used by xt watchOrderBook
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {int} [params.levels] 5, 10, 20, or 50
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const levels = this.safeString (params, 'levels');
+        params = this.omit (params, 'levels');
+        let name = 'depth_update@' + market['id'];
+        if (levels !== undefined) {
+            name = 'depth@' + market['id'] + ',' + levels;
+        }
+        const messageHash = 'unsubscribe::' + name;
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOrderBook', 'depth', market, undefined, params);
     }
 
     /**
