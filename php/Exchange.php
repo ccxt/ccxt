@@ -394,6 +394,7 @@ class Exchange {
         'deribit',
         'derive',
         'digifinex',
+        'dydx',
         'exmo',
         'fmfwio',
         'foxbit',
@@ -856,6 +857,11 @@ class Exchange {
         if (preg_match_all('/{([\w-]+)}/u', $string, $matches)) {
             return $matches[1];
         }
+    }
+
+
+    public static function uuid5($namesp, $name) {
+        return "";
     }
 
     public static function implode_params($string, $params) {
@@ -2359,8 +2365,44 @@ class Exchange {
     }
 
     public function get_zk_transfer_signature_obj($seed, $params) {
-         throw new NotSupported ('Apex currently does not support transfer asset in PHP language');
-         return "";
+        throw new NotSupported ('Apex currently does not support transfer asset in PHP language');
+        return "";
+    }
+
+    public function load_dydx_protos () {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function to_dydx_long ($numStr) {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function retrieve_dydx_credentials ($entropy) {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function encode_dydx_tx_for_simulation (
+        $message,
+        $memo,
+        $sequence,
+        $publicKey
+    ) {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function encode_dydx_tx_for_signing (
+        $message,
+        $memo,
+        $chainId,
+        $account,
+        $authenticators,
+        $fee
+    ) {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function encode_dydx_tx_raw ($signDoc, $signature) {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
     }
 
     // ########################################################################
