@@ -187,7 +187,9 @@ export default class xt extends xtRest {
         const tradeType = isContract ? 'contract' : 'spot';
         let messageHash = name + '::' + tradeType;
         if (symbols !== undefined) {
-            messageHash = messageHash + '::' + symbols.join (',');
+            if (methodName !== 'watchTickers') {
+                messageHash = messageHash + '::' + symbols.join (',');
+            }
         }
         const request = this.extend (subscribe, params);
         let tail = access;
@@ -307,7 +309,7 @@ export default class xt extends xtRest {
     async test () {
         await this.loadMarkets ();
         const client = this.client (this.urls['api']['ws']['spot'] + '/' + 'public');
-        await this.watchTickers ( [ 'BTC/USDT', 'ETH/USDT' ] );
+        await this.watchTickers ();
         console.log ('Subscription after watch <---------------');
         console.log (client.subscriptions);
         console.log ('Cash after watch <---------------');
