@@ -1541,7 +1541,7 @@ export default class dydx extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
         }
         const idString = id.toString ();
-        if (id !== undefined && (idString).indexOf ('-') > -1) {
+        if (id !== undefined && idString.indexOf ('-') > -1) {
             throw new NotSupported (this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
