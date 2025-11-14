@@ -120,6 +120,7 @@ from ccxt.async_support.delta import delta                                      
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
 from ccxt.async_support.derive import derive                                    # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
+from ccxt.async_support.dydx import dydx                                        # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
@@ -229,6 +230,7 @@ exchanges = [
     'deribit',
     'derive',
     'digifinex',
+    'dydx',
     'exmo',
     'fmfwio',
     'foxbit',
