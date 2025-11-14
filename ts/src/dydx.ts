@@ -1518,8 +1518,8 @@ export default class dydx extends Exchange {
      * @see https://docs.dydx.xyz/interaction/trading/#cancel-an-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
-     * @param {string} [params.clientOrderId] client order id used when creating the order
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id used when creating the order
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {float} [params.orderFlags] default is 0, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
