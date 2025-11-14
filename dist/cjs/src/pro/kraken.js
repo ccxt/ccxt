@@ -1243,8 +1243,7 @@ class kraken extends kraken$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['snap_orders'] = true;
-        return await this.watchPrivate('orders', symbol, since, limit, params);
+        return await this.watchPrivate('orders', symbol, since, limit, this.extend(params, { 'snap_orders': true }));
     }
     handleOrders(client, message, subscription = undefined) {
         //
@@ -1304,7 +1303,9 @@ class kraken extends kraken$1["default"] {
                     }
                 }
                 stored.append(newOrder);
-                symbols[symbol] = true;
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
             const name = 'orders';
             client.resolve(this.orders, name);
