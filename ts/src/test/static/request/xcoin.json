@@ -5,6 +5,90 @@
     ],
     "outputType": "json",
     "methods": {
+        "cancelOrder": [
+            {
+                "description": "cancelOrder symbol perp",
+                "method": "cancelOrder",
+                "url": "https://api.xcoin.com/api/v1/trade/cancelOrder",
+                "input": [
+                    "1439048430399856640",
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"orderId\":\"1439048430399856640\",\"symbol\":\"ETH-USDT-PERP\"}"
+            },
+            {
+                "description": "cancelOrder symbol spot",
+                "method": "cancelOrder",
+                "url": "https://api.xcoin.com/api/v1/trade/cancelOrder",
+                "input": [
+                    "1439048430332784640",
+                    "ETH/USDT"
+                ],
+                "output": "{\"orderId\":\"1439048430332784640\",\"symbol\":\"ETH-USDT\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/address?currency=BTC",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress ETH on ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/address?currency=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/address?currency=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/address?currency=USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.xcoin.com/api/v1/asset/deposit/address?currency=USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "fetchPositions with symbols",
