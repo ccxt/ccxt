@@ -507,6 +507,10 @@ export default class xcoin extends Exchange {
             marketType = 'swap';
             subType = 'linear';
             symbol = symbol + ':' + settle;
+        } else if (businessType === 'linear_futures') {
+            marketType = 'future';
+            subType = 'linear';
+            symbol = symbol + ':' + settle;
         } else if (businessType === 'options') {
             marketType = 'option';
             subType = 'linear';

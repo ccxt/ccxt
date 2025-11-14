@@ -5,6 +5,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchStatus": [
+            {
+                "description": "fetchStatus no args",
+                "method": "fetchStatus",
+                "url": "",
+                "input": [
+                    ""
+                ],
+                "output": null
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "fetchPositions with symbols",
