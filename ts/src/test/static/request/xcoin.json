@@ -5,6 +5,37 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders symbol perp",
+                "method": "fetchClosedOrders",
+                "url": "https://api.xcoin.com/api/v2/history/orders?symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchClosedOrders symbol spot",
+                "method": "fetchClosedOrders",
+                "url": "https://api.xcoin.com/api/v2/history/orders?symbol=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchClosedOrders no args",
+                "method": "fetchClosedOrders",
+                "url": "https://api.xcoin.com/api/v2/history/orders",
+                "input": [],
+                "output": null
+            }
+        ],
         "setLeverage": [
             {
                 "description": "setLeverage 3x",
@@ -531,33 +562,6 @@
                 "output": null
             }
         ],
-        "fetchClosedOrders": [
-            {
-                "description": "fetchClosedOrders symbol perp",
-                "method": "fetchClosedOrders",
-                "url": "https://api.xcoin.com/api/v2/history/orders?symbol=ETH-USDT-PERP",
-                "input": [
-                    "ETH/USDT:USDT"
-                ],
-                "output": null
-            },
-            {
-                "description": "fetchClosedOrders symbol spot",
-                "method": "fetchClosedOrders",
-                "url": "https://api.xcoin.com/api/v2/history/orders?symbol=ETH-USDT",
-                "input": [
-                    "ETH/USDT"
-                ],
-                "output": null
-            },
-            {
-                "description": "fetchClosedOrders no args",
-                "method": "fetchClosedOrders",
-                "url": "https://api.xcoin.com/api/v2/history/orders",
-                "input": [],
-                "output": null
-            }
-        ],
         "fetchBalance": [
             {
                 "description": "fetchBalance type perp",
@@ -614,6 +618,30 @@
             }
         ],
         "fetchTickers": [
+            {
+                "description": "fetchTickers symbols swap",
+                "method": "fetchTickers",
+                "url": "https://api.xcoin.com/api/v1/market/ticker/24hr?symbol=ETH-USDT-PERP%2CADA-USDT-PERP&businessType=linear_perpetual",
+                "input": [
+                    [
+                        "ETH/USDT:USDT",
+                        "ADA/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTickers symbols spot",
+                "method": "fetchTickers",
+                "url": "https://api.xcoin.com/api/v1/market/ticker/24hr?symbol=ETH-USDT%2CADA-USDT&businessType=spot",
+                "input": [
+                    [
+                        "ETH/USDT",
+                        "ADA/USDT"
+                    ]
+                ],
+                "output": null
+            },
             {
                 "description": "fetchTickers symbol perp",
                 "method": "fetchTickers",
