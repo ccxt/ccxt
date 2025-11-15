@@ -195,6 +195,37 @@ export default class xcoin extends Exchange {
                 'fetchLedger': {
                     'defaultType': 'trading', // trading, funding
                 },
+                'networks': {
+                    'BTC': 'btc',
+                    'ETH': 'eth',
+                    'ERC20': 'eth',
+                    'TRX': 'trx',
+                    'TRC20': 'trx',
+                    'BEP20': 'bnb',
+                    'SOL': 'sol',
+                    'XRP': 'xrp',
+                    'DOGE': 'doge',
+                    'LTC': 'ltc',
+                    'NEAR': 'near',
+                    'FIL': 'fil',
+                    'ARBONE': 'arb',
+                    'BASE': 'base',
+                    'DOT': 'dot',
+                    'ICP': 'icp',
+                    'ADA': 'ada',
+                    'AVAXC': 'avax',
+                    'ATOM': 'atom',
+                    'BCH': 'bch',
+                    'APT': 'apt',
+                    'SONIC': 'sonic',
+                    'TON': 'ton',
+                    'OPT': 'op',
+                    'SUI': 'sui',
+                    'ETC': 'etc',
+                    'POL': 'pol',
+                    'TIA': 'tia',
+                    'XLM': 'xlm',
+                },
             },
             'features': {
                 'spot': {
@@ -2159,7 +2190,7 @@ export default class xcoin extends Exchange {
     async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
-            'leverage': leverage,
+            'lever': leverage,
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -2241,6 +2272,7 @@ export default class xcoin extends Exchange {
         };
         const request = {
             'marginMode': this.safeString (modes, marginMode, marginMode),
+            'accountMode': this.safeString (modes, marginMode, marginMode),
         };
         const response = await this.privatePostV1AccountMarginModeSet (this.extend (request, params));
         //
@@ -2403,6 +2435,62 @@ export default class xcoin extends Exchange {
         const stopLossDefined = (stopLoss !== undefined);
         const takeProfit = this.safeDict (params, 'takeProfit');
         const takeProfitDefined = (takeProfit !== undefined);
+        // regular order
+        if (!isConditional) {
+            const cost = this.safeNumber (params, 'cost');
+            if (cost !== undefined) {
+                request['marketUnit'] = 'quote_currency';
+            }
+            const isMarketOrder = type === 'market';
+            let postOnly = false;
+            [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
+            if (postOnly) {
+                request['orderType'] = 'post_only';
+            } else {
+                request['orderType'] = type;
+            }
+            const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
+            if (timeInForce !== 'GTC' && !postOnly) {
+                request['timeInForce'] = timeInForce.toLowerCase ();
+            }
+            const isReduceOnly = this.safeBool (params, 'reduceOnly');
+            if (!market['spot'] && isReduceOnly) {
+                request['reduceOnly'] = true;
+            }
+            if (type === 'limit') {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        } else {
+            request['complexType'] = 'trigger';
+            const directionMap = {
+                'ascending': 'rising',
+                'descending': 'falling',
+            };
+            const triggerOrder = {};
+            const triggerPriceType = this.safeString (params, 'triggerPriceType', 'last'); // default to last
+            triggerOrder['triggerPriceType'] = this.safeString (triggerPriceTypes, triggerPriceType);
+            const triggerDirection = this.safeString (params, 'triggerDirection');
+            if (triggerPrice !== undefined) {
+                if (triggerDirection === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a "triggerDirection" parameter for trigger orders');
+                }
+                triggerOrder['triggerDirection'] = this.safeString (directionMap, triggerDirection);
+            } else {
+                if (stopLossPrice !== undefined) {
+                    triggerOrder['triggerDirection'] = (side === 'buy') ? 'falling' : 'rising';
+                } else if (takeProfitPrice !== undefined) {
+                    triggerOrder['triggerDirection'] = (side === 'buy') ? 'rising' : 'falling';
+                }
+            }
+            triggerOrder['triggerPrice'] = this.priceToPrecision (symbol, conditionalPrice);
+            triggerOrder['triggerOrderType'] = 'market';
+            if (type === 'limit') {
+                triggerOrder['triggerOrderPrice'] = this.priceToPrecision (symbol, price);
+                triggerOrder['triggerOrderType'] = 'limit';
+            }
+            request['triggerOrder'] = triggerOrder;
+        }
+        // if attached SL/TP
         if (stopLossDefined || takeProfitDefined) {
             const tpslOrder: Dict = {};
             // stop-loss
@@ -2432,65 +2520,6 @@ export default class xcoin extends Exchange {
                 }
             }
             request['tpslOrder'] = tpslOrder;
-        }
-        // trigger order
-        if (isConditional) {
-            request['complexType'] = 'trigger';
-            const directionMap = {
-                'ascending': 'rising',
-                'descending': 'falling',
-            };
-            const triggerOrder = {};
-            const triggerPriceType = this.safeString (params, 'triggerPriceType', 'last'); // default to last
-            triggerOrder['triggerPriceType'] = this.safeString (triggerPriceTypes, triggerPriceType);
-            const triggerDirection = this.safeString (params, 'triggerDirection');
-            if (triggerPrice !== undefined) {
-                if (triggerDirection === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() requires a "triggerDirection" parameter for trigger orders');
-                }
-                triggerOrder['triggerDirection'] = this.safeString (directionMap, triggerDirection);
-            } else {
-                if (stopLossPrice !== undefined) {
-                    triggerOrder['triggerDirection'] = (side === 'buy') ? 'falling' : 'rising';
-                } else if (takeProfitPrice !== undefined) {
-                    triggerOrder['triggerDirection'] = (side === 'buy') ? 'rising' : 'falling';
-                }
-            }
-            triggerOrder['triggerPrice'] = this.priceToPrecision (symbol, conditionalPrice);
-            triggerOrder['triggerOrderType'] = 'market';
-            if (type === 'limit') {
-                triggerOrder['triggerOrderPrice'] = this.priceToPrecision (symbol, price);
-                triggerOrder['triggerOrderType'] = 'limit';
-            }
-            request['triggerOrder'] = triggerOrder;
-        } else {
-            if (type === 'limit') {
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
-        }
-        //
-        const isRegularOrder = !isConditional;
-        const cost = this.safeNumber (params, 'cost');
-        if (cost !== undefined) {
-            request['marketUnit'] = 'quote_currency';
-        }
-        if (isRegularOrder) {
-            const isMarketOrder = type === 'market';
-            let postOnly = false;
-            [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
-            if (postOnly) {
-                request['orderType'] = 'post_only';
-            } else {
-                request['orderType'] = type;
-            }
-            const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
-            if (timeInForce !== 'GTC' && !postOnly) {
-                request['timeInForce'] = timeInForce.toLowerCase ();
-            }
-            const isReduceOnly = this.safeBool (params, 'reduceOnly');
-            if (!market['spot'] && isReduceOnly) {
-                request['reduceOnly'] = true;
-            }
         }
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerDirection', 'triggerPriceType', 'stopLoss', 'takeProfit' ]);
         return this.extend (request, params);

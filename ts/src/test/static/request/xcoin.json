@@ -5,6 +5,39 @@
     ],
     "outputType": "json",
     "methods": {
+        "setLeverage": [
+            {
+                "description": "setLeverage 3x",
+                "method": "setLeverage",
+                "url": "https://api.xcoin.com/api/v1/trade/lever",
+                "input": [
+                    3,
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"lever\":3,\"symbol\":\"ETH-USDT-PERP\"}"
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "setMarginMode cross with symbol",
+                "method": "setMarginMode",
+                "url": "https://api.xcoin.com/api/v1/account/marginModeSet",
+                "input": [
+                    "cross",
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"marginMode\":\"multi_currency\",\"accountMode\":\"multi_currency\"}"
+            },
+            {
+                "description": "setMarginMode cross",
+                "method": "setMarginMode",
+                "url": "https://api.xcoin.com/api/v1/account/marginModeSet",
+                "input": [
+                    "cross"
+                ],
+                "output": "{\"marginMode\":\"multi_currency\",\"accountMode\":\"multi_currency\"}"
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "fetchTransfers with currency",
