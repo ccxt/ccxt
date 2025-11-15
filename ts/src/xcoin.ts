@@ -1281,7 +1281,7 @@ export default class xcoin extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://xcoin.com/docs/coinApi/funding-account/get-funding-account-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.defaultType] "trading" (default), "funding"
+     * @param {string} [params.type] "funding" or "trading" (default)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -2839,7 +2839,9 @@ export default class xcoin extends Exchange {
         //     ],
         //     "ts": "1732158287000"
         //     }
-        return this.parseOrders (response);
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market);
     }
 
     /**
