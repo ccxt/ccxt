@@ -26,6 +26,7 @@ export default class dydx extends Exchange {
             'version': 'v4',
             'certified': false,
             'pro': false,
+            'dex': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
