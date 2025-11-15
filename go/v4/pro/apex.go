@@ -1133,9 +1133,9 @@ func  (this *ApexCore) HandleErrorMessage(client interface{}, message interface{
     //
     //       },
     //       "header":{
-    //           "X-Bapi-ccxt.Limit":"20",
-    //           "X-Bapi-ccxt.Limit-Status":"19",
-    //           "X-Bapi-ccxt.Limit-Reset-Timestamp":"1714236608944",
+    //           "X-Bapi-Limit":"20",
+    //           "X-Bapi-Limit-Status":"19",
+    //           "X-Bapi-Limit-Reset-Timestamp":"1714236608944",
     //           "Traceid":"3d7168a137bf32a947b7e5e6a575ac7f",
     //           "Timenow":"1714236608946"
     //       },

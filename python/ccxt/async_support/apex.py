@@ -1221,14 +1221,14 @@ class apex(Exchange, ImplicitAPI):
 
     def parse_order_type(self, type: Str):
         types: dict = {
-            'LIMIT': 'LIMIT',
-            'MARKET': 'MARKET',
-            'STOP_LIMIT': 'STOP_LIMIT',
-            'STOP_MARKET': 'STOP_MARKET',
-            'TAKE_PROFIT_LIMIT': 'TAKE_PROFIT_LIMIT',
-            'TAKE_PROFIT_MARKET': 'TAKE_PROFIT_MARKET',
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP_LIMIT': 'limit',
+            'STOP_MARKET': 'market',
+            'TAKE_PROFIT_LIMIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
         }
-        return self.safe_string_upper(types, type, type)
+        return self.safe_string(types, type, type)
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         if market is None and marketId is not None:
@@ -1284,6 +1284,8 @@ class apex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
+        :param float [params.stopLossPrice]: The price a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: The price a take profit order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "POST_ONLY"
         :param bool [params.postOnly]: True or False
         :param bool [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
@@ -1299,11 +1301,19 @@ class apex(Exchange, ImplicitAPI):
         if price is not None:
             orderPrice = self.price_to_precision(symbol, price)
         fees = self.safe_dict(self.fees, 'swap', {})
-        taker = self.safe_number(fees, 'taker', 0.0005)
-        maker = self.safe_number(fees, 'maker', 0.0002)
-        limitFee = self.decimal_to_precision(Precise.string_add(Precise.string_mul(Precise.string_mul(orderPrice, orderSize), str(taker)), str(market['precision']['price'])), TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
+        taker = self.safe_string(fees, 'taker', '0.0005')
+        maker = self.safe_string(fees, 'maker', '0.0002')
+        limitFee = self.decimal_to_precision(Precise.string_add(Precise.string_mul(Precise.string_mul(orderPrice, orderSize), taker), self.number_to_string(market['precision']['price'])), TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
         timeNow = self.milliseconds()
-        # triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string(params, 'triggerPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        if stopLossPrice is not None:
+            orderType = 'STOP_MARKET' if (orderType == 'MARKET') else 'STOP_LIMIT'
+            triggerPrice = stopLossPrice
+        elif takeProfitPrice is not None:
+            orderType = 'TAKE_PROFIT_MARKET' if (orderType == 'MARKET') else 'TAKE_PROFIT_LIMIT'
+            triggerPrice = takeProfitPrice
         isMarket = orderType == 'MARKET'
         if isMarket and (price is None):
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for market orders')
@@ -1322,7 +1332,7 @@ class apex(Exchange, ImplicitAPI):
         accountId = await self.get_account_id()
         if clientOrderId is None:
             clientOrderId = self.generate_random_client_id_omni(accountId)
-        params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])
+        params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
         orderToSign = {
             'accountId': accountId,
             'slotId': clientOrderId,
@@ -1331,9 +1341,11 @@ class apex(Exchange, ImplicitAPI):
             'size': orderSize,
             'price': orderPrice,
             'direction': orderSide,
-            'makerFeeRate': str(maker),
-            'takerFeeRate': str(taker),
+            'makerFeeRate': maker,
+            'takerFeeRate': taker,
         }
+        if triggerPrice is not None:
+            orderToSign['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         signature = await self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
         request: dict = {
             'symbol': market['id'],
@@ -1347,6 +1359,8 @@ class apex(Exchange, ImplicitAPI):
             'clientId': clientOrderId,
             'brokerId': self.safe_string(self.options, 'brokerId', '6956'),
         }
+        if triggerPrice is not None:
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['signature'] = signature
         response = await self.privatePostV3Order(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})

@@ -598,11 +598,20 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_broker_asset_query_sub_member_deposit_record($params = array()) {
         return $this->request('v5/broker/asset/query-sub-member-deposit-record', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_v5_earn_product($params = array()) {
+        return $this->request('v5/earn/product', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v5_earn_order($params = array()) {
         return $this->request('v5/earn/order', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_v5_earn_position($params = array()) {
         return $this->request('v5/earn/position', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v5_earn_yield($params = array()) {
+        return $this->request('v5/earn/yield', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v5_earn_hourly_yield($params = array()) {
+        return $this->request('v5/earn/hourly-yield', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_post_spot_v3_private_order($params = array()) {
         return $this->request('spot/v3/private/order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
@@ -849,6 +858,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function private_post_v5_account_repay($params = array()) {
         return $this->request('v5/account/repay', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_v5_account_no_convert_repay($params = array()) {
+        return $this->request('v5/account/no-convert-repay', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_v5_asset_exchange_quote_apply($params = array()) {
         return $this->request('v5/asset/exchange/quote-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -1549,11 +1561,20 @@ abstract class bybit extends \ccxt\Exchange {
     public function privateGetV5BrokerAssetQuerySubMemberDepositRecord($params = array()) {
         return $this->request('v5/broker/asset/query-sub-member-deposit-record', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function privateGetV5EarnProduct($params = array()) {
+        return $this->request('v5/earn/product', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetV5EarnOrder($params = array()) {
         return $this->request('v5/earn/order', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV5EarnPosition($params = array()) {
         return $this->request('v5/earn/position', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5EarnYield($params = array()) {
+        return $this->request('v5/earn/yield', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5EarnHourlyYield($params = array()) {
+        return $this->request('v5/earn/hourly-yield', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privatePostSpotV3PrivateOrder($params = array()) {
         return $this->request('spot/v3/private/order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
@@ -1800,6 +1821,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privatePostV5AccountRepay($params = array()) {
         return $this->request('v5/account/repay', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AccountNoConvertRepay($params = array()) {
+        return $this->request('v5/account/no-convert-repay', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostV5AssetExchangeQuoteApply($params = array()) {
         return $this->request('v5/asset/exchange/quote-apply', 'private', 'POST', $params, null, null, array("cost" => 1));

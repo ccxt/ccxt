@@ -1248,14 +1248,14 @@ class apex extends Exchange {
 
     public function parse_order_type(?string $type) {
         $types = array(
-            'LIMIT' => 'LIMIT',
-            'MARKET' => 'MARKET',
-            'STOP_LIMIT' => 'STOP_LIMIT',
-            'STOP_MARKET' => 'STOP_MARKET',
-            'TAKE_PROFIT_LIMIT' => 'TAKE_PROFIT_LIMIT',
-            'TAKE_PROFIT_MARKET' => 'TAKE_PROFIT_MARKET',
+            'LIMIT' => 'limit',
+            'MARKET' => 'market',
+            'STOP_LIMIT' => 'limit',
+            'STOP_MARKET' => 'market',
+            'TAKE_PROFIT_LIMIT' => 'limit',
+            'TAKE_PROFIT_MARKET' => 'market',
         );
-        return $this->safe_string_upper($types, $type, $type);
+        return $this->safe_string($types, $type, $type);
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
@@ -1325,6 +1325,8 @@ class apex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
+         * @param {float} [$params->stopLossPrice] The $price a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] The $price a take profit order is triggered at
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "POST_ONLY"
          * @param {bool} [$params->postOnly] true or false
          * @param {bool} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1341,11 +1343,20 @@ class apex extends Exchange {
             $orderPrice = $this->price_to_precision($symbol, $price);
         }
         $fees = $this->safe_dict($this->fees, 'swap', array());
-        $taker = $this->safe_number($fees, 'taker', 0.0005);
-        $maker = $this->safe_number($fees, 'maker', 0.0002);
-        $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), (string) $taker), (string) $market['precision']['price']), TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $taker = $this->safe_string($fees, 'taker', '0.0005');
+        $maker = $this->safe_string($fees, 'maker', '0.0002');
+        $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), $taker), $this->number_to_string($market['precision']['price'])), TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
         $timeNow = $this->milliseconds();
-        // $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_string($params, 'triggerPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        if ($stopLossPrice !== null) {
+            $orderType = ($orderType === 'MARKET') ? 'STOP_MARKET' : 'STOP_LIMIT';
+            $triggerPrice = $stopLossPrice;
+        } elseif ($takeProfitPrice !== null) {
+            $orderType = ($orderType === 'MARKET') ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
+            $triggerPrice = $takeProfitPrice;
+        }
         $isMarket = $orderType === 'MARKET';
         if ($isMarket && ($price === null)) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for $market orders');
@@ -1369,7 +1380,7 @@ class apex extends Exchange {
         if ($clientOrderId === null) {
             $clientOrderId = $this->generate_random_client_id_omni($accountId);
         }
-        $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+        $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
         $orderToSign = array(
             'accountId' => $accountId,
             'slotId' => $clientOrderId,
@@ -1378,9 +1389,12 @@ class apex extends Exchange {
             'size' => $orderSize,
             'price' => $orderPrice,
             'direction' => $orderSide,
-            'makerFeeRate' => (string) $maker,
-            'takerFeeRate' => (string) $taker,
+            'makerFeeRate' => $maker,
+            'takerFeeRate' => $taker,
         );
+        if ($triggerPrice !== null) {
+            $orderToSign['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+        }
         $signature = $this->get_zk_contract_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign);
         $request = array(
             'symbol' => $market['id'],
@@ -1394,6 +1408,9 @@ class apex extends Exchange {
             'clientId' => $clientOrderId,
             'brokerId' => $this->safe_string($this->options, 'brokerId', '6956'),
         );
+        if ($triggerPrice !== null) {
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+        }
         $request['signature'] = $signature;
         $response = $this->privatePostV3Order ($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());

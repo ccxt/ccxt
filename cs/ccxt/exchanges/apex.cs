@@ -1285,14 +1285,14 @@ public partial class apex : Exchange
     public virtual object parseOrderType(object type)
     {
         object types = new Dictionary<string, object>() {
-            { "LIMIT", "LIMIT" },
-            { "MARKET", "MARKET" },
-            { "STOP_LIMIT", "STOP_LIMIT" },
-            { "STOP_MARKET", "STOP_MARKET" },
-            { "TAKE_PROFIT_LIMIT", "TAKE_PROFIT_LIMIT" },
-            { "TAKE_PROFIT_MARKET", "TAKE_PROFIT_MARKET" },
+            { "LIMIT", "limit" },
+            { "MARKET", "market" },
+            { "STOP_LIMIT", "limit" },
+            { "STOP_MARKET", "market" },
+            { "TAKE_PROFIT_LIMIT", "limit" },
+            { "TAKE_PROFIT_MARKET", "market" },
         };
-        return this.safeStringUpper(types, type, type);
+        return this.safeString(types, type, type);
     }
 
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
@@ -1376,6 +1376,8 @@ public partial class apex : Exchange
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1396,11 +1398,22 @@ public partial class apex : Exchange
             orderPrice = this.priceToPrecision(symbol, price);
         }
         object fees = this.safeDict(this.fees, "swap", new Dictionary<string, object>() {});
-        object taker = this.safeNumber(fees, "taker", 0.0005);
-        object maker = this.safeNumber(fees, "maker", 0.0002);
-        object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), ((object)taker).ToString()), ((object)getValue(getValue(market, "precision"), "price")).ToString()), TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+        object taker = this.safeString(fees, "taker", "0.0005");
+        object maker = this.safeString(fees, "maker", "0.0002");
+        object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(getValue(getValue(market, "precision"), "price"))), TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
         object timeNow = this.milliseconds();
-        // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        object triggerPrice = this.safeString(parameters, "triggerPrice");
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        if (isTrue(!isEqual(stopLossPrice, null)))
+        {
+            orderType = ((bool) isTrue((isEqual(orderType, "MARKET")))) ? "STOP_MARKET" : "STOP_LIMIT";
+            triggerPrice = stopLossPrice;
+        } else if (isTrue(!isEqual(takeProfitPrice, null)))
+        {
+            orderType = ((bool) isTrue((isEqual(orderType, "MARKET")))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT";
+            triggerPrice = takeProfitPrice;
+        }
         object isMarket = isEqual(orderType, "MARKET");
         if (isTrue(isTrue(isMarket) && isTrue((isEqual(price, null)))))
         {
@@ -1430,7 +1443,7 @@ public partial class apex : Exchange
         {
             clientOrderId = this.generateRandomClientIdOmni(accountId);
         }
-        parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id"});
+        parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"});
         object orderToSign = new Dictionary<string, object>() {
             { "accountId", accountId },
             { "slotId", clientOrderId },
@@ -1439,9 +1452,13 @@ public partial class apex : Exchange
             { "size", orderSize },
             { "price", orderPrice },
             { "direction", orderSide },
-            { "makerFeeRate", ((object)maker).ToString() },
-            { "takerFeeRate", ((object)taker).ToString() },
+            { "makerFeeRate", maker },
+            { "takerFeeRate", taker },
         };
+        if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            ((IDictionary<string,object>)orderToSign)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+        }
         object signature = await this.getZKContractSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1455,6 +1472,10 @@ public partial class apex : Exchange
             { "clientId", clientOrderId },
             { "brokerId", this.safeString(this.options, "brokerId", "6956") },
         };
+        if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+        }
         ((IDictionary<string,object>)request)["signature"] = signature;
         object response = await this.privatePostV3Order(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});

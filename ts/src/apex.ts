@@ -1251,14 +1251,14 @@ export default class apex extends Exchange {
 
     parseOrderType (type: Str) {
         const types: Dict = {
-            'LIMIT': 'LIMIT',
-            'MARKET': 'MARKET',
-            'STOP_LIMIT': 'STOP_LIMIT',
-            'STOP_MARKET': 'STOP_MARKET',
-            'TAKE_PROFIT_LIMIT': 'TAKE_PROFIT_LIMIT',
-            'TAKE_PROFIT_MARKET': 'TAKE_PROFIT_MARKET',
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP_LIMIT': 'limit',
+            'STOP_MARKET': 'market',
+            'TAKE_PROFIT_LIMIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
         };
-        return this.safeStringUpper (types, type, type);
+        return this.safeString (types, type, type);
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
@@ -1327,6 +1327,8 @@ export default class apex extends Exchange {
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1336,7 +1338,7 @@ export default class apex extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orderType = type.toUpperCase ();
+        let orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
         const orderSize = this.amountToPrecision (symbol, amount);
         let orderPrice = '0';
@@ -1344,11 +1346,20 @@ export default class apex extends Exchange {
             orderPrice = this.priceToPrecision (symbol, price);
         }
         const fees = this.safeDict (this.fees, 'swap', {});
-        const taker = this.safeNumber (fees, 'taker', 0.0005);
-        const maker = this.safeNumber (fees, 'maker', 0.0002);
-        const limitFee = this.decimalToPrecision (Precise.stringAdd (Precise.stringMul (Precise.stringMul (orderPrice, orderSize), taker.toString ()), market['precision']['price'].toString ()), TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const taker = this.safeString (fees, 'taker', '0.0005');
+        const maker = this.safeString (fees, 'maker', '0.0002');
+        const limitFee = this.decimalToPrecision (Precise.stringAdd (Precise.stringMul (Precise.stringMul (orderPrice, orderSize), taker), this.numberToString (market['precision']['price'])), TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
         const timeNow = this.milliseconds ();
-        // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        let triggerPrice = this.safeString (params, 'triggerPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if (stopLossPrice !== undefined) {
+            orderType = (orderType === 'MARKET') ? 'STOP_MARKET' : 'STOP_LIMIT';
+            triggerPrice = stopLossPrice;
+        } else if (takeProfitPrice !== undefined) {
+            orderType = (orderType === 'MARKET') ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
+            triggerPrice = takeProfitPrice;
+        }
         const isMarket = orderType === 'MARKET';
         if (isMarket && (price === undefined)) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for market orders');
@@ -1372,7 +1383,7 @@ export default class apex extends Exchange {
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni (accountId);
         }
-        params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
+        params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
         const orderToSign = {
             'accountId': accountId,
             'slotId': clientOrderId,
@@ -1381,9 +1392,12 @@ export default class apex extends Exchange {
             'size': orderSize,
             'price': orderPrice,
             'direction': orderSide,
-            'makerFeeRate': maker.toString (),
-            'takerFeeRate': taker.toString (),
+            'makerFeeRate': maker,
+            'takerFeeRate': taker,
         };
+        if (triggerPrice !== undefined) {
+            orderToSign['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
         const signature = await this.getZKContractSignatureObj (this.remove0xPrefix (this.getSeeds ()), orderToSign);
         const request: Dict = {
             'symbol': market['id'],
@@ -1397,6 +1411,9 @@ export default class apex extends Exchange {
             'clientId': clientOrderId,
             'brokerId': this.safeString (this.options, 'brokerId', '6956'),
         };
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
         request['signature'] = signature;
         const response = await this.privatePostV3Order (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});

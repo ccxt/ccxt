@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var binance = require('./binance.js');
 var binanceus$1 = require('../binanceus.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class binanceus extends binance["default"] {
     describe() {
@@ -37,6 +37,25 @@ class binanceus extends binance["default"] {
                 'referral': 'https://www.binance.us/?ref=35005074',
                 'doc': 'https://github.com/binance-us/binance-official-api-docs',
                 'fees': 'https://www.binance.us/en/fee/schedule',
+            },
+            'has': {
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createReduceOnlyOrderWs': false,
+                'createStopLossOrderWs': false,
+                'createTakeProfitOrderWs': false,
+                'fetchPositionForSymbolWs': false,
+                'fetchPositionsForSymbolWs': false,
+                'fetchPositionsWs': false,
+                'fetchPositionWs': false,
+                'unWatchPositions': false,
+                'watchLiquidations': false,
+                'watchLiquidationsForSymbols': false,
+                'watchMarkPrice': false,
+                'watchMarkPrices': false,
+                'watchMyLiquidations': false,
+                'watchMyLiquidationsForSymbols': false,
+                'watchPosition': false,
+                'watchPositions': false,
             },
             'options': {
                 'fetchCurrencies': false,

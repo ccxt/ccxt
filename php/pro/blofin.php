@@ -528,10 +528,15 @@ class blofin extends \ccxt\async\blofin {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple orders made by the user
+             *
+             * @see https://docs.blofin.com/index.html#ws-order-channel
+             * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] set to true for trigger orders
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             $params['callerMethodName'] = 'watchOrders';
@@ -545,17 +550,22 @@ class blofin extends \ccxt\async\blofin {
             /**
              * watches information on multiple $orders made by the user across multiple $symbols
              *
-             * @see https://docs.blofin.com/index.html#ws-order-channel
+             * @see https://docs.blofin.com/index.html#ws-order-$channel
+             * @see https://docs.blofin.com/index.html#ws-algo-$orders-$channel
              *
              * @param {string[]} $symbols
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] set to true for $trigger $orders
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->authenticate());
             Async\await($this->load_markets());
-            $orders = Async\await($this->watch_multiple_wrapper(false, 'orders', 'watchOrdersForSymbols', $symbols, $params));
+            $trigger = $this->safe_value_2($params, 'stop', 'trigger');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
+            $channel = $trigger ? 'orders-algo' : 'orders';
+            $orders = Async\await($this->watch_multiple_wrapper(false, $channel, 'watchOrdersForSymbols', $symbols, $params));
             if ($this->newUpdates) {
                 $first = $this->safe_value($orders, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -701,7 +711,7 @@ class blofin extends \ccxt\async\blofin {
                 $messageHashes[] = $channelName;
             }
             // private $channel are difference, they only need plural $channel name for multiple $symbols
-            if ($this->in_array($channelName, array( 'orders', 'positions' ))) {
+            if ($this->in_array($channelName, array( 'orders', 'orders-algo', 'positions' ))) {
                 $rawSubscriptions = array( array( 'channel' => $channelName ) );
             }
             $request = $this->get_subscription_request($rawSubscriptions);
@@ -742,6 +752,7 @@ class blofin extends \ccxt\async\blofin {
             // private
             'account' => array($this, 'handle_balance'),
             'orders' => array($this, 'handle_orders'),
+            'orders-algo' => array($this, 'handle_orders'),
             'positions' => array($this, 'handle_positions'),
         );
         $method = null;

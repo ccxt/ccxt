@@ -611,7 +611,11 @@ export default class kraken extends krakenRest {
         //
         const data = this.safeList (message, 'data', []);
         const first = data[0];
-        const symbol = this.safeString (first, 'symbol');
+        const marketId = this.safeString (first, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
         const interval = this.safeInteger (first, 'interval');
         const timeframe = this.findTimeframe (interval);
         const messageHash = this.getMessageHash ('ohlcv', undefined, symbol);
@@ -1263,8 +1267,7 @@ export default class kraken extends krakenRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        params['snap_orders'] = true;
-        return await this.watchPrivate ('orders', symbol, since, limit, params);
+        return await this.watchPrivate ('orders', symbol, since, limit, this.extend (params, { 'snap_orders': true }));
     }
 
     handleOrders (client: Client, message, subscription = undefined) {
@@ -1326,7 +1329,9 @@ export default class kraken extends krakenRest {
                 }
                 this.streamProduce ('orders', newOrder);
                 stored.append (newOrder);
-                symbols[symbol] = true;
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
             const name = 'orders';
             client.resolve (this.orders, name);

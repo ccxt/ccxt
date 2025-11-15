@@ -413,6 +413,7 @@ class bitget extends Exchange {
                             'v2/spot/trade/place-plan-order' => 1,
                             'v2/spot/trade/modify-plan-order' => 1,
                             'v2/spot/trade/cancel-plan-order' => 1,
+                            'v2/spot/trade/cancel-replace-order' => 2,
                             'v2/spot/trade/batch-cancel-plan-order' => 2,
                             'v2/spot/wallet/transfer' => 2,
                             'v2/spot/wallet/subaccount-transfer' => 2,
@@ -1406,6 +1407,7 @@ class bitget extends Exchange {
             'commonCurrencies' => array(
                 'APX' => 'AstroPepeX',
                 'DEGEN' => 'DegenReborn',
+                'EVA' => 'Evadore', // conflict with EverValue Coin
                 'JADE' => 'Jade Protocol',
                 'OMNI' => 'omni', // conflict with Omni Network
                 'TONCOIN' => 'TON',
@@ -1418,6 +1420,7 @@ class bitget extends Exchange {
                     'spot' => array(
                         '1m' => '1min',
                         '5m' => '5min',
+                        '3m' => '3min',
                         '15m' => '15min',
                         '30m' => '30min',
                         '1h' => '1h',
@@ -1480,6 +1483,7 @@ class bitget extends Exchange {
                         '15m' => 30,
                         '30m' => 30,
                         '1h' => 60,
+                        '2h' => 120,
                         '4h' => 240,
                         '6h' => 360,
                         '12h' => 720,
@@ -2456,15 +2460,26 @@ class bitget extends Exchange {
             $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
             for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
-                $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
+                $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
                 $code = $this->safe_currency_code($id);
                 $chains = $this->safe_value($entry, 'chains', array());
                 $networks = array();
-                for ($j = 0; $j < count($chains); $j++) {
+                $withdraw = null;
+                $deposit = null;
+                $chainsLength = count($chains);
+                if ($chainsLength === 0) {
+                    $withdraw = false;
+                    $deposit = false;
+                }
+                for ($j = 0; $j < $chainsLength; $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
                     $network = $this->network_id_to_code($networkId, $code);
                     $network = strtoupper($network);
+                    $withdrawable = ($this->safe_string($chain, 'withdrawable') === 'true');
+                    $rechargeable = ($this->safe_string($chain, 'rechargeable') === 'true');
+                    $withdraw = ($withdraw === null) ? $withdrawable : ($withdraw || $withdrawable);
+                    $deposit = ($deposit === null) ? $rechargeable : ($deposit || $rechargeable);
                     $networks[$network] = array(
                         'info' => $chain,
                         'id' => $networkId,
@@ -2480,12 +2495,13 @@ class bitget extends Exchange {
                             ),
                         ),
                         'active' => null,
-                        'withdraw' => $this->safe_string($chain, 'withdrawable') === 'true',
-                        'deposit' => $this->safe_string($chain, 'rechargeable') === 'true',
+                        'withdraw' => $withdrawable,
+                        'deposit' => $rechargeable,
                         'fee' => $this->safe_number($chain, 'withdrawFee'),
                         'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawMinScale'))),
                     );
                 }
+                $active = $withdraw && $deposit;
                 $isFiat = $this->in_array($code, $fiatCurrencies);
                 $result[$code] = $this->safe_currency_structure(array(
                     'info' => $entry,
@@ -2494,9 +2510,9 @@ class bitget extends Exchange {
                     'networks' => $networks,
                     'type' => $isFiat ? 'fiat' : 'crypto',
                     'name' => null,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
+                    'active' => $active,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
                     'fee' => null,
                     'precision' => null,
                     'limits' => array(
@@ -4252,11 +4268,17 @@ class bitget extends Exchange {
                 $request['startTime'] = $since;
                 if (!$untilDefined) {
                     $calculatedEndTime = $this->sum($calculatedStartTime, $limitMultipliedDuration);
+                    if ($calculatedEndTime > $now) {
+                        $calculatedEndTime = $now;
+                    }
                     $request['endTime'] = $calculatedEndTime;
                 }
             }
             if ($untilDefined) {
                 $calculatedEndTime = $until;
+                if ($calculatedEndTime > $now) {
+                    $calculatedEndTime = $now;
+                }
                 $request['endTime'] = $calculatedEndTime;
                 if (!$sinceDefined) {
                     $calculatedStartTime = $calculatedEndTime - $limitMultipliedDuration;
@@ -5620,6 +5642,7 @@ class bitget extends Exchange {
              * edit a trade order
              *
              * @see https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+             * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
              * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
              * @see https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
              * @see https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -5653,8 +5676,15 @@ class bitget extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'orderId' => $id,
+                // 'orderId' => $id,
             );
+            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientOid');
+            if ($clientOrderId !== null) {
+                $params = $this->omit($params, array( 'clientOrderId' ));
+                $request['clientOid'] = $clientOrderId;
+            } else {
+                $request['orderId'] = $id;
+            }
             $isMarketOrder = $type === 'market';
             $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
             $isTriggerOrder = $triggerPrice !== null;
@@ -5671,10 +5701,6 @@ class bitget extends Exchange {
             $isTrailingPercentOrder = $trailingPercent !== null;
             if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder, $isTrailingPercentOrder) > 1) {
                 throw new ExchangeError($this->id . ' editOrder() $params can only contain one of $triggerPrice, $stopLossPrice, $takeProfitPrice, trailingPercent');
-            }
-            $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['clientOid'] = $clientOrderId;
             }
             $params = $this->omit($params, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ));
             $response = null;
@@ -5717,26 +5743,34 @@ class bitget extends Exchange {
                     $response = Async\await($this->privateUtaPostV3TradeModifyOrder ($this->extend($request, $params)));
                 }
             } elseif ($market['spot']) {
-                if ($triggerPrice === null) {
-                    throw new NotSupported($this->id . ' editOrder() only supports plan/trigger spot orders');
-                }
+                $cost = $this->safe_string($params, 'cost');
+                $params = $this->omit($params, 'cost');
                 $editMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'editMarketBuyOrderRequiresPrice', true);
-                if ($editMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . ' editOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $editMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                if (($editMarketBuyOrderRequiresPrice || ($cost !== null)) && $isMarketOrder && ($side === 'buy')) {
+                    if ($price === null && $cost === null) {
+                        throw new InvalidOrder($this->id . ' editOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively provide `$cost` in the params');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                        $request['size'] = $this->price_to_precision($symbol, $cost);
+                        $finalCost = ($cost === null) ? (Precise::string_mul($amountString, $priceString)) : $cost;
+                        $request['size'] = $this->price_to_precision($symbol, $finalCost);
                     }
                 } else {
                     $request['size'] = $this->amount_to_precision($symbol, $amount);
                 }
                 $request['orderType'] = $type;
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                $request['executePrice'] = $this->price_to_precision($symbol, $price);
-                $response = Async\await($this->privateSpotPostV2SpotTradeModifyPlanOrder ($this->extend($request, $params)));
+                if ($triggerPrice !== null) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                } else {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                }
+                if ($triggerPrice !== null) {
+                    $response = Async\await($this->privateSpotPostV2SpotTradeModifyPlanOrder ($this->extend($request, $params)));
+                } else {
+                    $request['symbol'] = $market['id'];
+                    $response = Async\await($this->privateSpotPostV2SpotTradeCancelReplaceOrder ($this->extend($request, $params)));
+                }
             } else {
                 if ((!$market['swap']) && (!$market['future'])) {
                     throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders');
@@ -6127,9 +6161,8 @@ class bitget extends Exchange {
              * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
              * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
              * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-             * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-             * @see https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+             * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+             * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6180,27 +6213,7 @@ class bitget extends Exchange {
                 //
             } elseif ($market['spot']) {
                 if ($marginMode !== null) {
-                    if ($marginMode === 'cross') {
-                        $response = Async\await($this->privateMarginPostMarginV1CrossOrderBatchCancelOrder ($this->extend($request, $params)));
-                    } else {
-                        $response = Async\await($this->privateMarginPostMarginV1IsolatedOrderBatchCancelOrder ($this->extend($request, $params)));
-                    }
-                    //
-                    //     {
-                    //         "code" => "00000",
-                    //         "msg" => "success",
-                    //         "requestTime" => 1700717155622,
-                    //         "data" => {
-                    //             "resultList" => array(
-                    //                 array(
-                    //                     "orderId" => "1111453253721796609",
-                    //                     "clientOid" => "2ae7fc8a4ff949b6b60d770ca3950e2d"
-                    //                 ),
-                    //             ),
-                    //             "failure" => array()
-                    //         }
-                    //     }
-                    //
+                    throw new NotSupported($this->id . ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead');
                 } else {
                     if ($trigger) {
                         $stopRequest = array(

@@ -53,6 +53,8 @@
 * [repayIsolatedMargin](#repayisolatedmargin)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
 * [setLeverage](#setleverage)
+* [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingRateHistory](#fetchfundingratehistory)
 * [watchTicker](#watchticker)
 * [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
@@ -99,11 +101,17 @@ the latest known information on the availability of the exchange API
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
 
-**See**: https://docs.kucoin.com/#service-status  
+**See**
+
+- https://docs.kucoin.com/#service-status
+- https://www.kucoin.com/docs-new/rest/ua/get-service-status
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.tradeType | <code>string</code> | No | *uta only* set to SPOT or FUTURES |
 
 
 ```javascript
@@ -128,6 +136,7 @@ retrieves data on all markets for kucoin
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
@@ -246,12 +255,18 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://docs.kucoin.com/#get-all-tickers  
+**See**
+
+- https://docs.kucoin.com/#get-all-tickers
+- https://www.kucoin.com/docs-new/rest/ua/get-ticker
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.tradeType | <code>string</code> | No | *uta only* set to SPOT or FUTURES |
 
 
 ```javascript
@@ -288,12 +303,17 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://docs.kucoin.com/#get-24hr-stats  
+**See**
+
+- https://docs.kucoin.com/#get-24hr-stats
+- https://www.kucoin.com/docs-new/rest/ua/get-ticker
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
@@ -330,7 +350,11 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.kucoin.com/#get-klines  
+**See**
+
+- https://docs.kucoin.com/#get-klines
+- https://www.kucoin.com/docs-new/rest/ua/get-klines
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -339,6 +363,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
@@ -424,6 +449,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 - https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
 - https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
+- https://www.kucoin.com/docs-new/rest/ua/get-orderbook
 
 
 | Param | Type | Required | Description |
@@ -431,6 +457,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
@@ -889,7 +916,11 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
-**See**: https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories  
+**See**
+
+- https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories
+- https://www.kucoin.com/docs-new/rest/ua/get-trades
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -897,6 +928,7 @@ get the list of most recent trades for a particular symbol
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
@@ -1306,6 +1338,51 @@ set the level of leverage for a market
 
 ```javascript
 kucoin.setLeverage ([leverage, symbol, params])
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetch the current funding rate
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchFundingRate (symbol[, params])
+```
+
+
+<a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
+
+### fetchFundingRateHistory{docsify-ignore}
+fetches historical funding rate prices
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| since | <code>int</code> | No | not used by kucuoinfutures |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | end time in ms |
+
+
+```javascript
+kucoin.fetchFundingRateHistory (symbol[, since, limit, params])
 ```
 
 

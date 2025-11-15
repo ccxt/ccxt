@@ -1668,6 +1668,12 @@ class okx(Exchange, ImplicitAPI):
         #         "uly": "BTC-USD"
         #     }
         #
+        # for swap "preopen" markets, only `instId` and `instType` are present
+        #
+        #         instId: "ETH-USD_UM-SWAP",
+        #         instType: "SWAP",
+        #         state: "preopen",
+        #
         id = self.safe_string(market, 'instId')
         type = self.safe_string_lower(market, 'instType')
         if type == 'futures':
@@ -1694,6 +1700,9 @@ class okx(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
+        # handle preopen empty markets
+        if base == '' or quote == '':
+            symbol = id
         expiry = None
         strikePrice = None
         optionType = None

@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var utils = require('./utils.js');
 var formats = require('./formats.js');
 
-// ----------------------------------------------------------------------------
 var has = Object.prototype.hasOwnProperty;
 var arrayPrefixGenerators = {
     brackets: function brackets(prefix) {

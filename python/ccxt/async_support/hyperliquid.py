@@ -408,7 +408,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if self.check_required_credentials(False):
-            await self.handle_builder_fee_approval()
+            await self.initialize_client()
         request: dict = {
             'type': 'meta',
         }
@@ -1441,6 +1441,29 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         return self.sign_user_signed_action(messageTypes, message)
 
+    async def set_ref(self):
+        if self.safe_bool(self.options, 'refSet', False):
+            return True
+        self.options['refSet'] = True
+        action = {
+            'type': 'setReferrer',
+            'code': self.safe_string(self.options, 'ref', 'CCXT1'),
+        }
+        nonce = self.milliseconds()
+        signature = self.sign_l1_action(action, nonce)
+        request: dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+        }
+        response = None
+        try:
+            response = await self.privatePostExchange(request)
+            return response
+        except Exception as e:
+            response = None  # ignore self
+        return response
+
     async def approve_builder_fee(self, builder: str, maxFeeRate: str):
         nonce = self.milliseconds()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
@@ -1474,6 +1497,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         # }
         #
         return await self.privatePostExchange(request)
+
+    async def initialize_client(self):
+        try:
+            await asyncio.gather(*[self.handle_builder_fee_approval(), self.set_ref()])
+        except Exception as e:
+            return False
+        return True
 
     async def handle_builder_fee_approval(self):
         buildFee = self.safe_bool(self.options, 'builderFee', True)
@@ -1529,7 +1559,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        await self.handle_builder_fee_approval()
+        await self.initialize_client()
         request = self.create_orders_request(orders, params)
         response = await self.privatePostExchange(request)
         #
@@ -1753,6 +1783,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         await self.load_markets()
+        await self.initialize_client()
         request = self.cancel_orders_request(ids, symbol, params)
         response = await self.privatePostExchange(request)
         #
@@ -1847,6 +1878,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         self.check_required_credentials()
         await self.load_markets()
+        await self.initialize_client()
         nonce = self.milliseconds()
         request: dict = {
             'nonce': nonce,
@@ -1914,6 +1946,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         self.check_required_credentials()
         await self.load_markets()
+        await self.initialize_client()
         params = self.omit(params, ['clientOrderId', 'client_id'])
         nonce = self.milliseconds()
         request: dict = {
@@ -2089,6 +2122,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        await self.initialize_client()
         request = self.edit_orders_request(orders, params)
         response = await self.privatePostExchange(request)
         #

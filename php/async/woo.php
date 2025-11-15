@@ -213,9 +213,7 @@ class woo extends Exchange {
                         'post' => array(
                             'order' => 1, // 10 requests per 1 second per symbol
                             'order/cancel_all_after' => 1,
-                            'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
                             'asset/ltv' => 30,
-                            'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#token-withdraw
                             'asset/internal_withdraw' => 30,
                             'interest/repay' => 60,
                             'client/account_mode' => 120,
@@ -289,7 +287,6 @@ class woo extends Exchange {
                             'spotMargin/maxMargin' => 60, // 10/60s
                             'algo/order/{oid}' => 1,
                             'algo/orders' => 1,
-                            'balances' => 1,
                             'positions' => 3.33,
                             'buypower' => 1,
                             'convert/exchangeInfo' => 1,
@@ -2482,7 +2479,7 @@ class woo extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->v3PrivateGetBalances ($params));
+            $response = Async\await($this->v3PrivateGetAssetBalances ($params));
             //
             //     {
             //         "success" => true,
@@ -2837,14 +2834,14 @@ class woo extends Exchange {
         $networkizedCode = $this->safe_string($transaction, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
         $code = $currencyDefined['code'];
-        $movementDirection = $this->safe_string_lower_2($transaction, 'token_side', 'tokenSide');
+        $movementDirection = $this->safe_string_lower_n($transaction, array( 'token_side', 'tokenSide', 'type' ));
         if ($movementDirection === 'withdraw') {
             $movementDirection = 'withdrawal';
         }
         $fee = $this->parse_token_and_fee_temp($transaction, array( 'fee_token', 'feeToken' ), array( 'fee_amount', 'feeAmount' ));
-        $addressTo = $this->safe_string_2($transaction, 'target_address', 'targetAddress');
+        $addressTo = $this->safe_string_n($transaction, array( 'target_address', 'targetAddress', 'addressTo' ));
         $addressFrom = $this->safe_string_2($transaction, 'source_address', 'sourceAddress');
-        $timestamp = $this->safe_timestamp_2($transaction, 'created_time', 'createdTime');
+        $timestamp = $this->safe_timestamp_n($transaction, array( 'created_time', 'createdTime' ), $this->safe_integer($transaction, 'timestamp'));
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_n($transaction, array( 'id', 'withdraw_id', 'withdrawId' )),
@@ -2854,7 +2851,7 @@ class woo extends Exchange {
             'address' => null,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
-            'tag' => $this->safe_string($transaction, 'extra'),
+            'tag' => $this->safe_string_2($transaction, 'extra', 'tag'),
             'tagFrom' => null,
             'tagTo' => null,
             'type' => $movementDirection,
@@ -2865,7 +2862,7 @@ class woo extends Exchange {
             'comment' => null,
             'internal' => null,
             'fee' => $fee,
-            'network' => null,
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network')),
         );
     }
 
@@ -2899,17 +2896,25 @@ class woo extends Exchange {
             $request = array(
                 'token' => $currency['id'],
                 'amount' => $this->parse_to_numeric($amount),
-                'from_application_id' => $fromAccount,
-                'to_application_id' => $toAccount,
+                'from' => array(
+                    'applicationId' => $fromAccount,
+                ),
+                'to' => array(
+                    'applicationId' => $toAccount,
+                ),
             );
-            $response = Async\await($this->v1PrivatePostAssetMainSubTransfer ($this->extend($request, $params)));
+            $response = Async\await($this->v3PrivatePostAssetTransfer ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
             //         "id" => 200
             //     }
             //
-            $transfer = $this->parse_transfer($response, $currency);
+            $data = $this->safe_dict($response, 'data', array());
+            $data['timestamp'] = $this->safe_integer($response, 'timestamp');
+            $data['token'] = $currency['id'];
+            $data['status'] = 'ok';
+            $transfer = $this->parse_transfer($data, $currency);
             $transferOptions = $this->safe_dict($this->options, 'transfer', array());
             $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
@@ -3028,7 +3033,7 @@ class woo extends Exchange {
         //        }
         //
         $code = $this->safe_currency_code($this->safe_string($transfer, 'token'), $currency);
-        $timestamp = $this->safe_timestamp($transfer, 'createdTime');
+        $timestamp = $this->safe_timestamp_2($transfer, 'createdTime', 'timestamp');
         $success = $this->safe_bool($transfer, 'success');
         $status = null;
         if ($success !== null) {
@@ -3065,7 +3070,7 @@ class woo extends Exchange {
             /**
              * make a withdrawal
              *
-             * @see https://docs.woox.io/#token-withdraw
+             * @see https://docs.woox.io/#token-withdraw-v3
              *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
@@ -3085,17 +3090,33 @@ class woo extends Exchange {
             if ($tag !== null) {
                 $request['extra'] = $tag;
             }
-            $specialNetworkId = null;
-            list($specialNetworkId, $params) = $this->get_dedicated_network_id($currency, $params);
-            $request['token'] = $specialNetworkId;
-            $response = Async\await($this->v1PrivatePostAssetWithdraw ($this->extend($request, $params)));
+            $network = $this->safe_string($params, 'network');
+            if ($network === null) {
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a $network parameter for ' . $code);
+            }
+            $params = $this->omit($params, 'network');
+            $request['token'] = $currency['id'];
+            $request['network'] = $this->network_code_to_id($network);
+            $response = Async\await($this->v3PrivatePostAssetWalletWithdraw ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
             //         "withdraw_id" => "20200119145703654"
             //     }
             //
-            return $this->parse_transaction($response, $currency);
+            $data = $this->safe_dict($response, 'data', array());
+            $transactionData = $this->extend($data, array(
+                'id' => $this->safe_string($data, 'withdrawId'),
+                'timestamp' => $this->safe_integer($response, 'timestamp'),
+                'currency' => $code,
+                'amount' => $amount,
+                'addressTo' => $address,
+                'tag' => $tag,
+                'network' => $network,
+                'type' => 'withdrawal',
+                'status' => 'pending',
+            ));
+            return $this->parse_transaction($transactionData, $currency);
         }) ();
     }
 

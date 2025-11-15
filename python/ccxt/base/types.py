@@ -6,14 +6,14 @@ from typing import Callable, Union, List, Optional, Any as PythonAny
 from decimal import Decimal
 
 
-if sys.version_info.minor >= 8:
+if sys.version_info >= (3, 8):
     from typing import TypedDict, Literal, Dict
 else:
     from typing import Dict
     from typing_extensions import Literal
     TypedDict = Dict
 
-if sys.version_info.minor >= 11:
+if sys.version_info >= (3, 11):
     from typing import NotRequired
 else:
     from typing_extensions import NotRequired
