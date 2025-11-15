@@ -25,8 +25,8 @@ export default class dydx extends Exchange {
             'rateLimit': 100,
             'version': 'v4',
             'certified': false,
-            'pro': false,
             'dex': true,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -148,9 +148,7 @@ export default class dydx extends Exchange {
                 'fees': [
                     'https://docs.dydx.exchange/introduction-trading_fees',
                 ],
-                'referral': {
-                    'url': '',
-                },
+                'referral': 'dydx.trade?ref=ccxt',
             },
             'api': {
                 'indexer': {

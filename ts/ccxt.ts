@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.18';
+const version = '4.5.19';
 
 (Exchange as any).ccxtVersion = version
 
@@ -102,6 +102,7 @@ import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
 import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
+import dydx from  './src/dydx.js'
 import exmo from  './src/exmo.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
@@ -194,6 +195,7 @@ import deepcoinPro from  './src/pro/deepcoin.js'
 import defxPro from  './src/pro/defx.js'
 import deribitPro from  './src/pro/deribit.js'
 import derivePro from  './src/pro/derive.js'
+import dydxPro from  './src/pro/dydx.js'
 import exmoPro from  './src/pro/exmo.js'
 import gatePro from  './src/pro/gate.js'
 import gateioPro from  './src/pro/gateio.js'
@@ -288,6 +290,7 @@ const exchanges = {
     'deribit':                deribit,
     'derive':                 derive,
     'digifinex':              digifinex,
+    'dydx':                   dydx,
     'exmo':                   exmo,
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
@@ -380,6 +383,7 @@ const pro = {
     'defx':                   defxPro,
     'deribit':                deribitPro,
     'derive':                 derivePro,
+    'dydx':                   dydxPro,
     'exmo':                   exmoPro,
     'gate':                   gatePro,
     'gateio':                 gateioPro,
@@ -616,6 +620,7 @@ export {
     deribit,
     derive,
     digifinex,
+    dydx,
     exmo,
     fmfwio,
     foxbit,

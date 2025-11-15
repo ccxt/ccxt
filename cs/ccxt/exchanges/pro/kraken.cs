@@ -1388,8 +1388,9 @@ public partial class kraken : ccxt.kraken
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["snap_orders"] = true;
-        return await this.watchPrivate("orders", symbol, since, limit, parameters);
+        return await this.watchPrivate("orders", symbol, since, limit, this.extend(parameters, new Dictionary<string, object>() {
+            { "snap_orders", true },
+        }));
     }
 
     public virtual void handleOrders(WebSocketClient client, object message, object subscription = null)
@@ -1457,7 +1458,10 @@ public partial class kraken : ccxt.kraken
                     }
                 }
                 callDynamically(stored, "append", new object[] {newOrder});
-                ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+                }
             }
             object name = "orders";
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, name});

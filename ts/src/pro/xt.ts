@@ -4,6 +4,7 @@ import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { NotSupported } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -13,10 +14,15 @@ export default class xt extends xtRest {
             'has': {
                 'ws': true,
                 'watchOHLCV': true,
+                'unWatchOHLCV': true,
                 'watchOrderBook': true,
+                'unWatchOrderBook': true,
                 'watchTicker': true,
+                'unWatchTicker': true,
                 'watchTickers': true,
+                'unWatchTickers': true,
                 'watchTrades': true,
+                'unWatchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchBalance': true,
                 'watchOrders': true,
@@ -164,9 +170,10 @@ export default class xt extends xtRest {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
+        const id = this.numberToString (this.milliseconds ()) + name; // call back ID
         const subscribe = {
             'method': isContract ? 'SUBSCRIBE' : 'subscribe',
-            'id': this.numberToString (this.milliseconds ()) + name,  // call back ID
+            'id': id,
         };
         if (privateAccess) {
             if (!isContract) {
@@ -190,8 +197,72 @@ export default class xt extends xtRest {
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
         }
+        const subscription: Dict = {
+            'id': id,
+        };
         const url = this.urls['api']['ws'][tradeType] + '/' + tail;
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @see https://doc.xt.com/#websocket_privaterequestFormat
+     * @see https://doc.xt.com/#futures_market_websocket_v2base
+     * @param {string} messageHash the message hash of the subscription
+     * @param {string} name name of the channel
+     * @param {string} access public or private
+     * @param {string} methodName the name of the CCXT class method
+     * @param {string} topic topic of the subscription
+     * @param {object} [market] CCXT market
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} params extra parameters specific to the xt api
+     * @param {object} subscriptionParams extra parameters specific to the subscription
+     * @returns {object} data from the websocket stream
+     */
+    async unSubscribe (messageHash: string, name: string, access: string, methodName: string, topic: string, market: Market = undefined, symbols: string[] = undefined, params = {}, subscriptionParams = {}): Promise<any> {
+        const privateAccess = access === 'private';
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        const isContract = (type !== 'spot');
+        const id = this.numberToString (this.milliseconds ()) + name; // call back ID
+        const unsubscribe = {
+            'method': isContract ? 'UNSUBSCRIBE' : 'unsubscribe',
+            'id': id,
+        };
+        if (privateAccess) {
+            if (!isContract) {
+                unsubscribe['params'] = [ name ];
+                unsubscribe['listenKey'] = await this.getListenKey (isContract);
+            } else {
+                const listenKey = await this.getListenKey (isContract);
+                const param = name + '@' + listenKey;
+                unsubscribe['params'] = [ param ];
+            }
+        } else {
+            unsubscribe['params'] = [ name ];
+        }
+        const tradeType = isContract ? 'contract' : 'spot';
+        let subMessageHash = name + '::' + tradeType;
+        if (symbols !== undefined) {
+            subMessageHash = subMessageHash + '::' + symbols.join (',');
+        }
+        const request = this.extend (unsubscribe, params);
+        let tail = access;
+        if (isContract) {
+            tail = privateAccess ? 'user' : 'market';
+        }
+        const url = this.urls['api']['ws'][tradeType] + '/' + tail;
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': id,
+            'subMessageHashes': [ subMessageHash ],
+            'messageHashes': [ messageHash ],
+            'symbols': symbols,
+            'topic': topic,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, this.extend (subscription, subscriptionParams));
     }
 
     /**
@@ -218,7 +289,30 @@ export default class xt extends xtRest {
 
     /**
      * @method
-     * @name xt#watchTicker
+     * @name xt#unWatchTicker
+     * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.xt.com/#websocket_publictickerRealTime
+     * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
+     * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeDict (this.options, 'unWatchTicker');
+        const defaultMethod = this.safeString (options, 'method', 'ticker');
+        const method = this.safeString (params, 'method', defaultMethod);
+        const name = method + '@' + market['id'];
+        const messageHash = 'unsubscribe::' + name;
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTicker', defaultMethod, market, undefined, params);
+    }
+
+    /**
+     * @method
+     * @name xt#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://doc.xt.com/#websocket_publicallTicker
      * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
@@ -246,7 +340,35 @@ export default class xt extends xtRest {
 
     /**
      * @method
-     * @name hitbtc#watchOHLCV
+     * @name xt#unWatchTickers
+     * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.xt.com/#websocket_publicallTicker
+     * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
+     * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+     * @param {string} [symbols] unified market symbols
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        const options = this.safeDict (this.options, 'unWatchTickers');
+        const defaultMethod = this.safeString (options, 'method', 'tickers');
+        const name = this.safeString (params, 'method', defaultMethod);
+        if (symbols !== undefined) {
+            throw new NotSupported (this.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
+        }
+        const messageHash = 'unsubscribe::' + name;
+        const tickers = await this.unSubscribe (messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name xt#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://doc.xt.com/#websocket_publicsymbolKline
      * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
@@ -266,6 +388,26 @@ export default class xt extends xtRest {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name xt#unWatchOHLCV
+     * @description stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://doc.xt.com/#websocket_publicsymbolKline
+     * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const name = 'kline@' + market['id'] + ',' + timeframe;
+        const messageHash = 'unsubscribe::' + name;
+        params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOHLCV', 'kline', market, undefined, params);
     }
 
     /**
@@ -293,6 +435,24 @@ export default class xt extends xtRest {
 
     /**
      * @method
+     * @name xt#unWatchTrades
+     * @description stops watching the list of most recent trades for a particular symbol
+     * @see https://doc.xt.com/#websocket_publicdealRecord
+     * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const name = 'trade@' + market['id'];
+        const messageHash = 'unsubscribe::' + name;
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTrades', 'trade', market, undefined, params);
+    }
+
+    /**
+     * @method
      * @name xt#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://doc.xt.com/#websocket_publiclimitDepth
@@ -316,6 +476,32 @@ export default class xt extends xtRest {
         }
         const orderbook = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, params);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name xt#unWatchOrderBook
+     * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://doc.xt.com/#websocket_publiclimitDepth
+     * @see https://doc.xt.com/#websocket_publicincreDepth
+     * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
+     * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {int} [params.levels] 5, 10, 20, or 50
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const levels = this.safeString (params, 'levels');
+        params = this.omit (params, 'levels');
+        let name = 'depth_update@' + market['id'];
+        if (levels !== undefined) {
+            name = 'depth@' + market['id'] + ',' + levels;
+        }
+        const messageHash = 'unsubscribe::' + name;
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOrderBook', 'depth', market, undefined, params);
     }
 
     /**
@@ -1226,12 +1412,44 @@ export default class xt extends xtRest {
             if (method !== undefined) {
                 method.call (this, client, message);
             }
+        } else {
+            this.handleSubscriptionStatus (client, message);
         }
     }
 
     ping (client: Client) {
         client.lastPong = this.milliseconds ();
         return 'ping';
+    }
+
+    handleSubscriptionStatus (client, message) {
+        //
+        //     {
+        //         id: '1763045665228ticker@eth_usdt',
+        //         code: 0,
+        //         msg: 'SUCCESS',
+        //         method: 'unsubscribe'
+        //     }
+        //
+        const method = this.safeStringLower (message, 'method');
+        if (method === 'unsubscribe') {
+            const id = this.safeString (message, 'id');
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subscription = this.safeValue (subscriptionsById, id, {});
+            this.handleUnSubscription (client, subscription);
+        }
+        return message;
+    }
+
+    handleUnSubscription (client: Client, subscription: Dict) {
+        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        for (let j = 0; j < messageHashes.length; j++) {
+            const unsubHash = messageHashes[j];
+            const subHash = subMessageHashes[j];
+            this.cleanUnsubscription (client, subHash, unsubHash);
+        }
+        this.cleanCache (subscription);
     }
 
     handleErrorMessage (client: Client, message: Dict) {

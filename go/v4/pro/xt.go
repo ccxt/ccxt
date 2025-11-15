@@ -23,10 +23,15 @@ func  (this *XtCore) Describe() interface{}  {
         "has": map[string]interface{} {
             "ws": true,
             "watchOHLCV": true,
+            "unWatchOHLCV": true,
             "watchOrderBook": true,
+            "unWatchOrderBook": true,
             "watchTicker": true,
+            "unWatchTicker": true,
             "watchTickers": true,
+            "unWatchTickers": true,
             "watchTrades": true,
+            "unWatchTrades": true,
             "watchTradesForSymbols": false,
             "watchBalance": true,
             "watchOrders": true,
@@ -193,9 +198,10 @@ func  (this *XtCore) Subscribe(name interface{}, access interface{}, methodName 
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
             var isContract interface{} =     (!ccxt.IsEqual(typeVar, "spot"))
+            var id interface{} = ccxt.Add(this.NumberToString(this.Milliseconds()), name) // call back ID
             var subscribe interface{} = map[string]interface{} {
                 "method": ccxt.Ternary(ccxt.IsTrue(isContract), "SUBSCRIBE", "subscribe"),
-                "id": ccxt.Add(this.NumberToString(this.Milliseconds()), name),
+                "id": id,
             }
             if ccxt.IsTrue(privateAccess) {
                 if !ccxt.IsTrue(isContract) {
@@ -221,11 +227,97 @@ func  (this *XtCore) Subscribe(name interface{}, access interface{}, methodName 
             if ccxt.IsTrue(isContract) {
                 tail = ccxt.Ternary(ccxt.IsTrue(privateAccess), "user", "market")
             }
+            var subscription interface{} = map[string]interface{} {
+                "id": id,
+            }
             var url interface{} = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType), "/"), tail)
         
-                retRes19315 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes19315)
-                ch <- retRes19315
+                retRes20315 :=  (<-this.Watch(url, messageHash, request, messageHash, subscription))
+                ccxt.PanicOnError(retRes20315)
+                ch <- retRes20315
+                return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @ignore
+ * @method
+ * @description Connects to a websocket channel
+ * @see https://doc.xt.com/#websocket_privaterequestFormat
+ * @see https://doc.xt.com/#futures_market_websocket_v2base
+ * @param {string} messageHash the message hash of the subscription
+ * @param {string} name name of the channel
+ * @param {string} access public or private
+ * @param {string} methodName the name of the CCXT class method
+ * @param {string} topic topic of the subscription
+ * @param {object} [market] CCXT market
+ * @param {string[]} [symbols] unified market symbols
+ * @param {object} params extra parameters specific to the xt api
+ * @param {object} subscriptionParams extra parameters specific to the subscription
+ * @returns {object} data from the websocket stream
+ */
+func  (this *XtCore) UnSubscribe(messageHash interface{}, name interface{}, access interface{}, methodName interface{}, topic interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    market := ccxt.GetArg(optionalArgs, 0, nil)
+            _ = market
+            symbols := ccxt.GetArg(optionalArgs, 1, nil)
+            _ = symbols
+            params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
+            _ = params
+            subscriptionParams := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
+            _ = subscriptionParams
+            var privateAccess interface{} = ccxt.IsEqual(access, "private")
+            var typeVar interface{} = nil
+            typeVarparamsVariable := this.HandleMarketTypeAndParams(methodName, market, params)
+            typeVar = ccxt.GetValue(typeVarparamsVariable,0)
+            params = ccxt.GetValue(typeVarparamsVariable,1)
+            var isContract interface{} =     (!ccxt.IsEqual(typeVar, "spot"))
+            var id interface{} = ccxt.Add(this.NumberToString(this.Milliseconds()), name) // call back ID
+            var unsubscribe interface{} = map[string]interface{} {
+                "method": ccxt.Ternary(ccxt.IsTrue(isContract), "UNSUBSCRIBE", "unsubscribe"),
+                "id": id,
+            }
+            if ccxt.IsTrue(privateAccess) {
+                if !ccxt.IsTrue(isContract) {
+                    ccxt.AddElementToObject(unsubscribe, "params", []interface{}{name})
+                    ccxt.AddElementToObject(unsubscribe, "listenKey", (<-this.GetListenKey(isContract)))
+                } else {
+        
+                    listenKey:= (<-this.GetListenKey(isContract))
+                    ccxt.PanicOnError(listenKey)
+                    var param interface{} = ccxt.Add(ccxt.Add(name, "@"), listenKey)
+                    ccxt.AddElementToObject(unsubscribe, "params", []interface{}{param})
+                }
+            } else {
+                ccxt.AddElementToObject(unsubscribe, "params", []interface{}{name})
+            }
+            var tradeType interface{} = ccxt.Ternary(ccxt.IsTrue(isContract), "contract", "spot")
+            var subMessageHash interface{} = ccxt.Add(ccxt.Add(name, "::"), tradeType)
+            if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+                subMessageHash = ccxt.Add(ccxt.Add(subMessageHash, "::"), ccxt.Join(symbols, ","))
+            }
+            var request interface{} = this.Extend(unsubscribe, params)
+            var tail interface{} = access
+            if ccxt.IsTrue(isContract) {
+                tail = ccxt.Ternary(ccxt.IsTrue(privateAccess), "user", "market")
+            }
+            var url interface{} = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType), "/"), tail)
+            var subscription interface{} = map[string]interface{} {
+                "unsubscribe": true,
+                "id": id,
+                "subMessageHashes": []interface{}{subMessageHash},
+                "messageHashes": []interface{}{messageHash},
+                "symbols": symbols,
+                "topic": topic,
+            }
+        
+                retRes26415 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, this.Extend(subscription, subscriptionParams)))
+                ccxt.PanicOnError(retRes26415)
+                ch <- retRes26415
                 return nil
         
             }()
@@ -251,17 +343,17 @@ func  (this *XtCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes2098 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2098)
+            retRes2808 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2808)
             var market interface{} = this.Market(symbol)
             var options interface{} = this.SafeDict(this.Options, "watchTicker")
             var defaultMethod interface{} = this.SafeString(options, "method", "ticker")
             var method interface{} = this.SafeString(params, "method", defaultMethod)
             var name interface{} = ccxt.Add(ccxt.Add(method, "@"), ccxt.GetValue(market, "id"))
         
-                retRes21515 :=  (<-this.Subscribe(name, "public", "watchTicker", market, nil, params))
-                ccxt.PanicOnError(retRes21515)
-                ch <- retRes21515
+                retRes28615 :=  (<-this.Subscribe(name, "public", "watchTicker", market, nil, params))
+                ccxt.PanicOnError(retRes28615)
+                ch <- retRes28615
                 return nil
         
             }()
@@ -269,7 +361,44 @@ func  (this *XtCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}
         }
 /**
  * @method
- * @name xt#watchTicker
+ * @name xt#unWatchTicker
+ * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://doc.xt.com/#websocket_publictickerRealTime
+ * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
+ * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+ */
+func  (this *XtCore) UnWatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes3028 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3028)
+            var market interface{} = this.Market(symbol)
+            var options interface{} = this.SafeDict(this.Options, "unWatchTicker")
+            var defaultMethod interface{} = this.SafeString(options, "method", "ticker")
+            var method interface{} = this.SafeString(params, "method", defaultMethod)
+            var name interface{} = ccxt.Add(ccxt.Add(method, "@"), ccxt.GetValue(market, "id"))
+            var messageHash interface{} = ccxt.Add("unsubscribe::", name)
+        
+                retRes30915 :=  (<-this.UnSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, nil, params))
+                ccxt.PanicOnError(retRes30915)
+                ch <- retRes30915
+                return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name xt#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://doc.xt.com/#websocket_publicallTicker
  * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
@@ -289,8 +418,8 @@ func  (this *XtCore) WatchTickers(optionalArgs ...interface{}) <- chan interface
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes2318 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2318)
+            retRes3258 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3258)
             var options interface{} = this.SafeDict(this.Options, "watchTickers")
             var defaultMethod interface{} = this.SafeString(options, "method", "tickers")
             var name interface{} = this.SafeString(params, "method", defaultMethod)
@@ -315,7 +444,53 @@ func  (this *XtCore) WatchTickers(optionalArgs ...interface{}) <- chan interface
         }
 /**
  * @method
- * @name hitbtc#watchOHLCV
+ * @name xt#unWatchTickers
+ * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://doc.xt.com/#websocket_publicallTicker
+ * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
+ * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+ * @param {string} [symbols] unified market symbols
+ * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+ */
+func  (this *XtCore) UnWatchTickers(optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    symbols := ccxt.GetArg(optionalArgs, 0, nil)
+            _ = symbols
+            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            _ = params
+        
+            retRes3538 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3538)
+            var options interface{} = this.SafeDict(this.Options, "unWatchTickers")
+            var defaultMethod interface{} = this.SafeString(options, "method", "tickers")
+            var name interface{} = this.SafeString(params, "method", defaultMethod)
+            if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+                panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")))
+            }
+            var messageHash interface{} = ccxt.Add("unsubscribe::", name)
+        
+            tickers:= (<-this.UnSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", nil, symbols, params))
+            ccxt.PanicOnError(tickers)
+            if ccxt.IsTrue(this.NewUpdates) {
+        
+                ch <- tickers
+                return nil
+            }
+        
+            ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name xt#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @see https://doc.xt.com/#websocket_publicsymbolKline
  * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
@@ -340,8 +515,8 @@ func  (this *XtCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface{})
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes2608 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2608)
+            retRes3828 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3828)
             var market interface{} = this.Market(symbol)
             var name interface{} = ccxt.Add(ccxt.Add(ccxt.Add("kline@", ccxt.GetValue(market, "id")), ","), timeframe)
         
@@ -353,6 +528,42 @@ func  (this *XtCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface{})
         
             ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
             return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name xt#unWatchOHLCV
+ * @description stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://doc.xt.com/#websocket_publicsymbolKline
+ * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+ * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
+ * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
+ * @param {object} params extra parameters specific to the xt api endpoint
+ * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+ */
+func  (this *XtCore) UnWatchOHLCV(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+            _ = timeframe
+            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            _ = params
+        
+            retRes4048 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4048)
+            var market interface{} = this.Market(symbol)
+            var name interface{} = ccxt.Add(ccxt.Add(ccxt.Add("kline@", ccxt.GetValue(market, "id")), ","), timeframe)
+            var messageHash interface{} = ccxt.Add("unsubscribe::", name)
+            ccxt.AddElementToObject(params, "symbolsAndTimeframes", []interface{}{[]interface{}{ccxt.GetValue(market, "symbol"), timeframe}})
+        
+                retRes40915 :=  (<-this.UnSubscribe(messageHash, name, "public", "unWatchOHLCV", "kline", market, nil, params))
+                ccxt.PanicOnError(retRes40915)
+                ch <- retRes40915
+                return nil
         
             }()
             return ch
@@ -381,8 +592,8 @@ func  (this *XtCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes2838 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2838)
+            retRes4258 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4258)
             var market interface{} = this.Market(symbol)
             var name interface{} = ccxt.Add("trade@", ccxt.GetValue(market, "id"))
         
@@ -394,6 +605,38 @@ func  (this *XtCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}
         
             ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp")
             return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name xt#unWatchTrades
+ * @description stops watching the list of most recent trades for a particular symbol
+ * @see https://doc.xt.com/#websocket_publicdealRecord
+ * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+ * @param {string} symbol unified symbol of the market to fetch trades for
+ * @param {object} params extra parameters specific to the xt api endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+ */
+func  (this *XtCore) UnWatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes4468 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4468)
+            var market interface{} = this.Market(symbol)
+            var name interface{} = ccxt.Add("trade@", ccxt.GetValue(market, "id"))
+            var messageHash interface{} = ccxt.Add("unsubscribe::", name)
+        
+                retRes45015 :=  (<-this.UnSubscribe(messageHash, name, "public", "unWatchTrades", "trade", market, nil, params))
+                ccxt.PanicOnError(retRes45015)
+                ch <- retRes45015
+                return nil
         
             }()
             return ch
@@ -422,8 +665,8 @@ func  (this *XtCore) WatchOrderBook(symbol interface{}, optionalArgs ...interfac
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes3088 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3088)
+            retRes4688 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4688)
             var market interface{} = this.Market(symbol)
             var levels interface{} = this.SafeString(params, "levels")
             params = this.Omit(params, "levels")
@@ -437,6 +680,46 @@ func  (this *XtCore) WatchOrderBook(symbol interface{}, optionalArgs ...interfac
         
             ch <- orderbook.(ccxt.OrderBookInterface).Limit()
             return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name xt#unWatchOrderBook
+ * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://doc.xt.com/#websocket_publiclimitDepth
+ * @see https://doc.xt.com/#websocket_publicincreDepth
+ * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
+ * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+ * @param {string} symbol unified symbol of the market to fetch the order book for
+ * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {int} [params.levels] 5, 10, 20, or 50
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+ */
+func  (this *XtCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes4948 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4948)
+            var market interface{} = this.Market(symbol)
+            var levels interface{} = this.SafeString(params, "levels")
+            params = this.Omit(params, "levels")
+            var name interface{} = ccxt.Add("depth_update@", ccxt.GetValue(market, "id"))
+            if ccxt.IsTrue(!ccxt.IsEqual(levels, nil)) {
+                name = ccxt.Add(ccxt.Add(ccxt.Add("depth@", ccxt.GetValue(market, "id")), ","), levels)
+            }
+            var messageHash interface{} = ccxt.Add("unsubscribe::", name)
+        
+                retRes50315 :=  (<-this.UnSubscribe(messageHash, name, "public", "unWatchOrderBook", "depth", market, nil, params))
+                ccxt.PanicOnError(retRes50315)
+                ch <- retRes50315
+                return nil
         
             }()
             return ch
@@ -467,8 +750,8 @@ func  (this *XtCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes3338 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3338)
+            retRes5198 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5198)
             var name interface{} = "order"
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -513,8 +796,8 @@ func  (this *XtCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interfac
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes3598 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3598)
+            retRes5458 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5458)
             var name interface{} = "trade"
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -550,13 +833,13 @@ func  (this *XtCore) WatchBalance(optionalArgs ...interface{}) <- chan interface
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes3828 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3828)
+            retRes5688 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5688)
             var name interface{} = "balance"
         
-                retRes38415 :=  (<-this.Subscribe(name, "private", "watchBalance", nil, nil, params))
-                ccxt.PanicOnError(retRes38415)
-                ch <- retRes38415
+                retRes57015 :=  (<-this.Subscribe(name, "private", "watchBalance", nil, nil, params))
+                ccxt.PanicOnError(retRes57015)
+                ch <- retRes57015
                 return nil
         
             }()
@@ -587,8 +870,8 @@ func  (this *XtCore) WatchPositions(optionalArgs ...interface{}) <- chan interfa
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes3998 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3998)
+            retRes5858 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5858)
             var url interface{} = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/"), "user")
             var client interface{} = this.Client(url)
             this.SetPositionsCache(client)
@@ -1429,11 +1712,41 @@ func  (this *XtCore) HandleMessage(client interface{}, message interface{})  {
         if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
             ccxt.CallDynamically(method, client, message)
         }
+    } else {
+        this.HandleSubscriptionStatus(client, message)
     }
 }
 func  (this *XtCore) Ping(client interface{}) interface{}  {
     client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
     return "ping"
+}
+func  (this *XtCore) HandleSubscriptionStatus(client interface{}, message interface{}) interface{}  {
+    //
+    //     {
+    //         id: '1763045665228ticker@eth_usdt',
+    //         code: 0,
+    //         msg: 'SUCCESS',
+    //         method: 'unsubscribe'
+    //     }
+    //
+    var method interface{} = this.SafeStringLower(message, "method")
+    if ccxt.IsTrue(ccxt.IsEqual(method, "unsubscribe")) {
+        var id interface{} = this.SafeString(message, "id")
+        var subscriptionsById interface{} = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+        var subscription interface{} = this.SafeValue(subscriptionsById, id, map[string]interface{} {})
+        this.HandleUnSubscription(client, subscription)
+    }
+    return message
+}
+func  (this *XtCore) HandleUnSubscription(client interface{}, subscription interface{})  {
+    var messageHashes interface{} = this.SafeList(subscription, "messageHashes", []interface{}{})
+    var subMessageHashes interface{} = this.SafeList(subscription, "subMessageHashes", []interface{}{})
+    for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(messageHashes)); j++ {
+        var unsubHash interface{} = ccxt.GetValue(messageHashes, j)
+        var subHash interface{} = ccxt.GetValue(subMessageHashes, j)
+        this.CleanUnsubscription(client.(*ccxt.Client), subHash, unsubHash)
+    }
+    this.CleanCache(subscription)
 }
 func  (this *XtCore) HandleErrorMessage(client interface{}, message interface{})  {
     //

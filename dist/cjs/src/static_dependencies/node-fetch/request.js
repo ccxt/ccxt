@@ -10,7 +10,13 @@ var is = require('./utils/is.js');
 var getSearch = require('./utils/get-search.js');
 var referrer = require('./utils/referrer.js');
 
-// ----------------------------------------------------------------------------
+/**
+ * Request.js
+ *
+ * Request class contains server only options
+ *
+ * All spec algorithm step numbers are based on https://fetch.spec.whatwg.org/commit-snapshots/ae716822cb3a61843226cd090eefc6589446c1d2/.
+ */
 const INTERNALS = Symbol('Request internals');
 /**
  * Check if `obj` is an instance of Request.

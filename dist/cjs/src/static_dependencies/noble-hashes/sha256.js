@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var _sha2 = require('./_sha2.js');
 var utils = require('./utils.js');
 
-// ----------------------------------------------------------------------------
 // Choice: a ? b : c
 const Chi = (a, b, c) => (a & b) ^ (~a & c);
 // Majority function, true if any two inpust is true
