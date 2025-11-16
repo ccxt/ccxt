@@ -10,7 +10,7 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class dydx
@@ -25,6 +25,7 @@ class dydx extends dydx$1["default"] {
             'rateLimit': 100,
             'version': 'v4',
             'certified': false,
+            'dex': true,
             'pro': true,
             'has': {
                 'CORS': undefined,
