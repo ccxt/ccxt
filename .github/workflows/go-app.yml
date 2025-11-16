@@ -24,19 +24,18 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.24.x"
-      # - name: Download go modiles
-      # - name: Cache Go modules
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: |
-      #       ~/go/pkg/mod       # module download cache
-      #       ~/.cache/go-build  # build cache
-      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-go-
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod       # module download cache
+            ~/.cache/go-build  # build cache
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
       - name: Install dependencies
         run: go mod download
-        working-directory: ./go/v4
+        working-directory: ./go
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
