@@ -10,7 +10,6 @@ from typing import List, Optional
 from ccxt.base.errors import ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, RequestTimeout
 from ccxt.base.decimal_to_precision import TICK_SIZE, TRUNCATE
 from ccxt.base.precise import Precise
-import hashlib
 import math
 
 
@@ -368,27 +367,24 @@ class asterdex(Exchange, ImplicitAPI):
         # Concatenate: paramsJson + user + signer + nonce
         message = params_json + user.lower() + signer.lower() + str(nonce)
 
-        # Hash with keccak256
-        message_bytes = message.encode('utf-8')
-        # Note: In production, you would use a proper keccak256 implementation
-        # For now, using sha3_256 as a placeholder
-        hash_obj = hashlib.sha3_256(message_bytes)
-        return hash_obj.digest()
+        # Hash with keccak256 using ccxt's built-in hash method
+        return self.hash(self.encode(message), 'keccak', 'binary')
 
     def sign_hash(self, hash_bytes, private_key):
         """
         Sign a message hash with ECDSA secp256k1
-        Note: This is a placeholder. In production, you would use eth-account or web3.py
         """
         # Remove 0x prefix if present
         clean_private_key = private_key.replace('0x', '')
 
-        # This is a placeholder implementation
-        # In production, use: from eth_account import Account
-        # account = Account.from_key(private_key)
-        # signature = account.signHash(hash_bytes)
+        # Use ccxt's built-in ecdsa method with secp256k1
+        signature = self.ecdsa(hash_bytes[-64:], self.encode(clean_private_key)[-32:], 'secp256k1', None)
 
-        raise NotSupported(self.id + ' sign_hash() requires eth-account library for ECDSA signatures')
+        return {
+            'r': '0x' + signature['r'],
+            's': '0x' + signature['s'],
+            'v': self.sum(27, signature['v']),
+        }
 
     def create_signature(self, params, user, signer, nonce):
         """
@@ -396,7 +392,12 @@ class asterdex(Exchange, ImplicitAPI):
         """
         hash_bytes = self.encode_message(params, user, signer, nonce)
         signature = self.sign_hash(hash_bytes, self.privateKey)
-        return signature
+
+        # Combine r, s, v into single hex string (without 0x prefix for v)
+        v = format(signature['v'], '02x')
+        combined = signature['r'] + signature['s'][2:] + v
+
+        return combined
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         is_private = (api == 'private') or (api == 'fapiPrivate') or (api == 'sapiPrivate')

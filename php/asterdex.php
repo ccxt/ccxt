@@ -361,25 +361,33 @@ class asterdex extends Exchange {
         // Concatenate: paramsJson + user + signer + nonce
         $message = $params_json . strtolower($user) . strtolower($signer) . strval($nonce);
 
-        // Hash with keccak256
-        // Note: In production, you would use a proper keccak256 implementation
-        // For now, using hash as a placeholder
-        return hash('sha3-256', $message, true);
+        // Hash with keccak256 using ccxt's built-in hash method
+        return $this->hash($this->encode($message), 'keccak', 'binary');
     }
 
     public function sign_hash($hash, $private_key) {
         // Remove 0x prefix if present
         $clean_private_key = str_replace('0x', '', $private_key);
 
-        // This is a placeholder implementation
-        // In production, use proper ECDSA secp256k1 library
-        throw new NotSupported($this->id . ' sign_hash() requires ECDSA secp256k1 library for signatures');
+        // Use ccxt's built-in ecdsa method with secp256k1
+        $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($this->encode($clean_private_key), -32), 'secp256k1', null);
+
+        return array(
+            'r' => '0x' . $signature['r'],
+            's' => '0x' . $signature['s'],
+            'v' => $this->sum(27, $signature['v']),
+        );
     }
 
     public function create_signature($params, $user, $signer, $nonce) {
         $hash = $this->encode_message($params, $user, $signer, $nonce);
         $signature = $this->sign_hash($hash, $this->privateKey);
-        return $signature;
+
+        // Combine r, s, v into single hex string (without 0x prefix for v)
+        $v = str_pad(dechex($signature['v']), 2, '0', STR_PAD_LEFT);
+        $combined = $signature['r'] . substr($signature['s'], 2) . $v;
+
+        return $combined;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
