@@ -14,6 +14,7 @@ public partial class dydx : Exchange
             { "rateLimit", 100 },
             { "version", "v4" },
             { "certified", false },
+            { "dex", true },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
