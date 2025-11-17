@@ -2616,8 +2616,10 @@ export default class hyperliquid extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             // check if is hip3 symbol
-            const part = this.safeString (market, 'baseName', '').split (':');
-            if (part.length > 1) {
+            const baseName = this.safeString (market, 'baseName', '');
+            const part = baseName.split (':');
+            const partsLength = part.length;
+            if (partsLength > 1) {
                 request['dex'] = this.safeString (part, 0);
             }
         }

@@ -1025,5 +1025,85 @@
         "tierBased": null,
         "percentage": null,
         "baseName": "xyz:XYZ100"
+    },
+    "XYZ-MSFT/USDC:USDC": {
+        "id": "110010",
+        "lowercaseId": null,
+        "symbol": "XYZ-MSFT/USDC:USDC",
+        "base": "XYZ:MSFT",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "110010",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "szDecimals": "3",
+            "name": "xyz:MSFT",
+            "maxLeverage": "10",
+            "marginTableId": "10",
+            "onlyIsolated": true,
+            "isDelisted": true,
+            "marginMode": "strictIsolated",
+            "funding": "0.0",
+            "openInterest": "0.0",
+            "prevDayPx": "506.0",
+            "dayNtlVlm": "0.0",
+            "premium": null,
+            "oraclePx": "506.0",
+            "markPx": "506.0",
+            "midPx": null,
+            "impactPxs": null,
+            "dayBaseVlm": "0.0",
+            "baseId": 110010
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "xyz:MSFT"
     }
 }
