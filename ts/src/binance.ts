@@ -10,7 +10,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { parseSbeSchema, createSbeDecoder, applyExponent } from './base/functions/sbe.js';
+import { createSbeDecoder, applyExponent } from './base/functions/sbe.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4044,10 +4044,10 @@ export default class binance extends Exchange {
             const bids = this.safeList (response, 'bids', response);
             const asks = this.safeList (response, 'asks', response);
             for (let i = 0; i < bids.length; i++) {
-                bids[i] = [applyExponent (bids[i]['price'], priceExponent), applyExponent (bids[i]['qty'], qtyExponent)];
+                bids[i] = [ applyExponent (bids[i]['price'], priceExponent), applyExponent (bids[i]['qty'], qtyExponent) ];
             }
             for (let i = 0; i < asks.length; i++) {
-                asks[i] = [applyExponent (asks[i]['price'], priceExponent), applyExponent (asks[i]['qty'], qtyExponent)];
+                asks[i] = [ applyExponent (asks[i]['price'], priceExponent), applyExponent (asks[i]['qty'], qtyExponent) ];
             }
             response['bids'] = bids;
             response['asks'] = asks;

@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 
-import path from 'path';
+import * as pathImport from 'path';
 import { fileURLToPath } from 'url';
 import * as functions from './functions.js';
 import {
@@ -178,7 +178,7 @@ let protobufMexc = undefined;
     }
 }) ();
 // eslint-disable-next-line no-shadow
-const __dirname = path.dirname (fileURLToPath (import.meta.url));
+const __dirname = pathImport.dirname (fileURLToPath (import.meta.url));
 
 // -----------------------------------------------------------------------------
 /**
@@ -1116,19 +1116,17 @@ export default class Exchange {
             const exchangeId = this.id;
             let schemaPath = '';
             let lastError = undefined;
-
             // Try to load from process.cwd() first
             try {
-                schemaPath = path.join (process.cwd (), 'sbe', exchangeId, schemaName);
+                schemaPath = pathImport.join (process.cwd (), 'sbe', exchangeId, schemaName);
                 this.sbeSchema = parseSbeSchema (schemaPath);
                 return this.sbeSchema;
             } catch (error) {
                 lastError = error;
             }
-
             // Fallback: try relative to module location
             try {
-                schemaPath = path.join (__dirname, '..', '..', '..', 'sbe', exchangeId, schemaName);
+                schemaPath = pathImport.join (__dirname, '..', '..', '..', 'sbe', exchangeId, schemaName);
                 this.sbeSchema = parseSbeSchema (schemaPath);
                 return this.sbeSchema;
             } catch (error) {

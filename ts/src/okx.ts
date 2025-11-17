@@ -6503,7 +6503,7 @@ export default class okx extends Exchange {
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         // Check for SBE (Simple Binary Encoding) parameters and remove from query
-        let useSbe;
+        let useSbe = false;
         [ useSbe, query ] = this.handleOptionAndParams (query, 'sign', 'useSbe', false);
         let url = this.implodeHostname (this.urls['api']['rest']) + request;
         // const type = this.getPathAuthenticationType (path);
