@@ -3042,10 +3042,9 @@ class mexc extends Exchange {
             }
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
             if ($marketType === 'spot') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
+                if ($symbol !== null) {
+                    $request['symbol'] = $market['id'];
                 }
-                $request['symbol'] = $market['id'];
                 list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
                 $response = null;
                 if ($marginMode !== null) {
