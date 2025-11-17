@@ -5,6 +5,32 @@
     ],
     "outputType": "json",
     "methods": {
+        "createOrders": [
+            {
+                "description": "createOrders perp",
+                "method": "createOrders",
+                "url": "https://api.xcoin.com/api/v2/trade/batchOrder",
+                "input": [
+                    [
+                        {
+                            "symbol": "ETH/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": "0.005",
+                            "price": 2900
+                        },
+                        {
+                            "symbol": "ETH/USDT:USDT",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": "0.005",
+                            "price": 3100
+                        }
+                    ]
+                ],
+                "output": "{\"orderReqList\":[{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"qty\":\"0.005\",\"orderType\":\"limit\",\"price\":\"2900\"},{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"sell\",\"qty\":\"0.005\",\"orderType\":\"limit\",\"price\":\"3100\"}]}"
+            }
+        ],
         "fetchClosedOrders": [
             {
                 "description": "fetchClosedOrders symbol perp",

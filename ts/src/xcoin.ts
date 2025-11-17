@@ -228,14 +228,92 @@ export default class xcoin extends Exchange {
                 },
             },
             'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'mark': true,
+                            'index': true,
+                            'last': true,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                            'price': true,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': 1,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
                 'spot': {
+                    'extends': 'default',
                 },
                 'swap': {
-                    'linear': undefined,
+                    'linear': {
+                        'extends': 'default',
+                    },
                     'inverse': undefined,
                 },
                 'future': {
-                    'linear': undefined,
+                    'linear': {
+                        'extends': 'default',
+                    },
                     'inverse': undefined,
                 },
             },
@@ -2386,7 +2464,11 @@ export default class xcoin extends Exchange {
             'orderReqList': ordersRequests,
         };
         const response = await this.privatePostV2TradeBatchOrder (this.extend (request, params));
-        return this.parseOrders (response);
+        //
+        // [{orderId: '1440030276164120576', clientOrderId: '1440030276164120576', code: '0', msg: null, ts: '1763371572399'}]
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data);
     }
 
     createOrdersRequest (orders: OrderRequest[], params = {}) {
