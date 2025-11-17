@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/asterdex.js';
-import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
