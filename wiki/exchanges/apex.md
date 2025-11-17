@@ -320,6 +320,8 @@ create a trade order
 | price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
+| params.stopLossPrice | <code>float</code> | No | The price a stop loss order is triggered at |
+| params.takeProfitPrice | <code>float</code> | No | The price a take profit order is triggered at |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "POST_ONLY" |
 | params.postOnly | <code>bool</code> | No | true or false |
 | params.reduceOnly | <code>bool</code> | No | Ensures that the executed order does not flip the opened position. |

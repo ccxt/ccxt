@@ -736,6 +736,7 @@ public partial class mexc : Exchange
                     { "30029", typeof(InvalidOrder) },
                     { "30032", typeof(InvalidOrder) },
                     { "30041", typeof(InvalidOrder) },
+                    { "30087", typeof(InvalidOrder) },
                     { "60005", typeof(ExchangeError) },
                     { "700001", typeof(AuthenticationError) },
                     { "700002", typeof(AuthenticationError) },
@@ -2870,11 +2871,10 @@ public partial class mexc : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "spot")))
         {
-            if (isTrue(isEqual(symbol, null)))
+            if (isTrue(!isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument for spot market")) ;
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             var marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
             var marginMode = ((IList<object>) marginModequeryVariable)[0];
             var query = ((IList<object>) marginModequeryVariable)[1];

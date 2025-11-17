@@ -310,7 +310,7 @@ public partial class ascendex : ccxt.ascendex
         return (orderbook as IOrderBook).limit();
     }
 
-    public async virtual Task<object> fetchOrderBookSnapshot(object symbol, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchOrderBookSnapshotCustom(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object restOrderBook = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
@@ -1067,7 +1067,7 @@ public partial class ascendex : ccxt.ascendex
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         if (isTrue(isTrue(isEqual(getValue(this.options, "defaultType"), "swap")) || isTrue(getValue(market, "contract"))))
         {
-            this.spawn(this.fetchOrderBookSnapshot, new object[] { symbol});
+            this.spawn(this.fetchOrderBookSnapshotCustom, new object[] { symbol});
         } else
         {
             this.spawn(this.watchOrderBookSnapshot, new object[] { symbol});

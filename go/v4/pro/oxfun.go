@@ -1087,7 +1087,7 @@ func  (this *OxfunCore) HandleOrders(client interface{}, message interface{})  {
  * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
  * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
  * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
- * @param {float} [params.limitPrice] ccxt.Limit price for the STOP_LIMIT order
+ * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
  * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
  * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
  * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}

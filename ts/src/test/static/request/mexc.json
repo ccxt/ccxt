@@ -334,6 +334,13 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "spot orders no symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://api.mexc.com/api/v3/openOrders?timestamp=1763377014861&recvWindow=5000&signature=d4ab06a30c313ed081606309119306439861b1f6aad77d17fe68dfda798a332d",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "Spot open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.mexc.com/api/v3/openOrders?symbol=LTCUSDT&timestamp=1699458297358&recvWindow=5000&signature=6c929bb88a2d7bf13ef808b5ceb47101119c8f0a9bd395c6032fece0353e4647",

@@ -162,17 +162,23 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             this._asks.Clear();
 
             var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
-            for (var i = 0; i < snapshotAsks.Count; i++)
+            if (snapshotAsks != null)
             {
-                this.asks.storeArray(snapshotAsks[i] as List<object>);
+                for (var i = 0; i < snapshotAsks.Count; i++)
+                {
+                    this.asks.storeArray(snapshotAsks[i] as List<object>);
+                }
             }
 
             this._bids._index.Clear();
             this._bids.Clear();
             var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
-            for (var i = 0; i < snapshotBids.Count; i++)
+            if (snapshotBids != null)
             {
-                this.bids.storeArray(snapshotBids[i] as List<object>);
+                for (var i = 0; i < snapshotBids.Count; i++)
+                {
+                    this.bids.storeArray(snapshotBids[i] as List<object>);
+                }
             }
             this["nonce"] = Exchange.SafeValue(snapshot as dict, "nonce", this["nonce"]);
             this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);

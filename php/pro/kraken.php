@@ -625,7 +625,11 @@ class kraken extends \ccxt\async\kraken {
         //
         $data = $this->safe_list($message, 'data', array());
         $first = $data[0];
-        $symbol = $this->safe_string($first, 'symbol');
+        $marketId = $this->safe_string($first, 'symbol');
+        $symbol = $this->safe_symbol($marketId);
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            $this->ohlcvs[$symbol] = array();
+        }
         $interval = $this->safe_integer($first, 'interval');
         $timeframe = $this->find_timeframe($interval);
         $messageHash = $this->get_message_hash('ohlcv', null, $symbol);
@@ -1299,8 +1303,7 @@ class kraken extends \ccxt\async\kraken {
              * @param {array} [$params] maximum number of orderic to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $params['snap_orders'] = true;
-            return Async\await($this->watch_private('orders', $symbol, $since, $limit, $params));
+            return Async\await($this->watch_private('orders', $symbol, $since, $limit, $this->extend($params, array( 'snap_orders' => true ))));
         }) ();
     }
 
@@ -1362,7 +1365,9 @@ class kraken extends \ccxt\async\kraken {
                     }
                 }
                 $stored->append ($newOrder);
-                $symbols[$symbol] = true;
+                if ($symbol !== null) {
+                    $symbols[$symbol] = true;
+                }
             }
             $name = 'orders';
             $client->resolve ($this->orders, $name);

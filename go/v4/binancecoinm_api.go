@@ -2199,6 +2199,18 @@ func (this *BinancecoinmCore) FapiPrivateGetConvertOrderStatus(args ...interface
 	return this.callEndpointAsync("fapiPrivateGetConvertOrderStatus", args...)
 }
 
+func (this *BinancecoinmCore) FapiPrivateGetAlgoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetAlgoOrder", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivateGetOpenAlgoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetOpenAlgoOrders", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivateGetAllAlgoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetAllAlgoOrders", args...)
+}
+
 func (this *BinancecoinmCore) FapiPrivatePostBatchOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostBatchOrders", args...)
 }
@@ -2217,6 +2229,10 @@ func (this *BinancecoinmCore) FapiPrivatePostMarginType(args ...interface{}) <-c
 
 func (this *BinancecoinmCore) FapiPrivatePostOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePostOrder", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivatePostOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostOrderTest", args...)
 }
 
 func (this *BinancecoinmCore) FapiPrivatePostLeverage(args ...interface{}) <-chan interface{} {
@@ -2255,6 +2271,10 @@ func (this *BinancecoinmCore) FapiPrivatePostConvertAcceptQuote(args ...interfac
 	return this.callEndpointAsync("fapiPrivatePostConvertAcceptQuote", args...)
 }
 
+func (this *BinancecoinmCore) FapiPrivatePostAlgoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostAlgoOrder", args...)
+}
+
 func (this *BinancecoinmCore) FapiPrivatePutListenKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivatePutListenKey", args...)
 }
@@ -2281,6 +2301,14 @@ func (this *BinancecoinmCore) FapiPrivateDeleteAllOpenOrders(args ...interface{}
 
 func (this *BinancecoinmCore) FapiPrivateDeleteListenKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateDeleteListenKey", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivateDeleteAlgoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteAlgoOrder", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivateDeleteAlgoOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteAlgoOpenOrders", args...)
 }
 
 func (this *BinancecoinmCore) FapiPublicV2GetTickerPrice(args ...interface{}) <-chan interface{} {

@@ -7,7 +7,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBy
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import Precise from '../base/Precise.js';
+import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 

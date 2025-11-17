@@ -1472,7 +1472,7 @@ public partial class bingx
     /// <item>
     /// <term>params.walletType</term>
     /// <description>
-    /// int : 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
+    /// int : 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
     /// </description>
     /// </item>
     /// </list>

@@ -27,6 +27,9 @@ class bingx extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
@@ -47,9 +50,18 @@ class bingx extends Exchange {
                 'createTrailingPercentOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -60,6 +72,9 @@ class bingx extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => true,
                 'fetchLiquidations' => false,
                 'fetchMarginAdjustmentHistory' => false,
@@ -73,6 +88,8 @@ class bingx extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -87,8 +104,11 @@ class bingx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => true,
@@ -5879,14 +5899,24 @@ class bingx extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} [$tag]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
+         * @param {int} [$params->walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
-        $walletType = $this->safe_integer($params, 'walletType', 15);
+        $defaultWalletType = 15; // spot
+        $walletType = null;
+        list($walletType, $params) = $this->handle_option_and_params_2($params, 'withdraw', 'type', 'walletType', $defaultWalletType);
+        $walletTypes = array(
+            'funding' => 1,
+            'fund' => 1,
+            'standard' => 2,
+            'perpetual' => 3,
+            'spot' => 15,
+        );
+        $walletType = $this->safe_integer($walletTypes, $walletType, $defaultWalletType);
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,

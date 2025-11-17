@@ -1435,8 +1435,14 @@ func (this *Hyperliquid) FetchFundingHistory(options ...FetchFundingHistoryOptio
 func (this *Hyperliquid) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Hyperliquid) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
 func (this *Hyperliquid) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
+}
+func (this *Hyperliquid) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Hyperliquid) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
@@ -1512,6 +1518,9 @@ func (this *Hyperliquid) EditLimitOrder(id string, symbol string, side string, a
 }
 func (this *Hyperliquid) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
+}
+func (this *Hyperliquid) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Hyperliquid) FetchAccounts(params ...interface{}) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
@@ -1644,6 +1653,9 @@ func (this *Hyperliquid) FetchOption(symbol string, options ...FetchOptionOption
 }
 func (this *Hyperliquid) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
+}
+func (this *Hyperliquid) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Hyperliquid) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)

@@ -931,6 +931,7 @@ export default class mexc extends Exchange {
                     '30029': InvalidOrder, // Cannot exceed the maximum order limit
                     '30032': InvalidOrder, // Cannot exceed the maximum position
                     '30041': InvalidOrder, // current order type can not place order
+                    '30087': InvalidOrder, // {"msg":"Order price exceeds allowed range","code":30087}
                     '60005': ExchangeError, // your account is abnormal
                     '700001': AuthenticationError, // {"code":700002,"msg":"Signature for this request is not valid."} // same message for expired API keys
                     '700002': AuthenticationError, // Signature for this request is not valid // or the API secret is incorrect
@@ -2992,10 +2993,9 @@ export default class mexc extends Exchange {
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for spot market');
+            if (symbol !== undefined) {
+                request['symbol'] = market['id'];
             }
-            request['symbol'] = market['id'];
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
             let response = undefined;
             if (marginMode !== undefined) {

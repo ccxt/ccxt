@@ -1,7 +1,8 @@
 {
     "exchange": "hyperliquid",
     "options": {
-        "approvedBuilderFee": true
+        "approvedBuilderFee": true,
+        "refSet": true
     },
     "skipKeys": [
         "startTime",

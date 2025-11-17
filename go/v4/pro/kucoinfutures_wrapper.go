@@ -505,9 +505,12 @@ func (this *Kucoinfutures) WatchBalance(params ...interface{}) (ccxt.Balances, e
 // missing typed methods from base
 //nolint
 func (this *Kucoinfutures) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Kucoinfutures) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrders(ids, options...)}
+func (this *Kucoinfutures) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...ccxt.CancelOrdersWithClientOrderIdsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
 func (this *Kucoinfutures) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelAllOrders(options...)}
 func (this *Kucoinfutures) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]interface{}, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
 func (this *Kucoinfutures) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrder(id, options...)}
+func (this *Kucoinfutures) CancelOrderWithClientOrderId(clientOrderId string, options ...ccxt.CancelOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Kucoinfutures) CancelOrdersForSymbols(orders []ccxt.CancellationRequest, options ...ccxt.CancelOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)}
 func (this *Kucoinfutures) CreateConvertTrade(id string, fromCode string, toCode string, options ...ccxt.CreateConvertTradeOptions) (ccxt.Conversion, error) {return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)}
 func (this *Kucoinfutures) CreateDepositAddress(code string, options ...ccxt.CreateDepositAddressOptions) (ccxt.DepositAddress, error) {return this.exchangeTyped.CreateDepositAddress(code, options...)}
@@ -537,6 +540,7 @@ func (this *Kucoinfutures) EditLimitBuyOrder(id string, symbol string, amount fl
 func (this *Kucoinfutures) EditLimitOrder(id string, symbol string, side string, amount float64, options ...ccxt.EditLimitOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)}
 func (this *Kucoinfutures) EditLimitSellOrder(id string, symbol string, amount float64, options ...ccxt.EditLimitSellOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)}
 func (this *Kucoinfutures) EditOrder(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)}
+func (this *Kucoinfutures) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
 func (this *Kucoinfutures) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
 func (this *Kucoinfutures) FetchAccounts(params ...interface{}) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
 func (this *Kucoinfutures) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
@@ -598,6 +602,7 @@ func (this *Kucoinfutures) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOption
 func (this *Kucoinfutures) FetchOption(symbol string, options ...ccxt.FetchOptionOptions) (ccxt.Option, error) {return this.exchangeTyped.FetchOption(symbol, options...)}
 func (this *Kucoinfutures) FetchOptionChain(code string, options ...ccxt.FetchOptionChainOptions) (ccxt.OptionChain, error) {return this.exchangeTyped.FetchOptionChain(code, options...)}
 func (this *Kucoinfutures) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.FetchOrder(id, options...)}
+func (this *Kucoinfutures) FetchOrderWithClientOrderId(clientOrderId string, options ...ccxt.FetchOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Kucoinfutures) FetchOrderBook(symbol string, options ...ccxt.FetchOrderBookOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.FetchOrderBook(symbol, options...)}
 func (this *Kucoinfutures) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.OrderBooks, error) {return this.exchangeTyped.FetchOrderBooks(options...)}
 func (this *Kucoinfutures) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOrders(options...)}

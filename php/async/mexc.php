@@ -937,6 +937,7 @@ class mexc extends Exchange {
                     '30029' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum order limit
                     '30032' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum position
                     '30041' => '\\ccxt\\InvalidOrder', // current order type can not place order
+                    '30087' => '\\ccxt\\InvalidOrder', // array("msg":"Order price exceeds allowed range","code":30087)
                     '60005' => '\\ccxt\\ExchangeError', // your account is abnormal
                     '700001' => '\\ccxt\\AuthenticationError', // array("code":700002,"msg":"Signature for this request is not valid.") // same message for expired API keys
                     '700002' => '\\ccxt\\AuthenticationError', // Signature for this request is not valid // or the API secret is incorrect
@@ -3041,10 +3042,9 @@ class mexc extends Exchange {
             }
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
             if ($marketType === 'spot') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
+                if ($symbol !== null) {
+                    $request['symbol'] = $market['id'];
                 }
-                $request['symbol'] = $market['id'];
                 list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
                 $response = null;
                 if ($marginMode !== null) {

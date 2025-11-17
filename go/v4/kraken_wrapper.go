@@ -501,6 +501,34 @@ func (this *Kraken) CreateOrder(symbol string, typeVar string, side string, amou
 
 /**
  * @method
+ * @name kraken#createOrders
+ * @description create a list of trade orders
+ * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Kraken) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
+
+	opts := CreateOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+
+/**
+ * @method
  * @name kraken#editOrder
  * @description edit a trade order
  * @see https://docs.kraken.com/api/docs/rest-api/amend-order
@@ -1267,6 +1295,12 @@ func (this *Kraken) Transfer(code string, amount float64, fromAccount string, to
 func (this *Kraken) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Kraken) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
+func (this *Kraken) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Kraken) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
 }
@@ -1293,9 +1327,6 @@ func (this *Kraken) CreateMarketSellOrder(symbol string, amount float64, options
 }
 func (this *Kraken) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Kraken) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrders(orders, options...)
 }
 func (this *Kraken) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
 	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
@@ -1338,6 +1369,9 @@ func (this *Kraken) EditLimitOrder(id string, symbol string, side string, amount
 }
 func (this *Kraken) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
+}
+func (this *Kraken) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Kraken) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
@@ -1485,6 +1519,9 @@ func (this *Kraken) FetchOption(symbol string, options ...FetchOptionOptions) (O
 }
 func (this *Kraken) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
+}
+func (this *Kraken) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Kraken) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)

@@ -467,10 +467,15 @@ class blofin(ccxt.async_support.blofin):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
+
+        https://docs.blofin.com/index.html#ws-order-channel
+        https://docs.blofin.com/index.html#ws-algo-orders-channel
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: set to True for trigger orders
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         params['callerMethodName'] = 'watchOrders'
@@ -482,16 +487,21 @@ class blofin(ccxt.async_support.blofin):
         watches information on multiple orders made by the user across multiple symbols
 
         https://docs.blofin.com/index.html#ws-order-channel
+        https://docs.blofin.com/index.html#ws-algo-orders-channel
 
         :param str[] symbols:
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: set to True for trigger orders
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.authenticate()
         await self.load_markets()
-        orders = await self.watch_multiple_wrapper(False, 'orders', 'watchOrdersForSymbols', symbols, params)
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger'])
+        channel = 'orders-algo' if trigger else 'orders'
+        orders = await self.watch_multiple_wrapper(False, channel, 'watchOrdersForSymbols', symbols, params)
         if self.newUpdates:
             first = self.safe_value(orders, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
@@ -615,7 +625,7 @@ class blofin(ccxt.async_support.blofin):
             rawSubscriptions.append({'channel': channelName})
             messageHashes.append(channelName)
         # private channel are difference, they only need plural channel name for multiple symbols
-        if self.in_array(channelName, ['orders', 'positions']):
+        if self.in_array(channelName, ['orders', 'orders-algo', 'positions']):
             rawSubscriptions = [{'channel': channelName}]
         request = self.get_subscription_request(rawSubscriptions)
         privateOrPublic = 'public' if isPublic else 'private'
@@ -652,6 +662,7 @@ class blofin(ccxt.async_support.blofin):
             # private
             'account': self.handle_balance,
             'orders': self.handle_orders,
+            'orders-algo': self.handle_orders,
             'positions': self.handle_positions,
         }
         method = None

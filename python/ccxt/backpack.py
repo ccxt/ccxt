@@ -1418,14 +1418,14 @@ class backpack(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.network]: the network to withdraw on(mandatory)
+        :param str params['network']: the network to withdraw on(mandatory)
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
         request: dict = {
             'symbol': currency['id'],
-            'amount': self.number_to_string(amount),
+            'quantity': self.number_to_string(amount),
             'address': address,
         }
         if tag is not None:

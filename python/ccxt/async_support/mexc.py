@@ -944,6 +944,7 @@ class mexc(Exchange, ImplicitAPI):
                     '30029': InvalidOrder,  # Cannot exceed the maximum order limit
                     '30032': InvalidOrder,  # Cannot exceed the maximum position
                     '30041': InvalidOrder,  # current order type can not place order
+                    '30087': InvalidOrder,  # {"msg":"Order price exceeds allowed range","code":30087}
                     '60005': ExchangeError,  # your account is abnormal
                     '700001': AuthenticationError,  # {"code":700002,"msg":"Signature for self request is not valid."}  # same message for expired API keys
                     '700002': AuthenticationError,  # Signature for self request is not valid  # or the API secret is incorrect
@@ -2878,9 +2879,8 @@ class mexc(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for spot market')
-            request['symbol'] = market['id']
+            if symbol is not None:
+                request['symbol'] = market['id']
             marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
             response = None
             if marginMode is not None:

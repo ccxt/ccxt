@@ -42,7 +42,7 @@ import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, B
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
-import totp from './functions/totp.js';
+import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
@@ -51,6 +51,9 @@ import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
+import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
+import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 
 const {
     isNode,
@@ -167,10 +170,17 @@ const {
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js';
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
+let encodeAsAny = undefined;
+let AuthInfo = undefined;
+let Tx = undefined;
+let TxBody = undefined;
+let TxRaw = undefined;
+let SignDoc = undefined;
+let SignMode = undefined;
 (async () => {
     try {
         protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
-    } catch {
+    } catch (e) {
         // TODO: handle error
     }
 }) ();
@@ -635,6 +645,30 @@ export default class Exchange {
         if (this.safeBool (userConfig, 'sandbox') || this.safeBool (userConfig, 'testnet')) {
             this.setSandboxMode (true);
         }
+    }
+
+    uuid5 (namespace: string, name: string): string {
+        const nsBytes = namespace
+            .replace (/-/g, '')
+            .match (/.{1,2}/g)
+            .map ((byte) => parseInt (byte, 16));
+        const nameBytes = new TextEncoder ().encode (name);
+        const data = new Uint8Array ([ ...nsBytes, ...nameBytes ]);
+        const nsHash = sha1 (data);
+        // eslint-disable-next-line
+        nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
+        // eslint-disable-next-line
+        nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
+        const hex = [ ...nsHash.slice (0, 16) ]
+            .map ((b) => b.toString (16).padStart (2, '0'))
+            .join ('');
+        return [
+            hex.substring (0, 8),
+            hex.substring (8, 12),
+            hex.substring (12, 16),
+            hex.substring (16, 20),
+            hex.substring (20, 32),
+        ].join ('-');
     }
 
     encodeURIComponent (...args) {
@@ -1676,6 +1710,146 @@ export default class Exchange {
         return zkSign;
     }
 
+    async loadDydxProtos () {
+        // load dydx protos
+        const tasks = [
+            import ('../static_dependencies/dydx-v4-client/registry.js') as Promise<any>,
+            import ('../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx.js') as Promise<any>,
+            import ('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing.js') as Promise<any>,
+        ];
+        const modules = await Promise.all (tasks);
+        encodeAsAny = modules[0].encodeAsAny;
+        AuthInfo = modules[1].AuthInfo;
+        Tx = modules[1].Tx;
+        TxBody = modules[1].TxBody;
+        TxRaw = modules[1].TxRaw;
+        SignDoc = modules[1].SignDoc;
+        SignMode = modules[2].SignMode;
+    }
+
+    toDydxLong (numStr: string): object {
+        return Long.fromString (numStr);
+    }
+
+    retrieveDydxCredentials (entropy: string): object {
+        let credentials = undefined;
+        if (entropy.indexOf (' ') > 0) {
+            credentials = deriveHDKeyFromMnemonic (entropy);
+            credentials['mnemonic'] = entropy;
+            return credentials;
+        }
+        credentials = exportMnemonicAndPrivateKey (this.base16ToBinary (entropy));
+        return credentials;
+    }
+
+    encodeDydxTxForSimulation (
+        message,
+        memo,
+        sequence,
+        publicKey
+    ): string {
+        if (!encodeAsAny) {
+            throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        if (!publicKey) {
+            throw new Error ('Public key cannot be undefined');
+        }
+        const messages = [ message ];
+        const encodedMessages = messages.map ((msg) => encodeAsAny (msg));
+        const tx = Tx.fromPartial ({
+            'body': TxBody.fromPartial ({
+                'messages': encodedMessages,
+                'memo': memo,
+            }),
+            'authInfo': AuthInfo.fromPartial ({
+                'fee': {},
+                'signerInfos': [
+                    {
+                        'publicKey': encodeAsAny ({
+                            'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                            'value': publicKey,
+                        }),
+                        'sequence': sequence,
+                        'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_UNSPECIFIED }},
+                    },
+                ],
+            }),
+            'signatures': [ new Uint8Array () ],
+        });
+        return this.binaryToBase64 (Tx.encode (tx).finish ());
+    }
+
+    encodeDydxTxForSigning (
+        message,
+        memo,
+        chainId,
+        account,
+        authenticators,
+        fee = undefined
+    ): [ string, Dict ] {
+        if (!encodeAsAny) {
+            throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        if (!account.pub_key) {
+            throw new Error ('Public key cannot be undefined');
+        }
+        const messages = [ message ];
+        const sequence = this.milliseconds ();
+        if (fee === undefined) {
+            fee = {
+                'amount': [],
+                'gasLimit': 1000000,
+            };
+        }
+        const encodedMessages = messages.map ((msg) => encodeAsAny (msg));
+        const nonCriticalExtensionOptions = [
+            encodeAsAny ({
+                'typeUrl': '/dydxprotocol.accountplus.TxExtension',
+                'value': {
+                    'selectedAuthenticators': authenticators ?? [],
+                },
+            }),
+        ];
+        const txBodyBytes = TxBody.encode (TxBody.fromPartial ({
+            'messages': encodedMessages,
+            'memo': memo,
+            'extensionOptions': [],
+            'nonCriticalExtensionOptions': nonCriticalExtensionOptions,
+        })).finish ();
+        const authInfoBytes = AuthInfo.encode (AuthInfo.fromPartial ({
+            'fee': fee,
+            'signerInfos': [
+                {
+                    'publicKey': encodeAsAny ({
+                        'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                        'value': account.pub_key,
+                    }),
+                    'sequence': sequence,
+                    'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_DIRECT }},
+                },
+            ],
+        })).finish ();
+        const signDoc = SignDoc.fromPartial ({
+            'accountNumber': account.account_number,
+            'authInfoBytes': authInfoBytes,
+            'bodyBytes': txBodyBytes,
+            'chainId': chainId,
+        });
+        const signingHash = this.hash (SignDoc.encode (signDoc).finish (), sha256, 'hex');
+        return [ signingHash, signDoc ];
+    }
+
+    encodeDydxTxRaw (signDoc: Dict, signature: string): string {
+        if (!encodeAsAny) {
+            throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        return '0x' + this.binaryToBase16 (TxRaw.encode (TxRaw.fromPartial ({
+            'bodyBytes': signDoc.bodyBytes,
+            'authInfoBytes': signDoc.authInfoBytes,
+            'signatures': [ this.base16ToBinary (signature) ],
+        })).finish ());
+    }
+
     intToBase16 (elem): string {
         return elem.toString (16);
     }
@@ -1784,8 +1958,10 @@ export default class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
                 'cancelOrder': true,
+                'cancelOrderWithClientOrderId': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
+                'cancelOrdersWithClientOrderId': undefined,
                 'cancelOrdersWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
@@ -1835,6 +2011,7 @@ export default class Exchange {
                 'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
+                'editOrderWithClientOrderId': undefined,
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
@@ -1913,6 +2090,7 @@ export default class Exchange {
                 'fetchOption': undefined,
                 'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
+                'fetchOrderWithClientOrderId': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrderBookWs': undefined,
@@ -2215,7 +2393,7 @@ export default class Exchange {
     }
 
     getCacheIndex (orderbook, deltas) {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1;
     }
 
@@ -3568,6 +3746,7 @@ export default class Exchange {
         this.symbols = sourceExchange.symbols;
         this.ids = sourceExchange.ids;
         this.currencies = sourceExchange.currencies;
+        this.currencies_by_id = sourceExchange.currencies_by_id;
         this.baseCurrencies = sourceExchange.baseCurrencies;
         this.quoteCurrencies = sourceExchange.quoteCurrencies;
         this.codes = sourceExchange.codes;
@@ -4080,7 +4259,7 @@ export default class Exchange {
                 fee = this.parseFeeNumeric (fee);
             }
             if (!feesDefined) {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 fees = [ fee ];
             }
             // 'fees' were set, so reparse them
@@ -5243,6 +5422,10 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
+    async editOrderWithClientOrderId (clientOrderId: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        return await this.editOrder ('', symbol, type, side, amount, price, this.extend ({ 'clientOrderId': clientOrderId }, params));
+    }
+
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.cancelOrderWs (id, symbol);
         return await this.createOrderWs (symbol, type, side, amount, price, params);
@@ -5350,10 +5533,6 @@ export default class Exchange {
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
-        const result = this.safeMarketStructure ({
-            'symbol': marketId,
-            'marketId': marketId,
-        });
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
@@ -5378,22 +5557,24 @@ export default class Exchange {
             } else if (delimiter !== undefined && delimiter !== '') {
                 const parts = marketId.split (delimiter);
                 const partsLength = parts.length;
+                const result = this.safeMarketStructure ({
+                    'symbol': marketId,
+                    'marketId': marketId,
+                });
                 if (partsLength === 2) {
                     result['baseId'] = this.safeString (parts, 0);
                     result['quoteId'] = this.safeString (parts, 1);
                     result['base'] = this.safeCurrencyCode (result['baseId']);
                     result['quote'] = this.safeCurrencyCode (result['quoteId']);
                     result['symbol'] = result['base'] + '/' + result['quote'];
-                    return result;
-                } else {
-                    return result;
                 }
+                return result;
             }
         }
         if (market !== undefined) {
             return market;
         }
-        return result;
+        return this.safeMarketStructure ({ 'symbol': marketId, 'marketId': marketId });
     }
 
     marketOrNull (symbol: string): MarketInterface {
@@ -5774,6 +5955,20 @@ export default class Exchange {
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name fetchOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrderWithClientOrderId (clientOrderId: string, symbol: Str = undefined, params = {}) {
+        const extendedParams = this.extend (params, { 'clientOrderId': clientOrderId });
+        return await this.fetchOrder ('', symbol, extendedParams);
     }
 
     async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -6259,12 +6454,40 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
+    /**
+     * @method
+     * @name cancelOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrderWithClientOrderId (clientOrderId: string, symbol: Str = undefined, params = {}) {
+        const extendedParams = this.extend (params, { 'clientOrderId': clientOrderId });
+        return await this.cancelOrder ('', symbol, extendedParams);
+    }
+
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' cancelOrderWs() is not supported yet');
     }
 
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name cancelOrdersWithClientOrderIds
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string[]} clientOrderIds client order Ids
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrdersWithClientOrderIds (clientOrderIds: string[], symbol: Str = undefined, params = {}) {
+        const extendedParams = this.extend (params, { 'clientOrderIds': clientOrderIds });
+        return await this.cancelOrders ([], symbol, extendedParams);
     }
 
     async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
@@ -8419,7 +8642,7 @@ export default class Exchange {
                         delete futures['fetchPositionsSnapshot'];
                     }
                 }
-            } else if (topic === 'ticker' && (this.tickers !== undefined)) {
+            } else if ((topic === 'ticker' || topic === 'markPrice') && (this.tickers !== undefined)) {
                 const tickerSymbols = Object.keys (this.tickers);
                 for (let i = 0; i < tickerSymbols.length; i++) {
                     const tickerSymbol = tickerSymbols[i];

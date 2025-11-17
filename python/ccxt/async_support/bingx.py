@@ -46,6 +46,9 @@ class bingx(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': True,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
@@ -66,9 +69,18 @@ class bingx(Exchange, ImplicitAPI):
                 'createTrailingPercentOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
@@ -79,6 +91,9 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchGreeks': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': True,
                 'fetchLiquidations': False,
                 'fetchMarginAdjustmentHistory': False,
@@ -92,6 +107,8 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -106,8 +123,11 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'sandbox': True,
                 'setLeverage': True,
                 'setMargin': True,
@@ -5624,14 +5644,24 @@ class bingx(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str [tag]:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.walletType]: 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
+        :param int [params.walletType]: 1 fund(funding) account, 2 standard account, 3 perpetual account, 15 spot account
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        walletType = self.safe_integer(params, 'walletType', 15)
+        defaultWalletType = 15  # spot
+        walletType = None
+        walletType, params = self.handle_option_and_params_2(params, 'withdraw', 'type', 'walletType', defaultWalletType)
+        walletTypes = {
+            'funding': 1,
+            'fund': 1,
+            'standard': 2,
+            'perpetual': 3,
+            'spot': 15,
+        }
+        walletType = self.safe_integer(walletTypes, walletType, defaultWalletType)
         request: dict = {
             'coin': currency['id'],
             'address': address,

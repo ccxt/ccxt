@@ -32,6 +32,9 @@ export default class bingx extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': true,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
@@ -52,9 +55,18 @@ export default class bingx extends Exchange {
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -65,6 +77,9 @@ export default class bingx extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': true,
                 'fetchLiquidations': false,
                 'fetchMarginAdjustmentHistory': false,
@@ -78,6 +93,8 @@ export default class bingx extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -92,8 +109,11 @@ export default class bingx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': true,
                 'setMargin': true,
@@ -5891,7 +5911,7 @@ export default class bingx extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
+     * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
@@ -5899,7 +5919,17 @@ export default class bingx extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const walletType = this.safeInteger (params, 'walletType', 15);
+        const defaultWalletType = 15; // spot
+        let walletType = undefined;
+        [ walletType, params ] = this.handleOptionAndParams2 (params, 'withdraw', 'type', 'walletType', defaultWalletType);
+        const walletTypes = {
+            'funding': 1,
+            'fund': 1,
+            'standard': 2,
+            'perpetual': 3,
+            'spot': 15,
+        };
+        walletType = this.safeInteger (walletTypes, walletType, defaultWalletType);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,

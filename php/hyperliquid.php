@@ -408,7 +408,7 @@ class hyperliquid extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         if ($this->check_required_credentials(false)) {
-            $this->handle_builder_fee_approval();
+            $this->initialize_client();
         }
         $request = array(
             'type' => 'meta',
@@ -1494,6 +1494,32 @@ class hyperliquid extends Exchange {
         return $this->sign_user_signed_action($messageTypes, $message);
     }
 
+    public function set_ref() {
+        if ($this->safe_bool($this->options, 'refSet', false)) {
+            return true;
+        }
+        $this->options['refSet'] = true;
+        $action = array(
+            'type' => 'setReferrer',
+            'code' => $this->safe_string($this->options, 'ref', 'CCXT1'),
+        );
+        $nonce = $this->milliseconds();
+        $signature = $this->sign_l1_action($action, $nonce);
+        $request = array(
+            'action' => $action,
+            'nonce' => $nonce,
+            'signature' => $signature,
+        );
+        $response = null;
+        try {
+            $response = $this->privatePostExchange ($request);
+            return $response;
+        } catch (Exception $e) {
+            $response = null; // ignore this
+        }
+        return $response;
+    }
+
     public function approve_builder_fee(string $builder, string $maxFeeRate) {
         $nonce = $this->milliseconds();
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
@@ -1527,6 +1553,15 @@ class hyperliquid extends Exchange {
         // }
         //
         return $this->privatePostExchange ($request);
+    }
+
+    public function initialize_client() {
+        try {
+            array( $this->handle_builder_fee_approval(), $this->set_ref() );
+        } catch (Exception $e) {
+            return false;
+        }
+        return true;
     }
 
     public function handle_builder_fee_approval() {
@@ -1588,7 +1623,7 @@ class hyperliquid extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
-        $this->handle_builder_fee_approval();
+        $this->initialize_client();
         $request = $this->create_orders_request($orders, $params);
         $response = $this->privatePostExchange ($request);
         //
@@ -1837,6 +1872,7 @@ class hyperliquid extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
         $this->load_markets();
+        $this->initialize_client();
         $request = $this->cancel_orders_request($ids, $symbol, $params);
         $response = $this->privatePostExchange ($request);
         //
@@ -1939,6 +1975,7 @@ class hyperliquid extends Exchange {
          */
         $this->check_required_credentials();
         $this->load_markets();
+        $this->initialize_client();
         $nonce = $this->milliseconds();
         $request = array(
             'nonce' => $nonce,
@@ -2012,6 +2049,7 @@ class hyperliquid extends Exchange {
          */
         $this->check_required_credentials();
         $this->load_markets();
+        $this->initialize_client();
         $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         $nonce = $this->milliseconds();
         $request = array(
@@ -2205,6 +2243,7 @@ class hyperliquid extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
+        $this->initialize_client();
         $request = $this->edit_orders_request($orders, $params);
         $response = $this->privatePostExchange ($request);
         //

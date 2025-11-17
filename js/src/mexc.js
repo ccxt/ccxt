@@ -932,6 +932,7 @@ export default class mexc extends Exchange {
                     '30029': InvalidOrder,
                     '30032': InvalidOrder,
                     '30041': InvalidOrder,
+                    '30087': InvalidOrder,
                     '60005': ExchangeError,
                     '700001': AuthenticationError,
                     '700002': AuthenticationError,
@@ -3008,10 +3009,9 @@ export default class mexc extends Exchange {
         }
         [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument for spot market');
+            if (symbol !== undefined) {
+                request['symbol'] = market['id'];
             }
-            request['symbol'] = market['id'];
             const [marginMode, query] = this.handleMarginModeAndParams('fetchOpenOrders', params);
             let response = undefined;
             if (marginMode !== undefined) {

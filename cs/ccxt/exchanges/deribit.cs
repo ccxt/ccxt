@@ -2447,6 +2447,13 @@ public partial class deribit : Exchange
         object request = new Dictionary<string, object>() {};
         object market = null;
         object response = null;
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["count"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["count"] = 1000; // max value
+        }
         if (isTrue(isEqual(symbol, null)))
         {
             object code = this.codeFromOptions("fetchClosedOrders", parameters);

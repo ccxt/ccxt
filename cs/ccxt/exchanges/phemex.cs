@@ -3558,13 +3558,17 @@ public partial class phemex : Exchange
         {
             market = this.market(symbol);
         }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
             limit = mathMin(200, limit);
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object isUSDTSettled = isTrue((isEqual(symbol, null))) || isTrue((isEqual(this.safeString(market, "settle"), "USDT")));
+        object isUSDTSettled = isTrue((!isEqual(type, "spot"))) && isTrue((isTrue((isEqual(symbol, null))) || isTrue((isEqual(this.safeString(market, "settle"), "USDT")))));
         if (isTrue(isUSDTSettled))
         {
             ((IDictionary<string,object>)request)["currency"] = "USDT";
@@ -3573,7 +3577,7 @@ public partial class phemex : Exchange
             {
                 ((IDictionary<string,object>)request)["limit"] = 200;
             }
-        } else
+        } else if (isTrue(!isEqual(symbol, null)))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
@@ -3585,8 +3589,9 @@ public partial class phemex : Exchange
         if (isTrue(isUSDTSettled))
         {
             response = await this.privateGetExchangeOrderV2TradingList(this.extend(request, parameters));
-        } else if (isTrue(getValue(market, "swap")))
+        } else if (isTrue(isEqual(type, "swap")))
         {
+            ((IDictionary<string,object>)request)["tradeType"] = "Trade";
             response = await this.privateGetExchangeOrderTrade(this.extend(request, parameters));
         } else
         {

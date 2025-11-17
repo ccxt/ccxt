@@ -83,9 +83,12 @@ const imports = [
 
 const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "cancelOrder": true, // true if the method returns a channel (async in JS)
+    "cancelOrdersWithClientOrderIds": true,
+    "cancelOrderWithClient": true,
     "createExpiredOptionMarket": false,
     "createOrder": true,
     "editOrder": true,
+    "editOrderWithClientOrderId": true,
     "fetchAccounts": true,
     "fetchBalance": true,
     "fetchClosedOrders": true,
@@ -108,6 +111,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchTradingFees": true,
     "fetchOption": true,
     "fetchOrder": true,
+    "fetchOrderWithClientOrderId": true,
     "fetchOrderBook": true,
     "fetchOrderBooks": true,
     "fetchOrders": true,
@@ -236,9 +240,12 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
 }
 
 const INTERFACE_METHODS = [
+    'cancelOrders',
+    'cancelOrdersWithClientOrderIds',
     'cancelAllOrders',
     'cancelAllOrdersAfter',
     'cancelOrder',
+    'cancelOrderWithClientOrderId',
     'cancelOrdersForSymbols',
     'createConvertTrade',
     'createDepositAddress',
@@ -268,6 +275,7 @@ const INTERFACE_METHODS = [
     'editLimitOrder',
     'editLimitSellOrder',
     'editOrder',
+    'editOrderWithClientOrderId',
     'editOrders',
     'fetchAccounts',
     'fetchAllGreeks',
@@ -329,6 +337,7 @@ const INTERFACE_METHODS = [
     'fetchOption',
     'fetchOptionChain',
     'fetchOrder',
+    'fetchOrderWithClientOrderId',
     'fetchOrderBook',
     'fetchOrderBooks',
     'fetchOrders',
@@ -1076,6 +1085,9 @@ class NewTranspiler {
             return `(res).(int64)`;
         }
 
+        if (unwrappedType === 'float64') {
+            return `(res).(float64)`;
+        }
         if (methodName.startsWith('watchOrderBook')) {
             return `NewOrderBookFromWs(res)`;
         }
@@ -1291,15 +1303,17 @@ class NewTranspiler {
             methodDoc.push(goComments[exchangeName][methodName]);
         }
 
-        let emtpyObject = `${unwrappedType}{}`;
+        let emptyObject = `${unwrappedType}{}`;
         if (unwrappedType.startsWith('[]')) {
-            emtpyObject = 'nil';
+            emptyObject = 'nil'
         } else if (unwrappedType.includes('int64')) {
-            emtpyObject = '-1';
+            emptyObject = '-1'
+        } else if (unwrappedType.includes('float64')) {
+            emptyObject = 'float64(-1)'
         } else if (unwrappedType === 'string') {
-            emtpyObject = '""';
+            emptyObject = '""'
         } else if (unwrappedType === 'interface{}') {
-            emtpyObject = 'nil';
+            emptyObject = 'nil';
         }
 
         const defaultParams =  this.getDefaultParamsWrappers(methodName, methodWrapper.parameters);
@@ -1317,7 +1331,7 @@ class NewTranspiler {
            `${defaultParams}`,
             `${two}res := <- ${accessor}${methodNameCapitalized}(${params})`,
             `${two}if IsError(res) {`,
-            `${three}return ${emtpyObject}, CreateReturnError(res)`,
+            `${three}return ${emptyObject}, CreateReturnError(res)`,
             `${two}}`,
             `${two}return ${this.createReturnStatement(methodName, unwrappedType)}, nil`,
             // `${two}}()`,

@@ -1659,6 +1659,12 @@ class okx extends Exchange {
         //         "uly" => "BTC-USD"
         //     }
         //
+        // for $swap "preopen" markets, only `$instId` and `instType` are present
+        //
+        //         $instId => "ETH-USD_UM-SWAP",
+        //         instType => "SWAP",
+        //         state => "preopen",
+        //
         $id = $this->safe_string($market, 'instId');
         $type = $this->safe_string_lower($market, 'instType');
         if ($type === 'futures') {
@@ -1688,6 +1694,10 @@ class okx extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
+        // handle preopen empty markets
+        if ($base === '' || $quote === '') {
+            $symbol = $id;
+        }
         $expiry = null;
         $strikePrice = null;
         $optionType = null;

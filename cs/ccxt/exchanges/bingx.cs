@@ -23,6 +23,9 @@ public partial class bingx : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", true },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
@@ -43,9 +46,18 @@ public partial class bingx : Exchange
                 { "createTrailingPercentOrder", true },
                 { "createTriggerOrder", true },
                 { "editOrder", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistories", false },
+                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
+                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
@@ -56,6 +68,9 @@ public partial class bingx : Exchange
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
+                { "fetchGreeks", false },
+                { "fetchIsolatedBorrowRate", false },
+                { "fetchIsolatedBorrowRates", false },
                 { "fetchLeverage", true },
                 { "fetchLiquidations", false },
                 { "fetchMarginAdjustmentHistory", false },
@@ -69,6 +84,8 @@ public partial class bingx : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -83,8 +100,11 @@ public partial class bingx : Exchange
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTransfers", true },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", true },
@@ -2356,7 +2376,7 @@ public partial class bingx : Exchange
                 response = await this.cswapV1PrivateGetUserBalance(marketTypeQuery);
             } else
             {
-                response = await ((Task<object>)callDynamically(this, "swapV3PrivateGetUserBalance", new object[] { marketTypeQuery }));
+                response = await this.swapV3PrivateGetUserBalance(marketTypeQuery);
             }
         }
         return this.parseBalance(response);
@@ -5538,7 +5558,7 @@ public partial class bingx : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
+     * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -5550,7 +5570,19 @@ public partial class bingx : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        object walletType = this.safeInteger(parameters, "walletType", 15);
+        object defaultWalletType = 15; // spot
+        object walletType = null;
+        var walletTypeparametersVariable = this.handleOptionAndParams2(parameters, "withdraw", "type", "walletType", defaultWalletType);
+        walletType = ((IList<object>)walletTypeparametersVariable)[0];
+        parameters = ((IList<object>)walletTypeparametersVariable)[1];
+        object walletTypes = new Dictionary<string, object>() {
+            { "funding", 1 },
+            { "fund", 1 },
+            { "standard", 2 },
+            { "perpetual", 3 },
+            { "spot", 15 },
+        };
+        walletType = this.safeInteger(walletTypes, walletType, defaultWalletType);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },

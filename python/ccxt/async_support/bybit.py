@@ -435,8 +435,11 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
                         # earn
+                        'v5/earn/product': 5,
                         'v5/earn/order': 5,
                         'v5/earn/position': 5,
+                        'v5/earn/yield': 5,
+                        'v5/earn/hourly-yield': 5,
                     },
                     'post': {
                         # spot
@@ -530,6 +533,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/mmp-reset': 5,
                         'v5/account/borrow': 5,
                         'v5/account/repay': 5,
+                        'v5/account/no-convert-repay': 5,
                         # asset
                         'v5/asset/exchange/quote-apply': 1,  # 50/s
                         'v5/asset/exchange/convert-execute': 1,  # 50/s
@@ -3797,7 +3801,7 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.positionIdx]: *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
         :param bool [params.hedged]: *contracts only* True for hedged mode, False for one way mode, default is False
         :param int [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
-        :param str [params.tpslMode]: *contract only* 'full' or 'partial'
+        :param str [params.tpslMode]: *contract only* 'Full' or 'Partial'
         :param str [params.mmp]: *option only* market maker protection
         :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'ascending' or 'descending'
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
@@ -3912,20 +3916,26 @@ class bybit(Exchange, ImplicitAPI):
             if isStopLoss or isTakeProfit or isTriggerOrder or market['spot']:
                 raise InvalidOrder(self.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders')
             if isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                tpslMode = self.safe_string(params, 'tpslMode', 'Partial')
+                isFullTpsl = tpslMode == 'Full'
+                isPartialTpsl = tpslMode == 'Partial'
+                if isLimit and isFullTpsl:
+                    raise InvalidOrder(self.id + ' tpsl orders with "full" tpslMode only support "market" type')
+                request['tpslMode'] = tpslMode
                 if isStopLossTriggerOrder:
                     request['stopLoss'] = self.get_price(symbol, stopLossTriggerPrice)
+                    if isPartialTpsl:
+                        request['slSize'] = amountString
                     if isLimit:
-                        request['tpslMode'] = 'Partial'
                         request['slOrderType'] = 'Limit'
                         request['slLimitPrice'] = priceString
-                        request['slSize'] = amountString
                 elif isTakeProfitTriggerOrder:
                     request['takeProfit'] = self.get_price(symbol, takeProfitTriggerPrice)
+                    if isPartialTpsl:
+                        request['tpSize'] = amountString
                     if isLimit:
-                        request['tpslMode'] = 'Partial'
                         request['tpOrderType'] = 'Limit'
                         request['tpLimitPrice'] = priceString
-                        request['tpSize'] = amountString
         else:
             request['side'] = self.capitalize(side)
             request['orderType'] = self.capitalize(lowerCaseType)
@@ -4058,7 +4068,7 @@ class bybit(Exchange, ImplicitAPI):
                 params = self.omit(params, 'reduceOnly')
                 side = 'sell' if (side == 'buy') else 'buy'
             request['positionIdx'] = 1 if (side == 'buy') else 2
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged', 'tpslMode'])
         return self.extend(request, params)
 
     async def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
@@ -7056,7 +7066,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         create a loan to borrow margin
 
-        https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+        https://bybit-exchange.github.io/docs/v5/account/borrow
 
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
@@ -7067,32 +7077,29 @@ classic accounts only/ spot not supported*  fetches information on an order made
         currency = self.currency(code)
         request: dict = {
             'coin': currency['id'],
-            'qty': self.currency_to_precision(code, amount),
+            'amount': self.currency_to_precision(code, amount),
         }
-        response = await self.privatePostV5SpotCrossMarginTradeLoan(self.extend(request, params))
+        response = await self.privatePostV5AccountBorrow(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
         #         "retMsg": "success",
         #         "result": {
-        #             "transactId": "14143"
+        #             "coin": "BTC",
+        #             "amount": "0.001"
         #         },
-        #         "retExtInfo": null,
-        #         "time": 1662617848970
+        #         "retExtInfo": {},
+        #         "time": 1763194940073
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        transaction = self.parse_margin_loan(result, currency)
-        return self.extend(transaction, {
-            'symbol': None,
-            'amount': amount,
-        })
+        return self.parse_margin_loan(result, currency)
 
     async def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
 
-        https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+        https://bybit-exchange.github.io/docs/v5/account/no-convert-repay
 
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
@@ -7103,24 +7110,23 @@ classic accounts only/ spot not supported*  fetches information on an order made
         currency = self.currency(code)
         request: dict = {
             'coin': currency['id'],
-            'qty': self.number_to_string(amount),
+            'amount': self.number_to_string(amount),
         }
-        response = await self.privatePostV5SpotCrossMarginTradeRepay(self.extend(request, params))
+        response = await self.privatePostV5AccountNoConvertRepay(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
         #         "retMsg": "success",
         #         "result": {
-        #            "repayId": "12128"
+        #             "resultStatus": "SU"
         #         },
-        #         "retExtInfo": null,
-        #         "time": 1662618298452
+        #         "retExtInfo": {},
+        #         "time": 1763195201119
         #     }
         #
         result = self.safe_dict(response, 'result', {})
         transaction = self.parse_margin_loan(result, currency)
         return self.extend(transaction, {
-            'symbol': None,
             'amount': amount,
         })
 
@@ -7129,19 +7135,21 @@ classic accounts only/ spot not supported*  fetches information on an order made
         # borrowCrossMargin
         #
         #     {
-        #         "transactId": "14143"
+        #         "coin": "BTC",
+        #         "amount": "0.001"
         #     }
         #
         # repayCrossMargin
         #
         #     {
-        #         "repayId": "12128"
+        #         "resultStatus": "SU"
         #     }
         #
+        currencyId = self.safe_string(info, 'coin')
         return {
-            'id': self.safe_string_2(info, 'transactId', 'repayId'),
-            'currency': self.safe_string(currency, 'code'),
-            'amount': None,
+            'id': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_string(info, 'amount'),
             'symbol': None,
             'timestamp': None,
             'datetime': None,
