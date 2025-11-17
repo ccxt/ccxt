@@ -223,7 +223,7 @@ export default class Client {
                     message = this.ping (this);
                 }
                 if (this.verbose) {
-                    this.log (new Date (), 'onPingInterval', this.url);
+                    this.log (new Date (), 'onPingInterval', '|', this.url);
                 }
                 if (message) {
                     this.send (message).catch ((error) => {
