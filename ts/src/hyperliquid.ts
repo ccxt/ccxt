@@ -548,7 +548,8 @@ export default class hyperliquid extends Exchange {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const hip3 = this.safeDict (options, 'hip3', {});
         const defaultLimit = this.safeInteger (hip3, 'limit', 5);
-        if (fetchDexes.length >= defaultLimit) { // first element is null
+        const dexesLength = fetchDexes.length;
+        if (dexesLength >= defaultLimit) { // first element is null
             const defaultDexes = this.safeList (hip3, 'dex', []);
             if (defaultDexes.length === 0) {
                 throw new ArgumentsRequired (this.id + ' fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options["fetchMarkets"]["hip3"]["dex"] parameter to fetch markets from those DEXes only. The limit is set to ' + defaultLimit.toString () + ' DEXes by default.');
