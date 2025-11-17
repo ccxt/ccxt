@@ -30,11 +30,10 @@ export default class cow extends Exchange {
                 'cancelAllOrders': true,  // cancel multiple open orders
                 'fetchOrder': true,       // GET /orders/{uid}
                 'fetchOrders': true,      // GET /account/{owner}/orders
-                'fetchOpenOrders': true,  // filtered from fetchOrders()
-                'fetchClosedOrders': true, // filtered from fetchOrders()
-                'fetchCanceledOrders': true, // filtered from fetchOrders()
-                'fetchMyTrades': true,    // GET /trades?owner=... | orderUid=...
-                // explicitly not supported by CoW:
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchCanceledOrders': true,
+                'fetchMyTrades': true,
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchOrderBook': false,
@@ -124,7 +123,6 @@ export default class cow extends Exchange {
                 'privateKey': true,
             },
             'urls': {
-                // CCXT will pass this into your sign() – compute the real base there
                 'api': 'https://api.cow.fi',
                 'www': 'https://cow.fi',
                 'doc': 'https://docs.cow.fi/cow-protocol/reference/apis/orderbook',
@@ -146,9 +144,8 @@ export default class cow extends Exchange {
                 },
             },
             'options': {
-                // You can override these from user code: new ccxt.cow({ options: { network: 'base', env: 'prod' }})
-                'network': 'mainnet', // 'mainnet' | 'xdai' | 'arbitrum_one' | 'base' | 'sepolia'
-                'env': 'prod',        // 'prod' | 'barn'
+                'network': 'mainnet',
+                'env': 'prod',
                 'hosts': {
                     'prod': 'https://api.cow.fi',
                     'barn': 'https://barn.api.cow.fi',
@@ -177,7 +174,6 @@ export default class cow extends Exchange {
                     'base': '0x9008D19f58AAbD9eD0D60971565AA8510560ab41',
                     'sepolia': '0x9008D19f58AAbD9eD0D60971565AA8510560ab41',
                 },
-                // VaultRelayer contracts that must be approved to spend user tokens before trading
                 'vaultRelayers': {
                     'mainnet': '0xC92E8bdf79f0507f65a392b0ab4667716BFE0110',
                     'xdai': '0xC92E8bdf79f0507f65a392b0ab4667716BFE0110',
@@ -185,7 +181,6 @@ export default class cow extends Exchange {
                     'base': '0xC92E8bdf79f0507f65a392b0ab4667716BFE0110',
                     'sepolia': '0xC92E8bdf79f0507f65a392b0ab4667716BFE0110',
                 },
-                // Optional RPC URLs used for automatic approval (override if you prefer another provider)
                 'rpcUrls': {
                     'mainnet': 'https://eth.llamarpc.com',
                     'xdai': 'https://rpc.gnosischain.com',
@@ -833,7 +828,6 @@ export default class cow extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        // Get unique base currencies from all markets
         const currencies: Dict = {};
         const marketValues = Object.values (this.markets);
         for (let i = 0; i < marketValues.length; i++) {
@@ -849,7 +843,6 @@ export default class cow extends Exchange {
                 }
             }
         }
-        // Query balance for each currency
         const currencyCodes = Object.keys (currencies);
         for (let i = 0; i < currencyCodes.length; i++) {
             const code = currencyCodes[i];
@@ -866,7 +859,6 @@ export default class cow extends Exchange {
                     'total': balance,
                 };
             } catch (e) {
-                // If balance fetch fails for a token, set to 0
                 result[code] = {
                     'free': 0,
                     'used': 0,
@@ -963,20 +955,17 @@ export default class cow extends Exchange {
         const appData = this.safeString (params, 'appData', this.safeString (this.options, 'defaultAppData'));
         const quoteRequestOverrides = this.safeDict (params, 'quoteRequest');
         params = this.omit (params, [ 'kind', 'partiallyFillable', 'validFor', 'validTo', 'appData', 'quoteRequest' ]);
-        // For sell orders: sell base, buy quote. For buy orders: sell quote, buy base.
         const isSellOrder = (kind === 'sell');
         const sellToken = isSellOrder ? this.safeStringLower (market, 'baseId') : this.safeStringLower (market, 'quoteId');
         const buyToken = isSellOrder ? this.safeStringLower (market, 'quoteId') : this.safeStringLower (market, 'baseId');
         const sellTokenDecimals = isSellOrder ? baseDecimals : quoteDecimals;
         const buyTokenDecimals = isSellOrder ? quoteDecimals : baseDecimals;
         const amountString = this.numberToString (amount);
-        // For sell: amount is in base. For buy: amount is in base (what we want to buy).
         let sellAmountRaw: Str = undefined;
         let buyAmountRaw: Str = undefined;
         if (isSellOrder) {
             sellAmountRaw = this.amountToTokenAmount (amountString, sellTokenDecimals);
         } else {
-            // For buy orders, amount is in base currency (what we want to buy)
             buyAmountRaw = this.amountToTokenAmount (amountString, buyTokenDecimals);
         }
         const receiverAddress = this.addressWith0xPrefix (receiverParam);
@@ -992,21 +981,17 @@ export default class cow extends Exchange {
             'sellTokenBalance': 'erc20',
             'buyTokenBalance': 'erc20',
         }, quoteRequestOverrides);
-        // For sell orders: specify sellAmountBeforeFee. For buy orders: specify buyAmountAfterFee.
         if (isSellOrder) {
             quoteRequest['sellAmountBeforeFee'] = this.safeString (quoteRequest, 'sellAmountBeforeFee', sellAmountRaw);
             if (type === 'limit') {
-                // Sell: We know how much base we're selling and the price, calculate quote we expect
                 const priceString = this.numberToString (price);
                 const costDecimal = Precise.stringMul (amountString, priceString);
                 const buyAmountRawLimit = this.amountToTokenAmount (costDecimal, buyTokenDecimals);
                 quoteRequest['buyAmountAfterFee'] = this.safeString (quoteRequest, 'buyAmountAfterFee', buyAmountRawLimit);
             }
         } else {
-            // Buy order: specify how much base we want to buy
             quoteRequest['buyAmountAfterFee'] = this.safeString (quoteRequest, 'buyAmountAfterFee', buyAmountRaw);
             if (type === 'limit') {
-                // Buy: We know how much base we want and the price, calculate quote we're willing to spend
                 const priceString = this.numberToString (price);
                 const costDecimal = Precise.stringMul (amountString, priceString);
                 const sellAmountRawLimit = this.amountToTokenAmount (costDecimal, sellTokenDecimals);
@@ -1029,7 +1014,6 @@ export default class cow extends Exchange {
             'sellTokenBalance': this.safeStringLower (quote, 'sellTokenBalance', 'erc20'),
             'buyTokenBalance': this.safeStringLower (quote, 'buyTokenBalance', 'erc20'),
         };
-        // Use the signing scheme from the quote response
         const signingScheme = this.safeStringLower (quote, 'signingScheme', 'eip712');
         orderBody['signingScheme'] = signingScheme;
         orderBody['signature'] = this.signOrderPayload (orderBody, signingScheme);
@@ -1084,7 +1068,6 @@ export default class cow extends Exchange {
         [ owner, params ] = this.ensureOwnerAddress (params);
         const signingScheme = this.safeStringLower (params, 'signingScheme', 'eip712');
         params = this.omit (params, [ 'signingScheme' ]);
-        // Use orderUid exactly as received (should already have 0x prefix from createOrder)
         const orderUids = [ id ];
         const requestBody: Dict = {
             'orderUids': orderUids,
@@ -1123,7 +1106,6 @@ export default class cow extends Exchange {
                     const result = await this.cancelOrder (orderId, symbol, params);
                     results.push (result);
                 } catch (e) {
-                    // Continue canceling other orders even if one fails
                     results.push (this.extend (order, { 'status': 'failed', 'info': e }));
                 }
             }
@@ -1263,7 +1245,6 @@ export default class cow extends Exchange {
         if (errorResult !== undefined) {
             throw new ExchangeError (this.id + ' fetchERC20Balance() RPC error: ' + this.json (errorResult));
         }
-        // Convert hex result to decimal string
         if (result === '0x') {
             return '0';
         }
@@ -1407,7 +1388,6 @@ export default class cow extends Exchange {
             hex = '0x' + hex;
         }
         hex = this.remove0xPrefix (hex).toLowerCase ();
-        // Remove leading zeros
         while (hex.length > 1 && hex[0] === '0') {
             hex = hex.slice (1);
         }
@@ -1483,7 +1463,6 @@ export default class cow extends Exchange {
             return undefined;
         }
         let hashToSign = digest;
-        // For 'ethsign' scheme, wrap the digest with personal message prefix
         if (usePersonalSign) {
             hashToSign = this.hashEthereumSignedMessage (digest);
         }
@@ -1509,9 +1488,6 @@ export default class cow extends Exchange {
             'chainId': chainId,
             'verifyingContract': verifyingContract,
         };
-        // CoW Protocol Order struct for EIP-712 signature per SDK
-        // Addresses must be checksummed for EIP-712
-        // receiver defaults to address(0) if not provided
         const receiverAddress = this.safeString (order, 'receiver');
         let normalizedReceiver = '0x0000000000000000000000000000000000000000';
         if (receiverAddress !== undefined) {
@@ -1547,15 +1523,12 @@ export default class cow extends Exchange {
                 { 'name': 'buyTokenBalance', 'type': 'string' },
             ],
         };
-        // Compute EIP-712 digest: keccak256("\x19\x01" || domainSeparator || hashStruct(Order))
         const typedDataEncoder = new TypedDataEncoder (types);
         const domainSeparator = TypedDataEncoder.hashDomain (domain);
         const structHash = typedDataEncoder.hash (message);
         const prefix = '0x1901';
         const encoded = prefix + domainSeparator.slice (2) + structHash.slice (2);
         const digest = '0x' + this.binaryToBase16 (keccak (this.base16ToBinary (encoded.slice (2))));
-        // Use personal sign (with prefix) ONLY for 'ethsign' scheme
-        // For 'eip712', sign the digest directly
         const usePersonalSign = (signingScheme === 'ethsign');
         return this.signDigest (digest, privateKey, usePersonalSign);
     }
@@ -1570,13 +1543,8 @@ export default class cow extends Exchange {
             'chainId': chainId,
             'verifyingContract': verifyingContract,
         };
-        // Manually compute EIP-712 hash for OrderCancellations
-        // According to EIP-712: hashStruct(s) = keccak256(typeHash || encodeData(s))
-        // For bytes[] arrays: encode as keccak256(concat(keccak256(element1), keccak256(element2), ...))
-        // 1. Compute typeHash = keccak256("OrderCancellations(bytes[] orderUids)")
         const typeString = 'OrderCancellations(bytes[] orderUids)';
         const typeHash = '0x' + this.binaryToBase16 (keccak (typeString));
-        // 2. Encode the bytes[] array: hash each orderUid, concatenate, then hash
         let concatenatedHashes = '';
         for (let i = 0; i < orderUids.length; i++) {
             const uid = this.hexWith0xPrefix (orderUids[i]);
@@ -1585,24 +1553,16 @@ export default class cow extends Exchange {
             concatenatedHashes += this.binaryToBase16 (uidHash);
         }
         const arrayHash = '0x' + this.binaryToBase16 (keccak (this.base16ToBinary (concatenatedHashes)));
-        // 3. Compute structHash = keccak256(typeHash || arrayHash)
         const structHashInput = typeHash.slice (2) + arrayHash.slice (2);
         const structHash = '0x' + this.binaryToBase16 (keccak (this.base16ToBinary (structHashInput)));
-        // 4. Compute domainSeparator
         const domainSeparator = TypedDataEncoder.hashDomain (domain);
-        // 5. Compute final digest = keccak256("\x19\x01" || domainSeparator || structHash)
         const prefix = '0x1901';
         const encoded = prefix + domainSeparator.slice (2) + structHash.slice (2);
         const digest = '0x' + this.binaryToBase16 (keccak (this.base16ToBinary (encoded.slice (2))));
-        // For ETHSIGN scheme, sign the message hash (with Ethereum prefix)
-        // For EIP712 scheme, sign the digest directly
         if (signingScheme === 'ethsign') {
-            // SDK does: signer.signMessage(arrayify(hashTypedData(domain, types, data)))
-            // signMessage adds the Ethereum prefix, so we use hashEthereumSignedMessage
             const prefixedDigest = this.hashEthereumSignedMessage (digest);
             return this.signDigest (prefixedDigest, privateKey, false);
         } else {
-            // For eip712, sign the digest directly
             return this.signDigest (digest, privateKey, false);
         }
     }
