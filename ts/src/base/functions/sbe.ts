@@ -13,7 +13,7 @@
  */
 
 import { readFileSync } from 'fs';
-import { XMLParser } from 'fast-xml-parser';
+import { XMLParser } from './xml.js';
 
 interface SbeSchema {
     package: string;
