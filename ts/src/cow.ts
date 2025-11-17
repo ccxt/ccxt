@@ -18,7 +18,7 @@ export default class cow extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'cow',
-            'name': 'CoW Protocol (Order Book API)',
+            'name': 'CoW Protocol',
             'countries': [],
             'rateLimit': 500,
             'has': {
