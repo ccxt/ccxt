@@ -10,6 +10,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { parseSbeSchema, createSbeDecoder, applyExponent } from './base/functions/sbe.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1305,6 +1306,9 @@ export default class binance extends Exchange {
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
+                'useSbe': true, // use SBE (Simple Binary Encoding) for spot API when available
+                'sbeSchemaId': 3, // Binance SBE schema ID
+                'sbeSchemaVersion': 1, // Binance SBE schema version
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
@@ -4301,6 +4305,11 @@ export default class binance extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
+        // Check if SBE is enabled for spot bookTicker endpoint
+        const useSbe = this.safeBool (this.options, 'useSbe', false);
+        const sbeSchemaId = this.safeInteger (this.options, 'sbeSchemaId', 3);
+        const sbeSchemaVersion = this.safeInteger (this.options, 'sbeSchemaVersion', 1);
+        const isSpotBookTicker = type === 'spot';
         let response = undefined;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetTickerBookTicker (params);
@@ -4311,7 +4320,31 @@ export default class binance extends Exchange {
             if (symbols !== undefined) {
                 request['symbols'] = this.json (this.marketIds (symbols));
             }
-            response = await this.publicGetTickerBookTicker (this.extend (request, params));
+            if (useSbe && isSpotBookTicker) {
+                // Use SBE for spot bookTicker endpoint /api/v3/ticker/bookTicker
+                const sbeHeaders = {
+                    'Accept': 'application/sbe',
+                    'X-MBX-SBE': sbeSchemaId + ':' + sbeSchemaVersion,
+                };
+                // Call request directly with headers as a separate parameter
+                response = await this.request ('ticker/bookTicker', 'public', 'GET', this.extend (request, params), sbeHeaders, undefined);
+                // Decode SBE response
+                if (this.verbose) {
+                    this.log ('fetchBidsAsks SBE response type:', typeof response, 'is ArrayBuffer:', response instanceof ArrayBuffer, 'is View:', ArrayBuffer.isView (response));
+                }
+                if (response instanceof ArrayBuffer || ArrayBuffer.isView (response) || (response && (response as any).byteLength !== undefined)) {
+                    // Convert to ArrayBuffer if it's a typed array view
+                    const buffer = response instanceof ArrayBuffer ? response : (response as any).buffer;
+                    const decodedTickers = this.decodeSbeBookTicker (buffer, symbols);
+                    response = decodedTickers;
+                } else {
+                    if (this.verbose) {
+                        this.log ('fetchBidsAsks: Response is not binary, got:', response);
+                    }
+                }
+            } else {
+                response = await this.publicGetTickerBookTicker (this.extend (request, params));
+            }
         } else {
             throw new NotSupported (this.id + ' fetchBidsAsks() does not support ' + type + ' markets yet');
         }
@@ -5015,6 +5048,115 @@ export default class binance extends Exchange {
         }, market);
     }
 
+    getSbeDecoder (schemaName = 'spot_3_1.xml') {
+        if (this['sbeDecoder'] === undefined) {
+            try {
+                // Use loadSbeSchema from base Exchange class
+                const schema = this.loadSbeSchema (schemaName);
+                this['sbeDecoder'] = createSbeDecoder (schema);
+            } catch (e) {
+                // If schema file not found, disable SBE
+                this.options['useSbe'] = false;
+                throw new ExchangeError (this.id + ' getSbeDecoder() failed to load SBE schema: ' + e);
+            }
+        }
+        return this['sbeDecoder'];
+    }
+
+    decodeSbeTrades (buffer: ArrayBuffer, market: Market = undefined): Trade[] {
+        const decoder = this.getSbeDecoder ();
+        const decoded = decoder.decode (buffer);
+        if (this.verbose) {
+            this.log ('decodeSbeTrades: decoded keys:', Object.keys (decoded));
+            this.log ('decodeSbeTrades: priceExponent:', decoded.priceExponent, 'qtyExponent:', decoded.qtyExponent);
+        }
+        // Extract exponents
+        const priceExponent = decoded.priceExponent || 0;
+        const qtyExponent = decoded.qtyExponent || 0;
+        // Look for trades in different possible field names
+        // SBE repeating groups might be named 'trade', 'trades', or 'Trade'
+        let trades = decoded.trades || decoded.trade || decoded.Trade || [];
+        // If no repeating group found, check if the decoded object itself is a single trade
+        if (!Array.isArray (trades) && trades.length === undefined) {
+            // The decoded object might be a single trade, wrap it in an array
+            if (decoded.id !== undefined) {
+                trades = [ decoded ];
+            } else {
+                trades = [];
+            }
+        }
+        if (this.verbose) {
+            this.log ('decodeSbeTrades: trades count:', trades.length);
+            if (trades.length > 0) {
+                this.log ('decodeSbeTrades: first trade raw:', trades[0]);
+            }
+        }
+        // Convert SBE trades to standard format and use parseTrades
+        const normalizedTrades = trades.map ((trade: any) => {
+            const price = applyExponent (trade.price, priceExponent);
+            const qty = applyExponent (trade.qty, qtyExponent);
+            const quoteQty = applyExponent (trade.quoteQty, priceExponent);
+            const timestamp = Math.floor (trade.time / 1000); // microseconds to milliseconds
+            return {
+                'id': String (trade.id),
+                'price': String (price),
+                'qty': String (qty),
+                'quoteQty': String (quoteQty),
+                'time': timestamp,
+                'isBuyerMaker': trade.isBuyerMaker === 1,
+                'isBestMatch': trade.isBestMatch === 1,
+            };
+        });
+        // Reuse existing parseTrades function to ensure consistent trade structure
+        return normalizedTrades;
+        return this.parseTrades (normalizedTrades, market);
+    }
+
+    decodeSbeBookTicker (buffer: ArrayBuffer, symbols: Strings = undefined): Tickers {
+        const decoder = this.getSbeDecoder ();
+        const decoded = decoder.decode (buffer);
+        if (this.verbose) {
+            this.log ('decodeSbeBookTicker: decoded keys:', Object.keys (decoded));
+            this.log ('decodeSbeBookTicker: priceExponent:', decoded.priceExponent, 'qtyExponent:', decoded.qtyExponent);
+        }
+        // Extract exponents
+        const priceExponent = decoded.priceExponent || 0;
+        const qtyExponent = decoded.qtyExponent || 0;
+        // Check if it's a single ticker (BookTickerSymbolResponse) or multiple (BookTickerResponse)
+        let tickers = decoded.tickers || [];
+        const isSingleTicker = !Array.isArray (tickers) && tickers.length === undefined;
+        if (isSingleTicker) {
+            // Single ticker response - wrap in array
+            if (decoded.symbol !== undefined) {
+                tickers = [ decoded ];
+            } else {
+                tickers = [];
+            }
+        }
+        if (this.verbose) {
+            this.log ('decodeSbeBookTicker: tickers count:', tickers.length);
+            if (tickers.length > 0) {
+                this.log ('decodeSbeBookTicker: first ticker raw:', tickers[0]);
+            }
+        }
+        // Convert SBE tickers to standard format
+        const normalizedTickers = tickers.map ((ticker: any) => {
+            const bidPrice = applyExponent (ticker.bidPrice, priceExponent);
+            const bidQty = applyExponent (ticker.bidQty, qtyExponent);
+            const askPrice = applyExponent (ticker.askPrice, priceExponent);
+            const askQty = applyExponent (ticker.askQty, qtyExponent);
+            return {
+                'symbol': this.safeString (ticker, 'symbol'),
+                'bidPrice': String (bidPrice),
+                'bidQty': String (bidQty),
+                'askPrice': String (askPrice),
+                'askQty': String (askQty),
+            };
+        });
+        // Reuse existing parseTickers function to ensure consistent ticker structure
+        return this.parseTickers (normalizedTickers, symbols);
+    }
+
     /**
      * @method
      * @name binance#fetchTrades
@@ -5080,8 +5222,34 @@ export default class binance extends Exchange {
             request['limit'] = isFutureOrSwap ? Math.min (limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
         params = this.omit (params, [ 'until', 'fetchTradesMethod' ]);
+        // Check if SBE is enabled for spot trades endpoint
+        const useSbe = this.safeBool (this.options, 'useSbe', false);
+        const sbeSchemaId = this.safeInteger (this.options, 'sbeSchemaId', 3);
+        const sbeSchemaVersion = this.safeInteger (this.options, 'sbeSchemaVersion', 1);
         let response = undefined;
-        if (market['option'] || method === 'eapiPublicGetTrades') {
+        if (useSbe && market['spot']) {
+            // Use SBE for spot trades endpoint /api/v3/trades
+            const sbeHeaders = {
+                'Accept': 'application/sbe',
+                'X-MBX-SBE': sbeSchemaId + ':' + sbeSchemaVersion,
+            };
+            // Call request directly with headers as a separate parameter
+            response = await this.request ('trades', 'public', 'GET', this.extend (request, params), sbeHeaders, undefined);
+            // Decode SBE response
+            if (this.verbose) {
+                this.log ('fetchTrades SBE response type:', typeof response, 'is ArrayBuffer:', response instanceof ArrayBuffer, 'is View:', ArrayBuffer.isView (response));
+            }
+            if (response instanceof ArrayBuffer || ArrayBuffer.isView (response) || (response && response.byteLength !== undefined)) {
+                // Convert to ArrayBuffer if it's a typed array view
+                const buffer = response instanceof ArrayBuffer ? response : response.buffer;
+                const decodedTrades = this.decodeSbeTrades (buffer, market);
+                response = decodedTrades;
+            } else {
+                if (this.verbose) {
+                    this.log ('fetchTrades: Response is not binary, got:', response);
+                }
+            }
+        } else if (market['option'] || method === 'eapiPublicGetTrades') {
             response = await this.eapiPublicGetTrades (this.extend (request, params));
         } else if (market['linear'] || method === 'fapiPublicGetAggTrades') {
             response = await this.fapiPublicGetAggTrades (this.extend (request, params));
@@ -5156,7 +5324,8 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        const trades =  this.parseTrades (response, market, since, limit);
+        return trades;
     }
 
     /**
@@ -11851,6 +12020,37 @@ export default class binance extends Exchange {
             return undefined;
         }
         return scheme + '//' + domain + '/';
+    }
+
+    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
+        const responseHeaders = this.getResponseHeaders (response);
+        const contentType = this.safeString (responseHeaders, 'Content-Type', '');
+        if (this.verbose) {
+            this.log ('handleRestResponse: Content-Type:', contentType, 'useSbe:', this.safeBool (this.options, 'useSbe', false));
+        }
+        // Handle SBE binary responses
+        if (contentType.includes ('application/sbe') || contentType.includes ('application/octet-stream')) {
+            const useSbe = this.safeBool (this.options, 'useSbe', false);
+            if (useSbe) {
+                if (this.verbose) {
+                    this.log ('handleRestResponse: Detected SBE response, calling arrayBuffer()');
+                }
+                return response.arrayBuffer ().then ((responseBuffer) => {
+                    if (this.enableLastResponseHeaders) {
+                        this.last_response_headers = responseHeaders;
+                    }
+                    if (this.enableLastHttpResponse) {
+                        this.last_http_response = responseBuffer;
+                    }
+                    if (this.verbose) {
+                        this.log ('handleRestResponse (SBE):\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, 'SBE binary data, buffer length:', responseBuffer.byteLength, '\n');
+                    }
+                    return responseBuffer;
+                });
+            }
+        }
+        // Fallback to parent implementation
+        return super.handleRestResponse (response, url, method, requestHeaders, requestBody);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
