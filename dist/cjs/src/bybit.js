@@ -7459,7 +7459,7 @@ class bybit extends bybit$1["default"] {
      * @method
      * @name bybit#borrowCrossMargin
      * @description create a loan to borrow margin
-     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+     * @see https://bybit-exchange.github.io/docs/v5/account/borrow
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7470,32 +7470,29 @@ class bybit extends bybit$1["default"] {
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
-            'qty': this.currencyToPrecision(code, amount),
+            'amount': this.currencyToPrecision(code, amount),
         };
-        const response = await this.privatePostV5SpotCrossMarginTradeLoan(this.extend(request, params));
+        const response = await this.privatePostV5AccountBorrow(this.extend(request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //             "transactId": "14143"
+        //             "coin": "BTC",
+        //             "amount": "0.001"
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1662617848970
+        //         "retExtInfo": {},
+        //         "time": 1763194940073
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        const transaction = this.parseMarginLoan(result, currency);
-        return this.extend(transaction, {
-            'symbol': undefined,
-            'amount': amount,
-        });
+        return this.parseMarginLoan(result, currency);
     }
     /**
      * @method
      * @name bybit#repayCrossMargin
      * @description repay borrowed margin and interest
-     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+     * @see https://bybit-exchange.github.io/docs/v5/account/no-convert-repay
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7506,24 +7503,23 @@ class bybit extends bybit$1["default"] {
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
-            'qty': this.numberToString(amount),
+            'amount': this.numberToString(amount),
         };
-        const response = await this.privatePostV5SpotCrossMarginTradeRepay(this.extend(request, params));
+        const response = await this.privatePostV5AccountNoConvertRepay(this.extend(request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //            "repayId": "12128"
+        //             "resultStatus": "SU"
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1662618298452
+        //         "retExtInfo": {},
+        //         "time": 1763195201119
         //     }
         //
         const result = this.safeDict(response, 'result', {});
         const transaction = this.parseMarginLoan(result, currency);
         return this.extend(transaction, {
-            'symbol': undefined,
             'amount': amount,
         });
     }
@@ -7532,19 +7528,21 @@ class bybit extends bybit$1["default"] {
         // borrowCrossMargin
         //
         //     {
-        //         "transactId": "14143"
+        //         "coin": "BTC",
+        //         "amount": "0.001"
         //     }
         //
         // repayCrossMargin
         //
         //     {
-        //         "repayId": "12128"
+        //         "resultStatus": "SU"
         //     }
         //
+        const currencyId = this.safeString(info, 'coin');
         return {
-            'id': this.safeString2(info, 'transactId', 'repayId'),
-            'currency': this.safeString(currency, 'code'),
-            'amount': undefined,
+            'id': undefined,
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'amount': this.safeString(info, 'amount'),
             'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,

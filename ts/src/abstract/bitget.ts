@@ -190,6 +190,7 @@ interface Exchange {
     privateSpotPostV2SpotTradePlacePlanOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotTradeModifyPlanOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotTradeCancelPlanOrder (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostV2SpotTradeCancelReplaceOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotTradeBatchCancelPlanOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotWalletTransfer (params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotWalletSubaccountTransfer (params?: {}): Promise<implicitReturnType>;

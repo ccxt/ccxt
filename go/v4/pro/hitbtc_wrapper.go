@@ -189,13 +189,12 @@ func (this *Hitbtc) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
  * @method
  * @name hitbtc#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://doc.xt.com/#websocket_publicsymbolKline
- * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+ * @see https://api.hitbtc.com/#subscribe-to-candles
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
- * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
- * @param {int} [since] not used by xt watchOHLCV
- * @param {int} [limit] not used by xt watchOHLCV
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {string} [timeframe] the length of time each candle represents
+ * @param {int} [since] not used by hitbtc watchOHLCV
+ * @param {int} [limit] 0 – 1000, default value = 0 (no history returned)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Hitbtc) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {

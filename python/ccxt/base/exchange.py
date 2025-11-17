@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.18'
+__version__ = '4.5.19'
 
 # -----------------------------------------------------------------------------
 
@@ -72,6 +72,28 @@ from ccxt.static_dependencies.starknet.hash.address import compute_address
 from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
 from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
 from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
+
+# dydx
+try:
+    from ccxt.static_dependencies.mnemonic import Mnemonic
+    from ccxt.static_dependencies.bip import Bip44
+    from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
+    from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
+        AuthInfo,
+        Fee,
+        ModeInfo,
+        SignDoc,
+        SignerInfo,
+        Tx,
+        TxBody,
+        TxRaw,
+    )
+    from ccxt.static_dependencies.dydx_v4_client.registry import (
+        encode_as_any,
+    )
+except ImportError:
+    encode_as_any = None
+
 try:
     import apexpro.zklink_sdk as zklink_sdk
 except ImportError:
@@ -895,6 +917,10 @@ class Exchange(object):
     @staticmethod
     def uuidv1():
         return str(uuid.uuid1()).replace('-', '')
+
+    @staticmethod
+    def uuid5(namespace: str, name):
+        return str(uuid.uuid5(uuid.UUID(namespace), name))
 
     @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
@@ -1952,6 +1978,115 @@ class Exchange(object):
 
     def is_binary_message(self, message):
         return isinstance(message, bytes) or isinstance(message, bytearray)
+
+    def retrieve_dydx_credentials(self, entropy):
+        mnemo = Mnemonic("english")
+        if ' ' in entropy:
+            mnemonic = entropy
+        else:
+            mnemonic = mnemo.to_mnemonic(self.base16_to_binary(entropy))
+        seed = mnemo.to_seed(mnemonic)
+        keyPair = Bip44.FromSeed(seed).DeriveDefaultPath()
+        privateKey = keyPair.PrivateKey().Raw().ToBytes()
+        publicKey = keyPair.PublicKey().RawCompressed().ToBytes()
+        return {
+            'mnemonic': mnemonic,
+            'privateKey': privateKey,
+            'publicKey': publicKey,
+        }
+
+    def load_dydx_protos(self):
+        return
+
+    def to_dydx_long(self, num):
+        return num
+
+    def encode_dydx_tx_for_simulation(self, message, memo, sequence, publicKey):
+        if not encode_as_any:
+            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
+        messages = [
+            encode_as_any(
+                message,
+            )
+        ]
+        body = TxBody(
+            messages=messages,
+            memo=memo,
+        )
+        auth_info = AuthInfo(
+            signer_infos=[
+                SignerInfo(
+                    public_key=encode_as_any({
+                        'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                        'value': publicKey,
+                    }),
+                    sequence=self.parse_to_int(sequence),
+                    mode_info=ModeInfo(single=ModeInfo.Single(mode=SignMode.SIGN_MODE_UNSPECIFIED))
+                )
+            ],
+            fee={},
+        )
+        tx = Tx(body=body, auth_info=auth_info, signatures=[b''])
+        return self.binary_to_base64(tx.SerializeToString())
+
+    def encode_dydx_tx_for_signing(self, message, memo, chainId, account, authenticators, fee=None):
+        if not encode_as_any:
+            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
+        if fee is None:
+            fee = {
+                'amount': [],
+                'gasLimit': 1000000,
+            }
+        non_critical_extension_options = []
+        if authenticators is not None:
+            non_critical_extension_options.append(encode_as_any({
+                'typeUrl': '/dydxprotocol.accountplus.TxExtension',
+                'value': {
+                    'selected_authenticators': authenticators
+                }
+            }))
+        messages = [
+            encode_as_any(
+                message
+            )
+        ]
+        sequence = self.milliseconds()
+        body = TxBody(
+            messages=messages,
+            memo=memo,
+            non_critical_extension_options=non_critical_extension_options,
+        )
+        auth_info = AuthInfo(
+            signer_infos=[
+                SignerInfo(
+                    public_key=encode_as_any({
+                        'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                        'value': account['pub_key'],
+                    }),
+                    sequence=self.parse_to_int(sequence),
+                    mode_info=ModeInfo(single=ModeInfo.Single(mode=SignMode.SIGN_MODE_DIRECT))
+                )
+            ],
+            fee=Fee(amount=fee['amount'], gas_limit=fee['gasLimit']),
+        )
+        signDoc = SignDoc(
+            account_number=self.parse_to_int(account['account_number']),
+            auth_info_bytes=auth_info.SerializeToString(),
+            body_bytes=body.SerializeToString(),
+            chain_id=chainId,
+        )
+        signingHash = self.hash(signDoc.SerializeToString(), 'sha256', 'hex')
+        return [signingHash, signDoc]
+
+    def encode_dydx_tx_raw(self, signDoc, signature):
+        if not encode_as_any:
+            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
+        tx = TxRaw(
+            auth_info_bytes=signDoc.auth_info_bytes,
+            body_bytes=signDoc.body_bytes,
+            signatures=[self.base16ToBinary(signature)],
+        )
+        return '0x' + self.binary_to_base16(tx.SerializeToString())
 
     # ########################################################################
     # ########################################################################
@@ -3517,6 +3652,7 @@ class Exchange(object):
         self.symbols = sourceExchange.symbols
         self.ids = sourceExchange.ids
         self.currencies = sourceExchange.currencies
+        self.currencies_by_id = sourceExchange.currencies_by_id
         self.baseCurrencies = sourceExchange.baseCurrencies
         self.quoteCurrencies = sourceExchange.quoteCurrencies
         self.codes = sourceExchange.codes
@@ -4965,10 +5101,6 @@ class Exchange(object):
         })
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None):
-        result = self.safe_market_structure({
-            'symbol': marketId,
-            'marketId': marketId,
-        })
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
                 markets = self.markets_by_id[marketId]
@@ -4988,18 +5120,20 @@ class Exchange(object):
             elif delimiter is not None and delimiter != '':
                 parts = marketId.split(delimiter)
                 partsLength = len(parts)
+                result = self.safe_market_structure({
+                    'symbol': marketId,
+                    'marketId': marketId,
+                })
                 if partsLength == 2:
                     result['baseId'] = self.safe_string(parts, 0)
                     result['quoteId'] = self.safe_string(parts, 1)
                     result['base'] = self.safe_currency_code(result['baseId'])
                     result['quote'] = self.safe_currency_code(result['quoteId'])
                     result['symbol'] = result['base'] + '/' + result['quote']
-                    return result
-                else:
-                    return result
+                return result
         if market is not None:
             return market
-        return result
+        return self.safe_market_structure({'symbol': marketId, 'marketId': marketId})
 
     def market_or_null(self, symbol: str):
         if symbol is None:

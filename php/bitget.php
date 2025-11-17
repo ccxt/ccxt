@@ -1409,6 +1409,7 @@ class bitget extends Exchange {
                     'spot' => array(
                         '1m' => '1min',
                         '5m' => '5min',
+                        '3m' => '3min',
                         '15m' => '15min',
                         '30m' => '30min',
                         '1h' => '1h',
@@ -1471,6 +1472,7 @@ class bitget extends Exchange {
                         '15m' => 30,
                         '30m' => 30,
                         '1h' => 60,
+                        '2h' => 120,
                         '4h' => 240,
                         '6h' => 360,
                         '12h' => 720,
@@ -4220,11 +4222,17 @@ class bitget extends Exchange {
             $request['startTime'] = $since;
             if (!$untilDefined) {
                 $calculatedEndTime = $this->sum($calculatedStartTime, $limitMultipliedDuration);
+                if ($calculatedEndTime > $now) {
+                    $calculatedEndTime = $now;
+                }
                 $request['endTime'] = $calculatedEndTime;
             }
         }
         if ($untilDefined) {
             $calculatedEndTime = $until;
+            if ($calculatedEndTime > $now) {
+                $calculatedEndTime = $now;
+            }
             $request['endTime'] = $calculatedEndTime;
             if (!$sinceDefined) {
                 $calculatedStartTime = $calculatedEndTime - $limitMultipliedDuration;

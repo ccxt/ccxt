@@ -1,3 +1,36 @@
+<a id="v4.5.19"></a>
+# [v4.5.19](https://github.com/ccxt/ccxt/releases/tag/v4.5.19) - 2025-11-14
+
+## What's Changed
+* fix(client.py): fixes race condition when sending a message over ws when connection has been closed by [@pcriadoperez](https://github.com/pcriadoperez) in [#27275](https://github.com/ccxt/ccxt/pull/27275)
+* refactor(bitget): cancelAllOrders by [@ttodua](https://github.com/ttodua) in [#26980](https://github.com/ccxt/ccxt/pull/26980)
+* feat(bitget): edit spot orders by [@carlosmiei](https://github.com/carlosmiei) in [#27277](https://github.com/ccxt/ccxt/pull/27277)
+* fix(deribit): add limit to fetchClosedOrders by [@carlosmiei](https://github.com/carlosmiei) in [#27278](https://github.com/ccxt/ccxt/pull/27278)
+* fix(toobit): logo by [@carlosmiei](https://github.com/carlosmiei) in [#27279](https://github.com/ccxt/ccxt/pull/27279)
+* feat(kucoin): add public uta support by [@Dan-krm](https://github.com/Dan-krm) in [#27205](https://github.com/ccxt/ccxt/pull/27205)
+* fix(javascript): intellisense for common js by [@pcriadoperez](https://github.com/pcriadoperez) in [#27287](https://github.com/ccxt/ccxt/pull/27287)
+* fix(go) Greeks struct and NewGreeks by [@Fiboniak](https://github.com/Fiboniak) in [#27283](https://github.com/ccxt/ccxt/pull/27283)
+* fix(go) MarketInterface - data could be nil by [@Fiboniak](https://github.com/Fiboniak) in [#27284](https://github.com/ccxt/ccxt/pull/27284)
+* fix(hibachi): assume default taker/maker values by [@carlosmiei](https://github.com/carlosmiei) in [#27289](https://github.com/ccxt/ccxt/pull/27289)
+* fix(python): coincurve versions by [@ttodua](https://github.com/ttodua) in [#27280](https://github.com/ccxt/ccxt/pull/27280)
+* fix(bitget): add 3min mapping to timeframes by [@carlosmiei](https://github.com/carlosmiei) in [#27290](https://github.com/ccxt/ccxt/pull/27290)
+* fix(setMarketsFromExchange): add currencies by id by [@carlosmiei](https://github.com/carlosmiei) in [#27295](https://github.com/ccxt/ccxt/pull/27295)
+* bingx.has margin and option methods by [@samgermain](https://github.com/samgermain) in [#27298](https://github.com/ccxt/ccxt/pull/27298)
+* fix(bitget): 2h max days and cap until by [@carlosmiei](https://github.com/carlosmiei) in [#27302](https://github.com/ccxt/ccxt/pull/27302)
+* fix(kraken): watchOrders handle message with no symbol by [@carlosmiei](https://github.com/carlosmiei) in [#27300](https://github.com/ccxt/ccxt/pull/27300)
+* fix(OrderBook.cs): check if reset snapshot is available by [@carlosmiei](https://github.com/carlosmiei) in [#27301](https://github.com/ccxt/ccxt/pull/27301)
+* fix(binance): recurring unwatch & watch by [@ttodua](https://github.com/ttodua) in [#27292](https://github.com/ccxt/ccxt/pull/27292)
+* feat(dydx): new exchange by [@sc0Vu](https://github.com/sc0Vu) in [#26456](https://github.com/ccxt/ccxt/pull/26456)
+* XT exchange update with unWatch methods by [@rayBastard](https://github.com/rayBastard) in [#27291](https://github.com/ccxt/ccxt/pull/27291)
+* fix(dydx): link and flag by [@carlosmiei](https://github.com/carlosmiei) in [#27304](https://github.com/ccxt/ccxt/pull/27304)
+* fix(dydx): ref link by [@carlosmiei](https://github.com/carlosmiei) in [#27305](https://github.com/ccxt/ccxt/pull/27305)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.18...v4.5.19
+
+[Changes][v4.5.19]
+
+
 <a id="v4.5.18"></a>
 # [v4.5.18](https://github.com/ccxt/ccxt/releases/tag/v4.5.18) - 2025-11-10
 
@@ -11794,6 +11827,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.19]: https://github.com/ccxt/ccxt/compare/v4.5.18...v4.5.19
 [v4.5.18]: https://github.com/ccxt/ccxt/compare/v4.5.17...v4.5.18
 [v4.5.17]: https://github.com/ccxt/ccxt/compare/v4.5.16...v4.5.17
 [v4.5.16]: https://github.com/ccxt/ccxt/compare/v4.5.15...v4.5.16

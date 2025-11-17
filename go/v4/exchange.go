@@ -1312,6 +1312,52 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 	return ch
 }
 
+func (this *Exchange) LoadDydxProtos() <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		ch <- "panic:" + "Dydx currently does not support transfer asset in Go language"
+	}()
+	return ch
+}
+
+func (this *Exchange) ToDydxLong(numStr interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) RetrieveDydxCredentials(entropy interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxForSimulation(
+	message interface{},
+	memo interface{},
+	sequence interface{},
+	publicKey interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxForSigning(
+	message interface{},
+	memo interface{},
+	chainId interface{},
+	account interface{},
+	authenticators interface{},
+	fee interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxRaw(signDoc interface{}, signature interface{}) interface{} {
+	return nil
+}
+
 func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 	options := options2.(map[string]interface{})
 	extended := this.Extend(this.SafeMapToMap(this.Options), options)
@@ -1986,4 +2032,8 @@ func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
 	var v interface{}
 	_ = json.Unmarshal(jsonBytes, &v)
 	return v
+}
+
+func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
+	return ""
 }

@@ -486,7 +486,7 @@
                 ]
             }
         ],
-    "fetchOrder": [
+        "fetchOrder": [
             {
                 "description": "fetch postOnly order",
                 "method": "fetchOrder",
@@ -645,6 +645,88 @@
                     "filled": 0,
                     "remaining": 50,
                     "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                    "42495335444"
+                ],
+                "httpResponse": {
+                    "status": "order",
+                    "order": {
+                        "order": {
+                            "coin": "xyz:XYZ100",
+                            "side": "B",
+                            "limitPx": "25400.0",
+                            "sz": "0.0007",
+                            "oid": 42495335444,
+                            "timestamp": 1762480406163,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "0.0007",
+                            "tif": "Alo",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1762480406163
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order": {
+                            "coin": "xyz:XYZ100",
+                            "side": "B",
+                            "limitPx": "25400.0",
+                            "sz": "0.0007",
+                            "oid": 42495335444,
+                            "timestamp": 1762480406163,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "0.0007",
+                            "tif": "Alo",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1762480406163
+                    },
+                    "id": "42495335444",
+                    "clientOrderId": null,
+                    "timestamp": 1762480406163,
+                    "datetime": "2025-11-07T01:53:26.163Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1762480406163,
+                    "symbol": "XYZ-XYZ100/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "ALO",
+                    "postOnly": true,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 25400,
+                    "triggerPrice": null,
+                    "amount": 0.0007,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.0007,
+                    "status": "open",
                     "fee": null,
                     "trades": [],
                     "fees": [],
@@ -1873,7 +1955,7 @@
                 ]
             }
         ],
-    "transfer": [
+        "transfer": [
             {
                 "description": "transfer",
                 "method": "transfer",

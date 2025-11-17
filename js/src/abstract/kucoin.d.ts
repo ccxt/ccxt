@@ -250,7 +250,7 @@ interface Exchange {
     utaGetMarketFundingRate(params?: {}): Promise<implicitReturnType>;
     utaGetMarketFundingRateHistory(params?: {}): Promise<implicitReturnType>;
     utaGetMarketCrossConfig(params?: {}): Promise<implicitReturnType>;
-    utaGetMarketServerStatus(params?: {}): Promise<implicitReturnType>;
+    utaGetServerStatus(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }
