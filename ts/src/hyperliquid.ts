@@ -237,7 +237,7 @@ export default class hyperliquid extends Exchange {
                     'UXPL': 'XPL',
                 },
                 'fetchMarkets': {
-                    'types': [ 'spot', 'swap' ], // 'spot', 'swap', 'hip3'
+                    'types': [ 'spot', 'swap', 'hip3' ], // 'spot', 'swap', 'hip3'
                     // 'hip3': {
                     //     'limit': 5, // how many dexes to load max if dexes are not specified
                     //     'dex': [ 'xyz' ],
