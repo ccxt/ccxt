@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.18'
+__version__ = '4.5.19'
 
 # -----------------------------------------------------------------------------
 
@@ -676,15 +676,12 @@ class Exchange(object):
 
     @staticmethod
     def key_exists(dictionary, key):
-        if hasattr(dictionary, '__getitem__') and not isinstance(dictionary, str):
-            if isinstance(dictionary, list) and type(key) is not int:
-                return False
-            try:
-                value = dictionary[key]
-                return value is not None and value != ''
-            except LookupError:
-                return False
-        return False
+        try:
+            value = dictionary[key]
+            return value is not None and value != ''
+        except Exception:
+            # catch any exception, not only (KeyError, IndexError, TypeError):
+            return False
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
@@ -5101,10 +5098,6 @@ class Exchange(object):
         })
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None):
-        result = self.safe_market_structure({
-            'symbol': marketId,
-            'marketId': marketId,
-        })
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
                 markets = self.markets_by_id[marketId]
@@ -5124,18 +5117,20 @@ class Exchange(object):
             elif delimiter is not None and delimiter != '':
                 parts = marketId.split(delimiter)
                 partsLength = len(parts)
+                result = self.safe_market_structure({
+                    'symbol': marketId,
+                    'marketId': marketId,
+                })
                 if partsLength == 2:
                     result['baseId'] = self.safe_string(parts, 0)
                     result['quoteId'] = self.safe_string(parts, 1)
                     result['base'] = self.safe_currency_code(result['baseId'])
                     result['quote'] = self.safe_currency_code(result['quoteId'])
                     result['symbol'] = result['base'] + '/' + result['quote']
-                    return result
-                else:
-                    return result
+                return result
         if market is not None:
             return market
-        return result
+        return self.safe_market_structure({'symbol': marketId, 'marketId': marketId})
 
     def market_or_null(self, symbol: str):
         if symbol is None:

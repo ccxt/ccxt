@@ -2871,11 +2871,10 @@ public partial class mexc : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "spot")))
         {
-            if (isTrue(isEqual(symbol, null)))
+            if (isTrue(!isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument for spot market")) ;
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             var marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
             var marginMode = ((IList<object>) marginModequeryVariable)[0];
             var query = ((IList<object>) marginModequeryVariable)[1];

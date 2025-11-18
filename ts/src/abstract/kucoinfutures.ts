@@ -286,7 +286,7 @@ interface kucoin {
     utaGetMarketFundingRate (params?: {}): Promise<implicitReturnType>;
     utaGetMarketFundingRateHistory (params?: {}): Promise<implicitReturnType>;
     utaGetMarketCrossConfig (params?: {}): Promise<implicitReturnType>;
-    utaGetMarketServerStatus (params?: {}): Promise<implicitReturnType>;
+    utaGetServerStatus (params?: {}): Promise<implicitReturnType>;
 }
 abstract class kucoin extends _kucoin {}
 

@@ -28,16 +28,26 @@ import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../stat
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
+import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
+import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, 
 // ecdsa,
 arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
+let encodeAsAny = undefined;
+let AuthInfo = undefined;
+let Tx = undefined;
+let TxBody = undefined;
+let TxRaw = undefined;
+let SignDoc = undefined;
+let SignMode = undefined;
 (async () => {
     try {
         protobufMexc = await import('../protobuf/mexc/compiled.cjs');
     }
-    catch {
+    catch (e) {
         // TODO: handle error
     }
 })();
@@ -368,6 +378,29 @@ export default class Exchange {
         if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
             this.setSandboxMode(true);
         }
+    }
+    uuid5(namespace, name) {
+        const nsBytes = namespace
+            .replace(/-/g, '')
+            .match(/.{1,2}/g)
+            .map((byte) => parseInt(byte, 16));
+        const nameBytes = new TextEncoder().encode(name);
+        const data = new Uint8Array([...nsBytes, ...nameBytes]);
+        const nsHash = sha1(data);
+        // eslint-disable-next-line
+        nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
+        // eslint-disable-next-line
+        nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
+        const hex = [...nsHash.slice(0, 16)]
+            .map((b) => b.toString(16).padStart(2, '0'))
+            .join('');
+        return [
+            hex.substring(0, 8),
+            hex.substring(8, 12),
+            hex.substring(12, 16),
+            hex.substring(16, 20),
+            hex.substring(20, 32),
+        ].join('-');
     }
     encodeURIComponent(...args) {
         // @ts-expect-error
@@ -1341,6 +1374,128 @@ export default class Exchange {
         const tx = contractor.jsValue();
         const zkSign = tx?.signature?.signature;
         return zkSign;
+    }
+    async loadDydxProtos() {
+        // load dydx protos
+        const tasks = [
+            import('../static_dependencies/dydx-v4-client/registry.js'),
+            import('../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx.js'),
+            import('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing.js'),
+        ];
+        const modules = await Promise.all(tasks);
+        encodeAsAny = modules[0].encodeAsAny;
+        AuthInfo = modules[1].AuthInfo;
+        Tx = modules[1].Tx;
+        TxBody = modules[1].TxBody;
+        TxRaw = modules[1].TxRaw;
+        SignDoc = modules[1].SignDoc;
+        SignMode = modules[2].SignMode;
+    }
+    toDydxLong(numStr) {
+        return Long.fromString(numStr);
+    }
+    retrieveDydxCredentials(entropy) {
+        let credentials = undefined;
+        if (entropy.indexOf(' ') > 0) {
+            credentials = deriveHDKeyFromMnemonic(entropy);
+            credentials['mnemonic'] = entropy;
+            return credentials;
+        }
+        credentials = exportMnemonicAndPrivateKey(this.base16ToBinary(entropy));
+        return credentials;
+    }
+    encodeDydxTxForSimulation(message, memo, sequence, publicKey) {
+        if (!encodeAsAny) {
+            throw new NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        if (!publicKey) {
+            throw new Error('Public key cannot be undefined');
+        }
+        const messages = [message];
+        const encodedMessages = messages.map((msg) => encodeAsAny(msg));
+        const tx = Tx.fromPartial({
+            'body': TxBody.fromPartial({
+                'messages': encodedMessages,
+                'memo': memo,
+            }),
+            'authInfo': AuthInfo.fromPartial({
+                'fee': {},
+                'signerInfos': [
+                    {
+                        'publicKey': encodeAsAny({
+                            'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                            'value': publicKey,
+                        }),
+                        'sequence': sequence,
+                        'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_UNSPECIFIED } },
+                    },
+                ],
+            }),
+            'signatures': [new Uint8Array()],
+        });
+        return this.binaryToBase64(Tx.encode(tx).finish());
+    }
+    encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee = undefined) {
+        if (!encodeAsAny) {
+            throw new NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        if (!account.pub_key) {
+            throw new Error('Public key cannot be undefined');
+        }
+        const messages = [message];
+        const sequence = this.milliseconds();
+        if (fee === undefined) {
+            fee = {
+                'amount': [],
+                'gasLimit': 1000000,
+            };
+        }
+        const encodedMessages = messages.map((msg) => encodeAsAny(msg));
+        const nonCriticalExtensionOptions = [
+            encodeAsAny({
+                'typeUrl': '/dydxprotocol.accountplus.TxExtension',
+                'value': {
+                    'selectedAuthenticators': authenticators ?? [],
+                },
+            }),
+        ];
+        const txBodyBytes = TxBody.encode(TxBody.fromPartial({
+            'messages': encodedMessages,
+            'memo': memo,
+            'extensionOptions': [],
+            'nonCriticalExtensionOptions': nonCriticalExtensionOptions,
+        })).finish();
+        const authInfoBytes = AuthInfo.encode(AuthInfo.fromPartial({
+            'fee': fee,
+            'signerInfos': [
+                {
+                    'publicKey': encodeAsAny({
+                        'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                        'value': account.pub_key,
+                    }),
+                    'sequence': sequence,
+                    'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_DIRECT } },
+                },
+            ],
+        })).finish();
+        const signDoc = SignDoc.fromPartial({
+            'accountNumber': account.account_number,
+            'authInfoBytes': authInfoBytes,
+            'bodyBytes': txBodyBytes,
+            'chainId': chainId,
+        });
+        const signingHash = this.hash(SignDoc.encode(signDoc).finish(), sha256, 'hex');
+        return [signingHash, signDoc];
+    }
+    encodeDydxTxRaw(signDoc, signature) {
+        if (!encodeAsAny) {
+            throw new NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        return '0x' + this.binaryToBase16(TxRaw.encode(TxRaw.fromPartial({
+            'bodyBytes': signDoc.bodyBytes,
+            'authInfoBytes': signDoc.authInfoBytes,
+            'signatures': [this.base16ToBinary(signature)],
+        })).finish());
     }
     intToBase16(elem) {
         return elem.toString(16);
@@ -4850,10 +5005,6 @@ export default class Exchange {
         });
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const result = this.safeMarketStructure({
-            'symbol': marketId,
-            'marketId': marketId,
-        });
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
@@ -4881,23 +5032,24 @@ export default class Exchange {
             else if (delimiter !== undefined && delimiter !== '') {
                 const parts = marketId.split(delimiter);
                 const partsLength = parts.length;
+                const result = this.safeMarketStructure({
+                    'symbol': marketId,
+                    'marketId': marketId,
+                });
                 if (partsLength === 2) {
                     result['baseId'] = this.safeString(parts, 0);
                     result['quoteId'] = this.safeString(parts, 1);
                     result['base'] = this.safeCurrencyCode(result['baseId']);
                     result['quote'] = this.safeCurrencyCode(result['quoteId']);
                     result['symbol'] = result['base'] + '/' + result['quote'];
-                    return result;
                 }
-                else {
-                    return result;
-                }
+                return result;
             }
         }
         if (market !== undefined) {
             return market;
         }
-        return result;
+        return this.safeMarketStructure({ 'symbol': marketId, 'marketId': marketId });
     }
     marketOrNull(symbol) {
         if (symbol === undefined) {

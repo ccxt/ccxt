@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.18';
+$version = '4.5.19';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.18';
+    const VERSION = '4.5.19';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -6020,10 +6020,6 @@ class Exchange {
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
-        $result = $this->safe_market_structure(array(
-            'symbol' => $marketId,
-            'marketId' => $marketId,
-        ));
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
                 $markets = $this->markets_by_id[$marketId];
@@ -6048,22 +6044,24 @@ class Exchange {
             } elseif ($delimiter !== null && $delimiter !== '') {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = count($parts);
+                $result = $this->safe_market_structure(array(
+                    'symbol' => $marketId,
+                    'marketId' => $marketId,
+                ));
                 if ($partsLength === 2) {
                     $result['baseId'] = $this->safe_string($parts, 0);
                     $result['quoteId'] = $this->safe_string($parts, 1);
                     $result['base'] = $this->safe_currency_code($result['baseId']);
                     $result['quote'] = $this->safe_currency_code($result['quoteId']);
                     $result['symbol'] = $result['base'] . '/' . $result['quote'];
-                    return $result;
-                } else {
-                    return $result;
                 }
+                return $result;
             }
         }
         if ($market !== null) {
             return $market;
         }
-        return $result;
+        return $this->safe_market_structure(array( 'symbol' => $marketId, 'marketId' => $marketId ));
     }
 
     public function market_or_null(string $symbol) {

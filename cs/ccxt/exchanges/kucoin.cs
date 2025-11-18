@@ -996,7 +996,7 @@ public partial class kucoin : Exchange
             object request = new Dictionary<string, object>() {
                 { "tradeType", tradeType },
             };
-            response = await ((Task<object>)callDynamically(this, "utaGetServerStatus", new object[] { this.extend(request, parameters) }));
+            response = await this.utaGetServerStatus(this.extend(request, parameters));
         } else
         {
             response = await this.publicGetStatus(parameters);

@@ -1831,6 +1831,30 @@
                     }
                 ]
             }
+        ],
+        "borrowCrossMargin": [
+            {
+                "description": "borrowCrossMargin BTC 0.001",
+                "method": "borrowCrossMargin",
+                "url": "https://api-testnet.bybit.com/v5/account/borrow",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "output": "{\"coin\":\"BTC\",\"amount\":\"0.001\"}"
+            }
+        ],
+        "repayCrossMargin": [
+            {
+                "description": "repayCrossMargin BTC 0.001",
+                "method": "repayCrossMargin",
+                "url": "https://api-testnet.bybit.com/v5/account/no-convert-repay",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "output": "{\"coin\":\"BTC\",\"amount\":\"0.001\"}"
+            }
         ]
     },
     "disabled": []

@@ -388,6 +388,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "digifinex":
 		itf := NewDigifinex(options)
 		return itf
+	case "dydx":
+		itf := NewDydx(options)
+		return itf
 	case "exmo":
 		itf := NewExmo(options)
 		return itf

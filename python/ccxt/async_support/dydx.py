@@ -28,7 +28,8 @@ class dydx(Exchange, ImplicitAPI):
             'rateLimit': 100,
             'version': 'v4',
             'certified': False,
-            'pro': False,
+            'dex': True,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': False,
@@ -150,9 +151,7 @@ class dydx(Exchange, ImplicitAPI):
                 'fees': [
                     'https://docs.dydx.exchange/introduction-trading_fees',
                 ],
-                'referral': {
-                    'url': '',
-                },
+                'referral': 'dydx.trade?ref=ccxt',
             },
             'api': {
                 'indexer': {
