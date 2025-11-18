@@ -940,7 +940,7 @@ export default class bullish extends Exchange {
 
     /**
      * @method
-     * @name apex#fetchOrderTrades
+     * @name bullish#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
      * @param {string} id order id
