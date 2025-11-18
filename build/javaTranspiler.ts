@@ -53,15 +53,15 @@ const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FILE = './java/lib/src/main/java/io/github/ccxt/Errors.java';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
-const EXCHANGES_FOLDER = './cs/ccxt/exchanges/';
-const EXCHANGES_WS_FOLDER = './cs/ccxt/exchanges/pro/';
+const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
+const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
 const GENERATED_TESTS_FOLDER = './cs/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './cs/tests/Generated/Base';
 const BASE_TESTS_FILE =  './cs/tests/Generated/TestMethods.cs';
 const EXCHANGE_BASE_FOLDER = './cs/tests/Generated/Exchange/Base/';
 const EXCHANGE_GENERATED_FOLDER = './cs/tests/Generated/Exchange/';
 const EXAMPLES_INPUT_FOLDER = './examples/ts/';
-const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
+const EXAMPLES_OUTPUT_FOLDER = './examples/java/examples/';
 const csharpComments: any = {};
 
 class NewTranspiler {
@@ -285,11 +285,12 @@ class NewTranspiler {
         ]
     }
 
-    getCsharpImports(file: any, ws = false) {
-        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+    getJavaImports(file: any, ws = false) {
         const values = [
             // "using ccxt;",
-            namespace,
+            'package io.github.ccxt;',
+            // 'import io.github.ccxt.Exchange;',
+            // 'import io.github.ccxt.Errors;'
         ]
         // if (ws) {
         //     values.push("using System.Reflection;");
@@ -823,21 +824,21 @@ class NewTranspiler {
     async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false) {
 
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            , csharpFolder = EXCHANGES_FOLDER
+            , javaFolder = EXCHANGES_FOLDER
             , tsFolder = './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
 
         if (!child) {
-            createFolderRecursively (csharpFolder)
+            createFolderRecursively (javaFolder)
         }
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
-        const options = { csharpFolder, exchanges }
+        const options = { csharpFolder: javaFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
-            // await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
         // this.transpileExamples(); // disabled for now
@@ -895,7 +896,8 @@ class NewTranspiler {
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids: string[] = []
         try {
-            ids = (exchanges as any).ids
+            // ids = (exchanges as any).ids
+            ids = ['binance']
         } catch (e) {
         }
 
@@ -916,17 +918,17 @@ class NewTranspiler {
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.cs';
-                // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
+                // const transpiled = transpiledFiles[i];
+                // const exchangeName = exchanges[i].replace('.ts','');
+                // const path = EXCHANGE_WRAPPER_FOLDER + this.capitalizeexchangeName + '.java';
+                // // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
             }
         } else {
             //
             for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.cs';
+                // const transpiled = transpiledFiles[i];
+                // const exchangeName = exchanges[i].replace('.ts','');
+                // const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.cs';
                 // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
             }
         }
@@ -937,33 +939,36 @@ class NewTranspiler {
         return classes
     }
 
-    createCSharpClass(csharpVersion: any, ws = false) {
-        const csharpImports = this.getCsharpImports(csharpVersion, ws).join("\n") + "\n\n";
-        let content = csharpVersion.content;
+    createJavaClass(name: string, javaVersion: any, ws = false) {
+        const javaImports = this.getJavaImports(javaVersion, ws).join("\n") + "\n\n";
+        let content = javaVersion.content;
 
-        const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
-        const baseWsClassExec = baseWsClassRegex.exec(content);
-        const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
-        if (!ws) {
-            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
-        } else {
-            const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
-            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
-        }
-        content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
+        // override extends from Exchange to ClassApi
+        content = content.replace(/extends\sExchange/g, `extends ${this.capitalize(name)}Api`);
+
+        // const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
+        // const baseWsClassExec = baseWsClassRegex.exec(content);
+        // const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
+        // if (!ws) {
+        //     content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
+        // } else {
+        //     const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
+        //     content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
+        // }
+        // content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
         if (ws) {
-            const wsRegexes = this.getWsRegexes();
-            content = this.regexAll (content, wsRegexes);
-            content = this.replaceImportedRestClasses (content, csharpVersion.imports);
-            const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
-            const classNameExec = classNameRegex.exec(content);
-            const className = classNameExec ? classNameExec[1] : '';
-            const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
-            content = constructorLine  + content;
+            // const wsRegexes = this.getWsRegexes();
+            // content = this.regexAll (content, wsRegexes);
+            // content = this.replaceImportedRestClasses (content, csharpVersion.imports);
+            // const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
+            // const classNameExec = classNameRegex.exec(content);
+            // const className = classNameExec ? classNameExec[1] : '';
+            // const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
+            // content = constructorLine  + content;
         }
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
-        return csharpImports + content;
+        return javaImports + content;
     }
 
     replaceImportedRestClasses (content: string, imports: any[]) {
@@ -982,17 +987,18 @@ class NewTranspiler {
 
         const tsPath = tsFolder + filename
 
-        const { csharpFolder } = options
+        const { csharpFolder: javaFolder } = options
 
-        const csharpFilename = filename.replace ('.ts', '.cs')
+        const javaName = filename.replace ('.ts', '.java')
+
+        const fileNameNoExt = filename.replace ('.ts', '')
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
-        const csharp  = this.createCSharpClass (csharpResult, ws)
+        const csharp  = this.createJavaClass (fileNameNoExt, csharpResult, ws)
 
-        if (csharpFolder) {
-            overwriteFileAndFolder (csharpFolder + csharpFilename, csharp)
-            // fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
+        if (javaFolder) {
+            overwriteFileAndFolder (javaFolder + this.capitalize(javaName), csharp)
         }
     }
 
