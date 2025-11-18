@@ -89,7 +89,7 @@ export default class bullish extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
-                'fetchOrderTrades': false,
+                'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -227,7 +227,71 @@ export default class bullish extends Exchange {
                 'tradingAccountId': '111795880131063', // todo remove before release
             },
             'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': undefined,
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
                 'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
                 },
             },
             'exceptions': {
@@ -828,7 +892,7 @@ export default class bullish extends Exchange {
      * @name bullish#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/trades
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -838,21 +902,18 @@ export default class bullish extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
-        if (tradingAccountId !== undefined) {
-            request['tradingAccountId'] = tradingAccountId;
-        } else {
+        if (tradingAccountId === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchMyTrades() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
-        const orderId = this.safeString (params, 'orderId');
-        if (orderId !== undefined) {
-            request['orderId'] = orderId;
-            params = this.omit (params, 'orderId');
+        const request: Dict = {
+            'tradingAccountId': tradingAccountId,
+        };
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
         const response = await this.privateGetV1Trades (this.extend (request, params));
         //
@@ -876,6 +937,24 @@ export default class bullish extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name apex#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        params = this.extend ({ 'orderId': id }, params);
+        return await this.fetchMyTrades (symbol, since, limit, params);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
