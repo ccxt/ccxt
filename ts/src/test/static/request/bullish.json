@@ -60,9 +60,9 @@
         ],
         "fetchDepositAddress": [
             {
-                "description": "Fetch deposit address",
+                "description": "Fetch deposit address for USDC",
                 "method": "fetchDepositAddress",
-                "url": "https://api.simnext.bullish-test.com/trading-api/v1/wallets/deposit-instructions/crypto/USDC",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/wallets/deposit-instructions/crypto/USDC",
                 "input": [
                     "USDC"
                 ],
