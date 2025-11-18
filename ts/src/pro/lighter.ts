@@ -16,7 +16,7 @@ export default class lighter extends lighterRest {
                 'watchMarkPrices': false,
                 'watchTickers': false,
                 'watchBidsAsks': false,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchTrades': false,
                 'watchTradesForSymbols': false,
                 'watchOrderBookForSymbols': false,
@@ -32,6 +32,7 @@ export default class lighter extends lighterRest {
                 'watchPositions': false,
                 'watchFundingRate': false,
                 'watchFundingRates': false,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -58,14 +59,25 @@ export default class lighter extends lighterRest {
         return hash;
     }
 
-    async subscribePublic (symbol, messageHash, params = {}) {
+    async subscribePublic (messageHash, params = {}) {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',
         };
         const subscription: Dict = {
             'messageHash': messageHash,
-            'symbol': symbol,
+            'params': params,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+    }
+
+    async unsubscribePublic (messageHash, params = {}) {
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'type': 'unsubscribe',
+        };
+        const subscription: Dict = {
+            'messageHash': messageHash,
             'params': params,
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
@@ -160,8 +172,27 @@ export default class lighter extends lighterRest {
             'channel': 'order_book/' + market['id'],
         };
         const messageHash = this.getMessageHash ('orderbook', symbol);
-        const orderbook = await this.subscribePublic (symbol, messageHash, this.extend (request, params));
+        const orderbook = await this.subscribePublic (messageHash, this.extend (request, params));
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name lighter#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#order-book
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'channel': 'order_book/' + market['id'],
+        };
+        const messageHash = this.getMessageHash ('unsubscribe', symbol);
+        return await this.unsubscribePublic (messageHash, this.extend (request, params));
     }
 
     handleErrorMessage (client, message) {
