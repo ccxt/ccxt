@@ -6,6 +6,38 @@
         "tokenExpires": 9999999999999
     },
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address for USDC",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "network": "SOL",
+                        "address": "DdN8w9jpyfpzr3ye8MvzmDn8ybgrVAKFnerCvx5cc5XL",
+                        "symbol": "USDC"
+                    },
+                    {
+                        "network": "ETH",
+                        "address": "0x34625d5f0b6575503a0669994dea24271bfbd443",
+                        "symbol": "USDC"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "network": "ETH",
+                        "address": "0x34625d5f0b6575503a0669994dea24271bfbd443",
+                        "symbol": "USDC"
+                    },
+                    "currency": "USDC",
+                    "network": "ERC20",
+                    "address": "0x34625d5f0b6575503a0669994dea24271bfbd443",
+                    "tag": null
+                }
+            }
+        ],
         "fetchOrderTrades": [
             {
                 "description": "Fetch order trades by order id",
@@ -238,23 +270,6 @@
                     "total": {
                         "USDC": 999673048.0792
                     }
-                }
-            }
-        ],
-        "fetchDepositAddress": [
-            {
-                "description": "Fetch deposit address",
-                "method": "fetchDepositAddress",
-                "input": [
-                    "USDC"
-                ],
-                "httpResponse": "[]",
-                "parsedResponse": {
-                    "info": null,
-                    "currency": "USDC",
-                    "network": null,
-                    "address": null,
-                    "tag": null
                 }
             }
         ],
@@ -856,7 +871,7 @@
                         "lastTradeTimestamp": null,
                         "status": "open",
                         "symbol": "BTC/USDC",
-                        "type": "STOP_LIMIT",
+                        "type": "limit",
                         "timeInForce": "GTC",
                         "postOnly": false,
                         "side": "sell",
