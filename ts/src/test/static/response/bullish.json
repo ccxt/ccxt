@@ -6,6 +6,74 @@
         "tokenExpires": 9999999999999
     },
     "methods": {
+        "fetchOrderTrades": [
+            {
+                "description": "Fetch order trades by order id",
+                "method": "fetchOrderTrades",
+                "input": [
+                    "910918330718094337"
+                ],
+                "httpResponse": [
+                    {
+                    "baseFee": "0.0000000",
+                    "createdAtDatetime": "2025-11-18T15:44:14.087Z",
+                    "createdAtTimestamp": "1763480654087",
+                    "handle": null,
+                    "isTaker": true,
+                    "orderId": "910918330718094337",
+                    "price": "0.9994",
+                    "publishedAtTimestamp": "1763481453472",
+                    "quantity": "10.0000000",
+                    "quoteAmount": "9.9938",
+                    "quoteFee": "0.0000",
+                    "side": "BUY",
+                    "symbol": "USDTUSDC",
+                    "tradeId": "100101000029715021"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "baseFee": "0.0000000",
+                            "createdAtDatetime": "2025-11-18T15:44:14.087Z",
+                            "createdAtTimestamp": "1763480654087",
+                            "handle": null,
+                            "isTaker": true,
+                            "orderId": "910918330718094337",
+                            "price": "0.9994",
+                            "publishedAtTimestamp": "1763481453472",
+                            "quantity": "10.0000000",
+                            "quoteAmount": "9.9938",
+                            "quoteFee": "0.0000",
+                            "side": "BUY",
+                            "symbol": "USDTUSDC",
+                            "tradeId": "100101000029715021"
+                        },
+                        "timestamp": 1763480654087,
+                        "datetime": "2025-11-18T15:44:14.087Z",
+                        "symbol": "USDT/USDC",
+                        "id": "100101000029715021",
+                        "order": "100101000029715021",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 0.9994,
+                        "amount": 10,
+                        "cost": 9.994,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                            "currency": "USDC",
+                            "cost": 0
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         "createTriggerOrder": [
             {
                 "description": "Create spot trigger order",
