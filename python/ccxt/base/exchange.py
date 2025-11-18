@@ -679,7 +679,8 @@ class Exchange(object):
         try:
             value = dictionary[key]
             return value is not None and value != ''
-        except (KeyError, IndexError, TypeError):
+        except Exception:
+            # catch any exception, not only (KeyError, IndexError, TypeError):
             return False
 
     @staticmethod
