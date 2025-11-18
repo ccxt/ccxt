@@ -20,7 +20,6 @@ export default class bullish extends Exchange {
             'countries': [ 'DE' ],
             'version': 'v3',
             'rateLimit': 50,
-            'certified': true,
             'pro': true,
             'has': {
                 'CORS': undefined,
