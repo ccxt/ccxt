@@ -7,7 +7,7 @@
 let _m0: any;
 try {
     // import _m0 from "protobufjs/minimal.js";
-    _m0 = require("protobufjs/minimal.js");
+    _m0 = (await import ("protobufjs/minimal.js")).default;
 } catch (e) {
     // do nothing
 }
