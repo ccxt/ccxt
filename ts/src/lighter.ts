@@ -19,7 +19,7 @@ export default class lighter extends Exchange {
             'version': 'v1',
             'rateLimit': 1000, // 60 requests per minute - normal account
             'certified': false,
-            'pro': false,
+            'pro': true,
             'dex': false,
             'has': {
                 'CORS': undefined,
