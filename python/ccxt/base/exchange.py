@@ -676,15 +676,12 @@ class Exchange(object):
 
     @staticmethod
     def key_exists(dictionary, key):
-        if hasattr(dictionary, '__getitem__') and not isinstance(dictionary, str):
-            if isinstance(dictionary, list) and type(key) is not int:
-                return False
-            try:
-                value = dictionary[key]
-                return value is not None and value != ''
-            except LookupError:
-                return False
-        return False
+        try:
+            value = dictionary[key]
+            return value is not None and value != ''
+        except Exception:
+            # catch any exception, not only (KeyError, IndexError, TypeError):
+            return False
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
