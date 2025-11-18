@@ -4,12 +4,19 @@
 * and run the transpile command or yarn proto command to regenerate this bundle.
 */
 
-import _m0 from "protobufjs/minimal.js";
+let _m0: any;
+try {
+    // import _m0 from "protobufjs/minimal.js";
+    _m0 = require("protobufjs/minimal.js");
+} catch (e) {
+    // do nothing
+}
+
 import Long from './long/index.cjs';
 
 // @ts-ignore
 // const Long = (long !== undefined && long.default !== undefined) ? long.default : long;
-if (_m0.util.Long !== Long) {
+if (_m0 && _m0.util.Long !== Long) {
     _m0.util.Long = (Long as any);
     _m0.configure();
 }
