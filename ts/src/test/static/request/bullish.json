@@ -11,6 +11,16 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchOrderTrades": [
+            {
+                "description": "Fetch order trades by order id",
+                "method": "fetchOrderTrades",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/trades?tradingAccountId=111795880131063&orderId=910918330718094337",
+                "input": [
+                    "910918330718094337"
+                ]
+            }
+        ],
         "createTriggerOrder": [
             {
                 "description": "Create spot trigger order",
