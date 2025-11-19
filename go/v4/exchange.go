@@ -2037,3 +2037,11 @@ func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
 func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
 	return ""
 }
+
+func (this *Exchange) LockId() bool {
+	return true
+}
+
+func (this *Exchange) UnlockId() bool {
+	return true
+}

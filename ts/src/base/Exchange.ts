@@ -1886,6 +1886,14 @@ export default class Exchange {
         return binary.length;
     }
 
+    lockId () {
+        return undefined; // c# stub
+    }
+
+    unlockId () {
+        return undefined;  // c# stub
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
