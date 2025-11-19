@@ -363,6 +363,7 @@ public partial class xt : ccxt.xt
         object options = this.safeDict(this.options, "watchTickers");
         object defaultMethod = this.safeString(options, "method", "tickers");
         object name = this.safeString(parameters, "method", defaultMethod);
+        symbols = this.marketSymbols(symbols);
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {

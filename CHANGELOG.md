@@ -1,3 +1,29 @@
+<a id="v4.5.20"></a>
+# [v4.5.20](https://github.com/ccxt/ccxt/releases/tag/v4.5.20) - 2025-11-18
+
+## What's Changed
+* fix(dydx): dex flag by [@carlosmiei](https://github.com/carlosmiei) in [#27309](https://github.com/ccxt/ccxt/pull/27309)
+* chore: fix go module by [@carlosmiei](https://github.com/carlosmiei) in [#27312](https://github.com/ccxt/ccxt/pull/27312)
+* build(deps-dev): bump js-yaml from 4.1.0 to 4.1.1 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#27306](https://github.com/ccxt/ccxt/pull/27306)
+* feat(bybit): update borrowCrossMargin, repayCrossMargin by [@Dan-krm](https://github.com/Dan-krm) in [#27308](https://github.com/ccxt/ccxt/pull/27308)
+* chore(cli): remove extra print by [@ttodua](https://github.com/ttodua) in [#27303](https://github.com/ccxt/ccxt/pull/27303)
+* fix(ws/Client) onPingInterval log by [@CH-EdwinB](https://github.com/CH-EdwinB) in [#27315](https://github.com/ccxt/ccxt/pull/27315)
+* feat(binance): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27316](https://github.com/ccxt/ccxt/pull/27316)
+* fix(mexc): fetchOpenOrders no symbol by [@carlosmiei](https://github.com/carlosmiei) in [#27317](https://github.com/ccxt/ccxt/pull/27317)
+* build(deps-dev): bump js-yaml from 4.1.0 to 4.1.1 by [@dependabot](https://github.com/dependabot)[bot] in [#27313](https://github.com/ccxt/ccxt/pull/27313)
+* perf(base): safeMarket optimize by [@ttodua](https://github.com/ttodua) in [#27320](https://github.com/ccxt/ccxt/pull/27320)
+* feat(hyperliquid): add hip-3 tokens by [@sc0Vu](https://github.com/sc0Vu) in [#27201](https://github.com/ccxt/ccxt/pull/27201)
+* fix(python): key_exists opt 2x by [@ttodua](https://github.com/ttodua) in [#27318](https://github.com/ccxt/ccxt/pull/27318)
+* fix(gate): assume vip0 fees by [@carlosmiei](https://github.com/carlosmiei) in [#27325](https://github.com/ccxt/ccxt/pull/27325)
+* fix(js): remove direct protobufjs import from dydx helper by [@carlosmiei](https://github.com/carlosmiei) in [#27324](https://github.com/ccxt/ccxt/pull/27324)
+* fix(xt): watchTickers cast in c# by [@carlosmiei](https://github.com/carlosmiei) in [#27326](https://github.com/ccxt/ccxt/pull/27326)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.19...v4.5.20
+
+[Changes][v4.5.20]
+
+
 <a id="v4.5.19"></a>
 # [v4.5.19](https://github.com/ccxt/ccxt/releases/tag/v4.5.19) - 2025-11-14
 
@@ -11827,6 +11853,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.20]: https://github.com/ccxt/ccxt/compare/v4.5.19...v4.5.20
 [v4.5.19]: https://github.com/ccxt/ccxt/compare/v4.5.18...v4.5.19
 [v4.5.18]: https://github.com/ccxt/ccxt/compare/v4.5.17...v4.5.18
 [v4.5.17]: https://github.com/ccxt/ccxt/compare/v4.5.16...v4.5.17

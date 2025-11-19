@@ -25,6 +25,7 @@ export default class dydx extends Exchange {
             'rateLimit': 100,
             'version': 'v4',
             'certified': false,
+            'dex': true,
             'pro': true,
             'has': {
                 'CORS': undefined,

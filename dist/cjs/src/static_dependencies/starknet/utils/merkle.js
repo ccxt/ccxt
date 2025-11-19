@@ -9,6 +9,7 @@ require('../../scure-base/index.js');
 require('../../noble-curves/abstract/utils.js');
 var classHash = require('./hash/classHash.js');
 
+// ----------------------------------------------------------------------------
 class MerkleTree {
     constructor(leafHashes, hashMethod = classHash.computePedersenHash) {
         this.branches = [];

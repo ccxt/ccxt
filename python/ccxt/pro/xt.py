@@ -310,6 +310,7 @@ class xt(ccxt.async_support.xt):
         options = self.safe_dict(self.options, 'watchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
+        symbols = self.market_symbols(symbols)
         market = None
         if symbols is not None:
             market = self.market(symbols[0])

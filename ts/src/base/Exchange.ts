@@ -5533,10 +5533,6 @@ export default class Exchange {
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
-        const result = this.safeMarketStructure ({
-            'symbol': marketId,
-            'marketId': marketId,
-        });
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
@@ -5561,22 +5557,24 @@ export default class Exchange {
             } else if (delimiter !== undefined && delimiter !== '') {
                 const parts = marketId.split (delimiter);
                 const partsLength = parts.length;
+                const result = this.safeMarketStructure ({
+                    'symbol': marketId,
+                    'marketId': marketId,
+                });
                 if (partsLength === 2) {
                     result['baseId'] = this.safeString (parts, 0);
                     result['quoteId'] = this.safeString (parts, 1);
                     result['base'] = this.safeCurrencyCode (result['baseId']);
                     result['quote'] = this.safeCurrencyCode (result['quoteId']);
                     result['symbol'] = result['base'] + '/' + result['quote'];
-                    return result;
-                } else {
-                    return result;
                 }
+                return result;
             }
         }
         if (market !== undefined) {
             return market;
         }
-        return result;
+        return this.safeMarketStructure ({ 'symbol': marketId, 'marketId': marketId });
     }
 
     marketOrNull (symbol: string): MarketInterface {

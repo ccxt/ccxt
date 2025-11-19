@@ -25,6 +25,7 @@ class dydx extends Exchange {
             'rateLimit' => 100,
             'version' => 'v4',
             'certified' => false,
+            'dex' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => null,

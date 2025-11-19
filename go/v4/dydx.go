@@ -23,6 +23,7 @@ func  (this *DydxCore) Describe() interface{}  {
         "rateLimit": 100,
         "version": "v4",
         "certified": false,
+        "dex": true,
         "pro": true,
         "has": map[string]interface{} {
             "CORS": nil,
@@ -692,8 +693,8 @@ func  (this *DydxCore) FetchTrades(symbol interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes6728 := (<-this.LoadMarkets())
-            PanicOnError(retRes6728)
+            retRes6738 := (<-this.LoadMarkets())
+            PanicOnError(retRes6738)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -776,8 +777,8 @@ func  (this *DydxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7428 := (<-this.LoadMarkets())
-            PanicOnError(retRes7428)
+            retRes7438 := (<-this.LoadMarkets())
+            PanicOnError(retRes7438)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -855,8 +856,8 @@ func  (this *DydxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <- c
                 panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
             }
         
-            retRes8018 := (<-this.LoadMarkets())
-            PanicOnError(retRes8018)
+            retRes8028 := (<-this.LoadMarkets())
+            PanicOnError(retRes8028)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -1029,8 +1030,8 @@ func  (this *DydxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes9578 := (<-this.LoadMarkets())
-            PanicOnError(retRes9578)
+            retRes9588 := (<-this.LoadMarkets())
+            PanicOnError(retRes9588)
             var request interface{} = map[string]interface{} {
                 "orderId": id,
             }
@@ -1079,8 +1080,8 @@ func  (this *DydxCore) FetchOrders(optionalArgs ...interface{}) <- chan interfac
             subAccountNumber = GetValue(subAccountNumberparamsVariable,0);
             params = GetValue(subAccountNumberparamsVariable,1)
         
-            retRes9838 := (<-this.LoadMarkets())
-            PanicOnError(retRes9838)
+            retRes9848 := (<-this.LoadMarkets())
+            PanicOnError(retRes9848)
             var request interface{} = map[string]interface{} {
                 "address": userAddress,
                 "subaccountNumber": subAccountNumber,
@@ -1160,9 +1161,9 @@ func  (this *DydxCore) FetchOpenOrders(optionalArgs ...interface{}) <- chan inte
                 "status": "OPEN",
             }
         
-                retRes104415 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes104415)
-                ch <- retRes104415
+                retRes104515 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes104515)
+                ch <- retRes104515
                 return nil
         
             }()
@@ -1198,9 +1199,9 @@ func  (this *DydxCore) FetchClosedOrders(optionalArgs ...interface{}) <- chan in
                 "status": "FILLED",
             }
         
-                retRes106415 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes106415)
-                ch <- retRes106415
+                retRes106515 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes106515)
+                ch <- retRes106515
                 return nil
         
             }()
@@ -1321,8 +1322,8 @@ func  (this *DydxCore) FetchPositions(optionalArgs ...interface{}) <- chan inter
             subAccountNumber = GetValue(subAccountNumberparamsVariable,0);
             params = GetValue(subAccountNumberparamsVariable,1)
         
-            retRes11568 := (<-this.LoadMarkets())
-            PanicOnError(retRes11568)
+            retRes11578 := (<-this.LoadMarkets())
+            PanicOnError(retRes11578)
             var request interface{} = map[string]interface{} {
                 "address": userAddress,
                 "subaccountNumber": subAccountNumber,
@@ -1433,8 +1434,8 @@ func  (this *DydxCore) FetchDydxAccount() <- chan interface{} {
                 defer ReturnPanicError(ch)
                 // required in js
         
-        retRes12558 := (<-this.LoadDydxProtos())
-        PanicOnError(retRes12558)
+        retRes12568 := (<-this.LoadDydxProtos())
+        PanicOnError(retRes12568)
         var dydxAccount interface{} = this.SafeDict(this.Options, "dydxAccount")
         if IsTrue(!IsEqual(dydxAccount, nil)) {
         
@@ -1687,8 +1688,8 @@ func  (this *DydxCore) CreateOrder(symbol interface{}, typeVar interface{}, side
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes14758 := (<-this.LoadMarkets())
-            PanicOnError(retRes14758)
+            retRes14768 := (<-this.LoadMarkets())
+            PanicOnError(retRes14768)
             var credentials interface{} = this.RetrieveCredentials()
         
             account:= (<-this.FetchDydxAccount())
@@ -1768,8 +1769,8 @@ func  (this *DydxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
             }
         
-            retRes15348 := (<-this.LoadMarkets())
-            PanicOnError(retRes15348)
+            retRes15358 := (<-this.LoadMarkets())
+            PanicOnError(retRes15358)
             var market interface{} = this.Market(symbol)
             var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "clientId", id)
             if IsTrue(IsEqual(clientOrderId, nil)) {
@@ -1885,8 +1886,8 @@ func  (this *DydxCore) CancelOrders(ids interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes16278 := (<-this.LoadMarkets())
-            PanicOnError(retRes16278)
+            retRes16288 := (<-this.LoadMarkets())
+            PanicOnError(retRes16288)
             var market interface{} = this.Market(symbol)
             var clientOrderIds interface{} = this.SafeList(params, "clientOrderIds")
             if !IsTrue(clientOrderIds) {
@@ -1976,8 +1977,8 @@ func  (this *DydxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes16968 := (<-this.LoadMarkets())
-            PanicOnError(retRes16968)
+            retRes16978 := (<-this.LoadMarkets())
+            PanicOnError(retRes16978)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -2100,8 +2101,8 @@ func  (this *DydxCore) FetchLedger(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes18008 := (<-this.LoadMarkets())
-            PanicOnError(retRes18008)
+            retRes18018 := (<-this.LoadMarkets())
+            PanicOnError(retRes18018)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
                 currency = this.Currency(code)
@@ -2200,8 +2201,8 @@ func  (this *DydxCore) Transfer(code interface{}, amount interface{}, fromAccoun
                 panic(NotSupported(Add(this.Id, " transfer() only support USDC")))
             }
         
-            retRes18748 := (<-this.LoadMarkets())
-            PanicOnError(retRes18748)
+            retRes18758 := (<-this.LoadMarkets())
+            PanicOnError(retRes18758)
             var fromSubaccountId interface{} = this.SafeInteger(params, "fromSubaccountId")
             var toSubaccountId interface{} = this.SafeInteger(params, "toSubaccountId")
             if IsTrue(!IsEqual(fromAccount, "main")) {
@@ -2361,8 +2362,8 @@ func  (this *DydxCore) FetchTransfers(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes20108 := (<-this.LoadMarkets())
-            PanicOnError(retRes20108)
+            retRes20118 := (<-this.LoadMarkets())
+            PanicOnError(retRes20118)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
                 currency = this.Currency(code)
@@ -2461,8 +2462,8 @@ func  (this *DydxCore) Withdraw(code interface{}, amount interface{}, address in
                 panic(NotSupported(Add(this.Id, " withdraw() only support USDC")))
             }
         
-            retRes20918 := (<-this.LoadMarkets())
-            PanicOnError(retRes20918)
+            retRes20928 := (<-this.LoadMarkets())
+            PanicOnError(retRes20928)
             this.CheckAddress(address)
             var subaccountId interface{} = this.SafeInteger(params, "subaccountId")
             if IsTrue(IsEqual(subaccountId, nil)) {
@@ -2548,8 +2549,8 @@ func  (this *DydxCore) FetchWithdrawals(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes21548 := (<-this.LoadMarkets())
-            PanicOnError(retRes21548)
+            retRes21558 := (<-this.LoadMarkets())
+            PanicOnError(retRes21558)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
                 currency = this.Currency(code)
@@ -2594,8 +2595,8 @@ func  (this *DydxCore) FetchDeposits(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes21788 := (<-this.LoadMarkets())
-            PanicOnError(retRes21788)
+            retRes21798 := (<-this.LoadMarkets())
+            PanicOnError(retRes21798)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
                 currency = this.Currency(code)
@@ -2640,8 +2641,8 @@ func  (this *DydxCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes22028 := (<-this.LoadMarkets())
-            PanicOnError(retRes22028)
+            retRes22038 := (<-this.LoadMarkets())
+            PanicOnError(retRes22038)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
                 currency = this.Currency(code)
@@ -2827,8 +2828,8 @@ func  (this *DydxCore) FetchBalance(optionalArgs ...interface{}) <- chan interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes23378 := (<-this.LoadMarkets())
-            PanicOnError(retRes23378)
+            retRes23388 := (<-this.LoadMarkets())
+            PanicOnError(retRes23388)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchAccounts", params);
             userAddress = GetValue(userAddressparamsVariable,0);

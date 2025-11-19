@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
  * @class gate
  * @augments Exchange
@@ -1606,8 +1606,8 @@ class gate extends gate$1["default"] {
             'contract': true,
             'linear': isLinear,
             'inverse': !isLinear,
-            'taker': undefined,
-            'maker': undefined,
+            'taker': this.parseNumber('0.0005'),
+            'maker': this.parseNumber('0.0002'),
             'contractSize': this.parseNumber(contractSize),
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
@@ -1725,8 +1725,8 @@ class gate extends gate$1["default"] {
                     'contract': true,
                     'linear': true,
                     'inverse': false,
-                    'taker': undefined,
-                    'maker': undefined,
+                    'taker': this.parseNumber('0.0003'),
+                    'maker': this.parseNumber('0.0003'),
                     'contractSize': this.parseNumber('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601(expiry),

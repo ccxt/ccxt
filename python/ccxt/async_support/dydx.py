@@ -28,6 +28,7 @@ class dydx(Exchange, ImplicitAPI):
             'rateLimit': 100,
             'version': 'v4',
             'certified': False,
+            'dex': True,
             'pro': True,
             'has': {
                 'CORS': None,
