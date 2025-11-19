@@ -188,7 +188,7 @@ export default class bullish extends Exchange {
                         'v1/accounts/trading-accounts': 1, // done
                         'v1/accounts/trading-accounts/{tradingAccountId}': 1, // done
                         'v1/derivatives-positions': 1, // done
-                        'v1/history/derivatives-settlement': 1, // done
+                        'v1/history/derivatives-settlement': 1, // todo check
                         'v1/history/transfer': 1, // done
                         'v1/history/borrow-interest': 1, // done
                     },
@@ -663,15 +663,61 @@ export default class bullish extends Exchange {
         //         "feeGroupId": "4"
         //     }
         //
+        // option
+        //     {
+        //         "marketId": "20997",
+        //         "symbol": "BTC-USDC-20260130-160000-P",
+        //         "quoteAssetId": "5",
+        //         "baseAssetId": "1",
+        //         "quoteSymbol": "USDC",
+        //         "baseSymbol": "BTC",
+        //         "quotePrecision": "4",
+        //         "basePrecision": "8",
+        //         "pricePrecision": "4",
+        //         "quantityPrecision": "8",
+        //         "costPrecision": "4",
+        //         "minQuantityLimit": "0.00050000",
+        //         "maxQuantityLimit": "200.00000000",
+        //         "maxPriceLimit": null,
+        //         "minPriceLimit": null,
+        //         "maxCostLimit": null,
+        //         "minCostLimit": null,
+        //         "timeZone": "Etc/UTC",
+        //         "tickSize": "10.0000",
+        //         "makerFee": "0",
+        //         "takerFee": "2",
+        //         "roundingCorrectionFactor": "0.00000100",
+        //         "makerMinLiquidityAddition": "-1",
+        //         "orderTypes": [ "LMT", "MKT", "STOP_LIMIT", "POST_ONLY" ],
+        //         "spotTradingEnabled": true,
+        //         "marginTradingEnabled": true,
+        //         "marketEnabled": true,
+        //         "createOrderEnabled": true,
+        //         "cancelOrderEnabled": true,
+        //         "amendOrderEnabled": true,
+        //         "marketType": "OPTION",
+        //         "contractMultiplier": "1",
+        //         "settlementAssetSymbol": "USDC",
+        //         "underlyingQuoteSymbol": "USDC",
+        //         "underlyingBaseSymbol": "BTC",
+        //         "openInterestLimitUSD": "100000000.0000",
+        //         "concentrationRiskPercentage": "100.00",
+        //         "concentrationRiskThresholdUSD": "30000000.0000",
+        //         "expiryDatetime": "2026-01-30T08:00:00.000Z",
+        //         "priceBuffer": "0",
+        //         "feeGroupId": "10",
+        //         "optionStrikePrice": "160000.0000",
+        //         "optionType": "PUT",
+        //         "premiumCapRatio": "0.1000"
+        //     }
+        //
         const id = this.safeString (market, 'symbol');
-        let symbol = undefined;
         const baseId = this.safeString (market, 'baseSymbol');
         const quoteId = this.safeString (market, 'quoteSymbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        symbol = base + '/' + quote;
+        let symbol = base + '/' + quote;
         const basePrecision = this.safeString (market, 'basePrecision');
-        const quotePrecision = this.safeString (market, 'quotePrecision');
         const pricePrecision = this.safeString (market, 'pricePrecision');
         const costPrecision = this.safeString (market, 'costPrecision');
         const minQuantityLimit = this.safeString (market, 'minQuantityLimit');
@@ -680,34 +726,46 @@ export default class bullish extends Exchange {
         const maxPriceLimit = this.safeString (market, 'maxPriceLimit');
         const minCostLimit = this.safeString (market, 'minCostLimit');
         const maxCostLimit = this.safeString (market, 'maxCostLimit');
-        let settleId = undefined;
+        const settleId = this.safeString (market, 'settlementAssetSymbol');
+        const settle = this.safeCurrencyCode (settleId);
         const type = this.parseMarketType (this.safeString (market, 'marketType'), 'spot');
         let spot: Bool = false;
         let swap: Bool = false;
         let future: Bool = false;
+        let option: Bool = false;
         let contract: Bool = true;
         let linear: Bool = undefined;
         let inverse: Bool = undefined;
         let expiryDatetime: Str = undefined;
+        let contractSize: Num = undefined;
+        let optionType: Str = undefined;
+        let strike: Num = undefined;
         if (type === 'spot') {
             spot = true;
             contract = false;
-        } else if (type === 'swap') {
-            swap = true;
-            linear = true;
-            settleId = this.safeString (market, 'settlementAssetSymbol');
-            inverse = false;
-            symbol = base + '/' + quote + ':' + settleId;
-        } else if (type === 'future') {
-            future = true;
-            linear = true;
-            settleId = this.safeString (market, 'settlementAssetSymbol');
-            inverse = false;
-            const rawSymbol = this.safeString (market, 'symbol');
-            const parts = rawSymbol.split ('-');
-            const datePart = this.safeString (parts, 2);
-            symbol = base + '/' + quote + '-' + datePart;
-            expiryDatetime = this.safeString (market, 'expiryDatetime');
+        } else {
+            contractSize = this.safeNumber (market, 'contractMultiplier');
+            symbol += ':' + settle;
+            if (type === 'swap') {
+                swap = true;
+                linear = settle === quote;
+                inverse = !linear;
+            } else {
+                expiryDatetime = this.safeString (market, 'expiryDatetime');
+                const idParts = id.split ('-');
+                const datePart = this.safeString (idParts, 2);
+                symbol += '-' + datePart;
+                if (type === 'future') {
+                    future = true;
+                    linear = settle === quote;
+                    inverse = !linear;
+                } else if (type === 'option') {
+                    option = true;
+                    optionType = this.safeStringLower (market, 'optionType');
+                    strike = this.parseToNumeric (this.safeString (market, 'optionStrikePrice'));
+                    symbol += '-' + this.numberToString (strike) + '-' + this.safeString (idParts, 4);
+                }
+            }
         }
         return this.safeMarketStructure ({
             'id': id,
@@ -716,24 +774,24 @@ export default class bullish extends Exchange {
             'baseId': baseId,
             'quote': quote,
             'quoteId': quoteId,
-            'settle': this.safeCurrencyCode (settleId),
+            'settle': settle,
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': undefined,
+            'margin': false,
             'swap': swap,
             'future': future,
-            'option': false,
+            'option': option,
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
             'taker': this.fees['trading']['taker'],
             'maker': this.fees['trading']['maker'],
-            'contractSize': this.safeNumber (market, 'contractMultiplier'),
+            'contractSize': contractSize,
             'expiry': this.parse8601 (expiryDatetime),
             'expiryDatetime': expiryDatetime,
-            'strike': undefined,
-            'optionType': undefined,
+            'strike': strike,
+            'optionType': optionType,
             'limits': {
                 'amount': {
                     'min': minQuantityLimit,
@@ -753,10 +811,9 @@ export default class bullish extends Exchange {
                 },
             },
             'precision': {
-                'amount': this.parseNumber (this.parsePrecision (costPrecision)),
+                'amount': this.parseNumber (this.parsePrecision (basePrecision)),
                 'price': this.parseNumber (this.parsePrecision (pricePrecision)),
-                'base': this.parseNumber (this.parsePrecision (basePrecision)),
-                'quote': this.parseNumber (this.parsePrecision (quotePrecision)),
+                'cost': this.parseNumber (this.parsePrecision (costPrecision)),
             },
             'active': this.safeBool (market, 'marketEnabled'),
             'created': undefined,
@@ -764,11 +821,12 @@ export default class bullish extends Exchange {
         });
     }
 
-    parseMarketType (type: string, defaultType: string): string {
+    parseMarketType (type: string, defaultType: Str = undefined): string {
         const types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
             'DATED_FUTURE': 'future',
+            'OPTION': 'option',
         };
         return this.safeString (types, type, defaultType);
     }
@@ -2021,7 +2079,7 @@ export default class bullish extends Exchange {
         return this.parseAccounts (response, params);
     }
 
-    parseAccount (account) {
+    parseAccount (account: Dict): Account {
         return {
             'id': this.safeString (account, 'tradingAccountId'),
             'type': 'trading',
@@ -2358,6 +2416,7 @@ export default class bullish extends Exchange {
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        // todo check this endpoint
         const currency = this.currency (code);
         const request: Dict = {
             'command': {
