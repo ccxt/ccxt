@@ -261,6 +261,11 @@ export default class xt extends xtRest {
             'symbols': symbols,
             'topic': topic,
         };
+        const symbolsAndTimeframes = this.safeList (subscriptionParams, 'symbolsAndTimeframes');
+        if (symbolsAndTimeframes !== undefined) {
+            subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
+            subscriptionParams = this.omit (subscriptionParams, 'symbolsAndTimeframes');
+        }
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, this.extend (subscription, subscriptionParams));
     }
 
@@ -368,18 +373,18 @@ export default class xt extends xtRest {
     async test () {
         await this.loadMarkets ();
         const client = this.client (this.urls['api']['ws']['spot'] + '/' + 'public');
-        const result = await this.watchTrades ('BTC/USDT');
+        const result = await this.watchOHLCV ('BTC/USDT', '1m');
         console.log (result);
         console.log ('Subscription after watch <---------------');
         console.log (client.subscriptions);
         console.log ('Cash after watch <---------------');
-        console.log (this.trades);
+        console.log (this.ohlcvs);
         this.sleep (2000);
-        await this.unWatchTrades ('BTC/USDT');
+        await this.unWatchOHLCV ('BTC/USDT', '1m');
         console.log ('Subscription after unwatch <---------------');
         console.log (client.subscriptions);
         console.log ('Cash after unwatch <---------------');
-        console.log (this.tickers);
+        console.log (this.ohlcvs);
     }
 
     /**
@@ -422,8 +427,8 @@ export default class xt extends xtRest {
         const market = this.market (symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
         const messageHash = 'unsubscribe::' + name;
-        params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
-        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOHLCV', 'ohlcv', market, undefined, params);
+        const symbolsAndTimeframes = [ [ market['symbol'], timeframe ] ];
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOHLCV', 'ohlcv', market, [ symbol ], params, { 'symbolsAndTimeframes': symbolsAndTimeframes });
     }
 
     /**
