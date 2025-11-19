@@ -6321,7 +6321,7 @@ export default class binance extends Exchange {
         const marginMode = this.safeString (params, 'marginMode');
         const porfolioOptionsValue = this.safeBool2 (this.options, 'papi', 'portfolioMargin', false);
         const isPortfolioMargin = this.safeBool2 (params, 'papi', 'portfolioMargin', porfolioOptionsValue);
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice' );
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRate');
