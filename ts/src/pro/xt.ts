@@ -370,23 +370,6 @@ export default class xt extends xtRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async test () {
-        await this.loadMarkets ();
-        const client = this.client (this.urls['api']['ws']['spot'] + '/' + 'public');
-        const result = await this.watchOHLCV ('BTC/USDT', '1m');
-        console.log (result);
-        console.log ('Subscription after watch <---------------');
-        console.log (client.subscriptions);
-        console.log ('Cash after watch <---------------');
-        console.log (this.ohlcvs);
-        this.sleep (2000);
-        await this.unWatchOHLCV ('BTC/USDT', '1m');
-        console.log ('Subscription after unwatch <---------------');
-        console.log (client.subscriptions);
-        console.log ('Cash after unwatch <---------------');
-        console.log (this.ohlcvs);
-    }
-
     /**
      * @method
      * @name xt#watchOHLCV
@@ -522,7 +505,7 @@ export default class xt extends xtRest {
             name = 'depth@' + market['id'] + ',' + levels;
         }
         const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, undefined, params);
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [ symbol ], params);
     }
 
     /**
