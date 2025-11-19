@@ -6666,7 +6666,7 @@ export default class binance extends Exchange {
                 }
             }
             if (stopPrice !== undefined) {
-                if (market['linear'] && market['swap']) {
+                if (market['linear'] && market['swap'] && !isPortfolioMargin) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
                 } else {
                     request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
@@ -6815,12 +6815,12 @@ export default class binance extends Exchange {
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (market['linear'] && market['swap'] && isConditional) {
+            } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 request['origClientOrderId'] = clientOrderId;
             }
-        } else if (market['linear'] && market['swap'] && isConditional) {
+        } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
             request['algoId'] = id;
         } else {
             request['orderId'] = id;
@@ -7586,7 +7586,7 @@ export default class binance extends Exchange {
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (market['linear'] && market['swap'] && isConditional) {
+            } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 if (isPortfolioMargin && isConditional) {
@@ -7598,7 +7598,7 @@ export default class binance extends Exchange {
         } else {
             if (isPortfolioMargin && isConditional) {
                 request['strategyId'] = id;
-            } else if (market['linear'] && market['swap'] && isConditional) {
+            } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
                 request['algoId'] = id;
             } else {
                 request['orderId'] = id;
