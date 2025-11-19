@@ -1,6 +1,6 @@
 //  ---------------------------------------------------------------------------
 
-import type { Dict, Int, OrderBook, Str, Ticker } from '../base/types.js';
+import type { Dict, Int, OrderBook, Str, Strings, Ticker, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
 
@@ -70,6 +70,18 @@ export default class lighter extends lighterRest {
             'params': params,
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+    }
+
+    async subscribePublicMultiple (messageHashes, params = {}) {
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'type': 'subscribe',
+        };
+        const subscription: Dict = {
+            'messageHashes': messageHashes,
+            'params': params,
+        };
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
     }
 
     async unsubscribePublic (messageHash, params = {}) {
@@ -258,8 +270,9 @@ export default class lighter extends lighterRest {
                 const symbol = market['symbol'];
                 const ticker = this.parseTicker (data[marketId], market);
                 this.tickers[symbol] = ticker;
+                client.resolve (ticker, this.getMessageHash ('ticker', symbol));
+                client.resolve (ticker, this.getMessageHash ('ticker'));
             }
-            client.resolve (this.tickers, this.getMessageHash ('ticker'));
         } else {
             const marketId = this.safeString (data, 'market_id');
             const market = this.safeMarket (marketId);
@@ -305,6 +318,58 @@ export default class lighter extends lighterRest {
             'channel': 'market_stats/' + market['id'],
         };
         const messageHash = this.getMessageHash ('unsubscribe', symbol);
+        return await this.unsubscribePublic (messageHash, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name lighter#watchTickers
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {
+            'channel': 'market_stats/all',
+        };
+        const messageHashes = [];
+        if (symbols === undefined || symbols.length === 0) {
+            messageHashes.push (this.getMessageHash ('ticker'));
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push (this.getMessageHash ('ticker', symbol));
+            }
+        }
+        const newTicker = await this.subscribePublicMultiple (messageHashes, this.extend (request, params));
+        if (this.newUpdates) {
+            const result = {};
+            result[newTicker['symbol']] = newTicker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name lighter#unWatchTickers
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'channel': 'market_stats/all',
+        };
+        const messageHash = this.getMessageHash ('unsubscribe');
         return await this.unsubscribePublic (messageHash, this.extend (request, params));
     }
 
