@@ -685,13 +685,14 @@ class Exchange(object):
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
-        value = default_value
         try:
-            if Exchange.key_exists(dictionary, key):
-                value = float(dictionary[key])
-        except ValueError as e:
-            value = default_value
-        return value
+            value = dictionary[key]
+            if value is not None and value != '':
+                return float(value)
+        except Exception:
+            # catch any exception
+            pass
+        return default_value
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
