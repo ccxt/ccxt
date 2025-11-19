@@ -12,8 +12,8 @@ export default class lighter extends lighterRest {
             'has': {
                 'ws': true,
                 'watchTicker': true,
-                'watchMarkPrice': false,
-                'watchMarkPrices': false,
+                'watchMarkPrice': true,
+                'watchMarkPrices': true,
                 'watchTickers': false,
                 'watchBidsAsks': false,
                 'watchOrderBook': true,
@@ -34,6 +34,8 @@ export default class lighter extends lighterRest {
                 'watchFundingRates': false,
                 'unWatchOrderBook': true,
                 'unWatchTicker': true,
+                'unWatchMarkPrice': true,
+                'unWatchMarkPrices': true,
             },
             'urls': {
                 'api': {
@@ -371,6 +373,58 @@ export default class lighter extends lighterRest {
         };
         const messageHash = this.getMessageHash ('unsubscribe');
         return await this.unsubscribePublic (messageHash, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name lighter#watchMarkPrice
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+     * @description watches a mark price
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        return await this.watchTicker (symbol, params);
+    }
+
+    /**
+     * @method
+     * @name lighter#watchMarkPrices
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+     * @description watches mark prices
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        return await this.watchTickers (symbols, params);
+    }
+
+    /**
+     * @method
+     * @name lighter#unWatchMarkPrice
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+     * @description unWatches a mark price
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        return await this.unWatchTicker (symbol, params);
+    }
+
+    /**
+     * @method
+     * @name lighter#unWatchMarkPrices
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+     * @description unWatches mark prices
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        return await this.unWatchTickers (symbols, params);
     }
 
     handleErrorMessage (client, message) {

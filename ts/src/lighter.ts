@@ -580,8 +580,8 @@ export default class lighter extends Exchange {
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': this.safeString (ticker, 'mark_price'),
+            'indexPrice': this.safeString (ticker, 'index_price'),
             'openInterest': openInterest,
             'info': ticker,
         }, market);
