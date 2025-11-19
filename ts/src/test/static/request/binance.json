@@ -666,6 +666,22 @@
                     }
                 ],
                 "output": "timestamp=1758618616301&symbol=ETHUSDT&side=BUY&trailingDelta=500&newClientOrderId=x-TKT5PX2Fc0ccf4c20afe486783218b&newOrderRespType=FULL&type=TAKE_PROFIT&quantity=0.0086&recvWindow=10000&signature=8810c6839ae473d4db809a4f0c6bab214af52eb4aefa1457eed5c528dad97b49"
+            },
+            {
+                "description": "linear swap conditional createOrder",
+                "method": "createOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.002,
+                    102000,
+                    {
+                        "triggerPrice": 100000
+                    }
+                ],
+                "output": "timestamp=1763533028784&symbol=BTCUSDT&side=BUY&newClientOrderId=x-cvBPrNm99e7956fa804b4991ade549&newOrderRespType=RESULT&type=STOP&quantity=0.002&price=102000&triggerPrice=100000&algoType=CONDITIONAL&recvWindow=10000&signature=567d2b949b203ebba8540fa2d1fda447093a3e65b7892874d952b2fc5a00fe44"
             }
         ],
         "createOrders": [
@@ -955,6 +971,18 @@
                     "ETH/USD:ETH",
                     {
                         "portfolioMargin": true,
+                        "trigger": true
+                    }
+                ]
+            },
+            {
+                "description": "linear swap conditional cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder?timestamp=1763533788531&symbol=BTCUSDT&algoId=3386&recvWindow=10000&signature=4f66326008aaa0b3b1e69a0db805e8e2061081c4c85094f4c2170594cb1321e1",
+                "input": [
+                    "3386",
+                    "BTC/USDT:USDT",
+                    {
                         "trigger": true
                     }
                 ]
@@ -1385,6 +1413,19 @@
                         "portfolioMargin": true
                     }
                 ]
+            },
+            {
+                "description": "linear swap conditional fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://demo-fapi.binance.com/fapi/v1/allAlgoOrders?timestamp=1763533372109&symbol=BTCUSDT&recvWindow=10000&signature=35c9d36f77beac4f0c6bcab48d198b75afa0953d25423c483ec57f49da0c3aa4",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ]
             }
         ],
         "fetchOrder": [
@@ -1482,6 +1523,18 @@
                     {
                         "portfolioMargin": true,
                         "marginMode": "cross"
+                    }
+                ]
+            },
+            {
+                "description": "linear swap conditional fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder?timestamp=1763533184652&symbol=BTCUSDT&algoId=3386&recvWindow=10000&signature=6d0562d5d34cd6fdb21edd08255dd2a92570e4fd7ee143e57eadc277fcf2ae8f",
+                "input": [
+                    "3386",
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
                     }
                 ]
             }
@@ -1610,6 +1663,19 @@
                     {
                         "portfolioMargin": true,
                         "marginMode": "cross"
+                    }
+                ]
+            },
+            {
+                "description": "linear swap conditional fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://demo-fapi.binance.com/fapi/v1/openAlgoOrders?timestamp=1763533516983&symbol=BTCUSDT&recvWindow=10000&signature=b24f3eaa9721d67da313f7c1b52934a4f2a96c5e18e88b14e059da9ed0c00c6e",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
                     }
                 ]
             }
