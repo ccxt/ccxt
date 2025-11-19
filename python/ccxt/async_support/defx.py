@@ -349,6 +349,7 @@ class defx(Exchange, ImplicitAPI):
                 'exact': {
                     '404': BadRequest,  # {"errorCode":404,"errorMessage":"Not Found"}
                     'missing_auth_signature': AuthenticationError,  # {"msg":"Missing auth signature","code":"missing_auth_signature"}
+                    'leverage_higher_than_capped_leverage': BadRequest,  # {"errorCode":"leverage_higher_than_capped_leverage","errorMessage":"Leverage higher than capped leverage","errorData":{"cappedLeverage":"25"}}
                     'order_rejected': InvalidOrder,  # {"success":false,"err":{"msg":"Order has already been rejected","code":"order_rejected"}}
                     'invalid_order_id': InvalidOrder,  # {"success":false,"err":{"msg":"Invalid order id","code":"invalid_order_id"}}
                     'filter_lotsize_maxqty': InvalidOrder,  # {"errorCode":"filter_lotsize_maxqty","errorMessage":"LOT_SIZE filter failed, quantity more than maxQty","errorData":{"maxQty":"5000.00"}}
