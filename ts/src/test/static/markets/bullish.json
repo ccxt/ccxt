@@ -1,29 +1,50 @@
 {
     "BTC/USDC": {
         "id": "BTCUSDC",
+        "lowercaseId": null,
         "symbol": "BTC/USDC",
         "base": "BTC",
         "quote": "USDC",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USDC",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
         "index": false,
         "active": true,
         "contract": false,
-        "linear": false,
-        "inverse": false,
-        "taker": "0.001",
-        "maker": "0.001",
-        "precision": { "amount": "0.0001", "price": "0.0001", "base": 1e-8, "quote": "0.0001" },
-        "limits": {
-            "amount": { "min": "0.00029411", "max": "100.00000000" }
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.0001,
+            "cost": 0.0001,
+            "base": 1e-8,
+            "quote": 0.0001
         },
+        "limits": {
+            "leverage": { "min": null, "max": null },
+            "amount": { "min": 0.00029411, "max": 100.00000000 },
+            "price": { "min": null, "max": null },
+            "cost": { "min": null, "max": null }
+        },
+        "marginModes": { "cross": null, "isolated": null },
+        "created": null,
         "info": {
-            "marketId": "10011",
+            "marketId": "10015",
             "symbol": "BTCUSDC",
             "quoteAssetId": "5",
             "baseAssetId": "1",
@@ -54,22 +75,26 @@
             "marketEnabled": true,
             "createOrderEnabled": true,
             "cancelOrderEnabled": true,
+            "amendOrderEnabled": true,
             "liquidityInvestEnabled": true,
             "liquidityWithdrawEnabled": true,
             "feeTiers": [
                 {
-                    "feeTierId": "6",
-                    "staticSpreadFee": "0.00300000",
+                    "feeTierId": "7",
+                    "staticSpreadFee": "0.00500000",
                     "isDislocationEnabled": false
                 }
             ],
             "marketType": "SPOT",
-            "priceBuffer": "0.25",
+            "priceBuffer": "0.1",
             "feeGroupId": "3"
-        }
+        },
+        "tierBased": false,
+        "percentage": true
     },
      "BTC/USDC:USDC" : {
         "id": "BTC-USDC-PERP",
+        "lowercaseId": null,
         "symbol": "BTC/USDC:USDC",
         "base": "BTC",
         "quote": "USDC",
@@ -79,20 +104,38 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": false,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
-        "contract": false,
+        "contract": true,
         "linear": true,
-        "subType": "linear",
         "inverse": false,
-        "taker": "0.001",
-        "maker": "0.001",
-        "precision": { "amount": "0.0001", "price": "0.0001", "base": 1e-8, "quote": "0.0001" },
-        "limits": {
-            "amount": { "min": "0.00050000", "max": "200.00000000" }
+        "subType": "linear",
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.0001,
+            "cost": 0.0001,
+            "base": 1e-8,
+            "quote": 0.0001
         },
+        "limits": {
+            "leverage": { "min": null, "max": null },
+            "amount": { "min": 0.00050000, "max": 200.00000000 },
+            "price": { "min": null, "max": null },
+            "cost": { "min": null, "max": null }
+        },
+        "marginModes": { "cross": null, "isolated": null },
+        "created": null,
         "info": {
             "marketId": "20000",
             "symbol": "BTC-USDC-PERP",
@@ -125,12 +168,13 @@
             "marketEnabled": true,
             "createOrderEnabled": true,
             "cancelOrderEnabled": true,
+            "amendOrderEnabled": true,
             "liquidityInvestEnabled": true,
             "liquidityWithdrawEnabled": true,
             "feeTiers": [
                 {
-                    "feeTierId": "15",
-                    "staticSpreadFee": "0.00150000",
+                    "feeTierId": "13",
+                    "staticSpreadFee": "0.00060000",
                     "isDislocationEnabled": true
                 }
             ],
@@ -139,12 +183,14 @@
             "settlementAssetSymbol": "USDC",
             "underlyingQuoteSymbol": "USDC",
             "underlyingBaseSymbol": "BTC",
-            "openInterestLimitUSD": "30000000.0000",
+            "openInterestLimitUSD": "100000000.0000",
             "concentrationRiskPercentage": "100.00",
             "concentrationRiskThresholdUSD": "30000000.0000",
-            "priceBuffer": "0.1",
-            "feeGroupId": "4"
-        }
+            "priceBuffer": "0.3",
+            "feeGroupId": "11"
+        },
+        "tierBased": false,
+        "percentage": true
     },
     "ETH/USDT": {
         "id": "ETHUSDT",
@@ -158,7 +204,7 @@
         "settleId": null,
         "type": "spot",
         "spot": true,
-        "margin": null,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
@@ -175,10 +221,10 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": { "amount": 1e-7, "price": 1e-7, "base": 1e-8, "quote": 1e-7 },
+        "precision": { "amount": 1e-8, "price": 1e-7, "cost": 1e-7, "base": 1e-8, "quote": 1e-7 },
         "limits": {
             "leverage": { "min": null, "max": null },
-            "amount": { "min": "0.00498753", "max": "250.00000000" },
+            "amount": { "min": 0.00498753, "max": 250.00000000 },
             "price": { "min": null, "max": null },
             "cost": { "min": null, "max": null }
         },
@@ -220,116 +266,11 @@
             "liquidityInvestEnabled": true,
             "liquidityWithdrawEnabled": true,
             "feeTiers": [
-            {
-                "feeTierId": "14",
-                "staticSpreadFee": "0.00100000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "15",
-                "staticSpreadFee": "0.00150000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "16",
-                "staticSpreadFee": "0.00300000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "17",
-                "staticSpreadFee": "0.00500000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "18",
-                "staticSpreadFee": "0.01000000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "19",
-                "staticSpreadFee": "0.01500000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "2",
-                "staticSpreadFee": "0.00020000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "20",
-                "staticSpreadFee": "0.02000000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "21",
-                "staticSpreadFee": "0.00010000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "22",
-                "staticSpreadFee": "0.00010000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "3",
-                "staticSpreadFee": "0.00060000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "11",
-                "staticSpreadFee": "0.00000000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "12",
-                "staticSpreadFee": "0.00020000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "13",
-                "staticSpreadFee": "0.00060000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "1",
-                "staticSpreadFee": "0.00000000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "10",
-                "staticSpreadFee": "0.02000000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "4",
-                "staticSpreadFee": "0.00100000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "5",
-                "staticSpreadFee": "0.00150000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "6",
-                "staticSpreadFee": "0.00300000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "7",
-                "staticSpreadFee": "0.00500000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "8",
-                "staticSpreadFee": "0.01000000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "9",
-                "staticSpreadFee": "0.01500000",
-                "isDislocationEnabled": false
-            }
+                {
+                    "feeTierId": "14",
+                    "staticSpreadFee": "0.00100000",
+                    "isDislocationEnabled": true
+                }
             ],
             "marketType": "SPOT",
             "priceBuffer": "0.1",
@@ -350,7 +291,7 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
-        "margin": null,
+        "margin": false,
         "swap": true,
         "future": false,
         "option": false,
@@ -367,10 +308,16 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": { "amount": 0.0001, "price": 0.0001, "base": 1e-8, "quote": 0.0001 },
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.0001,
+            "cost": 0.0001,
+            "base": 1e-8,
+            "quote": 0.0001
+        },
         "limits": {
             "leverage": { "min": null, "max": null },
-            "amount": { "min": "0.00500000", "max": "600.00000000" },
+            "amount": { "min": 0.00500000, "max": 600.00000000 },
             "price": { "min": null, "max": null },
             "cost": { "min": null, "max": null }
         },
@@ -412,116 +359,11 @@
             "liquidityInvestEnabled": true,
             "liquidityWithdrawEnabled": true,
             "feeTiers": [
-            {
-                "feeTierId": "20",
-                "staticSpreadFee": "0.02000000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "11",
-                "staticSpreadFee": "0.00000000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "2",
-                "staticSpreadFee": "0.00020000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "1",
-                "staticSpreadFee": "0.00000000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "21",
-                "staticSpreadFee": "0.00010000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "12",
-                "staticSpreadFee": "0.00020000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "22",
-                "staticSpreadFee": "0.00010000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "10",
-                "staticSpreadFee": "0.02000000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "18",
-                "staticSpreadFee": "0.01000000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "19",
-                "staticSpreadFee": "0.01500000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "8",
-                "staticSpreadFee": "0.01000000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "9",
-                "staticSpreadFee": "0.01500000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "15",
-                "staticSpreadFee": "0.00150000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "16",
-                "staticSpreadFee": "0.00300000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "17",
-                "staticSpreadFee": "0.00500000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "5",
-                "staticSpreadFee": "0.00150000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "6",
-                "staticSpreadFee": "0.00300000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "7",
-                "staticSpreadFee": "0.00500000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "14",
-                "staticSpreadFee": "0.00100000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "4",
-                "staticSpreadFee": "0.00100000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "13",
-                "staticSpreadFee": "0.00060000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "3",
-                "staticSpreadFee": "0.00060000",
-                "isDislocationEnabled": false
-            }
+                {
+                    "feeTierId": "14",
+                    "staticSpreadFee": "0.00100000",
+                    "isDislocationEnabled": true
+                }
             ],
             "marketType": "PERPETUAL",
             "contractMultiplier": "1",
@@ -537,10 +379,10 @@
         "tierBased": false,
         "percentage": true
     },
-    "BTC/USDC-20251114": {
-        "id": "BTC-USDC-20251114",
+    "BTC-USDC-20251121": {
+        "id": "BTC-USDC-20251121",
         "lowercaseId": null,
-        "symbol": "BTC/USDC-20251114",
+        "symbol": "BTC/USDC:USDC-20251121",
         "base": "BTC",
         "quote": "USDC",
         "settle": "USDC",
@@ -549,7 +391,7 @@
         "settleId": "USDC",
         "type": "future",
         "spot": false,
-        "margin": null,
+        "margin": false,
         "swap": false,
         "future": true,
         "option": false,
@@ -562,22 +404,28 @@
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
-        "expiry": 1763107200000,
-        "expiryDatetime": "2025-11-14T08:00:00.000Z",
+        "expiry": 1763712000000,
+        "expiryDatetime": "2025-11-21T08:00:00.000Z",
         "strike": null,
         "optionType": null,
-        "precision": { "amount": 0.0001, "price": 0.0001, "base": 1e-8, "quote": 0.0001 },
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.0001,
+            "cost": 0.0001,
+            "base": 1e-8,
+            "quote": 0.0001
+        },
         "limits": {
             "leverage": { "min": null, "max": null },
-            "amount": { "min": "0.00050000", "max": "200.00000000" },
+            "amount": { "min": 0.00050000, "max": 200.00000000 },
             "price": { "min": null, "max": null },
             "cost": { "min": null, "max": null }
         },
         "marginModes": { "cross": null, "isolated": null },
         "created": null,
         "info": {
-            "marketId": "20874",
-            "symbol": "BTC-USDC-20251114",
+            "marketId": "20963",
+            "symbol": "BTC-USDC-20251121",
             "quoteAssetId": "5",
             "baseAssetId": "1",
             "quoteSymbol": "USDC",
@@ -611,116 +459,11 @@
             "liquidityInvestEnabled": true,
             "liquidityWithdrawEnabled": true,
             "feeTiers": [
-            {
-                "feeTierId": "20",
-                "staticSpreadFee": "0.01500000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "21",
-                "staticSpreadFee": "0.02000000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "22",
-                "staticSpreadFee": "0.02000000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "3",
-                "staticSpreadFee": "0.00010000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "10",
-                "staticSpreadFee": "0.00100000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "11",
-                "staticSpreadFee": "0.00150000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "12",
-                "staticSpreadFee": "0.00150000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "2",
-                "staticSpreadFee": "0.00000000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "13",
-                "staticSpreadFee": "0.00300000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "14",
-                "staticSpreadFee": "0.00300000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "15",
-                "staticSpreadFee": "0.00500000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "16",
-                "staticSpreadFee": "0.00500000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "17",
-                "staticSpreadFee": "0.01000000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "18",
-                "staticSpreadFee": "0.01000000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "19",
-                "staticSpreadFee": "0.01500000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "1",
-                "staticSpreadFee": "0.00000000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "4",
-                "staticSpreadFee": "0.00010000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "5",
-                "staticSpreadFee": "0.00020000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "6",
-                "staticSpreadFee": "0.00020000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "7",
-                "staticSpreadFee": "0.00060000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "8",
-                "staticSpreadFee": "0.00060000",
-                "isDislocationEnabled": true
-            },
-            {
-                "feeTierId": "9",
-                "staticSpreadFee": "0.00100000",
-                "isDislocationEnabled": false
-            }
+                {
+                    "feeTierId": "17",
+                    "staticSpreadFee": "0.01000000",
+                    "isDislocationEnabled": false
+                }
             ],
             "marketType": "DATED_FUTURE",
             "contractMultiplier": "1",
@@ -730,7 +473,7 @@
             "openInterestLimitUSD": "100000000.0000",
             "concentrationRiskPercentage": "100.00",
             "concentrationRiskThresholdUSD": "30000000.0000",
-            "expiryDatetime": "2025-11-14T08:00:00.000Z",
+            "expiryDatetime": "2025-11-21T08:00:00.000Z",
             "priceBuffer": "0.1",
             "feeGroupId": "11"
         },
@@ -749,7 +492,7 @@
         "settleId": null,
         "type": "spot",
         "spot": true,
-        "margin": null,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
@@ -766,10 +509,16 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": { "amount": 0.0001, "price": 0.0001, "base": 1e-7, "quote": 0.0001 },
+        "precision": {
+            "amount": 1e-7,
+            "price": 0.0001,
+            "cost": 0.0001,
+            "base": 1e-7,
+            "quote": 0.0001
+        },
         "limits": {
             "leverage": { "min": null, "max": null },
-            "amount": { "min": "10.0000000", "max": "1000000.0000000" },
+            "amount": { "min": 10, "max": 1000000 },
             "price": { "min": null, "max": null },
             "cost": { "min": null, "max": null }
         },
@@ -811,30 +560,108 @@
             "liquidityInvestEnabled": true,
             "liquidityWithdrawEnabled": true,
             "feeTiers": [
-            {
-                "feeTierId": "1",
-                "staticSpreadFee": "0.00000000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "3",
-                "staticSpreadFee": "0.00040000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "2",
-                "staticSpreadFee": "0.00020000",
-                "isDislocationEnabled": false
-            },
-            {
-                "feeTierId": "4",
-                "staticSpreadFee": "0.00010000",
-                "isDislocationEnabled": false
-            }
+                {
+                    "feeTierId": "1",
+                    "staticSpreadFee": "0.00000000",
+                    "isDislocationEnabled": false
+                }
             ],
             "marketType": "SPOT",
             "priceBuffer": "0.1",
             "feeGroupId": "7"
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "BTC/USDC:USDC-20251226-150000-P": {
+        "id": "BTC-USDC-20251226-150000-P",
+        "lowercaseId": null,
+        "symbol": "BTC/USDC:USDC-20251226-150000-P",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "option",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": true,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "expiry": 1766736000000,
+        "expiryDatetime": "2025-12-26T08:00:00.000Z",
+        "strike": 150000,
+        "optionType": "put",
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.0001,
+            "cost": 0.0001,
+            "base": 1e-8,
+            "quote": 0.0001
+        },
+        "limits": {
+            "leverage": { "min": null, "max": null },
+            "amount": { "min": 0.0005, "max": 200 },
+            "price": { "min": null, "max": null },
+            "cost": { "min": null, "max": null }
+        },
+        "marginModes": { "cross": null, "isolated": null },
+        "created": null,
+        "info": {
+            "marketId": "20658",
+            "symbol": "BTC-USDC-20251226-150000-P",
+            "quoteAssetId": "5",
+            "baseAssetId": "1",
+            "quoteSymbol": "USDC",
+            "baseSymbol": "BTC",
+            "quotePrecision": "4",
+            "basePrecision": "8",
+            "pricePrecision": "4",
+            "quantityPrecision": "8",
+            "costPrecision": "4",
+            "minQuantityLimit": "0.00050000",
+            "maxQuantityLimit": "200.00000000",
+            "maxPriceLimit": null,
+            "minPriceLimit": null,
+            "maxCostLimit": null,
+            "minCostLimit": null,
+            "timeZone": "Etc/UTC",
+            "tickSize": "10.0000",
+            "makerFee": "0",
+            "takerFee": "2",
+            "roundingCorrectionFactor": "0.00000100",
+            "makerMinLiquidityAddition": "-1",
+            "orderTypes": [ "LMT", "MKT", "STOP_LIMIT", "POST_ONLY" ],
+            "spotTradingEnabled": true,
+            "marginTradingEnabled": true,
+            "marketEnabled": true,
+            "createOrderEnabled": true,
+            "cancelOrderEnabled": true,
+            "amendOrderEnabled": true,
+            "marketType": "OPTION",
+            "contractMultiplier": "1",
+            "settlementAssetSymbol": "USDC",
+            "underlyingQuoteSymbol": "USDC",
+            "underlyingBaseSymbol": "BTC",
+            "openInterestLimitUSD": "100000000.0000",
+            "concentrationRiskPercentage": "100.00",
+            "concentrationRiskThresholdUSD": "30000000.0000",
+            "expiryDatetime": "2025-12-26T08:00:00.000Z",
+            "priceBuffer": "0",
+            "feeGroupId": "10",
+            "optionStrikePrice": "150000.0000",
+            "optionType": "PUT",
+            "premiumCapRatio": "0.1000"
         },
         "tierBased": false,
         "percentage": true
