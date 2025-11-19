@@ -2087,12 +2087,6 @@
             }
         }
     },
-    "bullish": {
-        "skipMethods": {
-            "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided",
-                "activeMajorCurrencies":"not provided"
     "deepcoin": {
         "skipMethods": {
             "loadMarkets": {
@@ -2112,6 +2106,15 @@
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
+            }
+        }
+    },
+     "bullish": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "activeMajorCurrencies":"not provided"
             }
         }
     }
