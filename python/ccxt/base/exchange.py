@@ -686,9 +686,7 @@ class Exchange(object):
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
         try:
-            value = dictionary[key]
-            if value is not None and value != '':
-                return float(value)
+            return float(dictionary[key])
         except Exception:
             # catch any exception
             pass
