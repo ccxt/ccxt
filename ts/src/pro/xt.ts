@@ -190,7 +190,9 @@ export default class xt extends xtRest {
         const tradeType = isContract ? 'contract' : 'spot';
         let messageHash = name + '::' + tradeType;
         if (symbols !== undefined) {
-            messageHash = messageHash + '::' + symbols.join (',');
+            if (methodName !== 'watchTickers') {
+                messageHash = messageHash + '::' + symbols.join (',');
+            }
         }
         const request = this.extend (subscribe, params);
         let tail = access;
@@ -244,10 +246,7 @@ export default class xt extends xtRest {
             unsubscribe['params'] = [ name ];
         }
         const tradeType = isContract ? 'contract' : 'spot';
-        let subMessageHash = name + '::' + tradeType;
-        if (symbols !== undefined) {
-            subMessageHash = subMessageHash + '::' + symbols.join (',');
-        }
+        const subMessageHash = name + '::' + tradeType;
         const request = this.extend (unsubscribe, params);
         let tail = access;
         if (isContract) {
@@ -366,6 +365,23 @@ export default class xt extends xtRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
+    async test () {
+        await this.loadMarkets ();
+        const client = this.client (this.urls['api']['ws']['spot'] + '/' + 'public');
+        const result = await this.watchTrades ('BTC/USDT');
+        console.log (result);
+        console.log ('Subscription after watch <---------------');
+        console.log (client.subscriptions);
+        console.log ('Cash after watch <---------------');
+        console.log (this.trades);
+        this.sleep (2000);
+        await this.unWatchTrades ('BTC/USDT');
+        console.log ('Subscription after unwatch <---------------');
+        console.log (client.subscriptions);
+        console.log ('Cash after unwatch <---------------');
+        console.log (this.tickers);
+    }
+
     /**
      * @method
      * @name xt#watchOHLCV
@@ -448,7 +464,7 @@ export default class xt extends xtRest {
         const market = this.market (symbol);
         const name = 'trade@' + market['id'];
         const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTrades', 'trades', market, undefined, params);
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTrades', 'trades', market, [ symbol ], params);
     }
 
     /**
