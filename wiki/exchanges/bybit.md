@@ -1542,7 +1542,7 @@ create a loan to borrow margin
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
 
-**See**: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow  
+**See**: https://bybit-exchange.github.io/docs/v5/account/borrow  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1564,7 +1564,7 @@ repay borrowed margin and interest
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
 
-**See**: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay  
+**See**: https://bybit-exchange.github.io/docs/v5/account/no-convert-repay  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

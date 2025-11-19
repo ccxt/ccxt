@@ -903,6 +903,9 @@ export default class binance extends Exchange {
                         'symbolConfig': 5,
                         'accountConfig': 5,
                         'convert/orderStatus': 5,
+                        'algoOrder': 1,
+                        'openAlgoOrders': 1,
+                        'allAlgoOrders': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -910,6 +913,7 @@ export default class binance extends Exchange {
                         'positionMargin': 1,
                         'marginType': 1,
                         'order': 4,
+                        'order/test': 1,
                         'leverage': 1,
                         'listenKey': 1,
                         'countdownCancelAll': 10,
@@ -920,6 +924,7 @@ export default class binance extends Exchange {
                         'feeBurn': 1,
                         'convert/getQuote': 200,
                         'convert/acceptQuote': 20,
+                        'algoOrder': 1,
                     },
                     'put': {
                         'listenKey': 1,
@@ -931,6 +936,8 @@ export default class binance extends Exchange {
                         'order': 1,
                         'allOpenOrders': 1,
                         'listenKey': 1,
+                        'algoOrder': 1,
+                        'algoOpenOrders': 1,
                     },
                 },
                 'fapiPublicV2': {

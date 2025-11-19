@@ -344,6 +344,7 @@ class xt extends \ccxt\async\xt {
             $options = $this->safe_dict($this->options, 'watchTickers');
             $defaultMethod = $this->safe_string($options, 'method', 'tickers');
             $name = $this->safe_string($params, 'method', $defaultMethod);
+            $symbols = $this->market_symbols($symbols);
             $market = null;
             if ($symbols !== null) {
                 $market = $this->market($symbols[0]);

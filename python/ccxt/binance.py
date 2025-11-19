@@ -923,6 +923,9 @@ class binance(Exchange, ImplicitAPI):
                         'symbolConfig': 5,
                         'accountConfig': 5,
                         'convert/orderStatus': 5,
+                        'algoOrder': 1,
+                        'openAlgoOrders': 1,
+                        'allAlgoOrders': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -930,6 +933,7 @@ class binance(Exchange, ImplicitAPI):
                         'positionMargin': 1,
                         'marginType': 1,
                         'order': 4,
+                        'order/test': 1,
                         'leverage': 1,
                         'listenKey': 1,
                         'countdownCancelAll': 10,
@@ -940,6 +944,7 @@ class binance(Exchange, ImplicitAPI):
                         'feeBurn': 1,
                         'convert/getQuote': 200,  # 360 requests per hour
                         'convert/acceptQuote': 20,
+                        'algoOrder': 1,
                     },
                     'put': {
                         'listenKey': 1,
@@ -951,6 +956,8 @@ class binance(Exchange, ImplicitAPI):
                         'order': 1,
                         'allOpenOrders': 1,
                         'listenKey': 1,
+                        'algoOrder': 1,
+                        'algoOpenOrders': 1,
                     },
                 },
                 'fapiPublicV2': {

@@ -2918,6 +2918,24 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 
 ---
 
+<a name="fetchHip3Markets" id="fetchhip3markets"></a>
+
+## fetchHip3Markets
+retrieves data on all hip3 markets for hyperliquid
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#hyperliquidfetchhip3markets)
+
+---
+
 <a name="fetchIsolatedBorrowRate" id="fetchisolatedborrowrate"></a>
 
 ## fetchIsolatedBorrowRate
