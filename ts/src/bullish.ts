@@ -254,9 +254,9 @@ export default class bullish extends Exchange {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBack': undefined,
-                        'untilDays': undefined,
+                        'daysBack': 1,
                         'symbolRequired': false,
+                        'untilDays': undefined,
                     },
                     'fetchOrder': {
                         'marginMode': false,
@@ -268,9 +268,11 @@ export default class bullish extends Exchange {
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': undefined,
+                        'daysBack': 1,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
+                        'untilDays': undefined,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
@@ -740,16 +742,18 @@ export default class bullish extends Exchange {
         let contractSize: Num = undefined;
         let optionType: Str = undefined;
         let strike: Num = undefined;
+        let margin: Bool = false;
         if (type === 'spot') {
             spot = true;
             contract = false;
+            margin = this.safeBool (market, 'marginTradingEnabled');
         } else {
             contractSize = this.safeNumber (market, 'contractMultiplier');
             symbol += ':' + settle;
+            linear = settle === quote;
+            inverse = !linear;
             if (type === 'swap') {
                 swap = true;
-                linear = settle === quote;
-                inverse = !linear;
             } else {
                 expiryDatetime = this.safeString (market, 'expiryDatetime');
                 const idParts = id.split ('-');
@@ -757,8 +761,6 @@ export default class bullish extends Exchange {
                 symbol += '-' + datePart;
                 if (type === 'future') {
                     future = true;
-                    linear = settle === quote;
-                    inverse = !linear;
                 } else if (type === 'option') {
                     option = true;
                     optionType = this.safeStringLower (market, 'optionType');
@@ -778,7 +780,7 @@ export default class bullish extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': false,
+            'margin': margin,
             'swap': swap,
             'future': future,
             'option': option,
@@ -960,6 +962,7 @@ export default class bullish extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let tradingAccountId: Str = undefined;
+        // todo add pagination support
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchMyTrades() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
@@ -1271,6 +1274,7 @@ export default class bullish extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // todo add pagination support
         const maxLimit = 100;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
@@ -1410,6 +1414,7 @@ export default class bullish extends Exchange {
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let market = undefined;
+        // todo add pagination support
         const request: Dict = {
         };
         if (symbol !== undefined) {
@@ -2114,9 +2119,9 @@ export default class bullish extends Exchange {
         //         }
         //     ]
         //
-        const array = this.toArray (response);
-        const length = array.length;
-        let data = this.safeDict (array, 0, {});
+        const safeResponse = this.toArray (response);
+        const length = safeResponse.length;
+        let data = this.safeDict (safeResponse, 0, {});
         let network = undefined;
         [ network, params ] = this.handleNetworkCodeAndParams (params);
         const networkDefinedByUser = network !== undefined;
@@ -2128,8 +2133,8 @@ export default class bullish extends Exchange {
             }
             if (network !== undefined) {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network
-                for (let i = 0; i < array.length; i++) {
-                    const entry = this.safeDict (array, i, {});
+                for (let i = 0; i < safeResponse.length; i++) {
+                    const entry = this.safeDict (safeResponse, i, {});
                     const networkId = this.safeString (entry, 'network');
                     const networkCode = this.networkIdToCode (networkId);
                     if (network === networkCode) {
