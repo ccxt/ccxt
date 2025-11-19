@@ -687,9 +687,7 @@ class Exchange(object):
     def safe_float(dictionary, key, default_value=None):
         try:
             return float(dictionary[key])
-        except Exception:
-            # catch any exception
-            pass
+        except Exception: pass
         return default_value
 
     @staticmethod
@@ -698,8 +696,7 @@ class Exchange(object):
             value = dictionary[key]
             if value is not None and value != '':
                 return str(value)
-        except Exception:
-            pass
+        except Exception: pass
         return default_value
 
     @staticmethod
@@ -708,9 +705,7 @@ class Exchange(object):
             value = dictionary[key]
             if value is not None and value != '':
                 return str(value).lower()
-        except Exception:
-            # catch any exception, not only (KeyError, IndexError, TypeError):
-            pass
+        except Exception: pass
         return default_value.lower() if default_value is not None else default_value
 
     @staticmethod
@@ -719,38 +714,25 @@ class Exchange(object):
             value = dictionary[key]
             if value is not None and value != '':
                 return str(value).upper()
-        except Exception:
-            # catch any exception, not only (KeyError, IndexError, TypeError):
-            pass
+        except Exception: pass
         return default_value.upper() if default_value is not None else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
-        if not Exchange.key_exists(dictionary, key):
-            return default_value
-        value = dictionary[key]
         try:
             # needed to avoid breaking on "100.0"
             # https://stackoverflow.com/questions/1094717/convert-a-string-to-integer-with-decimal-in-python#1094721
-            return int(float(value))
-        except ValueError:
-            return default_value
-        except TypeError:
+            return int(float(dictionary[key]))
+        except Exception:
+            # catch any exception, not only (KeyError, IndexError, TypeError, ValueError):
             return default_value
 
     @staticmethod
     def safe_integer_product(dictionary, key, factor, default_value=None):
-        if not Exchange.key_exists(dictionary, key):
+        try:
+            return int(float(dictionary[key]) * factor)
+        except Exception:
             return default_value
-        value = dictionary[key]
-        if isinstance(value, Number):
-            return int(value * factor)
-        elif isinstance(value, str):
-            try:
-                return int(float(value) * factor)
-            except ValueError:
-                pass
-        return default_value
 
     @staticmethod
     def safe_timestamp(dictionary, key, default_value=None):
@@ -758,35 +740,69 @@ class Exchange(object):
 
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
-        return dictionary[key] if Exchange.key_exists(dictionary, key) else default_value
+        try:
+            value = dictionary[key]
+            if value is not None and value != '':
+                return value
+        except Exception: pass
+        return default_value
 
     # we're not using safe_floats with a list argument as we're trying to save some cycles here
     # we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
 
     @staticmethod
     def safe_float_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_float, dictionary, key1, key2, default_value)
+        try:
+            return float(dictionary[key1])
+        except Exception:
+            try:
+                return float(dictionary[key2])
+            except Exception: pass
+        return default_value
 
     @staticmethod
     def safe_string_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_string, dictionary, key1, key2, default_value)
+        try:
+            value = dictionary[key1]
+            if value is not None and value != '':
+                return str(value)
+        except Exception: pass
+        try:
+            value = dictionary[key2]
+            if value is not None and value != '':
+                return str(value)
+        except Exception: pass
+        return default_value
 
     @staticmethod
     def safe_string_lower_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_string_lower, dictionary, key1, key2, default_value)
+        value = Exchange.safe_string_2(dictionary, key1, key2, default_value)
+        return value.lower() if value is not None else value
 
     @staticmethod
     def safe_string_upper_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_string_upper, dictionary, key1, key2, default_value)
+        value = Exchange.safe_string_2(dictionary, key1, key2, default_value)
+        return value.upper() if value is not None else value
 
     @staticmethod
     def safe_integer_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_integer, dictionary, key1, key2, default_value)
+        try:
+            return int(float(dictionary[key1]))
+        except Exception:
+            try:
+                return int(float(dictionary[key2]))
+            except Exception: pass
+        return default_value
 
     @staticmethod
     def safe_integer_product_2(dictionary, key1, key2, factor, default_value=None):
-        value = Exchange.safe_integer_product(dictionary, key1, factor)
-        return value if value is not None else Exchange.safe_integer_product(dictionary, key2, factor, default_value)
+        try:
+            return int(float(dictionary[key1]) * factor)
+        except Exception:
+            try:
+                return int(float(dictionary[key2]) * factor)
+            except Exception: pass
+        return default_value
 
     @staticmethod
     def safe_timestamp_2(dictionary, key1, key2, default_value=None):
@@ -794,7 +810,17 @@ class Exchange(object):
 
     @staticmethod
     def safe_value_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
+        try:
+            value = dictionary[key1]
+            if value is not None and value != '':
+                return value
+        except Exception: pass
+        try:
+            value = dictionary[key2]
+            if value is not None and value != '':
+                return value
+        except Exception: pass
+        return default_value
 
     # safe_method_n methods family
 
