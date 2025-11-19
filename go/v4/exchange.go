@@ -185,6 +185,9 @@ type Exchange struct {
 	Clients     map[string]interface{}
 	newUpdates  bool
 	streaming   map[string]interface{}
+
+	// id lock
+	idMutex sync.Mutex
 }
 
 const (
@@ -2039,9 +2042,11 @@ func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
 }
 
 func (this *Exchange) LockId() bool {
+	this.idMutex.Lock()
 	return true
 }
 
 func (this *Exchange) UnlockId() bool {
+	this.idMutex.Unlock()
 	return true
 }
