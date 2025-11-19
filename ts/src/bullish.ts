@@ -19,7 +19,7 @@ export default class bullish extends Exchange {
             'name': 'Bullish',
             'countries': [ 'DE' ],
             'version': 'v3',
-            'rateLimit': 50,
+            'rateLimit': 20, // 50 requests per second
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -193,7 +193,7 @@ export default class bullish extends Exchange {
                         'v1/history/borrow-interest': 1, // done
                     },
                     'post': {
-                        'v2/orders': 1, // done
+                        'v2/orders': 5, // done
                         'v2/command': 1, // done
                         'v2/amm-instructions': 1, // not used
                         'v1/wallets/withdrawal': 1, // todo check
