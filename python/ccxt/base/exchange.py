@@ -763,7 +763,7 @@ class Exchange(object):
             try:
                 return float(dictionary[key2])
             except Exception:
-            pass
+                pass
         return default_value
 
     @staticmethod
@@ -800,7 +800,7 @@ class Exchange(object):
             try:
                 return int(float(dictionary[key2]))
             except Exception:
-            pass
+                pass
         return default_value
 
     @staticmethod
@@ -811,7 +811,7 @@ class Exchange(object):
             try:
                 return int(float(dictionary[key2]) * factor)
             except Exception:
-            pass
+                pass
         return default_value
 
     @staticmethod
