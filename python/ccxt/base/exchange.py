@@ -687,7 +687,8 @@ class Exchange(object):
     def safe_float(dictionary, key, default_value=None):
         try:
             return float(dictionary[key])
-        except Exception: pass
+        except Exception:
+            pass
         return default_value
 
     @staticmethod
@@ -696,7 +697,8 @@ class Exchange(object):
             value = dictionary[key]
             if value is not None and value != '':
                 return str(value)
-        except Exception: pass
+        except Exception:
+            pass
         return default_value
 
     @staticmethod
@@ -705,7 +707,8 @@ class Exchange(object):
             value = dictionary[key]
             if value is not None and value != '':
                 return str(value).lower()
-        except Exception: pass
+        except Exception:
+            pass
         return default_value.lower() if default_value is not None else default_value
 
     @staticmethod
@@ -714,7 +717,8 @@ class Exchange(object):
             value = dictionary[key]
             if value is not None and value != '':
                 return str(value).upper()
-        except Exception: pass
+        except Exception:
+            pass
         return default_value.upper() if default_value is not None else default_value
 
     @staticmethod
@@ -744,7 +748,8 @@ class Exchange(object):
             value = dictionary[key]
             if value is not None and value != '':
                 return value
-        except Exception: pass
+        except Exception:
+            pass
         return default_value
 
     # we're not using safe_floats with a list argument as we're trying to save some cycles here
@@ -757,7 +762,8 @@ class Exchange(object):
         except Exception:
             try:
                 return float(dictionary[key2])
-            except Exception: pass
+            except Exception:
+            pass
         return default_value
 
     @staticmethod
@@ -766,12 +772,14 @@ class Exchange(object):
             value = dictionary[key1]
             if value is not None and value != '':
                 return str(value)
-        except Exception: pass
+        except Exception:
+            pass
         try:
             value = dictionary[key2]
             if value is not None and value != '':
                 return str(value)
-        except Exception: pass
+        except Exception:
+            pass
         return default_value
 
     @staticmethod
@@ -791,7 +799,8 @@ class Exchange(object):
         except Exception:
             try:
                 return int(float(dictionary[key2]))
-            except Exception: pass
+            except Exception:
+            pass
         return default_value
 
     @staticmethod
@@ -801,7 +810,8 @@ class Exchange(object):
         except Exception:
             try:
                 return int(float(dictionary[key2]) * factor)
-            except Exception: pass
+            except Exception:
+            pass
         return default_value
 
     @staticmethod
@@ -814,12 +824,14 @@ class Exchange(object):
             value = dictionary[key1]
             if value is not None and value != '':
                 return value
-        except Exception: pass
+        except Exception:
+            pass
         try:
             value = dictionary[key2]
             if value is not None and value != '':
                 return value
-        except Exception: pass
+        except Exception:
+            pass
         return default_value
 
     # safe_method_n methods family
