@@ -491,6 +491,7 @@ export default class lighter extends Exchange {
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
+        // fetchTicker, fetchTickers
         //     {
         //         "symbol": "ETH",
         //         "market_id": 0,
@@ -527,6 +528,26 @@ export default class lighter extends Exchange {
         //             "force_reduce_only": false,
         //             "trading_hours": ""
         //         }
+        //     }
+        //
+        // watchTicker, watchTickers
+        //     {
+        //         "market_id": 0,
+        //         "index_price": "3015.56",
+        //         "mark_price": "3013.91",
+        //         "open_interest": "122736286.659423",
+        //         "open_interest_limit": "72057594037927936.000000",
+        //         "funding_clamp_small": "0.0500",
+        //         "funding_clamp_big": "4.0000",
+        //         "last_trade_price": "3013.13",
+        //         "current_funding_rate": "0.0012",
+        //         "funding_rate": "0.0012",
+        //         "funding_timestamp": 1763532000004,
+        //         "daily_base_token_volume": 643235.2763,
+        //         "daily_quote_token_volume": 1983505435.673896,
+        //         "daily_price_low": 2977.42,
+        //         "daily_price_high": 3170.81,
+        //         "daily_price_change": -0.3061987051035322
         //     }
         //
         const marketId = this.safeString (ticker, 'market_id');

@@ -1,6 +1,6 @@
 //  ---------------------------------------------------------------------------
 
-import type { Dict, Int, OrderBook, Str } from '../base/types.js';
+import type { Dict, Int, OrderBook, Str, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
 
@@ -11,7 +11,7 @@ export default class lighter extends lighterRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchMarkPrice': false,
                 'watchMarkPrices': false,
                 'watchTickers': false,
@@ -33,6 +33,7 @@ export default class lighter extends lighterRest {
                 'watchFundingRate': false,
                 'watchFundingRates': false,
                 'unWatchOrderBook': true,
+                'unWatchTicker': true,
             },
             'urls': {
                 'api': {
@@ -195,6 +196,118 @@ export default class lighter extends lighterRest {
         return await this.unsubscribePublic (messageHash, this.extend (request, params));
     }
 
+    handleTicker (client: Client, message) {
+        //
+        // watchTicker
+        //     {
+        //         "channel": "market_stats:0",
+        //         "market_stats": {
+        //             "market_id": 0,
+        //             "index_price": "3015.56",
+        //             "mark_price": "3013.91",
+        //             "open_interest": "122736286.659423",
+        //             "open_interest_limit": "72057594037927936.000000",
+        //             "funding_clamp_small": "0.0500",
+        //             "funding_clamp_big": "4.0000",
+        //             "last_trade_price": "3013.13",
+        //             "current_funding_rate": "0.0012",
+        //             "funding_rate": "0.0012",
+        //             "funding_timestamp": 1763532000004,
+        //             "daily_base_token_volume": 643235.2763,
+        //             "daily_quote_token_volume": 1983505435.673896,
+        //             "daily_price_low": 2977.42,
+        //             "daily_price_high": 3170.81,
+        //             "daily_price_change": -0.3061987051035322
+        //         },
+        //         "type": "update/market_stats"
+        //     }
+        //
+        // watchTickers
+        // {
+        //     "channel": "market_stats:all",
+        //     "market_stats": {
+        //         "96": {
+        //             "market_id": 96,
+        //             "index_price": "1.15901",
+        //             "mark_price": "1.15954",
+        //             "open_interest": "19392952.260530",
+        //             "open_interest_limit": "50000000000000.000000",
+        //             "funding_clamp_small": "0.0500",
+        //             "funding_clamp_big": "4.0000",
+        //             "last_trade_price": "1.15955",
+        //             "current_funding_rate": "0.0000",
+        //             "funding_rate": "0.0000",
+        //             "funding_timestamp": 1763532000004,
+        //             "daily_base_token_volume": 117634224.1,
+        //             "daily_quote_token_volume": 136339744.383989,
+        //             "daily_price_low": 1.15774,
+        //             "daily_price_high": 1.16105,
+        //             "daily_price_change": -0.004311757299805109
+        //         }
+        //     },
+        //     "type": "update/market_stats"
+        // }
+        //
+        const data = this.safeValue (message, 'market_stats', {});
+        const channel = this.safeString (message, 'channel');
+        if (channel === 'market_stats:all') {
+            const marketIds = Object.keys (data);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const market = this.safeMarket (marketId);
+                const symbol = market['symbol'];
+                const ticker = this.parseTicker (data[marketId], market);
+                this.tickers[symbol] = ticker;
+            }
+            client.resolve (this.tickers, this.getMessageHash ('ticker'));
+        } else {
+            const marketId = this.safeString (data, 'market_id');
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const ticker = this.parseTicker (data, market);
+            this.tickers[symbol] = ticker;
+            client.resolve (ticker, this.getMessageHash ('ticker', symbol));
+        }
+    }
+
+    /**
+     * @method
+     * @name lighter#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'channel': 'market_stats/' + market['id'],
+        };
+        const messageHash = this.getMessageHash ('ticker', symbol);
+        return await this.subscribePublic (messageHash, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name lighter#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'channel': 'market_stats/' + market['id'],
+        };
+        const messageHash = this.getMessageHash ('unsubscribe', symbol);
+        return await this.unsubscribePublic (messageHash, this.extend (request, params));
+    }
+
     handleErrorMessage (client, message) {
         //
         //     {
@@ -226,6 +339,10 @@ export default class lighter extends lighterRest {
         const channel = this.safeString (message, 'channel', '');
         if (channel.indexOf ('order_book:') >= 0) {
             this.handleOrderBook (client, message);
+            return;
+        }
+        if (channel.indexOf ('market_stats:') >= 0) {
+            this.handleTicker (client, message);
             return;
         }
         if (channel === '') {
