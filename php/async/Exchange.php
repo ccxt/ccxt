@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.19';
+$version = '4.5.20';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.19';
+    const VERSION = '4.5.20';
 
     public $browser;
     public $marketsLoading = null;
@@ -3994,10 +3994,6 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
-        $result = $this->safe_market_structure(array(
-            'symbol' => $marketId,
-            'marketId' => $marketId,
-        ));
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
                 $markets = $this->markets_by_id[$marketId];
@@ -4022,22 +4018,24 @@ class Exchange extends \ccxt\Exchange {
             } elseif ($delimiter !== null && $delimiter !== '') {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = count($parts);
+                $result = $this->safe_market_structure(array(
+                    'symbol' => $marketId,
+                    'marketId' => $marketId,
+                ));
                 if ($partsLength === 2) {
                     $result['baseId'] = $this->safe_string($parts, 0);
                     $result['quoteId'] = $this->safe_string($parts, 1);
                     $result['base'] = $this->safe_currency_code($result['baseId']);
                     $result['quote'] = $this->safe_currency_code($result['quoteId']);
                     $result['symbol'] = $result['base'] . '/' . $result['quote'];
-                    return $result;
-                } else {
-                    return $result;
                 }
+                return $result;
             }
         }
         if ($market !== null) {
             return $market;
         }
-        return $result;
+        return $this->safe_market_structure(array( 'symbol' => $marketId, 'marketId' => $marketId ));
     }
 
     public function market_or_null(string $symbol) {

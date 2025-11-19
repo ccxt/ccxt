@@ -4700,6 +4700,68 @@
                     }
                 }
             }
+        ],
+        "borrowCrossMargin": [
+            {
+                "description": "borrow cross margin BTC",
+                "method": "borrowCrossMargin",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "success",
+                    "result": {
+                        "coin": "BTC",
+                        "amount": "0.001"
+                    },
+                    "retExtInfo": {},
+                    "time": "1763194940073"
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "currency": "BTC",
+                    "amount": "0.001",
+                    "symbol": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "coin": "BTC",
+                        "amount": "0.001"
+                    }
+                }
+            }
+        ],
+        "repayCrossMargin": [
+            {
+                "description": "repay cross margin BTC",
+                "method": "repayCrossMargin",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "success",
+                    "result": {
+                        "resultStatus": "SU"
+                    },
+                    "retExtInfo": {},
+                    "time": "1763195201119"
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "currency": "BTC",
+                    "amount": 0.001,
+                    "symbol": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "resultStatus": "SU"
+                    }
+                }
+            }
         ]
     }
 }

@@ -5021,10 +5021,6 @@ class Exchange {
         });
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const result = this.safeMarketStructure({
-            'symbol': marketId,
-            'marketId': marketId,
-        });
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
@@ -5052,23 +5048,24 @@ class Exchange {
             else if (delimiter !== undefined && delimiter !== '') {
                 const parts = marketId.split(delimiter);
                 const partsLength = parts.length;
+                const result = this.safeMarketStructure({
+                    'symbol': marketId,
+                    'marketId': marketId,
+                });
                 if (partsLength === 2) {
                     result['baseId'] = this.safeString(parts, 0);
                     result['quoteId'] = this.safeString(parts, 1);
                     result['base'] = this.safeCurrencyCode(result['baseId']);
                     result['quote'] = this.safeCurrencyCode(result['quoteId']);
                     result['symbol'] = result['base'] + '/' + result['quote'];
-                    return result;
                 }
-                else {
-                    return result;
-                }
+                return result;
             }
         }
         if (market !== undefined) {
             return market;
         }
-        return result;
+        return this.safeMarketStructure({ 'symbol': marketId, 'marketId': marketId });
     }
     marketOrNull(symbol) {
         if (symbol === undefined) {
