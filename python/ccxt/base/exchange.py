@@ -694,21 +694,35 @@ class Exchange(object):
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
-        return str(dictionary[key]) if Exchange.key_exists(dictionary, key) else default_value
+        try:
+            value = dictionary[key]
+            if value is not None and value != '':
+                return str(value)
+        except Exception:
+            pass
+        return default_value
 
     @staticmethod
     def safe_string_lower(dictionary, key, default_value=None):
-        if Exchange.key_exists(dictionary, key):
-            return str(dictionary[key]).lower()
-        else:
-            return default_value.lower() if default_value is not None else default_value
+        try:
+            value = dictionary[key]
+            if value is not None and value != '':
+                return str(value).lower()
+        except Exception:
+            # catch any exception, not only (KeyError, IndexError, TypeError):
+            pass
+        return default_value.lower() if default_value is not None else default_value
 
     @staticmethod
     def safe_string_upper(dictionary, key, default_value=None):
-        if Exchange.key_exists(dictionary, key):
-            return str(dictionary[key]).upper()
-        else:
-            return default_value.upper() if default_value is not None else default_value
+        try:
+            value = dictionary[key]
+            if value is not None and value != '':
+                return str(value).upper()
+        except Exception:
+            # catch any exception, not only (KeyError, IndexError, TypeError):
+            pass
+        return default_value.upper() if default_value is not None else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
