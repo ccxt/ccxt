@@ -207,6 +207,7 @@ export default class bullish extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
+                    // todo check fees
                     'taker': this.parseNumber ('0.001'),
                     'maker': this.parseNumber ('0.001'),
                 },
@@ -720,6 +721,8 @@ export default class bullish extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
         const basePrecision = this.safeString (market, 'basePrecision');
+        const quotePrecision = this.safeString (market, 'quotePrecision');
+        const amountPrecision = this.safeString (market, 'quantityPrecision');
         const pricePrecision = this.safeString (market, 'pricePrecision');
         const costPrecision = this.safeString (market, 'costPrecision');
         const minQuantityLimit = this.safeString (market, 'minQuantityLimit');
@@ -796,16 +799,16 @@ export default class bullish extends Exchange {
             'optionType': optionType,
             'limits': {
                 'amount': {
-                    'min': minQuantityLimit,
-                    'max': maxQuantityLimit,
+                    'min': this.parseNumber (minQuantityLimit),
+                    'max': this.parseNumber (maxQuantityLimit),
                 },
                 'price': {
-                    'min': minPriceLimit,
-                    'max': maxPriceLimit,
+                    'min': this.parseNumber (minPriceLimit),
+                    'max': this.parseNumber (maxPriceLimit),
                 },
                 'cost': {
-                    'min': minCostLimit,
-                    'max': maxCostLimit,
+                    'min': this.parseNumber (minCostLimit),
+                    'max': this.parseNumber (maxCostLimit),
                 },
                 'leverage': {
                     'min': undefined,
@@ -813,9 +816,11 @@ export default class bullish extends Exchange {
                 },
             },
             'precision': {
-                'amount': this.parseNumber (this.parsePrecision (basePrecision)),
+                'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
                 'price': this.parseNumber (this.parsePrecision (pricePrecision)),
                 'cost': this.parseNumber (this.parsePrecision (costPrecision)),
+                'base': this.parseNumber (this.parsePrecision (basePrecision)),
+                'quote': this.parseNumber (this.parsePrecision (quotePrecision)),
             },
             'active': this.safeBool (market, 'marketEnabled'),
             'created': undefined,
