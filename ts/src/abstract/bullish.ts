@@ -15,6 +15,7 @@ interface Exchange {
     publicGetV1AssetsSymbol (params?: {}): Promise<implicitReturnType>;
     publicGetV1Markets (params?: {}): Promise<implicitReturnType>;
     publicGetV1MarketsSymbol (params?: {}): Promise<implicitReturnType>;
+    publicGetV1HistoryMarketsSymbol (params?: {}): Promise<implicitReturnType>;
     publicGetV1MarketsSymbolOrderbookHybrid (params?: {}): Promise<implicitReturnType>;
     publicGetV1MarketsSymbolTrades (params?: {}): Promise<implicitReturnType>;
     publicGetV1MarketsSymbolTick (params?: {}): Promise<implicitReturnType>;
@@ -23,7 +24,11 @@ interface Exchange {
     publicGetV1HistoryMarketsSymbolFundingRate (params?: {}): Promise<implicitReturnType>;
     publicGetV1IndexPrices (params?: {}): Promise<implicitReturnType>;
     publicGetV1IndexPricesAssetSymbol (params?: {}): Promise<implicitReturnType>;
+    publicGetV1ExpiryPricesSymbol (params?: {}): Promise<implicitReturnType>;
+    publicGetV1OptionLadder (params?: {}): Promise<implicitReturnType>;
+    publicGetV1OptionLadderSymbol (params?: {}): Promise<implicitReturnType>;
     privateGetV2Orders (params?: {}): Promise<implicitReturnType>;
+    privateGetV2HistoryOrders (params?: {}): Promise<implicitReturnType>;
     privateGetV2OrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateGetV2AmmInstructions (params?: {}): Promise<implicitReturnType>;
     privateGetV2AmmInstructionsInstructionId (params?: {}): Promise<implicitReturnType>;
@@ -33,7 +38,9 @@ interface Exchange {
     privateGetV1WalletsWithdrawalInstructionsCryptoSymbol (params?: {}): Promise<implicitReturnType>;
     privateGetV1WalletsDepositInstructionsFiatSymbol (params?: {}): Promise<implicitReturnType>;
     privateGetV1WalletsWithdrawalInstructionsFiatSymbol (params?: {}): Promise<implicitReturnType>;
+    privateGetV1WalletsSelfHostedVerificationAttempts (params?: {}): Promise<implicitReturnType>;
     privateGetV1Trades (params?: {}): Promise<implicitReturnType>;
+    privateGetV1HistoryTrades (params?: {}): Promise<implicitReturnType>;
     privateGetV1TradesTradeId (params?: {}): Promise<implicitReturnType>;
     privateGetV1AccountsAsset (params?: {}): Promise<implicitReturnType>;
     privateGetV1AccountsAssetSymbol (params?: {}): Promise<implicitReturnType>;
@@ -45,6 +52,10 @@ interface Exchange {
     privateGetV1HistoryDerivativesSettlement (params?: {}): Promise<implicitReturnType>;
     privateGetV1HistoryTransfer (params?: {}): Promise<implicitReturnType>;
     privateGetV1HistoryBorrowInterest (params?: {}): Promise<implicitReturnType>;
+    privateGetV2MmpConfiguration (params?: {}): Promise<implicitReturnType>;
+    privateGetV2OtcTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetV2OtcTradesOtcTradeId (params?: {}): Promise<implicitReturnType>;
+    privateGetV2OtcTradesUnconfirmedTrade (params?: {}): Promise<implicitReturnType>;
     privatePostV2Orders (params?: {}): Promise<implicitReturnType>;
     privatePostV2Command (params?: {}): Promise<implicitReturnType>;
     privatePostV2AmmInstructions (params?: {}): Promise<implicitReturnType>;
@@ -52,6 +63,10 @@ interface Exchange {
     privatePostV2UsersLogin (params?: {}): Promise<implicitReturnType>;
     privatePostV1CommandCommandTypeV1TransferAsset (params?: {}): Promise<implicitReturnType>;
     privatePostV1SimulatePortfolioMargin (params?: {}): Promise<implicitReturnType>;
+    privatePostV1WalletsSelfHostedInitiate (params?: {}): Promise<implicitReturnType>;
+    privatePostV2MmpConfiguration (params?: {}): Promise<implicitReturnType>;
+    privatePostV2OtcTrades (params?: {}): Promise<implicitReturnType>;
+    privatePostV2OtcCommand (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
