@@ -1260,8 +1260,7 @@ export default class kraken extends krakenRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        params['snap_orders'] = true;
-        return await this.watchPrivate ('orders', symbol, since, limit, params);
+        return await this.watchPrivate ('orders', symbol, since, limit, this.extend (params, { 'snap_orders': true }));
     }
 
     handleOrders (client: Client, message, subscription = undefined) {
@@ -1322,7 +1321,9 @@ export default class kraken extends krakenRest {
                     }
                 }
                 stored.append (newOrder);
-                symbols[symbol] = true;
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
             const name = 'orders';
             client.resolve (this.orders, name);

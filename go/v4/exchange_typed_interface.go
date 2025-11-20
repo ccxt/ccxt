@@ -370,6 +370,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "cryptomus":
 		itf := NewCryptomus(options)
 		return itf
+	case "deepcoin":
+		itf := NewDeepcoin(options)
+		return itf
 	case "defx":
 		itf := NewDefx(options)
 		return itf
@@ -384,6 +387,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "digifinex":
 		itf := NewDigifinex(options)
+		return itf
+	case "dydx":
+		itf := NewDydx(options)
 		return itf
 	case "exmo":
 		itf := NewExmo(options)

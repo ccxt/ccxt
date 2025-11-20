@@ -279,4 +279,4 @@ class ImplicitAPI:
     uta_get_market_funding_rate = utaGetMarketFundingRate = Entry('market/funding-rate', 'uta', 'GET', {'cost': 2})
     uta_get_market_funding_rate_history = utaGetMarketFundingRateHistory = Entry('market/funding-rate-history', 'uta', 'GET', {'cost': 5})
     uta_get_market_cross_config = utaGetMarketCrossConfig = Entry('market/cross-config', 'uta', 'GET', {'cost': 25})
-    uta_get_market_server_status = utaGetMarketServerStatus = Entry('market/server/status', 'uta', 'GET', {'cost': 3})
+    uta_get_server_status = utaGetServerStatus = Entry('server/status', 'uta', 'GET', {'cost': 3})

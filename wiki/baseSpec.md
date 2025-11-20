@@ -174,6 +174,7 @@ cancel all open orders in a market
 * [coinex](/exchanges/coinex.md#coinexcancelallorders)
 * [coinsph](/exchanges/coinsph.md#coinsphcancelallorders)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomcancelallorders)
+* [deepcoin](/exchanges/deepcoin.md#deepcoincancelallorders)
 * [defx](/exchanges/defx.md#defxcancelallorders)
 * [delta](/exchanges/delta.md#deltacancelallorders)
 * [deribit](/exchanges/deribit.md#deribitcancelallorders)
@@ -321,11 +322,13 @@ cancels an open order
 * [coinspot](/exchanges/coinspot.md#coinspotcancelorder)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomcancelorder)
 * [cryptomus](/exchanges/cryptomus.md#cryptomuscancelorder)
+* [deepcoin](/exchanges/deepcoin.md#deepcoincancelorder)
 * [defx](/exchanges/defx.md#defxcancelorder)
 * [delta](/exchanges/delta.md#deltacancelorder)
 * [deribit](/exchanges/deribit.md#deribitcancelorder)
 * [derive](/exchanges/derive.md#derivecancelorder)
 * [digifinex](/exchanges/digifinex.md#digifinexcancelorder)
+* [dydx](/exchanges/dydx.md#dydxcancelorder)
 * [exmo](/exchanges/exmo.md#exmocancelorder)
 * [foxbit](/exchanges/foxbit.md#foxbitcancelorder)
 * [gate](/exchanges/gate.md#gatecancelorder)
@@ -438,7 +441,9 @@ cancel multiple orders
 * [coincatch](/exchanges/coincatch.md#coincatchcancelorders)
 * [coinex](/exchanges/coinex.md#coinexcancelorders)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomcancelorders)
+* [deepcoin](/exchanges/deepcoin.md#deepcoincancelorders)
 * [digifinex](/exchanges/digifinex.md#digifinexcancelorders)
+* [dydx](/exchanges/dydx.md#dydxcancelorders)
 * [gate](/exchanges/gate.md#gatecancelorders)
 * [hashkey](/exchanges/hashkey.md#hashkeycancelorders)
 * [hibachi](/exchanges/hibachi.md#hibachicancelorders)
@@ -571,6 +576,7 @@ closes open positions for a market
 * [coinbase](/exchanges/coinbase.md#coinbasecloseposition)
 * [coinex](/exchanges/coinex.md#coinexcloseposition)
 * [coinmetro](/exchanges/coinmetro.md#coinmetrocloseposition)
+* [deepcoin](/exchanges/deepcoin.md#deepcoincloseposition)
 * [defx](/exchanges/defx.md#defxcloseposition)
 * [gate](/exchanges/gate.md#gatecloseposition)
 * [hitbtc](/exchanges/hitbtc.md#hitbtccloseposition)
@@ -734,6 +740,7 @@ create a market buy order by providing the symbol and cost
 * [coinbase](/exchanges/coinbase.md#coinbasecreatemarketbuyorderwithcost)
 * [coincatch](/exchanges/coincatch.md#coincatchcreatemarketbuyorderwithcost)
 * [coinex](/exchanges/coinex.md#coinexcreatemarketbuyorderwithcost)
+* [deepcoin](/exchanges/deepcoin.md#deepcoincreatemarketbuyorderwithcost)
 * [digifinex](/exchanges/digifinex.md#digifinexcreatemarketbuyorderwithcost)
 * [exmo](/exchanges/exmo.md#exmocreatemarketbuyorderwithcost)
 * [gate](/exchanges/gate.md#gatecreatemarketbuyorderwithcost)
@@ -771,6 +778,7 @@ create a market order by providing the symbol, side and cost
 * [alpaca](/exchanges/alpaca.md#alpacacreatemarketorderwithcost)
 * [binance](/exchanges/binance.md#binancecreatemarketorderwithcost)
 * [bingx](/exchanges/bingx.md#bingxcreatemarketorderwithcost)
+* [deepcoin](/exchanges/deepcoin.md#deepcoincreatemarketorderwithcost)
 * [exmo](/exchanges/exmo.md#exmocreatemarketorderwithcost)
 * [kraken](/exchanges/kraken.md#krakencreatemarketorderwithcost)
 * [kucoin](/exchanges/kucoin.md#kucoincreatemarketorderwithcost)
@@ -797,6 +805,7 @@ create a market sell order by providing the symbol and cost
 * [alpaca](/exchanges/alpaca.md#alpacacreatemarketsellorderwithcost)
 * [binance](/exchanges/binance.md#binancecreatemarketsellorderwithcost)
 * [bingx](/exchanges/bingx.md#bingxcreatemarketsellorderwithcost)
+* [deepcoin](/exchanges/deepcoin.md#deepcoincreatemarketsellorderwithcost)
 * [exmo](/exchanges/exmo.md#exmocreatemarketsellorderwithcost)
 * [kucoin](/exchanges/kucoin.md#kucoincreatemarketsellorderwithcost)
 * [mexc](/exchanges/mexc.md#mexccreatemarketsellorderwithcost)
@@ -871,11 +880,13 @@ create a trade order
 * [coinspot](/exchanges/coinspot.md#coinspotcreateorder)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomcreateorder)
 * [cryptomus](/exchanges/cryptomus.md#cryptomuscreateorder)
+* [deepcoin](/exchanges/deepcoin.md#deepcoincreateorder)
 * [defx](/exchanges/defx.md#defxcreateorder)
 * [delta](/exchanges/delta.md#deltacreateorder)
 * [deribit](/exchanges/deribit.md#deribitcreateorder)
 * [derive](/exchanges/derive.md#derivecreateorder)
 * [digifinex](/exchanges/digifinex.md#digifinexcreateorder)
+* [dydx](/exchanges/dydx.md#dydxcreateorder)
 * [exmo](/exchanges/exmo.md#exmocreateorder)
 * [foxbit](/exchanges/foxbit.md#foxbitcreateorder)
 * [gate](/exchanges/gate.md#gatecreateorder)
@@ -1290,6 +1301,7 @@ edit a trade order
 * [coincatch](/exchanges/coincatch.md#coincatcheditorder)
 * [coinex](/exchanges/coinex.md#coinexeditorder)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomeditorder)
+* [deepcoin](/exchanges/deepcoin.md#deepcoineditorder)
 * [delta](/exchanges/delta.md#deltaeditorder)
 * [deribit](/exchanges/deribit.md#deribiteditorder)
 * [derive](/exchanges/derive.md#deriveeditorder)
@@ -1447,6 +1459,7 @@ fetch all the accounts associated with a profile
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#coinbaseinternationalfetchaccounts)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchaccounts)
 * [deribit](/exchanges/deribit.md#deribitfetchaccounts)
+* [dydx](/exchanges/dydx.md#dydxfetchaccounts)
 * [hashkey](/exchanges/hashkey.md#hashkeyfetchaccounts)
 * [htx](/exchanges/htx.md#htxfetchaccounts)
 * [kucoin](/exchanges/kucoin.md#kucoinfetchaccounts)
@@ -1542,11 +1555,13 @@ query for balance and get the amount of funds available for trading or funds loc
 * [coinspot](/exchanges/coinspot.md#coinspotfetchbalance)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchbalance)
 * [cryptomus](/exchanges/cryptomus.md#cryptomusfetchbalance)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchbalance)
 * [defx](/exchanges/defx.md#defxfetchbalance)
 * [delta](/exchanges/delta.md#deltafetchbalance)
 * [deribit](/exchanges/deribit.md#deribitfetchbalance)
 * [derive](/exchanges/derive.md#derivefetchbalance)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchbalance)
+* [dydx](/exchanges/dydx.md#dydxfetchbalance)
 * [exmo](/exchanges/exmo.md#exmofetchbalance)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchbalance)
 * [gate](/exchanges/gate.md#gatefetchbalance)
@@ -1755,6 +1770,7 @@ fetches information on multiple canceled orders made by the user
 * [bybit](/exchanges/bybit.md#bybitfetchcanceledandclosedorders)
 * [coincatch](/exchanges/coincatch.md#coincatchfetchcanceledandclosedorders)
 * [coinmetro](/exchanges/coinmetro.md#coinmetrofetchcanceledandclosedorders)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchcanceledandclosedorders)
 * [hashkey](/exchanges/hashkey.md#hashkeyfetchcanceledandclosedorders)
 * [hyperliquid](/exchanges/hyperliquid.md#hyperliquidfetchcanceledandclosedorders)
 
@@ -1788,6 +1804,7 @@ fetches information on multiple canceled orders made by the user
 * [blockchaincom](/exchanges/blockchaincom.md#blockchaincomfetchcanceledorders)
 * [bybit](/exchanges/bybit.md#bybitfetchcanceledorders)
 * [coinbase](/exchanges/coinbase.md#coinbasefetchcanceledorders)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchcanceledorders)
 * [defx](/exchanges/defx.md#defxfetchcanceledorders)
 * [derive](/exchanges/derive.md#derivefetchcanceledorders)
 * [exmo](/exchanges/exmo.md#exmofetchcanceledorders)
@@ -1819,6 +1836,7 @@ fetch an open order by it's id
 * [bitfinex](/exchanges/bitfinex.md#bitfinexfetchclosedorder)
 * [bybit](/exchanges/bybit.md#bybitfetchclosedorder)
 * [cex](/exchanges/cex.md#cexfetchclosedorder)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchclosedorder)
 
 ---
 
@@ -1865,10 +1883,12 @@ fetches information on multiple closed orders made by the user
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#coinbaseexchangefetchclosedorders)
 * [coinex](/exchanges/coinex.md#coinexfetchclosedorders)
 * [coinsph](/exchanges/coinsph.md#coinsphfetchclosedorders)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchclosedorders)
 * [defx](/exchanges/defx.md#defxfetchclosedorders)
 * [delta](/exchanges/delta.md#deltafetchclosedorders)
 * [deribit](/exchanges/deribit.md#deribitfetchclosedorders)
 * [derive](/exchanges/derive.md#derivefetchclosedorders)
+* [dydx](/exchanges/dydx.md#dydxfetchclosedorders)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchclosedorders)
 * [gate](/exchanges/gate.md#gatefetchclosedorders)
 * [hitbtc](/exchanges/hitbtc.md#hitbtcfetchclosedorders)
@@ -2236,6 +2256,7 @@ fetch the deposit address for a currency associated with this account
 * [coinex](/exchanges/coinex.md#coinexfetchdepositaddress)
 * [coinsph](/exchanges/coinsph.md#coinsphfetchdepositaddress)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchdepositaddress)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchdepositaddress)
 * [delta](/exchanges/delta.md#deltafetchdepositaddress)
 * [deribit](/exchanges/deribit.md#deribitfetchdepositaddress)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchdepositaddress)
@@ -2290,6 +2311,7 @@ fetch deposit addresses for multiple currencies and chain types
 
 ##### Supported exchanges
 * [coinone](/exchanges/coinone.md#coinonefetchdepositaddresses)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchdepositaddresses)
 * [hollaex](/exchanges/hollaex.md#hollaexfetchdepositaddresses)
 * [indodax](/exchanges/indodax.md#indodaxfetchdepositaddresses)
 * [paymium](/exchanges/paymium.md#paymiumfetchdepositaddresses)
@@ -2499,9 +2521,11 @@ fetch all deposits made to an account
 * [coinex](/exchanges/coinex.md#coinexfetchdeposits)
 * [coinsph](/exchanges/coinsph.md#coinsphfetchdeposits)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchdeposits)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchdeposits)
 * [deribit](/exchanges/deribit.md#deribitfetchdeposits)
 * [derive](/exchanges/derive.md#derivefetchdeposits)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchdeposits)
+* [dydx](/exchanges/dydx.md#dydxfetchdeposits)
 * [exmo](/exchanges/exmo.md#exmofetchdeposits)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchdeposits)
 * [gate](/exchanges/gate.md#gatefetchdeposits)
@@ -2564,6 +2588,7 @@ fetch history of deposits and withdrawals
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#coinbaseexchangefetchdepositswithdrawals)
 * [exchange](/exchanges/exchange.md#exchangefetchdepositswithdrawals)
 * [coinmate](/exchanges/coinmate.md#coinmatefetchdepositswithdrawals)
+* [dydx](/exchanges/dydx.md#dydxfetchdepositswithdrawals)
 * [exmo](/exchanges/exmo.md#exmofetchdepositswithdrawals)
 * [gemini](/exchanges/gemini.md#geminifetchdepositswithdrawals)
 * [hitbtc](/exchanges/hitbtc.md#hitbtcfetchdepositswithdrawals)
@@ -2741,6 +2766,7 @@ fetch the current funding rate
 * [coincatch](/exchanges/coincatch.md#coincatchfetchfundingrate)
 * [coinex](/exchanges/coinex.md#coinexfetchfundingrate)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchfundingrate)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchfundingrate)
 * [defx](/exchanges/defx.md#defxfetchfundingrate)
 * [delta](/exchanges/delta.md#deltafetchfundingrate)
 * [deribit](/exchanges/deribit.md#deribitfetchfundingrate)
@@ -2751,6 +2777,7 @@ fetch the current funding rate
 * [hibachi](/exchanges/hibachi.md#hibachifetchfundingrate)
 * [hitbtc](/exchanges/hitbtc.md#hitbtcfetchfundingrate)
 * [htx](/exchanges/htx.md#htxfetchfundingrate)
+* [kucoin](/exchanges/kucoin.md#kucoinfetchfundingrate)
 * [kucoinfutures](/exchanges/kucoinfutures.md#kucoinfuturesfetchfundingrate)
 * [lbank](/exchanges/lbank.md#lbankfetchfundingrate)
 * [mexc](/exchanges/mexc.md#mexcfetchfundingrate)
@@ -2798,9 +2825,11 @@ fetches historical funding rate prices
 * [coincatch](/exchanges/coincatch.md#coincatchfetchfundingratehistory)
 * [coinex](/exchanges/coinex.md#coinexfetchfundingratehistory)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchfundingratehistory)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchfundingratehistory)
 * [deribit](/exchanges/deribit.md#deribitfetchfundingratehistory)
 * [derive](/exchanges/derive.md#derivefetchfundingratehistory)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchfundingratehistory)
+* [dydx](/exchanges/dydx.md#dydxfetchfundingratehistory)
 * [gate](/exchanges/gate.md#gatefetchfundingratehistory)
 * [hashkey](/exchanges/hashkey.md#hashkeyfetchfundingratehistory)
 * [hibachi](/exchanges/hibachi.md#hibachifetchfundingratehistory)
@@ -2808,6 +2837,7 @@ fetches historical funding rate prices
 * [htx](/exchanges/htx.md#htxfetchfundingratehistory)
 * [hyperliquid](/exchanges/hyperliquid.md#hyperliquidfetchfundingratehistory)
 * [krakenfutures](/exchanges/krakenfutures.md#krakenfuturesfetchfundingratehistory)
+* [kucoin](/exchanges/kucoin.md#kucoinfetchfundingratehistory)
 * [kucoinfutures](/exchanges/kucoinfutures.md#kucoinfuturesfetchfundingratehistory)
 * [mexc](/exchanges/mexc.md#mexcfetchfundingratehistory)
 * [modetrade](/exchanges/modetrade.md#modetradefetchfundingratehistory)
@@ -2844,6 +2874,7 @@ fetch the funding rate for multiple markets
 * [bitmex](/exchanges/bitmex.md#bitmexfetchfundingrates)
 * [bybit](/exchanges/bybit.md#bybitfetchfundingrates)
 * [coinex](/exchanges/coinex.md#coinexfetchfundingrates)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchfundingrates)
 * [delta](/exchanges/delta.md#deltafetchfundingrates)
 * [gate](/exchanges/gate.md#gatefetchfundingrates)
 * [hashkey](/exchanges/hashkey.md#hashkeyfetchfundingrates)
@@ -2884,6 +2915,24 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 * [gate](/exchanges/gate.md#gatefetchgreeks)
 * [okx](/exchanges/okx.md#okxfetchgreeks)
 * [paradex](/exchanges/paradex.md#paradexfetchgreeks)
+
+---
+
+<a name="fetchHip3Markets" id="fetchhip3markets"></a>
+
+## fetchHip3Markets
+retrieves data on all hip3 markets for hyperliquid
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#hyperliquidfetchhip3markets)
 
 ---
 
@@ -3011,9 +3060,11 @@ fetch the history of changes, actions done by the user or operations that altere
 * [coincatch](/exchanges/coincatch.md#coincatchfetchledger)
 * [coinmetro](/exchanges/coinmetro.md#coinmetrofetchledger)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchledger)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchledger)
 * [defx](/exchanges/defx.md#defxfetchledger)
 * [delta](/exchanges/delta.md#deltafetchledger)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchledger)
+* [dydx](/exchanges/dydx.md#dydxfetchledger)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchledger)
 * [gate](/exchanges/gate.md#gatefetchledger)
 * [hashkey](/exchanges/hashkey.md#hashkeyfetchledger)
@@ -3411,11 +3462,13 @@ retrieves data on all markets for alpaca
 * [coinsph](/exchanges/coinsph.md#coinsphfetchmarkets)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchmarkets)
 * [cryptomus](/exchanges/cryptomus.md#cryptomusfetchmarkets)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchmarkets)
 * [defx](/exchanges/defx.md#defxfetchmarkets)
 * [delta](/exchanges/delta.md#deltafetchmarkets)
 * [deribit](/exchanges/deribit.md#deribitfetchmarkets)
 * [derive](/exchanges/derive.md#derivefetchmarkets)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchmarkets)
+* [dydx](/exchanges/dydx.md#dydxfetchmarkets)
 * [exmo](/exchanges/exmo.md#exmofetchmarkets)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchmarkets)
 * [gate](/exchanges/gate.md#gatefetchmarkets)
@@ -3618,6 +3671,7 @@ fetch all trades made by the user
 * [coinsph](/exchanges/coinsph.md#coinsphfetchmytrades)
 * [coinspot](/exchanges/coinspot.md#coinspotfetchmytrades)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchmytrades)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchmytrades)
 * [defx](/exchanges/defx.md#defxfetchmytrades)
 * [delta](/exchanges/delta.md#deltafetchmytrades)
 * [deribit](/exchanges/deribit.md#deribitfetchmytrades)
@@ -3746,10 +3800,12 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [coinmetro](/exchanges/coinmetro.md#coinmetrofetchohlcv)
 * [coinsph](/exchanges/coinsph.md#coinsphfetchohlcv)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchohlcv)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchohlcv)
 * [defx](/exchanges/defx.md#defxfetchohlcv)
 * [delta](/exchanges/delta.md#deltafetchohlcv)
 * [deribit](/exchanges/deribit.md#deribitfetchohlcv)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchohlcv)
+* [dydx](/exchanges/dydx.md#dydxfetchohlcv)
 * [exmo](/exchanges/exmo.md#exmofetchohlcv)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchohlcv)
 * [gateio](/exchanges/gateio.md#gateiofetchohlcv)
@@ -3926,6 +3982,7 @@ fetch an open order by it's id
 * [bitfinex](/exchanges/bitfinex.md#bitfinexfetchopenorder)
 * [bybit](/exchanges/bybit.md#bybitfetchopenorder)
 * [cex](/exchanges/cex.md#cexfetchopenorder)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchopenorder)
 * [hitbtc](/exchanges/hitbtc.md#hitbtcfetchopenorder)
 * [hollaex](/exchanges/hollaex.md#hollaexfetchopenorder)
 
@@ -3993,11 +4050,13 @@ fetch all unfilled currently open orders
 * [coinsph](/exchanges/coinsph.md#coinsphfetchopenorders)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchopenorders)
 * [cryptomus](/exchanges/cryptomus.md#cryptomusfetchopenorders)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchopenorders)
 * [defx](/exchanges/defx.md#defxfetchopenorders)
 * [delta](/exchanges/delta.md#deltafetchopenorders)
 * [deribit](/exchanges/deribit.md#deribitfetchopenorders)
 * [derive](/exchanges/derive.md#derivefetchopenorders)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchopenorders)
+* [dydx](/exchanges/dydx.md#dydxfetchopenorders)
 * [exmo](/exchanges/exmo.md#exmofetchopenorders)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchopenorders)
 * [gate](/exchanges/gate.md#gatefetchopenorders)
@@ -4193,6 +4252,7 @@ fetches information on an order made by the user
 * [delta](/exchanges/delta.md#deltafetchorder)
 * [deribit](/exchanges/deribit.md#deribitfetchorder)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchorder)
+* [dydx](/exchanges/dydx.md#dydxfetchorder)
 * [exmo](/exchanges/exmo.md#exmofetchorder)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchorder)
 * [gate](/exchanges/gate.md#gatefetchorder)
@@ -4298,10 +4358,12 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [coinspot](/exchanges/coinspot.md#coinspotfetchorderbook)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchorderbook)
 * [cryptomus](/exchanges/cryptomus.md#cryptomusfetchorderbook)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchorderbook)
 * [defx](/exchanges/defx.md#defxfetchorderbook)
 * [delta](/exchanges/delta.md#deltafetchorderbook)
 * [deribit](/exchanges/deribit.md#deribitfetchorderbook)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchorderbook)
+* [dydx](/exchanges/dydx.md#dydxfetchorderbook)
 * [exmo](/exchanges/exmo.md#exmofetchorderbook)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchorderbook)
 * [gate](/exchanges/gate.md#gatefetchorderbook)
@@ -4445,6 +4507,7 @@ fetch all the trades made from a single order
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#coinbaseexchangefetchordertrades)
 * [coincatch](/exchanges/coincatch.md#coincatchfetchordertrades)
 * [coinsph](/exchanges/coinsph.md#coinsphfetchordertrades)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchordertrades)
 * [deribit](/exchanges/deribit.md#deribitfetchordertrades)
 * [derive](/exchanges/derive.md#derivefetchordertrades)
 * [exmo](/exchanges/exmo.md#exmofetchordertrades)
@@ -4535,6 +4598,7 @@ fetches information on multiple orders made by the user
 * [defx](/exchanges/defx.md#defxfetchorders)
 * [derive](/exchanges/derive.md#derivefetchorders)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchorders)
+* [dydx](/exchanges/dydx.md#dydxfetchorders)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchorders)
 * [gemini](/exchanges/gemini.md#geminifetchorders)
 * [hollaex](/exchanges/hollaex.md#hollaexfetchorders)
@@ -4729,6 +4793,7 @@ fetch data on an open position
 * [delta](/exchanges/delta.md#deltafetchposition)
 * [deribit](/exchanges/deribit.md#deribitfetchposition)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchposition)
+* [dydx](/exchanges/dydx.md#dydxfetchposition)
 * [gate](/exchanges/gate.md#gatefetchposition)
 * [hitbtc](/exchanges/hitbtc.md#hitbtcfetchposition)
 * [htx](/exchanges/htx.md#htxfetchposition)
@@ -4848,11 +4913,13 @@ fetch all open positions
 * [coincatch](/exchanges/coincatch.md#coincatchfetchpositions)
 * [coinex](/exchanges/coinex.md#coinexfetchpositions)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchpositions)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchpositions)
 * [defx](/exchanges/defx.md#defxfetchpositions)
 * [delta](/exchanges/delta.md#deltafetchpositions)
 * [deribit](/exchanges/deribit.md#deribitfetchpositions)
 * [derive](/exchanges/derive.md#derivefetchpositions)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchpositions)
+* [dydx](/exchanges/dydx.md#dydxfetchpositions)
 * [gate](/exchanges/gate.md#gatefetchpositions)
 * [hashkey](/exchanges/hashkey.md#hashkeyfetchpositions)
 * [hibachi](/exchanges/hibachi.md#hibachifetchpositions)
@@ -4893,6 +4960,7 @@ fetch all open positions for specific symbol
 
 ##### Supported exchanges
 * [coincatch](/exchanges/coincatch.md#coincatchfetchpositionsforsymbol)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchpositionsforsymbol)
 * [hashkey](/exchanges/hashkey.md#hashkeyfetchpositionsforsymbol)
 * [okx](/exchanges/okx.md#okxfetchpositionsforsymbol)
 
@@ -5236,6 +5304,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [coinspot](/exchanges/coinspot.md#coinspotfetchtickers)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchtickers)
 * [cryptomus](/exchanges/cryptomus.md#cryptomusfetchtickers)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchtickers)
 * [defx](/exchanges/defx.md#defxfetchtickers)
 * [delta](/exchanges/delta.md#deltafetchtickers)
 * [deribit](/exchanges/deribit.md#deribitfetchtickers)
@@ -5319,6 +5388,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [deribit](/exchanges/deribit.md#deribitfetchtime)
 * [derive](/exchanges/derive.md#derivefetchtime)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchtime)
+* [dydx](/exchanges/dydx.md#dydxfetchtime)
 * [gate](/exchanges/gate.md#gatefetchtime)
 * [hashkey](/exchanges/hashkey.md#hashkeyfetchtime)
 * [hibachi](/exchanges/hibachi.md#hibachifetchtime)
@@ -5410,11 +5480,13 @@ get the list of most recent trades for a particular symbol
 * [coinspot](/exchanges/coinspot.md#coinspotfetchtrades)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchtrades)
 * [cryptomus](/exchanges/cryptomus.md#cryptomusfetchtrades)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchtrades)
 * [defx](/exchanges/defx.md#defxfetchtrades)
 * [delta](/exchanges/delta.md#deltafetchtrades)
 * [deribit](/exchanges/deribit.md#deribitfetchtrades)
 * [derive](/exchanges/derive.md#derivefetchtrades)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchtrades)
+* [dydx](/exchanges/dydx.md#dydxfetchtrades)
 * [exmo](/exchanges/exmo.md#exmofetchtrades)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchtrades)
 * [gate](/exchanges/gate.md#gatefetchtrades)
@@ -5752,6 +5824,7 @@ fetch a history of internal transfers made on an account
 * [coinex](/exchanges/coinex.md#coinexfetchtransfers)
 * [deribit](/exchanges/deribit.md#deribitfetchtransfers)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchtransfers)
+* [dydx](/exchanges/dydx.md#dydxfetchtransfers)
 * [latoken](/exchanges/latoken.md#latokenfetchtransfers)
 * [mexc](/exchanges/mexc.md#mexcfetchtransfers)
 * [okx](/exchanges/okx.md#okxfetchtransfers)
@@ -5874,9 +5947,11 @@ fetch all withdrawals made from an account
 * [coinex](/exchanges/coinex.md#coinexfetchwithdrawals)
 * [coinsph](/exchanges/coinsph.md#coinsphfetchwithdrawals)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomfetchwithdrawals)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinfetchwithdrawals)
 * [deribit](/exchanges/deribit.md#deribitfetchwithdrawals)
 * [derive](/exchanges/derive.md#derivefetchwithdrawals)
 * [digifinex](/exchanges/digifinex.md#digifinexfetchwithdrawals)
+* [dydx](/exchanges/dydx.md#dydxfetchwithdrawals)
 * [exmo](/exchanges/exmo.md#exmofetchwithdrawals)
 * [foxbit](/exchanges/foxbit.md#foxbitfetchwithdrawals)
 * [gate](/exchanges/gate.md#gatefetchwithdrawals)
@@ -6191,6 +6266,7 @@ set the level of leverage for a market
 * [bybit](/exchanges/bybit.md#bybitsetleverage)
 * [coincatch](/exchanges/coincatch.md#coincatchsetleverage)
 * [coinex](/exchanges/coinex.md#coinexsetleverage)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinsetleverage)
 * [defx](/exchanges/defx.md#defxsetleverage)
 * [delta](/exchanges/delta.md#deltasetleverage)
 * [digifinex](/exchanges/digifinex.md#digifinexsetleverage)
@@ -6385,8 +6461,10 @@ transfer currency internally between wallets on the same account
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#coinbaseinternationaltransfer)
 * [coincatch](/exchanges/coincatch.md#coincatchtransfer)
 * [coinex](/exchanges/coinex.md#coinextransfer)
+* [deepcoin](/exchanges/deepcoin.md#deepcointransfer)
 * [deribit](/exchanges/deribit.md#deribittransfer)
 * [digifinex](/exchanges/digifinex.md#digifinextransfer)
+* [dydx](/exchanges/dydx.md#dydxtransfer)
 * [gate](/exchanges/gate.md#gatetransfer)
 * [hashkey](/exchanges/hashkey.md#hashkeytransfer)
 * [hitbtc](/exchanges/hitbtc.md#hitbtctransfer)
@@ -6454,10 +6532,29 @@ unWatches best bid & ask for symbols
 
 ---
 
+<a name="unWatchMarkPrice" id="unwatchmarkprice"></a>
+
+## unWatchMarkPrice
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [binance](/exchanges/binance.md#binanceunwatchmarkprice)
+
+---
+
 <a name="unWatchMarkPrices" id="unwatchmarkprices"></a>
 
 ## unWatchMarkPrices
-stops watching the mark price for all markets
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
@@ -6467,7 +6564,6 @@ stops watching the mark price for all markets
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.use1sFreq | <code>boolean</code> | No | *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#binanceunwatchmarkprices)
@@ -6519,7 +6615,9 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [bybit](/exchanges/bybit.md#bybitunwatchohlcv)
 * [coincatch](/exchanges/coincatch.md#coincatchunwatchohlcv)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomunwatchohlcv)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinunwatchohlcv)
 * [defx](/exchanges/defx.md#defxunwatchohlcv)
+* [dydx](/exchanges/dydx.md#dydxunwatchohlcv)
 * [htx](/exchanges/htx.md#htxunwatchohlcv)
 * [hyperliquid](/exchanges/hyperliquid.md#hyperliquidunwatchohlcv)
 * [kucoin](/exchanges/kucoin.md#kucoinunwatchohlcv)
@@ -6574,8 +6672,10 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 * [bybit](/exchanges/bybit.md#bybitunwatchorderbook)
 * [coincatch](/exchanges/coincatch.md#coincatchunwatchorderbook)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomunwatchorderbook)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinunwatchorderbook)
 * [defx](/exchanges/defx.md#defxunwatchorderbook)
 * [derive](/exchanges/derive.md#deriveunwatchorderbook)
+* [dydx](/exchanges/dydx.md#dydxunwatchorderbook)
 * [gate](/exchanges/gate.md#gateunwatchorderbook)
 * [htx](/exchanges/htx.md#htxunwatchorderbook)
 * [hyperliquid](/exchanges/hyperliquid.md#hyperliquidunwatchorderbook)
@@ -6677,6 +6777,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 * [bybit](/exchanges/bybit.md#bybitunwatchticker)
 * [coincatch](/exchanges/coincatch.md#coincatchunwatchticker)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomunwatchticker)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinunwatchticker)
 * [defx](/exchanges/defx.md#defxunwatchticker)
 * [htx](/exchanges/htx.md#htxunwatchticker)
 * [kucoin](/exchanges/kucoin.md#kucoinunwatchticker)
@@ -6736,8 +6837,10 @@ unWatches from the stream channel
 * [bybit](/exchanges/bybit.md#bybitunwatchtrades)
 * [coincatch](/exchanges/coincatch.md#coincatchunwatchtrades)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomunwatchtrades)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinunwatchtrades)
 * [defx](/exchanges/defx.md#defxunwatchtrades)
 * [derive](/exchanges/derive.md#deriveunwatchtrades)
+* [dydx](/exchanges/dydx.md#dydxunwatchtrades)
 * [gate](/exchanges/gate.md#gateunwatchtrades)
 * [htx](/exchanges/htx.md#htxunwatchtrades)
 * [hyperliquid](/exchanges/hyperliquid.md#hyperliquidunwatchtrades)
@@ -7113,6 +7216,7 @@ watches information on multiple trades made by the user
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#coinbaseexchangewatchmytrades)
 * [coinex](/exchanges/coinex.md#coinexwatchmytrades)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomwatchmytrades)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinwatchmytrades)
 * [deribit](/exchanges/deribit.md#deribitwatchmytrades)
 * [derive](/exchanges/derive.md#derivewatchmytrades)
 * [exmo](/exchanges/exmo.md#exmowatchmytrades)
@@ -7194,8 +7298,10 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [cex](/exchanges/cex.md#cexwatchohlcv)
 * [coincatch](/exchanges/coincatch.md#coincatchwatchohlcv)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomwatchohlcv)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinwatchohlcv)
 * [defx](/exchanges/defx.md#defxwatchohlcv)
 * [deribit](/exchanges/deribit.md#deribitwatchohlcv)
+* [dydx](/exchanges/dydx.md#dydxwatchohlcv)
 * [gate](/exchanges/gate.md#gatewatchohlcv)
 * [gemini](/exchanges/gemini.md#geminiwatchohlcv)
 * [hashkey](/exchanges/hashkey.md#hashkeywatchohlcv)
@@ -7291,9 +7397,11 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [coinex](/exchanges/coinex.md#coinexwatchorderbook)
 * [coinone](/exchanges/coinone.md#coinonewatchorderbook)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomwatchorderbook)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinwatchorderbook)
 * [defx](/exchanges/defx.md#defxwatchorderbook)
 * [deribit](/exchanges/deribit.md#deribitwatchorderbook)
 * [derive](/exchanges/derive.md#derivewatchorderbook)
+* [dydx](/exchanges/dydx.md#dydxwatchorderbook)
 * [exmo](/exchanges/exmo.md#exmowatchorderbook)
 * [gate](/exchanges/gate.md#gatewatchorderbook)
 * [gemini](/exchanges/gemini.md#geminiwatchorderbook)
@@ -7400,6 +7508,7 @@ watches information on multiple orders made by the user
 * [coincatch](/exchanges/coincatch.md#coincatchwatchorders)
 * [coinex](/exchanges/coinex.md#coinexwatchorders)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomwatchorders)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinwatchorders)
 * [defx](/exchanges/defx.md#defxwatchorders)
 * [deribit](/exchanges/deribit.md#deribitwatchorders)
 * [derive](/exchanges/derive.md#derivewatchorders)
@@ -7497,6 +7606,7 @@ watch all open positions
 * [bybit](/exchanges/bybit.md#bybitwatchpositions)
 * [coincatch](/exchanges/coincatch.md#coincatchwatchpositions)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomwatchpositions)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinwatchpositions)
 * [defx](/exchanges/defx.md#defxwatchpositions)
 * [gate](/exchanges/gate.md#gatewatchpositions)
 * [hashkey](/exchanges/hashkey.md#hashkeywatchpositions)
@@ -7548,6 +7658,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [coinex](/exchanges/coinex.md#coinexwatchticker)
 * [coinone](/exchanges/coinone.md#coinonewatchticker)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomwatchticker)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinwatchticker)
 * [defx](/exchanges/defx.md#defxwatchticker)
 * [deribit](/exchanges/deribit.md#deribitwatchticker)
 * [derive](/exchanges/derive.md#derivewatchticker)
@@ -7669,9 +7780,11 @@ watches information on multiple trades made in a market
 * [coinex](/exchanges/coinex.md#coinexwatchtrades)
 * [coinone](/exchanges/coinone.md#coinonewatchtrades)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomwatchtrades)
+* [deepcoin](/exchanges/deepcoin.md#deepcoinwatchtrades)
 * [defx](/exchanges/defx.md#defxwatchtrades)
 * [deribit](/exchanges/deribit.md#deribitwatchtrades)
 * [derive](/exchanges/derive.md#derivewatchtrades)
+* [dydx](/exchanges/dydx.md#dydxwatchtrades)
 * [exmo](/exchanges/exmo.md#exmowatchtrades)
 * [gate](/exchanges/gate.md#gatewatchtrades)
 * [gemini](/exchanges/gemini.md#geminiwatchtrades)
@@ -7792,6 +7905,7 @@ make a withdrawal
 * [defx](/exchanges/defx.md#defxwithdraw)
 * [deribit](/exchanges/deribit.md#deribitwithdraw)
 * [digifinex](/exchanges/digifinex.md#digifinexwithdraw)
+* [dydx](/exchanges/dydx.md#dydxwithdraw)
 * [exmo](/exchanges/exmo.md#exmowithdraw)
 * [foxbit](/exchanges/foxbit.md#foxbitwithdraw)
 * [gate](/exchanges/gate.md#gatewithdraw)

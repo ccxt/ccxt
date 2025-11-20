@@ -236,6 +236,13 @@ export default class hyperliquid extends Exchange {
                     'XAUT0': 'XAUT',
                     'UXPL': 'XPL',
                 },
+                'fetchMarkets': {
+                    'types': [ 'spot', 'swap', 'hip3' ], // 'spot', 'swap', 'hip3'
+                    // 'hip3': {
+                    //     'limit': 5, // how many dexes to load max if dexes are not specified
+                    //     'dex': [ 'xyz' ],
+                    // },
+                },
             },
             'features': {
                 'default': {
@@ -478,14 +485,144 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const rawPromises = [
-            this.fetchSwapMarkets (params),
-            this.fetchSpotMarkets (params),
-        ];
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const types = this.safeList (options, 'types');
+        const rawPromises = [];
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
+            if (marketType === 'swap') {
+                rawPromises.push (this.fetchSwapMarkets (params));
+            } else if (marketType === 'spot') {
+                rawPromises.push (this.fetchSpotMarkets (params));
+            } else if (marketType === 'hip3') {
+                rawPromises.push (this.fetchHip3Markets (params));
+            }
+        }
         const promises = await Promise.all (rawPromises);
-        const swapMarkets = promises[0];
-        const spotMarkets = promises[1];
-        return this.arrayConcat (swapMarkets, spotMarkets) as Market[];
+        let result = [];
+        for (let i = 0; i < promises.length; i++) {
+            result = this.arrayConcat (result, promises[i]);
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchHip3Markets
+     * @description retrieves data on all hip3 markets for hyperliquid
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchHip3Markets (params = {}): Promise<Market[]> {
+        const fetchDexes = await this.publicPostInfo ({
+            'type': 'perpDexs',
+        });
+        //
+        //     [
+        //         null,
+        //         {
+        //             "name": "xyz",
+        //             "fullName": "XYZ",
+        //             "deployer": "0x88806a71d74ad0a510b350545c9ae490912f0888",
+        //             "oracleUpdater": "0x1234567890545d1df9ee64b35fdd16966e08acec",
+        //             "feeRecipient": "0x79c0650064b10f73649b7b64c5ebf0b319606140",
+        //             "assetToStreamingOiCap": [
+        //                 [
+        //                     "xyz:XYZ100",
+        //                     "100000000.0"
+        //                 ]
+        //             ]
+        //         }
+        //     ]
+        //
+        const perpDexesOffset: Dict = {};
+        for (let i = 1; i < fetchDexes.length; i++) {
+            // builder-deployed perp dexs start at 110000
+            const dex = fetchDexes[i];
+            const offset = 110000 + (i - 1) * 10000;
+            perpDexesOffset[dex['name']] = offset;
+        }
+        let fetchDexesList = [];
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const hip3 = this.safeDict (options, 'hip3', {});
+        const defaultLimit = this.safeInteger (hip3, 'limit', 5);
+        const dexesLength = fetchDexes.length;
+        if (dexesLength >= defaultLimit) { // first element is null
+            const defaultDexes = this.safeList (hip3, 'dex', []);
+            if (defaultDexes.length === 0) {
+                throw new ArgumentsRequired (this.id + ' fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options["fetchMarkets"]["hip3"]["dex"] parameter to fetch markets from those DEXes only. The limit is set to ' + defaultLimit.toString () + ' DEXes by default.');
+            } else {
+                fetchDexesList = defaultDexes;
+            }
+        } else {
+            for (let i = 1; i < fetchDexes.length; i++) {
+                const dex = this.safeDict (fetchDexes, i, {});
+                const dexName = this.safeString (dex, 'name');
+                fetchDexesList.push (dexName);
+            }
+        }
+        const rawPromises = [];
+        for (let i = 0; i < fetchDexesList.length; i++) {
+            const request: Dict = {
+                'type': 'metaAndAssetCtxs',
+                'dex': this.safeString (fetchDexesList, i),
+            };
+            rawPromises.push (this.publicPostInfo (this.extend (request, params)));
+        }
+        const promises = await Promise.all (rawPromises);
+        let markets = [];
+        for (let i = 0; i < promises.length; i++) {
+            const dexName = fetchDexesList[i];
+            const offset = perpDexesOffset[dexName];
+            const response = promises[i];
+            const meta = this.safeDict (response, 0, {});
+            const universe = this.safeList (meta, 'universe', []);
+            const assetCtxs = this.safeList (response, 1, []);
+            const result = [];
+            for (let j = 0; j < universe.length; j++) {
+                const data = this.extend (
+                    this.safeDict (universe, j, {}),
+                    this.safeDict (assetCtxs, j, {})
+                );
+                data['baseId'] = j + offset;
+                result.push (data);
+            }
+            markets = this.arrayConcat (markets, this.parseMarkets (result));
+        }
+        //
+        //     [
+        //         {
+        //             "universe": [
+        //                 {
+        //                     "maxLeverage": 50,
+        //                     "name": "SOL",
+        //                     "onlyIsolated": false,
+        //                     "szDecimals": 2
+        //                 }
+        //             ]
+        //         },
+        //         [
+        //             {
+        //                 "dayNtlVlm": "9450588.2273",
+        //                 "funding": "0.0000198",
+        //                 "impactPxs": [
+        //                     "108.04",
+        //                     "108.06"
+        //                 ],
+        //                 "markPx": "108.04",
+        //                 "midPx": "108.05",
+        //                 "openInterest": "10764.48",
+        //                 "oraclePx": "107.99",
+        //                 "premium": "0.00055561",
+        //                 "prevDayPx": "111.81"
+        //             }
+        //         ]
+        //     ]
+        //
+        //
+        return markets;
     }
 
     /**
@@ -796,7 +933,7 @@ export default class hyperliquid extends Exchange {
         const baseId = this.safeString (market, 'baseId');
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode (settleId);
-        let symbol = base + '/' + quote;
+        let symbol = base.replace (':', '-') + '/' + quote;
         const contract = true;
         const swap = true;
         if (contract) {
@@ -1490,6 +1627,18 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
+    buildUserDexAbstractionSig (message) {
+        const messageTypes: Dict = {
+            'HyperliquidTransaction:UserDexAbstraction': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'user', 'type': 'address' },
+                { 'name': 'enabled', 'type': 'bool' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction (messageTypes, message);
+    }
+
     buildApproveBuilderFeeSig (message) {
         const messageTypes: Dict = {
             'HyperliquidTransaction:ApproveBuilderFee': [
@@ -1590,6 +1739,43 @@ export default class hyperliquid extends Exchange {
             this.options['builderFee'] = false; // disable builder fee if an error occurs
         }
         return true;
+    }
+
+    async enableUserDexAbstraction (enabled: boolean, params = {}) {
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('enableUserDexAbstraction', params);
+        const nonce = this.milliseconds ();
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const payload: Dict = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'user': userAddress,
+            'enabled': enabled,
+            'nonce': nonce,
+        };
+        const sig = this.buildUserDexAbstractionSig (payload);
+        const action = {
+            'hyperliquidChain': payload['hyperliquidChain'],
+            'signatureChainId': '0x66eee',
+            'enabled': payload['enabled'],
+            'user': payload['user'],
+            'nonce': nonce,
+            'type': 'userDexAbstraction',
+        };
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': undefined,
+        };
+        //
+        // {
+        //     "status": "ok",
+        //     "response": {
+        //         "type": "default"
+        //     }
+        // }
+        //
+        return await this.privatePostExchange (request);
     }
 
     /**
@@ -2414,6 +2600,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.dex] perp dex name. default is null
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2422,11 +2609,21 @@ export default class hyperliquid extends Exchange {
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         await this.loadMarkets ();
-        const market = this.safeMarket (symbol);
         const request: Dict = {
             'type': method,
             'user': userAddress,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            // check if is hip3 symbol
+            const baseName = this.safeString (market, 'baseName', '');
+            const part = baseName.split (':');
+            const partsLength = part.length;
+            if (partsLength > 1) {
+                request['dex'] = this.safeString (part, 0);
+            }
+        }
         const response = await this.publicPostInfo (this.extend (request, params));
         //
         //     [
@@ -4099,6 +4296,9 @@ export default class hyperliquid extends Exchange {
     coinToMarketId (coin: Str) {
         if (coin.indexOf ('/') > -1 || coin.indexOf ('@') > -1) {
             return coin; // spot
+        }
+        if (coin.indexOf (':') > -1) {
+            coin = coin.replace (':', '-'); // hip3
         }
         return this.safeCurrencyCode (coin) + '/USDC:USDC';
     }

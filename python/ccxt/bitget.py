@@ -426,6 +426,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/spot/trade/place-plan-order': 1,
                             'v2/spot/trade/modify-plan-order': 1,
                             'v2/spot/trade/cancel-plan-order': 1,
+                            'v2/spot/trade/cancel-replace-order': 2,
                             'v2/spot/trade/batch-cancel-plan-order': 2,
                             'v2/spot/wallet/transfer': 2,
                             'v2/spot/wallet/subaccount-transfer': 2,
@@ -1432,6 +1433,7 @@ class bitget(Exchange, ImplicitAPI):
                     'spot': {
                         '1m': '1min',
                         '5m': '5min',
+                        '3m': '3min',
                         '15m': '15min',
                         '30m': '30min',
                         '1h': '1h',
@@ -1494,6 +1496,7 @@ class bitget(Exchange, ImplicitAPI):
                         '15m': 30,
                         '30m': 30,
                         '1h': 60,
+                        '2h': 120,
                         '4h': 240,
                         '6h': 360,
                         '12h': 720,
@@ -4133,9 +4136,13 @@ class bitget(Exchange, ImplicitAPI):
             request['startTime'] = since
             if not untilDefined:
                 calculatedEndTime = self.sum(calculatedStartTime, limitMultipliedDuration)
+                if calculatedEndTime > now:
+                    calculatedEndTime = now
                 request['endTime'] = calculatedEndTime
         if untilDefined:
             calculatedEndTime = until
+            if calculatedEndTime > now:
+                calculatedEndTime = now
             request['endTime'] = calculatedEndTime
             if not sinceDefined:
                 calculatedStartTime = calculatedEndTime - limitMultipliedDuration
@@ -5372,6 +5379,7 @@ class bitget(Exchange, ImplicitAPI):
         edit a trade order
 
         https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+        https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
         https://www.bitget.com/api-doc/contract/trade/Modify-Order
         https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
         https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -5405,8 +5413,14 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'orderId': id,
+            # 'orderId': id,
         }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOid')
+        if clientOrderId is not None:
+            params = self.omit(params, ['clientOrderId'])
+            request['clientOid'] = clientOrderId
+        else:
+            request['orderId'] = id
         isMarketOrder = type == 'market'
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
         isTriggerOrder = triggerPrice is not None
@@ -5423,9 +5437,6 @@ class bitget(Exchange, ImplicitAPI):
         isTrailingPercentOrder = trailingPercent is not None
         if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1:
             raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
-        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clientOid'] = clientOrderId
         params = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent'])
         response = None
         productType = None
@@ -5461,23 +5472,30 @@ class bitget(Exchange, ImplicitAPI):
                     request['price'] = self.price_to_precision(symbol, price)
                 response = self.privateUtaPostV3TradeModifyOrder(self.extend(request, params))
         elif market['spot']:
-            if triggerPrice is None:
-                raise NotSupported(self.id + ' editOrder() only supports plan/trigger spot orders')
+            cost = self.safe_string(params, 'cost')
+            params = self.omit(params, 'cost')
             editMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'editMarketBuyOrderRequiresPrice', True)
-            if editMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
-                if price is None:
-                    raise InvalidOrder(self.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the editMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+            if (editMarketBuyOrderRequiresPrice or (cost is not None)) and isMarketOrder and (side == 'buy'):
+                if price is None and cost is None:
+                    raise InvalidOrder(self.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively provide `cost` in the params')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
-                    cost = self.parse_number(Precise.string_mul(amountString, priceString))
-                    request['size'] = self.price_to_precision(symbol, cost)
+                    finalCost = (Precise.string_mul(amountString, priceString)) if (cost is None) else cost
+                    request['size'] = self.price_to_precision(symbol, finalCost)
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
             request['orderType'] = type
-            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-            request['executePrice'] = self.price_to_precision(symbol, price)
-            response = self.privateSpotPostV2SpotTradeModifyPlanOrder(self.extend(request, params))
+            if triggerPrice is not None:
+                request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+                request['executePrice'] = self.price_to_precision(symbol, price)
+            else:
+                request['price'] = self.price_to_precision(symbol, price)
+            if triggerPrice is not None:
+                response = self.privateSpotPostV2SpotTradeModifyPlanOrder(self.extend(request, params))
+            else:
+                request['symbol'] = market['id']
+                response = self.privateSpotPostV2SpotTradeCancelReplaceOrder(self.extend(request, params))
         else:
             if (not market['swap']) and (not market['future']):
                 raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders')
@@ -5820,9 +5838,8 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
         https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
         https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-        https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-        https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-        https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+        https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+        https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5870,26 +5887,7 @@ class bitget(Exchange, ImplicitAPI):
             #
         elif market['spot']:
             if marginMode is not None:
-                if marginMode == 'cross':
-                    response = self.privateMarginPostMarginV1CrossOrderBatchCancelOrder(self.extend(request, params))
-                else:
-                    response = self.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(self.extend(request, params))
-                #
-                #     {
-                #         "code": "00000",
-                #         "msg": "success",
-                #         "requestTime": 1700717155622,
-                #         "data": {
-                #             "resultList": [
-                #                 {
-                #                     "orderId": "1111453253721796609",
-                #                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-                #                 },
-                #             ],
-                #             "failure": []
-                #         }
-                #     }
-                #
+                raise NotSupported(self.id + ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead')
             else:
                 if trigger:
                     stopRequest: dict = {

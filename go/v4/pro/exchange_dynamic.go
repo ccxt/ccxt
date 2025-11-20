@@ -143,6 +143,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         cryptocomItf := NewCryptocomCore()
         cryptocomItf.Init(exchangeArgs)
         return cryptocomItf, true
+    case "deepcoin":
+        deepcoinItf := NewDeepcoinCore()
+        deepcoinItf.Init(exchangeArgs)
+        return deepcoinItf, true
     case "defx":
         defxItf := NewDefxCore()
         defxItf.Init(exchangeArgs)
@@ -155,6 +159,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         deriveItf := NewDeriveCore()
         deriveItf.Init(exchangeArgs)
         return deriveItf, true
+    case "dydx":
+        dydxItf := NewDydxCore()
+        dydxItf.Init(exchangeArgs)
+        return dydxItf, true
     case "exmo":
         exmoItf := NewExmoCore()
         exmoItf.Init(exchangeArgs)

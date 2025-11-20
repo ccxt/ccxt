@@ -1115,6 +1115,6 @@ func (this *KucoinfuturesCore) UtaGetMarketCrossConfig(args ...interface{}) <-ch
 	return this.callEndpointAsync("utaGetMarketCrossConfig", args...)
 }
 
-func (this *KucoinfuturesCore) UtaGetMarketServerStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("utaGetMarketServerStatus", args...)
+func (this *KucoinfuturesCore) UtaGetServerStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetServerStatus", args...)
 }

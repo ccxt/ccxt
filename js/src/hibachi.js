@@ -830,7 +830,7 @@ export default class hibachi extends Exchange {
     }
     createOrderRequest(nonce, symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
-        const feeRate = Math.max(this.safeNumber(market, 'taker'), this.safeNumber(market, 'maker'));
+        const feeRate = Math.max(this.safeNumber(market, 'taker', this.safeNumber(this.options, 'defaultTakerFee', 0.00045)), this.safeNumber(market, 'maker', this.safeNumber(this.options, 'defaultMakerFee', 0.00015)));
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';

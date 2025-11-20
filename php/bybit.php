@@ -413,8 +413,11 @@ class bybit extends Exchange {
                         'v5/broker/account-info' => 5,
                         'v5/broker/asset/query-sub-member-deposit-record' => 10,
                         // earn
+                        'v5/earn/product' => 5,
                         'v5/earn/order' => 5,
                         'v5/earn/position' => 5,
+                        'v5/earn/yield' => 5,
+                        'v5/earn/hourly-yield' => 5,
                     ),
                     'post' => array(
                         // spot
@@ -7446,7 +7449,7 @@ class bybit extends Exchange {
         /**
          * create a loan to borrow margin
          *
-         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+         * @see https://bybit-exchange.github.io/docs/v5/account/borrow
          *
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
@@ -7457,33 +7460,30 @@ class bybit extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
-            'qty' => $this->currency_to_precision($code, $amount),
+            'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privatePostV5SpotCrossMarginTradeLoan ($this->extend($request, $params));
+        $response = $this->privatePostV5AccountBorrow ($this->extend($request, $params));
         //
         //     {
         //         "retCode" => 0,
         //         "retMsg" => "success",
         //         "result" => array(
-        //             "transactId" => "14143"
+        //             "coin" => "BTC",
+        //             "amount" => "0.001"
         //         ),
-        //         "retExtInfo" => null,
-        //         "time" => 1662617848970
+        //         "retExtInfo" => array(),
+        //         "time" => 1763194940073
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $transaction = $this->parse_margin_loan($result, $currency);
-        return $this->extend($transaction, array(
-            'symbol' => null,
-            'amount' => $amount,
-        ));
+        return $this->parse_margin_loan($result, $currency);
     }
 
     public function repay_cross_margin(string $code, $amount, $params = array ()) {
         /**
          * repay borrowed margin and interest
          *
-         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+         * @see https://bybit-exchange.github.io/docs/v5/account/no-convert-repay
          *
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
@@ -7494,24 +7494,23 @@ class bybit extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
-            'qty' => $this->number_to_string($amount),
+            'amount' => $this->number_to_string($amount),
         );
-        $response = $this->privatePostV5SpotCrossMarginTradeRepay ($this->extend($request, $params));
+        $response = $this->privatePostV5AccountNoConvertRepay ($this->extend($request, $params));
         //
         //     {
         //         "retCode" => 0,
         //         "retMsg" => "success",
         //         "result" => array(
-        //            "repayId" => "12128"
+        //             "resultStatus" => "SU"
         //         ),
-        //         "retExtInfo" => null,
-        //         "time" => 1662618298452
+        //         "retExtInfo" => array(),
+        //         "time" => 1763195201119
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
         $transaction = $this->parse_margin_loan($result, $currency);
         return $this->extend($transaction, array(
-            'symbol' => null,
             'amount' => $amount,
         ));
     }
@@ -7521,19 +7520,21 @@ class bybit extends Exchange {
         // borrowCrossMargin
         //
         //     {
-        //         "transactId" => "14143"
+        //         "coin" => "BTC",
+        //         "amount" => "0.001"
         //     }
         //
         // repayCrossMargin
         //
         //     {
-        //         "repayId" => "12128"
+        //         "resultStatus" => "SU"
         //     }
         //
+        $currencyId = $this->safe_string($info, 'coin');
         return array(
-            'id' => $this->safe_string_2($info, 'transactId', 'repayId'),
-            'currency' => $this->safe_string($currency, 'code'),
-            'amount' => null,
+            'id' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_string($info, 'amount'),
             'symbol' => null,
             'timestamp' => null,
             'datetime' => null,

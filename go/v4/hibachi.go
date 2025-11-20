@@ -929,7 +929,7 @@ func (this *HibachiCore) CreateOrderRequest(nonce interface{}, symbol interface{
 	params := GetArg(optionalArgs, 1, map[string]interface{}{})
 	_ = params
 	var market interface{} = this.Market(symbol)
-	var feeRate interface{} = mathMax(this.SafeNumber(market, "taker"), this.SafeNumber(market, "maker"))
+	var feeRate interface{} = mathMax(this.SafeNumber(market, "taker", this.SafeNumber(this.Options, "defaultTakerFee", 0.00045)), this.SafeNumber(market, "maker", this.SafeNumber(this.Options, "defaultMakerFee", 0.00015)))
 	var sideInternal interface{} = ""
 	if IsTrue(IsEqual(side, "sell")) {
 		sideInternal = "ASK"

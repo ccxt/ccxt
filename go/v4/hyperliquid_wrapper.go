@@ -61,6 +61,23 @@ func (this *Hyperliquid) FetchMarkets(params ...interface{}) ([]MarketInterface,
 
 /**
  * @method
+ * @name hyperliquid#fetchHip3Markets
+ * @description retrieves data on all hip3 markets for hyperliquid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
+func (this *Hyperliquid) FetchHip3Markets(params ...interface{}) ([]MarketInterface, error) {
+	res := <-this.Core.FetchHip3Markets(params...)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewMarketInterfaceArray(res), nil
+}
+
+/**
+ * @method
  * @name hyperliquid#fetchSwapMarkets
  * @description retrieves data on all swap markets for hyperliquid
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
@@ -651,6 +668,7 @@ func (this *Hyperliquid) FetchFundingRateHistory(options ...FetchFundingRateHist
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.dex] perp dex name. default is null
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Hyperliquid) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {

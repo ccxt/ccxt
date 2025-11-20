@@ -3,6 +3,7 @@ package ccxt
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	j "encoding/json"
 	"errors"
 	"fmt"
@@ -18,7 +19,10 @@ import (
 	"sync"
 	"time"
 
+	pb "github.com/ccxt/ccxt/go/v4/protoc"
 	"golang.org/x/net/proxy"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 type Exchange struct {
@@ -1308,6 +1312,52 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 	return ch
 }
 
+func (this *Exchange) LoadDydxProtos() <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		ch <- "panic:" + "Dydx currently does not support transfer asset in Go language"
+	}()
+	return ch
+}
+
+func (this *Exchange) ToDydxLong(numStr interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) RetrieveDydxCredentials(entropy interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxForSimulation(
+	message interface{},
+	memo interface{},
+	sequence interface{},
+	publicKey interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxForSigning(
+	message interface{},
+	memo interface{},
+	chainId interface{},
+	account interface{},
+	authenticators interface{},
+	fee interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxRaw(signDoc interface{}, signature interface{}) interface{} {
+	return nil
+}
+
 func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 	options := options2.(map[string]interface{})
 	extended := this.Extend(this.SafeMapToMap(this.Options), options)
@@ -1974,5 +2024,16 @@ func (this *Exchange) IsBinaryMessage(message interface{}) bool {
 }
 
 func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
-	return nil //tmp add protobuf
+	var msg pb.PushDataV3ApiWrapper
+	if err := proto.Unmarshal(message.([]byte), &msg); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal proto message: %v", err))
+	}
+	jsonBytes, _ := protojson.Marshal(&msg)
+	var v interface{}
+	_ = json.Unmarshal(jsonBytes, &v)
+	return v
+}
+
+func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
+	return ""
 }

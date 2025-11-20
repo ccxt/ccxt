@@ -731,6 +731,10 @@ func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelPlanOrder(args ...interf
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelPlanOrder", args...)
 }
 
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelReplaceOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelReplaceOrder", args...)
+}
+
 func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchCancelPlanOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelPlanOrder", args...)
 }

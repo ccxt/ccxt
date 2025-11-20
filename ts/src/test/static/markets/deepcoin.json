@@ -1,0 +1,520 @@
+{
+    "BTC/USDT": {
+        "tierBased": null,
+        "percentage": null,
+        "taker": 0.0015,
+        "maker": 0.001,
+        "id": "BTC-USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "created": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 1
+            },
+            "amount": {
+                "min": 0.0004,
+                "max": 1000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "info": {
+            "instType": "SPOT",
+            "instId": "BTC-USDT",
+            "uly": "",
+            "baseCcy": "BTC",
+            "quoteCcy": "USDT",
+            "ctVal": "1",
+            "ctValCcy": "",
+            "listTime": "0",
+            "lever": "1",
+            "tickSz": "0.1",
+            "lotSz": "0.00000001",
+            "minSz": "0.0004",
+            "ctType": "",
+            "alias": "",
+            "state": "live",
+            "maxLmtSz": "1000",
+            "maxMktSz": "1000"
+        }
+    },
+    "ETH/USDT": {
+        "tierBased": null,
+        "percentage": null,
+        "taker": 0.0015,
+        "maker": 0.001,
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "created": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 1
+            },
+            "amount": {
+                "min": 0.004,
+                "max": 10000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "info": {
+            "instType": "SPOT",
+            "instId": "ETH-USDT",
+            "uly": "",
+            "baseCcy": "ETH",
+            "quoteCcy": "USDT",
+            "ctVal": "1",
+            "ctValCcy": "",
+            "listTime": "0",
+            "lever": "1",
+            "tickSz": "0.01",
+            "lotSz": "0.00000001",
+            "minSz": "0.004",
+            "ctType": "",
+            "alias": "",
+            "state": "live",
+            "maxLmtSz": "10000",
+            "maxMktSz": "10000"
+        }
+    },
+    "BTC/USDT:USDT": {
+        "tierBased": null,
+        "percentage": null,
+        "taker": 0.0015,
+        "maker": 0.001,
+        "id": "BTC-USDT-SWAP",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 0.001,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "created": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 125
+            },
+            "amount": {
+                "min": 1,
+                "max": 200000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "info": {
+            "instType": "SWAP",
+            "instId": "BTC-USDT-SWAP",
+            "uly": "",
+            "baseCcy": "BTC",
+            "quoteCcy": "USDT",
+            "ctVal": "0.001",
+            "ctValCcy": "",
+            "listTime": "0",
+            "lever": "125",
+            "tickSz": "0.1",
+            "lotSz": "1",
+            "minSz": "1",
+            "ctType": "",
+            "alias": "",
+            "state": "live",
+            "maxLmtSz": "200000",
+            "maxMktSz": "200000"
+        }
+    },
+    "ETH/USDT:USDT": {
+        "tierBased": null,
+        "percentage": null,
+        "taker": 0.0015,
+        "maker": 0.001,
+        "id": "ETH-USDT-SWAP",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 0.1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "created": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 125
+            },
+            "amount": {
+                "min": 1,
+                "max": 100000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "info": {
+            "instType": "SWAP",
+            "instId": "ETH-USDT-SWAP",
+            "uly": "",
+            "baseCcy": "ETH",
+            "quoteCcy": "USDT",
+            "ctVal": "0.1",
+            "ctValCcy": "",
+            "listTime": "0",
+            "lever": "125",
+            "tickSz": "0.01",
+            "lotSz": "1",
+            "minSz": "1",
+            "ctType": "",
+            "alias": "",
+            "state": "live",
+            "maxLmtSz": "100000",
+            "maxMktSz": "100000"
+        }
+    },
+    "DOGE/USDT:USDT": {
+        "id": "DOGE-USDT-SWAP",
+        "lowercaseId": null,
+        "symbol": "DOGE/USDT:USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "DOGE",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0015,
+        "maker": 0.001,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 75
+            },
+            "amount": {
+                "min": 20,
+                "max": 1500000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "instType": "SWAP",
+            "instId": "DOGE-USDT-SWAP",
+            "uly": "",
+            "baseCcy": "DOGE",
+            "quoteCcy": "USDT",
+            "ctVal": "1",
+            "ctValCcy": "",
+            "listTime": "0",
+            "lever": "75",
+            "tickSz": "0.00001",
+            "lotSz": "1",
+            "minSz": "20",
+            "ctType": "",
+            "alias": "",
+            "state": "live",
+            "maxLmtSz": "1500000",
+            "maxMktSz": "1500000"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "XRP/USD:XRP": {
+        "id": "XRP-USD-SWAP",
+        "lowercaseId": null,
+        "symbol": "XRP/USD:XRP",
+        "base": "XRP",
+        "quote": "USD",
+        "settle": "XRP",
+        "baseId": "XRP",
+        "quoteId": "USD",
+        "settleId": "XRP",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "subType": "inverse",
+        "taker": 0.0015,
+        "maker": 0.001,
+        "contractSize": 10,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 33
+            },
+            "amount": {
+                "min": 1,
+                "max": 200000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "instType": "SWAP",
+            "instId": "XRP-USD-SWAP",
+            "uly": "",
+            "baseCcy": "XRP",
+            "quoteCcy": "USD",
+            "ctVal": "10",
+            "ctValCcy": "",
+            "listTime": "0",
+            "lever": "33",
+            "tickSz": "0.0001",
+            "lotSz": "1",
+            "minSz": "1",
+            "ctType": "",
+            "alias": "",
+            "state": "live",
+            "maxLmtSz": "200000",
+            "maxMktSz": "200000"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "LTC/USDT": {
+        "id": "LTC-USDT",
+        "lowercaseId": null,
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0015,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 1
+            },
+            "amount": {
+                "min": 0.096,
+                "max": 100000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "instType": "SPOT",
+            "instId": "LTC-USDT",
+            "uly": "",
+            "baseCcy": "LTC",
+            "quoteCcy": "USDT",
+            "ctVal": "1",
+            "ctValCcy": "",
+            "listTime": "0",
+            "lever": "1",
+            "tickSz": "0.01",
+            "lotSz": "0.00000001",
+            "minSz": "0.096",
+            "ctType": "",
+            "alias": "",
+            "state": "live",
+            "maxLmtSz": "100000",
+            "maxMktSz": "100000"
+        },
+        "tierBased": null,
+        "percentage": null
+    }
+}

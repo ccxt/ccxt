@@ -434,8 +434,11 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
                         # earn
+                        'v5/earn/product': 5,
                         'v5/earn/order': 5,
                         'v5/earn/position': 5,
+                        'v5/earn/yield': 5,
+                        'v5/earn/hourly-yield': 5,
                     },
                     'post': {
                         # spot
@@ -7062,7 +7065,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         create a loan to borrow margin
 
-        https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+        https://bybit-exchange.github.io/docs/v5/account/borrow
 
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
@@ -7073,32 +7076,29 @@ classic accounts only/ spot not supported*  fetches information on an order made
         currency = self.currency(code)
         request: dict = {
             'coin': currency['id'],
-            'qty': self.currency_to_precision(code, amount),
+            'amount': self.currency_to_precision(code, amount),
         }
-        response = self.privatePostV5SpotCrossMarginTradeLoan(self.extend(request, params))
+        response = self.privatePostV5AccountBorrow(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
         #         "retMsg": "success",
         #         "result": {
-        #             "transactId": "14143"
+        #             "coin": "BTC",
+        #             "amount": "0.001"
         #         },
-        #         "retExtInfo": null,
-        #         "time": 1662617848970
+        #         "retExtInfo": {},
+        #         "time": 1763194940073
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        transaction = self.parse_margin_loan(result, currency)
-        return self.extend(transaction, {
-            'symbol': None,
-            'amount': amount,
-        })
+        return self.parse_margin_loan(result, currency)
 
     def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
 
-        https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+        https://bybit-exchange.github.io/docs/v5/account/no-convert-repay
 
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
@@ -7109,24 +7109,23 @@ classic accounts only/ spot not supported*  fetches information on an order made
         currency = self.currency(code)
         request: dict = {
             'coin': currency['id'],
-            'qty': self.number_to_string(amount),
+            'amount': self.number_to_string(amount),
         }
-        response = self.privatePostV5SpotCrossMarginTradeRepay(self.extend(request, params))
+        response = self.privatePostV5AccountNoConvertRepay(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
         #         "retMsg": "success",
         #         "result": {
-        #            "repayId": "12128"
+        #             "resultStatus": "SU"
         #         },
-        #         "retExtInfo": null,
-        #         "time": 1662618298452
+        #         "retExtInfo": {},
+        #         "time": 1763195201119
         #     }
         #
         result = self.safe_dict(response, 'result', {})
         transaction = self.parse_margin_loan(result, currency)
         return self.extend(transaction, {
-            'symbol': None,
             'amount': amount,
         })
 
@@ -7135,19 +7134,21 @@ classic accounts only/ spot not supported*  fetches information on an order made
         # borrowCrossMargin
         #
         #     {
-        #         "transactId": "14143"
+        #         "coin": "BTC",
+        #         "amount": "0.001"
         #     }
         #
         # repayCrossMargin
         #
         #     {
-        #         "repayId": "12128"
+        #         "resultStatus": "SU"
         #     }
         #
+        currencyId = self.safe_string(info, 'coin')
         return {
-            'id': self.safe_string_2(info, 'transactId', 'repayId'),
-            'currency': self.safe_string(currency, 'code'),
-            'amount': None,
+            'id': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_string(info, 'amount'),
             'symbol': None,
             'timestamp': None,
             'datetime': None,

@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.17';
+$version = '4.5.20';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.17';
+    const VERSION = '4.5.20';
 
     public $browser;
     public $marketsLoading = null;
@@ -837,7 +837,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function get_cache_index($orderbook, $deltas) {
-        // return the first index of the cache that can be applied to the $orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the $orderbook or -1 if not possible.
         return -1;
     }
 
@@ -2190,6 +2190,7 @@ class Exchange extends \ccxt\Exchange {
         $this->symbols = $sourceExchange->symbols;
         $this->ids = $sourceExchange->ids;
         $this->currencies = $sourceExchange->currencies;
+        $this->currencies_by_id = $sourceExchange->currencies_by_id;
         $this->baseCurrencies = $sourceExchange->baseCurrencies;
         $this->quoteCurrencies = $sourceExchange->quoteCurrencies;
         $this->codes = $sourceExchange->codes;
@@ -2701,7 +2702,7 @@ class Exchange extends \ccxt\Exchange {
                 $fee = $this->parse_fee_numeric($fee);
             }
             if (!$feesDefined) {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 $fees = array( $fee );
             }
             // 'fees' were set, so reparse them
@@ -3993,10 +3994,6 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
-        $result = $this->safe_market_structure(array(
-            'symbol' => $marketId,
-            'marketId' => $marketId,
-        ));
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
                 $markets = $this->markets_by_id[$marketId];
@@ -4021,22 +4018,24 @@ class Exchange extends \ccxt\Exchange {
             } elseif ($delimiter !== null && $delimiter !== '') {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = count($parts);
+                $result = $this->safe_market_structure(array(
+                    'symbol' => $marketId,
+                    'marketId' => $marketId,
+                ));
                 if ($partsLength === 2) {
                     $result['baseId'] = $this->safe_string($parts, 0);
                     $result['quoteId'] = $this->safe_string($parts, 1);
                     $result['base'] = $this->safe_currency_code($result['baseId']);
                     $result['quote'] = $this->safe_currency_code($result['quoteId']);
                     $result['symbol'] = $result['base'] . '/' . $result['quote'];
-                    return $result;
-                } else {
-                    return $result;
                 }
+                return $result;
             }
         }
         if ($market !== null) {
             return $market;
         }
-        return $result;
+        return $this->safe_market_structure(array( 'symbol' => $marketId, 'marketId' => $marketId ));
     }
 
     public function market_or_null(string $symbol) {
@@ -7161,7 +7160,7 @@ class Exchange extends \ccxt\Exchange {
                         unset($futures['fetchPositionsSnapshot']);
                     }
                 }
-            } elseif ($topic === 'ticker' && ($this->tickers !== null)) {
+            } elseif (($topic === 'ticker' || $topic === 'markPrice') && ($this->tickers !== null)) {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
                     $tickerSymbol = $tickerSymbols[$i];

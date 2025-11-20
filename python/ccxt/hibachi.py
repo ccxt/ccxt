@@ -814,7 +814,7 @@ class hibachi(Exchange, ImplicitAPI):
 
     def create_order_request(self, nonce: float, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
-        feeRate = max(self.safe_number(market, 'taker'), self.safe_number(market, 'maker'))
+        feeRate = max(self.safe_number(market, 'taker', self.safe_number(self.options, 'defaultTakerFee', 0.00045)), self.safe_number(market, 'maker', self.safe_number(self.options, 'defaultMakerFee', 0.00015)))
         sideInternal = ''
         if side == 'sell':
             sideInternal = 'ASK'

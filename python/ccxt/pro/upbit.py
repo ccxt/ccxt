@@ -45,23 +45,30 @@ class upbit(ccxt.async_support.upbit):
         url = self.implode_params(self.urls['api']['ws'], {
             'hostname': self.hostname,
         })
-        self.options[channel] = self.safe_value(self.options, channel, {})
-        self.options[channel][symbol] = True
-        symbols = list(self.options[channel].keys())
-        marketIds = self.market_ids(symbols)
-        request = [
+        client = self.client(url)
+        subscriptionsKey = 'upbitPublicSubscriptions'
+        if not (subscriptionsKey in client.subscriptions):
+            client.subscriptions[subscriptionsKey] = {}
+        subscriptions = client.subscriptions[subscriptionsKey]
+        messageHash = channel
+        request: dict = {
+            'type': channel,
+        }
+        if symbol is not None:
+            messageHash = channel + ':' + symbol
+            request['codes'] = [marketId]
+        if not (messageHash in subscriptions):
+            subscriptions[messageHash] = request
+        finalMessage = [
             {
                 'ticket': self.uuid(),
             },
-            {
-                'type': channel,
-                'codes': marketIds,
-                # 'isOnlySnapshot': False,
-                # 'isOnlyRealtime': False,
-            },
         ]
-        messageHash = channel + ':' + marketId
-        return await self.watch(url, messageHash, request, messageHash)
+        channelKeys = list(subscriptions.keys())
+        for i in range(0, len(channelKeys)):
+            key = channelKeys[i]
+            finalMessage.append(subscriptions[key])
+        return await self.watch(url, messageHash, finalMessage, messageHash)
 
     async def watch_public_multiple(self, symbols: Strings, channel, params={}):
         await self.load_markets()
