@@ -455,6 +455,11 @@ export default class lighter extends lighterRest {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
+        const type = this.safeString (message, 'type', '');
+        if (type === 'ping') {
+            this.handlePing (client, message);
+            return;
+        }
         const channel = this.safeString (message, 'channel', '');
         if (channel.indexOf ('order_book:') >= 0) {
             this.handleOrderBook (client, message);
@@ -500,5 +505,19 @@ export default class lighter extends lighterRest {
             this.cleanUnsubscription (client, subHash, unsubHash);
         }
         this.cleanCache (subscription);
+    }
+
+    handlePing (client: Client, message) {
+        //
+        //     { "type": "ping" }
+        //
+        this.spawn (this.pong, client, message);
+    }
+
+    async pong (client, message) {
+        const request: Dict = {
+            'type': 'pong',
+        };
+        await client.send (request);
     }
 }
