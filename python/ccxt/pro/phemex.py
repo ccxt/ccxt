@@ -74,8 +74,10 @@ class phemex(ccxt.async_support.phemex):
         return self.from_en(er, self.safe_integer(market, 'ratioScale'))
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return requestId
 
     def parse_swap_ticker(self, ticker, market=None):
