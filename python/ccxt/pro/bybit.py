@@ -176,8 +176,10 @@ class bybit(ccxt.async_support.bybit):
         })
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return requestId
 
     async def get_url_by_market_type(self, symbol: Str = None, isPrivate=False, method: Str = None, params={}):

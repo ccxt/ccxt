@@ -1832,8 +1832,10 @@ class gate(ccxt.async_support.gate):
 
     def request_id(self):
         # their support said that reqid must be an int32, not documented
+        self.lock_id()
         reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
         self.options['reqid'] = reqid
+        self.unlock_id()
         return reqid
 
     async def subscribe_public(self, url, messageHash, payload, channel, params={}, subscription=None):
