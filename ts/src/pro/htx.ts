@@ -773,7 +773,8 @@ export default class htx extends htxRest {
         }
         const orderbook = this.orderbooks[symbol];
         if ((event === undefined) && (orderbook['nonce'] === undefined)) {
-            orderbook.cache.push (message);
+            const cache = orderbook.cache;
+            cache.push (message);
         } else {
             this.handleOrderBookMessage (client, message);
             client.resolve (orderbook, messageHash);

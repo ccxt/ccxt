@@ -972,7 +972,8 @@ export default class binance extends binanceRest {
         const nonce = this.safeInteger (orderbook, 'nonce');
         if (nonce === undefined) {
             // 2. Buffer the events you receive from the stream.
-            orderbook.cache.push (message);
+            const cache = orderbook.cache;
+            cache.push (message);
         } else {
             try {
                 const U = this.safeInteger (message, 'U');

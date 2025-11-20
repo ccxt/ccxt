@@ -481,7 +481,8 @@ export default class bitvavo extends bitvavoRest {
                 // fetch the snapshot in a separate async call after a warmup delay
                 this.delay (delay, this.watchOrderBookSnapshot, client, message, subscription);
             }
-            orderbook.cache.push (message);
+            const cache = orderbook.cache;
+            cache.push (message);
         } else {
             this.handleOrderBookMessage (client, message, orderbook);
             client.resolve (orderbook, messageHash);

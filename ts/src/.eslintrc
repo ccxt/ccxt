@@ -73,6 +73,10 @@
     "curly": "error",
     "no-plusplus": "off",
     "no-restricted-properties": "off",
+    "no-restricted-syntax": ["error", {
+      "selector": "MemberExpression[property.name!='cache'] > MemberExpression[property.name='cache']",
+      "message": "Chaining from .cache is not allowed. First assign .cache to a variable and then use it."
+    }],
     "prefer-destructuring": "off",
     "class-methods-use-this": "off",
     "no-param-reassign": "off",

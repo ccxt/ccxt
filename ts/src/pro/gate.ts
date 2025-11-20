@@ -508,11 +508,12 @@ export default class gate extends gateRest {
         const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
         const messageHash = 'orderbook:' + symbol;
         const storedOrderBook = this.safeValue (this.orderbooks, symbol, this.orderBook ({}));
+        const cache = storedOrderBook.cache;
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
             let cacheLength = 0;
             if (storedOrderBook !== undefined) {
-                cacheLength = storedOrderBook.cache.length;
+                cacheLength = cache.length;
             }
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
             const waitAmount = isSpot ? snapshotDelay : 0;
@@ -522,7 +523,7 @@ export default class gate extends gateRest {
                 const limit = this.safeInteger (subscription, 'limit');
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {}); // needed for c#, number of args needs to match
             }
-            storedOrderBook.cache.push (delta);
+            cache.push (delta);
             return;
         } else if (nonce >= deltaEnd) {
             return;

@@ -108,14 +108,15 @@ export default class bitstamp extends bitstampRest {
         const deltaNonce = this.safeInteger (delta, 'microtimestamp');
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            const cache = storedOrderBook.cache;
+            const cacheLength = cache.length;
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 6);
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, null, {});
             }
-            storedOrderBook.cache.push (delta);
+            cache.push (delta);
             return;
         } else if (nonce >= deltaNonce) {
             return;

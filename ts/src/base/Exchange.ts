@@ -1530,7 +1530,7 @@ export default class Exchange {
                 if (index >= 0) {
                     stored.reset (orderBook);
                     this.handleDeltas (stored, cache.slice (index));
-                    stored.cache.length = 0;
+                    cache.length = 0;
                     client.resolve (stored, messageHash);
                     return;
                 }

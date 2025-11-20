@@ -690,7 +690,8 @@ export default class deepcoin extends deepcoinRest {
                 this.handleOrderBookSnapshot (client, message);
             } else {
                 // cache the updates until the snapshot is received
-                orderbook.cache.push (message);
+                const cache = orderbook.cache;
+                cache.push (message);
             }
         } else {
             this.handleOrderBookMessage (client, message, orderbook);

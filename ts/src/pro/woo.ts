@@ -215,7 +215,8 @@ export default class woo extends wooRest {
             const orderbook = this.orderbooks[symbol];
             const timestamp = this.safeInteger (orderbook, 'timestamp');
             if (timestamp === undefined) {
-                orderbook.cache.push (message);
+                const cache = orderbook.cache;
+                cache.push (message);
             } else {
                 try {
                     const ts = this.safeInteger (message, 'ts');

@@ -877,14 +877,15 @@ export default class backpack extends backpackRest {
         const deltaNonce = this.safeInteger (data, 'u');
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            const cache = storedOrderBook.cache;
+            const cacheLength = cache.length;
             // the rest API is very delayed
             // usually it takes at least 9 deltas to resolve
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, null, {});
             }
-            storedOrderBook.cache.push (data);
+            cache.push (data);
             return;
         } else if (nonce > deltaNonce) {
             return;

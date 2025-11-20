@@ -458,7 +458,8 @@ export default class bittrade extends bittradeRest {
         const symbol = this.safeSymbol (marketId);
         const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
-            orderbook.cache.push (message);
+            const cache = orderbook.cache;
+            cache.push (message);
         } else {
             this.handleOrderBookMessage (client, message, orderbook);
             client.resolve (orderbook, messageHash);

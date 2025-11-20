@@ -915,7 +915,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         const deltaEnd = this.safeInteger (data, 'sequence');
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            const cache = storedOrderBook.cache;
+            const cacheLength = cache.length;
             const topicPartsNew = topic.split (':');
             const topicSymbol = this.safeString (topicPartsNew, 1);
             const topicChannel = this.safeString (topicPartsNew, 0);
@@ -933,7 +934,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
-            storedOrderBook.cache.push (data);
+            cache.push (data);
             return;
         } else if (nonce >= deltaEnd) {
             return;

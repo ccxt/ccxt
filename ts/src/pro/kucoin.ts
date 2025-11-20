@@ -907,7 +907,8 @@ export default class kucoin extends kucoinRest {
             const nonce = this.safeInteger (orderbook, 'nonce');
             const deltaEnd = this.safeInteger2 (data, 'sequenceEnd', 'timestamp');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
+                const cache = orderbook.cache;
+                const cacheLength = cache.length;
                 const subscriptions = Object.keys (client.subscriptions);
                 let subscription = undefined;
                 for (let i = 0; i < subscriptions.length; i++) {
@@ -922,7 +923,7 @@ export default class kucoin extends kucoinRest {
                 if (cacheLength === snapshotDelay) {
                     this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
                 }
-                orderbook.cache.push (data);
+                cache.push (data);
                 return;
             } else if (nonce >= deltaEnd) {
                 return;

@@ -1055,12 +1055,13 @@ export default class xt extends xtRest {
             const orderbook = this.orderbooks[symbol];
             const nonce = this.safeInteger (orderbook, 'nonce');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
+                const cache = orderbook.cache;
+                const cacheLength = cache.length;
                 const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
                 if (cacheLength === snapshotDelay) {
                     this.spawn (this.loadOrderBook, client, messageHash, symbol);
                 }
-                orderbook.cache.push (data);
+                cache.push (data);
                 return;
             }
             if (obAsks !== undefined) {
