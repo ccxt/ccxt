@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
-import type { Dict, Int, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Dict, Int, Liquidation, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -16,14 +16,14 @@ export default class lighter extends lighterRest {
                 'watchTicker': true,
                 'watchMarkPrice': true,
                 'watchMarkPrices': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchBidsAsks': false,
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchOrderBookForSymbols': false,
                 'watchBalance': false,
-                'watchLiquidations': false,
+                'watchLiquidations': true,
                 'watchLiquidationsForSymbols': false,
                 'watchMyLiquidations': false,
                 'watchMyLiquidationsForSymbols': false,
@@ -36,8 +36,11 @@ export default class lighter extends lighterRest {
                 'watchFundingRates': false,
                 'unWatchOrderBook': true,
                 'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchTrades': true,
                 'unWatchMarkPrice': true,
                 'unWatchMarkPrices': true,
+                'unWatchLiquidations': true,
             },
             'urls': {
                 'api': {
@@ -412,7 +415,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async unWatchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+    async unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
         return await this.unWatchTicker (symbol, params);
     }
 
@@ -425,7 +428,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
         return await this.unWatchTickers (symbols, params);
     }
 
@@ -524,6 +527,10 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
+        const liquidationData = this.safeList (message, 'liquidation_trades', []);
+        if (liquidationData.length > 0) {
+            this.handleLiquidation (client, message);
+        }
         const data = this.safeList (message, 'trades', []);
         const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
@@ -563,6 +570,166 @@ export default class lighter extends lighterRest {
         };
         const messageHash = this.getMessageHash ('trade', symbol);
         return await this.subscribePublic (messageHash, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name lighter#unWatchTrades
+     * @description unsubscribe from the trades channel
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'channel': 'trade/' + market['id'],
+        };
+        const messageHash = this.getMessageHash ('unsubscribe', symbol);
+        return await this.unsubscribePublic (messageHash, this.extend (request, params));
+    }
+
+    parseWsLiquidation (liquidation, market = undefined) {
+        //
+        //     {
+        //         "trade_id": 526801155,
+        //         "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //         "type": "liquidation",
+        //         "market_id": 0,
+        //         "size": "0.0346",
+        //         "price": "3028.85",
+        //         "usd_amount": "104.798210",
+        //         "ask_id": 281475673670566,
+        //         "bid_id": 562949291740362,
+        //         "ask_client_id": 76303170,
+        //         "bid_client_id": 27601,
+        //         "ask_account_id": 99349,
+        //         "bid_account_id": 243008,
+        //         "is_maker_ask": false,
+        //         "block_height": 102322769,
+        //         "timestamp": 1763623734215,
+        //         "taker_position_size_before": "0.0346",
+        //         "taker_entry_quote_before": "104.359926",
+        //         "taker_initial_margin_fraction_before": 500,
+        //         "taker_position_sign_changed": true,
+        //         "maker_fee": 20,
+        //         "maker_position_size_before": "2.1277",
+        //         "maker_entry_quote_before": "6444.179555",
+        //         "maker_initial_margin_fraction_before": 200
+        //     }
+        //
+        const timestamp = this.safeInteger (liquidation, 'timestamp');
+        return this.safeLiquidation ({
+            'info': liquidation,
+            'symbol': market['symbol'],
+            'contracts': undefined,
+            'contractSize': undefined,
+            'price': this.safeString (liquidation, 'price'),
+            'side': this.safeString (liquidation, 'size'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
+    handleLiquidation (client: Client, message) {
+        //
+        //     {
+        //         "channel": "trade:0",
+        //         "liquidation_trades": [],
+        //         "nonce": 3159738569,
+        //         "trades": [
+        //             {
+        //                 "trade_id": 526801155,
+        //                 "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "0.0346",
+        //                 "price": "3028.85",
+        //                 "usd_amount": "104.798210",
+        //                 "ask_id": 281475673670566,
+        //                 "bid_id": 562949291740362,
+        //                 "ask_client_id": 76303170,
+        //                 "bid_client_id": 27601,
+        //                 "ask_account_id": 99349,
+        //                 "bid_account_id": 243008,
+        //                 "is_maker_ask": false,
+        //                 "block_height": 102322769,
+        //                 "timestamp": 1763623734215,
+        //                 "taker_position_size_before": "0.0346",
+        //                 "taker_entry_quote_before": "104.359926",
+        //                 "taker_initial_margin_fraction_before": 500,
+        //                 "taker_position_sign_changed": true,
+        //                 "maker_fee": 20,
+        //                 "maker_position_size_before": "2.1277",
+        //                 "maker_entry_quote_before": "6444.179555",
+        //                 "maker_initial_margin_fraction_before": 200
+        //             }
+        //         ],
+        //         "type": "subscribed/trade"
+        //     }
+        //
+        const data = this.safeList (message, 'liquidation_trades', []);
+        const channel = this.safeString (message, 'channel', '');
+        const parts = channel.split (':');
+        const marketId = parts[1];
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let stored = this.safeValue (this.liquidations, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.liquidations[symbol] = stored;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const liquidation = this.parseWsLiquidation (data[i], market);
+            stored.append (liquidation);
+        }
+        const messageHash = this.getMessageHash ('liquidations', symbol);
+        client.resolve (stored, messageHash);
+    }
+
+    /**
+     * @method
+     * @name lighter#watchLiquidations
+     * @description watch the public liquidations of a trading pair
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'channel': 'trade/' + market['id'],
+        };
+        const messageHash = this.getMessageHash ('liquidations', symbol);
+        return await this.subscribePublic (messageHash, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name lighter#unWatchLiquidations
+     * @description unWatch the public liquidations of a trading pair
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchLiquidations (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'channel': 'trade/' + market['id'],
+        };
+        const messageHash = this.getMessageHash ('unsubscribe', symbol);
+        return await this.unsubscribePublic (messageHash, this.extend (request, params));
     }
 
     handleErrorMessage (client, message) {
