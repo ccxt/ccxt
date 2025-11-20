@@ -688,8 +688,7 @@ class Exchange(object):
         try:
             return float(dictionary[key])
         except Exception:
-            pass
-        return default_value
+            return default_value
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
@@ -763,8 +762,7 @@ class Exchange(object):
             try:
                 return float(dictionary[key2])
             except Exception:
-                pass
-        return default_value
+                return default_value
 
     @staticmethod
     def safe_string_2(dictionary, key1, key2, default_value=None):
@@ -800,8 +798,7 @@ class Exchange(object):
             try:
                 return int(float(dictionary[key2]))
             except Exception:
-                pass
-        return default_value
+                return default_value
 
     @staticmethod
     def safe_integer_product_2(dictionary, key1, key2, factor, default_value=None):
@@ -811,8 +808,7 @@ class Exchange(object):
             try:
                 return int(float(dictionary[key2]) * factor)
             except Exception:
-                pass
-        return default_value
+                return default_value
 
     @staticmethod
     def safe_timestamp_2(dictionary, key1, key2, default_value=None):
@@ -842,10 +838,9 @@ class Exchange(object):
         if value is None:
             return default_value
         try:
-            value = float(value)
+            return float(value)
         except ValueError as e:
-            value = default_value
-        return value
+            return default_value
 
     @staticmethod
     def safe_string_n(dictionary, key_list, default_value=None):
