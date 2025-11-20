@@ -766,7 +766,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const ohlcvs = this.safeValue (response, 'candlesticks', []);
+        const ohlcvs = this.safeList (response, 'candlesticks', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 

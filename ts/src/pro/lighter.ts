@@ -1,6 +1,8 @@
 //  ---------------------------------------------------------------------------
 
-import type { Dict, Int, OrderBook, Str, Strings, Ticker, Tickers } from '../base/types.js';
+import Precise from '../base/Precise.js';
+import type { Dict, Int, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
 
@@ -17,7 +19,7 @@ export default class lighter extends lighterRest {
                 'watchTickers': false,
                 'watchBidsAsks': false,
                 'watchOrderBook': true,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchOrderBookForSymbols': false,
                 'watchBalance': false,
@@ -112,8 +114,8 @@ export default class lighter extends lighterRest {
 
     handleOrderBookMessage (client: Client, message, orderbook) {
         const data = this.safeDict (message, 'order_book', {});
-        this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
-        this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
+        this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
+        this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
         orderbook['nonce'] = this.safeInteger (data, 'offset');
         const timestamp = this.safeInteger (message, 'timestamp');
         orderbook['timestamp'] = timestamp;
@@ -262,7 +264,7 @@ export default class lighter extends lighterRest {
         //     "type": "update/market_stats"
         // }
         //
-        const data = this.safeValue (message, 'market_stats', {});
+        const data = this.safeDict (message, 'market_stats', {});
         const channel = this.safeString (message, 'channel');
         if (channel === 'market_stats:all') {
             const marketIds = Object.keys (data);
@@ -427,6 +429,142 @@ export default class lighter extends lighterRest {
         return await this.unWatchTickers (symbols, params);
     }
 
+    parseWsTrade (trade, market = undefined) {
+        //
+        //     {
+        //         "trade_id": 526801155,
+        //         "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //         "type": "trade",
+        //         "market_id": 0,
+        //         "size": "0.0346",
+        //         "price": "3028.85",
+        //         "usd_amount": "104.798210",
+        //         "ask_id": 281475673670566,
+        //         "bid_id": 562949291740362,
+        //         "ask_client_id": 76303170,
+        //         "bid_client_id": 27601,
+        //         "ask_account_id": 99349,
+        //         "bid_account_id": 243008,
+        //         "is_maker_ask": false,
+        //         "block_height": 102322769,
+        //         "timestamp": 1763623734215,
+        //         "taker_position_size_before": "0.0346",
+        //         "taker_entry_quote_before": "104.359926",
+        //         "taker_initial_margin_fraction_before": 500,
+        //         "taker_position_sign_changed": true,
+        //         "maker_fee": 20,
+        //         "maker_position_size_before": "2.1277",
+        //         "maker_entry_quote_before": "6444.179555",
+        //         "maker_initial_margin_fraction_before": 200
+        //     }
+        //
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const tradeId = this.safeString (trade, 'trade_id');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
+        const isMakerAsk = this.safeBool (trade, 'is_maker_ask');
+        const side = (isMakerAsk === true) ? 'sell' : 'buy';
+        const makerFeeRate = this.safeString (market, 'maker_fee');
+        const maker = Precise.stringDiv (makerFeeRate, '100');
+        const feeAmount = Precise.stringMul (maker, makerFeeRate);
+        return this.safeTrade ({
+            'info': trade,
+            'id': tradeId,
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.safeSymbol (undefined, market),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': 'maker',
+            'price': priceString,
+            'amount': amountString,
+            'cost': this.safeString (trade, 'usd_amount'),
+            'fee': {
+                'cost': feeAmount,
+                'currency': 'USDC',
+            },
+        }, market);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        //     {
+        //         "channel": "trade:0",
+        //         "liquidation_trades": [],
+        //         "nonce": 3159738569,
+        //         "trades": [
+        //             {
+        //                 "trade_id": 526801155,
+        //                 "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "0.0346",
+        //                 "price": "3028.85",
+        //                 "usd_amount": "104.798210",
+        //                 "ask_id": 281475673670566,
+        //                 "bid_id": 562949291740362,
+        //                 "ask_client_id": 76303170,
+        //                 "bid_client_id": 27601,
+        //                 "ask_account_id": 99349,
+        //                 "bid_account_id": 243008,
+        //                 "is_maker_ask": false,
+        //                 "block_height": 102322769,
+        //                 "timestamp": 1763623734215,
+        //                 "taker_position_size_before": "0.0346",
+        //                 "taker_entry_quote_before": "104.359926",
+        //                 "taker_initial_margin_fraction_before": 500,
+        //                 "taker_position_sign_changed": true,
+        //                 "maker_fee": 20,
+        //                 "maker_position_size_before": "2.1277",
+        //                 "maker_entry_quote_before": "6444.179555",
+        //                 "maker_initial_margin_fraction_before": 200
+        //             }
+        //         ],
+        //         "type": "subscribed/trade"
+        //     }
+        //
+        const data = this.safeList (message, 'trades', []);
+        const channel = this.safeString (message, 'channel', '');
+        const parts = channel.split (':');
+        const marketId = parts[1];
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const trade = this.parseWsTrade (data[i], market);
+            stored.append (trade);
+        }
+        const messageHash = this.getMessageHash ('trade', symbol);
+        client.resolve (stored, messageHash);
+    }
+
+    /**
+     * @method
+     * @name lighter#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'channel': 'trade/' + market['id'],
+        };
+        const messageHash = this.getMessageHash ('trade', symbol);
+        return await this.subscribePublic (messageHash, this.extend (request, params));
+    }
+
     handleErrorMessage (client, message) {
         //
         //     {
@@ -467,6 +605,10 @@ export default class lighter extends lighterRest {
         }
         if (channel.indexOf ('market_stats:') >= 0) {
             this.handleTicker (client, message);
+            return;
+        }
+        if (channel.indexOf ('trade:') >= 0) {
+            this.handleTrades (client, message);
             return;
         }
         if (channel === '') {
