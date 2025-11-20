@@ -2405,6 +2405,14 @@ class Exchange {
         throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
     }
 
+    public function lock_id() {
+        return true;
+    }
+
+    public function unlock_id() {
+        return true;
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
