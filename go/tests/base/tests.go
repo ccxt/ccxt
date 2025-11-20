@@ -3503,7 +3503,7 @@ func  (this *testMainClass) TestModeTrade() <- chan interface{} {
                 defer ReturnPanicError(ch)
                 var exchange ccxt.IExchange = this.InitOfflineExchange("modetrade")
         exchange.SetSecret("secretsecretsecretsecretsecretsecretsecrets")
-        var id interface{} = "CCXT"
+        var id interface{} = "CCXTMODE"
         
         retRes21938 := (<-exchange.LoadMarkets())
         PanicOnError(retRes21938)

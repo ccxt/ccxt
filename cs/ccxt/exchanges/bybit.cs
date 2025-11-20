@@ -2372,22 +2372,11 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (isTrue(getValue(market, "spot")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "spot";
-        } else
-        {
-            if (isTrue(getValue(market, "option")))
-            {
-                ((IDictionary<string,object>)request)["category"] = "option";
-            } else if (isTrue(getValue(market, "linear")))
-            {
-                ((IDictionary<string,object>)request)["category"] = "linear";
-            } else if (isTrue(getValue(market, "inverse")))
-            {
-                ((IDictionary<string,object>)request)["category"] = "inverse";
-            }
-        }
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("fetchTicker", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = category;
         object response = await this.publicGetV5MarketTickers(this.extend(request, parameters));
         //
         //     {
@@ -2494,23 +2483,12 @@ public partial class bybit : Exchange
             }
         }
         object request = new Dictionary<string, object>() {};
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
-        // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
-        // with higher priority and only default to spot, if `subType` is not set in params
-        object passedSubType = this.safeString(parameters, "subType");
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters, "linear");
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        // only if passedSubType is undefined, then use spot
-        if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(passedSubType, null))))
-        {
-            ((IDictionary<string,object>)request)["category"] = "spot";
-        } else if (isTrue(isEqual(type, "option")))
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("fetchTickers", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = category;
+        if (isTrue(isEqual(category, "option")))
         {
             ((IDictionary<string,object>)request)["category"] = "option";
             if (isTrue(isEqual(code, null)))
@@ -2518,9 +2496,6 @@ public partial class bybit : Exchange
                 code = "BTC";
             }
             ((IDictionary<string,object>)request)["baseCoin"] = code;
-        } else if (isTrue(isTrue(isTrue(isEqual(type, "swap")) || isTrue(isEqual(type, "future"))) || isTrue(!isEqual(subType, null))))
-        {
-            ((IDictionary<string,object>)request)["category"] = subType;
         }
         object response = await this.publicGetV5MarketTickers(this.extend(request, parameters));
         //
@@ -4249,19 +4224,11 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)request)["price"] = priceString;
             }
         }
-        if (isTrue(getValue(market, "spot")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "spot";
-        } else if (isTrue(getValue(market, "option")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "option";
-        } else if (isTrue(getValue(market, "linear")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "linear";
-        } else if (isTrue(getValue(market, "inverse")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "inverse";
-        }
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("createOrderRequest", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = category;
         object cost = this.safeString(parameters, "cost");
         parameters = this.omit(parameters, "cost");
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
@@ -4515,19 +4482,11 @@ public partial class bybit : Exchange
             { "symbol", getValue(market, "id") },
             { "orderId", id },
         };
-        if (isTrue(getValue(market, "spot")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "spot";
-        } else if (isTrue(getValue(market, "linear")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "linear";
-        } else if (isTrue(getValue(market, "inverse")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "inverse";
-        } else if (isTrue(getValue(market, "option")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "option";
-        }
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("editOrderRequest", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = category;
         if (isTrue(!isEqual(amount, null)))
         {
             ((IDictionary<string,object>)request)["qty"] = this.getAmount(symbol, amount);
@@ -4755,19 +4714,11 @@ public partial class bybit : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        if (isTrue(getValue(market, "spot")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "spot";
-        } else if (isTrue(getValue(market, "linear")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "linear";
-        } else if (isTrue(getValue(market, "inverse")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "inverse";
-        } else if (isTrue(getValue(market, "option")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "option";
-        }
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("cancelOrderRequest", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = category;
         return this.extend(request, parameters);
     }
 
@@ -8154,19 +8105,9 @@ public partial class bybit : Exchange
             { "symbol", getValue(market, "id") },
         };
         object category = null;
-        if (isTrue(getValue(market, "linear")))
-        {
-            category = "linear";
-        } else if (isTrue(getValue(market, "inverse")))
-        {
-            category = "inverse";
-        } else if (isTrue(getValue(market, "spot")))
-        {
-            category = "spot";
-        } else
-        {
-            category = "option";
-        }
+        var categoryparametersVariable = this.getBybitType("fetchTradingFee", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
         ((IDictionary<string,object>)request)["category"] = category;
         object response = await this.privateGetV5AccountFeeRate(this.extend(request, parameters));
         //
@@ -8449,11 +8390,11 @@ public partial class bybit : Exchange
         var typeparametersVariable = this.getBybitType("fetchMySettlementHistory", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "inverse"))))
+        if (isTrue(isEqual(type, "spot")))
         {
             throw new NotSupported ((string)add(this.id, " fetchMySettlementHistory() is not supported for spot market")) ;
         }
-        ((IDictionary<string,object>)request)["category"] = "linear";
+        ((IDictionary<string,object>)request)["category"] = type;
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;

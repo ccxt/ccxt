@@ -2172,7 +2172,7 @@ class testMainClass {
         return Async\async(function () {
             $exchange = $this->init_offline_exchange('modetrade');
             $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
-            $id = 'CCXT';
+            $id = 'CCXTMODE';
             Async\await($exchange->load_markets());
             $request = null;
             try {

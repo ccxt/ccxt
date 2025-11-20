@@ -1731,7 +1731,7 @@ class testMainClass:
     async def test_mode_trade(self):
         exchange = self.init_offline_exchange('modetrade')
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
-        id = 'CCXT'
+        id = 'CCXTMODE'
         await exchange.load_markets()
         request = None
         try:
