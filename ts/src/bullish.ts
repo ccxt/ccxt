@@ -44,7 +44,7 @@ export default class bullish extends Exchange {
                 'createPostOnlyOrder': true,
                 'createTriggerOrder': true,
                 'deposit': false,
-                'editOrder': false,
+                'editOrder': false, // todo https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-amend
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
@@ -157,6 +157,7 @@ export default class bullish extends Exchange {
                         'v1/assets/{symbol}': 1, // not used
                         'v1/markets': 1, // done
                         'v1/markets/{symbol}': 1, // not used
+                        'v1/history/markets/{symbol}': 1, // not used
                         'v1/markets/{symbol}/orderbook/hybrid': 1, // done
                         'v1/markets/{symbol}/trades': 1, // done
                         'v1/markets/{symbol}/tick': 1, // done
@@ -165,11 +166,15 @@ export default class bullish extends Exchange {
                         'v1/history/markets/{symbol}/funding-rate': 1, // done
                         'v1/index-prices': 1, // not used
                         'v1/index-prices/{assetSymbol}': 1, // not used
+                        'v1/expiry-prices/{symbol}': 1, // todo check
+                        'v1/option-ladder': 1, // not used
+                        'v1/option-ladder/{symbol}': 1, // not used
                     },
                 },
                 'private': {
                     'get': {
                         'v2/orders': 1, // done
+                        'v2/history/orders': 1, // todo
                         'v2/orders/{orderId}': 1, // done
                         'v2/amm-instructions': 1, // not used
                         'v2/amm-instructions/{instructionId}': 1, // not used
@@ -179,7 +184,9 @@ export default class bullish extends Exchange {
                         'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1, // not used
                         'v1/wallets/deposit-instructions/fiat/{symbol}': 1, // not used
                         'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1, // not used
+                        'v1/wallets/self-hosted/verification-attempts': 1, // not used
                         'v1/trades': 1, // done
+                        'v1/history/trades': 1, // todo change endpoint https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
                         'v1/trades/{tradeId}': 1, // not used
                         'v1/accounts/asset': 1, // done
                         'v1/accounts/asset/{symbol}': 1, // done
@@ -189,17 +196,25 @@ export default class bullish extends Exchange {
                         'v1/accounts/trading-accounts/{tradingAccountId}': 1, // done
                         'v1/derivatives-positions': 1, // done
                         'v1/history/derivatives-settlement': 1, // todo check
-                        'v1/history/transfer': 1, // done
+                        'v1/history/transfer': 1, // done todo check
                         'v1/history/borrow-interest': 1, // done
+                        'v2/mmp-configuration': 1, // not used
+                        'v2/otc-trades': 1, // not used
+                        'v2/otc-trades/{otcTradeId}': 1, // not used
+                        'v2/otc-trades/unconfirmed-trade': 1, // not used
                     },
                     'post': {
                         'v2/orders': 5, // done
-                        'v2/command': 1, // done
+                        'v2/command': 5, // done // todo check all commands
                         'v2/amm-instructions': 1, // not used
                         'v1/wallets/withdrawal': 1, // todo check
                         'v2/users/login': 1, // done
                         'v1/command?commandType=V1TransferAsset': 1, // todo check
                         'v1/simulate-portfolio-margin': 1, // not used
+                        'v1/wallets/self-hosted/initiate': 1, // not used
+                        'v2/mmp-configuration': 1, // not used
+                        'v2/otc-trades': 1, // not used
+                        'v2/otc-command': 1, // not used
                     },
                 },
             },
@@ -393,6 +408,7 @@ export default class bullish extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
+        // todo implement time difference
         const response = await this.publicGetV1Time (params);
         //
         //     {
@@ -900,6 +916,7 @@ export default class bullish extends Exchange {
         };
         const maxLimit = 100;
         let paginate = false;
+        // todo check pagination
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
@@ -1354,6 +1371,7 @@ export default class bullish extends Exchange {
         await this.loadMarkets ();
         const maxLimit = 25; // current endpoint supports a maximum of 25 entries per request
         let paginate = false;
+        // todo check pagination
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, maxLimit) as FundingRateHistory[];
@@ -1420,6 +1438,7 @@ export default class bullish extends Exchange {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let market = undefined;
         // todo add pagination support
+        // todo change endpoint https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v2/history/orders
         const request: Dict = {
         };
         if (symbol !== undefined) {
@@ -1663,6 +1682,7 @@ export default class bullish extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        // todo check all commandTypes
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -2487,7 +2507,7 @@ export default class bullish extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'command': {
-                'commandType': 'V1TransferAsset',
+                'commandType': 'V2TransferAsset',
                 'assetSymbol': currency['id'],
                 'quantity': this.currencyToPrecision (code, amount),
                 'fromTradingAccountId': fromAccount,
