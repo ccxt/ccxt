@@ -318,7 +318,8 @@ public final class SafeMethods {
         return SafeValueN(obj, keys2, defaultValue);
     }
 
-    public static Object SafeValueN(Object obj, Object keys2, Object... defaultValue) {
+    public static Object SafeValueN(Object obj, Object keys2, Object... defaultValues) {
+        Object defaultValue = opt(defaultValues);
         List<Object> keys = (List<Object>) keys2;
         if (obj == null) return defaultValue;
 
@@ -422,32 +423,38 @@ public final class SafeMethods {
     // safeString upper/lower methods
     // ----------------------------
 
-    public static Object safeStringUpper(Object obj, Object key, Object... defaultValue) {
+    public static Object safeStringUpper(Object obj, Object key, Object... defaultValues) {
+        Object defaultValue = opt(defaultValues);
         Object result = toStringOrNull(safeString(obj, key, defaultValue));
         return (result == null)? defaultValue : ((String)result).toUpperCase();
     }
 
-    public static Object safeStringUpper2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public static Object safeStringUpper2(Object obj, Object key1, Object key2, Object... defaultValues) {
+        Object defaultValue = opt(defaultValues);
         Object result = safeString2(obj, key1, key2, defaultValue);
         return (result == null)? defaultValue : ((String)result).toUpperCase();
     }
 
-    public static Object safeStringUpperN(Object obj, Object keys, Object... defaultValue) {
+    public static Object safeStringUpperN(Object obj, Object keys, Object... defaultValues) {
+        Object defaultValue = opt(defaultValues);
         Object result = safeStringN(obj, keys, defaultValue);
         return (result == null)? defaultValue : ((String)result).toUpperCase();
     }
 
-    public static Object safeStringLower(Object obj, Object key, Object... defaultValue) {
+    public static Object safeStringLower(Object obj, Object key, Object... defaultValues) {
+        Object defaultValue = opt(defaultValues);
         Object result = safeString(obj, key, defaultValue);
         return (result == null)? defaultValue : ((String)result).toLowerCase();
     }
 
-    public static Object safeStringLower2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public static Object safeStringLower2(Object obj, Object key1, Object key2, Object... defaultValues) {
+        Object defaultValue = opt(defaultValues);
         Object result = safeString2(obj, key1, key2, defaultValue);
         return (result == null)? defaultValue : ((String)result).toLowerCase();
     }
 
-    public static Object safeStringLowerN(Object obj, Object keys, Object... defaultValue) {
+    public static Object safeStringLowerN(Object obj, Object keys, Object... defaultValues) {
+        Object defaultValue = opt(defaultValues);
         Object result = safeStringN(obj, keys, defaultValue);
         return (result == null) ? defaultValue : ((String)result).toLowerCase();
     }
@@ -488,7 +495,8 @@ public final class SafeMethods {
     // safeIntegerProduct*
     // ----------------------------
 
-    public static Long safeIntegerProduct(Object obj, Object key, Object multiplier, Object... defaultValue) {
+    public static Long safeIntegerProduct(Object obj, Object key, Object multiplier, Object... defaultValue2) {
+        Object defaultValue = opt(defaultValue2);
         if (multiplier == null) multiplier = 1;
         Object result = SafeValueN(obj, Arrays.asList(key), defaultValue);
         Long convertedDefault = (defaultValue == null) ? null : toLongQuiet(defaultValue);
@@ -503,7 +511,8 @@ public final class SafeMethods {
         return convertedDefault;
     }
 
-    public static Object safeIntegerProduct2(Object obj, Object key1, Object key2, Object multiplier, Object... defaultValue) {
+    public static Object safeIntegerProduct2(Object obj, Object key1, Object key2, Object multiplier, Object... defaultValue2) {
+        Object defaultValue = opt(defaultValue2);
         Object result = SafeValueN(obj, Arrays.asList(key1, key2), defaultValue);
         Object parsedValue = null;
         try {
@@ -515,7 +524,8 @@ public final class SafeMethods {
         return (parsedValue == null) ? defaultValue : parsedValue;
     }
 
-    public static Object safeIntegerProductN(Object obj, List<Object> keys, Object multiplier, Object... defaultValue) {
+    public static Object safeIntegerProductN(Object obj, List<Object> keys, Object multiplier, Object... defaultValue2) {
+        Object defaultValue = opt(defaultValue2);
         Object result = SafeValueN(obj, keys, defaultValue);
         if (result == null) return defaultValue;
         Object parsedValue = null;

@@ -217,7 +217,7 @@ public class Exchange {
     }
 
     Exchange (Object userConfig) {
-        this.initExchange(userConfig);
+        // // this.initExchange(userConfig);
     }
 
     Exchange() {
@@ -244,7 +244,8 @@ public class Exchange {
         this.uid           = SafeMethods.SafeStringTyped(extendedProperties, "uid", "");
         this.accountId     = SafeMethods.SafeStringTyped(extendedProperties, "accountId", "");
 
-        this.userAgents = (Map<String, Object>) this.safeValue(extendedProperties, "userAgents", this.userAgents);
+        var userAgentRes = this.safeValue(extendedProperties, "userAgents", this.userAgents);
+        this.userAgents = (Map<String, Object>) userAgentRes;
         this.userAgent  = SafeMethods.SafeStringTyped(extendedProperties, "userAgent", "");
         long timeoutTmp = SafeMethods.SafeIntegerTyped(extendedProperties, "timeout", 10000);
         this.timeout = (timeoutTmp != 0) ? timeoutTmp : 10000;
