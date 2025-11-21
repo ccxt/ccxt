@@ -40,8 +40,8 @@ public class Throttler
             config.Algorithm = configInput.TryGetValue("algorithm", out var algorithm) ? Convert.ToString(algorithm) : config.Algorithm;
             config.RateLimit = configInput.TryGetValue("rateLimit", out var rateLimit) ? Convert.ToDouble(rateLimit) : config.RateLimit;
             config.WindowSize = configInput.TryGetValue("windowSize", out var windowSize) ? Convert.ToDouble(windowSize) : config.WindowSize;       // rolling window size in milliseconds
-            if (config.WindowSize != null) {
-                config.MaxWeight = config.WindowSize / config.RateLimit;
+            if (this.config.WindowSize != 0.0) {
+                this.config.MaxWeight = this.config.WindowSize / this.config.RateLimit;
             }
         }
     }
@@ -157,17 +157,17 @@ public class Throttler
     public async Task<Task> throttle(object cost2)
     {
         var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config.Cost);
+        Task t;
         lock (queueLock)
         {
-            var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config["cost"]);
-            var t = new Task(() => { });
+            t = new Task(() => { });
             this.queue.Enqueue((t, cost));
         }
         if (!this.running)
         {
             this.running = true;
             // Task.Run(() => { this.loop(); });
-            this.loop();
+            _ = this.loop();
         }
         return t;
     }
