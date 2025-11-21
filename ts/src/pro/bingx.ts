@@ -17,7 +17,7 @@ export default class bingx extends bingxRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchOrderBook': true,
-                'watchOrderBookForSymbols': false, // no longer supported
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': false, // no longer supported
                 'watchOrders': true,
@@ -600,6 +600,76 @@ export default class bingx extends bingxRest {
         const topic = 'orderbook';
         const methodName = 'unWatchOrderBook';
         return await this.unWatch (messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params);
+    }
+
+    /**
+     * @method
+     * @name bingx#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return, must be one of: 5, 10, 20, 50, 100 (default is 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.interval] the interval for orderbook updates, must be one of: 100, 200, 500, 1000. If not specified, defaults to 200ms for BTC-USDT and ETH-USDT, 500ms for all other contracts
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @remarks It seems the interval parameter does not take effect - BingX automatically sets the push interval based on the symbol (200ms for BTC-USDT and ETH-USDT, 500ms for other contracts)
+     */
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, false);
+        let firstMarket = undefined;
+        let marketType = undefined;
+        let subType = undefined;
+        if (symbols.length > 0) {
+            firstMarket = this.market (symbols[0]);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', firstMarket, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOrderBookForSymbols', firstMarket, params, 'linear');
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for spot markets');
+        }
+        if (subType === 'inverse') {
+            throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for inverse markets');
+        }
+        limit = this.getOrderBookLimitByMarketType (marketType, limit);
+        if (limit !== undefined && ![ 5, 10, 20, 50, 100 ].includes (limit)) {
+            throw new BadRequest (this.id + ' watchOrderBookForSymbols limit must be one of: 5, 10, 20, 50, 100');
+        }
+        let interval = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', undefined);
+        if (interval !== undefined && ![ 100, 200, 500, 1000 ].includes (interval)) {
+            throw new BadRequest (this.id + ' watchOrderBookForSymbols interval must be one of: 100, 200, 500, 1000');
+        }
+        const url = this.safeString (this.urls['api']['ws'], subType);
+        const promises = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            // If interval is not specified, set it based on symbol: 200ms for BTC-USDT and ETH-USDT, 500ms for others
+            if (interval === undefined) {
+                interval = (marketId === 'BTC-USDT' || marketId === 'ETH-USDT') ? 200 : 500;
+            }
+            const channelName = 'depth' + limit.toString () + '@' + interval.toString () + 'ms';
+            const subscriptionHash = marketId + '@' + channelName;
+            const messageHash = this.getMessageHash ('orderbook', market['symbol']);
+            const uuid = this.uuid ();
+            const request: Dict = {
+                'id': uuid,
+                'reqType': 'sub',
+                'dataType': subscriptionHash,
+            };
+            const subscription: Dict = {
+                'unsubscribe': false,
+                'id': uuid,
+                'limit': limit,
+                'interval': interval,
+                'params': params,
+            };
+            promises.push (this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscription));
+        }
+        const orderbook = await Promise.race (promises);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {
