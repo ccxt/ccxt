@@ -2430,6 +2430,14 @@ class hyperliquid(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
+    def get_dex_from_hip3_symbol(self, market):
+        baseName = self.safe_string(market, 'baseName', '')
+        part = baseName.split(':')
+        partsLength = len(part)
+        if partsLength > 1:
+            return self.safe_string(part, 0)
+        return None
+
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
@@ -2459,11 +2467,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             # check if is hip3 symbol
-            baseName = self.safe_string(market, 'baseName', '')
-            part = baseName.split(':')
-            partsLength = len(part)
-            if partsLength > 1:
-                request['dex'] = self.safe_string(part, 0)
+            dexName = self.get_dex_from_hip3_symbol(market)
+            if dexName is not None:
+                request['dex'] = dexName
         response = self.publicPostInfo(self.extend(request, params))
         #
         #     [
@@ -2541,16 +2547,23 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.subAccountAddress]: sub account user address
+        :param str [params.dex]: perp dex name. default is None
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         userAddress = None
         userAddress, params = self.handle_public_address('fetchOrders', params)
         self.load_markets()
-        market = self.safe_market(symbol)
+        market = None
         request: dict = {
             'type': 'historicalOrders',
             'user': userAddress,
         }
+        if symbol is not None:
+            market = self.market(symbol)
+            # check if is hip3 symbol
+            dexName = self.get_dex_from_hip3_symbol(market)
+            if dexName is not None:
+                request['dex'] = dexName
         response = self.publicPostInfo(self.extend(request, params))
         #
         #     [
@@ -2938,6 +2951,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.subAccountAddress]: sub account user address
+        :param str [params.dex]: perp dex name, eg: XYZ
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
@@ -2948,6 +2962,11 @@ class hyperliquid(Exchange, ImplicitAPI):
             'type': 'clearinghouseState',
             'user': userAddress,
         }
+        if symbols is not None:
+            market = self.market(symbols[0])
+            dexName = self.get_dex_from_hip3_symbol(market)
+            if dexName is not None:
+                request['dex'] = dexName
         response = self.publicPostInfo(self.extend(request, params))
         #
         #     {
