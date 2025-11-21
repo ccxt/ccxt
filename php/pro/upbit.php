@@ -46,23 +46,34 @@ class upbit extends \ccxt\async\upbit {
             $url = $this->implode_params($this->urls['api']['ws'], array(
                 'hostname' => $this->hostname,
             ));
-            $this->options[$channel] = $this->safe_value($this->options, $channel, array());
-            $this->options[$channel][$symbol] = true;
-            $symbols = is_array($this->options[$channel]) ? array_keys($this->options[$channel]) : array();
-            $marketIds = $this->market_ids($symbols);
+            $client = $this->client($url);
+            $subscriptionsKey = 'upbitPublicSubscriptions';
+            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey, $client->subscriptions))) {
+                $client->subscriptions[$subscriptionsKey] = array();
+            }
+            $subscriptions = $client->subscriptions[$subscriptionsKey];
+            $messageHash = $channel;
             $request = array(
+                'type' => $channel,
+            );
+            if ($symbol !== null) {
+                $messageHash = $channel . ':' . $symbol;
+                $request['codes'] = array( $marketId );
+            }
+            if (!(is_array($subscriptions) && array_key_exists($messageHash, $subscriptions))) {
+                $subscriptions[$messageHash] = $request;
+            }
+            $finalMessage = array(
                 array(
                     'ticket' => $this->uuid(),
                 ),
-                array(
-                    'type' => $channel,
-                    'codes' => $marketIds,
-                    // 'isOnlySnapshot' => false,
-                    // 'isOnlyRealtime' => false,
-                ),
             );
-            $messageHash = $channel . ':' . $marketId;
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            $channelKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
+            for ($i = 0; $i < count($channelKeys); $i++) {
+                $key = $channelKeys[$i];
+                $finalMessage[] = $subscriptions[$key];
+            }
+            return Async\await($this->watch($url, $messageHash, $finalMessage, $messageHash));
         }) ();
     }
 
@@ -219,7 +230,7 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1s', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1s', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
@@ -434,12 +445,36 @@ class upbit extends \ccxt\async\upbit {
                 'hostname' => $this->hostname,
             ));
             $url .= '/private';
+            $client = $this->client($url);
+            // Track private $channel $subscriptions to support multiple concurrent watches
+            $subscriptionsKey = 'upbitPrivateSubscriptions';
+            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey, $client->subscriptions))) {
+                $client->subscriptions[$subscriptionsKey] = array();
+            }
+            $channelKey = $channel;
+            if ($symbol !== null) {
+                $channelKey = $channel . ':' . $symbol;
+            }
+            $subscriptions = $client->subscriptions[$subscriptionsKey];
+            $isNewChannel = !(is_array($subscriptions) && array_key_exists($channelKey, $subscriptions));
+            if ($isNewChannel) {
+                $subscriptions[$channelKey] = $request;
+            }
+            // Build subscription $message with all requested private channels
+            // Format => [array('ticket' => uuid), array('type' => 'myOrder'), array('type' => 'myAsset'), ...]
+            $requests = array();
+            $channelKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
+            for ($i = 0; $i < count($channelKeys); $i++) {
+                $requests[] = $subscriptions[$channelKeys[$i]];
+            }
             $message = array(
                 array(
                     'ticket' => $this->uuid(),
                 ),
-                $request,
             );
+            for ($i = 0; $i < count($requests); $i++) {
+                $message[] = $requests[$i];
+            }
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -729,7 +764,7 @@ class upbit extends \ccxt\async\upbit {
         );
         $methodName = $this->safe_string($message, 'type');
         $method = $this->safe_value($methods, $methodName);
-        if ($method) {
+        if ($method !== null) {
             $method($client, $message);
         }
     }

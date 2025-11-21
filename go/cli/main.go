@@ -32,9 +32,7 @@ func getRandomKeyFromList(list []string) string {
 	return list[randomIndex]
 }
 
-func benchmarks() {
-	exchange := ccxt.NewBinanceCore()
-	exchange.Init(nil)
+func benchmarks(exchangeName string) {
 
 	dir := GetRootDir()
 
@@ -53,16 +51,30 @@ func benchmarks() {
 	orderBookContent := IoFileRead(orderBookFile, true)
 	tradesContent := IoFileRead(tradesFile, true)
 
-	exchange.Markets = exchange.MapToSafeMap(marketsContent.(map[string]interface{}))
+	var exchange ccxt.ICoreExchange
+	settings := make(map[string]interface{})
+	settings["markets"] = marketsContent.(map[string]interface{})
+	suc := true
+	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+		exchange, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, settings)
+	} else {
+		exchange, suc = ccxt.DynamicallyCreateInstance(exchangeName, settings)
+	}
+	if !suc {
+		panic(suc)
+	}
+	var derivedExchange ccxt.IDerivedExchange
+	derivedExchange = exchange.(ccxt.IDerivedExchange)
+	// exchange.Markets = exchange.MapToSafeMap(marketsContent.(map[string]interface{}))
 
 	beforeTickerNs := time.Now().UnixNano()
-	_ = exchange.ParseTickers(tickersContent)
+	_ = derivedExchange.ParseTickers(tickersContent)
 	afterTickerNs := time.Now().UnixNano()
-	_ = exchange.ParseOHLCV(ohlcvContent)
+	_ = derivedExchange.ParseOHLCV(ohlcvContent, nil)
 	afterOHLCV := time.Now().UnixNano()
-	ob := exchange.ParseOrderBook(orderBookContent, "BTC/USDT")
+	ob := derivedExchange.ParseOrderBook(orderBookContent, "BTC/USDT", nil)
 	afterOrderBook := time.Now().UnixNano()
-	_ = exchange.ParseTrades(tradesContent)
+	_ = derivedExchange.ParseTrades(tradesContent, nil)
 	afterTrades := time.Now().UnixNano()
 
 	tickerNs := afterTickerNs - beforeTickerNs
@@ -401,11 +413,6 @@ func SetCredentials(instance ccxt.ICoreExchange) {
 
 func main() {
 
-	if containsStr(os.Args, "--bench") {
-		benchmarks()
-		return
-	}
-
 	args := os.Args
 	if len(args) < 3 {
 		panic("Exchange name and method required: Example: go run main.go binance fetchTicker \"BTC/USDT\"")
@@ -430,6 +437,11 @@ func main() {
 
 	if !contains(exchangeIdsList, exchangeName) {
 		panic(Red + "Exchange not found in exchanges.json" + Reset)
+	}
+
+	if containsStr(os.Args, "--bench") {
+		benchmarks(exchangeName)
+		return
 	}
 
 	var flags []string

@@ -102,7 +102,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingInterval': True,
-                'fetchFundingIntervals': False,
+                'fetchFundingIntervals': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -426,6 +426,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/spot/trade/place-plan-order': 1,
                             'v2/spot/trade/modify-plan-order': 1,
                             'v2/spot/trade/cancel-plan-order': 1,
+                            'v2/spot/trade/cancel-replace-order': 2,
                             'v2/spot/trade/batch-cancel-plan-order': 2,
                             'v2/spot/wallet/transfer': 2,
                             'v2/spot/wallet/subaccount-transfer': 2,
@@ -1419,6 +1420,7 @@ class bitget(Exchange, ImplicitAPI):
             'commonCurrencies': {
                 'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'EVA': 'Evadore',  # conflict with EverValue Coin
                 'JADE': 'Jade Protocol',
                 'OMNI': 'omni',  # conflict with Omni Network
                 'TONCOIN': 'TON',
@@ -1431,6 +1433,7 @@ class bitget(Exchange, ImplicitAPI):
                     'spot': {
                         '1m': '1min',
                         '5m': '5min',
+                        '3m': '3min',
                         '15m': '15min',
                         '30m': '30min',
                         '1h': '1h',
@@ -1493,6 +1496,7 @@ class bitget(Exchange, ImplicitAPI):
                         '15m': 30,
                         '30m': 30,
                         '1h': 60,
+                        '2h': 120,
                         '4h': 240,
                         '6h': 360,
                         '12h': 720,
@@ -1798,8 +1802,19 @@ class bitget(Exchange, ImplicitAPI):
             },
         })
 
-    def set_sandbox_mode(self, enabled):
+    def set_sandbox_mode(self, enabled: bool):
+        """
+        enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+ @param enabled
+        """
         self.options['sandboxMode'] = enabled
+
+    def enable_demo_trading(self, enabled: bool):
+        """
+        enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+ @param enabled
+        """
+        self.set_sandbox_mode(enabled)
 
     def handle_product_type_and_params(self, market=None, params={}):
         subType = None
@@ -2417,11 +2432,21 @@ class bitget(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             chains = self.safe_value(entry, 'chains', [])
             networks: dict = {}
-            for j in range(0, len(chains)):
+            withdraw = None
+            deposit = None
+            chainsLength = len(chains)
+            if chainsLength == 0:
+                withdraw = False
+                deposit = False
+            for j in range(0, chainsLength):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
                 network = self.network_id_to_code(networkId, code)
                 network = network.upper()
+                withdrawable = (self.safe_string(chain, 'withdrawable') == 'true')
+                rechargeable = (self.safe_string(chain, 'rechargeable') == 'true')
+                withdraw = withdrawable if (withdraw is None) else (withdraw or withdrawable)
+                deposit = rechargeable if (deposit is None) else (deposit or rechargeable)
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -2437,11 +2462,12 @@ class bitget(Exchange, ImplicitAPI):
                         },
                     },
                     'active': None,
-                    'withdraw': self.safe_string(chain, 'withdrawable') == 'true',
-                    'deposit': self.safe_string(chain, 'rechargeable') == 'true',
+                    'withdraw': withdrawable,
+                    'deposit': rechargeable,
                     'fee': self.safe_number(chain, 'withdrawFee'),
                     'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
                 }
+            active = withdraw and deposit
             isFiat = self.in_array(code, fiatCurrencies)
             result[code] = self.safe_currency_structure({
                 'info': entry,
@@ -2450,9 +2476,9 @@ class bitget(Exchange, ImplicitAPI):
                 'networks': networks,
                 'type': 'fiat' if isFiat else 'crypto',
                 'name': None,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
+                'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': None,
                 'precision': None,
                 'limits': {
@@ -4026,7 +4052,7 @@ class bitget(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -4110,9 +4136,13 @@ class bitget(Exchange, ImplicitAPI):
             request['startTime'] = since
             if not untilDefined:
                 calculatedEndTime = self.sum(calculatedStartTime, limitMultipliedDuration)
+                if calculatedEndTime > now:
+                    calculatedEndTime = now
                 request['endTime'] = calculatedEndTime
         if untilDefined:
             calculatedEndTime = until
+            if calculatedEndTime > now:
+                calculatedEndTime = now
             request['endTime'] = calculatedEndTime
             if not sinceDefined:
                 calculatedStartTime = calculatedEndTime - limitMultipliedDuration
@@ -5349,6 +5379,7 @@ class bitget(Exchange, ImplicitAPI):
         edit a trade order
 
         https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+        https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
         https://www.bitget.com/api-doc/contract/trade/Modify-Order
         https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
         https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -5382,8 +5413,14 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'orderId': id,
+            # 'orderId': id,
         }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOid')
+        if clientOrderId is not None:
+            params = self.omit(params, ['clientOrderId'])
+            request['clientOid'] = clientOrderId
+        else:
+            request['orderId'] = id
         isMarketOrder = type == 'market'
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
         isTriggerOrder = triggerPrice is not None
@@ -5400,9 +5437,6 @@ class bitget(Exchange, ImplicitAPI):
         isTrailingPercentOrder = trailingPercent is not None
         if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1:
             raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
-        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clientOid'] = clientOrderId
         params = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent'])
         response = None
         productType = None
@@ -5438,23 +5472,30 @@ class bitget(Exchange, ImplicitAPI):
                     request['price'] = self.price_to_precision(symbol, price)
                 response = self.privateUtaPostV3TradeModifyOrder(self.extend(request, params))
         elif market['spot']:
-            if triggerPrice is None:
-                raise NotSupported(self.id + ' editOrder() only supports plan/trigger spot orders')
+            cost = self.safe_string(params, 'cost')
+            params = self.omit(params, 'cost')
             editMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'editMarketBuyOrderRequiresPrice', True)
-            if editMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
-                if price is None:
-                    raise InvalidOrder(self.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the editMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+            if (editMarketBuyOrderRequiresPrice or (cost is not None)) and isMarketOrder and (side == 'buy'):
+                if price is None and cost is None:
+                    raise InvalidOrder(self.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively provide `cost` in the params')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
-                    cost = self.parse_number(Precise.string_mul(amountString, priceString))
-                    request['size'] = self.price_to_precision(symbol, cost)
+                    finalCost = (Precise.string_mul(amountString, priceString)) if (cost is None) else cost
+                    request['size'] = self.price_to_precision(symbol, finalCost)
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
             request['orderType'] = type
-            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-            request['executePrice'] = self.price_to_precision(symbol, price)
-            response = self.privateSpotPostV2SpotTradeModifyPlanOrder(self.extend(request, params))
+            if triggerPrice is not None:
+                request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+                request['executePrice'] = self.price_to_precision(symbol, price)
+            else:
+                request['price'] = self.price_to_precision(symbol, price)
+            if triggerPrice is not None:
+                response = self.privateSpotPostV2SpotTradeModifyPlanOrder(self.extend(request, params))
+            else:
+                request['symbol'] = market['id']
+                response = self.privateSpotPostV2SpotTradeCancelReplaceOrder(self.extend(request, params))
         else:
             if (not market['swap']) and (not market['future']):
                 raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders')
@@ -5708,7 +5749,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market)
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -5797,9 +5838,8 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
         https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
         https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-        https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-        https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-        https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+        https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+        https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5847,26 +5887,7 @@ class bitget(Exchange, ImplicitAPI):
             #
         elif market['spot']:
             if marginMode is not None:
-                if marginMode == 'cross':
-                    response = self.privateMarginPostMarginV1CrossOrderBatchCancelOrder(self.extend(request, params))
-                else:
-                    response = self.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(self.extend(request, params))
-                #
-                #     {
-                #         "code": "00000",
-                #         "msg": "success",
-                #         "requestTime": 1700717155622,
-                #         "data": {
-                #             "resultList": [
-                #                 {
-                #                     "orderId": "1111453253721796609",
-                #                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-                #                 },
-                #             ],
-                #             "failure": []
-                #         }
-                #     }
-                #
+                raise NotSupported(self.id + ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead')
             else:
                 if trigger:
                     stopRequest: dict = {
@@ -7495,7 +7516,9 @@ class bitget(Exchange, ImplicitAPI):
         market = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
-            market = self.market(first)
+            # symbols can be None or []
+            if first is not None:
+                market = self.market(first)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
         request: dict = {}
@@ -7508,7 +7531,7 @@ class bitget(Exchange, ImplicitAPI):
             response = self.privateUtaGetV3PositionCurrentPosition(self.extend(request, params))
         elif method == 'privateMixGetV2MixPositionAllPosition':
             marginCoin = self.safe_string(params, 'marginCoin', 'USDT')
-            if symbols is not None:
+            if market is not None:
                 marginCoin = market['settleId']
             elif productType == 'USDT-FUTURES':
                 marginCoin = 'USDT'
@@ -8047,6 +8070,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: *contract only* 'linear', 'inverse'
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+        :param str [params.method]: either(default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
         :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
         """
         self.load_markets()
@@ -8057,43 +8081,81 @@ class bitget(Exchange, ImplicitAPI):
         request: dict = {}
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
+        method = 'publicMixGetV2MixMarketTickers'
+        method, params = self.handle_option_and_params(params, 'fetchFundingRates', 'method', method)
+        response = None
         request['productType'] = productType
-        response = self.publicMixGetV2MixMarketTickers(self.extend(request, params))
-        # {
-        #     "code": "00000",
-        #     "msg": "success",
-        #     "requestTime": 1700533773477,
-        #     "data": [
-        #         {
-        #             "symbol": "BTCUSD",
-        #             "lastPr": "29904.5",
-        #             "askPr": "29904.5",
-        #             "bidPr": "29903.5",
-        #             "bidSz": "0.5091",
-        #             "askSz": "2.2694",
-        #             "high24h": "0",
-        #             "low24h": "0",
-        #             "ts": "1695794271400",
-        #             "change24h": "0",
-        #             "baseVolume": "0",
-        #             "quoteVolume": "0",
-        #             "usdtVolume": "0",
-        #             "openUtc": "0",
-        #             "changeUtc24h": "0",
-        #             "indexPrice": "29132.353333",
-        #             "fundingRate": "-0.0007",
-        #             "holdingAmount": "125.6844",
-        #             "deliveryStartTime": null,
-        #             "deliveryTime": null,
-        #             "deliveryStatus": "delivery_normal",
-        #             "open24h": "0",
-        #             "markPrice": "12345"
-        #         },
-        #     ]
-        # }
+        if method == 'publicMixGetV2MixMarketTickers':
+            # {
+            #     "code": "00000",
+            #     "msg": "success",
+            #     "requestTime": 1700533773477,
+            #     "data": [
+            #         {
+            #             "symbol": "BTCUSD",
+            #             "lastPr": "29904.5",
+            #             "askPr": "29904.5",
+            #             "bidPr": "29903.5",
+            #             "bidSz": "0.5091",
+            #             "askSz": "2.2694",
+            #             "high24h": "0",
+            #             "low24h": "0",
+            #             "ts": "1695794271400",
+            #             "change24h": "0",
+            #             "baseVolume": "0",
+            #             "quoteVolume": "0",
+            #             "usdtVolume": "0",
+            #             "openUtc": "0",
+            #             "changeUtc24h": "0",
+            #             "indexPrice": "29132.353333",
+            #             "fundingRate": "-0.0007",
+            #             "holdingAmount": "125.6844",
+            #             "deliveryStartTime": null,
+            #             "deliveryTime": null,
+            #             "deliveryStatus": "delivery_normal",
+            #             "open24h": "0",
+            #             "markPrice": "12345"
+            #         },
+            #     ]
+            # }
+            response = self.publicMixGetV2MixMarketTickers(self.extend(request, params))
+        elif method == 'publicMixGetV2MixMarketCurrentFundRate':
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime":1761659449917,
+            #         "data":[
+            #             {
+            #                 "symbol": "BTCUSDT",
+            #                 "fundingRate": "-0.000024",
+            #                 "fundingRateInterval": "8",
+            #                 "nextUpdate": "1761667200000",
+            #                 "minFundingRate": "-0.003",
+            #                 "maxFundingRate": "0.003"
+            #             }
+            #         ]
+            #     }
+            #
+            response = self.publicMixGetV2MixMarketCurrentFundRate(self.extend(request, params))
         symbols = self.market_symbols(symbols)
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbols)
+
+    def fetch_funding_intervals(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetch the funding rate interval for multiple markets
+
+        https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.productType]: 'USDT-FUTURES'(default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        self.load_markets()
+        params = self.extend({'method': 'publicMixGetV2MixMarketCurrentFundRate'}, params)
+        return self.fetch_funding_rates(symbols, params)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

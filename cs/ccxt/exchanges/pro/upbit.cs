@@ -435,9 +435,39 @@ public partial class upbit : ccxt.upbit
             { "hostname", this.hostname },
         });
         url = add(url, "/private");
+        var client = this.client(url);
+        // Track private channel subscriptions to support multiple concurrent watches
+        object subscriptionsKey = "upbitPrivateSubscriptions";
+        if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionsKey))))
+        {
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = new Dictionary<string, object>() {};
+        }
+        object channelKey = channel;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            channelKey = add(add(channel, ":"), symbol);
+        }
+        object subscriptions = getValue(((WebSocketClient)client).subscriptions, subscriptionsKey);
+        object isNewChannel = !isTrue((inOp(subscriptions, channelKey)));
+        if (isTrue(isNewChannel))
+        {
+            ((IDictionary<string,object>)subscriptions)[(string)channelKey] = request;
+        }
+        // Build subscription message with all requested private channels
+        // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
+        object requests = new List<object>() {};
+        object channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(channelKeys)); postFixIncrement(ref i))
+        {
+            ((IList<object>)requests).Add(getValue(subscriptions, getValue(channelKeys, i)));
+        }
         object message = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
-}, request};
+}};
+        for (object i = 0; isLessThan(i, getArrayLength(requests)); postFixIncrement(ref i))
+        {
+            ((IList<object>)message).Add(getValue(requests, i));
+        }
         return await this.watch(url, messageHash, message, messageHash);
     }
 
@@ -749,7 +779,7 @@ public partial class upbit : ccxt.upbit
         };
         object methodName = this.safeString(message, "type");
         object method = this.safeValue(methods, methodName);
-        if (isTrue(method))
+        if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
         }

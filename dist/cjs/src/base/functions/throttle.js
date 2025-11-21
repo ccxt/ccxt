@@ -50,7 +50,7 @@ class Throttler {
             resolver = resolve;
         });
         if (this.queue.length > this.config['maxCapacity']) {
-            throw new Error('throttle queue is over maxCapacity (' + this.config['maxCapacity'].toString() + '), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526');
+            throw new Error('throttle queue is over maxCapacity (' + this.config['maxCapacity'].toString() + '), see https://docs.ccxt.com/#/README?id=maximum-requests-capacity');
         }
         cost = (cost === undefined) ? this.config['cost'] : cost;
         this.queue.push({ resolver, cost });

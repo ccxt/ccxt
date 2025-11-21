@@ -117,7 +117,7 @@ class Client(object):
             self.log(iso8601(milliseconds()), 'receive loop')
         if not self.closed():
             # let's drain the aiohttp buffer to avoid latency
-            if len(self.buffer) > 1:
+            if self.buffer and len(self.buffer) > 1:
                 size_delta = 0
                 while len(self.buffer) > 1:
                     message, size = self.buffer.popleft()
@@ -186,6 +186,16 @@ class Client(object):
         # looks like they exposed it in C
         # this means we can bypass it
         # https://github.com/aio-libs/aiohttp/blob/master/aiohttp/_websocket/reader_c.pxd#L53C24-L53C31
+        # these checks are necessary to protect these errors: AttributeError: 'NoneType' object has no attribute '_buffer'
+        # upon getting an error message
+        if self.connection is None:
+            return None
+        if self.connection._conn is None:
+            return None
+        if self.connection._conn.protocol is None:
+            return None
+        if self.connection._conn.protocol._payload is None:
+            return None
         return self.connection._conn.protocol._payload._buffer
 
     def connect(self, session, backoff_delay=0):
@@ -294,6 +304,8 @@ class Client(object):
                 send_msg = json.dumps(message, separators=(',', ':'))
             else:
                 send_msg = orjson.dumps(message).decode('utf-8')
+        if self.closed():
+            raise ConnectionError('Cannot Send Message: Connection closed before send')
         return await self.connection.send_str(send_msg)
 
     async def close(self, code=1000):

@@ -45,6 +45,7 @@ class bitfinex extends Exchange {
                 'createTrailingPercentOrder' => false,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
@@ -65,6 +66,7 @@ class bitfinex extends Exchange {
                 'fetchFundingRate' => 'emulated', // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -82,6 +84,8 @@ class bitfinex extends Exchange {
                 'fetchOpenInterests' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
@@ -97,6 +101,7 @@ class bitfinex extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => null,
                 'fetchTransactions' => 'emulated',
+                'fetchVolatilityHistory' => false,
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
@@ -1502,7 +1507,7 @@ class bitfinex extends Exchange {
         return $this->parse_trades($tradesList, $market, null, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1983,7 +1988,7 @@ class bitfinex extends Exchange {
         return $this->parse_order($newOrder, $market);
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple $orders at the same time
          *
@@ -1995,11 +2000,13 @@ class bitfinex extends Exchange {
          * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
+        $numericIds = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $ids[$i] = $this->parse_to_numeric($ids[$i]);
+            // $numericIds[$i] = $this->parse_to_numeric($ids[$i]);
+            $numericIds[] = $this->parse_to_numeric($ids[$i]);
         }
         $request = array(
-            'id' => $ids,
+            'id' => $numericIds,
         );
         $market = null;
         if ($symbol !== null) {

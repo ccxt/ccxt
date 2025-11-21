@@ -18,6 +18,47 @@
         ],
         "createOrder": [
             {
+                "description": "spot order with sl type 3",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    50,
+                    0.2,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 0.1
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"0.2\",\"category\":\"spot\",\"qty\":\"50\",\"stopLoss\":\"0.1\",\"slOrderType\":\"Market\"}"
+            },
+            {
+                "description": "spot order with to/sl",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    50,
+                    0.2,
+                    {
+                        "takeProfit": {
+                            "triggerPrice": 5,
+                            "price": 5
+                        },
+                        "stopLoss": {
+                            "price": 0.1,
+                            "triggerPrice": 0.1
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"0.2\",\"category\":\"spot\",\"qty\":\"50\",\"stopLoss\":\"0.1\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"0.1\",\"takeProfit\":\"5\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"5\"}"
+            },
+            {
                 "description": "spot stopLossPrice order",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
@@ -249,6 +290,74 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"takeProfit\":\"98000\",\"tpslMode\":\"Partial\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"99000\",\"tpSize\":\"1\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode full",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "stopLossPrice": 3999,
+                    "tpslMode": "Full"
+                  }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"stopLoss\":\"3999\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode full",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "takeProfitPrice": 4000,
+                    "tpslMode": "Full"
+                  }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"takeProfit\":\"4000\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode partial",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "stopLossPrice": 3.9,
+                    "tpslMode": "Partial"
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"stopLoss\":\"3.9\",\"tpslMode\":\"Partial\",\"slSize\":\"1\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode partial",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "takeProfitPrice": 2.2,
+                    "tpslMode": "Partial"
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"takeProfit\":\"2.2\",\"tpslMode\":\"Partial\",\"tpSize\":\"1\",\"category\":\"linear\"}"
             },
             {
                 "description": "Opening position with sl + tp attached (type 3)",
@@ -1721,6 +1830,30 @@
                         "baseCoin": "BTC"
                     }
                 ]
+            }
+        ],
+        "borrowCrossMargin": [
+            {
+                "description": "borrowCrossMargin BTC 0.001",
+                "method": "borrowCrossMargin",
+                "url": "https://api-testnet.bybit.com/v5/account/borrow",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "output": "{\"coin\":\"BTC\",\"amount\":\"0.001\"}"
+            }
+        ],
+        "repayCrossMargin": [
+            {
+                "description": "repayCrossMargin BTC 0.001",
+                "method": "repayCrossMargin",
+                "url": "https://api-testnet.bybit.com/v5/account/no-convert-repay",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "output": "{\"coin\":\"BTC\",\"amount\":\"0.001\"}"
             }
         ]
     },

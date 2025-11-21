@@ -67,6 +67,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 'createTrailingPercentOrder': False,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,
@@ -87,6 +88,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 'fetchFundingRate': 'emulated',  # emulated in exchange
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -104,6 +106,8 @@ class bitfinex(Exchange, ImplicitAPI):
                 'fetchOpenInterests': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
@@ -119,6 +123,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
                 'fetchTransactions': 'emulated',
+                'fetchVolatilityHistory': False,
                 'reduceMargin': False,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
@@ -1473,7 +1478,7 @@ class bitfinex(Exchange, ImplicitAPI):
             tradesList.append({'result': trades[i]})  # convert to array of dicts to match parseOrder signature
         return self.parse_trades(tradesList, market, None, limit)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = 100, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = 100, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1915,7 +1920,7 @@ class bitfinex(Exchange, ImplicitAPI):
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders at the same time
 
@@ -1927,10 +1932,12 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns dict: an array of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        numericIds = []
         for i in range(0, len(ids)):
-            ids[i] = self.parse_to_numeric(ids[i])
+            # numericIds[i] = self.parse_to_numeric(ids[i])
+            numericIds.append(self.parse_to_numeric(ids[i]))
         request: dict = {
-            'id': ids,
+            'id': numericIds,
         }
         market = None
         if symbol is not None:

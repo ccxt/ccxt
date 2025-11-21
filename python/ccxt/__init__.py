@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.10'
+__version__ = '4.5.20'
 
 # ----------------------------------------------------------------------------
 
@@ -86,6 +86,7 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.apex import apex                                            # noqa: F401
+from ccxt.arkham import arkham                                        # noqa: F401
 from ccxt.ascendex import ascendex                                    # noqa: F401
 from ccxt.backpack import backpack                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
@@ -133,11 +134,13 @@ from ccxt.coinsph import coinsph                                      # noqa: F4
 from ccxt.coinspot import coinspot                                    # noqa: F401
 from ccxt.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.cryptomus import cryptomus                                  # noqa: F401
+from ccxt.deepcoin import deepcoin                                    # noqa: F401
 from ccxt.defx import defx                                            # noqa: F401
 from ccxt.delta import delta                                          # noqa: F401
 from ccxt.deribit import deribit                                      # noqa: F401
 from ccxt.derive import derive                                        # noqa: F401
 from ccxt.digifinex import digifinex                                  # noqa: F401
+from ccxt.dydx import dydx                                            # noqa: F401
 from ccxt.exmo import exmo                                            # noqa: F401
 from ccxt.fmfwio import fmfwio                                        # noqa: F401
 from ccxt.foxbit import foxbit                                        # noqa: F401
@@ -167,7 +170,6 @@ from ccxt.myokx import myokx                                          # noqa: F4
 from ccxt.ndax import ndax                                            # noqa: F401
 from ccxt.novadax import novadax                                      # noqa: F401
 from ccxt.oceanex import oceanex                                      # noqa: F401
-from ccxt.okcoin import okcoin                                        # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
@@ -194,6 +196,7 @@ from ccxt.zonda import zonda                                          # noqa: F4
 exchanges = [
     'alpaca',
     'apex',
+    'arkham',
     'ascendex',
     'backpack',
     'bequant',
@@ -241,11 +244,13 @@ exchanges = [
     'coinspot',
     'cryptocom',
     'cryptomus',
+    'deepcoin',
     'defx',
     'delta',
     'deribit',
     'derive',
     'digifinex',
+    'dydx',
     'exmo',
     'fmfwio',
     'foxbit',
@@ -275,7 +280,6 @@ exchanges = [
     'ndax',
     'novadax',
     'oceanex',
-    'okcoin',
     'okx',
     'okxus',
     'onetrading',

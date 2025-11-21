@@ -881,7 +881,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let paginate = false;
@@ -1299,12 +1299,14 @@ export default class blofin extends Exchange {
         } else if (type === 'ioc') {
             timeInForce = 'IOC';
             type = 'limit';
+        } else if (type === 'conditional') {
+            type = 'trigger';
         }
         const marketId = this.safeString (order, 'instId');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market, '-');
         const filled = this.safeString (order, 'filledSize');
-        const price = this.safeString2 (order, 'px', 'price');
+        const price = this.safeStringN (order, [ 'px', 'price', 'orderPrice' ]);
         const average = this.safeString (order, 'averagePrice');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const feeCostString = this.safeString (order, 'fee');
@@ -1406,27 +1408,28 @@ export default class blofin extends Exchange {
         [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', 'privatePostTradeOrder');
         const isStopLossPriceDefined = this.safeString (params, 'stopLossPrice') !== undefined;
         const isTakeProfitPriceDefined = this.safeString (params, 'takeProfitPrice') !== undefined;
-        const isTriggerOrder = this.safeString (params, 'triggerPrice') !== undefined;
+        const hasTriggerPrice = this.safeString (params, 'triggerPrice') !== undefined;
         const isType2Order = (isStopLossPriceDefined || isTakeProfitPriceDefined);
         let response = undefined;
         const reduceOnly = this.safeBool (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             params['reduceOnly'] = reduceOnly ? 'true' : 'false';
         }
-        if (tpsl || (method === 'privatePostTradeOrderTpsl') || isType2Order) {
+        const isTpslOrder = tpsl || (method === 'privatePostTradeOrderTpsl') || isType2Order;
+        const isTriggerOrder = hasTriggerPrice || (method === 'privatePostTradeOrderAlgo');
+        if (isTpslOrder) {
             const tpslRequest = this.createTpslOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderTpsl (tpslRequest);
-        } else if (isTriggerOrder || (method === 'privatePostTradeOrderAlgo')) {
+        } else if (isTriggerOrder) {
             const triggerRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderAlgo (triggerRequest);
         } else {
             const request = this.createOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrder (request);
         }
-        if (isTriggerOrder || (method === 'privatePostTradeOrderAlgo')) {
+        if (isTpslOrder || isTriggerOrder) {
             const dataDict = this.safeDict (response, 'data', {});
-            const triggerOrder = this.parseOrder (dataDict, market);
-            return triggerOrder;
+            return this.parseOrder (dataDict, market);
         }
         const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0);
@@ -1920,7 +1923,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');

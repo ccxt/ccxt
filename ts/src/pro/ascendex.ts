@@ -100,7 +100,7 @@ export default class ascendex extends ascendexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -283,7 +283,7 @@ export default class ascendex extends ascendexRest {
         return orderbook.limit ();
     }
 
-    async fetchOrderBookSnapshot (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBookSnapshotCustom (symbol: string, limit: Int = undefined, params = {}) {
         const restOrderBook = await this.fetchRestOrderBookSafe (symbol, limit, params);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
@@ -980,7 +980,7 @@ export default class ascendex extends ascendexRest {
         }
         this.orderbooks[symbol] = this.orderBook ({});
         if (this.options['defaultType'] === 'swap' || market['contract']) {
-            this.spawn (this.fetchOrderBookSnapshot, symbol);
+            this.spawn (this.fetchOrderBookSnapshotCustom, symbol);
         } else {
             this.spawn (this.watchOrderBookSnapshot, symbol);
         }

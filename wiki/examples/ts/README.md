@@ -20,6 +20,8 @@
 
 - [Custom Proxy Agent For Js](./examples/ts/custom-proxy-agent-for-js.md)
 
+- [Fetch Balance All Exchanges](./examples/ts/fetch-balance-all-exchanges.md)
+
 - [Fetch First Ohlcv Timestamp](./examples/ts/fetch-first-ohlcv-timestamp.md)
 
 - [📂 Fetch Futures](https://github.com/ccxt/ccxt/tree/master/./examples/ts/fetch-futures)

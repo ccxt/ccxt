@@ -641,6 +641,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privateGetV5AccountBorrowHistory",parameters);
     }
 
+    public async Task<object> privateGetV5AccountInstrumentsInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AccountInstrumentsInfo",parameters);
+    }
+
     public async Task<object> privateGetV5AccountCollateralInfo (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AccountCollateralInfo",parameters);
@@ -786,6 +791,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privateGetV5AssetCoinQueryInfo",parameters);
     }
 
+    public async Task<object> privateGetV5AssetWithdrawQueryAddress (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AssetWithdrawQueryAddress",parameters);
+    }
+
     public async Task<object> privateGetV5AssetWithdrawQueryRecord (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AssetWithdrawQueryRecord",parameters);
@@ -854,6 +864,26 @@ public partial class bybit : Exchange
     public async Task<object> privateGetV5SpotMarginTradeState (object parameters = null)
     {
         return await this.callAsync ("privateGetV5SpotMarginTradeState",parameters);
+    }
+
+    public async Task<object> privateGetV5SpotMarginTradeMaxBorrowable (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradeMaxBorrowable",parameters);
+    }
+
+    public async Task<object> privateGetV5SpotMarginTradePositionTiers (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradePositionTiers",parameters);
+    }
+
+    public async Task<object> privateGetV5SpotMarginTradeCoinstate (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradeCoinstate",parameters);
+    }
+
+    public async Task<object> privateGetV5SpotMarginTradeRepaymentAvailableAmount (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradeRepaymentAvailableAmount",parameters);
     }
 
     public async Task<object> privateGetV5SpotCrossMarginTradeLoanInfo (object parameters = null)
@@ -966,6 +996,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privateGetV5BrokerAssetQuerySubMemberDepositRecord",parameters);
     }
 
+    public async Task<object> privateGetV5EarnProduct (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5EarnProduct",parameters);
+    }
+
     public async Task<object> privateGetV5EarnOrder (object parameters = null)
     {
         return await this.callAsync ("privateGetV5EarnOrder",parameters);
@@ -974,6 +1009,16 @@ public partial class bybit : Exchange
     public async Task<object> privateGetV5EarnPosition (object parameters = null)
     {
         return await this.callAsync ("privateGetV5EarnPosition",parameters);
+    }
+
+    public async Task<object> privateGetV5EarnYield (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5EarnYield",parameters);
+    }
+
+    public async Task<object> privateGetV5EarnHourlyYield (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5EarnHourlyYield",parameters);
     }
 
     public async Task<object> privatePostSpotV3PrivateOrder (object parameters = null)
@@ -1374,6 +1419,21 @@ public partial class bybit : Exchange
     public async Task<object> privatePostV5AccountMmpReset (object parameters = null)
     {
         return await this.callAsync ("privatePostV5AccountMmpReset",parameters);
+    }
+
+    public async Task<object> privatePostV5AccountBorrow (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5AccountBorrow",parameters);
+    }
+
+    public async Task<object> privatePostV5AccountRepay (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5AccountRepay",parameters);
+    }
+
+    public async Task<object> privatePostV5AccountNoConvertRepay (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5AccountNoConvertRepay",parameters);
     }
 
     public async Task<object> privatePostV5AssetExchangeQuoteApply (object parameters = null)

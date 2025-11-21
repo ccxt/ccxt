@@ -208,7 +208,7 @@ class okx(Exchange, ImplicitAPI):
                 'referral': {
                     # old reflink 0% discount https://www.okx.com/join/1888677
                     # new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    'url': 'https://www.okx.com/join/CCXT2023',
+                    'url': 'https://www.okx.com/join/CCXTCOM',
                     'discount': 0.2,
                 },
                 'test': {
@@ -1325,8 +1325,9 @@ class okx(Exchange, ImplicitAPI):
                         'symbolRequired': False,
                     },
                     'fetchOHLCV': {
-                        'limit': 300,
-                        'historical': 100,
+                        'limit': 300,  # regular candles(recent & historical) both have 300 max
+                        'mark': 100,
+                        'index': 100,
                     },
                 },
                 'spot': {
@@ -1351,6 +1352,13 @@ class okx(Exchange, ImplicitAPI):
                         'extends': 'default',
                     },
                 },
+            },
+            'currencies': {
+                'USD': self.safe_currency_structure({'id': 'USD', 'code': 'USD', 'precision': self.parse_number('0.0001')}),
+                'EUR': self.safe_currency_structure({'id': 'EUR', 'code': 'EUR', 'precision': self.parse_number('0.0001')}),
+                'AED': self.safe_currency_structure({'id': 'AED', 'code': 'AED', 'precision': self.parse_number('0.0001')}),
+                'GBP': self.safe_currency_structure({'id': 'GBP', 'code': 'GBP', 'precision': self.parse_number('0.0001')}),
+                'AUD': self.safe_currency_structure({'id': 'AUD', 'code': 'AUD', 'precision': self.parse_number('0.0001')}),
             },
             'commonCurrencies': {
                 # the exchange refers to ERC20 version of Aeternity(AEToken)
@@ -1659,6 +1667,12 @@ class okx(Exchange, ImplicitAPI):
         #         "uly": "BTC-USD"
         #     }
         #
+        # for swap "preopen" markets, only `instId` and `instType` are present
+        #
+        #         instId: "ETH-USD_UM-SWAP",
+        #         instType: "SWAP",
+        #         state: "preopen",
+        #
         id = self.safe_string(market, 'instId')
         type = self.safe_string_lower(market, 'instType')
         if type == 'futures':
@@ -1677,9 +1691,17 @@ class okx(Exchange, ImplicitAPI):
             parts = underlying.split('-')
             baseId = self.safe_string(parts, 0)
             quoteId = self.safe_string(parts, 1)
+        if ((baseId == '') or (quoteId == '')) and spot:  # to fix weird preopen markets
+            instId = self.safe_string(market, 'instId', '')
+            parts = instId.split('-')
+            baseId = self.safe_string(parts, 0)
+            quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
+        # handle preopen empty markets
+        if base == '' or quote == '':
+            symbol = id
         expiry = None
         strikePrice = None
         optionType = None
@@ -1703,6 +1725,7 @@ class okx(Exchange, ImplicitAPI):
         maxLeverage = self.safe_string(market, 'lever', '1')
         maxLeverage = Precise.string_max(maxLeverage, '1')
         maxSpotCost = self.safe_number(market, 'maxMktSz')
+        status = self.safe_string(market, 'state')
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -1718,7 +1741,7 @@ class okx(Exchange, ImplicitAPI):
             'swap': swap,
             'future': future,
             'option': option,
-            'active': True,
+            'active': status == 'live',
             'contract': contract,
             'linear': (quoteId == settleId) if contract else None,
             'inverse': (baseId == settleId) if contract else None,
@@ -2415,7 +2438,7 @@ class okx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2444,15 +2467,17 @@ class okx(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 200)
-        price = self.safe_string(params, 'price')
+        priceType = self.safe_string(params, 'price')
+        isMarkOrIndex = self.in_array(priceType, ['mark', 'index'])
         params = self.omit(params, 'price')
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         timezone = self.safe_string(options, 'timezone', 'UTC')
         limitIsUndefined = (limit is None)
         if limit is None:
-            limit = 100  # default 100, max 100
+            limit = 100  # default 100, max 300
         else:
-            limit = min(limit, 300)  # max 100
+            maxLimit = 100 if isMarkOrIndex else 300  # default 300, only 100 if 'mark' or 'index'
+            limit = min(limit, maxLimit)
         duration = self.parse_timeframe(timeframe)
         bar = self.safe_string(self.timeframes, timeframe, timeframe)
         if (timezone == 'UTC') and (duration >= 21600):  # if utc and timeframe >= 6h
@@ -2470,8 +2495,8 @@ class okx(Exchange, ImplicitAPI):
             historyBorder = now - ((1440 - 1) * durationInMilliseconds)
             if since < historyBorder:
                 defaultType = 'HistoryCandles'
-                maxLimit = 100 if (price is not None) else 300
-                limit = min(limit, maxLimit)  # max 300 for historical endpoint
+                maxLimit = 100 if isMarkOrIndex else 300
+                limit = min(limit, maxLimit)
             startTime = max(since - 1, 0)
             request['before'] = startTime
             request['after'] = self.sum(since, durationInMilliseconds * limit)
@@ -2484,12 +2509,12 @@ class okx(Exchange, ImplicitAPI):
         params = self.omit(params, 'type')
         isHistoryCandles = (type == 'HistoryCandles')
         response = None
-        if price == 'mark':
+        if priceType == 'mark':
             if isHistoryCandles:
                 response = self.publicGetMarketHistoryMarkPriceCandles(self.extend(request, params))
             else:
                 response = self.publicGetMarketMarkPriceCandles(self.extend(request, params))
-        elif price == 'index':
+        elif priceType == 'index':
             request['instId'] = market['info']['instFamily']  # okx index candles require instFamily instead of instId
             if isHistoryCandles:
                 response = self.publicGetMarketHistoryIndexCandles(self.extend(request, params))
@@ -3417,7 +3442,7 @@ class okx(Exchange, ImplicitAPI):
         else:
             return ids
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 

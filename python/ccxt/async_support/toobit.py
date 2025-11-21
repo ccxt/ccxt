@@ -34,7 +34,7 @@ class toobit(Exchange, ImplicitAPI):
             'version': 'v1',
             'rateLimit': 20,  # 50 requests per second
             'certified': False,
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -74,7 +74,7 @@ class toobit(Exchange, ImplicitAPI):
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/3fc13870-5406-431b-8be0-2aab69c4f225',
+                'logo': 'https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e',
                 'api': {
                     'common': 'https://api.toobit.com',
                     'private': 'https://api.toobit.com',
@@ -2849,6 +2849,7 @@ class toobit(Exchange, ImplicitAPI):
             else:
                 body += '&signature=' + signature
             headers = {
+                'Referrer': 'CCXT',
                 'X-BB-APIKEY': self.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }

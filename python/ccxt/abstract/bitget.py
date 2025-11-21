@@ -183,6 +183,7 @@ class ImplicitAPI:
     private_spot_post_v2_spot_trade_place_plan_order = privateSpotPostV2SpotTradePlacePlanOrder = Entry('v2/spot/trade/place-plan-order', ['private', 'spot'], 'POST', {'cost': 1})
     private_spot_post_v2_spot_trade_modify_plan_order = privateSpotPostV2SpotTradeModifyPlanOrder = Entry('v2/spot/trade/modify-plan-order', ['private', 'spot'], 'POST', {'cost': 1})
     private_spot_post_v2_spot_trade_cancel_plan_order = privateSpotPostV2SpotTradeCancelPlanOrder = Entry('v2/spot/trade/cancel-plan-order', ['private', 'spot'], 'POST', {'cost': 1})
+    private_spot_post_v2_spot_trade_cancel_replace_order = privateSpotPostV2SpotTradeCancelReplaceOrder = Entry('v2/spot/trade/cancel-replace-order', ['private', 'spot'], 'POST', {'cost': 2})
     private_spot_post_v2_spot_trade_batch_cancel_plan_order = privateSpotPostV2SpotTradeBatchCancelPlanOrder = Entry('v2/spot/trade/batch-cancel-plan-order', ['private', 'spot'], 'POST', {'cost': 2})
     private_spot_post_v2_spot_wallet_transfer = privateSpotPostV2SpotWalletTransfer = Entry('v2/spot/wallet/transfer', ['private', 'spot'], 'POST', {'cost': 2})
     private_spot_post_v2_spot_wallet_subaccount_transfer = privateSpotPostV2SpotWalletSubaccountTransfer = Entry('v2/spot/wallet/subaccount-transfer', ['private', 'spot'], 'POST', {'cost': 2})

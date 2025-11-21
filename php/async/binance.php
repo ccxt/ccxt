@@ -248,10 +248,11 @@ class binance extends Exchange {
                     'private' => 'https://api.binance.com/api/v3',
                     'v1' => 'https://api.binance.com/api/v1',
                     'papi' => 'https://papi.binance.com/papi/v1',
+                    'papiV2' => 'https://papi.binance.com/papi/v2',
                 ),
                 'www' => 'https://www.binance.com',
                 'referral' => array(
-                    'url' => 'https://accounts.binance.com/en/register?ref=D7YA7CLY',
+                    'url' => 'https://accounts.binance.com/register?ref=CCXTCOM',
                     'discount' => 0.1,
                 ),
                 'doc' => array(
@@ -906,6 +907,9 @@ class binance extends Exchange {
                         'symbolConfig' => 5,
                         'accountConfig' => 5,
                         'convert/orderStatus' => 5,
+                        'algoOrder' => 1,
+                        'openAlgoOrders' => 1,
+                        'allAlgoOrders' => 5,
                     ),
                     'post' => array(
                         'batchOrders' => 5,
@@ -913,6 +917,7 @@ class binance extends Exchange {
                         'positionMargin' => 1,
                         'marginType' => 1,
                         'order' => 4,
+                        'order/test' => 1,
                         'leverage' => 1,
                         'listenKey' => 1,
                         'countdownCancelAll' => 10,
@@ -923,6 +928,7 @@ class binance extends Exchange {
                         'feeBurn' => 1,
                         'convert/getQuote' => 200, // 360 requests per hour
                         'convert/acceptQuote' => 20,
+                        'algoOrder' => 1,
                     ),
                     'put' => array(
                         'listenKey' => 1,
@@ -934,6 +940,8 @@ class binance extends Exchange {
                         'order' => 1,
                         'allOpenOrders' => 1,
                         'listenKey' => 1,
+                        'algoOrder' => 1,
+                        'algoOpenOrders' => 1,
                     ),
                 ),
                 'fapiPublicV2' => array(
@@ -1194,6 +1202,11 @@ class binance extends Exchange {
                         'margin/allOpenOrders' => 5,
                         'margin/orderList' => 2,
                         'listenKey' => 0.2,
+                    ),
+                ),
+                'papiV2' => array(
+                    'get' => array(
+                        'um/account' => 1,
                     ),
                 ),
             ),
@@ -4038,7 +4051,7 @@ class binance extends Exchange {
         //
         //     {
         //         "symbol" => "BTCUSDT",
-        //         "markPrice" => "11793.63104561", // mark price
+        //         "markPrice" => "11793.63104562", // mark price
         //         "indexPrice" => "11781.80495970", // index price
         //         "estimatedSettlePrice" => "11781.16138815", // Estimated Settle Price, only useful in the $last hour before the settlement starts
         //         "lastFundingRate" => "0.00038246",  // This is the lastest estimated funding rate
@@ -4638,7 +4651,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -10933,7 +10946,7 @@ class binance extends Exchange {
             $response = null;
             if ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetUmAccount ($params));
+                    $response = Async\await($this->papiV2GetUmAccount ($params));
                 } else {
                     $useV2 = null;
                     list($useV2, $params) = $this->handle_option_and_params($params, 'fetchAccountPositions', 'useV2', false);
@@ -12011,7 +12024,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papi' && $path !== 'ping')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papiV2' || $api === 'papi' && $path !== 'ping')) {
             $this->check_required_credentials();
             if ((mb_strpos($url, 'testnet.binancefuture.com') > -1) && $this->isSandboxModeEnabled && (!$this->safe_bool($this->options, 'disableFuturesSandboxWarning'))) {
                 throw new NotSupported($this->id . ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
@@ -12070,6 +12083,9 @@ class binance extends Exchange {
                     $orderidlist = $this->safe_list($extendedParams, 'orderidlist', array());
                     $origclientorderidlist = $this->safe_list_2($extendedParams, 'origclientorderidlist', 'origClientOrderIdList', array());
                     $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist', 'origClientOrderIdList' ));
+                    if (is_array($extendedParams) && array_key_exists('symbol', $extendedParams)) {
+                        $extendedParams['symbol'] = $this->encode_uri_component($extendedParams['symbol']);
+                    }
                     $query = $this->rawencode($extendedParams);
                     $orderidlistLength = count($orderidlist);
                     $origclientorderidlistLength = count($origclientorderidlist);

@@ -21,6 +21,7 @@
 * [editOrder](#editorder)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
+* [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchMyTrades](#fetchmytrades)
@@ -383,6 +384,33 @@ cancel all open orders in a market
 
 ```javascript
 delta.cancelAllOrders (symbol[, params])
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order made by the user
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://docs.delta.exchange/#get-order-by-id
+- https://docs.delta.exchange/#get-order-by-client-oid
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
+| symbol | <code>string</code> | No | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id of the order |
+
+
+```javascript
+delta.fetchOrder (id[, symbol, params])
 ```
 
 

@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.10';
+$version = '4.5.20';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.10';
+    const VERSION = '4.5.20';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -343,6 +343,7 @@ class Exchange {
     public static $exchanges = array(
         'alpaca',
         'apex',
+        'arkham',
         'ascendex',
         'backpack',
         'bequant',
@@ -390,11 +391,13 @@ class Exchange {
         'coinspot',
         'cryptocom',
         'cryptomus',
+        'deepcoin',
         'defx',
         'delta',
         'deribit',
         'derive',
         'digifinex',
+        'dydx',
         'exmo',
         'fmfwio',
         'foxbit',
@@ -424,7 +427,6 @@ class Exchange {
         'ndax',
         'novadax',
         'oceanex',
-        'okcoin',
         'okx',
         'okxus',
         'onetrading',
@@ -858,6 +860,11 @@ class Exchange {
         if (preg_match_all('/{([\w-]+)}/u', $string, $matches)) {
             return $matches[1];
         }
+    }
+
+
+    public static function uuid5($namesp, $name) {
+        return "";
     }
 
     public static function implode_params($string, $params) {
@@ -2361,8 +2368,52 @@ class Exchange {
     }
 
     public function get_zk_transfer_signature_obj($seed, $params) {
-         throw new NotSupported ('Apex currently does not support transfer asset in PHP language');
-         return "";
+        throw new NotSupported ('Apex currently does not support transfer asset in PHP language');
+        return "";
+    }
+
+    public function load_dydx_protos () {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function to_dydx_long ($numStr) {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function retrieve_dydx_credentials ($entropy) {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function encode_dydx_tx_for_simulation (
+        $message,
+        $memo,
+        $sequence,
+        $publicKey
+    ) {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function encode_dydx_tx_for_signing (
+        $message,
+        $memo,
+        $chainId,
+        $account,
+        $authenticators,
+        $fee
+    ) {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function encode_dydx_tx_raw ($signDoc, $signature) {
+        throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function lock_id() {
+        return true;
+    }
+
+    public function unlock_id() {
+        return true;
     }
 
     // ########################################################################
@@ -2433,8 +2484,10 @@ class Exchange {
                 'cancelAllOrders' => null,
                 'cancelAllOrdersWs' => null,
                 'cancelOrder' => true,
+                'cancelOrderWithClientOrderId' => null,
                 'cancelOrderWs' => null,
                 'cancelOrders' => null,
+                'cancelOrdersWithClientOrderId' => null,
                 'cancelOrdersWs' => null,
                 'closeAllPositions' => null,
                 'closePosition' => null,
@@ -2484,6 +2537,7 @@ class Exchange {
                 'createTriggerOrderWs' => null,
                 'deposit' => null,
                 'editOrder' => 'emulated',
+                'editOrderWithClientOrderId' => null,
                 'editOrders' => null,
                 'editOrderWs' => null,
                 'fetchAccounts' => null,
@@ -2562,6 +2616,7 @@ class Exchange {
                 'fetchOption' => null,
                 'fetchOptionChain' => null,
                 'fetchOrder' => null,
+                'fetchOrderWithClientOrderId' => null,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => null,
                 'fetchOrderBookWs' => null,
@@ -2855,7 +2910,7 @@ class Exchange {
     }
 
     public function get_cache_index($orderbook, $deltas) {
-        // return the first index of the cache that can be applied to the $orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the $orderbook or -1 if not possible.
         return -1;
     }
 
@@ -3266,6 +3321,14 @@ class Exchange {
 
     public function un_watch_ticker(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' unWatchTicker() is not supported yet');
+    }
+
+    public function un_watch_mark_price(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchMarkPrice() is not supported yet');
+    }
+
+    public function un_watch_mark_prices(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchMarkPrices() is not supported yet');
     }
 
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
@@ -3743,6 +3806,9 @@ class Exchange {
         if ($this->features === null) {
             return $defaultValue;
         }
+        if ($marketType === null) {
+            return $defaultValue; // $marketType is required
+        }
         // if $marketType (e.g. 'option') does not exist in features
         if (!(is_array($this->features) && array_key_exists($marketType, $this->features))) {
             return $defaultValue; // unsupported $marketType, check "exchange.features" for details
@@ -3768,7 +3834,7 @@ class Exchange {
         }
         // if user wanted only $marketType and didn't provide $methodName, eg => featureIsSupported('spot')
         if ($methodName === null) {
-            return $methodsContainer;
+            return ($defaultValue !== null) ? $defaultValue : $methodsContainer;
         }
         if (!(is_array($methodsContainer) && array_key_exists($methodName, $methodsContainer))) {
             return $defaultValue; // unsupported method, check "exchange.features" for details');
@@ -3779,7 +3845,7 @@ class Exchange {
         }
         // if user wanted only method and didn't provide `$paramName`, eg => featureIsSupported('swap', 'linear', 'createOrder')
         if ($paramName === null) {
-            return $methodDict;
+            return ($defaultValue !== null) ? $defaultValue : $methodDict;
         }
         $splited = explode('.', $paramName); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         $parentKey = $splited[0];
@@ -4189,6 +4255,7 @@ class Exchange {
         $this->symbols = $sourceExchange->symbols;
         $this->ids = $sourceExchange->ids;
         $this->currencies = $sourceExchange->currencies;
+        $this->currencies_by_id = $sourceExchange->currencies_by_id;
         $this->baseCurrencies = $sourceExchange->baseCurrencies;
         $this->quoteCurrencies = $sourceExchange->quoteCurrencies;
         $this->codes = $sourceExchange->codes;
@@ -4700,7 +4767,7 @@ class Exchange {
                 $fee = $this->parse_fee_numeric($fee);
             }
             if (!$feesDefined) {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 $fees = array( $fee );
             }
             // 'fees' were set, so reparse them
@@ -5859,6 +5926,10 @@ class Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
+    public function edit_order_with_client_order_id(string $clientOrderId, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        return $this->edit_order('', $symbol, $type, $side, $amount, $price, $this->extend(array( 'clientOrderId' => $clientOrderId ), $params));
+    }
+
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $this->cancel_order_ws($id, $symbol);
         return $this->create_order_ws($symbol, $type, $side, $amount, $price, $params);
@@ -5962,10 +6033,6 @@ class Exchange {
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
-        $result = $this->safe_market_structure(array(
-            'symbol' => $marketId,
-            'marketId' => $marketId,
-        ));
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
                 $markets = $this->markets_by_id[$marketId];
@@ -5990,22 +6057,24 @@ class Exchange {
             } elseif ($delimiter !== null && $delimiter !== '') {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = count($parts);
+                $result = $this->safe_market_structure(array(
+                    'symbol' => $marketId,
+                    'marketId' => $marketId,
+                ));
                 if ($partsLength === 2) {
                     $result['baseId'] = $this->safe_string($parts, 0);
                     $result['quoteId'] = $this->safe_string($parts, 1);
                     $result['base'] = $this->safe_currency_code($result['baseId']);
                     $result['quote'] = $this->safe_currency_code($result['quoteId']);
                     $result['symbol'] = $result['base'] . '/' . $result['quote'];
-                    return $result;
-                } else {
-                    return $result;
                 }
+                return $result;
             }
         }
         if ($market !== null) {
             return $market;
         }
-        return $result;
+        return $this->safe_market_structure(array( 'symbol' => $marketId, 'marketId' => $marketId ));
     }
 
     public function market_or_null(string $symbol) {
@@ -6382,6 +6451,18 @@ class Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrder() is not supported yet');
+    }
+
+    public function fetch_order_with_client_order_id(string $clientOrderId, ?string $symbol = null, $params = array ()) {
+        /**
+         * create a market order by providing the $symbol, side and cost
+         * @param {string} $clientOrderId client order Id
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
+        return $this->fetch_order('', $symbol, $extendedParams);
     }
 
     public function fetch_order_ws(string $id, ?string $symbol = null, $params = array ()) {
@@ -6835,8 +6916,36 @@ class Exchange {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
     }
 
+    public function cancel_order_with_client_order_id(string $clientOrderId, ?string $symbol = null, $params = array ()) {
+        /**
+         * create a market order by providing the $symbol, side and cost
+         * @param {string} $clientOrderId client order Id
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
+        return $this->cancel_order('', $symbol, $extendedParams);
+    }
+
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrderWs() is not supported yet');
+    }
+
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelOrders() is not supported yet');
+    }
+
+    public function cancel_orders_with_client_order_ids(array $clientOrderIds, ?string $symbol = null, $params = array ()) {
+        /**
+         * create a market order by providing the $symbol, side and cost
+         * @param {string[]} $clientOrderIds client order Ids
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $extendedParams = $this->extend($params, array( 'clientOrderIds' => $clientOrderIds ));
+        return $this->cancel_orders(array(), $symbol, $extendedParams);
     }
 
     public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
@@ -6859,7 +6968,7 @@ class Exchange {
         throw new NotSupported($this->id . ' cancelAllOrdersWs() is not supported yet');
     }
 
-    public function cancel_unified_order($order, $params = array ()) {
+    public function cancel_unified_order(array $order, $params = array ()) {
         return $this->cancel_order($this->safe_string($order, 'id'), $this->safe_string($order, 'symbol'), $params);
     }
 
@@ -8773,7 +8882,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTransfers () is not supported yet');
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()) {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()) {
         /**
          * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
@@ -8942,7 +9051,7 @@ class Exchange {
                         unset($futures['fetchPositionsSnapshot']);
                     }
                 }
-            } elseif ($topic === 'ticker' && ($this->tickers !== null)) {
+            } elseif (($topic === 'ticker' || $topic === 'markPrice') && ($this->tickers !== null)) {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
                     $tickerSymbol = $tickerSymbols[$i];

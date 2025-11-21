@@ -1015,7 +1015,7 @@ export default class bitmart extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': this.safeStringLower2 (market, 'status', 'trade_status') === 'trading',
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -1133,7 +1133,7 @@ export default class bitmart extends Exchange {
                 'swap': isSwap,
                 'future': isFutures,
                 'option': false,
-                'active': true,
+                'active': this.safeStringLower (market, 'status') === 'trading',
                 'contract': true,
                 'linear': true,
                 'inverse': false,
@@ -2103,7 +2103,7 @@ export default class bitmart extends Exchange {
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
@@ -4748,12 +4748,15 @@ export default class bitmart extends Exchange {
         //         "code": 1000,
         //         "message": "Ok",
         //         "data": {
-        //             "timestamp": 1695184410697,
         //             "symbol": "BTCUSDT",
-        //             "rate_value": "-0.00002614",
-        //             "expected_rate": "-0.00002"
+        //             "expected_rate": "-0.0000238",
+        //             "rate_value": "0.000009601106",
+        //             "funding_time": 1761292800000,
+        //             "funding_upper_limit": "0.0375",
+        //             "funding_lower_limit": "-0.0375",
+        //             "timestamp": 1761291544336
         //         },
-        //         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        //         "trace": "64b7a589-e1e-4ac2-86b1-41058757421"
         //     }
         //
         const data = this.safeDict (response, 'data', {});
@@ -4823,14 +4826,18 @@ export default class bitmart extends Exchange {
     parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
-        //         "timestamp": 1695184410697,
         //         "symbol": "BTCUSDT",
-        //         "rate_value": "-0.00002614",
-        //         "expected_rate": "-0.00002"
+        //         "expected_rate": "-0.0000238",
+        //         "rate_value": "0.000009601106",
+        //         "funding_time": 1761292800000,
+        //         "funding_upper_limit": "0.0375",
+        //         "funding_lower_limit": "-0.0375",
+        //         "timestamp": 1761291544336
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
         const timestamp = this.safeInteger (contract, 'timestamp');
+        const fundingTimestamp = this.safeInteger (contract, 'funding_time');
         return {
             'info': contract,
             'symbol': this.safeSymbol (marketId, market),
@@ -4841,8 +4848,8 @@ export default class bitmart extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fundingRate': this.safeNumber (contract, 'expected_rate'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,

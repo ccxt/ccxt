@@ -243,10 +243,11 @@ class binance extends binance$1["default"] {
                     'private': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
                     'papi': 'https://papi.binance.com/papi/v1',
+                    'papiV2': 'https://papi.binance.com/papi/v2',
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
-                    'url': 'https://accounts.binance.com/en/register?ref=D7YA7CLY',
+                    'url': 'https://accounts.binance.com/register?ref=CCXTCOM',
                     'discount': 0.1,
                 },
                 'doc': [
@@ -901,6 +902,9 @@ class binance extends binance$1["default"] {
                         'symbolConfig': 5,
                         'accountConfig': 5,
                         'convert/orderStatus': 5,
+                        'algoOrder': 1,
+                        'openAlgoOrders': 1,
+                        'allAlgoOrders': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -908,6 +912,7 @@ class binance extends binance$1["default"] {
                         'positionMargin': 1,
                         'marginType': 1,
                         'order': 4,
+                        'order/test': 1,
                         'leverage': 1,
                         'listenKey': 1,
                         'countdownCancelAll': 10,
@@ -918,6 +923,7 @@ class binance extends binance$1["default"] {
                         'feeBurn': 1,
                         'convert/getQuote': 200,
                         'convert/acceptQuote': 20,
+                        'algoOrder': 1,
                     },
                     'put': {
                         'listenKey': 1,
@@ -929,6 +935,8 @@ class binance extends binance$1["default"] {
                         'order': 1,
                         'allOpenOrders': 1,
                         'listenKey': 1,
+                        'algoOrder': 1,
+                        'algoOpenOrders': 1,
                     },
                 },
                 'fapiPublicV2': {
@@ -1189,6 +1197,11 @@ class binance extends binance$1["default"] {
                         'margin/allOpenOrders': 5,
                         'margin/orderList': 2,
                         'listenKey': 0.2,
+                    },
+                },
+                'papiV2': {
+                    'get': {
+                        'um/account': 1,
                     },
                 },
             },
@@ -4054,7 +4067,7 @@ class binance extends binance$1["default"] {
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "11793.63104561", // mark price
+        //         "markPrice": "11793.63104562", // mark price
         //         "indexPrice": "11781.80495970", // index price
         //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -10984,7 +10997,7 @@ class binance extends binance$1["default"] {
         let response = undefined;
         if (this.isLinear(type, subType)) {
             if (isPortfolioMargin) {
-                response = await this.papiGetUmAccount(params);
+                response = await this.papiV2GetUmAccount(params);
             }
             else {
                 let useV2 = undefined;
@@ -12066,7 +12079,7 @@ class binance extends binance$1["default"] {
                 throw new errors.AuthenticationError(this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
         }
-        else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'fapiPrivateV3') || (api === 'papi' && path !== 'ping')) {
+        else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'fapiPrivateV3') || (api === 'papiV2' || api === 'papi' && path !== 'ping')) {
             this.checkRequiredCredentials();
             if ((url.indexOf('testnet.binancefuture.com') > -1) && this.isSandboxModeEnabled && (!this.safeBool(this.options, 'disableFuturesSandboxWarning'))) {
                 throw new errors.NotSupported(this.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
@@ -12126,6 +12139,9 @@ class binance extends binance$1["default"] {
                     const orderidlist = this.safeList(extendedParams, 'orderidlist', []);
                     const origclientorderidlist = this.safeList2(extendedParams, 'origclientorderidlist', 'origClientOrderIdList', []);
                     extendedParams = this.omit(extendedParams, ['orderidlist', 'origclientorderidlist', 'origClientOrderIdList']);
+                    if ('symbol' in extendedParams) {
+                        extendedParams['symbol'] = this.encodeURIComponent(extendedParams['symbol']);
+                    }
                     query = this.rawencode(extendedParams);
                     const orderidlistLength = orderidlist.length;
                     const origclientorderidlistLength = origclientorderidlist.length;

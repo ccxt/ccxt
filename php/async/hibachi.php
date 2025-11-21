@@ -849,7 +849,7 @@ class hibachi extends Exchange {
 
     public function create_order_request(float $nonce, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
-        $feeRate = max ($this->safe_number($market, 'taker'), $this->safe_number($market, 'maker'));
+        $feeRate = max ($this->safe_number($market, 'taker', $this->safe_number($this->options, 'defaultTakerFee', 0.00045)), $this->safe_number($market, 'maker', $this->safe_number($this->options, 'defaultMakerFee', 0.00015)));
         $sideInternal = '';
         if ($side === 'sell') {
             $sideInternal = 'ASK';
@@ -1293,12 +1293,12 @@ class hibachi extends Exchange {
             return $this->hmac($message, $this->encode($privateKey), 'sha256', 'hex');
         } else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the $message
-            $hash = $this->hash($this->encode($message), 'sha256', 'hex');
+            $hash = $this->hash($message, 'sha256', 'hex');
             $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
             $r = $signature['r'];
             $s = $signature['s'];
-            $v = $signature['v'];
-            return str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $this->int_to_base16($v).padStart (2, '0');
+            $v = $this->int_to_base16($signature['v']);
+            return str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . str_pad($v, 2, '0', STR_PAD_LEFT);
         }
     }
 
@@ -1489,7 +1489,7 @@ class hibachi extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *

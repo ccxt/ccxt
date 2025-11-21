@@ -67,12 +67,14 @@ class bitfinex(ccxt.async_support.bitfinex):
         }
         result = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, {'checksum': False})
         checksum = self.safe_bool(self.options, 'checksum', True)
-        if checksum and not client.subscriptions[messageHash]['checksum'] and (channel == 'book'):
-            client.subscriptions[messageHash]['checksum'] = True
-            await client.send({
-                'event': 'conf',
-                'flags': 131072,
-            })
+        if checksum and (channel == 'book'):
+            sub = client.subscriptions[messageHash]
+            if sub and not sub['checksum']:
+                client.subscriptions[messageHash]['checksum'] = True
+                await client.send({
+                    'event': 'conf',
+                    'flags': 131072,
+                })
         return result
 
     async def un_subscribe(self, channel, topic, symbol, params={}):
@@ -106,7 +108,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         url = self.urls['api']['ws']['private']
         return await self.watch(url, messageHash, None, 1)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -135,7 +137,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}):
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}):
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for

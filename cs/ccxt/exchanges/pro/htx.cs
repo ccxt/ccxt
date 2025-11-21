@@ -454,24 +454,27 @@ public partial class htx : ccxt.htx
         await this.loadMarkets();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object allowedLimits = new List<object>() {20, 150};
+        object allowedLimits = new List<object>() {5, 20, 150, 400};
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        object depth = this.safeInteger(options, "depth", 150);
-        if (!isTrue(this.inArray(depth, allowedLimits)))
+        if (isTrue(isEqual(limit, null)))
         {
-            throw new ExchangeError ((string)add(this.id, " watchOrderBook market accepts limits of 20 and 150 only")) ;
+            limit = this.safeInteger(options, "depth", 150);
+        }
+        if (!isTrue(this.inArray(limit, allowedLimits)))
+        {
+            throw new ExchangeError ((string)add(this.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
         }
         object messageHash = null;
         if (isTrue(getValue(market, "spot")))
         {
-            messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), this.numberToString(depth));
+            messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), this.numberToString(limit));
         } else
         {
-            messageHash = add(add(add(add("market.", getValue(market, "id")), ".depth.size_"), this.numberToString(depth)), ".high_freq");
+            messageHash = add(add(add(add("market.", getValue(market, "id")), ".depth.size_"), this.numberToString(limit)), ".high_freq");
         }
         object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"), false, true);
         object method = this.handleOrderBookSubscription;
@@ -1026,23 +1029,39 @@ public partial class htx : ccxt.htx
         //
         // spot
         //
+        //     for new order creation
+        //
         //     {
         //         "action":"push",
         //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         //         "data": {
+        //             "orderStatus": "submitted",
+        //             "eventType": "creation",
+        //             "totalTradeAmount": 0 // for "submitted" order status
+        //             "orderCreateTime": 1645116048355, // only when `submitted` status
         //             "orderSource": "spot-web",
-        //             "orderCreateTime": 1645116048355,
         //             "accountId": 44234548,
         //             "orderPrice": "100",
         //             "orderSize": "0.05",
         //             "symbol": "ethusdt",
         //             "type": "buy-limit",
         //             "orderId": "478861479986886",
-        //             "eventType": "creation",
         //             "clientOrderId": '',
-        //             "orderStatus": "submitted"
         //         }
         //     }
+        //
+        //     for filled order, additional fields are present:
+        //
+        //             "orderStatus": "filled",
+        //             "eventType": "trade",
+        //             "totalTradeAmount": "5.9892649859",
+        //             "tradePrice": "0.676669",
+        //             "tradeVolume": "8.8511",
+        //             "tradeTime": 1760427775894,
+        //             "aggressor": false,
+        //             "execAmt": "8.8511",
+        //             "tradeId": 100599712781,
+        //             "remainAmt": "0",
         //
         // spot wrapped trade
         //
@@ -1158,6 +1177,9 @@ public partial class htx : ccxt.htx
                     { "symbol", getValue(market, "symbol") },
                     { "filled", this.parseNumber(filled) },
                     { "remaining", this.parseNumber(remaining) },
+                    { "price", this.safeNumber(data, "orderPrice") },
+                    { "amount", this.safeNumber(data, "orderSize") },
+                    { "info", data },
                 };
                 parsedOrder = order;
             } else

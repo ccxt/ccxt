@@ -327,6 +327,7 @@ public partial class defx : Exchange
                 { "exact", new Dictionary<string, object>() {
                     { "404", typeof(BadRequest) },
                     { "missing_auth_signature", typeof(AuthenticationError) },
+                    { "leverage_higher_than_capped_leverage", typeof(BadRequest) },
                     { "order_rejected", typeof(InvalidOrder) },
                     { "invalid_order_id", typeof(InvalidOrder) },
                     { "filter_lotsize_maxqty", typeof(InvalidOrder) },
@@ -1207,7 +1208,8 @@ public partial class defx : Exchange
         //
         object markPrice = this.safeNumber(contract, "markPrice");
         object indexPrice = this.safeNumber(contract, "indexPrice");
-        object fundingRate = this.safeNumber(contract, "payoutFundingRate");
+        object fundingRateRaw = this.safeString(contract, "payoutFundingRate");
+        object fundingRate = Precise.stringDiv(fundingRateRaw, "100");
         object fundingTime = this.safeInteger(contract, "nextFundingPayout");
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -1218,7 +1220,7 @@ public partial class defx : Exchange
             { "estimatedSettlePrice", null },
             { "timestamp", null },
             { "datetime", null },
-            { "fundingRate", fundingRate },
+            { "fundingRate", this.parseNumber(fundingRate) },
             { "fundingTimestamp", fundingTime },
             { "fundingDatetime", this.iso8601(fundingTime) },
             { "nextFundingRate", null },

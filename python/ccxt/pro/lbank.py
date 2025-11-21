@@ -60,12 +60,14 @@ class lbank(ccxt.async_support.lbank):
         })
 
     def request_id(self):
+        self.lock_id()
         previousValue = self.safe_integer(self.options, 'requestId', 0)
         newValue = self.sum(previousValue, 1)
         self.options['requestId'] = newValue
+        self.unlock_id()
         return newValue
 
-    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
@@ -99,7 +101,7 @@ class lbank(ccxt.async_support.lbank):
         requestId = self.request_id()
         return await self.watch(url, messageHash, request, requestId, request)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data

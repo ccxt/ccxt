@@ -45,6 +45,13 @@ class testMainClass:
         self.ext = get_ext()
 
     async def init(self, exchange_id, symbol_argv, method_argv):
+        try:
+            await self.init_inner(exchange_id, symbol_argv, method_argv)
+        except Exception as e:
+            dump('[TEST_FAILURE]')  # tell run-tests.js this is failure
+            raise e
+
+    async def init_inner(self, exchange_id, symbol_argv, method_argv):
         self.parse_cli_args_and_props()
         if self.request_tests and self.response_tests:
             await self.run_static_request_tests(exchange_id, symbol_argv)
@@ -75,6 +82,7 @@ class testMainClass:
         }
         exchange = init_exchange(exchange_id, exchange_args, self.ws_tests)
         if exchange.alias:
+            dump(self.add_padding('[INFO] skipping alias', 25))
             exit_script(0)
         await self.import_files(exchange)
         assert len(list(self.test_files.keys())) > 0, 'Test files were not loaded'  # ensure test files are found & filled
@@ -331,6 +339,7 @@ class testMainClass:
                     # If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if is_public and is_auth_error:
                         if self.info:
+                            # todo - turn into warning
                             dump('[INFO]', 'Authentication problem for public method', exception_message(e), exchange.id, method_name, args_stringified)
                         return True
                     else:
