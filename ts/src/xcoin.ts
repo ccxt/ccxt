@@ -20,7 +20,7 @@ export default class xcoin extends Exchange {
             'id': 'xcoin',
             'name': 'XCoin',
             'countries': [ 'HK' ], // Hong Kong
-            'rateLimit': 10,
+            'rateLimit': 20,
             'has': {
                 'CORS': true,
                 'spot': true,
