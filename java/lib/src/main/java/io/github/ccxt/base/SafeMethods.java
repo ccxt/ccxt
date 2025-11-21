@@ -107,6 +107,11 @@ public final class SafeMethods {
     // SafeInteger / SafeIntegerN
     // ----------------------------
 
+    public static long SafeIntegerTyped(Object obj, Object key, Object... defaultValue) {
+        Long res = SafeIntegerN(obj, Arrays.asList(key), defaultValue);
+        return (res == null) ? 0L : res;
+    }
+
     public static Object SafeInteger(Object obj, Object key, Object... defaultValue) {
         Long res = SafeIntegerN(obj, Arrays.asList(key), defaultValue);
         return (res == null) ? null : res;
@@ -219,6 +224,11 @@ public final class SafeMethods {
     // ----------------------------
     // SafeString / SafeStringN
     // ----------------------------
+
+    public static String SafeStringTyped(Object obj, Object key, Object... defaultValue) {
+        Object res = SafeStringN(obj, Arrays.asList(key), defaultValue);
+        return (res == null) ? "" : (String) res;
+    }
 
     public static Object SafeString(Object obj, Object key, Object... defaultValue) {
         Object res = SafeStringN(obj, Arrays.asList(key), defaultValue);

@@ -30,7 +30,7 @@ import io.github.ccxt.base.Strings;
 
 public class Exchange {
 
-    public int timeout = 10000; // default timeout 10s
+    public long timeout = 10000; // default timeout 10s
     // If you have these constants elsewhere, remove these placeholders.
     // HTTP
     public HttpClient httpClient;                         // no default (like C#)
@@ -76,12 +76,12 @@ public class Exchange {
     public Object accountsById = new HashMap<String, Object>();
     public Object status = new HashMap<String, Object>();
 
-    public int paddingMode = NO_PADDING;
+    public long paddingMode = NO_PADDING;
 
     public Object number = Float.class;                   // C# typeof(float) → Java Class<?> for Float
     public Map<String, Object> has = new HashMap<>();
     public Map<String, Object> features = new HashMap<>();
-    public ConcurrentHashMap<String, Object> options = new ConcurrentHashMap<>();
+    public Map<String, Object> options = new HashMap<>();
     public boolean isSandboxModeEnabled = false;
 
     public Object markets = null;
@@ -191,6 +191,8 @@ public class Exchange {
     public static final int NO_PADDING = 5;           // zero-padding mode
     public static final int PAD_WITH_ZERO = 6;
 
+    // public Object isSandboxModeEnabled = false;
+
     // RL related
     public Object tokenBucket = null;
     public Long MAX_VALUE = Long.MAX_VALUE;
@@ -198,6 +200,123 @@ public class Exchange {
     // Dictionary<string, object> streaming { get; set; } = new dict();
     private Map<String, Object> streaming = new LinkedHashMap<>();
 
+
+    // --- Construtor -- //
+    // 
+
+    private void initExchange(Object userConfig) {
+        Map<String, Object>  defaultConfig;
+
+        if (userConfig != null) {
+            defaultConfig = (Map<String, Object>) userConfig;
+        } else {
+            defaultConfig = new HashMap<String, Object>();
+        }
+
+        this.initializeProperties(defaultConfig);
+    }
+
+    Exchange (Object userConfig) {
+        this.initExchange(userConfig);
+    }
+
+    Exchange() {
+        this.initExchange(null);
+    }
+
+    public void initializeProperties(Map<String, Object> userConfig) {
+
+        var properties = this.describe();
+        Map<String, Object> extendedProperties = this.deepExtend(properties, userConfig);
+
+        this.version = SafeMethods.SafeStringTyped(extendedProperties, "version", "");
+
+        // credentials init
+        this.requiredCredentials = (Map<String, Object>) SafeMethods.SafeValue(extendedProperties, "requiredCredentials");
+        this.apiKey        = SafeMethods.SafeStringTyped(extendedProperties, "apiKey", "");
+        this.secret        = SafeMethods.SafeStringTyped(extendedProperties, "secret", "");
+        this.password      = SafeMethods.SafeStringTyped(extendedProperties, "password", "");
+        this.login         = SafeMethods.SafeStringTyped(extendedProperties, "login", "");
+        this.twofa         = SafeMethods.SafeStringTyped(extendedProperties, "twofa", "");
+        this.privateKey    = SafeMethods.SafeStringTyped(extendedProperties, "privateKey", "");
+        this.walletAddress = SafeMethods.SafeStringTyped(extendedProperties, "walletAddress", "");
+        this.token         = SafeMethods.SafeStringTyped(extendedProperties, "token", "");
+        this.uid           = SafeMethods.SafeStringTyped(extendedProperties, "uid", "");
+        this.accountId     = SafeMethods.SafeStringTyped(extendedProperties, "accountId", "");
+
+        this.userAgents = (Map<String, Object>) this.safeValue(extendedProperties, "userAgents", this.userAgents);
+        this.userAgent  = SafeMethods.SafeStringTyped(extendedProperties, "userAgent", "");
+        long timeoutTmp = SafeMethods.SafeIntegerTyped(extendedProperties, "timeout", 10000);
+        this.timeout = (timeoutTmp != 0) ? timeoutTmp : 10000;
+
+        this.id = SafeMethods.SafeStringTyped(extendedProperties, "id", "");
+
+        Boolean aliasTmp = (Boolean) this.safeValue(extendedProperties, "alias", Boolean.FALSE);
+        this.alias = (aliasTmp != null) ? aliasTmp : false;
+
+        this.api       = (Map<String, Object>) this.safeValue(extendedProperties, "api");
+        this.hostname  = SafeMethods.SafeStringTyped(extendedProperties, "hostname");
+        this.urls      = (Map<String, Object>) this.safeValue(extendedProperties, "urls");
+        this.limits    = (Map<String, Object>) this.safeValue(extendedProperties, "limits");
+        this.streaming = (Map<String, Object>) this.safeValue(extendedProperties, "streaming");
+
+        // handle options
+        var extendedOptions = this.safeDict(extendedProperties, "options");
+        if (extendedOptions != null) {
+            extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
+            this.options = new HashMap<String, Object>((Map<String, Object>)extendedOptions);
+        } else {
+            var defaults = this.getDefaultOptions();
+            this.options = new HashMap<String, Object>((Map<String, Object>)defaults);
+        }
+
+        Boolean verboseTmp = (Boolean) this.safeValue(extendedProperties, "verbose", Boolean.FALSE);
+        this.verbose = (verboseTmp != null) ? verboseTmp : false;
+
+        this.timeframes = (Map<String, Object>) this.safeValue(extendedProperties, "timeframes", new HashMap<String, Object>());
+        this.fees       = (Map<String, Object>) this.safeValue(extendedProperties, "fees");
+        this.has        = (Map<String, Object>) this.safeValue(extendedProperties, "has");
+        this.httpExceptions = (Map<String, Object>) this.safeValue(extendedProperties, "httpExceptions");
+        this.exceptions     = (Map<String, Object>) this.safeValue(extendedProperties, "exceptions");
+        this.markets        = (Map<String, Object>) this.safeValue(extendedProperties, "markets");
+
+        var propCurrencies = (Map<String, Object>) this.safeValue(extendedProperties, "currencies");
+        if (propCurrencies != null && !propCurrencies.isEmpty()) {
+            this.currencies = propCurrencies;
+        }
+
+        var rateLimitTmp = SafeMethods.SafeFloat(extendedProperties, "rateLimit", -1.0);
+        this.rateLimit = (rateLimitTmp != null) ? rateLimitTmp : -1.0;
+
+        this.status = (Map<String, Object>) this.safeValue(extendedProperties, "status");
+
+        var precisionModeTmp = SafeMethods.SafeIntegerTyped(extendedProperties, "precisionMode", this.precisionMode);
+        if (precisionModeTmp != 0) {
+            this.precisionMode = precisionModeTmp;
+        }
+
+        var paddingModeOp = SafeMethods.SafeIntegerTyped(extendedProperties, "paddingMode", this.paddingMode);
+        if (paddingModeOp != 0) {
+            this.paddingMode = paddingModeOp;
+        }
+
+        this.commonCurrencies = (Map<String, Object>) this.safeValue(extendedProperties, "commonCurrencies");
+
+        Object subVal = this.safeValue(extendedProperties, "substituteCommonCurrencyCodes", Boolean.TRUE);
+        this.substituteCommonCurrencyCodes = (subVal != null) ? (Boolean) subVal : true;
+
+        // this.name       = SafeMethods.SafeStringTyped(extendedProperties, "name", "");
+        this.httpsProxy = SafeMethods.SafeStringTyped(extendedProperties, "httpsProxy", "");
+        this.httpProxy  = SafeMethods.SafeStringTyped(extendedProperties, "httpProxy", "");
+
+        Boolean newUpdatesTmp = (Boolean) SafeMethods.SafeValue(extendedProperties, "newUpdates", false);
+        this.newUpdates = (newUpdatesTmp != null) ? newUpdatesTmp : true;
+
+        this.accounts = (List<Object>) this.safeValue(extendedProperties, "accounts");
+        this.features = (Map<String, Object>) this.safeValue(extendedProperties, "features", this.features);
+        Boolean returnHeadersTmp = (Boolean) this.safeValue(extendedProperties, "returnResponseHeaders", Boolean.FALSE);
+        this.returnResponseHeaders = (returnHeadersTmp != null) ? returnHeadersTmp : false;
+    }
     // --- getters / setters to emulate C# auto-properties ---
     public Object getWssProxy() {
         return wssProxy;
@@ -219,6 +338,17 @@ public class Exchange {
 // =======================
 // Crypto
 // =======================
+
+    public String sha1() {  return "sha1"; }
+    public String sha256() {  return "sha256"; }
+    public String sha384() {return "sha384"; }
+    public String sha512() {return "sha512"; }
+    public String md5() {return "md5"; }
+    public String ed25519() {return "ed25519"; }
+    public String keccak() {return "keccak"; }
+    public String secp256k1() {return "secp256k1"; }
+    public String p256() {return "p256"; }
+
     public Object hmac(Object payload, Object secret) {
         return Crypto.Hmac(payload, secret, null, null);
     }
@@ -235,21 +365,34 @@ public class Exchange {
         return Crypto.Hash(payload, algo, null);
     }
 
-    public Object md5() {
-        return Crypto.md5();
+    public String rsa(Object payload, Object publicKey, Object algo) {
+        return Crypto.Rsa(payload, publicKey, algo);
     }
 
-    public Object sha256() {
-        return Crypto.sha256();
+    public Object eddsa(Object payload, Object secret, Object algo) {
+        return Crypto.Eddsa(payload, secret, algo);
     }
 
-    public Object sha512() {
-        return Crypto.sha512();
-    }
+    // public Object md5() {
+    //     return Crypto.md5();
+    // }
+
+    // public Object sha256() {
+    //     return Crypto.sha256();
+    // }
+
+    // public Object sha512() {
+    //     return Crypto.sha512();
+    // }
 
     // =======================
     // Encode
     // =======================
+
+    public Object encode (Object s) {
+        return s; // stub
+    }
+
     public String urlencode(Object obj, boolean... sortParams) {
         return Encode.urlencode(obj, sortParams);
     }
@@ -274,6 +417,14 @@ public class Exchange {
     // public Object hexToBytes(Object hex) {
     //     return Encode.hexToBytes(hex);
     // }
+
+    public String rawencode(Object parameters) {
+        return Encode.rawencode(parameters, false);
+    }
+
+    public String rawencode(Object parameters, Object sort) {
+        return Encode.rawencode(parameters, sort);
+    }
 
     // =======================
     // Functions
@@ -437,6 +588,10 @@ public class Exchange {
         return NumberHelpers.decimalToPrecision(x, roundingMode, numPrecisionDigits, NumberHelpers.DECIMAL_PLACES, NumberHelpers.NO_PADDING);
     }
 
+        public String decimalToPrecision(Object x, Object roundingMode, Object numPrecisionDigits, Object countMode) {
+        return NumberHelpers.DecimalToPrecision(x, roundingMode, numPrecisionDigits, countMode, NumberHelpers.NO_PADDING);
+    }
+
     public String decimalToPrecision(Object x, Object roundingMode, Object numPrecisionDigits, Object countMode, Object paddingMode) {
         return NumberHelpers.DecimalToPrecision(x, roundingMode, numPrecisionDigits, countMode, paddingMode);
     }
@@ -577,6 +732,14 @@ public class Exchange {
         return Strings.capitalize(str);
     }
 
+    public String uuid22() {
+        return Strings.uuid22();
+    }
+
+    public String uuid() {
+        return Strings.uuid();
+    }
+
     // =======================
     // Time
     // =======================
@@ -594,6 +757,14 @@ public class Exchange {
 
     public Long parse8601(Object isoString) {
         return Time.parse8601(isoString);
+    }
+
+    public String yymmdd(Object timestamp) {
+        return Time.yymmdd(timestamp);
+    }
+
+    public String yymmdd(Object timestamp, Object infix) {
+        return Time.yymmdd(timestamp, infix);
     }
     // public Long nonce() {
     //     return Time.nonce();
@@ -1224,7 +1395,7 @@ public class Exchange {
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{
@@ -3155,7 +3326,7 @@ public Object describe()
             {
                 if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
                 {
-                    Helpers.addElementToObject(this.features, marketType, this.featuresMapper(initialFeatures, marketType, null));
+                    Helpers.addElementToObject(this.features, marketType, this.featuresMapper(initialFeatures, marketType));
                 } else
                 {
                     Helpers.addElementToObject(this.features, marketType, new java.util.HashMap<String, Object>() {{}});
@@ -3873,7 +4044,7 @@ public Object describe()
         {
             Helpers.addElementToObject(balance, "debt", debtBalance);
         }
-        return ((Object)balance);
+        return balance;
     }
 
     public Object safeOrder(Object order, Object... optionalArgs)
@@ -4601,9 +4772,11 @@ public Object describe()
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(reduced, feeCurrencyCode), rateKey), "cost", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(reduced, feeCurrencyCode), rateKey), "cost"), cost));
                 } else
                 {
+                    final Object finalCode = code;
+                    final Object finalCost = cost;
                     Helpers.addElementToObject(Helpers.GetValue(reduced, feeCurrencyCode), rateKey, new java.util.HashMap<String, Object>() {{
-    put( "currency", code );
-    put( "cost", cost );
+    put( "currency", finalCode );
+    put( "cost", finalCost );
 }});
                     if (Helpers.isTrue(!Helpers.isEqual(rate, null)))
                     {
@@ -5396,14 +5569,14 @@ public Object describe()
         Object countOrIdKey = Helpers.getArg(optionalArgs, 5, 2);
         Object bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
         Object asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
-        return ((Object)new java.util.HashMap<String, Object>() {{
+        return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", Exchange.this.sortBy(bids, 0, true) );
             put( "asks", Exchange.this.sortBy(asks, 0) );
             put( "timestamp", timestamp );
             put( "datetime", Exchange.this.iso8601(timestamp) );
             put( "nonce", null );
-        }});
+        }};
     }
 
     public Object parseOHLCVs(Object ohlcvs, Object... optionalArgs)
@@ -5419,7 +5592,7 @@ public Object describe()
             ((java.util.List<Object>)results).add(this.parseOHLCV(Helpers.GetValue(ohlcvs, i), market));
         }
         Object sorted = this.sortBy(results, 0);
-        return ((Object)this.filterBySinceLimit(sorted, since, limit, 0, tail));
+        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
 
     public Object parseLeverageTiers(Object response, Object... optionalArgs)
@@ -5534,7 +5707,7 @@ public Object describe()
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
         {
-            Object position = this.extend(this.parsePosition(Helpers.GetValue(positions, i), null), parameters);
+            Object position = this.extend(this.parsePosition(Helpers.GetValue(positions, i)), parameters);
             ((java.util.List<Object>)result).add(position);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -7675,14 +7848,16 @@ public Object describe()
         }
         if (Helpers.isTrue(!Helpers.isEqual(takeProfit, null)))
         {
+            final Object finalTakeProfit = takeProfit;
             Helpers.addElementToObject(parameters, "takeProfit", new java.util.HashMap<String, Object>() {{
-    put( "triggerPrice", takeProfit );
+    put( "triggerPrice", finalTakeProfit );
 }});
         }
         if (Helpers.isTrue(!Helpers.isEqual(stopLoss, null)))
         {
+            final Object finalStopLoss = stopLoss;
             Helpers.addElementToObject(parameters, "stopLoss", new java.util.HashMap<String, Object>() {{
-    put( "triggerPrice", stopLoss );
+    put( "triggerPrice", finalStopLoss );
 }});
         }
         Object takeProfitType = this.safeString(parameters, "takeProfitType");
@@ -8913,8 +9088,9 @@ public Object describe()
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " create_stop_order() requires a stopPrice argument")) ;
             }
+            final Object finalTriggerPrice = triggerPrice;
             Object query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
-                put( "stopPrice", triggerPrice );
+                put( "stopPrice", finalTriggerPrice );
             }});
             return (this.createOrder(symbol, type, side, amount, price, query)).join();
         });
@@ -8937,8 +9113,9 @@ public Object describe()
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createStopOrderWs() requires a stopPrice argument")) ;
             }
+            final Object finalTriggerPrice = triggerPrice;
             Object query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
-                put( "stopPrice", triggerPrice );
+                put( "stopPrice", finalTriggerPrice );
             }});
             return (this.createOrderWs(symbol, type, side, amount, price, query)).join();
         });
@@ -9212,7 +9389,7 @@ public Object describe()
             Object symbol = this.safeString(borrowRate, "symbol");
             Helpers.addElementToObject(result, symbol, borrowRate);
         }
-        return ((Object)result);
+        return result;
     }
 
     public Object parseFundingRateHistories(Object response, Object... optionalArgs)
@@ -10465,7 +10642,7 @@ public Object describe()
         Object valuesLength = Helpers.getArrayLength(uniqueResult);
         if (Helpers.isTrue(Helpers.isGreaterThan(valuesLength, 0)))
         {
-            return ((Object)uniqueResult);
+            return uniqueResult;
         }
         return input;
     }
@@ -10492,7 +10669,7 @@ public Object describe()
             }
         }
         Object values = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)uniqueResult).values());
-        return ((Object)values);
+        return values;
     }
 
     public Object removeKeysFromDict(Object dict, Object removeKeys)

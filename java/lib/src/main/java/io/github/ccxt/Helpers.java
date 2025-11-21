@@ -239,9 +239,11 @@ public class Helpers {
             return toDouble(a) + toDouble(b);
         } else if (a instanceof String && b instanceof String) {
             return ((String) a) + ((String) b);
-        } else {
-            return null;
+        } else if (a instanceof String || b instanceof String) {
+            return String.valueOf(a) + String.valueOf(b);
         }
+
+        return null;
     }
 
     public static String add(String a, String b) {
@@ -251,6 +253,18 @@ public class Helpers {
     public static String add(String a, Object b) {
         return a + String.valueOf(b);
     }
+
+//     public static String add(Object... items) {
+//     StringBuilder sb = new StringBuilder();
+
+//     for (Object item : items) {
+//         if (item instanceof String) {
+//             sb.append((String) item);
+//         }
+//     }
+
+//     return sb.toString();
+// }
 
     public static Object subtract(Object a, Object b) {
         a = normalizeIntIfNeeded(a);
