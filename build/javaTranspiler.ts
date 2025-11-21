@@ -289,6 +289,7 @@ class NewTranspiler {
         const values = [
             // "using ccxt;",
             'package io.github.ccxt;',
+            'import io.github.ccxt.base.Precise;'
             // 'import io.github.ccxt.Exchange;',
             // 'import io.github.ccxt.Errors;'
         ]
@@ -945,6 +946,7 @@ class NewTranspiler {
 
         // override extends from Exchange to ClassApi
         content = content.replace(/extends\sExchange/g, `extends ${this.capitalize(name)}Api`);
+        content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)\)/g, `, $1())`);
 
         // const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
         // const baseWsClassExec = baseWsClassRegex.exec(content);

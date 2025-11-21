@@ -3022,7 +3022,7 @@ export default class Exchange {
                 this.features[marketType] = undefined;
             } else {
                 if (marketType === 'spot') {
-                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType, undefined);
+                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType);
                 } else {
                     this.features[marketType] = {};
                     for (let j = 0; j < subTypes.length; j++) {
@@ -3089,7 +3089,7 @@ export default class Exchange {
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
-         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names), 
+         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names),
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
@@ -4855,7 +4855,7 @@ export default class Exchange {
         positions = this.toArray (positions);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const position = this.extend (this.parsePosition (positions[i], undefined), params);
+            const position = this.extend (this.parsePosition (positions[i]), params);
             result.push (position);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
