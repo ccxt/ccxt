@@ -222,7 +222,9 @@ export default class Client {
                 if (this.ping) {
                     message = this.ping (this);
                 }
-                this.log (new Date (), 'OnPingInterval', this.url);
+                if (this.verbose) {
+                    this.log (new Date (), 'OnPingInterval', this.url);
+                }
                 if (message) {
                     this.send (message).catch ((error) => {
                         this.onError (error);
@@ -291,7 +293,7 @@ export default class Client {
         }
         if (!this.error) {
             // todo: exception types for server-side disconnects
-            this.reset (new NetworkError ('connection closed by remote server, closing code ' + String (event.code)))
+            this.reset (new NetworkError ('connection closed by remote server, closing code ' + String (event.code) + ', url: ' + this.url))
         }
         if (this.error instanceof ExchangeClosedByUser) {
             this.reset (this.error);
