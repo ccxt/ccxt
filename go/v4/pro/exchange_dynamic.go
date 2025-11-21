@@ -159,6 +159,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         deriveItf := NewDeriveCore()
         deriveItf.Init(exchangeArgs)
         return deriveItf, true
+    case "dydx":
+        dydxItf := NewDydxCore()
+        dydxItf.Init(exchangeArgs)
+        return dydxItf, true
     case "exmo":
         exmoItf := NewExmoCore()
         exmoItf.Init(exchangeArgs)

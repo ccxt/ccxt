@@ -1373,6 +1373,7 @@ public partial class bitget : Exchange
                     { "spot", new Dictionary<string, object>() {
                         { "1m", "1min" },
                         { "5m", "5min" },
+                        { "3m", "3min" },
                         { "15m", "15min" },
                         { "30m", "30min" },
                         { "1h", "1h" },
@@ -1432,6 +1433,7 @@ public partial class bitget : Exchange
                         { "15m", 30 },
                         { "30m", 30 },
                         { "1h", 60 },
+                        { "2h", 120 },
                         { "4h", 240 },
                         { "6h", 360 },
                         { "12h", 720 },
@@ -4398,12 +4400,20 @@ public partial class bitget : Exchange
             if (!isTrue(untilDefined))
             {
                 calculatedEndTime = this.sum(calculatedStartTime, limitMultipliedDuration);
+                if (isTrue(isGreaterThan(calculatedEndTime, now)))
+                {
+                    calculatedEndTime = now;
+                }
                 ((IDictionary<string,object>)request)["endTime"] = calculatedEndTime;
             }
         }
         if (isTrue(untilDefined))
         {
             calculatedEndTime = until;
+            if (isTrue(isGreaterThan(calculatedEndTime, now)))
+            {
+                calculatedEndTime = now;
+            }
             ((IDictionary<string,object>)request)["endTime"] = calculatedEndTime;
             if (!isTrue(sinceDefined))
             {
@@ -6091,7 +6101,7 @@ public partial class bitget : Exchange
             } else
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-                response = await ((Task<object>)callDynamically(this, "privateSpotPostV2SpotTradeCancelReplaceOrder", new object[] { this.extend(request, parameters) }));
+                response = await this.privateSpotPostV2SpotTradeCancelReplaceOrder(this.extend(request, parameters));
             }
         } else
         {

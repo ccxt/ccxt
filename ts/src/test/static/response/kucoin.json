@@ -627,6 +627,7 @@
             {
                 "description": "uta fetchTrades",
                 "method": "fetchTrades",
+                "disabledGO": true,
                 "input": [
                     "BTC/USDT",
                     null,

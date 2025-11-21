@@ -98,9 +98,11 @@ class deepcoin(ccxt.async_support.deepcoin):
         return message
 
     def request_id(self):
+        self.lock_id()
         previousValue = self.safe_integer(self.options, 'lastRequestId', 0)
         newValue = self.sum(previousValue, 1)
         self.options['lastRequestId'] = newValue
+        self.unlock_id()
         return newValue
 
     def create_public_request(self, market: Market, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False):

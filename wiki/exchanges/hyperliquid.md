@@ -7,6 +7,7 @@
 
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
+* [fetchHip3Markets](#fetchhip3markets)
 * [fetchSwapMarkets](#fetchswapmarkets)
 * [calculatePricePrecision](#calculatepriceprecision)
 * [fetchSpotMarkets](#fetchspotmarkets)
@@ -108,6 +109,30 @@ retrieves data on all markets for hyperliquid
 
 ```javascript
 hyperliquid.fetchMarkets ([params])
+```
+
+
+<a name="fetchHip3Markets" id="fetchhip3markets"></a>
+
+### fetchHip3Markets{docsify-ignore}
+retrieves data on all hip3 markets for hyperliquid
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**
+
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.fetchHip3Markets ([params])
 ```
 
 
@@ -651,6 +676,7 @@ fetch all unfilled currently open orders
 | params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
 | params.method | <code>string</code> | No | 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders' |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.dex | <code>string</code> | No | perp dex name. default is null |
 
 
 ```javascript

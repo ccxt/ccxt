@@ -124,8 +124,10 @@ class kucoin extends kucoin$1["default"] {
         return undefined;
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId;
     }
     async subscribe(url, messageHash, subscriptionHash, params = {}, subscription = undefined) {
