@@ -2,10 +2,9 @@
 
 import xcoinRest from '../xcoin.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 
 // ----------------------------------------------------------------------------
@@ -187,10 +186,13 @@ export default class xcoin extends xcoinRest {
                 messageHashes.push (unifiedHash + '::' + market['symbol']);
             }
         } else {
-            subs.push ({
+            const req = {
                 'stream': exchangeChannel,
-                'businessType': this.marketTypeToBusinessType (marketType),
-            });
+            };
+            if (!(unifiedHash === 'balance')) {
+                req['businessType'] = this.marketTypeToBusinessType (marketType);
+            }
+            subs.push (req);
             messageHashes.push (unifiedHash);
         }
         const subscribe = {
@@ -899,37 +901,38 @@ export default class xcoin extends xcoinRest {
         //
         //    {
         //        "stream": "trading_account",
-        //        "ts": "1762535468534",
+        //        "ts": "1763706018325",
         //        "code": "0",
         //        "data": [
         //            {
         //                "pid": "1981204053820035072",
-        //                "totalEquity": "10",
-        //                "totalMarginBalance": "10",
-        //                "totalAvailableBalance": "10",
-        //                "totalPositionValue": "0",
-        //                "totalIm": "0",
-        //                "totalMm": "0",
-        //                "totalOpenLoss": "0",
-        //                "mmr": "0",
-        //                "imr": "0",
-        //                "accountLeverage": "0",
-        //                "totalUpl": "0",
-        //                "totalEffectiveMargin": "10",
+        //                "totalEquity": "60.751504435633161635",
+        //                "totalMarginBalance": "60.232507649629519185",
+        //                "totalAvailableBalance": "44.99008595221359324",
+        //                "totalPositionValue": "57.532226780412968652",
+        //                "totalIm": "15.233218689415925945",
+        //                "totalMm": "0.463653335608259372",
+        //                "totalOpenLoss": "0.009203008",
+        //                "mmr": "0.0076989",
+        //                "imr": "0.25294558",
+        //                "accountLeverage": "0.95531501",
+        //                "totalEffectiveMargin": "60.223304641629519185",
+        //                "contractUpl": "-7.23965",
         //                "details": [
         //                    {
         //                        "currency": "USDT",
-        //                        "equity": "10",
-        //                        "balance": "10",
+        //                        "equity": "55.992463516009705795",
+        //                        "balance": "63.232113516009705795",
         //                        "borrow": "0",
         //                        "realLiability": "0",
         //                        "potentialLiability": "0",
-        //                        "upl": "0",
-        //                        "availableMargin": "10",
+        //                        "upl": "-7.23965",
+        //                        "availableMargin": "40.761930182676372462",
         //                        "liabilityInitialMargin": "0",
-        //                        "initialMargin": "0",
+        //                        "initialMargin": "15.230533333333333333",
         //                        "frozen": "0",
-        //                        "realLiabilityValue": "0"
+        //                        "realLiabilityValue": "0",
+        //                        "optionUpl": "0"
         //                    }
         //                ]
         //            }
@@ -1000,7 +1003,7 @@ export default class xcoin extends xcoinRest {
         //
         const data = this.safeList (message, 'data', []);
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById ();
+            this.positions = new ArrayCacheBySymbolBySide();
         }
         const positions = this.positions;
         for (let i = 0; i < data.length; i++) {
