@@ -111,19 +111,6 @@ import (
 // 	return defVal
 // }
 
-func getValueFromMap(v interface{}, keys []interface{}, defVal interface{}) interface{} {
-	for _, key := range keys {
-		if key == nil {
-			continue
-		}
-		keyStr := fmt.Sprintf("%v", key)
-		if val, ok := v.(map[string]interface{})[keyStr]; ok {
-			return val
-		}
-	}
-	return defVal
-}
-
 func getValueFromList(list interface{}, keys []interface{}, defVal interface{}) interface{} {
 	switch l := list.(type) {
 	case []interface{}:
@@ -238,13 +225,49 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 		return getValueFromList(v, keys, defVal)
 	// handle map[strings]
 	case map[string]map[string]interface{}:
-		return getValueFromMap(v, keys, defVal)
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
 	case map[string]*ArrayCacheByTimestamp:
-		return getValueFromMap(v, keys, defVal)
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
 	case map[string]*ArrayCache:
-		return getValueFromMap(v, keys, defVal)
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
 	case map[string]*ArrayCacheBySymbolBySide:
-		return getValueFromMap(v, keys, defVal)
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
 	// handle cache types
 	case *ArrayCache:
 		if len(keys) > 0 && keys[0] != nil {
