@@ -851,6 +851,7 @@ class Transpiler {
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
+            'FundingRateHistory': /-> (?:List\[)?FundingRateHistory/,
             'MarketInterface': /-> (?:List\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
         }
