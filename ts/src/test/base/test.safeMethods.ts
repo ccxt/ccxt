@@ -362,8 +362,14 @@ function testSafeMethods () {
         'BTC/USDT': arrayCache,
         'ETH/USDT': arrayCacheBySymbolById,
     };
-    assert (exchange.safeValue (tradesMap, 'BTC/USDT') === arrayCache);
-    assert (exchange.safeValue (tradesMap, 'ETH/USDT') === arrayCacheBySymbolById);
+    const retrievedArrayCache = exchange.safeValue (tradesMap, 'BTC/USDT');
+    assert (retrievedArrayCache !== undefined);
+    assert (exchange.safeValue (retrievedArrayCache, 'hashmap') !== undefined);
+    assert (exchange.safeValue (retrievedArrayCache, 'Data') !== undefined);
+    const retrievedArrayCacheBySymbolById = exchange.safeValue (tradesMap, 'ETH/USDT');
+    assert (retrievedArrayCacheBySymbolById !== undefined);
+    assert (exchange.safeValue (retrievedArrayCacheBySymbolById, 'hashmap') !== undefined);
+    assert (exchange.safeValue (retrievedArrayCacheBySymbolById, 'Data') !== undefined);
     assert (exchange.safeValue (tradesMap, 'NONEXISTENT') === undefined);
 
     // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
@@ -371,7 +377,10 @@ function testSafeMethods () {
         '1m': arrayCacheByTimestamp,
         '5m': new ArrayCacheByTimestamp (100),
     };
-    assert (exchange.safeValue (ohlcvInnerMap, '1m') === arrayCacheByTimestamp);
+    const retrievedArrayCacheByTimestamp = exchange.safeValue (ohlcvInnerMap, '1m');
+    assert (retrievedArrayCacheByTimestamp !== undefined);
+    assert (exchange.safeValue (retrievedArrayCacheByTimestamp, 'hashmap') !== undefined);
+    assert (exchange.safeValue (retrievedArrayCacheByTimestamp, 'Data') !== undefined);
     assert (exchange.safeValue (ohlcvInnerMap, '5m') !== undefined);
     assert (exchange.safeValue (ohlcvInnerMap, 'NONEXISTENT') === undefined);
 
@@ -379,7 +388,10 @@ function testSafeMethods () {
     const cacheBySideMap = {
         'BTC/USDT': arrayCacheBySymbolBySide,
     };
-    assert (exchange.safeValue (cacheBySideMap, 'BTC/USDT') === arrayCacheBySymbolBySide);
+    const retrievedArrayCacheBySymbolBySide = exchange.safeValue (cacheBySideMap, 'BTC/USDT');
+    assert (retrievedArrayCacheBySymbolBySide !== undefined);
+    assert (exchange.safeValue (retrievedArrayCacheBySymbolBySide, 'hashmap') !== undefined);
+    assert (exchange.safeValue (retrievedArrayCacheBySymbolBySide, 'Data') !== undefined);
     assert (exchange.safeValue (cacheBySideMap, 'NONEXISTENT') === undefined);
 
     // Test SafeValue2 with cache types

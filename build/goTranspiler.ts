@@ -2057,7 +2057,11 @@ ${caseStatements.join('\n')}
             'TRUNCATE',
             'ROUND',
             'toFixed',
-            'throwDynamicException'
+            'throwDynamicException',
+            'NewArrayCache',
+            'NewArrayCacheByTimestamp',
+            'NewArrayCacheBySymbolById',
+            'NewArrayCacheBySymbolBySide'
         ]);
 
         const files = fs.readdirSync(dirPath);
@@ -2392,6 +2396,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [ /Assert\("GO_SKIP_START"\)[\S\s]+?Assert\("GO_SKIP_END"\)/gm, '' ], // remove equals
 
             ]).trim ();
+
+            // Add package prefix to functions and types from the ccxt package
+            content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
 
             const file = [
                 'package base',
