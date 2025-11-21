@@ -105,7 +105,7 @@ type Exchange struct {
 	Password      string
 	Uid           string
 	AccountId     string
-	Token         string
+	Token         interface{}
 	Login         string
 	PrivateKey    string
 	WalletAddress string
