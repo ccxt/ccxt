@@ -1143,6 +1143,26 @@ export default class coinone extends Exchange {
         //         "fee_currency": "KRW"
         //     }
         //
+        // cancelOrder
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "order_id": "d85cc6af-b131-4398-b269-ddbafa760a39",
+        //         "price": "26231000.0",
+        //         "qty": "0.002",
+        //         "remain_qty": "0.0",
+        //         "side": "BUY",
+        //         "original_qty": "0.005",
+        //         "traded_qty": "0.003",
+        //         "canceled_qty": "0.002",
+        //         "fee": "26231.0",
+        //         "fee_rate": "0.001",
+        //         "avg_price": "26231000.0",
+        //         "canceled_at": 1650525935,
+        //         "ordered_at": 1650125935
+        //     }
+        //
         const id = this.safeString (order, 'order_id');
         const baseId = this.safeString (order, 'target_currency');
         const quoteId = this.safeString (order, 'quote_currency');
@@ -1159,7 +1179,7 @@ export default class coinone extends Exchange {
             symbol = base + '/' + quote;
             market = this.safeMarket (symbol, market, '/');
         }
-        const timestamp = this.safeInteger (order, 'updated_at');
+        const timestamp = this.safeInteger2 (order, 'updated_at', 'canceled_at');
         let type = this.safeStringLower2 (order, 'type', 'order_type');
         if (type === 'stop_limit') {
             type = 'limit';
@@ -1184,6 +1204,9 @@ export default class coinone extends Exchange {
                 }
             }
         }
+        if (this.safeInteger (order, 'canceled_at') !== undefined) {
+            status = 'canceled';
+        }
         status = this.parseOrderStatus (status);
         let fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
@@ -1201,7 +1224,7 @@ export default class coinone extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1403,32 +1426,36 @@ export default class coinone extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
-            // eslint-disable-next-line quotes
-            throw new ArgumentsRequired (this.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
-        }
-        const price = this.safeNumber (params, 'price');
-        const qty = this.safeNumber (params, 'qty');
-        const isAsk = this.safeInteger (params, 'is_ask');
-        if ((price === undefined) || (qty === undefined) || (isAsk === undefined)) {
-            // eslint-disable-next-line quotes
-            throw new ArgumentsRequired (this.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request: Dict = {
             'order_id': id,
-            'price': price,
-            'qty': qty,
-            'is_ask': isAsk,
-            'currency': this.marketId (symbol),
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
         };
-        const response = await this.v2PrivatePostOrderCancel (this.extend (request, params));
+        const response = await this.v2_1PrivatePostOrderCancel (this.extend (request, params));
         //
         //     {
         //         "result": "success",
-        //         "errorCode": "0"
+        //         "error_code": "0",
+        //         "order_id": "d85cc6af-b131-4398-b269-ddbafa760a39",
+        //         "price": "26231000.0",
+        //         "qty": "0.002",
+        //         "remain_qty": "0.0",
+        //         "side": "BUY",
+        //         "original_qty": "0.005",
+        //         "traded_qty": "0.003",
+        //         "canceled_qty": "0.002",
+        //         "fee": "26231.0",
+        //         "fee_rate": "0.001",
+        //         "avg_price": "26231000.0",
+        //         "canceled_at": 1650525935,
+        //         "ordered_at": 1650125935
         //     }
         //
-        return this.safeOrder (response);
+        return this.parseOrder (response, market);
     }
 
     /**
