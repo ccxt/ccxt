@@ -1419,6 +1419,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#cancelOrder
      * @description cancels an open order
+     * @see https://docs.coinone.co.kr/reference/cancel-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1462,6 +1463,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchDepositAddresses
      * @description fetch deposit addresses for multiple currencies and chain types
+     * @see https://docs.coinone.co.kr/reference/deposit-address
      * @param {string[]|undefined} codes list of unified currency codes, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
