@@ -1,6 +1,6 @@
 {
   "name": "@kraken-crypto/ccxt",
-  "version": "4.5.19",
+  "version": "4.5.20",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -14,7 +14,7 @@
     "node": ">=15.0.0"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "repository": {
     "type": "git",
@@ -62,6 +62,7 @@
     "pre-transpile-php": "npm run export-exchanges && npm run emitAPIPhp",
     "pre-transpile-go": "npm run export-exchanges && npm run emitAPIGo",
     "pre-transpile-js-simple": "npm run export-exchanges && npm run emitAPITs && tsc && npm run validate-types",
+    "build-js-only": "npm run pre-transpile-js-simple && npm run bundle-cjs",
     "pre-transpile-cs": "npm run export-exchanges && npm run emitAPICs",
     "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run validate-types && npm run tsBuildExamples && npm run copy-python-files && npm run check-js-syntax && npm run bundle",
     "pre-transpile-pr": "npm run export-exchanges && npm run tsBuild && npm run emitAPI && npm run check-js-syntax",

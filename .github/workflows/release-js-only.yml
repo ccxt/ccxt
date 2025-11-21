@@ -8,46 +8,89 @@ on:
     branches:
       - master
 
-permissions:
-  contents: write
-  packages: write
-
-
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: write
+      id-token: write
 
     steps:
-      - name: Print Trigger Info
-        run: |
-          echo "This workflow was triggered after Js workflow completed successfully."
-          echo "Using version bump: patch"
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          fetch-depth: 2
-          fetch-tags: true
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      - name: Bump version
-        run: |
-          npm config set git-tag-version=false
-          npm version patch --no-git-tag-version
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "Bumped version to: $NEW_VERSION"
-      - name: Commit version bump
-        run: |
-          git add package.json
-          git commit -m "chore(release): bump version to ${{ env.NEW_VERSION }}" || echo "No changes to commit"
-          git push || echo "Nothing to push"
-      - name: Install NPM dependencies
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Ensure npm 11.5.1 or later
+        run: npm install -g npm@latest
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
         run: npm ci
-      - name: Transpile TS
-        run: npm run tsBuild
-      - uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          access: public
+
+      - name: Build project
+        run: npm run build-js-only
+
+      - name: Publish to npm
+        run: npm publish --access public
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get version from package.json (before restoring original name)
+          VERSION=$(node -p "require('./package.json').version")
+          VERSION=${VERSION#v}
+          TAG_NAME="v$VERSION"
+          
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Create git tag if it doesn't exist
+          if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            git tag "$TAG_NAME"
+            git push origin "$TAG_NAME"
+          fi
+          
+          # Create release body with installation instructions
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          RELEASE_BODY="Release $TAG_NAME\n\nInstall: \`npm install $PACKAGE_NAME@$VERSION\`\n\nAdd to package.json: \`\"$PACKAGE_NAME\": \"$VERSION\"\`"
+          RELEASE_BODY_JSON=$(echo "$RELEASE_BODY" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+          
+          # Create GitHub release using GitHub API
+          RELEASE_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases" \
+            -d "{\"tag_name\":\"$TAG_NAME\",\"name\":\"$TAG_NAME\",\"body\":\"$RELEASE_BODY_JSON\",\"draft\":false,\"prerelease\":false}")
+          
+          HTTP_CODE=$(echo "$RELEASE_RESPONSE" | tail -n1)
+          if [ "$HTTP_CODE" = "201" ]; then
+            echo "Release $TAG_NAME created successfully"
+          elif [ "$HTTP_CODE" = "422" ]; then
+            echo "Release $TAG_NAME already exists"
+          else
+            echo "Failed to create release. HTTP code: $HTTP_CODE"
+            echo "$RELEASE_RESPONSE"
+          fi
+
+      - name: Increment version
+        run: |
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Increment patch version
+          npm version patch --no-git-tag-version
+          
+          # Commit and push version increment
+          git add package.json
+          git commit -m "Incremented version after release"
+          git push
