@@ -345,8 +345,13 @@ export default class bullish extends bullishRest {
 
     separateBidsOrAsks (entry) {
         const result = [];
-        const lastIndex = entry.length - 1;
-        for (let i = 0; i < lastIndex; i += 2) {
+        // 300 = '54885.0000000'
+        // 301 = '0.06141566'
+        // 302 ='53714.0000000'
+        for (let i = 0; i < entry.length; i++) {
+            if (i % 2 !== 0) {
+                continue;
+            }
             const price = this.safeString (entry, i);
             const amount = this.safeString (entry, i + 1);
             result.push ([ price, amount ]);
