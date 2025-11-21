@@ -21,6 +21,10 @@
     "url": "git+https://github.com/Kraken-crypto/custom-ccxt.git"
   },
   "readme": "README.md",
+  "files": [
+    "js/",
+    "dist/"
+  ],
   "scripts": {
     "instrument": "nyc instrument js/ jsInstrumented/",
     "nyc-coverage": "nyc --reporter=html --reporter=lcov --exclude='js/src/pro/**' --exclude='js/src/base/**' --exclude='js/src/test/**' --exclude='js/src/abstract/**' --exclude='js/src/static_dependencies' node jsInstrumented/src/test/tests.init.js --requestTests --responseTests",
