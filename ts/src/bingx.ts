@@ -1478,7 +1478,7 @@ export default class bingx extends Exchange {
         let amount = this.safeStringN (trade, [ 'qty', 'amount', 'q' ]);
         if ((market !== undefined) && market['swap'] && ('volume' in trade)) {
             // private trade returns num of contracts instead of base currency (as the order-related methods do)
-            const contractSize = this.safeString (market['info'], 'tradeMinQuantity');
+            const contractSize = this.safeString (market['info'], 'size');
             const volume = this.safeString (trade, 'volume');
             amount = Precise.stringMul (volume, contractSize);
         }
