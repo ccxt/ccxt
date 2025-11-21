@@ -525,8 +525,8 @@ export default class xcoin extends Exchange {
     /**
      * @method
      * @name xcoin#fetchMarkets
+     * @description retrieves data on all markets
      * @see https://xcoin.com/docs/coinApi/ticker/get-the-basic-information-of-trading-products
-     * @description retrieves data on all markets for zonda
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -2474,7 +2474,7 @@ export default class xcoin extends Exchange {
     createOrdersRequest (orders: OrderRequest[], params = {}) {
         /**
          * @method
-         * @name createOrdersRequest
+         * @name xcoin#createOrdersRequest
          * @description create a list of trade orders
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

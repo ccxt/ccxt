@@ -341,6 +341,7 @@ export default class xcoin extends xcoinRest {
         /**
          * @method
          * @name xcoin#watchTrades
+         * @description watches information on multiple trades made in a market
          * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/trade-channel
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -472,6 +473,7 @@ export default class xcoin extends xcoinRest {
         /**
          * @method
          * @name xcoin#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/24h-ticker-channel
          * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
