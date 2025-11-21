@@ -339,33 +339,33 @@ export default class xcoin extends xcoinRest {
         return 'PING';
     }
 
+    /**
+     * @method
+     * @name xcoin#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/trade-channel
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name xcoin#watchTrades
-         * @description watches information on multiple trades made in a market
-         * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/trade-channel
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
+    /**
+     * @method
+     * @name xcoin#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/trade-channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name xcoin#watchTradesForSymbols
-         * @description get the list of most recent trades for a list of symbols
-         * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/trade-channel
-         * @param {string[]} symbols unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const trades = await this.watchPublic ('trade', 'trade', symbols, params);
         if (this.newUpdates) {
@@ -471,16 +471,16 @@ export default class xcoin extends xcoinRest {
         return await this.watchPublic ('ticker', wsChannel, [ symbol ], params);
     }
 
+    /**
+     * @method
+     * @name xcoin#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/24h-ticker-channel
+     * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name xcoin#watchTickers
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/24h-ticker-channel
-         * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         let wsChannel: Str = undefined;
         [ wsChannel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'ticker24hr');
@@ -567,18 +567,18 @@ export default class xcoin extends xcoinRest {
         return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
+    /**
+     * @method
+     * @name xcoin#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/incremental-depth-channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name xcoin#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/incremental-depth-channel
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'method', 'depth#100ms');
@@ -774,19 +774,19 @@ export default class xcoin extends xcoinRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name xcoin#watchOHLCV
+     * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/kline-channel
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name xcoin#watchOHLCV
-         * @see https://xcoin.com/docs/coinApi/websocket-stream/public-channel/kline-channel
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
@@ -884,15 +884,15 @@ export default class xcoin extends xcoinRest {
         ];
     }
 
+    /**
+     * @method
+     * @name xcoin#watchBalance
+     * @description watches balance and get updates on changes
+     * @see https://xcoin.com/docs/coinApi/websocket-stream/private-channel/trading-account-channel
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name xcoin#watchBalance
-         * @description watches balance and get updates on changes
-         * @see https://xcoin.com/docs/coinApi/websocket-stream/private-channel/trading-account-channel
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await Promise.all ([ this.loadMarkets (), this.authenticate (params) ]);
         return await this.watchPrivate ('balance', 'trading_account', undefined, params);
     }

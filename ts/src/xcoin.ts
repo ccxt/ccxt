@@ -2472,13 +2472,6 @@ export default class xcoin extends Exchange {
     }
 
     createOrdersRequest (orders: OrderRequest[], params = {}) {
-        /**
-         * @method
-         * @name xcoin#createOrdersRequest
-         * @description create a list of trade orders
-         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
