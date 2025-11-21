@@ -214,10 +214,12 @@ public class Exchange {
         }
 
         this.initializeProperties(defaultConfig);
+        this.afterConstruct();
+        this.transformApiNew(this.api, new ArrayList<>());.api, new ArrayList<>());
     }
 
     Exchange (Object userConfig) {
-        // // this.initExchange(userConfig);
+        this.initExchange(userConfig);
     }
 
     Exchange() {
@@ -317,6 +319,137 @@ public class Exchange {
         this.features = (Map<String, Object>) this.safeValue(extendedProperties, "features", this.features);
         Boolean returnHeadersTmp = (Boolean) this.safeValue(extendedProperties, "returnResponseHeaders", Boolean.FALSE);
         this.returnResponseHeaders = (returnHeadersTmp != null) ? returnHeadersTmp : false;
+    }
+
+    private void transformApiNew(Map<String, Object> api, List<String> paths) {
+        if (api == null) {
+            return;
+        }
+
+        if (paths == null) {
+            paths = new ArrayList<>();
+        }
+
+        List<String> keyList = new ArrayList<>(api.keySet());
+
+        for (String key : keyList) {
+            Object value = api.get(key);
+
+            if (isHttpMethod(key)) {
+                Map<String, Object> dictValue = null;
+                List<String> endpoints = null;
+
+                if (value instanceof Map) {
+                    dictValue = (Map<String, Object>) value;
+                    endpoints = new ArrayList<>(dictValue.keySet());
+                } else if (value instanceof List) {
+                    // when endpoints are a list of strings
+                    endpoints = new ArrayList<>();
+                    List<?> listValue = (List<?>) value;
+                    for (Object item : listValue) {
+                        endpoints.add(String.valueOf(item));
+                    }
+                }
+
+                if (endpoints == null) {
+                    continue;
+                }
+
+                for (String endpoint : endpoints) {
+                    double cost = 1.0;
+
+                    if (dictValue != null) {
+                        Object config = dictValue.get(endpoint);
+
+                        if (config instanceof Map) {
+                            Map<String, Object> dictConfig = (Map<String, Object>) config;
+                            Object rl = dictConfig.get("cost");
+                            if (rl != null) {
+                                cost = toDoubleSafe(rl, 1.0);
+                            }
+                        } else {
+                            try {
+                                if (config != null) {
+                                    cost = toDoubleSafe(config, 1.0);
+                                }
+                            } catch (Exception ignored) {
+                            }
+                        }
+                    }
+
+                    // split endpoint by non-alphanumeric chars
+                    String[] result = endpoint.split("[^a-zA-Z0-9]+");
+
+                    // create unified endpoint name
+                    List<String> pathParts = new ArrayList<>();
+                    pathParts.addAll(paths);
+                    pathParts.add(key);
+                    for (String part : result) {
+                        if (part != null && !part.isEmpty()) {
+                            pathParts.add(part);
+                        }
+                    }
+
+                    if (pathParts.isEmpty()) {
+                        continue; // defensive, should not happen
+                    }
+
+                    List<String> completePaths = new ArrayList<>();
+                    for (String part : pathParts) {
+                        if (part.isEmpty()) continue;
+                        String normalized = part.substring(0, 1).toUpperCase() +
+                                            (part.length() > 1 ? part.substring(1) : "");
+                        completePaths.add(normalized);
+                    }
+
+                    StringBuilder sb = new StringBuilder();
+                    for (String cp : completePaths) {
+                        sb.append(cp);
+                    }
+                    String path = sb.toString();
+                    // lowercase first letter
+                    path = path.substring(0, 1).toLowerCase() + path.substring(1);
+
+                    Object apiObj;
+                    if (paths.size() > 1) {
+                        apiObj = new ArrayList<>(paths); // keep a copy
+                    } else if (paths.size() == 1) {
+                        apiObj = paths.get(0);
+                    } else {
+                        apiObj = null; // defensive; original C# would blow up here
+                    }
+
+                    Map<String, Object> entry = new HashMap<>();
+                    entry.put("method", key.toUpperCase());
+                    entry.put("path", endpoint);
+                    entry.put("api", apiObj);
+                    entry.put("cost", cost);
+
+                    this.transformedApi.put(path, entry);
+                }
+
+            } else {
+                if (value instanceof Map) {
+                    List<String> newPaths = new ArrayList<>(paths);
+                    newPaths.add(key);
+                    transformApiNew((Map<String, Object>) value, newPaths);
+                }
+            }
+        }
+    }
+
+    private double toDoubleSafe(Object val, double defaultValue) {
+        if (val == null) {
+            return defaultValue;
+        }
+        if (val instanceof Number) {
+            return ((Number) val).doubleValue();
+        }
+        try {
+            return Double.parseDouble(val.toString());
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
     // --- getters / setters to emulate C# auto-properties ---
     public Object getWssProxy() {
