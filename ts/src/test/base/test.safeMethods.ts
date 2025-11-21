@@ -3,6 +3,7 @@
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../../base/ws/Cache.js';
 
 function equals (a, b) {
     // does not check if b has more properties than a
@@ -315,6 +316,89 @@ function testSafeMethods () {
     assert (exchange.safeNumberOmitZero (inputDict, 'floatString') !== undefined);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+
+    // Test cache types - ArrayCache
+    const arrayCache = new ArrayCache (100);
+    arrayCache.append ({ 'symbol': 'BTC/USDT', 'id': 'order1', 'price': 50000 });
+    assert (exchange.safeValue (arrayCache, 'hashmap') !== undefined);
+    assert (exchange.safeValue (arrayCache, 'Data') !== undefined);
+    assert (Array.isArray (exchange.safeValue (arrayCache, 'Data')));
+    const hashmap = exchange.safeValue (arrayCache, 'hashmap');
+    assert (hashmap['BTC/USDT'] !== undefined);
+    assert (hashmap['BTC/USDT']['order1'] !== undefined);
+
+    // Test cache types - ArrayCacheByTimestamp
+    const arrayCacheByTimestamp = new ArrayCacheByTimestamp (100);
+    arrayCacheByTimestamp.append ([ 1000, 50000, 1, 2, 3 ]);
+    assert (exchange.safeValue (arrayCacheByTimestamp, 'hashmap') !== undefined);
+    assert (exchange.safeValue (arrayCacheByTimestamp, 'Data') !== undefined);
+    assert (Array.isArray (exchange.safeValue (arrayCacheByTimestamp, 'Data')));
+
+    // Test cache types - ArrayCacheBySymbolById
+    const arrayCacheBySymbolById = new ArrayCacheBySymbolById (100);
+    arrayCacheBySymbolById.append ({ 'symbol': 'ETH/USDT', 'id': 'order2', 'price': 3000 });
+    assert (exchange.safeValue (arrayCacheBySymbolById, 'hashmap') !== undefined);
+    assert (exchange.safeValue (arrayCacheBySymbolById, 'Data') !== undefined);
+    const hashmapById = exchange.safeValue (arrayCacheBySymbolById, 'hashmap');
+    assert (hashmapById['ETH/USDT'] !== undefined);
+    assert (hashmapById['ETH/USDT']['order2'] !== undefined);
+
+    // Test cache types - ArrayCacheBySymbolBySide
+    const arrayCacheBySymbolBySide = new ArrayCacheBySymbolBySide ();
+    arrayCacheBySymbolBySide.append ({ 'symbol': 'BNB/USDT', 'side': 'buy', 'price': 400 });
+    assert (exchange.safeValue (arrayCacheBySymbolBySide, 'hashmap') !== undefined);
+    assert (exchange.safeValue (arrayCacheBySymbolBySide, 'Data') !== undefined);
+    const hashmapBySide = exchange.safeValue (arrayCacheBySymbolBySide, 'hashmap');
+    assert (hashmapBySide['BNB/USDT'] !== undefined);
+
+    // Test map[string]map[string]interface{} (ArrayCache.hashmap)
+    const nestedMap = arrayCache.hashmap;
+    assert (exchange.safeValue (nestedMap, 'BTC/USDT') !== undefined);
+    assert (exchange.safeValue (nestedMap, 'BTC/USDT')['order1'] !== undefined);
+    assert (exchange.safeValue (nestedMap, 'NONEXISTENT') === undefined);
+
+    // Test map[string]*ArrayCache (Trades structure)
+    const tradesMap = {
+        'BTC/USDT': arrayCache,
+        'ETH/USDT': arrayCacheBySymbolById,
+    };
+    assert (exchange.safeValue (tradesMap, 'BTC/USDT') === arrayCache);
+    assert (exchange.safeValue (tradesMap, 'ETH/USDT') === arrayCacheBySymbolById);
+    assert (exchange.safeValue (tradesMap, 'NONEXISTENT') === undefined);
+
+    // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
+    const ohlcvInnerMap = {
+        '1m': arrayCacheByTimestamp,
+        '5m': new ArrayCacheByTimestamp (100),
+    };
+    assert (exchange.safeValue (ohlcvInnerMap, '1m') === arrayCacheByTimestamp);
+    assert (exchange.safeValue (ohlcvInnerMap, '5m') !== undefined);
+    assert (exchange.safeValue (ohlcvInnerMap, 'NONEXISTENT') === undefined);
+
+    // Test map[string]*ArrayCacheBySymbolBySide
+    const cacheBySideMap = {
+        'BTC/USDT': arrayCacheBySymbolBySide,
+    };
+    assert (exchange.safeValue (cacheBySideMap, 'BTC/USDT') === arrayCacheBySymbolBySide);
+    assert (exchange.safeValue (cacheBySideMap, 'NONEXISTENT') === undefined);
+
+    // Test SafeValue2 with cache types
+    const cacheWrapper = {
+        'cache': arrayCache,
+    };
+    assert (exchange.safeValue2 (cacheWrapper, 'cache', 'hashmap') !== undefined);
+    assert (exchange.safeValue2 (cacheWrapper, 'cache', 'Data') !== undefined);
+
+    // Test SafeValueN with cache types
+    const nestedCacheWrapper = {
+        'level1': {
+            'level2': {
+                'cache': arrayCacheByTimestamp,
+            },
+        },
+    };
+    assert (exchange.safeValueN (nestedCacheWrapper, [ 'level1', 'level2', 'cache', 'hashmap' ]) !== undefined);
+    assert (exchange.safeValueN (nestedCacheWrapper, [ 'level1', 'level2', 'cache', 'Data' ]) !== undefined);
 }
 
 export default testSafeMethods;
