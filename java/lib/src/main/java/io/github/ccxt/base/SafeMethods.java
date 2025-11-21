@@ -125,7 +125,8 @@ public final class SafeMethods {
         return SafeIntegerN(obj, keys, defaultValue);
     }
 
-    public static Long SafeIntegerN(Object obj, Object keys, Object... defaultValue) {
+    public static Long SafeIntegerN(Object obj, Object keys, Object... defaultValue2) {
+        Object defaultValue = opt(defaultValue2);
         Object result = SafeValueN(obj, keys, defaultValue);
         Long convertedDefault = (defaultValue == null) ? null : toLongQuiet(defaultValue);
 
@@ -186,7 +187,8 @@ public final class SafeMethods {
         return SafeFloatN(obj, (List<Object>) keys, defaultValue);
     }
 
-    public static Double SafeFloatN(Object obj, Object keys, Object... defaultValue) {
+    public static Double SafeFloatN(Object obj, Object keys, Object... defaultValue2) {
+        Object defaultValue = opt(defaultValue2);
         Double convertedDefault = (defaultValue == null) ? null : toDoubleQuiet(defaultValue);
         Object result = SafeValueN(obj, keys, defaultValue);
         if (result == null) return convertedDefault;
