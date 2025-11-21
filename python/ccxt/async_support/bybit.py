@@ -4163,7 +4163,7 @@ class bybit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request: dict = {
             'symbol': market['id'],
-            'orderId': id,
+            # 'orderId': id,
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
@@ -4174,6 +4174,11 @@ class bybit(Exchange, ImplicitAPI):
             # Valid for option only.
             # 'orderIv': '0',  # Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         }
+        clientOrderId = self.safe_string_2(params, 'orderLinkId', 'clientOrderId')
+        if clientOrderId is None:
+            request['orderId'] = id
+        else:
+            request['orderLinkId'] = clientOrderId
         category = None
         category, params = self.get_bybit_type('editOrderRequest', market, params)
         request['category'] = category
@@ -4210,9 +4215,6 @@ class bybit(Exchange, ImplicitAPI):
                 request['takeProfit'] = takeProfitRequest
                 tpTriggerBy = self.safe_string(params, 'tpTriggerBy', 'LastPrice')
                 request['tpTriggerBy'] = tpTriggerBy
-        clientOrderId = self.safe_string(params, 'clientOrderId')
-        if clientOrderId is not None:
-            request['orderLinkId'] = clientOrderId
         params = self.omit(params, ['stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit'])
         return request
 
@@ -4231,6 +4233,7 @@ class bybit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: unique client order id
         :param float [params.triggerPrice]: The price that a trigger order is triggered at
         :param float [params.stopLossPrice]: The price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: The price that a take profit order is triggered at
@@ -4246,6 +4249,7 @@ class bybit(Exchange, ImplicitAPI):
         await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
+        market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
         response = await self.privatePostV5OrderAmend(self.extend(request, params))
         #
@@ -4264,7 +4268,8 @@ class bybit(Exchange, ImplicitAPI):
         return self.safe_order({
             'info': response,
             'id': self.safe_string(result, 'orderId'),
-        })
+            'clientOrderId': self.safe_string(result, 'orderLinkId'),
+        }, market)
 
     async def edit_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
         """
