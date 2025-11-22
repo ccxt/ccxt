@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position, OpenInterest } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3781,7 +3781,7 @@ export default class deribit extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
-    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+    async fetchOpenInterest (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['contract']) {
@@ -3828,7 +3828,7 @@ export default class deribit extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
-    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+    parseOpenInterest (interest, market: Market = undefined) {
         //
         //     {
         //         "high": 93099.5,
@@ -3863,14 +3863,14 @@ export default class deribit extends Exchange {
         } else {
             openInterestValue = openInterest;
         }
-        return {
+        return this.safeOpenInterest ({
             'symbol': this.safeSymbol (marketId, market),
             'openInterestAmount': openInterestAmount,
             'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        } as OpenInterest;
+        }, market);
     }
 
     nonce () {
