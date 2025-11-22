@@ -1383,7 +1383,7 @@ class Exchange(object):
         )
         return {
             'privateKey': privateKey,
-            'publicKey': publicKey,
+            'publicKey': hex(publicKey),
             'address': hex(address)
         }
 
