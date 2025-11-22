@@ -3863,14 +3863,14 @@ export default class deribit extends Exchange {
         } else {
             openInterestValue = openInterest;
         }
-        return this.safeOpenInterest ({
+        return {
             'symbol': this.safeSymbol (marketId, market),
             'openInterestAmount': openInterestAmount,
             'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        }, market) as OpenInterest;
+        } as OpenInterest;
     }
 
     nonce () {
