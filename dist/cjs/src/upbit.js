@@ -21,7 +21,7 @@ class upbit extends upbit$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'upbit',
             'name': 'Upbit',
-            'countries': ['KR'],
+            'countries': ['KR', 'ID', 'SG', 'TH'],
             'version': 'v1',
             'rateLimit': 50,
             'pro': true,
@@ -102,7 +102,7 @@ class upbit extends upbit$1["default"] {
                     'private': 'https://{hostname}',
                 },
                 'www': 'https://upbit.com',
-                'doc': 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
+                'doc': ['https://docs.upbit.com/kr', 'https://global-docs.upbit.com'],
                 'fees': 'https://upbit.com/service_center/guide',
             },
             'api': {
@@ -132,7 +132,6 @@ class upbit extends upbit$1["default"] {
                         'ticker/all': 2,
                         'orderbook': 2,
                         'orderbook/instruments': 2,
-                        'orderbook/supported_levels': 2, // Upbit KR only, deprecatd
                     },
                 },
                 'private': {
@@ -158,6 +157,7 @@ class upbit extends upbit$1["default"] {
                     },
                     'post': {
                         'orders': 2.5,
+                        'orders/test': 2.5,
                         'orders/cancel_and_new': 2.5,
                         'withdraws/coin': 0.67,
                         'withdraws/krw': 0.67,
@@ -170,6 +170,7 @@ class upbit extends upbit$1["default"] {
                         'order': 0.67,
                         'orders/open': 40,
                         'orders/uuids': 0.67,
+                        'withdraws/coin': 0.67,
                     },
                 },
             },

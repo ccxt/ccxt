@@ -10,7 +10,7 @@ public partial class upbit : Exchange
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "upbit" },
             { "name", "Upbit" },
-            { "countries", new List<object>() {"KR"} },
+            { "countries", new List<object>() {"KR", "ID", "SG", "TH"} },
             { "version", "v1" },
             { "rateLimit", 50 },
             { "pro", true },
@@ -90,7 +90,7 @@ public partial class upbit : Exchange
                     { "private", "https://{hostname}" },
                 } },
                 { "www", "https://upbit.com" },
-                { "doc", "https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C" },
+                { "doc", new List<object>() {"https://docs.upbit.com/kr", "https://global-docs.upbit.com"} },
                 { "fees", "https://upbit.com/service_center/guide" },
             } },
             { "api", new Dictionary<string, object>() {
@@ -118,7 +118,6 @@ public partial class upbit : Exchange
                         { "ticker/all", 2 },
                         { "orderbook", 2 },
                         { "orderbook/instruments", 2 },
-                        { "orderbook/supported_levels", 2 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -144,6 +143,7 @@ public partial class upbit : Exchange
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "orders", 2.5 },
+                        { "orders/test", 2.5 },
                         { "orders/cancel_and_new", 2.5 },
                         { "withdraws/coin", 0.67 },
                         { "withdraws/krw", 0.67 },
@@ -156,6 +156,7 @@ public partial class upbit : Exchange
                         { "order", 0.67 },
                         { "orders/open", 40 },
                         { "orders/uuids", 0.67 },
+                        { "withdraws/coin", 0.67 },
                     } },
                 } },
             } },

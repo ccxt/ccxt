@@ -263,6 +263,7 @@ class bingx extends Exchange {
                                 'user/marginAssets' => 5,
                             ),
                             'post' => array(
+                                'trade/amend' => 2,
                                 'trade/cancelReplace' => 2,
                                 'positionSide/dual' => 5,
                                 'trade/batchCancelReplace' => 5,
@@ -478,10 +479,19 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'swap/trace/currentTrack' => 2,
+                                'PFutures/traderDetail' => 2,
+                                'PFutures/profitHistorySummarys' => 2,
+                                'PFutures/profitDetail' => 2,
+                                'PFutures/tradingPairs' => 2,
+                                'spot/traderDetail' => 2,
+                                'spot/profitHistorySummarys' => 2,
+                                'spot/profitDetail' => 2,
+                                'spot/historyOrder' => 2,
                             ),
                             'post' => array(
                                 'swap/trace/closeTrackOrder' => 2,
                                 'swap/trace/setTPSL' => 2,
+                                'PFutures/setCommission' => 2,
                                 'spot/trader/sellOrder' => 10,
                             ),
                         ),

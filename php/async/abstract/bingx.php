@@ -157,6 +157,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swap_v1_private_get_user_marginassets($params = array()) {
         return $this->request('user/marginAssets', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
     }
+    public function swap_v1_private_post_trade_amend($params = array()) {
+        return $this->request('trade/amend', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function swap_v1_private_post_trade_cancelreplace($params = array()) {
         return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -478,11 +481,38 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function copytrading_v1_private_get_swap_trace_currenttrack($params = array()) {
         return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function copytrading_v1_private_get_pfutures_traderdetail($params = array()) {
+        return $this->request('PFutures/traderDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copytrading_v1_private_get_pfutures_profithistorysummarys($params = array()) {
+        return $this->request('PFutures/profitHistorySummarys', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copytrading_v1_private_get_pfutures_profitdetail($params = array()) {
+        return $this->request('PFutures/profitDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copytrading_v1_private_get_pfutures_tradingpairs($params = array()) {
+        return $this->request('PFutures/tradingPairs', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copytrading_v1_private_get_spot_traderdetail($params = array()) {
+        return $this->request('spot/traderDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copytrading_v1_private_get_spot_profithistorysummarys($params = array()) {
+        return $this->request('spot/profitHistorySummarys', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copytrading_v1_private_get_spot_profitdetail($params = array()) {
+        return $this->request('spot/profitDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copytrading_v1_private_get_spot_historyorder($params = array()) {
+        return $this->request('spot/historyOrder', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function copytrading_v1_private_post_swap_trace_closetrackorder($params = array()) {
         return $this->request('swap/trace/closeTrackOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function copytrading_v1_private_post_swap_trace_settpsl($params = array()) {
         return $this->request('swap/trace/setTPSL', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function copytrading_v1_private_post_pfutures_setcommission($params = array()) {
+        return $this->request('PFutures/setCommission', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function copytrading_v1_private_post_spot_trader_sellorder($params = array()) {
         return $this->request('spot/trader/sellOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
@@ -681,6 +711,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function swapV1PrivateGetUserMarginAssets($params = array()) {
         return $this->request('user/marginAssets', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function swapV1PrivatePostTradeAmend($params = array()) {
+        return $this->request('trade/amend', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function swapV1PrivatePostTradeCancelReplace($params = array()) {
         return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
@@ -1003,11 +1036,38 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function copyTradingV1PrivateGetSwapTraceCurrentTrack($params = array()) {
         return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function copyTradingV1PrivateGetPFuturesTraderDetail($params = array()) {
+        return $this->request('PFutures/traderDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copyTradingV1PrivateGetPFuturesProfitHistorySummarys($params = array()) {
+        return $this->request('PFutures/profitHistorySummarys', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copyTradingV1PrivateGetPFuturesProfitDetail($params = array()) {
+        return $this->request('PFutures/profitDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copyTradingV1PrivateGetPFuturesTradingPairs($params = array()) {
+        return $this->request('PFutures/tradingPairs', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copyTradingV1PrivateGetSpotTraderDetail($params = array()) {
+        return $this->request('spot/traderDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copyTradingV1PrivateGetSpotProfitHistorySummarys($params = array()) {
+        return $this->request('spot/profitHistorySummarys', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copyTradingV1PrivateGetSpotProfitDetail($params = array()) {
+        return $this->request('spot/profitDetail', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function copyTradingV1PrivateGetSpotHistoryOrder($params = array()) {
+        return $this->request('spot/historyOrder', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function copyTradingV1PrivatePostSwapTraceCloseTrackOrder($params = array()) {
         return $this->request('swap/trace/closeTrackOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function copyTradingV1PrivatePostSwapTraceSetTPSL($params = array()) {
         return $this->request('swap/trace/setTPSL', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function copyTradingV1PrivatePostPFuturesSetCommission($params = array()) {
+        return $this->request('PFutures/setCommission', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function copyTradingV1PrivatePostSpotTraderSellOrder($params = array()) {
         return $this->request('spot/trader/sellOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
