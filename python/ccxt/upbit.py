@@ -26,7 +26,7 @@ class upbit(Exchange, ImplicitAPI):
         return self.deep_extend(super(upbit, self).describe(), {
             'id': 'upbit',
             'name': 'Upbit',
-            'countries': ['KR'],
+            'countries': ['KR', 'ID', 'SG', 'TH'],
             'version': 'v1',
             'rateLimit': 50,
             'pro': True,
@@ -99,7 +99,7 @@ class upbit(Exchange, ImplicitAPI):
                 '1M': 'months',
                 '1y': 'years',
             },
-            'hostname': 'api.upbit.com',
+            'hostname': 'api.upbit.com',  # 'api.upbit.com' for KR, '{countryCode}-api.upbit.com' for ID, SG, TH
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
                 'api': {
@@ -107,7 +107,7 @@ class upbit(Exchange, ImplicitAPI):
                     'private': 'https://{hostname}',
                 },
                 'www': 'https://upbit.com',
-                'doc': 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
+                'doc': ['https://docs.upbit.com/kr', 'https://global-docs.upbit.com'],
                 'fees': 'https://upbit.com/service_center/guide',
             },
             'api': {
@@ -137,7 +137,6 @@ class upbit(Exchange, ImplicitAPI):
                         'ticker/all': 2,
                         'orderbook': 2,
                         'orderbook/instruments': 2,
-                        'orderbook/supported_levels': 2,  # Upbit KR only, deprecatd
                     },
                 },
                 'private': {
@@ -158,11 +157,12 @@ class upbit(Exchange, ImplicitAPI):
                         'deposits/coin_addresses': 0.67,
                         'deposits/coin_address': 0.67,
                         'travel_rule/vasps': 0.67,
-                        'status/wallet': 0.67,  # Upbit KR only
+                        'status/wallet': 0.67,
                         'api_keys': 0.67,  # Upbit KR only
                     },
                     'post': {
                         'orders': 2.5,  # RPS: 8
+                        'orders/test': 2.5,  # RPS: 8
                         'orders/cancel_and_new': 2.5,  # RPS: 8
                         'withdraws/coin': 0.67,
                         'withdraws/krw': 0.67,  # Upbit KR only.
@@ -175,6 +175,7 @@ class upbit(Exchange, ImplicitAPI):
                         'order': 0.67,
                         'orders/open': 40,  # RPS: 0.5
                         'orders/uuids': 0.67,
+                        'withdraws/coin': 0.67,
                     },
                 },
             },
