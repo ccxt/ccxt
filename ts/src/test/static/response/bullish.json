@@ -6,6 +6,132 @@
         "tokenExpires": 9999999999999
     },
     "methods": {
+        "fetchOrderTrades": [
+            {
+                "description": "Fetch order trades",
+                "method": "fetchOrderTrades",
+                "input": [
+                    "913055493538710529"
+                ],
+                "httpResponse": [
+                    {
+                        "orderId": "913055493538710529",
+                        "tradeId": "100102000027107878",
+                        "symbol": "USDTUSDC",
+                        "price": "0.9998",
+                        "quantity": "10.0000000",
+                        "quoteAmount": "9.9977",
+                        "baseFee": "0.0000000",
+                        "quoteFee": "0.0000",
+                        "side": "BUY",
+                        "isTaker": true,
+                        "createdAtDatetime": "2025-11-24T13:16:33.410Z",
+                        "createdAtTimestamp": "1763990193410"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "913055493538710529",
+                            "tradeId": "100102000027107878",
+                            "symbol": "USDTUSDC",
+                            "price": "0.9998",
+                            "quantity": "10.0000000",
+                            "quoteAmount": "9.9977",
+                            "baseFee": "0.0000000",
+                            "quoteFee": "0.0000",
+                            "side": "BUY",
+                            "isTaker": true,
+                            "createdAtDatetime": "2025-11-24T13:16:33.410Z",
+                            "createdAtTimestamp": "1763990193410"
+                        },
+                        "timestamp": 1763990193410,
+                        "datetime": "2025-11-24T13:16:33.410Z",
+                        "symbol": "USDT/USDC",
+                        "id": "100102000027107878",
+                        "order": "913055493538710529",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 0.9998,
+                        "amount": 10,
+                        "cost": 9.998,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "orderId": "913055493538710529",
+                        "tradeId": "100102000027107878",
+                        "symbol": "USDTUSDC",
+                        "price": "0.9998",
+                        "quantity": "10.0000000",
+                        "quoteAmount": "9.9977",
+                        "baseFee": "0.0000000",
+                        "quoteFee": "0.0000",
+                        "side": "BUY",
+                        "isTaker": true,
+                        "createdAtDatetime": "2025-11-24T13:16:33.410Z",
+                        "createdAtTimestamp": "1763990193410"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "913055493538710529",
+                            "tradeId": "100102000027107878",
+                            "symbol": "USDTUSDC",
+                            "price": "0.9998",
+                            "quantity": "10.0000000",
+                            "quoteAmount": "9.9977",
+                            "baseFee": "0.0000000",
+                            "quoteFee": "0.0000",
+                            "side": "BUY",
+                            "isTaker": true,
+                            "createdAtDatetime": "2025-11-24T13:16:33.410Z",
+                            "createdAtTimestamp": "1763990193410"
+                        },
+                        "timestamp": 1763990193410,
+                        "datetime": "2025-11-24T13:16:33.410Z",
+                        "symbol": "USDT/USDC",
+                        "id": "100102000027107878",
+                        "order": "913055493538710529",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 0.9998,
+                        "amount": 10,
+                        "cost": 9.998,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "Fetch orders with market, since and limit",
@@ -406,74 +532,6 @@
                     "address": "0x34625d5f0b6575503a0669994dea24271bfbd443",
                     "tag": null
                 }
-            }
-        ],
-        "fetchOrderTrades": [
-            {
-                "description": "Fetch order trades by order id",
-                "method": "fetchOrderTrades",
-                "input": [
-                    "910918330718094337"
-                ],
-                "httpResponse": [
-                    {
-                    "baseFee": "0.0000000",
-                    "createdAtDatetime": "2025-11-18T15:44:14.087Z",
-                    "createdAtTimestamp": "1763480654087",
-                    "handle": null,
-                    "isTaker": true,
-                    "orderId": "910918330718094337",
-                    "price": "0.9994",
-                    "publishedAtTimestamp": "1763481453472",
-                    "quantity": "10.0000000",
-                    "quoteAmount": "9.9938",
-                    "quoteFee": "0.0000",
-                    "side": "BUY",
-                    "symbol": "USDTUSDC",
-                    "tradeId": "100101000029715021"
-                    }
-                ],
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "baseFee": "0.0000000",
-                            "createdAtDatetime": "2025-11-18T15:44:14.087Z",
-                            "createdAtTimestamp": "1763480654087",
-                            "handle": null,
-                            "isTaker": true,
-                            "orderId": "910918330718094337",
-                            "price": "0.9994",
-                            "publishedAtTimestamp": "1763481453472",
-                            "quantity": "10.0000000",
-                            "quoteAmount": "9.9938",
-                            "quoteFee": "0.0000",
-                            "side": "BUY",
-                            "symbol": "USDTUSDC",
-                            "tradeId": "100101000029715021"
-                        },
-                        "timestamp": 1763480654087,
-                        "datetime": "2025-11-18T15:44:14.087Z",
-                        "symbol": "USDT/USDC",
-                        "id": "100101000029715021",
-                        "order": "100101000029715021",
-                        "type": null,
-                        "takerOrMaker": "taker",
-                        "side": "buy",
-                        "price": 0.9994,
-                        "amount": 10,
-                        "cost": 9.994,
-                        "fee": {
-                            "currency": "USDC",
-                            "cost": 0
-                        },
-                        "fees": [
-                            {
-                            "currency": "USDC",
-                            "cost": 0
-                            }
-                        ]
-                    }
-                ]
             }
         ],
         "createTriggerOrder": [
@@ -1192,74 +1250,6 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
-            }
-        ],
-        "fetchMyTrades": [
-            {
-                "description": "Fetch my trades for BTC/USDC",
-                "method": "fetchMyTrades",
-                "input": [
-                    "BTC/USDC"
-                ],
-                "httpResponse": [
-                    {
-                        "baseFee": "0.00000000",
-                        "createdAtDatetime": "2025-05-23T11:47:05.588Z",
-                        "createdAtTimestamp": "1748000825588",
-                        "handle": null,
-                        "isTaker": false,
-                        "orderId": "845771590952550401",
-                        "price": "110000.0000",
-                        "publishedAtTimestamp": "1748333695182",
-                        "quantity": "1.00000000",
-                        "quoteAmount": "110000.0000",
-                        "quoteFee": "0.0000",
-                        "side": "BUY",
-                        "symbol": "BTCUSDC",
-                        "tradeId": "100182000000516287"
-                    }
-                ],
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "baseFee": "0.00000000",
-                            "createdAtDatetime": "2025-05-23T11:47:05.588Z",
-                            "createdAtTimestamp": "1748000825588",
-                            "handle": null,
-                            "isTaker": false,
-                            "orderId": "845771590952550401",
-                            "price": "110000.0000",
-                            "publishedAtTimestamp": "1748333695182",
-                            "quantity": "1.00000000",
-                            "quoteAmount": "110000.0000",
-                            "quoteFee": "0.0000",
-                            "side": "BUY",
-                            "symbol": "BTCUSDC",
-                            "tradeId": "100182000000516287"
-                        },
-                        "timestamp": 1748000825588,
-                        "datetime": "2025-05-23T11:47:05.588Z",
-                        "symbol": "BTC/USDC",
-                        "id": "100182000000516287",
-                        "order": "100182000000516287",
-                        "type": null,
-                        "takerOrMaker": "maker",
-                        "side": "buy",
-                        "price": 110000,
-                        "amount": 1,
-                        "cost": 110000,
-                        "fee": {
-                            "currency": "USDC",
-                            "cost": 0
-                        },
-                        "fees": [
-                            {
-                                "currency": "USDC",
-                                "cost": 0
-                            }
-                        ]
-                    }
-                ]
             }
         ]
     }
