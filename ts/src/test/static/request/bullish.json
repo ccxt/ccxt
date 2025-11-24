@@ -11,6 +11,67 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "editOrder": [
+            {
+                "description": "Edit order by order id",
+                "method": "editOrder",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/command",
+                "input": [
+                    "913020243366380545",
+                    "USDT/USDC",
+                    "limit",
+                    null,
+                    10,
+                    0.5
+                ],
+                "output": "{\"commandType\":\"V1AmendOrder\",\"symbol\":\"USDTUSDC\",\"tradingAccountId\":\"111795880131063\",\"orderId\":\"913020243366380545\",\"type\":\"LIMIT\",\"quantity\":\"10\",\"price\":\"0.5\"}"
+            },
+            {
+                "description": "Edit order by clientOrderId",
+                "method": "editOrder",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/command",
+                "input": [
+                    null,
+                    "USDT/USDC",
+                    null,
+                    null,
+                    12,
+                    0.55,
+                    {
+                        "clientOrderId": "987654321",
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"commandType\":\"V1AmendOrder\",\"symbol\":\"USDTUSDC\",\"tradingAccountId\":\"111795880131063\",\"type\":\"POST_ONLY\",\"quantity\":\"12\",\"price\":\"0.55\",\"clientOrderId\":\"987654321\"}"
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/orders?tradingAccountId=111795880131063&status=CLOSED",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "Fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/orders?tradingAccountId=111795880131063&status=CANCELLED",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch opne orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/orders?tradingAccountId=111795880131063&status=OPEN",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOrderTrades": [
             {
                 "description": "Fetch order trades by order id",
