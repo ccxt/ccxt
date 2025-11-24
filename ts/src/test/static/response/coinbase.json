@@ -13,7 +13,7 @@
             "trades": [
               {
                 "trade_id": "635541194",
-                "product_id": "BTC-USD",
+                "product_id": "BTC-USDC",
                 "price": "66363.03",
                 "size": "0.03720194",
                 "time": "2024-04-24T09:56:38.063595Z",
@@ -49,7 +49,7 @@
             "quoteVolume": null,
             "info": {
               "trade_id": "635541194",
-              "product_id": "BTC-USD",
+              "product_id": "BTC-USDC",
               "price": "66363.03",
               "size": "0.03720194",
               "time": "2024-04-24T09:56:38.063595Z",

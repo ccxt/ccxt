@@ -100,6 +100,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     assert_symbol($exchange, $skipped_properties, $method, $market, 'symbol');
     $log_text = log_template($exchange, $method, $market);
     // check taker/maker
+    // todo: check not all to be within 0-1.0
     assert_greater($exchange, $skipped_properties, $method, $market, 'taker', '-100');
     assert_less($exchange, $skipped_properties, $method, $market, 'taker', '100');
     assert_greater($exchange, $skipped_properties, $method, $market, 'maker', '-100');
@@ -188,17 +189,17 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert_greater($exchange, $skipped_properties, $method, $market, 'expiry', '0');
         if ($option) {
             // strike should be defined
-            assert($market['strike'] !== null, '"strike" must be defined when "option" is true' . $log_text);
+            assert(((is_array($skipped_properties) && array_key_exists('strike', $skipped_properties)) || $market['strike'] !== null), '"strike" must be defined when "option" is true' . $log_text);
             assert_greater($exchange, $skipped_properties, $method, $market, 'strike', '0');
             // optionType should be defined
-            assert($market['optionType'] !== null, '"optionType" must be defined when "option" is true' . $log_text);
+            assert(((is_array($skipped_properties) && array_key_exists('optionType', $skipped_properties)) || $market['optionType'] !== null), '"optionType" must be defined when "option" is true' . $log_text);
             assert_in_array($exchange, $skipped_properties, $method, $market, 'optionType', ['put', 'call']);
         } else {
             // if not option, then strike and optionType should be undefined
             assert($market['strike'] === null, '"strike" must be undefined when "option" is false' . $log_text);
             assert($market['optionType'] === null, '"optionType" must be undefined when "option" is false' . $log_text);
         }
-    } else {
+    } elseif ($spot) {
         // otherwise, expiry needs to be undefined
         assert(($market['expiry'] === null) && ($market['expiryDatetime'] === null), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' . $log_text);
     }

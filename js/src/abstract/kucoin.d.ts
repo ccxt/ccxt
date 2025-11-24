@@ -20,6 +20,7 @@ interface Exchange {
     publicGetMarkPriceAllSymbols(params?: {}): Promise<implicitReturnType>;
     publicGetMarginConfig(params?: {}): Promise<implicitReturnType>;
     publicGetAnnouncements(params?: {}): Promise<implicitReturnType>;
+    publicGetMarginCollateralRatio(params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic(params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo(params?: {}): Promise<implicitReturnType>;
     privateGetAccounts(params?: {}): Promise<implicitReturnType>;
@@ -89,6 +90,9 @@ interface Exchange {
     privateGetRedeemOrders(params?: {}): Promise<implicitReturnType>;
     privateGetPurchaseOrders(params?: {}): Promise<implicitReturnType>;
     privateGetBrokerApiRebaseDownload(params?: {}): Promise<implicitReturnType>;
+    privateGetBrokerQueryMyCommission(params?: {}): Promise<implicitReturnType>;
+    privateGetBrokerQueryUser(params?: {}): Promise<implicitReturnType>;
+    privateGetBrokerQueryDetailByUid(params?: {}): Promise<implicitReturnType>;
     privateGetMigrateUserAccountStatus(params?: {}): Promise<implicitReturnType>;
     privateGetAffiliateInviterStatistics(params?: {}): Promise<implicitReturnType>;
     privatePostSubUserCreated(params?: {}): Promise<implicitReturnType>;
@@ -182,6 +186,8 @@ interface Exchange {
     futuresPrivateGetMarginMaxWithdrawMargin(params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetContractsRiskLimitSymbol(params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetFundingHistory(params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetCopyTradeFuturesGetMaxOpenSize(params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferOut(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferIn(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostOrders(params?: {}): Promise<implicitReturnType>;
@@ -191,11 +197,24 @@ interface Exchange {
     futuresPrivatePostMarginWithdrawMargin(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionMarginDepositMargin(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionRiskLimitLevelChange(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostCopyTradeFuturesOrders(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostCopyTradeFuturesOrdersTest(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostCopyTradeFuturesStOrders(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostCopyTradeFuturesPositionMarginDepositMargin(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostCopyTradeFuturesPositionChangeMarginMode(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostCopyTradeGetCrossModeMarginRequirement(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostCopyTradePositionSwitchPositionMode(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostBulletPrivate(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrdersClientOrderClientOid(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrders(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteStopOrders(params?: {}): Promise<implicitReturnType>;
+    futuresPrivateDeleteCopyTradeFuturesOrders(params?: {}): Promise<implicitReturnType>;
+    futuresPrivateDeleteCopyTradeFuturesOrdersClientOrder(params?: {}): Promise<implicitReturnType>;
     webExchangeGetCurrencyCurrencyChainInfo(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdInfo(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdAccount(params?: {}): Promise<implicitReturnType>;
@@ -221,6 +240,17 @@ interface Exchange {
     earnGetEarnEthStakingProducts(params?: {}): Promise<implicitReturnType>;
     earnPostEarnOrders(params?: {}): Promise<implicitReturnType>;
     earnDeleteEarnOrders(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketAnnouncement(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketCurrency(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketInstrument(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketTicker(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketOrderbook(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketTrade(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketKline(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketFundingRate(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketFundingRateHistory(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketCrossConfig(params?: {}): Promise<implicitReturnType>;
+    utaGetServerStatus(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

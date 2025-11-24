@@ -251,7 +251,7 @@ class gemini(ccxt.async_support.gemini):
                 messageHash = 'trades:' + symbol
                 client.resolve(stored, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -471,11 +471,15 @@ class gemini(ccxt.async_support.gemini):
         currentBidAsk['timestamp'] = timestamp
         currentBidAsk['datetime'] = self.iso8601(timestamp)
         currentBidAsk['info'] = rawBidAskChanges
+        bidsAsksDict = {}
+        bidsAsksDict[symbol] = currentBidAsk
         self.bidsasks[symbol] = currentBidAsk
-        client.resolve(currentBidAsk, messageHash)
+        client.resolve(bidsAsksDict, messageHash)
 
-    async def helper_for_watch_multiple_construct(self, itemHashName: str, symbols: List[str], params={}):
+    async def helper_for_watch_multiple_construct(self, itemHashName: str, symbols: List[str] = None, params={}):
         await self.load_markets()
+        if symbols is None:
+            raise NotSupported(self.id + ' watchMultiple requires at least one symbol')
         symbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbols[0])
         if not firstMarket['spot'] and not firstMarket['linear']:

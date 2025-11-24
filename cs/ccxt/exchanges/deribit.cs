@@ -601,45 +601,46 @@ public partial class deribit : Exchange
         object response = await this.publicGetGetCurrencies(parameters);
         //
         //    {
-        //      "jsonrpc": "2.0",
-        //      "result": [
-        //        {
-        //          "withdrawal_priorities": [],
-        //          "withdrawal_fee": 0.01457324,
-        //          "min_withdrawal_fee": 0.000001,
-        //          "min_confirmations": 1,
-        //          "fee_precision": 8,
-        //          "currency_long": "Solana",
-        //          "currency": "SOL",
-        //          "coin_type": "SOL"
-        //        },
-        //        ...
-        //      ],
-        //      "usIn": 1688652701456124,
-        //      "usOut": 1688652701456390,
-        //      "usDiff": 266,
-        //      "testnet": true
+        //        "jsonrpc": "2.0",
+        //        "result": [
+        //            {
+        //                "currency": "XRP",
+        //                "network_fee": "1.5e-5",
+        //                "min_withdrawal_fee": "0.0001",
+        //                "apr": "0.0",
+        //                "withdrawal_fee": "0.0001",
+        //                "network_currency": "XRP",
+        //                "coin_type": "XRP",
+        //                "withdrawal_priorities": [],
+        //                "min_confirmations": "1",
+        //                "currency_long": "XRP",
+        //                "in_cross_collateral_pool": false
+        //            },
+        //        ],
+        //        "usIn": "1760110326693923",
+        //        "usOut": "1760110326944891",
+        //        "usDiff": "250968",
+        //        "testnet": false
         //    }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "result", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object currency = getValue(data, i);
             object currencyId = this.safeString(currency, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            object name = this.safeString(currency, "currency_long");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "code", code },
                 { "id", currencyId },
-                { "name", name },
+                { "name", this.safeString(currency, "currency_long") },
                 { "active", null },
                 { "deposit", null },
                 { "withdraw", null },
                 { "type", "crypto" },
                 { "fee", this.safeNumber(currency, "withdrawal_fee") },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "fee_precision"))) },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
@@ -655,7 +656,7 @@ public partial class deribit : Exchange
                     } },
                 } },
                 { "networks", null },
-            };
+            });
         }
         return result;
     }
@@ -2446,6 +2447,13 @@ public partial class deribit : Exchange
         object request = new Dictionary<string, object>() {};
         object market = null;
         object response = null;
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["count"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["count"] = 1000; // max value
+        }
         if (isTrue(isEqual(symbol, null)))
         {
             object code = this.codeFromOptions("fetchClosedOrders", parameters);
@@ -2836,25 +2844,26 @@ public partial class deribit : Exchange
         object unrealizedPnl = this.safeString(position, "floating_profit_loss");
         object initialMarginString = this.safeString(position, "initial_margin");
         object notionalString = this.safeString(position, "size_currency");
+        object notionalStringAbs = Precise.stringAbs(notionalString);
         object maintenanceMarginString = this.safeString(position, "maintenance_margin");
-        object currentTime = this.milliseconds();
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", this.safeString(market, "symbol") },
-            { "timestamp", currentTime },
-            { "datetime", this.iso8601(currentTime) },
+            { "timestamp", null },
+            { "datetime", null },
             { "lastUpdateTimestamp", null },
             { "initialMargin", this.parseNumber(initialMarginString) },
-            { "initialMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalString), "100")) },
+            { "initialMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalStringAbs), "100")) },
             { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
-            { "maintenanceMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(maintenanceMarginString, notionalString), "100")) },
+            { "maintenanceMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(maintenanceMarginString, notionalStringAbs), "100")) },
             { "entryPrice", this.safeNumber(position, "average_price") },
-            { "notional", this.parseNumber(notionalString) },
+            { "notional", this.parseNumber(notionalStringAbs) },
             { "leverage", this.safeInteger(position, "leverage") },
             { "unrealizedPnl", this.parseNumber(unrealizedPnl) },
-            { "contracts", null },
-            { "contractSize", this.safeNumber(market, "contractSize") },
+            { "realizedPnl", this.safeNumber(position, "realized_profit_loss") },
+            { "contracts", this.safeNumber(position, "size") },
+            { "contractSize", this.safeNumber(position, "contractSize") },
             { "marginRatio", null },
             { "liquidationPrice", this.safeNumber(position, "estimated_liquidation_price") },
             { "markPrice", this.safeNumber(position, "mark_price") },

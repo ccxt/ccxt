@@ -8,6 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import NotSupported
 
 
 class upbit(ccxt.async_support.upbit):
@@ -21,6 +22,7 @@ class upbit(ccxt.async_support.upbit):
                 'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
+                'watchOHLCV': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
                 'watchBalance': True,
@@ -43,23 +45,30 @@ class upbit(ccxt.async_support.upbit):
         url = self.implode_params(self.urls['api']['ws'], {
             'hostname': self.hostname,
         })
-        self.options[channel] = self.safe_value(self.options, channel, {})
-        self.options[channel][symbol] = True
-        symbols = list(self.options[channel].keys())
-        marketIds = self.market_ids(symbols)
-        request = [
+        client = self.client(url)
+        subscriptionsKey = 'upbitPublicSubscriptions'
+        if not (subscriptionsKey in client.subscriptions):
+            client.subscriptions[subscriptionsKey] = {}
+        subscriptions = client.subscriptions[subscriptionsKey]
+        messageHash = channel
+        request: dict = {
+            'type': channel,
+        }
+        if symbol is not None:
+            messageHash = channel + ':' + symbol
+            request['codes'] = [marketId]
+        if not (messageHash in subscriptions):
+            subscriptions[messageHash] = request
+        finalMessage = [
             {
                 'ticket': self.uuid(),
             },
-            {
-                'type': channel,
-                'codes': marketIds,
-                # 'isOnlySnapshot': False,
-                # 'isOnlyRealtime': False,
-            },
         ]
-        messageHash = channel + ':' + marketId
-        return await self.watch(url, messageHash, request, messageHash)
+        channelKeys = list(subscriptions.keys())
+        for i in range(0, len(channelKeys)):
+            key = channelKeys[i]
+            finalMessage.append(subscriptions[key])
+        return await self.watch(url, messageHash, finalMessage, messageHash)
 
     async def watch_public_multiple(self, symbols: Strings, channel, params={}):
         await self.load_markets()
@@ -190,6 +199,25 @@ class upbit(ccxt.async_support.upbit):
         orderbook = await self.watch_public(symbol, 'orderbook')
         return orderbook.limit()
 
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1s', since: Int = None, limit: Int = None, params={}) -> List[list]:
+        """
+        watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
+
+        https://docs.upbit.com/kr/reference/websocket-candle for Upbit KR
+        https://global-docs.upbit.com/reference/websocket-candle for Upbit Global
+
+        :param str symbol: unified market symbol of the market orders were made in
+        :param str timeframe: specifies the OHLCV candle interval to watch. As of now, Upbit only supports 1s candles.
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns OHLCV[]: a list of `OHLCV structures <https://docs.ccxt.com/#/?id=ohlcv-structure>`
+        """
+        if timeframe != '1s':
+            raise NotSupported(self.id + ' watchOHLCV does not support' + timeframe + ' candle.')
+        timeFrameOHLCV = 'candle.' + timeframe
+        return await self.watch_public(symbol, timeFrameOHLCV)
+
     def handle_ticker(self, client: Client, message):
         # 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         # {type: "ticker",
@@ -313,6 +341,26 @@ class upbit(ccxt.async_support.upbit):
         messageHash = 'trade:' + marketId
         client.resolve(stored, messageHash)
 
+    def handle_ohlcv(self, client: Client, message):
+        # {
+        #     type: 'candle.1s',
+        #     code: 'KRW-USDT',
+        #     candle_date_time_utc: '2025-04-22T09:50:34',
+        #     candle_date_time_kst: '2025-04-22T18:50:34',
+        #     opening_price: 1438,
+        #     high_price: 1438,
+        #     low_price: 1438,
+        #     trade_price: 1438,
+        #     candle_acc_trade_volume: 1145.8935,
+        #     candle_acc_trade_price: 1647794.853,
+        #     timestamp: 1745315434125,
+        #     stream_type: 'REALTIME'
+        #   }
+        marketId = self.safe_string(message, 'code')
+        messageHash = 'candle.1s:' + marketId
+        ohlcv = self.parse_ohlcv(message)
+        client.resolve(ohlcv, messageHash)
+
     async def authenticate(self, params={}):
         self.check_required_credentials()
         wsOptions: dict = self.safe_dict(self.options, 'ws', {})
@@ -351,12 +399,31 @@ class upbit(ccxt.async_support.upbit):
             'hostname': self.hostname,
         })
         url += '/private'
+        client = self.client(url)
+        # Track private channel subscriptions to support multiple concurrent watches
+        subscriptionsKey = 'upbitPrivateSubscriptions'
+        if not (subscriptionsKey in client.subscriptions):
+            client.subscriptions[subscriptionsKey] = {}
+        channelKey = channel
+        if symbol is not None:
+            channelKey = channel + ':' + symbol
+        subscriptions = client.subscriptions[subscriptionsKey]
+        isNewChannel = not (channelKey in subscriptions)
+        if isNewChannel:
+            subscriptions[channelKey] = request
+        # Build subscription message with all requested private channels
+        # Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
+        requests = []
+        channelKeys = list(subscriptions.keys())
+        for i in range(0, len(channelKeys)):
+            requests.append(subscriptions[channelKeys[i]])
         message = [
             {
                 'ticket': self.uuid(),
             },
-            request,
         ]
+        for i in range(0, len(requests)):
+            message.append(requests[i])
         return await self.watch(url, messageHash, message, messageHash)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -611,8 +678,9 @@ class upbit(ccxt.async_support.upbit):
             'trade': self.handle_trades,
             'myOrder': self.handle_my_order,
             'myAsset': self.handle_balance,
+            'candle.1s': self.handle_ohlcv,
         }
         methodName = self.safe_string(message, 'type')
         method = self.safe_value(methods, methodName)
-        if method:
+        if method is not None:
             method(client, message)

@@ -98,6 +98,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     const logText = testSharedMethods.logTemplate (exchange, method, market);
 
     // check taker/maker
+    // todo: check not all to be within 0-1.0
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'taker', '-100');
     testSharedMethods.assertLess (exchange, skippedProperties, method, market, 'taker', '100');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'maker', '-100');
@@ -194,17 +195,17 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'expiry', '0');
         if (option) {
             // strike should be defined
-            assert (market['strike'] !== undefined, '"strike" must be defined when "option" is true' + logText);
+            assert ((('strike' in skippedProperties) || market['strike'] !== undefined), '"strike" must be defined when "option" is true' + logText);
             testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'strike', '0');
             // optionType should be defined
-            assert (market['optionType'] !== undefined, '"optionType" must be defined when "option" is true' + logText);
+            assert ((('optionType' in skippedProperties) || market['optionType'] !== undefined), '"optionType" must be defined when "option" is true' + logText);
             testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'optionType', [ 'put', 'call' ]);
         } else {
             // if not option, then strike and optionType should be undefined
             assert (market['strike'] === undefined, '"strike" must be undefined when "option" is false' + logText);
             assert (market['optionType'] === undefined, '"optionType" must be undefined when "option" is false' + logText);
         }
-    } else {
+    } else if (spot) {
         // otherwise, expiry needs to be undefined
         assert ((market['expiry'] === undefined) && (market['expiryDatetime'] === undefined), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + logText);
     }

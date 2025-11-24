@@ -26,6 +26,7 @@ public partial class apex : Exchange
                 { "addMargin", false },
                 { "borrowCrossMargin", false },
                 { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelAllOrdersAfter", false },
                 { "cancelOrder", true },
@@ -44,10 +45,14 @@ public partial class apex : Exchange
                 { "createTriggerOrder", true },
                 { "editOrder", false },
                 { "fetchAccounts", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCanceledAndClosedOrders", false },
                 { "fetchCanceledOrders", false },
                 { "fetchClosedOrders", false },
@@ -63,6 +68,7 @@ public partial class apex : Exchange
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -81,6 +87,8 @@ public partial class apex : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -98,6 +106,7 @@ public partial class apex : Exchange
                 { "fetchTradingFees", false },
                 { "fetchTransfer", true },
                 { "fetchTransfers", true },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", false },
                 { "reduceMargin", false },
@@ -495,11 +504,6 @@ public partial class apex : Exchange
             object code = this.safeCurrencyCode(currencyId);
             object name = this.safeString(currency, "displayName");
             object networks = new Dictionary<string, object>() {};
-            object minPrecision = null;
-            object minWithdrawFeeString = null;
-            object minWithdrawString = null;
-            object deposit = false;
-            object withdraw = false;
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
@@ -512,31 +516,22 @@ public partial class apex : Exchange
                     {
                         object networkId = this.safeString(chain, "chainId");
                         object networkCode = this.networkIdToCode(networkId);
-                        object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
-                        minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precision : mathMin(minPrecision, precision);
-                        object depositAllowed = !isTrue(this.safeBool(chain, "stopDeposit"));
-                        deposit = ((bool) isTrue((depositAllowed))) ? depositAllowed : deposit;
-                        object withdrawAllowed = this.safeBool(token, "withdrawEnable");
-                        withdraw = ((bool) isTrue((withdrawAllowed))) ? withdrawAllowed : withdraw;
-                        minWithdrawFeeString = this.safeString(token, "minFee");
-                        minWithdrawString = this.safeString(token, "minWithdraw");
-                        object minNetworkDepositString = this.safeString(chain, "depositMin");
                         ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                             { "info", chain },
                             { "id", networkId },
                             { "network", networkCode },
-                            { "active", isTrue(depositAllowed) && isTrue(withdrawAllowed) },
-                            { "deposit", depositAllowed },
-                            { "withdraw", withdrawAllowed },
-                            { "fee", this.parseNumber(minWithdrawFeeString) },
-                            { "precision", precision },
+                            { "active", null },
+                            { "deposit", !isTrue(this.safeBool(chain, "depositDisable")) },
+                            { "withdraw", this.safeBool(token, "withdrawEnable") },
+                            { "fee", this.safeNumber(token, "minFee") },
+                            { "precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))) },
                             { "limits", new Dictionary<string, object>() {
                                 { "withdraw", new Dictionary<string, object>() {
-                                    { "min", this.parseNumber(minWithdrawString) },
+                                    { "min", this.safeNumber(token, "minWithdraw") },
                                     { "max", null },
                                 } },
                                 { "deposit", new Dictionary<string, object>() {
-                                    { "min", this.parseNumber(minNetworkDepositString) },
+                                    { "min", this.safeNumber(chain, "minDeposit") },
                                     { "max", null },
                                 } },
                             } },
@@ -544,24 +539,28 @@ public partial class apex : Exchange
                     }
                 }
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+            object networksLength = getArrayLength(networkKeys);
+            object emptyChains = isEqual(networksLength, 0); // non-functional coins
+            object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "code", code },
                 { "id", currencyId },
                 { "type", "crypto" },
                 { "name", name },
-                { "active", isTrue(deposit) && isTrue(withdraw) },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "fee", this.parseNumber(minWithdrawFeeString) },
-                { "precision", minPrecision },
+                { "active", null },
+                { "deposit", valueForEmpty },
+                { "withdraw", valueForEmpty },
+                { "fee", null },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdrawString) },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
@@ -570,7 +569,7 @@ public partial class apex : Exchange
                     } },
                 } },
                 { "networks", networks },
-            };
+            });
         }
         return result;
     }
@@ -840,12 +839,12 @@ public partial class apex : Exchange
             limit = 200; // default is 200 when requested with `since`
         }
         ((IDictionary<string,object>)request)["limit"] = limit; // max 200, default 200
-        var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("end", request, parameters, 0.001);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["start"] = since;
+            ((IDictionary<string,object>)request)["start"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
         }
         object response = await this.publicGetV3Klines(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -856,7 +855,7 @@ public partial class apex : Exchange
     public override object parseOHLCV(object ohlcv, object market = null)
     {
         //
-        // {
+        //  {
         //     "start": 1647511440000,
         //     "symbol": "BTC-USD",
         //     "interval": "1",
@@ -866,7 +865,7 @@ public partial class apex : Exchange
         //     "close": "40000",
         //     "volume": "1.002",
         //     "turnover": "3"
-        // } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
+        //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
         return new List<object> {this.safeIntegerN(ohlcv, new List<object>() {"start", "t"}), this.safeNumberN(ohlcv, new List<object>() {"open", "o"}), this.safeNumberN(ohlcv, new List<object>() {"high", "h"}), this.safeNumberN(ohlcv, new List<object>() {"low", "l"}), this.safeNumberN(ohlcv, new List<object>() {"close", "c"}), this.safeNumberN(ohlcv, new List<object>() {"volume", "v"})};
     }
@@ -1140,9 +1139,10 @@ public partial class apex : Exchange
         {
             object entry = getValue(resultList, i);
             object timestamp = this.safeInteger(entry, "fundingTimestamp");
+            object marketId = this.safeString(entry, "symbol");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
-                { "symbol", this.safeString(entry, "symbol") },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "fundingRate", this.safeNumber(entry, "rate") },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
@@ -1285,14 +1285,14 @@ public partial class apex : Exchange
     public virtual object parseOrderType(object type)
     {
         object types = new Dictionary<string, object>() {
-            { "LIMIT", "LIMIT" },
-            { "MARKET", "MARKET" },
-            { "STOP_LIMIT", "STOP_LIMIT" },
-            { "STOP_MARKET", "STOP_MARKET" },
-            { "TAKE_PROFIT_LIMIT", "TAKE_PROFIT_LIMIT" },
-            { "TAKE_PROFIT_MARKET", "TAKE_PROFIT_MARKET" },
+            { "LIMIT", "limit" },
+            { "MARKET", "market" },
+            { "STOP_LIMIT", "limit" },
+            { "STOP_MARKET", "market" },
+            { "TAKE_PROFIT_LIMIT", "limit" },
+            { "TAKE_PROFIT_MARKET", "market" },
         };
-        return this.safeStringUpper(types, type, type);
+        return this.safeString(types, type, type);
     }
 
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
@@ -1376,6 +1376,8 @@ public partial class apex : Exchange
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1396,11 +1398,22 @@ public partial class apex : Exchange
             orderPrice = this.priceToPrecision(symbol, price);
         }
         object fees = this.safeDict(this.fees, "swap", new Dictionary<string, object>() {});
-        object taker = this.safeNumber(fees, "taker", 0.0005);
-        object maker = this.safeNumber(fees, "maker", 0.0002);
-        object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), ((object)taker).ToString()), ((object)getValue(getValue(market, "precision"), "price")).ToString()), TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+        object taker = this.safeString(fees, "taker", "0.0005");
+        object maker = this.safeString(fees, "maker", "0.0002");
+        object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(getValue(getValue(market, "precision"), "price"))), TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
         object timeNow = this.milliseconds();
-        // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        object triggerPrice = this.safeString(parameters, "triggerPrice");
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        if (isTrue(!isEqual(stopLossPrice, null)))
+        {
+            orderType = ((bool) isTrue((isEqual(orderType, "MARKET")))) ? "STOP_MARKET" : "STOP_LIMIT";
+            triggerPrice = stopLossPrice;
+        } else if (isTrue(!isEqual(takeProfitPrice, null)))
+        {
+            orderType = ((bool) isTrue((isEqual(orderType, "MARKET")))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT";
+            triggerPrice = takeProfitPrice;
+        }
         object isMarket = isEqual(orderType, "MARKET");
         if (isTrue(isTrue(isMarket) && isTrue((isEqual(price, null)))))
         {
@@ -1430,7 +1443,7 @@ public partial class apex : Exchange
         {
             clientOrderId = this.generateRandomClientIdOmni(accountId);
         }
-        parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id"});
+        parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"});
         object orderToSign = new Dictionary<string, object>() {
             { "accountId", accountId },
             { "slotId", clientOrderId },
@@ -1439,9 +1452,13 @@ public partial class apex : Exchange
             { "size", orderSize },
             { "price", orderPrice },
             { "direction", orderSide },
-            { "makerFeeRate", ((object)maker).ToString() },
-            { "takerFeeRate", ((object)taker).ToString() },
+            { "makerFeeRate", maker },
+            { "takerFeeRate", taker },
         };
+        if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            ((IDictionary<string,object>)orderToSign)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+        }
         object signature = await this.getZKContractSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1455,6 +1472,10 @@ public partial class apex : Exchange
             { "clientId", clientOrderId },
             { "brokerId", this.safeString(this.options, "brokerId", "6956") },
         };
+        if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+        }
         ((IDictionary<string,object>)request)["signature"] = signature;
         object response = await this.privatePostV3Order(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -1646,7 +1667,7 @@ public partial class apex : Exchange
         }
         object response = await this.privatePostV3DeleteOpenOrders(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return data;
+        return new List<object> {this.parseOrder(data, market)};
     }
 
     /**
@@ -1676,7 +1697,7 @@ public partial class apex : Exchange
             response = await this.privatePostV3DeleteOrder(this.extend(request, parameters));
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return data;
+        return this.safeOrder(data);
     }
 
     /**

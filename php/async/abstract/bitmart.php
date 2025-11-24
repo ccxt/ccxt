@@ -184,6 +184,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function private_get_contract_private_position($params = array()) {
         return $this->request('contract/private/position', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_contract_private_position_v2($params = array()) {
+        return $this->request('contract/private/position-v2', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_get_contract_private_get_open_orders($params = array()) {
         return $this->request('contract/private/get-open-orders', 'private', 'GET', $params, null, null, array("cost" => 1.2));
     }
@@ -519,6 +522,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     }
     public function privateGetContractPrivatePosition($params = array()) {
         return $this->request('contract/private/position', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetContractPrivatePositionV2($params = array()) {
+        return $this->request('contract/private/position-v2', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privateGetContractPrivateGetOpenOrders($params = array()) {
         return $this->request('contract/private/get-open-orders', 'private', 'GET', $params, null, null, array("cost" => 1.2));

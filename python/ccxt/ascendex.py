@@ -53,6 +53,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchAccounts': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -477,6 +478,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'broad': {},
             },
             'commonCurrencies': {
+                'XBT': 'XBT',  # self is not BTC ! just another token
                 'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
@@ -497,95 +499,82 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        assetsPromise = self.v1PublicGetAssets(params)
+        response = self.v2PublicGetAssets(params)
         #
-        #     {
-        #         "code":0,
-        #         "data":[
-        #             {
-        #                 "assetCode" : "LTCBULL",
-        #                 "assetName" : "3X Long LTC Token",
-        #                 "precisionScale" : 9,
-        #                 "nativeScale" : 4,
-        #                 "withdrawalFee" : "0.2",
-        #                 "minWithdrawalAmt" : "1.0",
-        #                 "status" : "Normal"
-        #             },
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "assetCode": "USDT",
+        #                "assetName": "Tether",
+        #                "precisionScale": 9,
+        #                "nativeScale": 4,
+        #                "blockChain": [
+        #                    {
+        #                        "chainName": "Solana",
+        #                        "withdrawFee": "2.0",
+        #                        "allowDeposit": True,
+        #                        "allowWithdraw": True,
+        #                        "minDepositAmt": "0.01",
+        #                        "minWithdrawal": "4.0",
+        #                        "numConfirmations": 1
+        #                    },
+        #                    ...
+        #                ]
+        #            },
         #         ]
-        #     }
+        #    }
         #
-        marginPromise = self.v1PublicGetMarginAssets(params)
-        #
-        #     {
-        #         "code":0,
-        #         "data":[
-        #             {
-        #                 "assetCode":"BTT",
-        #                 "borrowAssetCode":"BTT-B",
-        #                 "interestAssetCode":"BTT-I",
-        #                 "nativeScale":0,
-        #                 "numConfirmations":1,
-        #                 "withdrawFee":"100.0",
-        #                 "minWithdrawalAmt":"1000.0",
-        #                 "statusCode":"Normal",
-        #                 "statusMessage":"",
-        #                 "interestRate":"0.001"
-        #             }
-        #         ]
-        #     }
-        #
-        cashPromise = self.v1PublicGetCashAssets(params)
-        #
-        #     {
-        #         "code":0,
-        #         "data":[
-        #             {
-        #                 "assetCode":"LTCBULL",
-        #                 "nativeScale":4,
-        #                 "numConfirmations":20,
-        #                 "withdrawFee":"0.2",
-        #                 "minWithdrawalAmt":"1.0",
-        #                 "statusCode":"Normal",
-        #                 "statusMessage":""
-        #             }
-        #         ]
-        #     }
-        #
-        assets, margin, cash = [assetsPromise, marginPromise, cashPromise]
-        assetsData = self.safe_list(assets, 'data', [])
-        marginData = self.safe_list(margin, 'data', [])
-        cashData = self.safe_list(cash, 'data', [])
-        assetsById = self.index_by(assetsData, 'assetCode')
-        marginById = self.index_by(marginData, 'assetCode')
-        cashById = self.index_by(cashData, 'assetCode')
-        dataById = self.deep_extend(assetsById, marginById, cashById)
-        ids = list(dataById.keys())
+        data = self.safe_list(response, 'data', [])
         result: dict = {}
-        for i in range(0, len(ids)):
-            id = self.safe_string(ids, i)
-            currency = dataById[id]
+        for i in range(0, len(data)):
+            currency = data[i]
+            id = self.safe_string(currency, 'assetCode')
             code = self.safe_currency_code(id)
-            scale = self.safe_string_2(currency, 'precisionScale', 'nativeScale')
-            precision = self.parse_number(self.parse_precision(scale))
-            fee = self.safe_number_2(currency, 'withdrawFee', 'withdrawalFee')
-            status = self.safe_string_2(currency, 'status', 'statusCode')
-            active = (status == 'Normal')
-            marginInside = ('borrowAssetCode' in currency)
-            result[code] = {
+            chains = self.safe_list(currency, 'blockChain', [])
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'nativeScale')))
+            networks = {}
+            for j in range(0, len(chains)):
+                networkEtnry = chains[j]
+                networkId = self.safe_string(networkEtnry, 'chainName')
+                networkCode = self.network_code_to_id(networkId)
+                networks[networkCode] = {
+                    'fee': self.safe_number(networkEtnry, 'withdrawFee'),
+                    'active': None,
+                    'withdraw': self.safe_bool(networkEtnry, 'allowWithdraw'),
+                    'deposit': self.safe_bool(networkEtnry, 'allowDeposit'),
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(networkEtnry, 'minWithdrawal'),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(networkEtnry, 'minDepositAmt'),
+                            'max': None,
+                        },
+                    },
+                }
+            # todo type: if chainsLength == 0 and (assetName.endswith(' Staking') or assetName.find(' Reward ') >= 0 or assetName.find('Slot Auction') >= 0 or assetName.find(' Freeze Asset') >= 0):
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': None,
-                'margin': marginInside,
+                'margin': None,
                 'name': self.safe_string(currency, 'assetName'),
-                'active': active,
+                'active': None,
                 'deposit': None,
                 'withdraw': None,
-                'fee': fee,
+                'fee': None,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': precision,
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
@@ -593,8 +582,8 @@ class ascendex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': {},
-            }
+                'networks': networks,
+            })
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:
@@ -603,6 +592,12 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        spotPromise = self.fetch_spot_markets(params)
+        contractPromise = self.fetch_contract_markets(params)
+        spotMarkets, contractMarkets = [spotPromise, contractPromise]
+        return self.array_concat(spotMarkets, contractMarkets)
+
+    def fetch_spot_markets(self, params={}) -> List[Market]:
         productsPromise = self.v1PublicGetProducts(params)
         #
         #     {
@@ -654,7 +649,91 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        perpetualsPromise = self.v2PublicGetFuturesContract(params)
+        products, cash = [productsPromise, cashPromise]
+        productsData = self.safe_list(products, 'data', [])
+        productsById = self.index_by(productsData, 'symbol')
+        cashData = self.safe_list(cash, 'data', [])
+        cashAndPerpetualsById = self.index_by(cashData, 'symbol')
+        dataById = self.deep_extend(productsById, cashAndPerpetualsById)
+        ids = list(dataById.keys())
+        result = []
+        for i in range(0, len(ids)):
+            id = ids[i]
+            if id.find('-PERP') >= 0:
+                continue  # skip perpetuals, endpoint returns them
+            market = dataById[id]
+            status = self.safe_string(market, 'status')
+            domain = self.safe_string(market, 'domain')
+            active = False
+            if ((status == 'Normal') or (status == 'InternalTrading')) and (domain != 'LeveragedETF'):
+                active = True
+            minQty = self.safe_number(market, 'minQty')
+            maxQty = self.safe_number(market, 'maxQty')
+            minPrice = self.safe_number(market, 'tickSize')
+            maxPrice: Num = None
+            underlying = self.safe_string_2(market, 'underlying', 'symbol')
+            parts = underlying.split('/')
+            baseId = self.safe_string(parts, 0)
+            quoteId = self.safe_string(parts, 1)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            fee = self.safe_number(market, 'commissionReserveRate')
+            marginTradable = self.safe_bool(market, 'marginTradable', False)
+            result.append({
+                'id': id,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'baseId': baseId,
+                'quote': quote,
+                'quoteId': quoteId,
+                'settle': None,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': marginTradable,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': active,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': fee,
+                'maker': fee,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'lotSize'),
+                    'price': self.safe_number(market, 'tickSize'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': minQty,
+                        'max': maxQty,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': maxPrice,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'minNotional'),
+                        'max': self.safe_number(market, 'maxNotional'),
+                    },
+                },
+                'created': self.safe_integer(market, 'tradingStartTime'),
+                'info': market,
+            })
+        return result
+
+    def fetch_contract_markets(self, params={}) -> List[Market]:
+        contracts = self.v2PublicGetFuturesContract(params)
         #
         #    {
         #        "code": 0,
@@ -667,9 +746,9 @@ class ascendex(Exchange, ImplicitAPI):
         #                "underlying": "BTC/USDT",
         #                "tradingStartTime": 1579701600000,
         #                "priceFilter": {
-        #                    "minPrice": "1",
+        #                    "minPrice": "0.1",
         #                    "maxPrice": "1000000",
-        #                    "tickSize": "1"
+        #                    "tickSize": "0.1"
         #                },
         #                "lotSizeFilter": {
         #                    "minQty": "0.0001",
@@ -692,50 +771,25 @@ class ascendex(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        products, cash, perpetuals = [productsPromise, cashPromise, perpetualsPromise]
-        productsData = self.safe_list(products, 'data', [])
-        productsById = self.index_by(productsData, 'symbol')
-        cashData = self.safe_list(cash, 'data', [])
-        perpetualsData = self.safe_list(perpetuals, 'data', [])
-        cashAndPerpetualsData = self.array_concat(cashData, perpetualsData)
-        cashAndPerpetualsById = self.index_by(cashAndPerpetualsData, 'symbol')
-        dataById = self.deep_extend(productsById, cashAndPerpetualsById)
-        ids = list(dataById.keys())
+        data = self.safe_list(contracts, 'data', [])
         result = []
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = dataById[id]
-            settleId = self.safe_string(market, 'settlementAsset')
-            settle = self.safe_currency_code(settleId)
-            status = self.safe_string(market, 'status')
-            domain = self.safe_string(market, 'domain')
-            active = False
-            if ((status == 'Normal') or (status == 'InternalTrading')) and (domain != 'LeveragedETF'):
-                active = True
-            spot = settle is None
-            swap = not spot
-            linear = True if swap else None
-            minQty = self.safe_number(market, 'minQty')
-            maxQty = self.safe_number(market, 'maxQty')
-            minPrice = self.safe_number(market, 'tickSize')
-            maxPrice: Num = None
-            underlying = self.safe_string_2(market, 'underlying', 'symbol')
+        for i in range(0, len(data)):
+            market = data[i]
+            id = self.safe_string(market, 'symbol')
+            underlying = self.safe_string(market, 'underlying')
             parts = underlying.split('/')
             baseId = self.safe_string(parts, 0)
-            quoteId = self.safe_string(parts, 1)
             base = self.safe_currency_code(baseId)
+            quoteId = self.safe_string(parts, 1)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            if swap:
-                lotSizeFilter = self.safe_dict(market, 'lotSizeFilter')
-                minQty = self.safe_number(lotSizeFilter, 'minQty')
-                maxQty = self.safe_number(lotSizeFilter, 'maxQty')
-                priceFilter = self.safe_dict(market, 'priceFilter')
-                minPrice = self.safe_number(priceFilter, 'minPrice')
-                maxPrice = self.safe_number(priceFilter, 'maxPrice')
-                symbol = base + '/' + quote + ':' + settle
+            settleId = self.safe_string(market, 'settlementAsset')
+            settle = self.safe_currency_code(settleId)
+            linear = settle == quote
+            inverse = settle == base
+            symbol = base + '/' + quote + ':' + settle
+            priceFilter = self.safe_dict(market, 'priceFilter')
+            lotSizeFilter = self.safe_dict(market, 'lotSizeFilter')
             fee = self.safe_number(market, 'commissionReserveRate')
-            marginTradable = self.safe_bool(market, 'marginTradable', False)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -745,26 +799,26 @@ class ascendex(Exchange, ImplicitAPI):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'swap' if swap else 'spot',
-                'spot': spot,
-                'margin': marginTradable if spot else None,
-                'swap': swap,
+                'type': 'swap',
+                'spot': False,
+                'margin': None,
+                'swap': True,
                 'future': False,
                 'option': False,
-                'active': active,
-                'contract': swap,
+                'active': self.safe_string(market, 'status') == 'Normal',
+                'contract': True,
                 'linear': linear,
-                'inverse': not linear if swap else None,
+                'inverse': inverse,
                 'taker': fee,
                 'maker': fee,
-                'contractSize': self.parse_number('1') if swap else None,
+                'contractSize': self.parse_number('1'),
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'lotSize'),
-                    'price': self.safe_number(market, 'tickSize'),
+                    'amount': self.safe_number(lotSizeFilter, 'lotSize'),
+                    'price': self.safe_number(priceFilter, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -772,12 +826,12 @@ class ascendex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'amount': {
-                        'min': minQty,
-                        'max': maxQty,
+                        'min': self.safe_number(lotSizeFilter, 'minQty'),
+                        'max': self.safe_number(lotSizeFilter, 'maxQty'),
                     },
                     'price': {
-                        'min': minPrice,
-                        'max': maxPrice,
+                        'min': self.safe_number(priceFilter, 'minPrice'),
+                        'max': self.safe_number(priceFilter, 'maxPrice'),
                     },
                     'cost': {
                         'min': self.safe_number(market, 'minNotional'),
@@ -1187,7 +1241,7 @@ class ascendex(Exchange, ImplicitAPI):
             self.safe_number(data, 'v'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1350,6 +1404,8 @@ class ascendex(Exchange, ImplicitAPI):
         #         "timestamp": 1573576916201
         #     }
         #
+        #  & linear(fetchClosedOrders)
+        #
         #     {
         #         "ac": "FUTURES",
         #         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
@@ -1357,7 +1413,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
         #         "seqNum": -1,
         #         "orderType": "Limit",
-        #         "execInst": "NULL_VAL",
+        #         "execInst": "NULL_VAL",  # NULL_VAL, ReduceOnly , ...
         #         "side": "Buy",
         #         "symbol": "BTC-PERP",
         #         "price": "30000",
@@ -1446,13 +1502,13 @@ class ascendex(Exchange, ImplicitAPI):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '/')
-        timestamp = self.safe_integer_2(order, 'timestamp', 'sendingTime')
+        timestamp = self.safe_integer_n(order, ['timestamp', 'sendingTime', 'time'])
         lastTradeTimestamp = self.safe_integer(order, 'lastExecTime')
         if timestamp is None:
             timestamp = lastTradeTimestamp
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'orderQty')
-        average = self.safe_string(order, 'avgPx')
+        average = self.safe_string_2(order, 'avgPx', 'avgFilledPx')
         filled = self.safe_string_n(order, ['cumFilledQty', 'cumQty', 'fillQty'])
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'id')
@@ -1478,11 +1534,11 @@ class ascendex(Exchange, ImplicitAPI):
             }
         triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
         reduceOnly = None
-        execInst = self.safe_string(order, 'execInst')
-        if execInst == 'reduceOnly':
+        execInst = self.safe_string_lower(order, 'execInst')
+        if execInst == 'reduceonly':
             reduceOnly = True
         postOnly = None
-        if execInst == 'Post':
+        if execInst == 'post':
             postOnly = True
         return self.safe_order({
             'info': order,
@@ -1528,7 +1584,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         "code": "0",
         #         "data": {
         #           "domain": "spot",
-        #           "userUID": "U1479576458",
+        #           "userUID": "U1479576457",
         #           "vipLevel": "0",
         #           "fees": [
         #             {symbol: 'HT/USDT', fee: {taker: '0.001', maker: "0.001"}},
@@ -2193,8 +2249,7 @@ class ascendex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        isArray = isinstance(data, list)
-        if not isArray:
+        if not isinstance(data, list):
             data = self.safe_list(data, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
@@ -2378,9 +2433,9 @@ class ascendex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.safe_order({
+        return [self.safe_order({
             'info': response,
-        })
+        })]
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
@@ -2903,7 +2958,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

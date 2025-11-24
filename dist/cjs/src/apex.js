@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var Precise = require('./base/Precise.js');
 var apex$1 = require('./abstract/apex.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var errors = require('./base/errors.js');
  * @class apex
  * @augments Exchange
  */
-class apex extends apex$1 {
+class apex extends apex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'apex',
@@ -33,6 +35,7 @@ class apex extends apex$1 {
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
@@ -51,10 +54,14 @@ class apex extends apex$1 {
                 'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrders': false,
@@ -70,6 +77,7 @@ class apex extends apex$1 {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -88,6 +96,8 @@ class apex extends apex$1 {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -105,6 +115,7 @@ class apex extends apex$1 {
                 'fetchTradingFees': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
@@ -490,11 +501,6 @@ class apex extends apex$1 {
             const code = this.safeCurrencyCode(currencyId);
             const name = this.safeString(currency, 'displayName');
             const networks = {};
-            let minPrecision = undefined;
-            let minWithdrawFeeString = undefined;
-            let minWithdrawString = undefined;
-            let deposit = false;
-            let withdraw = false;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const tokens = this.safeList(chain, 'tokens', []);
@@ -504,31 +510,22 @@ class apex extends apex$1 {
                     if (tokenName === currencyId) {
                         const networkId = this.safeString(chain, 'chainId');
                         const networkCode = this.networkIdToCode(networkId);
-                        const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
-                        minPrecision = (minPrecision === undefined) ? precision : Math.min(minPrecision, precision);
-                        const depositAllowed = !this.safeBool(chain, 'stopDeposit');
-                        deposit = (depositAllowed) ? depositAllowed : deposit;
-                        const withdrawAllowed = this.safeBool(token, 'withdrawEnable');
-                        withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
-                        minWithdrawFeeString = this.safeString(token, 'minFee');
-                        minWithdrawString = this.safeString(token, 'minWithdraw');
-                        const minNetworkDepositString = this.safeString(chain, 'depositMin');
                         networks[networkCode] = {
                             'info': chain,
                             'id': networkId,
                             'network': networkCode,
-                            'active': depositAllowed && withdrawAllowed,
-                            'deposit': depositAllowed,
-                            'withdraw': withdrawAllowed,
-                            'fee': this.parseNumber(minWithdrawFeeString),
-                            'precision': precision,
+                            'active': undefined,
+                            'deposit': !this.safeBool(chain, 'depositDisable'),
+                            'withdraw': this.safeBool(token, 'withdrawEnable'),
+                            'fee': this.safeNumber(token, 'minFee'),
+                            'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
                             'limits': {
                                 'withdraw': {
-                                    'min': this.parseNumber(minWithdrawString),
+                                    'min': this.safeNumber(token, 'minWithdraw'),
                                     'max': undefined,
                                 },
                                 'deposit': {
-                                    'min': this.parseNumber(minNetworkDepositString),
+                                    'min': this.safeNumber(chain, 'minDeposit'),
                                     'max': undefined,
                                 },
                             },
@@ -536,24 +533,28 @@ class apex extends apex$1 {
                     }
                 }
             }
-            result[code] = {
+            const networkKeys = Object.keys(networks);
+            const networksLength = networkKeys.length;
+            const emptyChains = networksLength === 0; // non-functional coins
+            const valueForEmpty = emptyChains ? false : undefined;
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
                 'type': 'crypto',
                 'name': name,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': this.parseNumber(minWithdrawFeeString),
-                'precision': minPrecision,
+                'active': undefined,
+                'deposit': valueForEmpty,
+                'withdraw': valueForEmpty,
+                'fee': undefined,
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber(minWithdrawString),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
@@ -562,7 +563,7 @@ class apex extends apex$1 {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -813,9 +814,9 @@ class apex extends apex$1 {
             limit = 200; // default is 200 when requested with `since`
         }
         request['limit'] = limit; // max 200, default 200
-        [request, params] = this.handleUntilOption('end', request, params);
+        [request, params] = this.handleUntilOption('end', request, params, 0.001);
         if (since !== undefined) {
-            request['start'] = since;
+            request['start'] = Math.floor(since / 1000);
         }
         const response = await this.publicGetV3Klines(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
@@ -824,7 +825,7 @@ class apex extends apex$1 {
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
-        // {
+        //  {
         //     "start": 1647511440000,
         //     "symbol": "BTC-USD",
         //     "interval": "1",
@@ -834,7 +835,7 @@ class apex extends apex$1 {
         //     "close": "40000",
         //     "volume": "1.002",
         //     "turnover": "3"
-        // } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
+        //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
         return [
             this.safeIntegerN(ohlcv, ['start', 't']),
@@ -1091,9 +1092,10 @@ class apex extends apex$1 {
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger(entry, 'fundingTimestamp');
+            const marketId = this.safeString(entry, 'symbol');
             rates.push({
                 'info': entry,
-                'symbol': this.safeString(entry, 'symbol'),
+                'symbol': this.safeSymbol(marketId, market),
                 'fundingRate': this.safeNumber(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -1227,14 +1229,14 @@ class apex extends apex$1 {
     }
     parseOrderType(type) {
         const types = {
-            'LIMIT': 'LIMIT',
-            'MARKET': 'MARKET',
-            'STOP_LIMIT': 'STOP_LIMIT',
-            'STOP_MARKET': 'STOP_MARKET',
-            'TAKE_PROFIT_LIMIT': 'TAKE_PROFIT_LIMIT',
-            'TAKE_PROFIT_MARKET': 'TAKE_PROFIT_MARKET',
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP_LIMIT': 'limit',
+            'STOP_MARKET': 'market',
+            'TAKE_PROFIT_LIMIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
         };
-        return this.safeStringUpper(types, type, type);
+        return this.safeString(types, type, type);
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         if (market === undefined && marketId !== undefined) {
@@ -1299,6 +1301,8 @@ class apex extends apex$1 {
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1308,7 +1312,7 @@ class apex extends apex$1 {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const orderType = type.toUpperCase();
+        let orderType = type.toUpperCase();
         const orderSide = side.toUpperCase();
         const orderSize = this.amountToPrecision(symbol, amount);
         let orderPrice = '0';
@@ -1316,11 +1320,21 @@ class apex extends apex$1 {
             orderPrice = this.priceToPrecision(symbol, price);
         }
         const fees = this.safeDict(this.fees, 'swap', {});
-        const taker = this.safeNumber(fees, 'taker', 0.0005);
-        const maker = this.safeNumber(fees, 'maker', 0.0002);
-        const limitFee = this.decimalToPrecision(Precise["default"].stringAdd(Precise["default"].stringMul(Precise["default"].stringMul(orderPrice, orderSize), taker.toString()), market['precision']['price'].toString()), number.TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const taker = this.safeString(fees, 'taker', '0.0005');
+        const maker = this.safeString(fees, 'maker', '0.0002');
+        const limitFee = this.decimalToPrecision(Precise["default"].stringAdd(Precise["default"].stringMul(Precise["default"].stringMul(orderPrice, orderSize), taker), this.numberToString(market['precision']['price'])), number.TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
         const timeNow = this.milliseconds();
-        // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        let triggerPrice = this.safeString(params, 'triggerPrice');
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        if (stopLossPrice !== undefined) {
+            orderType = (orderType === 'MARKET') ? 'STOP_MARKET' : 'STOP_LIMIT';
+            triggerPrice = stopLossPrice;
+        }
+        else if (takeProfitPrice !== undefined) {
+            orderType = (orderType === 'MARKET') ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
+            triggerPrice = takeProfitPrice;
+        }
         const isMarket = orderType === 'MARKET';
         if (isMarket && (price === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price argument for market orders');
@@ -1345,7 +1359,7 @@ class apex extends apex$1 {
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni(accountId);
         }
-        params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
+        params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
         const orderToSign = {
             'accountId': accountId,
             'slotId': clientOrderId,
@@ -1354,9 +1368,12 @@ class apex extends apex$1 {
             'size': orderSize,
             'price': orderPrice,
             'direction': orderSide,
-            'makerFeeRate': maker.toString(),
-            'takerFeeRate': taker.toString(),
+            'makerFeeRate': maker,
+            'takerFeeRate': taker,
         };
+        if (triggerPrice !== undefined) {
+            orderToSign['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+        }
         const signature = await this.getZKContractSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
         const request = {
             'symbol': market['id'],
@@ -1370,6 +1387,9 @@ class apex extends apex$1 {
             'clientId': clientOrderId,
             'brokerId': this.safeString(this.options, 'brokerId', '6956'),
         };
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+        }
         request['signature'] = signature;
         const response = await this.privatePostV3Order(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
@@ -1546,7 +1566,7 @@ class apex extends apex$1 {
         }
         const response = await this.privatePostV3DeleteOpenOrders(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
-        return data;
+        return [this.parseOrder(data, market)];
     }
     /**
      * @method
@@ -1572,7 +1592,7 @@ class apex extends apex$1 {
             response = await this.privatePostV3DeleteOrder(this.extend(request, params));
         }
         const data = this.safeDict(response, 'data', {});
-        return data;
+        return this.safeOrder(data);
     }
     /**
      * @method
@@ -1946,4 +1966,4 @@ class apex extends apex$1 {
     }
 }
 
-module.exports = apex;
+exports["default"] = apex;

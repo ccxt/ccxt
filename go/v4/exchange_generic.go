@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+	"sync"
 )
 
 func (this *Exchange) SortBy(array interface{}, value1 interface{}, desc2 ...interface{}) []interface{} {
@@ -105,19 +106,50 @@ func (this *Exchange) SortBy2(array interface{}, key1 interface{}, key2 interfac
 	return nil
 }
 
+// func (this *Exchange) FilterBy(aa interface{}, key interface{}, value interface{}) []interface{} {
+// 	var targetA []interface{}
+// 	if aaArr, ok := aa.([]interface{}); ok {
+// 		targetA = aaArr
+// 	} else {
+// 		for _, v := range aa.(map[string]interface{}) {
+// 			targetA = append(targetA, v)
+// 		}
+// 	}
+// 	var outList []interface{}
+// 	for _, elem := range targetA {
+// 		if elem.(map[string]interface{})[key.(string)] == value {
+// 			outList = append(outList, elem)
+// 		}
+// 	}
+// 	return outList
+// }
+
 func (this *Exchange) FilterBy(aa interface{}, key interface{}, value interface{}) []interface{} {
 	var targetA []interface{}
-	if aaArr, ok := aa.([]interface{}); ok {
-		targetA = aaArr
-	} else {
-		for _, v := range aa.(map[string]interface{}) {
-			targetA = append(targetA, v)
+
+	switch v := aa.(type) {
+	case []interface{}:
+		targetA = v
+	case map[string]interface{}:
+		for _, item := range v {
+			targetA = append(targetA, item)
 		}
+	case *sync.Map:
+		v.Range(func(_, val interface{}) bool {
+			targetA = append(targetA, val)
+			return true
+		})
+	default:
+		// unsupported type
+		return nil
 	}
+
 	var outList []interface{}
 	for _, elem := range targetA {
-		if elem.(map[string]interface{})[key.(string)] == value {
-			outList = append(outList, elem)
+		if m, ok := elem.(map[string]interface{}); ok {
+			if m[key.(string)] == value {
+				outList = append(outList, m)
+			}
 		}
 	}
 	return outList
@@ -127,20 +159,58 @@ func (this *Exchange) Extend(aa interface{}, bb ...interface{}) map[string]inter
 	return ExtendMap(aa, bb...)
 }
 
+// func ExtendMap(aa interface{}, bb ...interface{}) map[string]interface{} {
+// 	a := aa.(map[string]interface{})
+// 	outDict := make(map[string]interface{})
+// 	for key, value := range a {
+// 		outDict[key] = value
+// 	}
+// 	if len(bb) > 0 {
+// 		b, ok := bb[0].(map[string]interface{})
+// 		if ok {
+// 			for key, value := range b {
+// 				outDict[key] = value
+// 			}
+// 		}
+// 	}
+// 	return outDict
+// }
+
 func ExtendMap(aa interface{}, bb ...interface{}) map[string]interface{} {
-	a := aa.(map[string]interface{})
 	outDict := make(map[string]interface{})
-	for key, value := range a {
-		outDict[key] = value
+
+	// Handle first map (aa)
+	switch a := aa.(type) {
+	case map[string]interface{}:
+		for key, value := range a {
+			outDict[key] = value
+		}
+	case *sync.Map:
+		a.Range(func(key, value interface{}) bool {
+			if strKey, ok := key.(string); ok {
+				outDict[strKey] = value
+			}
+			return true
+		})
 	}
+
+	// Handle optional second map (bb[0])
 	if len(bb) > 0 {
-		b, ok := bb[0].(map[string]interface{})
-		if ok {
+		switch b := bb[0].(type) {
+		case map[string]interface{}:
 			for key, value := range b {
 				outDict[key] = value
 			}
+		case *sync.Map:
+			b.Range(func(key, value interface{}) bool {
+				if strKey, ok := key.(string); ok {
+					outDict[strKey] = value
+				}
+				return true
+			})
 		}
 	}
+
 	return outDict
 }
 
@@ -169,34 +239,97 @@ func (this *Exchange) DeepExtend2(objs ...interface{}) interface{} {
 	return outDict
 }
 
+// func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
+// 	var outObj interface{}
+// 	for _, x := range objs {
+// 		if x == nil {
+// 			continue
+// 		}
+// 		if reflect.TypeOf(x).Kind() == reflect.Map {
+// 			if outObj == nil || reflect.TypeOf(outObj).Kind() != reflect.Map {
+// 				outObj = make(map[string]interface{})
+// 			}
+// 			dictX := x.(map[string]interface{})
+// 			for k, _ := range dictX {
+// 				arg1 := outObj.(map[string]interface{})[k]
+// 				arg2 := dictX[k]
+// 				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
+// 					outObj.(map[string]interface{})[k] = this.DeepExtend(arg1, arg2)
+// 				} else {
+// 					if arg2 != nil {
+// 						outObj.(map[string]interface{})[k] = arg2
+// 					} else {
+// 						outObj.(map[string]interface{})[k] = arg1
+// 					}
+// 				}
+// 			}
+// 		} else {
+// 			outObj = x
+// 		}
+// 	}
+// 	return outObj.(map[string]interface{})
+// }
+
 func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
 	var outObj interface{}
+
+	// Helper function to convert *sync.Map to map[string]interface{}
+	convertSyncMap := func(sm *sync.Map) map[string]interface{} {
+		m := make(map[string]interface{})
+		if sm == nil {
+			return m
+		}
+		sm.Range(func(key, value interface{}) bool {
+			if ks, ok := key.(string); ok {
+				m[ks] = value
+			}
+			return true
+		})
+		return m
+	}
+
 	for _, x := range objs {
 		if x == nil {
 			continue
 		}
-		if reflect.TypeOf(x).Kind() == reflect.Map {
-			if outObj == nil || reflect.TypeOf(outObj).Kind() != reflect.Map {
-				outObj = make(map[string]interface{})
-			}
-			dictX := x.(map[string]interface{})
-			for k, _ := range dictX {
-				arg1 := outObj.(map[string]interface{})[k]
-				arg2 := dictX[k]
-				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
-					outObj.(map[string]interface{})[k] = this.DeepExtend(arg1, arg2)
+
+		var dictX map[string]interface{}
+
+		switch v := x.(type) {
+		case map[string]interface{}:
+			dictX = v
+		case *sync.Map:
+			dictX = convertSyncMap(v)
+		default:
+			outObj = x
+			continue
+		}
+
+		if outObj == nil {
+			outObj = make(map[string]interface{})
+		}
+		if _, ok := outObj.(map[string]interface{}); !ok {
+			outObj = make(map[string]interface{})
+		}
+
+		for k, v2 := range dictX {
+			v1 := outObj.(map[string]interface{})[k]
+			if v1 != nil && v2 != nil &&
+				(reflect.TypeOf(v1).Kind() == reflect.Map || reflect.TypeOf(v1) == reflect.TypeOf(&sync.Map{})) &&
+				(reflect.TypeOf(v2).Kind() == reflect.Map || reflect.TypeOf(v2) == reflect.TypeOf(&sync.Map{})) {
+
+				// Recursively merge
+				outObj.(map[string]interface{})[k] = this.DeepExtend(v1, v2)
+			} else {
+				if v2 != nil {
+					outObj.(map[string]interface{})[k] = v2
 				} else {
-					if arg2 != nil {
-						outObj.(map[string]interface{})[k] = arg2
-					} else {
-						outObj.(map[string]interface{})[k] = arg1
-					}
+					outObj.(map[string]interface{})[k] = v1
 				}
 			}
-		} else {
-			outObj = x
 		}
 	}
+
 	return outObj.(map[string]interface{})
 }
 
@@ -407,6 +540,11 @@ func (this *Exchange) IndexBy(a interface{}, key interface{}) map[string]interfa
 		for _, v := range aMap {
 			targetX = append(targetX, v)
 		}
+	} else if syncMap, ok := a.(*sync.Map); ok {
+		syncMap.Range(func(_, v interface{}) bool {
+			targetX = append(targetX, v)
+			return true
+		})
 	} else {
 		return outDict // Unsupported type
 	}
@@ -419,6 +557,18 @@ func (this *Exchange) IndexBy(a interface{}, key interface{}) map[string]interfa
 			if val, ok := v[ToString(key)]; ok {
 				outDict[ToString(val)] = v
 			}
+		case *sync.Map:
+			// Handle *sync.Map entries
+			v.Range(func(k, val interface{}) bool {
+				if _, ok := k.(string); ok {
+					if valMap, ok := val.(map[string]interface{}); ok {
+						if keyStr, ok := valMap[ToString(key)].(string); ok {
+							outDict[keyStr] = valMap
+						}
+					}
+				}
+				return true
+			})
 		case []interface{}:
 			// Handle slices of []interface{}
 			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
@@ -435,6 +585,55 @@ func (this *Exchange) IndexBy(a interface{}, key interface{}) map[string]interfa
 			// Handle slices of []int
 			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
 				outDict[fmt.Sprintf("%d", v[idx])] = v
+			}
+		}
+	}
+
+	return outDict
+}
+
+func (this *Exchange) IndexBySafe(a interface{}, key interface{}) *sync.Map {
+	outDict := &sync.Map{}
+	var targetX []interface{}
+
+	switch val := a.(type) {
+	case []interface{}:
+		targetX = val
+
+	case map[string]interface{}:
+		for _, v := range val {
+			targetX = append(targetX, v)
+		}
+
+	case *sync.Map:
+		val.Range(func(_, v interface{}) bool {
+			targetX = append(targetX, v)
+			return true
+		})
+
+	default:
+		return outDict // unsupported type
+	}
+
+	for _, elem := range targetX {
+		switch v := elem.(type) {
+		case map[string]interface{}:
+			if val, ok := v[ToString(key)]; ok {
+				outDict.Store(ToString(val), v)
+			}
+		case []interface{}:
+			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
+				if keyStr, ok := v[idx].(string); ok {
+					outDict.Store(keyStr, v)
+				}
+			}
+		case []string:
+			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
+				outDict.Store(v[idx], v)
+			}
+		case []int:
+			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
+				outDict.Store(fmt.Sprintf("%d", v[idx]), v)
 			}
 		}
 	}
@@ -476,6 +675,9 @@ func (this *Exchange) GroupBy(trades interface{}, key2 interface{}) map[string]i
 	for _, elem := range list {
 		elemDict := elem.(map[string]interface{})
 		if val, ok := elemDict[key]; ok {
+			if val == nil {
+				continue
+			}
 			elem2 := val.(string)
 			if list2, exists := outDict[elem2]; exists {
 				list2 = append(list2.([]interface{}), elem)

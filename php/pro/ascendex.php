@@ -96,7 +96,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -301,7 +301,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function fetch_order_book_snapshot(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book_snapshot_custom(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             $restOrderBook = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
             if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
@@ -763,7 +763,7 @@ class ascendex extends \ccxt\async\ascendex {
         ), $market);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         // {
         //     "m" => "disconnected",
@@ -1004,7 +1004,7 @@ class ascendex extends \ccxt\async\ascendex {
         }
         $this->orderbooks[$symbol] = $this->order_book(array());
         if ($this->options['defaultType'] === 'swap' || $market['contract']) {
-            $this->spawn(array($this, 'fetch_order_book_snapshot'), $symbol);
+            $this->spawn(array($this, 'fetch_order_book_snapshot_custom'), $symbol);
         } else {
             $this->spawn(array($this, 'watch_order_book_snapshot'), $symbol);
         }

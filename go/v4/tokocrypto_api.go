@@ -7,530 +7,134 @@
 
 package ccxt
 
-func (this *tokocrypto) BinanceGetPing (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceGetPing", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceGetPing", args...)
 }
 
-func (this *tokocrypto) BinanceGetTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceGetTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceGetTime", args...)
 }
 
-func (this *tokocrypto) BinanceGetDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceGetDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceGetDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceGetDepth", args...)
 }
 
-func (this *tokocrypto) BinanceGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceGetTrades", args...)
 }
 
-func (this *tokocrypto) BinanceGetAggTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceGetAggTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceGetAggTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceGetAggTrades", args...)
 }
 
-func (this *tokocrypto) BinanceGetHistoricalTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceGetHistoricalTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceGetHistoricalTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceGetHistoricalTrades", args...)
 }
 
-func (this *tokocrypto) BinanceGetKlines (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceGetKlines", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceGetKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceGetKlines", args...)
 }
 
-func (this *tokocrypto) BinanceGetTicker24hr (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceGetTicker24hr", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceGetTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceGetTicker24hr", args...)
 }
 
-func (this *tokocrypto) BinanceGetTickerPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceGetTickerPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceGetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceGetTickerPrice", args...)
 }
 
-func (this *tokocrypto) BinanceGetTickerBookTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceGetTickerBookTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceGetTickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceGetTickerBookTicker", args...)
 }
 
-func (this *tokocrypto) BinanceGetExchangeInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceGetExchangeInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceGetExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceGetExchangeInfo", args...)
 }
 
-func (this *tokocrypto) BinancePutUserDataStream (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binancePutUserDataStream", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinancePutUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binancePutUserDataStream", args...)
 }
 
-func (this *tokocrypto) BinancePostUserDataStream (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binancePostUserDataStream", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinancePostUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binancePostUserDataStream", args...)
 }
 
-func (this *tokocrypto) BinanceDeleteUserDataStream (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("binanceDeleteUserDataStream", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) BinanceDeleteUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("binanceDeleteUserDataStream", args...)
 }
 
-func (this *tokocrypto) PublicGetOpenV1CommonTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOpenV1CommonTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PublicGetOpenV1CommonTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOpenV1CommonTime", args...)
 }
 
-func (this *tokocrypto) PublicGetOpenV1CommonSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOpenV1CommonSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PublicGetOpenV1CommonSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOpenV1CommonSymbols", args...)
 }
 
-func (this *tokocrypto) PublicGetOpenV1MarketDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOpenV1MarketDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PublicGetOpenV1MarketDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOpenV1MarketDepth", args...)
 }
 
-func (this *tokocrypto) PublicGetOpenV1MarketTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOpenV1MarketTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PublicGetOpenV1MarketTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOpenV1MarketTrades", args...)
 }
 
-func (this *tokocrypto) PublicGetOpenV1MarketAggTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOpenV1MarketAggTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PublicGetOpenV1MarketAggTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOpenV1MarketAggTrades", args...)
 }
 
-func (this *tokocrypto) PublicGetOpenV1MarketKlines (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOpenV1MarketKlines", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PublicGetOpenV1MarketKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOpenV1MarketKlines", args...)
 }
 
-func (this *tokocrypto) PrivateGetOpenV1OrdersDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenV1OrdersDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivateGetOpenV1OrdersDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenV1OrdersDetail", args...)
 }
 
-func (this *tokocrypto) PrivateGetOpenV1Orders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenV1Orders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivateGetOpenV1Orders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenV1Orders", args...)
 }
 
-func (this *tokocrypto) PrivateGetOpenV1AccountSpot (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenV1AccountSpot", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivateGetOpenV1AccountSpot(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenV1AccountSpot", args...)
 }
 
-func (this *tokocrypto) PrivateGetOpenV1AccountSpotAsset (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenV1AccountSpotAsset", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivateGetOpenV1AccountSpotAsset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenV1AccountSpotAsset", args...)
 }
 
-func (this *tokocrypto) PrivateGetOpenV1OrdersTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenV1OrdersTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivateGetOpenV1OrdersTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenV1OrdersTrades", args...)
 }
 
-func (this *tokocrypto) PrivateGetOpenV1Withdraws (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenV1Withdraws", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivateGetOpenV1Withdraws(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenV1Withdraws", args...)
 }
 
-func (this *tokocrypto) PrivateGetOpenV1Deposits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenV1Deposits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivateGetOpenV1Deposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenV1Deposits", args...)
 }
 
-func (this *tokocrypto) PrivateGetOpenV1DepositsAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenV1DepositsAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivateGetOpenV1DepositsAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenV1DepositsAddress", args...)
 }
 
-func (this *tokocrypto) PrivatePostOpenV1Orders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOpenV1Orders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivatePostOpenV1Orders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOpenV1Orders", args...)
 }
 
-func (this *tokocrypto) PrivatePostOpenV1OrdersCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOpenV1OrdersCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivatePostOpenV1OrdersCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOpenV1OrdersCancel", args...)
 }
 
-func (this *tokocrypto) PrivatePostOpenV1OrdersOco (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOpenV1OrdersOco", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivatePostOpenV1OrdersOco(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOpenV1OrdersOco", args...)
 }
 
-func (this *tokocrypto) PrivatePostOpenV1Withdraws (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOpenV1Withdraws", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivatePostOpenV1Withdraws(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOpenV1Withdraws", args...)
 }
 
-func (this *tokocrypto) PrivatePostOpenV1UserDataStream (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOpenV1UserDataStream", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *TokocryptoCore) PrivatePostOpenV1UserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOpenV1UserDataStream", args...)
 }

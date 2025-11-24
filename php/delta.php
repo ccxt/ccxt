@@ -62,6 +62,7 @@ class delta extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOption' => true,
                 'fetchOptionChain' => false,
+                'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => true,
                 'fetchPositionMode' => false,
@@ -140,6 +141,8 @@ class delta extends Exchange {
                 'private' => array(
                     'get' => array(
                         'orders',
+                        'orders/{order_id}',
+                        'orders/client_order_id/{client_oid}',
                         'products/{product_id}/orders/leverage',
                         'positions/margined',
                         'positions',
@@ -153,8 +156,8 @@ class delta extends Exchange {
                         'users/trading_preferences',
                         'sub_accounts',
                         'profile',
+                        'heartbeat',
                         'deposits/address',
-                        'orders/leverage',
                     ),
                     'post' => array(
                         'orders',
@@ -164,6 +167,8 @@ class delta extends Exchange {
                         'positions/change_margin',
                         'positions/close_all',
                         'wallets/sub_account_balance_transfer',
+                        'heartbeat/create',
+                        'heartbeat',
                         'orders/cancel_after',
                         'orders/leverage',
                     ),
@@ -210,6 +215,7 @@ class delta extends Exchange {
                     ),
                 ),
             ),
+            'userAgent' => $this->userAgents['chrome39'], // needed for C#
             'options' => array(
                 'networks' => array(
                     'TRC20' => 'TRC20(TRON)',
@@ -345,6 +351,9 @@ class delta extends Exchange {
             $base = $this->safe_string($optionParts, 1);
             $expiry = $this->safe_string($optionParts, 3);
             $optionType = $this->safe_string($optionParts, 0);
+        }
+        if ($expiry !== null) {
+            $expiry = mb_substr($expiry, 4) . mb_substr($expiry, 2, 4 - 2) . mb_substr($expiry, 0, 2 - 0);
         }
         $settle = $quote;
         $strike = $this->safe_string($optionParts, 2);
@@ -501,31 +510,49 @@ class delta extends Exchange {
          */
         $response = $this->publicGetAssets ($params);
         //
-        //     {
-        //         "result":array(
-        //             array(
-        //                 "base_withdrawal_fee":"0.0005",
-        //                 "deposit_status":"enabled",
-        //                 "id":2,
-        //                 "interest_credit":true,
-        //                 "interest_slabs":array(
-        //                     array("limit":"0.1","rate":"0"),
-        //                     array("limit":"1","rate":"0.05"),
-        //                     array("limit":"5","rate":"0.075"),
-        //                     array("limit":"10","rate":"0.1"),
-        //                     array("limit":"9999999999999999","rate":"0")
-        //                 ),
-        //                 "kyc_deposit_limit":"10",
-        //                 "kyc_withdrawal_limit":"2",
-        //                 "min_withdrawal_amount":"0.001",
-        //                 "minimum_precision":4,
-        //                 "name":"Bitcoin",
-        //                 "precision":8,
-        //                 "sort_priority":1,
-        //                 "symbol":"BTC",
-        //                 "variable_withdrawal_fee":"0",
-        //                 "withdrawal_status":"enabled"
-        //             ),
+        //    {
+        //        "result" => array(
+        //            {
+        //                "base_withdrawal_fee" => "0.005000000000000000",
+        //                "id" => "1",
+        //                "interest_credit" => false,
+        //                "interest_slabs" => null,
+        //                "kyc_deposit_limit" => "0.000000000000000000",
+        //                "kyc_withdrawal_limit" => "0.000000000000000000",
+        //                "min_withdrawal_amount" => "0.010000000000000000",
+        //                "minimum_precision" => "4",
+        //                "name" => "Ethereum",
+        //                "networks" => array(
+        //                    array(
+        //                        "allowed_deposit_groups" => null,
+        //                        "base_withdrawal_fee" => "0.0025",
+        //                        "deposit_status" => "enabled",
+        //                        "memo_required" => false,
+        //                        "min_deposit_amount" => "0.000050000000000000",
+        //                        "min_withdrawal_amount" => "0.010000000000000000",
+        //                        "minimum_deposit_confirmations" => "12",
+        //                        "network" => "ERC20",
+        //                        "variable_withdrawal_fee" => "0",
+        //                        "withdrawal_status" => "enabled"
+        //                    ),
+        //                    array(
+        //                        "allowed_deposit_groups" => null,
+        //                        "base_withdrawal_fee" => "0.0001",
+        //                        "deposit_status" => "enabled",
+        //                        "memo_required" => false,
+        //                        "min_deposit_amount" => "0.000050000000000000",
+        //                        "min_withdrawal_amount" => "0.000300000000000000",
+        //                        "minimum_deposit_confirmations" => "15",
+        //                        "network" => "BEP20(BSC)",
+        //                        "variable_withdrawal_fee" => "0",
+        //                        "withdrawal_status" => "enabled"
+        //                    }
+        //                ),
+        //                "precision" => "18",
+        //                "sort_priority" => "3",
+        //                "symbol" => "ETH",
+        //                "variable_withdrawal_fee" => "0.000000000000000000"
+        //            ),
         //         ),
         //         "success":true
         //     }
@@ -537,20 +564,42 @@ class delta extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $numericId = $this->safe_integer($currency, 'id');
             $code = $this->safe_currency_code($id);
-            $depositStatus = $this->safe_string($currency, 'deposit_status');
-            $withdrawalStatus = $this->safe_string($currency, 'withdrawal_status');
-            $depositsEnabled = ($depositStatus === 'enabled');
-            $withdrawalsEnabled = ($withdrawalStatus === 'enabled');
-            $active = $depositsEnabled && $withdrawalsEnabled;
-            $result[$code] = array(
+            $chains = $this->safe_list($currency, 'networks', array());
+            $networks = array();
+            for ($j = 0; $j < count($chains); $j++) {
+                $chain = $chains[$j];
+                $networkId = $this->safe_string($chain, 'network');
+                $networkCode = $this->network_id_to_code($networkId);
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'name' => $this->safe_string($chain, 'name'),
+                    'info' => $chain,
+                    'active' => $this->safe_string($chain, 'status') === 'enabled',
+                    'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
+                    'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
+                    'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => $this->safe_number($chain, 'min_deposit_amount'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'code' => $code,
                 'name' => $this->safe_string($currency, 'name'),
                 'info' => $currency, // the original payload
-                'active' => $active,
-                'deposit' => $depositsEnabled,
-                'withdraw' => $withdrawalsEnabled,
+                'active' => null,
+                'deposit' => $this->safe_string($currency, 'deposit_status') === 'enabled',
+                'withdraw' => $this->safe_string($currency, 'withdrawal_status') === 'enabled',
                 'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
                 'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                 'limits' => array(
@@ -560,9 +609,9 @@ class delta extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'networks' => array(),
+                'networks' => $networks,
                 'type' => 'crypto',
-            );
+            ));
         }
         return $result;
     }
@@ -874,9 +923,9 @@ class delta extends Exchange {
                 'inverse' => $spot ? null : !$linear,
                 'taker' => $this->safe_number($market, 'taker_commission_rate'),
                 'maker' => $this->safe_number($market, 'maker_commission_rate'),
-                'contractSize' => $contractSize,
+                'contractSize' => $spot ? null : $contractSize,
                 'expiry' => $expiry,
-                'expiryDatetime' => $expiryDatetime,
+                'expiryDatetime' => $this->iso8601($expiry), // do not use raw $expiry string
                 'strike' => $this->parse_number($strike),
                 'optionType' => $optionType,
                 'precision' => array(
@@ -1552,7 +1601,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -1846,9 +1895,39 @@ class delta extends Exchange {
         //         "user_id":22142
         //     }
         //
+        // fetchOrder
+        //
+        //     {
+        //         "id" => 123,
+        //         "user_id" => 453671,
+        //         "size" => 10,
+        //         "unfilled_size" => 2,
+        //         "side" => "buy",
+        //         "order_type" => "limit_order",
+        //         "limit_price" => "59000",
+        //         "stop_order_type" => "stop_loss_order",
+        //         "stop_price" => "55000",
+        //         "paid_commission" => "0.5432",
+        //         "commission" => "0.5432",
+        //         "reduce_only" => false,
+        //         "client_order_id" => "my_signal_34521712",
+        //         "state" => "open",
+        //         "created_at" => "1725865012000000",
+        //         "product_id" => 27,
+        //         "product_symbol" => "BTCUSD"
+        //     }
+        //
         $id = $this->safe_string($order, 'id');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
-        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
+        $createdAt = $this->safe_string($order, 'created_at');
+        $timestamp = null;
+        if ($createdAt !== null) {
+            if (mb_strpos($createdAt, '-') !== false) {
+                $timestamp = $this->parse8601($createdAt);
+            } else {
+                $timestamp = $this->safe_integer_product($order, 'created_at', 0.001);
+            }
+        }
         $marketId = $this->safe_string($order, 'product_id');
         $marketsByNumericId = $this->safe_dict($this->options, 'marketsByNumericId', array());
         $market = $this->safe_value($marketsByNumericId, $marketId, $market);
@@ -1856,7 +1935,9 @@ class delta extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'order_type');
-        $type = str_replace('_order', '', $type);
+        if ($type !== null) {
+            $type = str_replace('_order', '', $type);
+        }
         $price = $this->safe_string($order, 'limit_price');
         $amount = $this->safe_string($order, 'size');
         $remaining = $this->safe_string($order, 'unfilled_size');
@@ -2124,6 +2205,63 @@ class delta extends Exchange {
                 'info' => $response,
             )),
         );
+    }
+
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+        /**
+         * fetches information on an order made by the user
+         *
+         * @see https://docs.delta.exchange/#get-order-by-$id
+         * @see https://docs.delta.exchange/#get-order-by-client-oid
+         *
+         * @param {string} $id the order $id
+         * @param {string} [$symbol] unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order $id of the order
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $clientOrderId = $this->safe_string_n($params, array( 'clientOrderId', 'client_oid', 'clientOid' ));
+        $params = $this->omit($params, array( 'clientOrderId', 'client_oid', 'clientOid' ));
+        $request = array();
+        $response = null;
+        if ($clientOrderId !== null) {
+            $request['client_oid'] = $clientOrderId;
+            $response = $this->privateGetOrdersClientOrderIdClientOid ($this->extend($request, $params));
+        } else {
+            $request['order_id'] = $id;
+            $response = $this->privateGetOrdersOrderId ($this->extend($request, $params));
+        }
+        //
+        //     {
+        //         "success" => true,
+        //         "result" => {
+        //             "id" => 123,
+        //             "user_id" => 453671,
+        //             "size" => 10,
+        //             "unfilled_size" => 2,
+        //             "side" => "buy",
+        //             "order_type" => "limit_order",
+        //             "limit_price" => "59000",
+        //             "stop_order_type" => "stop_loss_order",
+        //             "stop_price" => "55000",
+        //             "paid_commission" => "0.5432",
+        //             "commission" => "0.5432",
+        //             "reduce_only" => false,
+        //             "client_order_id" => "my_signal_34521712",
+        //             "state" => "open",
+        //             "created_at" => "1725865012000000",
+        //             "product_id" => 27,
+        //             "product_symbol" => "BTCUSD"
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_order($result, $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -2982,7 +3120,7 @@ class delta extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

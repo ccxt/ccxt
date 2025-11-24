@@ -2,6 +2,65 @@
     "exchange": "timex",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "USDT",
+                        "name": "USD Tether",
+                        "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "decimals": "6",
+                        "tradeDecimals": "16",
+                        "fiatSymbol": "USDT",
+                        "depositEnabled": true,
+                        "withdrawalEnabled": true,
+                        "transferEnabled": true,
+                        "active": true
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "symbol": "USDT",
+                            "name": "USD Tether",
+                            "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                            "decimals": "6",
+                            "tradeDecimals": "16",
+                            "fiatSymbol": "USDT",
+                            "depositEnabled": true,
+                            "withdrawalEnabled": true,
+                            "transferEnabled": true,
+                            "active": true
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": null,
+                        "name": "USD Tether",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",

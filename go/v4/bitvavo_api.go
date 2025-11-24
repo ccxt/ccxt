@@ -7,370 +7,94 @@
 
 package ccxt
 
-func (this *bitvavo) PublicGetTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *bitvavo) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarkets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PublicGetMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *bitvavo) PublicGetAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PublicGetAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *bitvavo) PublicGetMarketBook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketBook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PublicGetMarketBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketBook", args...)
 }
 
-func (this *bitvavo) PublicGetMarketTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PublicGetMarketTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *bitvavo) PublicGetMarketCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PublicGetMarketCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
-func (this *bitvavo) PublicGetTickerPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickerPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerPrice", args...)
 }
 
-func (this *bitvavo) PublicGetTickerBook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickerBook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PublicGetTickerBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerBook", args...)
 }
 
-func (this *bitvavo) PublicGetTicker24h (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTicker24h", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PublicGetTicker24h(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker24h", args...)
 }
 
-func (this *bitvavo) PrivateGetAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivateGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccount", args...)
 }
 
-func (this *bitvavo) PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *bitvavo) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *bitvavo) PrivateGetOrdersOpen (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersOpen", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivateGetOrdersOpen(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersOpen", args...)
 }
 
-func (this *bitvavo) PrivateGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivateGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *bitvavo) PrivateGetBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivateGetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBalance", args...)
 }
 
-func (this *bitvavo) PrivateGetDeposit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetDeposit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivateGetDeposit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDeposit", args...)
 }
 
-func (this *bitvavo) PrivateGetDepositHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetDepositHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivateGetDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositHistory", args...)
 }
 
-func (this *bitvavo) PrivateGetWithdrawalHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetWithdrawalHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivateGetWithdrawalHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawalHistory", args...)
 }
 
-func (this *bitvavo) PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *bitvavo) PrivatePostWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivatePostWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawal", args...)
 }
 
-func (this *bitvavo) PrivatePutOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivatePutOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutOrder", args...)
 }
 
-func (this *bitvavo) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
-func (this *bitvavo) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitvavoCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
 }

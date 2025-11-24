@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var woofipro$1 = require('../woofipro.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +11,7 @@ var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class woofipro extends woofipro$1 {
+class woofipro extends woofipro$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -77,7 +79,7 @@ class woofipro extends woofipro$1 {
     async watchPublic(messageHash, message) {
         // the default id
         let id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
-        if (this.accountId !== undefined) {
+        if (this.accountId !== undefined && this.accountId !== '') {
             id = this.accountId;
         }
         const url = this.urls['api']['ws']['public'] + '/' + id;
@@ -592,7 +594,7 @@ class woofipro extends woofipro$1 {
         const client = this.client(url);
         const messageHash = 'authenticated';
         const event = 'auth';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const ts = this.nonce().toString();
@@ -1331,4 +1333,4 @@ class woofipro extends woofipro$1 {
     }
 }
 
-module.exports = woofipro;
+exports["default"] = woofipro;

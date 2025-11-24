@@ -453,30 +453,31 @@ class coinlist extends coinlist$1 {
             const currency = currencies[i];
             const id = this.safeString(currency, 'asset');
             const code = this.safeCurrencyCode(id);
+            const isFiat = code === 'USD';
             const isTransferable = this.safeBool(currency, 'is_transferable', false);
-            const withdrawEnabled = isTransferable;
-            const depositEnabled = isTransferable;
-            const active = isTransferable;
-            const decimalPlaces = this.safeString(currency, 'decimal_places');
-            const precision = this.parseNumber(this.parsePrecision(decimalPlaces));
-            const minWithdrawal = this.safeString(currency, 'min_withdrawal');
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'name': code,
                 'info': currency,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'active': undefined,
+                'deposit': isTransferable,
+                'withdraw': isTransferable,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimal_places'))),
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': minWithdrawal, 'max': undefined },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber(currency, 'min_withdrawal'),
+                        'max': undefined,
+                    },
                 },
                 'networks': {},
-                'type': 'crypto',
-            };
+                'type': isFiat ? 'fiat' : 'crypto',
+            });
         }
         return result;
     }

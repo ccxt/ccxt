@@ -212,6 +212,7 @@ public partial class bitopro : Exchange
                     { "BEP20", "BSC" },
                     { "BSC", "BSC" },
                 } },
+                { "fiatCurrencies", new List<object>() {"TWD"} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -341,6 +342,7 @@ public partial class bitopro : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
+        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object currency = getValue(currencies, i);
@@ -361,11 +363,12 @@ public partial class bitopro : Exchange
                     { "max", null },
                 } },
             };
+            object isFiat = this.inArray(code, fiatCurrencies);
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", currencyId },
                 { "code", code },
                 { "info", currency },
-                { "type", null },
+                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "name", null },
                 { "active", isTrue(deposit) && isTrue(withdraw) },
                 { "deposit", deposit },
@@ -1279,7 +1282,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))

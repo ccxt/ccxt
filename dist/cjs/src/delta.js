@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var delta$1 = require('./abstract/delta.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class delta
  * @augments Exchange
  */
-class delta extends delta$1 {
+class delta extends delta$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'delta',
@@ -65,6 +67,7 @@ class delta extends delta$1 {
                 'fetchOpenOrders': true,
                 'fetchOption': true,
                 'fetchOptionChain': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
@@ -143,6 +146,8 @@ class delta extends delta$1 {
                 'private': {
                     'get': [
                         'orders',
+                        'orders/{order_id}',
+                        'orders/client_order_id/{client_oid}',
                         'products/{product_id}/orders/leverage',
                         'positions/margined',
                         'positions',
@@ -156,8 +161,8 @@ class delta extends delta$1 {
                         'users/trading_preferences',
                         'sub_accounts',
                         'profile',
+                        'heartbeat',
                         'deposits/address',
-                        'orders/leverage',
                     ],
                     'post': [
                         'orders',
@@ -167,6 +172,8 @@ class delta extends delta$1 {
                         'positions/change_margin',
                         'positions/close_all',
                         'wallets/sub_account_balance_transfer',
+                        'heartbeat/create',
+                        'heartbeat',
                         'orders/cancel_after',
                         'orders/leverage',
                     ],
@@ -213,6 +220,7 @@ class delta extends delta$1 {
                     },
                 },
             },
+            'userAgent': this.userAgents['chrome39'],
             'options': {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',
@@ -347,6 +355,9 @@ class delta extends delta$1 {
             base = this.safeString(optionParts, 1);
             expiry = this.safeString(optionParts, 3);
             optionType = this.safeString(optionParts, 0);
+        }
+        if (expiry !== undefined) {
+            expiry = expiry.slice(4) + expiry.slice(2, 4) + expiry.slice(0, 2);
         }
         const settle = quote;
         const strike = this.safeString(optionParts, 2);
@@ -503,31 +514,49 @@ class delta extends delta$1 {
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetAssets(params);
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "base_withdrawal_fee":"0.0005",
-        //                 "deposit_status":"enabled",
-        //                 "id":2,
-        //                 "interest_credit":true,
-        //                 "interest_slabs":[
-        //                     {"limit":"0.1","rate":"0"},
-        //                     {"limit":"1","rate":"0.05"},
-        //                     {"limit":"5","rate":"0.075"},
-        //                     {"limit":"10","rate":"0.1"},
-        //                     {"limit":"9999999999999999","rate":"0"}
-        //                 ],
-        //                 "kyc_deposit_limit":"10",
-        //                 "kyc_withdrawal_limit":"2",
-        //                 "min_withdrawal_amount":"0.001",
-        //                 "minimum_precision":4,
-        //                 "name":"Bitcoin",
-        //                 "precision":8,
-        //                 "sort_priority":1,
-        //                 "symbol":"BTC",
-        //                 "variable_withdrawal_fee":"0",
-        //                 "withdrawal_status":"enabled"
-        //             },
+        //    {
+        //        "result": [
+        //            {
+        //                "base_withdrawal_fee": "0.005000000000000000",
+        //                "id": "1",
+        //                "interest_credit": false,
+        //                "interest_slabs": null,
+        //                "kyc_deposit_limit": "0.000000000000000000",
+        //                "kyc_withdrawal_limit": "0.000000000000000000",
+        //                "min_withdrawal_amount": "0.010000000000000000",
+        //                "minimum_precision": "4",
+        //                "name": "Ethereum",
+        //                "networks": [
+        //                    {
+        //                        "allowed_deposit_groups": null,
+        //                        "base_withdrawal_fee": "0.0025",
+        //                        "deposit_status": "enabled",
+        //                        "memo_required": false,
+        //                        "min_deposit_amount": "0.000050000000000000",
+        //                        "min_withdrawal_amount": "0.010000000000000000",
+        //                        "minimum_deposit_confirmations": "12",
+        //                        "network": "ERC20",
+        //                        "variable_withdrawal_fee": "0",
+        //                        "withdrawal_status": "enabled"
+        //                    },
+        //                    {
+        //                        "allowed_deposit_groups": null,
+        //                        "base_withdrawal_fee": "0.0001",
+        //                        "deposit_status": "enabled",
+        //                        "memo_required": false,
+        //                        "min_deposit_amount": "0.000050000000000000",
+        //                        "min_withdrawal_amount": "0.000300000000000000",
+        //                        "minimum_deposit_confirmations": "15",
+        //                        "network": "BEP20(BSC)",
+        //                        "variable_withdrawal_fee": "0",
+        //                        "withdrawal_status": "enabled"
+        //                    }
+        //                ],
+        //                "precision": "18",
+        //                "sort_priority": "3",
+        //                "symbol": "ETH",
+        //                "variable_withdrawal_fee": "0.000000000000000000"
+        //            },
         //         ],
         //         "success":true
         //     }
@@ -539,20 +568,42 @@ class delta extends delta$1 {
             const id = this.safeString(currency, 'symbol');
             const numericId = this.safeInteger(currency, 'id');
             const code = this.safeCurrencyCode(id);
-            const depositStatus = this.safeString(currency, 'deposit_status');
-            const withdrawalStatus = this.safeString(currency, 'withdrawal_status');
-            const depositsEnabled = (depositStatus === 'enabled');
-            const withdrawalsEnabled = (withdrawalStatus === 'enabled');
-            const active = depositsEnabled && withdrawalsEnabled;
-            result[code] = {
+            const chains = this.safeList(currency, 'networks', []);
+            const networks = {};
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString(chain, 'network');
+                const networkCode = this.networkIdToCode(networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': this.safeString(chain, 'name'),
+                    'info': chain,
+                    'active': this.safeString(chain, 'status') === 'enabled',
+                    'deposit': this.safeString(chain, 'deposit_status') === 'enabled',
+                    'withdraw': this.safeString(chain, 'withdrawal_status') === 'enabled',
+                    'fee': this.safeNumber(chain, 'base_withdrawal_fee'),
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(chain, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'numericId': numericId,
                 'code': code,
                 'name': this.safeString(currency, 'name'),
                 'info': currency,
-                'active': active,
-                'deposit': depositsEnabled,
-                'withdraw': withdrawalsEnabled,
+                'active': undefined,
+                'deposit': this.safeString(currency, 'deposit_status') === 'enabled',
+                'withdraw': this.safeString(currency, 'withdrawal_status') === 'enabled',
                 'fee': this.safeNumber(currency, 'base_withdrawal_fee'),
                 'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision'))),
                 'limits': {
@@ -562,9 +613,9 @@ class delta extends delta$1 {
                         'max': undefined,
                     },
                 },
-                'networks': {},
+                'networks': networks,
                 'type': 'crypto',
-            };
+            });
         }
         return result;
     }
@@ -877,9 +928,9 @@ class delta extends delta$1 {
                 'inverse': spot ? undefined : !linear,
                 'taker': this.safeNumber(market, 'taker_commission_rate'),
                 'maker': this.safeNumber(market, 'maker_commission_rate'),
-                'contractSize': contractSize,
+                'contractSize': spot ? undefined : contractSize,
                 'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
+                'expiryDatetime': this.iso8601(expiry),
                 'strike': this.parseNumber(strike),
                 'optionType': optionType,
                 'precision': {
@@ -1839,9 +1890,40 @@ class delta extends delta$1 {
         //         "user_id":22142
         //     }
         //
+        // fetchOrder
+        //
+        //     {
+        //         "id": 123,
+        //         "user_id": 453671,
+        //         "size": 10,
+        //         "unfilled_size": 2,
+        //         "side": "buy",
+        //         "order_type": "limit_order",
+        //         "limit_price": "59000",
+        //         "stop_order_type": "stop_loss_order",
+        //         "stop_price": "55000",
+        //         "paid_commission": "0.5432",
+        //         "commission": "0.5432",
+        //         "reduce_only": false,
+        //         "client_order_id": "my_signal_34521712",
+        //         "state": "open",
+        //         "created_at": "1725865012000000",
+        //         "product_id": 27,
+        //         "product_symbol": "BTCUSD"
+        //     }
+        //
         const id = this.safeString(order, 'id');
         const clientOrderId = this.safeString(order, 'client_order_id');
-        const timestamp = this.parse8601(this.safeString(order, 'created_at'));
+        const createdAt = this.safeString(order, 'created_at');
+        let timestamp = undefined;
+        if (createdAt !== undefined) {
+            if (createdAt.indexOf('-') >= 0) {
+                timestamp = this.parse8601(createdAt);
+            }
+            else {
+                timestamp = this.safeIntegerProduct(order, 'created_at', 0.001);
+            }
+        }
         const marketId = this.safeString(order, 'product_id');
         const marketsByNumericId = this.safeDict(this.options, 'marketsByNumericId', {});
         market = this.safeValue(marketsByNumericId, marketId, market);
@@ -1849,7 +1931,9 @@ class delta extends delta$1 {
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const side = this.safeString(order, 'side');
         let type = this.safeString(order, 'order_type');
-        type = type.replace('_order', '');
+        if (type !== undefined) {
+            type = type.replace('_order', '');
+        }
         const price = this.safeString(order, 'limit_price');
         const amount = this.safeString(order, 'size');
         const remaining = this.safeString(order, 'unfilled_size');
@@ -2113,6 +2197,63 @@ class delta extends delta$1 {
                 'info': response,
             }),
         ];
+    }
+    /**
+     * @method
+     * @name delta#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.delta.exchange/#get-order-by-id
+     * @see https://docs.delta.exchange/#get-order-by-client-oid
+     * @param {string} id the order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id of the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const clientOrderId = this.safeStringN(params, ['clientOrderId', 'client_oid', 'clientOid']);
+        params = this.omit(params, ['clientOrderId', 'client_oid', 'clientOid']);
+        const request = {};
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            request['client_oid'] = clientOrderId;
+            response = await this.privateGetOrdersClientOrderIdClientOid(this.extend(request, params));
+        }
+        else {
+            request['order_id'] = id;
+            response = await this.privateGetOrdersOrderId(this.extend(request, params));
+        }
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "id": 123,
+        //             "user_id": 453671,
+        //             "size": 10,
+        //             "unfilled_size": 2,
+        //             "side": "buy",
+        //             "order_type": "limit_order",
+        //             "limit_price": "59000",
+        //             "stop_order_type": "stop_loss_order",
+        //             "stop_price": "55000",
+        //             "paid_commission": "0.5432",
+        //             "commission": "0.5432",
+        //             "reduce_only": false,
+        //             "client_order_id": "my_signal_34521712",
+        //             "state": "open",
+        //             "created_at": "1725865012000000",
+        //             "product_id": 27,
+        //             "product_symbol": "BTCUSD"
+        //         }
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        return this.parseOrder(result, market);
     }
     /**
      * @method
@@ -3607,4 +3748,4 @@ class delta extends delta$1 {
     }
 }
 
-module.exports = delta;
+exports["default"] = delta;

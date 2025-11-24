@@ -31,6 +31,11 @@ public partial class coinbase : ccxt.coinbase
                 { "watchTickers", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
+                { "unWatchTicker", true },
+                { "unWatchTickers", true },
+                { "unWatchTrades", true },
+                { "unWatchOrders", true },
+                { "unWatchTradesForSymbols", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -76,7 +81,7 @@ public partial class coinbase : ccxt.coinbase
         } else if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            messageHash = add(add(name, "::"), getValue(market, "id"));
+            messageHash = add(add(name, "::"), symbol);
             productIds = new List<object>() {getValue(market, "id")};
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -90,6 +95,68 @@ public partial class coinbase : ccxt.coinbase
             subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
         }
         return await this.watch(url, messageHash, subscribe, messageHash);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description unSubscribes to a websocket channel
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+     * @param {string} topic unified topic
+     * @param {string} name the name of the channel
+     * @param {boolean} isPrivate whether the channel is private or not
+     * @param {string} [symbol] unified market symbol
+     * @returns {object} subscription to a websocket channel
+     */
+    public async virtual Task<object> unSubscribe(object topic, object name, object isPrivate, object symbol = null)
+    {
+        await this.loadMarkets();
+        if (isTrue(this.safeBool(this.options, "unSubscriptionPending", false)))
+        {
+            throw new ExchangeError ((string)add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
+        }
+        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = true;
+        object market = null;
+        object watchMessageHash = name;
+        object unWatchMessageHash = add("unsubscribe:", name);
+        object productIds = new List<object>() {};
+        if (isTrue(((symbol is IList<object>) || (symbol.GetType().IsGenericType && symbol.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            object symbols = this.marketSymbols(symbol);
+            object marketIds = this.marketIds(symbols);
+            productIds = marketIds;
+            watchMessageHash = add(add(watchMessageHash, "::"), String.Join(",", ((IList<object>)symbol).ToArray()));
+            unWatchMessageHash = add(add(unWatchMessageHash, "::"), String.Join(",", ((IList<object>)symbol).ToArray()));
+        } else if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            watchMessageHash = add(add(name, "::"), symbol);
+            unWatchMessageHash = add(add(unWatchMessageHash, "::"), symbol);
+            productIds = new List<object>() {getValue(market, "id")};
+        }
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
+        object message = new Dictionary<string, object>() {
+            { "type", "unsubscribe" },
+            { "product_ids", productIds },
+            { "channel", name },
+        };
+        object subscription = new Dictionary<string, object>() {
+            { "messageHashes", new List<object>() {unWatchMessageHash} },
+            { "subMessageHashes", new List<object>() {watchMessageHash} },
+            { "topic", topic },
+            { "unsubscribe", true },
+            { "symbols", new List<object>() {symbol} },
+        };
+        if (isTrue(isPrivate))
+        {
+            message = this.extend(message, this.createWSAuth(name, productIds));
+        }
+        ((IDictionary<string,object>)this.options)["unSubscription"] = subscription;
+        object res = await this.watch(url, unWatchMessageHash, message, unWatchMessageHash, subscription);
+        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = false;
+        ((IDictionary<string,object>)this.options)["unSubscription"] = null;
+        return res;
     }
 
     /**
@@ -116,7 +183,7 @@ public partial class coinbase : ccxt.coinbase
             object market = this.market(symbol);
             object marketId = getValue(market, "id");
             ((IList<object>)productIds).Add(marketId);
-            ((IList<object>)messageHashes).Add(add(add(name, "::"), marketId));
+            ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object subscribe = new Dictionary<string, object>() {
@@ -129,6 +196,64 @@ public partial class coinbase : ccxt.coinbase
             subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
         }
         return await this.watchMultiple(url, messageHashes, subscribe, messageHashes);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes to a websocket channel
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+     * @param {string} topic unified topic
+     * @param {string} name the name of the channel
+     * @param {boolean} isPrivate whether the channel is private or not
+     * @param {string[]} [symbols] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} subscription to a websocket channel
+     */
+    public async virtual Task<object> unSubscribeMultiple(object topic, object name, object isPrivate, object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(this.safeBool(this.options, "unSubscriptionPending", false)))
+        {
+            throw new ExchangeError ((string)add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
+        }
+        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = true;
+        await this.loadMarkets();
+        object productIds = new List<object>() {};
+        object watchMessageHashes = new List<object>() {};
+        object unWatchMessageHashes = new List<object>() {};
+        symbols = this.marketSymbols(symbols, null, false);
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            object market = this.market(symbol);
+            object marketId = getValue(market, "id");
+            ((IList<object>)productIds).Add(marketId);
+            ((IList<object>)watchMessageHashes).Add(add(add(name, "::"), symbol));
+            ((IList<object>)unWatchMessageHashes).Add(add(add(add("unsubscribe:", name), "::"), symbol));
+        }
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object message = new Dictionary<string, object>() {
+            { "type", "unsubscribe" },
+            { "product_ids", productIds },
+            { "channel", name },
+        };
+        if (isTrue(isPrivate))
+        {
+            message = this.extend(message, this.createWSAuth(name, productIds));
+        }
+        object subscription = new Dictionary<string, object>() {
+            { "messageHashes", unWatchMessageHashes },
+            { "subMessageHashes", watchMessageHashes },
+            { "topic", topic },
+            { "unsubscribe", true },
+            { "symbols", symbols },
+        };
+        ((IDictionary<string,object>)this.options)["unSubscription"] = subscription;
+        object res = await this.watchMultiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription);
+        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = false;
+        ((IDictionary<string,object>)this.options)["unSubscription"] = null;
+        return res;
     }
 
     public virtual object createWSAuth(object name, object productIds)
@@ -176,8 +301,26 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object name = "ticker";
         return await this.subscribe(name, false, symbol, parameters);
+    }
+
+    /**
+     * @method
+     * @name coinbase#unWatchTicker
+     * @description stops watching a price ticker
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+     * @param {string} [symbol] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object name = "ticker";
+        return await this.unSubscribe("ticker", name, false, symbol);
     }
 
     /**
@@ -192,20 +335,44 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         if (isTrue(isEqual(symbols, null)))
         {
             symbols = this.symbols;
         }
         object name = "ticker_batch";
-        object tickers = await this.subscribe(name, false, symbols, parameters);
+        object ticker = await this.subscribeMultiple(name, false, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
+            object tickers = new Dictionary<string, object>() {};
+            object symbol = getValue(ticker, "symbol");
+            ((IDictionary<string,object>)tickers)[(string)symbol] = ticker;
             return tickers;
         }
         return this.tickers;
     }
 
-    public virtual object handleTickers(WebSocketClient client, object message)
+    /**
+     * @method
+     * @name coinbase#unWatchTickers
+     * @description stop watching
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = this.symbols;
+        }
+        return await this.unSubscribeMultiple("ticker", "ticker_batch", false, symbols);
+    }
+
+    public virtual void handleTickers(WebSocketClient client, object message)
     {
         //
         //    {
@@ -297,7 +464,7 @@ public partial class coinbase : ccxt.coinbase
         //
         //
         object channel = this.safeString(message, "channel");
-        object events = this.safeValue(message, "events", new List<object>() {});
+        object events = this.safeList(message, "events", new List<object>() {});
         object datetime = this.safeString(message, "timestamp");
         object timestamp = this.parse8601(datetime);
         object newTickers = new List<object>() {};
@@ -308,43 +475,22 @@ public partial class coinbase : ccxt.coinbase
             for (object j = 0; isLessThan(j, getArrayLength(tickers)); postFixIncrement(ref j))
             {
                 object ticker = getValue(tickers, j);
-                object result = this.parseWsTicker(ticker);
-                ((IDictionary<string,object>)result)["timestamp"] = timestamp;
-                ((IDictionary<string,object>)result)["datetime"] = datetime;
-                object symbol = getValue(result, "symbol");
-                ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
                 object wsMarketId = this.safeString(ticker, "product_id");
                 if (isTrue(isEqual(wsMarketId, null)))
                 {
                     continue;
                 }
-                object messageHash = add(add(channel, "::"), wsMarketId);
+                object result = this.parseWsTicker(ticker);
+                ((IDictionary<string,object>)result)["timestamp"] = timestamp;
+                ((IDictionary<string,object>)result)["datetime"] = datetime;
+                object symbol = getValue(result, "symbol");
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
                 ((IList<object>)newTickers).Add(result);
+                object messageHash = add(add(channel, "::"), symbol);
                 callDynamically(client as WebSocketClient, "resolve", new object[] {result, messageHash});
-                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
-                {
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {result, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
+                this.tryResolveUsdc(client as WebSocketClient, messageHash, result);
             }
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "ticker_batch::");
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
-        {
-            object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            if (!isTrue(this.isEmpty(tickers)))
-            {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, messageHash});
-                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
-                {
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
-            }
-        }
-        return message;
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)
@@ -421,6 +567,23 @@ public partial class coinbase : ccxt.coinbase
 
     /**
      * @method
+     * @name coinbase#unWatchTrades
+     * @description stops watching the list of most recent trades for a particular symbol
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object name = "market_trades";
+        return await this.unSubscribe("trades", name, false, symbol);
+    }
+
+    /**
+     * @method
      * @name coinbase#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
@@ -443,6 +606,23 @@ public partial class coinbase : ccxt.coinbase
             limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+    }
+
+    /**
+     * @method
+     * @name coinbase#unWatchTradesForSymbols
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object name = "market_trades";
+        return await this.unSubscribeMultiple("trades", name, false, symbols, parameters);
     }
 
     /**
@@ -471,6 +651,23 @@ public partial class coinbase : ccxt.coinbase
 
     /**
      * @method
+     * @name coinbase#unWatchOrders
+     * @description stops watching information on multiple orders made by the user
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object name = "user";
+        return await this.unSubscribe("orders", name, true, this.symbol(symbol));
+    }
+
+    /**
+     * @method
      * @name coinbase#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
@@ -492,6 +689,24 @@ public partial class coinbase : ccxt.coinbase
 
     /**
      * @method
+     * @name coinbase#unWatchOrderBook
+     * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        object name = "level2";
+        return await this.unSubscribe("orderbook", name, false, symbol);
+    }
+
+    /**
+     * @method
      * @name coinbase#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
@@ -509,7 +724,7 @@ public partial class coinbase : ccxt.coinbase
         return (orderbook as IOrderBook).limit();
     }
 
-    public virtual object handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, object message)
     {
         //
         //    {
@@ -534,13 +749,13 @@ public partial class coinbase : ccxt.coinbase
         //        ]
         //    }
         //
-        object events = this.safeValue(message, "events");
+        object events = this.safeList(message, "events");
         object eventVar = this.safeValue(events, 0);
-        object trades = this.safeValue(eventVar, "trades");
-        object trade = this.safeValue(trades, 0);
+        object trades = this.safeList(eventVar, "trades");
+        object trade = this.safeDict(trades, 0);
         object marketId = this.safeString(trade, "product_id");
-        object messageHash = add("market_trades::", marketId);
         object symbol = this.safeSymbol(marketId);
+        object messageHash = add("market_trades::", symbol);
         object tradesArray = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesArray, null)))
         {
@@ -551,7 +766,7 @@ public partial class coinbase : ccxt.coinbase
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object currentEvent = getValue(events, i);
-            object currentTrades = this.safeValue(currentEvent, "trades");
+            object currentTrades = this.safeList(currentEvent, "trades");
             for (object j = 0; isLessThan(j, getArrayLength(currentTrades)); postFixIncrement(ref j))
             {
                 object item = getValue(currentTrades, i);
@@ -559,14 +774,10 @@ public partial class coinbase : ccxt.coinbase
             }
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, messageHash});
-        if (isTrue(((string)marketId).EndsWith(((string)"USD"))))
-        {
-            callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-        }
-        return message;
+        this.tryResolveUsdc(client as WebSocketClient, messageHash, tradesArray);
     }
 
-    public virtual object handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, object message)
     {
         //
         //    {
@@ -596,7 +807,7 @@ public partial class coinbase : ccxt.coinbase
         //        ]
         //    }
         //
-        object events = this.safeValue(message, "events");
+        object events = this.safeList(message, "events");
         object marketIds = new List<object>() {};
         if (isTrue(isEqual(this.orders, null)))
         {
@@ -606,7 +817,7 @@ public partial class coinbase : ccxt.coinbase
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
-            object responseOrders = this.safeValue(eventVar, "orders");
+            object responseOrders = this.safeList(eventVar, "orders");
             for (object j = 0; isLessThan(j, getArrayLength(responseOrders)); postFixIncrement(ref j))
             {
                 object responseOrder = getValue(responseOrders, j);
@@ -623,15 +834,12 @@ public partial class coinbase : ccxt.coinbase
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            object messageHash = add("user::", marketId);
+            object symbol = this.safeSymbol(marketId);
+            object messageHash = add("user::", symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
-            if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
-            {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-            }
+            this.tryResolveUsdc(client as WebSocketClient, messageHash, this.orders);
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, "user"});
-        return message;
     }
 
     public override object parseWsOrder(object order, object market = null)
@@ -654,8 +862,9 @@ public partial class coinbase : ccxt.coinbase
         object id = this.safeString(order, "order_id");
         object clientOrderId = this.safeString(order, "client_order_id");
         object marketId = this.safeString(order, "product_id");
-        object datetime = this.safeString(order, "time");
+        object datetime = this.safeString2(order, "time", "creation_time");
         market = this.safeMarket(marketId, market);
+        object stopPrice = this.safeString(order, "stop_price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", this.safeString(market, "symbol") },
@@ -667,12 +876,12 @@ public partial class coinbase : ccxt.coinbase
             { "type", this.safeString(order, "order_type") },
             { "timeInForce", null },
             { "postOnly", null },
-            { "side", this.safeString(order, "side") },
-            { "price", null },
-            { "stopPrice", null },
-            { "triggerPrice", null },
-            { "amount", null },
-            { "cost", null },
+            { "side", this.safeString2(order, "side", "order_side") },
+            { "price", this.safeString(order, "limit_price") },
+            { "stopPrice", stopPrice },
+            { "triggerPrice", stopPrice },
+            { "amount", this.safeString(order, "cumulative_quantity") },
+            { "cost", this.omitZero(this.safeString(order, "filled_value")) },
             { "average", this.safeString(order, "avg_price") },
             { "filled", this.safeString(order, "cumulative_quantity") },
             { "remaining", this.safeString(order, "leaves_quantity") },
@@ -715,7 +924,7 @@ public partial class coinbase : ccxt.coinbase
         //                    {
         //                        "side": "bid",
         //                        "event_time": "1970-01-01T00:00:00Z",
-        //                        "price_level": "21921.73",
+        //                        "price_level": "21921.74",
         //                        "new_quantity": "0.06317902"
         //                    },
         //                    {
@@ -729,38 +938,44 @@ public partial class coinbase : ccxt.coinbase
         //        ]
         //    }
         //
-        object events = this.safeValue(message, "events");
+        object events = this.safeList(message, "events");
         object datetime = this.safeString(message, "timestamp");
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
-            object updates = this.safeValue(eventVar, "updates", new List<object>() {});
+            object updates = this.safeList(eventVar, "updates", new List<object>() {});
             object marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             object market = this.safeMarket(marketId);
-            object messageHash = add("level2::", getValue(market, "id"));
             object symbol = getValue(market, "symbol");
+            object messageHash = add("level2::", symbol);
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
             object limit = this.safeInteger(subscription, "limit");
             object type = this.safeString(eventVar, "type");
             if (isTrue(isEqual(type, "snapshot")))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
-                object orderbook = getValue(this.orderbooks, symbol);
-                this.handleOrderBookHelper(orderbook, updates);
-                ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
-                ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
-                ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-                callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
-            } else if (isTrue(isEqual(type, "update")))
-            {
-                object orderbook = getValue(this.orderbooks, symbol);
-                this.handleOrderBookHelper(orderbook, updates);
-                ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
-                ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
-                ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-                callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
             }
+            // unknown bug, can't reproduce, but sometimes orderbook is undefined
+            if (isTrue(!isTrue((inOp(this.orderbooks, symbol))) && isTrue(isEqual(getValue(this.orderbooks, symbol), null))))
+            {
+                continue;
+            }
+            object orderbook = getValue(this.orderbooks, symbol);
+            this.handleOrderBookHelper(orderbook, updates);
+            ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
+            ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
+            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+            this.tryResolveUsdc(client as WebSocketClient, messageHash, orderbook);
+        }
+    }
+
+    public virtual void tryResolveUsdc(WebSocketClient client, object messageHash, object result)
+    {
+        if (isTrue(isTrue(((string)messageHash).EndsWith(((string)"/USD"))) || isTrue(((string)messageHash).EndsWith(((string)"-USD")))))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {result, add(messageHash, "C")}); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
     }
 
@@ -777,6 +992,33 @@ public partial class coinbase : ccxt.coinbase
         //         ]
         //     }
         //
+        //
+        //      {
+        //        channel: 'subscriptions',
+        //        client_id: '',
+        //        timestamp: '2025-09-15T17:02:49.90120868Z',
+        //        sequence_num: 3,
+        //        events: [ { subscriptions: {} } ]
+        //      }
+        //
+        object events = this.safeList(message, "events", new List<object>() {});
+        object firstEvent = this.safeValue(events, 0, new Dictionary<string, object>() {});
+        object isUnsub = (inOp(firstEvent, "subscriptions"));
+        object subKeys = new List<object>(((IDictionary<string,object>)getValue(firstEvent, "subscriptions")).Keys);
+        object subKeysLength = getArrayLength(subKeys);
+        if (isTrue(isTrue(isUnsub) && isTrue(isEqual(subKeysLength, 0))))
+        {
+            object unSubObject = this.safeDict(this.options, "unSubscription", new Dictionary<string, object>() {});
+            object messageHashes = this.safeList(unSubObject, "messageHashes", new List<object>() {});
+            object subMessageHashes = this.safeList(unSubObject, "subMessageHashes", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+            {
+                object messageHash = getValue(messageHashes, i);
+                object subHash = getValue(subMessageHashes, i);
+                this.cleanUnsubscription(client as WebSocketClient, subHash, messageHash);
+            }
+            this.cleanCache(unSubObject);
+        }
         return message;
     }
 

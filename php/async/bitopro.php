@@ -240,6 +240,7 @@ class bitopro extends Exchange {
                     'BEP20' => 'BSC',
                     'BSC' => 'BSC',
                 ),
+                'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
             ),
             'features' => array(
                 'spot' => array(
@@ -370,6 +371,7 @@ class bitopro extends Exchange {
             //     }
             //
             $result = array();
+            $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
             for ($i = 0; $i < count($currencies); $i++) {
                 $currency = $currencies[$i];
                 $currencyId = $this->safe_string($currency, 'currency');
@@ -389,11 +391,12 @@ class bitopro extends Exchange {
                         'max' => null,
                     ),
                 );
+                $isFiat = $this->in_array($code, $fiatCurrencies);
                 $result[$code] = array(
                     'id' => $currencyId,
                     'code' => $code,
                     'info' => $currency,
-                    'type' => null,
+                    'type' => $isFiat ? 'fiat' : 'crypto',
                     'name' => null,
                     'active' => $deposit && $withdraw,
                     'deposit' => $deposit,
@@ -885,7 +888,7 @@ class bitopro extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1260,7 +1263,7 @@ class bitopro extends Exchange {
         return $orders;
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1789,7 +1792,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

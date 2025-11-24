@@ -75,6 +75,7 @@ class delta(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOption': True,
                 'fetchOptionChain': False,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
                 'fetchPositionMode': False,
@@ -153,6 +154,8 @@ class delta(Exchange, ImplicitAPI):
                 'private': {
                     'get': [
                         'orders',
+                        'orders/{order_id}',
+                        'orders/client_order_id/{client_oid}',
                         'products/{product_id}/orders/leverage',
                         'positions/margined',
                         'positions',
@@ -166,8 +169,8 @@ class delta(Exchange, ImplicitAPI):
                         'users/trading_preferences',
                         'sub_accounts',
                         'profile',
+                        'heartbeat',
                         'deposits/address',
-                        'orders/leverage',
                     ],
                     'post': [
                         'orders',
@@ -177,6 +180,8 @@ class delta(Exchange, ImplicitAPI):
                         'positions/change_margin',
                         'positions/close_all',
                         'wallets/sub_account_balance_transfer',
+                        'heartbeat/create',
+                        'heartbeat',
                         'orders/cancel_after',
                         'orders/leverage',
                     ],
@@ -223,6 +228,7 @@ class delta(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'userAgent': self.userAgents['chrome39'],  # needed for C#
             'options': {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',
@@ -357,6 +363,8 @@ class delta(Exchange, ImplicitAPI):
             base = self.safe_string(optionParts, 1)
             expiry = self.safe_string(optionParts, 3)
             optionType = self.safe_string(optionParts, 0)
+        if expiry is not None:
+            expiry = expiry[4:] + expiry[2:4] + expiry[0:2]
         settle = quote
         strike = self.safe_string(optionParts, 2)
         datetime = self.convert_expire_date(expiry)
@@ -507,31 +515,49 @@ class delta(Exchange, ImplicitAPI):
         """
         response = await self.publicGetAssets(params)
         #
-        #     {
-        #         "result":[
-        #             {
-        #                 "base_withdrawal_fee":"0.0005",
-        #                 "deposit_status":"enabled",
-        #                 "id":2,
-        #                 "interest_credit":true,
-        #                 "interest_slabs":[
-        #                     {"limit":"0.1","rate":"0"},
-        #                     {"limit":"1","rate":"0.05"},
-        #                     {"limit":"5","rate":"0.075"},
-        #                     {"limit":"10","rate":"0.1"},
-        #                     {"limit":"9999999999999999","rate":"0"}
-        #                 ],
-        #                 "kyc_deposit_limit":"10",
-        #                 "kyc_withdrawal_limit":"2",
-        #                 "min_withdrawal_amount":"0.001",
-        #                 "minimum_precision":4,
-        #                 "name":"Bitcoin",
-        #                 "precision":8,
-        #                 "sort_priority":1,
-        #                 "symbol":"BTC",
-        #                 "variable_withdrawal_fee":"0",
-        #                 "withdrawal_status":"enabled"
-        #             },
+        #    {
+        #        "result": [
+        #            {
+        #                "base_withdrawal_fee": "0.005000000000000000",
+        #                "id": "1",
+        #                "interest_credit": False,
+        #                "interest_slabs": null,
+        #                "kyc_deposit_limit": "0.000000000000000000",
+        #                "kyc_withdrawal_limit": "0.000000000000000000",
+        #                "min_withdrawal_amount": "0.010000000000000000",
+        #                "minimum_precision": "4",
+        #                "name": "Ethereum",
+        #                "networks": [
+        #                    {
+        #                        "allowed_deposit_groups": null,
+        #                        "base_withdrawal_fee": "0.0025",
+        #                        "deposit_status": "enabled",
+        #                        "memo_required": False,
+        #                        "min_deposit_amount": "0.000050000000000000",
+        #                        "min_withdrawal_amount": "0.010000000000000000",
+        #                        "minimum_deposit_confirmations": "12",
+        #                        "network": "ERC20",
+        #                        "variable_withdrawal_fee": "0",
+        #                        "withdrawal_status": "enabled"
+        #                    },
+        #                    {
+        #                        "allowed_deposit_groups": null,
+        #                        "base_withdrawal_fee": "0.0001",
+        #                        "deposit_status": "enabled",
+        #                        "memo_required": False,
+        #                        "min_deposit_amount": "0.000050000000000000",
+        #                        "min_withdrawal_amount": "0.000300000000000000",
+        #                        "minimum_deposit_confirmations": "15",
+        #                        "network": "BEP20(BSC)",
+        #                        "variable_withdrawal_fee": "0",
+        #                        "withdrawal_status": "enabled"
+        #                    }
+        #                ],
+        #                "precision": "18",
+        #                "sort_priority": "3",
+        #                "symbol": "ETH",
+        #                "variable_withdrawal_fee": "0.000000000000000000"
+        #            },
         #         ],
         #         "success":true
         #     }
@@ -543,20 +569,41 @@ class delta(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'symbol')
             numericId = self.safe_integer(currency, 'id')
             code = self.safe_currency_code(id)
-            depositStatus = self.safe_string(currency, 'deposit_status')
-            withdrawalStatus = self.safe_string(currency, 'withdrawal_status')
-            depositsEnabled = (depositStatus == 'enabled')
-            withdrawalsEnabled = (withdrawalStatus == 'enabled')
-            active = depositsEnabled and withdrawalsEnabled
-            result[code] = {
+            chains = self.safe_list(currency, 'networks', [])
+            networks = {}
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                networkId = self.safe_string(chain, 'network')
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': self.safe_string(chain, 'name'),
+                    'info': chain,
+                    'active': self.safe_string(chain, 'status') == 'enabled',
+                    'deposit': self.safe_string(chain, 'deposit_status') == 'enabled',
+                    'withdraw': self.safe_string(chain, 'withdrawal_status') == 'enabled',
+                    'fee': self.safe_number(chain, 'base_withdrawal_fee'),
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(chain, 'min_deposit_amount'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'numericId': numericId,
                 'code': code,
                 'name': self.safe_string(currency, 'name'),
                 'info': currency,  # the original payload
-                'active': active,
-                'deposit': depositsEnabled,
-                'withdraw': withdrawalsEnabled,
+                'active': None,
+                'deposit': self.safe_string(currency, 'deposit_status') == 'enabled',
+                'withdraw': self.safe_string(currency, 'withdrawal_status') == 'enabled',
                 'fee': self.safe_number(currency, 'base_withdrawal_fee'),
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'limits': {
@@ -566,9 +613,9 @@ class delta(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': {},
+                'networks': networks,
                 'type': 'crypto',
-            }
+            })
         return result
 
     async def load_markets(self, reload=False, params={}):
@@ -865,9 +912,9 @@ class delta(Exchange, ImplicitAPI):
                 'inverse': None if spot else not linear,
                 'taker': self.safe_number(market, 'taker_commission_rate'),
                 'maker': self.safe_number(market, 'maker_commission_rate'),
-                'contractSize': contractSize,
+                'contractSize': None if spot else contractSize,
                 'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
+                'expiryDatetime': self.iso8601(expiry),  # do not use raw expiry string
                 'strike': self.parse_number(strike),
                 'optionType': optionType,
                 'precision': {
@@ -1528,7 +1575,7 @@ class delta(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1809,9 +1856,37 @@ class delta(Exchange, ImplicitAPI):
         #         "user_id":22142
         #     }
         #
+        # fetchOrder
+        #
+        #     {
+        #         "id": 123,
+        #         "user_id": 453671,
+        #         "size": 10,
+        #         "unfilled_size": 2,
+        #         "side": "buy",
+        #         "order_type": "limit_order",
+        #         "limit_price": "59000",
+        #         "stop_order_type": "stop_loss_order",
+        #         "stop_price": "55000",
+        #         "paid_commission": "0.5432",
+        #         "commission": "0.5432",
+        #         "reduce_only": False,
+        #         "client_order_id": "my_signal_34521712",
+        #         "state": "open",
+        #         "created_at": "1725865012000000",
+        #         "product_id": 27,
+        #         "product_symbol": "BTCUSD"
+        #     }
+        #
         id = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'client_order_id')
-        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
+        createdAt = self.safe_string(order, 'created_at')
+        timestamp = None
+        if createdAt is not None:
+            if createdAt.find('-') >= 0:
+                timestamp = self.parse8601(createdAt)
+            else:
+                timestamp = self.safe_integer_product(order, 'created_at', 0.001)
         marketId = self.safe_string(order, 'product_id')
         marketsByNumericId = self.safe_dict(self.options, 'marketsByNumericId', {})
         market = self.safe_value(marketsByNumericId, marketId, market)
@@ -1819,7 +1894,8 @@ class delta(Exchange, ImplicitAPI):
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'order_type')
-        type = type.replace('_order', '')
+        if type is not None:
+            type = type.replace('_order', '')
         price = self.safe_string(order, 'limit_price')
         amount = self.safe_string(order, 'size')
         remaining = self.safe_string(order, 'unfilled_size')
@@ -2074,6 +2150,60 @@ class delta(Exchange, ImplicitAPI):
                 'info': response,
             }),
         ]
+
+    async def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+        """
+        fetches information on an order made by the user
+
+        https://docs.delta.exchange/#get-order-by-id
+        https://docs.delta.exchange/#get-order-by-client-oid
+
+        :param str id: the order id
+        :param str [symbol]: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id of the order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        clientOrderId = self.safe_string_n(params, ['clientOrderId', 'client_oid', 'clientOid'])
+        params = self.omit(params, ['clientOrderId', 'client_oid', 'clientOid'])
+        request: dict = {}
+        response = None
+        if clientOrderId is not None:
+            request['client_oid'] = clientOrderId
+            response = await self.privateGetOrdersClientOrderIdClientOid(self.extend(request, params))
+        else:
+            request['order_id'] = id
+            response = await self.privateGetOrdersOrderId(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "result": {
+        #             "id": 123,
+        #             "user_id": 453671,
+        #             "size": 10,
+        #             "unfilled_size": 2,
+        #             "side": "buy",
+        #             "order_type": "limit_order",
+        #             "limit_price": "59000",
+        #             "stop_order_type": "stop_loss_order",
+        #             "stop_price": "55000",
+        #             "paid_commission": "0.5432",
+        #             "commission": "0.5432",
+        #             "reduce_only": False,
+        #             "client_order_id": "my_signal_34521712",
+        #             "state": "open",
+        #             "created_at": "1725865012000000",
+        #             "product_id": 27,
+        #             "product_symbol": "BTCUSD"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_order(result, market)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -2897,7 +3027,7 @@ class delta(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

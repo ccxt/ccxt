@@ -9,6 +9,7 @@ import upbitRest from '../upbit.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { jwt } from '../base/functions/rsa.js';
+import { NotSupported } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class upbit extends upbitRest {
     describe() {
@@ -20,6 +21,7 @@ export default class upbit extends upbitRest {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'watchOHLCV': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchBalance': true,
@@ -42,23 +44,34 @@ export default class upbit extends upbitRest {
         const url = this.implodeParams(this.urls['api']['ws'], {
             'hostname': this.hostname,
         });
-        this.options[channel] = this.safeValue(this.options, channel, {});
-        this.options[channel][symbol] = true;
-        const symbols = Object.keys(this.options[channel]);
-        const marketIds = this.marketIds(symbols);
-        const request = [
+        const client = this.client(url);
+        const subscriptionsKey = 'upbitPublicSubscriptions';
+        if (!(subscriptionsKey in client.subscriptions)) {
+            client.subscriptions[subscriptionsKey] = {};
+        }
+        const subscriptions = client.subscriptions[subscriptionsKey];
+        let messageHash = channel;
+        const request = {
+            'type': channel,
+        };
+        if (symbol !== undefined) {
+            messageHash = channel + ':' + symbol;
+            request['codes'] = [marketId];
+        }
+        if (!(messageHash in subscriptions)) {
+            subscriptions[messageHash] = request;
+        }
+        const finalMessage = [
             {
                 'ticket': this.uuid(),
             },
-            {
-                'type': channel,
-                'codes': marketIds,
-                // 'isOnlySnapshot': false,
-                // 'isOnlyRealtime': false,
-            },
         ];
-        const messageHash = channel + ':' + marketId;
-        return await this.watch(url, messageHash, request, messageHash);
+        const channelKeys = Object.keys(subscriptions);
+        for (let i = 0; i < channelKeys.length; i++) {
+            const key = channelKeys[i];
+            finalMessage.push(subscriptions[key]);
+        }
+        return await this.watch(url, messageHash, finalMessage, messageHash);
     }
     async watchPublicMultiple(symbols, channel, params = {}) {
         await this.loadMarkets();
@@ -195,6 +208,26 @@ export default class upbit extends upbitRest {
         const orderbook = await this.watchPublic(symbol, 'orderbook');
         return orderbook.limit();
     }
+    /**
+     * @method
+     * @name upbit#watchOHLCV
+     * @description watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
+     * @see https://docs.upbit.com/kr/reference/websocket-candle for Upbit KR
+     * @see https://global-docs.upbit.com/reference/websocket-candle for Upbit Global
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} timeframe specifies the OHLCV candle interval to watch. As of now, Upbit only supports 1s candles.
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {OHLCV[]} a list of [OHLCV structures]{@link https://docs.ccxt.com/#/?id=ohlcv-structure}
+     */
+    async watchOHLCV(symbol, timeframe = '1s', since = undefined, limit = undefined, params = {}) {
+        if (timeframe !== '1s') {
+            throw new NotSupported(this.id + ' watchOHLCV does not support' + timeframe + ' candle.');
+        }
+        const timeFrameOHLCV = 'candle.' + timeframe;
+        return await this.watchPublic(symbol, timeFrameOHLCV);
+    }
     handleTicker(client, message) {
         // 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type: "ticker",
@@ -321,6 +354,26 @@ export default class upbit extends upbitRest {
         const messageHash = 'trade:' + marketId;
         client.resolve(stored, messageHash);
     }
+    handleOHLCV(client, message) {
+        // {
+        //     type: 'candle.1s',
+        //     code: 'KRW-USDT',
+        //     candle_date_time_utc: '2025-04-22T09:50:34',
+        //     candle_date_time_kst: '2025-04-22T18:50:34',
+        //     opening_price: 1438,
+        //     high_price: 1438,
+        //     low_price: 1438,
+        //     trade_price: 1438,
+        //     candle_acc_trade_volume: 1145.8935,
+        //     candle_acc_trade_price: 1647794.853,
+        //     timestamp: 1745315434125,
+        //     stream_type: 'REALTIME'
+        //   }
+        const marketId = this.safeString(message, 'code');
+        const messageHash = 'candle.1s:' + marketId;
+        const ohlcv = this.parseOHLCV(message);
+        client.resolve(ohlcv, messageHash);
+    }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const wsOptions = this.safeDict(this.options, 'ws', {});
@@ -361,12 +414,36 @@ export default class upbit extends upbitRest {
             'hostname': this.hostname,
         });
         url += '/private';
+        const client = this.client(url);
+        // Track private channel subscriptions to support multiple concurrent watches
+        const subscriptionsKey = 'upbitPrivateSubscriptions';
+        if (!(subscriptionsKey in client.subscriptions)) {
+            client.subscriptions[subscriptionsKey] = {};
+        }
+        let channelKey = channel;
+        if (symbol !== undefined) {
+            channelKey = channel + ':' + symbol;
+        }
+        const subscriptions = client.subscriptions[subscriptionsKey];
+        const isNewChannel = !(channelKey in subscriptions);
+        if (isNewChannel) {
+            subscriptions[channelKey] = request;
+        }
+        // Build subscription message with all requested private channels
+        // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
+        const requests = [];
+        const channelKeys = Object.keys(subscriptions);
+        for (let i = 0; i < channelKeys.length; i++) {
+            requests.push(subscriptions[channelKeys[i]]);
+        }
         const message = [
             {
                 'ticket': this.uuid(),
             },
-            request,
         ];
+        for (let i = 0; i < requests.length; i++) {
+            message.push(requests[i]);
+        }
         return await this.watch(url, messageHash, message, messageHash);
     }
     /**
@@ -636,10 +713,11 @@ export default class upbit extends upbitRest {
             'trade': this.handleTrades,
             'myOrder': this.handleMyOrder,
             'myAsset': this.handleBalance,
+            'candle.1s': this.handleOHLCV,
         };
         const methodName = this.safeString(message, 'type');
         const method = this.safeValue(methods, methodName);
-        if (method) {
+        if (method !== undefined) {
             method.call(this, client, message);
         }
     }
