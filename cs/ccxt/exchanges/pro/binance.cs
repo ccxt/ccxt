@@ -4866,7 +4866,7 @@ public partial class binance : ccxt.binance
                 object cachedOrders = this.orders;
                 if (isTrue(!isEqual(cachedOrders, null)))
                 {
-                    object orders = this.safeValue((cachedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+                    object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
                     object order = this.safeValue(orders, orderId);
                     if (isTrue(!isEqual(order, null)))
                     {
@@ -4942,7 +4942,7 @@ public partial class binance : ccxt.binance
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             object cachedOrders = this.orders;
-            object orders = this.safeValue((cachedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+            object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             object order = this.safeValue(orders, orderId);
             if (isTrue(!isEqual(order, null)))
             {
