@@ -7,6 +7,8 @@
     "skipKeys": [
         "createdAtDatetime[gte]",
         "createdAtDatetime[lte]",
+        "createdAtDatetime%5bgte%5d",
+        "createdAtDatetime%5blte%5d",
         "tradingAccountId"
     ],
     "outputType": "urlencoded",
