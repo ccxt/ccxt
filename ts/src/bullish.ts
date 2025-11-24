@@ -44,7 +44,7 @@ export default class bullish extends Exchange {
                 'createPostOnlyOrder': true,
                 'createTriggerOrder': true,
                 'deposit': false,
-                'editOrder': false, // todo https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-amend
+                'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
@@ -1666,6 +1666,58 @@ export default class bullish extends Exchange {
         //         "clientOrderId": "1234567"
         //     }
         //
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name bullish#editOrder
+     * @description edit a trade limit order
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-amend
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market to create an order in
+     * @param {string} [type] 'limit' or 'POST_ONLY'
+     * @param {string} [side] not used by bullish editOrder
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
+     * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'commandType': 'V1AmendOrder',
+            'symbol': market['id'],
+            'tradingAccountId': tradingAccountId,
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        }
+        if (type !== undefined) {
+            request['type'] = type.toUpperCase ();
+        }
+        const postOnly = this.safeBool (params, 'postOnly', false);
+        if (postOnly) {
+            params = this.omit (params, 'postOnly');
+            request['type'] = 'POST_ONLY';
+        }
+        if (amount !== undefined) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privatePostV2Command (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
