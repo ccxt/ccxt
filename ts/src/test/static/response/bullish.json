@@ -6,6 +6,258 @@
         "tokenExpires": 9999999999999
     },
     "methods": {
+        "fetchOrders": [
+            {
+                "description": "Fetch orders with market, since and limit",
+                "method": "fetchOrders",
+                "input": [
+                    "USDT/USDC",
+                    1763981789115
+                ],
+                "httpResponse": [
+                    {
+                        "orderId": "913072742785876993",
+                        "type": "LMT",
+                        "side": "BUY",
+                        "status": "OPEN",
+                        "statusReason": "Order accepted",
+                        "statusReasonCode": "6014",
+                        "symbol": "USDTUSDC",
+                        "price": "0.5000",
+                        "quantity": "10.0000000",
+                        "quantityFilled": "0.0000000",
+                        "quoteAmount": "0.0000",
+                        "averageFillPrice": "0.0000",
+                        "baseFee": "0.000000",
+                        "quoteFee": "0.000000",
+                        "timeInForce": "GTC",
+                        "allowBorrow": false,
+                        "isLiquidation": false,
+                        "createdAtDatetime": "2025-11-24T14:25:05.951Z",
+                        "createdAtTimestamp": "1763994305951"
+                    },
+                    {
+                        "orderId": "913055493538710529",
+                        "type": "MKT",
+                        "side": "BUY",
+                        "status": "CLOSED",
+                        "statusReason": "Filled",
+                        "statusReasonCode": "6015",
+                        "symbol": "USDTUSDC",
+                        "quantity": "10.0000000",
+                        "quantityFilled": "10.0000000",
+                        "quoteAmount": "9.9977",
+                        "averageFillPrice": "0.9998",
+                        "baseFee": "0.000000",
+                        "quoteFee": "0.000000",
+                        "timeInForce": "GTC",
+                        "allowBorrow": false,
+                        "isLiquidation": false,
+                        "createdAtDatetime": "2025-11-24T13:16:33.410Z",
+                        "createdAtTimestamp": "1763990193410"
+                    },
+                    {
+                        "orderId": "913020243366380545",
+                        "clientOrderId": "987654321",
+                        "type": "POST_ONLY",
+                        "side": "BUY",
+                        "status": "CLOSED",
+                        "statusReason": "User cancelled",
+                        "statusReasonCode": "6005",
+                        "closedReason": "user request",
+                        "symbol": "USDTUSDC",
+                        "price": "0.5500",
+                        "stopPrice": "-0.0001",
+                        "quantity": "12.0000000",
+                        "quantityFilled": "0.0000000",
+                        "quoteAmount": "0.0000",
+                        "averageFillPrice": "0.0000",
+                        "baseFee": "0.000000",
+                        "quoteFee": "0.000000",
+                        "timeInForce": "GTC",
+                        "allowBorrow": false,
+                        "isLiquidation": false,
+                        "createdAtDatetime": "2025-11-24T10:56:29.115Z",
+                        "createdAtTimestamp": "1763981789115"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "913020243366380545",
+                        "clientOrderId": "987654321",
+                        "timestamp": 1763981789115,
+                        "datetime": "2025-11-24T10:56:29.115Z",
+                        "lastTradeTimestamp": null,
+                        "status": "canceled",
+                        "symbol": "USDT/USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "side": "buy",
+                        "price": 0.55,
+                        "triggerPrice": -0.0001,
+                        "amount": 12,
+                        "filled": 0,
+                        "remaining": 12,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDC"
+                        },
+                        "info": {
+                            "orderId": "913020243366380545",
+                            "clientOrderId": "987654321",
+                            "type": "POST_ONLY",
+                            "side": "BUY",
+                            "status": "CLOSED",
+                            "statusReason": "User cancelled",
+                            "statusReasonCode": "6005",
+                            "closedReason": "user request",
+                            "symbol": "USDTUSDC",
+                            "price": "0.5500",
+                            "stopPrice": "-0.0001",
+                            "quantity": "12.0000000",
+                            "quantityFilled": "0.0000000",
+                            "quoteAmount": "0.0000",
+                            "averageFillPrice": "0.0000",
+                            "baseFee": "0.000000",
+                            "quoteFee": "0.000000",
+                            "timeInForce": "GTC",
+                            "allowBorrow": false,
+                            "isLiquidation": false,
+                            "createdAtDatetime": "2025-11-24T10:56:29.115Z",
+                            "createdAtTimestamp": "1763981789115"
+                        },
+                        "average": null,
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDC"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": -0.0001,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "id": "913055493538710529",
+                        "clientOrderId": null,
+                        "timestamp": 1763990193410,
+                        "datetime": "2025-11-24T13:16:33.410Z",
+                        "lastTradeTimestamp": null,
+                        "status": "closed",
+                        "symbol": "USDT/USDC",
+                        "type": "market",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 0.9998,
+                        "triggerPrice": null,
+                        "amount": 10,
+                        "filled": 10,
+                        "remaining": 0,
+                        "cost": 9.9977,
+                        "trades": [],
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDC"
+                        },
+                        "info": {
+                            "orderId": "913055493538710529",
+                            "type": "MKT",
+                            "side": "BUY",
+                            "status": "CLOSED",
+                            "statusReason": "Filled",
+                            "statusReasonCode": "6015",
+                            "symbol": "USDTUSDC",
+                            "quantity": "10.0000000",
+                            "quantityFilled": "10.0000000",
+                            "quoteAmount": "9.9977",
+                            "averageFillPrice": "0.9998",
+                            "baseFee": "0.000000",
+                            "quoteFee": "0.000000",
+                            "timeInForce": "GTC",
+                            "allowBorrow": false,
+                            "isLiquidation": false,
+                            "createdAtDatetime": "2025-11-24T13:16:33.410Z",
+                            "createdAtTimestamp": "1763990193410"
+                        },
+                        "average": 0.9998,
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDC"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "id": "913072742785876993",
+                        "clientOrderId": null,
+                        "timestamp": 1763994305951,
+                        "datetime": "2025-11-24T14:25:05.951Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "symbol": "USDT/USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 0.5,
+                        "triggerPrice": null,
+                        "amount": 10,
+                        "filled": 0,
+                        "remaining": 10,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDC"
+                        },
+                        "info": {
+                            "orderId": "913072742785876993",
+                            "type": "LMT",
+                            "side": "BUY",
+                            "status": "OPEN",
+                            "statusReason": "Order accepted",
+                            "statusReasonCode": "6014",
+                            "symbol": "USDTUSDC",
+                            "price": "0.5000",
+                            "quantity": "10.0000000",
+                            "quantityFilled": "0.0000000",
+                            "quoteAmount": "0.0000",
+                            "averageFillPrice": "0.0000",
+                            "baseFee": "0.000000",
+                            "quoteFee": "0.000000",
+                            "timeInForce": "GTC",
+                            "allowBorrow": false,
+                            "isLiquidation": false,
+                            "createdAtDatetime": "2025-11-24T14:25:05.951Z",
+                            "createdAtTimestamp": "1763994305951"
+                        },
+                        "average": null,
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDC"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
         "editOrder": [
             {
                 "description": "Edit order by clientOrderId",
@@ -122,216 +374,6 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
-            }
-        ],
-        "fetchCanceledOrders": [
-            {
-                "description": "Fetch canceled orders",
-                "method": "fetchCanceledOrders",
-                "input": [],
-                "httpResponse": [
-                    {
-                        "allowBorrow": false,
-                        "averageFillPrice": null,
-                        "baseFee": "0.000000",
-                        "borrowedBaseQuantity": null,
-                        "borrowedQuantity": null,
-                        "borrowedQuoteQuantity": null,
-                        "clientOrderId": null,
-                        "createdAtDatetime": "2025-11-20T08:10:07.980Z",
-                        "createdAtTimestamp": "1763626207980",
-                        "handle": null,
-                        "isLiquidation": false,
-                        "margin": false,
-                        "orderId": "911528827989525505",
-                        "price": "0.5000",
-                        "publishedAtTimestamp": "1763627014076",
-                        "quantity": "40.0000000",
-                        "quantityFilled": "0.0000000",
-                        "quoteAmount": null,
-                        "quoteFee": "0.000000",
-                        "side": "BUY",
-                        "status": "CANCELLED",
-                        "statusReason": "User cancelled",
-                        "statusReasonCode": "6005",
-                        "stopPrice": null,
-                        "symbol": "USDTUSDC",
-                        "timeInForce": "GTC",
-                        "type": "LMT"
-                    }
-                ],
-                "parsedResponse": [
-                    {
-                        "id": "911528827989525505",
-                        "clientOrderId": null,
-                        "timestamp": 1763626207980,
-                        "datetime": "2025-11-20T08:10:07.980Z",
-                        "lastTradeTimestamp": null,
-                        "status": "canceled",
-                        "symbol": "USDT/USDC",
-                        "type": "limit",
-                        "timeInForce": "GTC",
-                        "postOnly": false,
-                        "side": "buy",
-                        "price": 0.5,
-                        "triggerPrice": null,
-                        "amount": 40,
-                        "filled": 0,
-                        "remaining": 40,
-                        "cost": 0,
-                        "trades": [],
-                        "fee": {
-                            "cost": 0,
-                            "currency": "USDC"
-                        },
-                        "info": {
-                            "allowBorrow": false,
-                            "averageFillPrice": null,
-                            "baseFee": "0.000000",
-                            "borrowedBaseQuantity": null,
-                            "borrowedQuantity": null,
-                            "borrowedQuoteQuantity": null,
-                            "clientOrderId": null,
-                            "createdAtDatetime": "2025-11-20T08:10:07.980Z",
-                            "createdAtTimestamp": "1763626207980",
-                            "handle": null,
-                            "isLiquidation": false,
-                            "margin": false,
-                            "orderId": "911528827989525505",
-                            "price": "0.5000",
-                            "publishedAtTimestamp": "1763627014076",
-                            "quantity": "40.0000000",
-                            "quantityFilled": "0.0000000",
-                            "quoteAmount": null,
-                            "quoteFee": "0.000000",
-                            "side": "BUY",
-                            "status": "CANCELLED",
-                            "statusReason": "User cancelled",
-                            "statusReasonCode": "6005",
-                            "stopPrice": null,
-                            "symbol": "USDTUSDC",
-                            "timeInForce": "GTC",
-                            "type": "LMT"
-                        },
-                        "average": null,
-                        "fees": [
-                            {
-                                "cost": 0,
-                                "currency": "USDC"
-                            }
-                        ],
-                        "lastUpdateTimestamp": null,
-                        "reduceOnly": null,
-                        "stopPrice": null,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null
-                    }
-                ]
-            }
-        ],
-        "fetchOpenOrders": [
-            {
-                "description": "Fetch opne orders",
-                "method": "fetchOpenOrders",
-                "input": [],
-                "httpResponse": [
-                    {
-                        "allowBorrow": false,
-                        "averageFillPrice": null,
-                        "baseFee": "0.000000",
-                        "borrowedBaseQuantity": null,
-                        "borrowedQuantity": null,
-                        "borrowedQuoteQuantity": null,
-                        "clientOrderId": null,
-                        "createdAtDatetime": "2025-11-20T08:10:07.980Z",
-                        "createdAtTimestamp": "1763626207980",
-                        "handle": null,
-                        "isLiquidation": false,
-                        "margin": false,
-                        "orderId": "911528827989525505",
-                        "price": "0.5000",
-                        "publishedAtTimestamp": "1763626643822",
-                        "quantity": "40.0000000",
-                        "quantityFilled": "0.0000000",
-                        "quoteAmount": null,
-                        "quoteFee": "0.000000",
-                        "side": "BUY",
-                        "status": "OPEN",
-                        "statusReason": "Open",
-                        "statusReasonCode": "6001",
-                        "stopPrice": null,
-                        "symbol": "USDTUSDC",
-                        "timeInForce": "GTC",
-                        "type": "LMT"
-                    }
-                ],
-                "parsedResponse": [
-                    {
-                        "id": "911528827989525505",
-                        "clientOrderId": null,
-                        "timestamp": 1763626207980,
-                        "datetime": "2025-11-20T08:10:07.980Z",
-                        "lastTradeTimestamp": null,
-                        "status": "open",
-                        "symbol": "USDT/USDC",
-                        "type": "limit",
-                        "timeInForce": "GTC",
-                        "postOnly": false,
-                        "side": "buy",
-                        "price": 0.5,
-                        "triggerPrice": null,
-                        "amount": 40,
-                        "filled": 0,
-                        "remaining": 40,
-                        "cost": 0,
-                        "trades": [],
-                        "fee": {
-                            "cost": 0,
-                            "currency": "USDC"
-                        },
-                        "info": {
-                            "allowBorrow": false,
-                            "averageFillPrice": null,
-                            "baseFee": "0.000000",
-                            "borrowedBaseQuantity": null,
-                            "borrowedQuantity": null,
-                            "borrowedQuoteQuantity": null,
-                            "clientOrderId": null,
-                            "createdAtDatetime": "2025-11-20T08:10:07.980Z",
-                            "createdAtTimestamp": "1763626207980",
-                            "handle": null,
-                            "isLiquidation": false,
-                            "margin": false,
-                            "orderId": "911528827989525505",
-                            "price": "0.5000",
-                            "publishedAtTimestamp": "1763626643822",
-                            "quantity": "40.0000000",
-                            "quantityFilled": "0.0000000",
-                            "quoteAmount": null,
-                            "quoteFee": "0.000000",
-                            "side": "BUY",
-                            "status": "OPEN",
-                            "statusReason": "Open",
-                            "statusReasonCode": "6001",
-                            "stopPrice": null,
-                            "symbol": "USDTUSDC",
-                            "timeInForce": "GTC",
-                            "type": "LMT"
-                        },
-                        "average": null,
-                        "fees": [
-                            {
-                                "cost": 0,
-                                "currency": "USDC"
-                            }
-                        ],
-                        "lastUpdateTimestamp": null,
-                        "reduceOnly": null,
-                        "stopPrice": null,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null
-                    }
-                ]
             }
         ],
         "fetchDepositAddress": [
@@ -1150,113 +1192,6 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
-            }
-        ],
-        "fetchOrders": [
-            {
-                "description": "Fetch orders for BTC/USDC",
-                "method": "fetchOrders",
-                "input": [
-                    "BTC/USDC"
-                ],
-                "httpResponse": [
-                    {
-                        "allowBorrow": false,
-                        "averageFillPrice": null,
-                        "baseFee": "0.000000",
-                        "borrowedBaseQuantity": null,
-                        "borrowedQuantity": null,
-                        "borrowedQuoteQuantity": null,
-                        "clientOrderId": null,
-                        "createdAtDatetime": "2025-05-22T21:16:34.592Z",
-                        "createdAtTimestamp": "1747948594592",
-                        "handle": null,
-                        "isLiquidation": false,
-                        "margin": false,
-                        "orderId": "845772151437393921",
-                        "price": "110000.0000",
-                        "publishedAtTimestamp": "1748336531294",
-                        "quantity": "1.00000000",
-                        "quantityFilled": "0.00000000",
-                        "quoteAmount": null,
-                        "quoteFee": "0.000000",
-                        "side": "SELL",
-                        "status": "OPEN",
-                        "statusReason": "Open",
-                        "statusReasonCode": "6001",
-                        "stopPrice": "100000.0000",
-                        "symbol": "BTCUSDC",
-                        "timeInForce": "GTC",
-                        "type": "STOP_LIMIT"
-                    }
-                ],
-                "parsedResponse": [
-                    {
-                        "id": "845772151437393921",
-                        "clientOrderId": null,
-                        "timestamp": 1747948594592,
-                        "datetime": "2025-05-22T21:16:34.592Z",
-                        "lastTradeTimestamp": null,
-                        "status": "open",
-                        "symbol": "BTC/USDC",
-                        "type": "limit",
-                        "timeInForce": "GTC",
-                        "postOnly": false,
-                        "side": "sell",
-                        "price": 110000,
-                        "triggerPrice": 100000,
-                        "amount": 1,
-                        "filled": 0,
-                        "remaining": 1,
-                        "cost": 0,
-                        "trades": [],
-                        "fee": {
-                            "cost": 0,
-                            "currency": "USDC"
-                        },
-                        "info": {
-                            "allowBorrow": false,
-                            "averageFillPrice": null,
-                            "baseFee": "0.000000",
-                            "borrowedBaseQuantity": null,
-                            "borrowedQuantity": null,
-                            "borrowedQuoteQuantity": null,
-                            "clientOrderId": null,
-                            "createdAtDatetime": "2025-05-22T21:16:34.592Z",
-                            "createdAtTimestamp": "1747948594592",
-                            "handle": null,
-                            "isLiquidation": false,
-                            "margin": false,
-                            "orderId": "845772151437393921",
-                            "price": "110000.0000",
-                            "publishedAtTimestamp": "1748336531294",
-                            "quantity": "1.00000000",
-                            "quantityFilled": "0.00000000",
-                            "quoteAmount": null,
-                            "quoteFee": "0.000000",
-                            "side": "SELL",
-                            "status": "OPEN",
-                            "statusReason": "Open",
-                            "statusReasonCode": "6001",
-                            "stopPrice": "100000.0000",
-                            "symbol": "BTCUSDC",
-                            "timeInForce": "GTC",
-                            "type": "STOP_LIMIT"
-                        },
-                        "average": null,
-                        "fees": [
-                            {
-                                "cost": 0,
-                                "currency": "USDC"
-                            }
-                        ],
-                        "lastUpdateTimestamp": null,
-                        "reduceOnly": null,
-                        "stopPrice": 100000,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null
-                    }
-                ]
             }
         ],
         "fetchMyTrades": [
