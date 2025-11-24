@@ -12,7 +12,7 @@ type Throttler struct {
 	Config  map[string]interface{}
 }
 
-func NewThrottler(config map[string]interface{}) Throttler {
+func NewThrottler(config map[string]interface{}) *Throttler {
 	defaultConfig := map[string]interface{}{
 		"refillRate":  1.0,
 		"delay":       0.001,
@@ -22,7 +22,7 @@ func NewThrottler(config map[string]interface{}) Throttler {
 		"cost":        1.0,
 	}
 
-	return Throttler{
+	return &Throttler{
 		Queue:   NewQueue(),
 		Running: false,
 		Config:  ExtendMap(defaultConfig, config),
@@ -30,13 +30,10 @@ func NewThrottler(config map[string]interface{}) Throttler {
 }
 
 func (t *Throttler) Throttle(cost2 interface{}) <-chan bool {
-	var cost float64 = -1
-
-	if cost2 != nil {
-		cost = cost2.(float64)
-	} else {
-		cost = ToFloat64(t.Config["cost"])
+	if cost2 == nil {
+		cost2 = t.Config["cost"]
 	}
+	cost := ToFloat64(cost2)
 	task := make(chan bool)
 
 	queueElement := QueueElement{

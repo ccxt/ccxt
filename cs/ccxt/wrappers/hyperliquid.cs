@@ -28,6 +28,27 @@ public partial class hyperliquid
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
+    /// retrieves data on all hip3 markets for hyperliquid
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
+    public async Task<List<MarketInterface>> FetchHip3Markets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchHip3Markets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    /// <summary>
     /// retrieves data on all swap markets for hyperliquid
     /// </summary>
     /// <remarks>
@@ -96,6 +117,12 @@ public partial class hyperliquid
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
     /// </description>
     /// </item>
     /// </list>
@@ -263,6 +290,12 @@ public partial class hyperliquid
     /// string : wallet address that made trades
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
@@ -333,6 +366,12 @@ public partial class hyperliquid
     /// string : the vault address for order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -361,6 +400,11 @@ public partial class hyperliquid
     {
         var res = await this.createOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, string amount, string price = null, Dictionary<string, object> parameters = null)
+    {
+        var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// create a list of trade orders
@@ -401,13 +445,19 @@ public partial class hyperliquid
     /// string : the vault address for order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel multiple orders
@@ -434,13 +484,40 @@ public partial class hyperliquid
     /// string : the vault address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// build the request payload for cancelling multiple orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :          * @returns {object} the raw request object to be sent to the exchange
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the raw request object to be sent to the exchange.</returns>
+    public Dictionary<string, object> CancelOrdersRequest(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = this.cancelOrdersRequest(ids, symbol, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// cancel multiple orders for multiple symbols
@@ -461,13 +538,19 @@ public partial class hyperliquid
     /// string : the vault address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrdersForSymbols(orders, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// dead man's switch, cancel all orders after the given timeout
@@ -484,6 +567,12 @@ public partial class hyperliquid
     /// <term>params.vaultAddress</term>
     /// <description>
     /// string : the vault address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
     /// </description>
     /// </item>
     /// </list>
@@ -551,6 +640,12 @@ public partial class hyperliquid
     /// <term>params.vaultAddress</term>
     /// <description>
     /// string : the vault address for order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
     /// </description>
     /// </item>
     /// </list>
@@ -676,6 +771,18 @@ public partial class hyperliquid
     /// <term>params.method</term>
     /// <description>
     /// string : 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : perp dex name. default is null
     /// </description>
     /// </item>
     /// </list>
@@ -834,6 +941,18 @@ public partial class hyperliquid
     /// string : user address, will default to this.walletAddress if not provided
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : perp dex name. default is null
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -857,9 +976,21 @@ public partial class hyperliquid
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.user</term>
     /// <description>
     /// string : user address, will default to this.walletAddress if not provided
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
     /// </description>
     /// </item>
     /// </list>
@@ -899,6 +1030,12 @@ public partial class hyperliquid
     /// <term>params.until</term>
     /// <description>
     /// int : timestamp in ms of the latest trade
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
     /// </description>
     /// </item>
     /// </list>
@@ -955,6 +1092,18 @@ public partial class hyperliquid
     /// string : user address, will default to this.walletAddress if not provided
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : perp dex name, eg: XYZ
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
@@ -978,6 +1127,18 @@ public partial class hyperliquid
     /// <term>params.leverage</term>
     /// <description>
     /// string : the rate of leverage, is required if setting trade mode (symbol)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : the vault address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
     /// </description>
     /// </item>
     /// </list>
@@ -1061,7 +1222,7 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1081,6 +1242,12 @@ public partial class hyperliquid
     /// <term>params.user</term>
     /// <description>
     /// string : user address, will default to this.walletAddress if not provided
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
     /// </description>
     /// </item>
     /// </list>
@@ -1126,6 +1293,12 @@ public partial class hyperliquid
     /// int : timestamp in ms of the latest ledger entry
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
@@ -1165,6 +1338,18 @@ public partial class hyperliquid
     /// int : the latest time in ms to fetch withdrawals for
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : vault address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
@@ -1202,6 +1387,18 @@ public partial class hyperliquid
     /// <term>params.until</term>
     /// <description>
     /// int : the latest time in ms to fetch withdrawals for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : vault address
     /// </description>
     /// </item>
     /// </list>
@@ -1279,6 +1476,12 @@ public partial class hyperliquid
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subAccountAddress</term>
+    /// <description>
+    /// string : sub account user address
     /// </description>
     /// </item>
     /// </list>

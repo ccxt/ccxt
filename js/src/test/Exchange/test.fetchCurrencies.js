@@ -12,15 +12,19 @@ async function testFetchCurrencies(exchange, skippedProperties) {
     const currencies = await exchange.fetchCurrencies();
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     let numInactiveCurrencies = 0;
-    const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
+    const maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, 'maxInactiveCurrenciesPercentage', 50); // no more than X% currencies should be inactive
     const requiredActiveCurrencies = ['BTC', 'ETH', 'USDT', 'USDC'];
-    // todo: remove undefined check
-    if (currencies !== undefined) {
+    const features = exchange.features;
+    const featuresSpot = exchange.safeDict(features, 'spot', {});
+    const fetchCurrencies = exchange.safeDict(featuresSpot, 'fetchCurrencies', {});
+    const isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, 'private', false);
+    if (!isFetchCurrenciesPrivate) {
         const values = Object.values(currencies);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
         const currenciesLength = values.length;
         // ensure exchange returns enough length of currencies
-        assert(currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString());
+        const skipAmount = ('amountOfCurrencies' in skippedProperties);
+        assert(skipAmount || currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString());
         // allow skipped exchanges
         const skipActive = ('activeCurrenciesQuota' in skippedProperties);
         const skipMajorCurrencyCheck = ('activeMajorCurrencies' in skippedProperties);

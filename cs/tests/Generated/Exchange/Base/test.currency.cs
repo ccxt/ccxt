@@ -53,8 +53,18 @@ public partial class testMainClass : BaseTest
                 ((IList<object>)emptyAllowedFor).Add("precision");
             }
         }
-        testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        //
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "code"));
+        // check if empty networks should be skipped
+        object networks = exchange.safeDict(entry, "networks", new Dictionary<string, object>() {});
+        object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object networkKeysLength = getArrayLength(networkKeys);
+        if (isTrue(isTrue(isEqual(networkKeysLength, 0)) && isTrue((inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))))
+        {
+            return;
+        }
+        //
+        testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         //
         testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, entry, "precision");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "fee", "0");

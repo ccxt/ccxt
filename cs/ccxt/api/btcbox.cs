@@ -61,4 +61,9 @@ public partial class btcbox : Exchange
         return await this.callAsync ("privatePostWallet",parameters);
     }
 
+    public async Task<object> webApiGetAjaxCoinCoinInfo (object parameters = null)
+    {
+        return await this.callAsync ("webApiGetAjaxCoinCoinInfo",parameters);
+    }
+
 }

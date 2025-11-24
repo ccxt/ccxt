@@ -30,7 +30,8 @@ public partial class upbit
     /// retrieves data on all markets for upbit
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EB%A7%88%EC%BC%93-%EC%BD%94%EB%93%9C-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/마켓-코드-조회"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/listing-market-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +51,8 @@ public partial class upbit
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EA%B3%84%EC%A2%8C-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/전체-계좌-조회"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/overall-account-inquiry"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,12 +72,13 @@ public partial class upbit
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/호가-정보-조회"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/order-book-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : not used by upbit fetchOrderBooks ()
+    /// int : the maximum amount of order book entries to return
     /// </description>
     /// </item>
     /// <item>
@@ -97,7 +100,8 @@ public partial class upbit
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/호가-정보-조회"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/order-book-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -124,7 +128,8 @@ public partial class upbit
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/ticker%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/ticker현재가-정보"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -144,7 +149,8 @@ public partial class upbit
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/ticker%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/ticker현재가-정보"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -164,7 +170,8 @@ public partial class upbit
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/최근-체결-내역"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/today-trades-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -198,7 +205,8 @@ public partial class upbit
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EA%B0%80%EB%8A%A5-%EC%A0%95%EB%B3%B4"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/주문-가능-정보"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/available-order-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -237,7 +245,8 @@ public partial class upbit
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EB%B6%84minute-%EC%BA%94%EB%93%A4-1"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/분minute-캔들-1"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/minutes"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -271,7 +280,7 @@ public partial class upbit
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/주문하기"/>  <br/>
     /// See <see href="https://global-docs.upbit.com/reference/order"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -301,7 +310,13 @@ public partial class upbit
     /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
-    /// string : 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+    /// string : 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.selfTradePrevention</term>
+    /// <description>
+    /// string : 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
     /// </description>
     /// </item>
     /// </list>
@@ -317,7 +332,8 @@ public partial class upbit
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/주문-취소"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/order-cancel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -337,7 +353,8 @@ public partial class upbit
     /// canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%B7%A8%EC%86%8C-%ED%9B%84-%EC%9E%AC%EC%A3%BC%EB%AC%B8"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/취소-후-재주문"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/cancel-and-new"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -360,7 +377,7 @@ public partial class upbit
     /// <item>
     /// <term>params.newTimeInForce</term>
     /// <description>
-    /// string : 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+    /// string : 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
     /// </description>
     /// </item>
     /// <item>
@@ -373,6 +390,12 @@ public partial class upbit
     /// <term>params.newOrdType</term>
     /// <description>
     /// string : this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.selfTradePrevention</term>
+    /// <description>
+    /// string : 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
     /// </description>
     /// </item>
     /// </list>
@@ -389,7 +412,8 @@ public partial class upbit
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/입금-리스트-조회"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/deposit-list-inquiry"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -423,6 +447,7 @@ public partial class upbit
     /// fetch information on a deposit
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.upbit.com/kr/reference/개별-입금-조회"/>  <br/>
     /// See <see href="https://global-docs.upbit.com/reference/individual-deposit-inquiry"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -455,7 +480,8 @@ public partial class upbit
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%B6%9C%EA%B8%88-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/전체-출금-조회"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/withdrawal-list-inquiry"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -489,6 +515,7 @@ public partial class upbit
     /// fetch data on a currency withdrawal via the withdrawal id
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.upbit.com/kr/reference/개별-출금-조회"/>  <br/>
     /// See <see href="https://global-docs.upbit.com/reference/individual-withdrawal-inquiry"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -521,6 +548,7 @@ public partial class upbit
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.upbit.com/kr/reference/대기-주문-조회"/>  <br/>
     /// See <see href="https://global-docs.upbit.com/reference/open-order"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -561,6 +589,7 @@ public partial class upbit
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.upbit.com/kr/reference/종료-주문-조회"/>  <br/>
     /// See <see href="https://global-docs.upbit.com/reference/closed-order"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -601,6 +630,7 @@ public partial class upbit
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.upbit.com/kr/reference/종료-주문-조회"/>  <br/>
     /// See <see href="https://global-docs.upbit.com/reference/closed-order"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -641,7 +671,8 @@ public partial class upbit
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EA%B0%9C%EB%B3%84-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/개별-주문-조회"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/individual-order-inquiry"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -661,7 +692,8 @@ public partial class upbit
     /// fetch deposit addresses for multiple currencies and chain types
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/전체-입금-주소-조회"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/general-deposit-address-inquiry"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -681,7 +713,8 @@ public partial class upbit
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/개별-입금-주소-조회"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/individual-deposit-address-inquiry"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -701,7 +734,8 @@ public partial class upbit
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/입금-주소-생성-요청"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/deposit-address-generation"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -721,8 +755,8 @@ public partial class upbit
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/디지털자산-출금하기"/>  <br/>
-    /// See <see href="https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/디지털자산-출금하기"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/withdrawal-digital-assets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -733,7 +767,7 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

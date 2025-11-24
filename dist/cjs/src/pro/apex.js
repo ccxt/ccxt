@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var apex$1 = require('../apex.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
@@ -7,7 +9,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class apex extends apex$1 {
+class apex extends apex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -115,9 +117,10 @@ class apex extends apex$1 {
         //                 "v": "0.001",
         //                 "p": "16578.50",
         //                 "L": "PlusTick",
-        //                 "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
+        //                 "i": "20f43950-d8dd-5b31-9112-a178eb6023ef",
         //                 "BT": false
-        //             }
+        //             },
+        //             // sorted by newest first
         //         ]
         //     }
         //
@@ -134,8 +137,10 @@ class apex extends apex$1 {
             stored = new Cache.ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        for (let j = 0; j < trades.length; j++) {
-            const parsed = this.parseWsTrade(trades[j], market);
+        const length = trades.length;
+        for (let j = 0; j < length; j++) {
+            const index = length - j - 1;
+            const parsed = this.parseWsTrade(trades[index], market);
             stored.append(parsed);
         }
         const messageHash = 'trade' + ':' + symbol;
@@ -818,7 +823,7 @@ class apex extends apex$1 {
         const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256.sha256, 'base64');
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             // auth sign
@@ -939,6 +944,7 @@ class apex extends apex$1 {
             'recentlyTrade': this.handleTrades,
             'pong': this.handlePong,
             'auth': this.handleAuthenticate,
+            'ping': this.handlePing,
         };
         const exacMethod = this.safeValue(methods, topic);
         if (exacMethod !== undefined) {
@@ -961,11 +967,25 @@ class apex extends apex$1 {
         }
     }
     ping(client) {
-        const timeStamp = this.milliseconds().toString();
+        const timeStamp = this.milliseconds();
+        client.lastPong = timeStamp;
         return {
-            'args': [timeStamp],
+            'args': [timeStamp.toString()],
             'op': 'ping',
         };
+    }
+    async pong(client, message) {
+        //
+        //     {"op": "ping", "args": ["1761069137485"]}
+        //
+        const timeStamp = this.milliseconds();
+        try {
+            await client.send({ 'args': [timeStamp.toString()], 'op': 'pong' });
+        }
+        catch (e) {
+            const error = new errors.NetworkError(this.id + ' handlePing failed with error ' + this.json(e));
+            client.reset(error);
+        }
     }
     handlePong(client, message) {
         //
@@ -980,6 +1000,9 @@ class apex extends apex$1 {
         //
         client.lastPong = this.safeInteger(message, 'pong');
         return message;
+    }
+    handlePing(client, message) {
+        this.spawn(this.pong, client, message);
     }
     handleAccount(client, message) {
         const contents = this.safeDict(message, 'contents', {});
@@ -1040,4 +1063,4 @@ class apex extends apex$1 {
     }
 }
 
-module.exports = apex;
+exports["default"] = apex;

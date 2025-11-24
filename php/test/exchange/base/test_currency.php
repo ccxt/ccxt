@@ -50,8 +50,17 @@ function test_currency($exchange, $skipped_properties, $method, $entry) {
             $empty_allowed_for[] = 'precision';
         }
     }
-    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    //
     assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['code']);
+    // check if empty networks should be skipped
+    $networks = $exchange->safe_dict($entry, 'networks', array());
+    $network_keys = is_array($networks) ? array_keys($networks) : array();
+    $network_keys_length = count($network_keys);
+    if ($network_keys_length === 0 && (is_array($skipped_properties) && array_key_exists('skipCurrenciesWithoutNetworks', $skipped_properties))) {
+        return;
+    }
+    //
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
     //
     check_precision_accuracy($exchange, $skipped_properties, $method, $entry, 'precision');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'fee', '0');

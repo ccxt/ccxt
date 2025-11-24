@@ -643,7 +643,7 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
-                "url": "https://api-cloud-v2.bitmart.com/contract/private/position?symbol=LTCUSDT",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/position-v2?symbol=LTCUSDT",
                 "input": [
                     [
                         "LTC/USDT:USDT"

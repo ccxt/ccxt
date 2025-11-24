@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var whitebit$1 = require('../whitebit.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
@@ -7,7 +9,7 @@ var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class whitebit extends whitebit$1 {
+class whitebit extends whitebit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -829,7 +831,7 @@ class whitebit extends whitebit$1 {
         const url = this.urls['api']['ws'];
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future('authenticated');
+        const future = client.reusableFuture('authenticated');
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const authToken = await this.v4PrivatePostProfileWebsocketToken();
@@ -967,4 +969,4 @@ class whitebit extends whitebit$1 {
     }
 }
 
-module.exports = whitebit;
+exports["default"] = whitebit;

@@ -344,6 +344,7 @@ export default class defx extends Exchange {
                 'exact': {
                     '404': BadRequest,
                     'missing_auth_signature': AuthenticationError,
+                    'leverage_higher_than_capped_leverage': BadRequest,
                     'order_rejected': InvalidOrder,
                     'invalid_order_id': InvalidOrder,
                     'filter_lotsize_maxqty': InvalidOrder,
@@ -1171,7 +1172,8 @@ export default class defx extends Exchange {
         //
         const markPrice = this.safeNumber(contract, 'markPrice');
         const indexPrice = this.safeNumber(contract, 'indexPrice');
-        const fundingRate = this.safeNumber(contract, 'payoutFundingRate');
+        const fundingRateRaw = this.safeString(contract, 'payoutFundingRate');
+        const fundingRate = Precise.stringDiv(fundingRateRaw, '100');
         const fundingTime = this.safeInteger(contract, 'nextFundingPayout');
         return {
             'info': contract,
@@ -1182,7 +1184,7 @@ export default class defx extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': fundingRate,
+            'fundingRate': this.parseNumber(fundingRate),
             'fundingTimestamp': fundingTime,
             'fundingDatetime': this.iso8601(fundingTime),
             'nextFundingRate': undefined,
@@ -1492,7 +1494,7 @@ export default class defx extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

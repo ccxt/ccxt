@@ -885,6 +885,133 @@
                     }
                 }
             }
+        ],
+        "createOrder": [
+            {
+                "description": "trigger market order",
+                "method": "createOrder",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": "4",
+                        "positionSide": "short",
+                        "marginMode": "isolated"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "algoId": "61602159",
+                        "clientOrderId": null,
+                        "msg": null,
+                        "code": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "algoId": "61602159",
+                        "clientOrderId": null,
+                        "msg": null,
+                        "code": "0"
+                    },
+                    "id": "61602159",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ADA/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopLossTriggerPrice": null,
+                    "takeProfitTriggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null,
+                    "triggerPrice": null
+                }
+            },
+            {
+                "description": "tpsl market order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    10,
+                    null,
+                    {
+                        "clientOrderId": "84c4ac9afce249e0aef35631382928f6",
+                        "takeProfitPrice": 4000,
+                        "marginMode": "isolated",
+                        "reduceOnly": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "tpslId": "629711",
+                        "clientOrderId": "84c4ac9afce249e0aef35631382928f6",
+                        "msg": null,
+                        "code": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "tpslId": "629711",
+                        "clientOrderId": "84c4ac9afce249e0aef35631382928f6",
+                        "msg": null,
+                        "code": "0"
+                    },
+                    "id": "629711",
+                    "clientOrderId": "84c4ac9afce249e0aef35631382928f6",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopLossTriggerPrice": null,
+                    "takeProfitTriggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null,
+                    "triggerPrice": null
+                }
+            }
         ]
     }
 }

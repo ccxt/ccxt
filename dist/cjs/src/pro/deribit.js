@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var deribit$1 = require('../deribit.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class deribit extends deribit$1 {
+class deribit extends deribit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1039,7 +1041,8 @@ class deribit extends deribit$1 {
         if (future === undefined) {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
-            const signature = this.hmac(this.encode(timeString + '\n' + nonce + '\n'), this.encode(this.secret), sha256.sha256);
+            const lineBreak = "\n"; // eslint-disable-line quotes
+            const signature = this.hmac(this.encode(timeString + lineBreak + nonce + lineBreak), this.encode(this.secret), sha256.sha256);
             const request = {
                 'jsonrpc': '2.0',
                 'id': requestId,
@@ -1060,4 +1063,4 @@ class deribit extends deribit$1 {
     }
 }
 
-module.exports = deribit;
+exports["default"] = deribit;

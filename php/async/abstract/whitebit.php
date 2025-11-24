@@ -193,11 +193,11 @@ abstract class whitebit extends \ccxt\async\Exchange {
     public function v4_private_post_trade_account_executed_history($params = array()) {
         return $this->request('trade-account/executed-history', array('v4', 'private'), 'POST', $params, null, null, array());
     }
-    public function v4_private_post_trade_account_order($params = array()) {
-        return $this->request('trade-account/order', array('v4', 'private'), 'POST', $params, null, null, array());
-    }
     public function v4_private_post_trade_account_order_history($params = array()) {
         return $this->request('trade-account/order/history', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_trade_account_order($params = array()) {
+        return $this->request('trade-account/order', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4_private_post_order_collateral_limit($params = array()) {
         return $this->request('order/collateral/limit', array('v4', 'private'), 'POST', $params, null, null, array());
@@ -523,11 +523,11 @@ abstract class whitebit extends \ccxt\async\Exchange {
     public function v4PrivatePostTradeAccountExecutedHistory($params = array()) {
         return $this->request('trade-account/executed-history', array('v4', 'private'), 'POST', $params, null, null, array());
     }
-    public function v4PrivatePostTradeAccountOrder($params = array()) {
-        return $this->request('trade-account/order', array('v4', 'private'), 'POST', $params, null, null, array());
-    }
     public function v4PrivatePostTradeAccountOrderHistory($params = array()) {
         return $this->request('trade-account/order/history', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostTradeAccountOrder($params = array()) {
+        return $this->request('trade-account/order', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4PrivatePostOrderCollateralLimit($params = array()) {
         return $this->request('order/collateral/limit', array('v4', 'private'), 'POST', $params, null, null, array());

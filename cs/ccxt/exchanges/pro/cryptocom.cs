@@ -27,6 +27,7 @@ public partial class cryptocom : ccxt.cryptocom
                 { "createOrderWs", true },
                 { "cancelOrderWs", true },
                 { "cancelAllOrders", true },
+                { "editOrderWs", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -545,7 +546,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -821,7 +822,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1213,6 +1214,34 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watchPrivateRequest(messageHash, request);
     }
 
+    /**
+     * @method
+     * @name cryptocom#editOrderWs
+     * @description edit a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol of the order to edit
+     * @param {string} [type] not used by cryptocom editOrder
+     * @param {string} [side] not used by cryptocom editOrder
+     * @param {float} amount (mandatory) how much of the currency you want to trade in units of the base currency
+     * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        parameters = this.editOrderRequest(id, symbol, amount, price, parameters);
+        object request = new Dictionary<string, object>() {
+            { "method", "private/amend-order" },
+            { "params", parameters },
+        };
+        object messageHash = this.nonce();
+        return await this.watchPrivateRequest(messageHash, request);
+    }
+
     public virtual void handleOrder(WebSocketClient client, object message)
     {
         //
@@ -1505,6 +1534,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "public/heartbeat", this.handlePing },
             { "public/auth", this.handleAuthenticate },
             { "private/create-order", this.handleOrder },
+            { "private/amend-order", this.handleOrder },
             { "private/cancel-order", this.handleOrder },
             { "private/cancel-all-orders", this.handleCancelAllOrders },
             { "private/close-position", this.handleOrder },
@@ -1525,7 +1555,7 @@ public partial class cryptocom : ccxt.cryptocom
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

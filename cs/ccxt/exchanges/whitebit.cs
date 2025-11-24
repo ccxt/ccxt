@@ -36,7 +36,8 @@ public partial class whitebit : Exchange
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
-                { "editOrder", false },
+                { "editOrder", true },
+                { "fetchAccounts", true },
                 { "fetchBalance", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
@@ -56,12 +57,14 @@ public partial class whitebit : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
+                { "fetchFundingLimits", true },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchLedger", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -69,7 +72,9 @@ public partial class whitebit : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrders", true },
+                { "fetchOrder", true },
                 { "fetchOrderBook", true },
+                { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
                 { "fetchPositionHistory", true },
@@ -83,7 +88,10 @@ public partial class whitebit : Exchange
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", true },
+                { "fetchTradingLimits", true },
                 { "fetchTransactionFees", true },
+                { "fetchTransactions", true },
+                { "fetchWithdrawals", true },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
                 { "setLeverage", true },
@@ -149,7 +157,7 @@ public partial class whitebit : Exchange
                         { "get", new List<object>() {"assets", "collateral/markets", "fee", "orderbook/depth/{market}", "orderbook/{market}", "ticker", "trades/{market}", "time", "ping", "markets", "futures", "platform/status", "mining-pool"} },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "post", new List<object>() {"collateral-account/balance", "collateral-account/balance-summary", "collateral-account/positions/history", "collateral-account/leverage", "collateral-account/positions/open", "collateral-account/summary", "collateral-account/funding-history", "main-account/address", "main-account/balance", "main-account/create-new-address", "main-account/codes", "main-account/codes/apply", "main-account/codes/my", "main-account/codes/history", "main-account/fiat-deposit-url", "main-account/history", "main-account/withdraw", "main-account/withdraw-pay", "main-account/transfer", "main-account/smart/plans", "main-account/smart/investment", "main-account/smart/investment/close", "main-account/smart/investments", "main-account/fee", "main-account/smart/interest-payment-history", "trade-account/balance", "trade-account/executed-history", "trade-account/order", "trade-account/order/history", "order/collateral/limit", "order/collateral/market", "order/collateral/stop-limit", "order/collateral/trigger-market", "order/collateral/bulk", "order/new", "order/market", "order/stock_market", "order/stop_limit", "order/stop_market", "order/cancel", "order/cancel/all", "order/kill-switch", "order/kill-switch/status", "order/bulk", "order/modify", "order/conditional-cancel", "orders", "oco-orders", "order/collateral/oco", "order/oco-cancel", "order/oto-cancel", "profile/websocket_token", "convert/estimate", "convert/confirm", "convert/history", "sub-account/create", "sub-account/delete", "sub-account/edit", "sub-account/list", "sub-account/transfer", "sub-account/block", "sub-account/unblock", "sub-account/balances", "sub-account/transfer/history", "sub-account/api-key/create", "sub-account/api-key/edit", "sub-account/api-key/delete", "sub-account/api-key/list", "sub-account/api-key/reset", "sub-account/api-key/ip-address/list", "sub-account/api-key/ip-address/create", "sub-account/api-key/ip-address/delete", "mining/rewards", "market/fee", "conditional-orders"} },
+                        { "post", new List<object>() {"collateral-account/balance", "collateral-account/balance-summary", "collateral-account/positions/history", "collateral-account/leverage", "collateral-account/positions/open", "collateral-account/summary", "collateral-account/funding-history", "main-account/address", "main-account/balance", "main-account/create-new-address", "main-account/codes", "main-account/codes/apply", "main-account/codes/my", "main-account/codes/history", "main-account/fiat-deposit-url", "main-account/history", "main-account/withdraw", "main-account/withdraw-pay", "main-account/transfer", "main-account/smart/plans", "main-account/smart/investment", "main-account/smart/investment/close", "main-account/smart/investments", "main-account/fee", "main-account/smart/interest-payment-history", "trade-account/balance", "trade-account/executed-history", "trade-account/order/history", "trade-account/order", "order/collateral/limit", "order/collateral/market", "order/collateral/stop-limit", "order/collateral/trigger-market", "order/collateral/bulk", "order/new", "order/market", "order/stock_market", "order/stop_limit", "order/stop_market", "order/cancel", "order/cancel/all", "order/kill-switch", "order/kill-switch/status", "order/bulk", "order/modify", "order/conditional-cancel", "orders", "oco-orders", "order/collateral/oco", "order/oco-cancel", "order/oto-cancel", "profile/websocket_token", "convert/estimate", "convert/confirm", "convert/history", "sub-account/create", "sub-account/delete", "sub-account/edit", "sub-account/list", "sub-account/transfer", "sub-account/block", "sub-account/unblock", "sub-account/balances", "sub-account/transfer/history", "sub-account/api-key/create", "sub-account/api-key/edit", "sub-account/api-key/delete", "sub-account/api-key/list", "sub-account/api-key/reset", "sub-account/api-key/ip-address/list", "sub-account/api-key/ip-address/create", "sub-account/api-key/ip-address/delete", "mining/rewards", "market/fee", "conditional-orders"} },
                     } },
                 } },
             } },
@@ -214,7 +222,14 @@ public partial class whitebit : Exchange
                         { "untilDays", null },
                         { "symbolRequired", false },
                     } },
-                    { "fetchOrder", null },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "checkActive", true },
+                        { "checkExecuted", true },
+                        { "symbolRequired", false },
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
@@ -222,7 +237,15 @@ public partial class whitebit : Exchange
                         { "trailing", false },
                         { "symbolRequired", false },
                     } },
-                    { "fetchOrders", null },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
@@ -235,6 +258,13 @@ public partial class whitebit : Exchange
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1440 },
+                    } },
+                    { "fetchWithdrawals", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", false },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
@@ -501,25 +531,53 @@ public partial class whitebit : Exchange
         {
             object id = getValue(ids, i);
             object currency = getValue(response, id);
-            // breaks down in Python due to utf8 encoding issues on the exchange side
-            // const name = this.safeString (currency, 'name');
-            object canDeposit = this.safeBool(currency, "can_deposit", true);
-            object canWithdraw = this.safeBool(currency, "can_withdraw", true);
-            object active = isTrue(canDeposit) && isTrue(canWithdraw);
+            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
             object code = this.safeCurrencyCode(id);
             object hasProvider = (inOp(currency, "providers"));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object networks = new Dictionary<string, object>() {};
+            object rawNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+            object depositsNetworks = this.safeList(rawNetworks, "deposits", new List<object>() {});
+            object withdrawsNetworks = this.safeList(rawNetworks, "withdraws", new List<object>() {});
+            object networkLimits = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
+            object depositLimits = this.safeDict(networkLimits, "deposit", new Dictionary<string, object>() {});
+            object withdrawLimits = this.safeDict(networkLimits, "withdraw", new Dictionary<string, object>() {});
+            object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+            for (object j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
+            {
+                object networkId = getValue(allNetworks, j);
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", this.inArray(networkId, depositsNetworks) },
+                    { "withdraw", this.inArray(networkId, withdrawsNetworks) },
+                    { "fee", null },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(depositLimits, "min", null) },
+                            { "max", this.safeNumber(depositLimits, "max", null) },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(withdrawLimits, "min", null) },
+                            { "max", this.safeNumber(withdrawLimits, "max", null) },
+                        } },
+                    } },
+                };
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "name", null },
-                { "active", active },
-                { "deposit", canDeposit },
-                { "withdraw", canWithdraw },
+                { "active", null },
+                { "deposit", this.safeBool(currency, "can_deposit") },
+                { "withdraw", this.safeBool(currency, "can_withdraw") },
                 { "fee", null },
                 { "networks", null },
                 { "type", ((bool) isTrue(hasProvider)) ? "fiat" : "crypto" },
-                { "precision", null },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "currency_precision"))) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
@@ -529,8 +587,12 @@ public partial class whitebit : Exchange
                         { "min", this.safeNumber(currency, "min_withdraw") },
                         { "max", this.safeNumber(currency, "max_withdraw") },
                     } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(currency, "min_deposit") },
+                        { "max", this.safeNumber(currency, "max_deposit") },
+                    } },
                 } },
-            };
+            });
         }
         return result;
     }
@@ -809,6 +871,286 @@ public partial class whitebit : Exchange
 
     /**
      * @method
+     * @name whitebit#fetchTradingLimits
+     * @description fetch the trading limits for a market
+     * @see https://docs.whitebit.com/public/http-v4/#market-info
+     * @param {string[]|undefined} symbols unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/#/?id=trading-limits-structure}
+     */
+    public async override Task<object> fetchTradingLimits(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        //
+        // Trading limits are derived from market information already loaded by loadMarkets()
+        // Market structure includes:
+        //     {
+        //         "id": "BTC_USDT",                    // Market ID
+        //         "symbol": "BTC/USDT",                // Unified symbol
+        //         "base": "BTC",                       // Base currency
+        //         "quote": "USDT",                     // Quote currency
+        //         "active": true,                      // Market active status
+        //         "type": "spot",                      // Market type
+        //         "spot": true,                        // Spot trading enabled
+        //         "margin": false,                     // Margin trading enabled
+        //         "future": false,                     // Futures trading enabled
+        //         "option": false,                     // Options trading enabled
+        //         "contract": false,                   // Contract trading enabled
+        //         "settle": undefined,                 // Settlement currency
+        //         "settleId": undefined,               // Settlement currency ID
+        //         "contractSize": undefined,           // Contract size
+        //         "linear": undefined,                 // Linear contract
+        //         "inverse": undefined,                // Inverse contract
+        //         "limits": {                          // Trading limits
+        //             "amount": {                      // Amount limits
+        //                 "min": 0.00001,              // Minimum amount
+        //                 "max": 1000000               // Maximum amount
+        //             },
+        //             "price": {                       // Price limits
+        //                 "min": 0.01,                 // Minimum price
+        //                 "max": 1000000               // Maximum price
+        //             },
+        //             "cost": {                        // Cost limits
+        //                 "min": 5.0,                  // Minimum cost
+        //                 "max": 10000000              // Maximum cost
+        //             }
+        //         },
+        //         "precision": {                       // Precision settings
+        //             "amount": 5,                     // Amount precision
+        //             "price": 2                       // Price precision
+        //         },
+        //         "taker": 0.001,                      // Taker fee
+        //         "maker": 0.001,                      // Maker fee
+        //         "percentage": true,                  // Fee percentage
+        //         "tierBased": false                   // Tier-based fees
+        //     }
+        //
+        object result = new Dictionary<string, object>() {};
+        // Process all markets from the loaded markets cache
+        object marketIds = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object market = getValue(this.markets, marketId);
+            if (isTrue(!isTrue(market) || !isTrue(getValue(market, "symbol"))))
+            {
+                continue;
+            }
+            object symbol = getValue(market, "symbol");
+            // Filter by symbols if specified
+            if (isTrue(symbols))
+            {
+                object symbolFound = false;
+                for (object j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
+                {
+                    if (isTrue(isEqual(getValue(symbols, j), symbol)))
+                    {
+                        symbolFound = true;
+                        break;
+                    }
+                }
+                if (!isTrue(symbolFound))
+                {
+                    continue;
+                }
+            }
+            // Extract trading limits
+            object limits = this.safeDict(market, "limits");
+            object amountLimits = this.safeDict(limits, "amount");
+            object priceLimits = this.safeDict(limits, "price");
+            object costLimits = this.safeDict(limits, "cost");
+            // Validate that all required limits exist and are valid numbers
+            object hasAmountLimits = isTrue(isTrue(amountLimits) && isTrue(!isEqual(this.safeNumber(amountLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(amountLimits, "max"), null));
+            object hasPriceLimits = isTrue(isTrue(priceLimits) && isTrue(!isEqual(this.safeNumber(priceLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(priceLimits, "max"), null));
+            object hasCostLimits = isTrue(isTrue(costLimits) && isTrue(!isEqual(this.safeNumber(costLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(costLimits, "max"), null));
+            if (isTrue(isTrue(isTrue(hasAmountLimits) && isTrue(hasPriceLimits)) && isTrue(hasCostLimits)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
+                    { "info", market },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(amountLimits, "min") },
+                            { "max", this.safeNumber(amountLimits, "max") },
+                        } },
+                        { "price", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(priceLimits, "min") },
+                            { "max", this.safeNumber(priceLimits, "max") },
+                        } },
+                        { "cost", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(costLimits, "min") },
+                            { "max", this.safeNumber(costLimits, "max") },
+                        } },
+                    } },
+                };
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchFundingLimits
+     * @description fetch the deposit and withdrawal limits for a currency
+     * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+     * @see https://docs.whitebit.com/public/http-v4/#fee
+     * @param {string[]|undefined} codes unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/#/?id=funding-limits-structure}
+     */
+    public async virtual Task<object> fetchFundingLimits(object codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        // Fetch both currencies and fees data for comprehensive funding limits
+        var currenciesDatafeesDataVariable = await promiseAll(new List<object> {this.fetchCurrencies(), this.v4PublicGetFee(parameters)});
+        var currenciesData = ((IList<object>) currenciesDatafeesDataVariable)[0];
+        var feesData = ((IList<object>) currenciesDatafeesDataVariable)[1];
+        //
+        // Currencies response structure (from fetchCurrencies):
+        //     {
+        //         "BTC": {
+        //             "id": "BTC",                          // Currency ID
+        //             "code": "BTC",                        // Currency code
+        //             "name": "Bitcoin",                    // Currency name
+        //             "active": true,                       // Currency active status
+        //             "type": "crypto",                     // Currency type
+        //             "precision": 8,                       // Currency precision
+        //             "limits": {                           // Currency limits
+        //                 "deposit": {                      // Deposit limits
+        //                     "min": 0.00001,               // Minimum deposit
+        //                     "max": 1000000                // Maximum deposit
+        //                 },
+        //                 "withdraw": {                     // Withdrawal limits
+        //                     "min": 0.00001,               // Minimum withdrawal
+        //                     "max": 1000000                // Maximum withdrawal
+        //                 }
+        //             },
+        //             "networks": {                         // Network-specific limits
+        //                 "BTC": {
+        //                     "limits": {
+        //                         "deposit": { "min": "0.001" },
+        //                         "withdraw": { "min": "0.002" }
+        //                     }
+        //                 }
+        //             },
+        //             "info": { ... }                       // Original API response
+        //         }
+        //     }
+        //
+        // Fees response structure (from /api/v4/public/fee):
+        //     {
+        //         "USDT (ERC20)": {
+        //             "ticker": "USDT",
+        //             "name": "Tether US",
+        //             "deposit": {
+        //                 "min_amount": "0.0005",
+        //                 "max_amount": "0.1",
+        //                 "fixed": "0.0005",
+        //                 "flex": {
+        //                     "min_fee": "100",
+        //                     "max_fee": "1000",
+        //                     "percent": "10"
+        //                 }
+        //             },
+        //             "withdraw": {
+        //                 "min_amount": "0.001",
+        //                 "max_amount": "0",
+        //                 "fixed": null,
+        //                 "flex": null
+        //             }
+        //         }
+        //     }
+        //
+        object result = new Dictionary<string, object>() {};
+        object currencyKeys = new List<object>(((IDictionary<string,object>)currenciesData).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(currencyKeys)); postFixIncrement(ref i))
+        {
+            object code = getValue(currencyKeys, i);
+            object currency = getValue(currenciesData, code);
+            if (!isTrue(currency))
+            {
+                continue;
+            }
+            if (isTrue(isTrue(!isEqual(codes, null)) && !isTrue(this.inArray(code, codes))))
+            {
+                continue;
+            }
+            // Find corresponding fee data for this currency
+            object feeData = null;
+            object feeKeys = new List<object>(((IDictionary<string,object>)feesData).Keys);
+            for (object j = 0; isLessThan(j, getArrayLength(feeKeys)); postFixIncrement(ref j))
+            {
+                object feeKey = getValue(feeKeys, j);
+                object fee = getValue(feesData, feeKey);
+                if (isTrue(isTrue(fee) && isTrue(isEqual(getValue(fee, "ticker"), code))))
+                {
+                    feeData = fee;
+                    break;
+                }
+            }
+            // Build comprehensive funding limits
+            object limits = new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", getValue(getValue(getValue(currency, "limits"), "deposit"), "min") },
+                    { "max", getValue(getValue(getValue(currency, "limits"), "deposit"), "max") },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", getValue(getValue(getValue(currency, "limits"), "withdraw"), "min") },
+                    { "max", getValue(getValue(getValue(currency, "limits"), "withdraw"), "max") },
+                } },
+            };
+            // Add fee information if available
+            if (isTrue(feeData))
+            {
+                object depositFee = getValue(feeData, "deposit");
+                object withdrawFee = getValue(feeData, "withdraw");
+                if (isTrue(depositFee))
+                {
+                    object depositFeeData = new Dictionary<string, object>() {
+                        { "fixed", this.safeNumber(depositFee, "fixed") },
+                    };
+                    if (isTrue(getValue(depositFee, "flex")))
+                    {
+                        ((IDictionary<string,object>)depositFeeData)["flex"] = new Dictionary<string, object>() {
+                            { "min", this.safeNumber(getValue(depositFee, "flex"), "min_fee") },
+                            { "max", this.safeNumber(getValue(depositFee, "flex"), "max_fee") },
+                            { "percent", this.safeNumber(getValue(depositFee, "flex"), "percent") },
+                        };
+                    }
+                    ((IDictionary<string,object>)getValue(limits, "deposit"))["fee"] = depositFeeData;
+                }
+                if (isTrue(withdrawFee))
+                {
+                    object withdrawFeeData = new Dictionary<string, object>() {
+                        { "fixed", this.safeNumber(withdrawFee, "fixed") },
+                    };
+                    if (isTrue(getValue(withdrawFee, "flex")))
+                    {
+                        ((IDictionary<string,object>)withdrawFeeData)["flex"] = new Dictionary<string, object>() {
+                            { "min", this.safeNumber(getValue(withdrawFee, "flex"), "min_fee") },
+                            { "max", this.safeNumber(getValue(withdrawFee, "flex"), "max_fee") },
+                            { "percent", this.safeNumber(getValue(withdrawFee, "flex"), "percent") },
+                        };
+                    }
+                    ((IDictionary<string,object>)getValue(limits, "withdraw"))["fee"] = withdrawFeeData;
+                }
+            }
+            // Add network-specific limits if available
+            if (isTrue(getValue(currency, "networks")))
+            {
+                ((IDictionary<string,object>)limits)["networks"] = getValue(currency, "networks");
+            }
+            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                { "info", currency },
+                { "limits", limits },
+            };
+        }
+        return result;
+    }
+
+    /**
+     * @method
      * @name whitebit#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://docs.whitebit.com/public/http-v4/#market-activity
@@ -927,6 +1269,95 @@ public partial class whitebit : Exchange
             { "quoteVolume", this.safeStringN(ticker, new List<object>() {"quote_volume", "deal", "quoteVolume24h"}) },
             { "info", ticker },
         }, market);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchOrder
+     * @description fetches information on an order by the id
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.checkActive] whether to check active orders (default: true)
+     * @param {boolean} [params.checkExecuted] whether to check executed orders (default: true)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        // Extract control parameters from params
+        object checkActive = this.safeBool(parameters, "checkActive", true);
+        object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+        object request = new Dictionary<string, object>() {
+            { "orderId", id },
+        };
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
+        // Try active orders first (if enabled)
+        if (isTrue(checkActive))
+        {
+            try
+            {
+                object response = await this.v4PrivatePostOrders(this.extend(request, parameters));
+                // Search for order in active orders response (array format)
+                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                {
+                    object order = getValue(response, i);
+                    object orderId = this.safeString(order, "orderId");
+                    if (isTrue(isEqual(orderId, id)))
+                    {
+                        object marketId = this.safeString(order, "market");
+                        object marketNew = this.safeMarket(marketId, null, "_");
+                        return this.parseOrder(order, marketNew);
+                    }
+                }
+            } catch(Exception error)
+            {
+                if (!isTrue((error is OrderNotFound)))
+                {
+                    throw error;
+                }
+            }
+        }
+        // Try executed orders (if enabled)
+        if (isTrue(checkExecuted))
+        {
+            try
+            {
+                object response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters));
+                // Search for order in executed orders response (object format)
+                object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+                for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+                {
+                    object marketId = getValue(marketIds, i);
+                    object marketNew = this.safeMarket(marketId, null, "_");
+                    object orders = getValue(response, marketId);
+                    for (object j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
+                    {
+                        object order = getValue(orders, j);
+                        object orderId = this.safeString(order, "id");
+                        if (isTrue(isEqual(orderId, id)))
+                        {
+                            return this.parseOrder(order, marketNew);
+                        }
+                    }
+                }
+            } catch(Exception error)
+            {
+                if (!isTrue((error is OrderNotFound)))
+                {
+                    throw error;
+                }
+            }
+        }
+        throw new OrderNotFound ((string)add(add(this.id, " fetchOrder() order not found: "), id)) ;
     }
 
     /**
@@ -1532,59 +1963,61 @@ public partial class whitebit : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(id, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a id argument")) ;
-        }
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "orderId", id },
             { "market", getValue(market, "id") },
         };
-        object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
+        // Handle clientOrderId vs orderId (clientOrderId takes priority)
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
-            // Update clientOrderId of the order
             ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        object isLimitOrder = isEqual(type, "limit");
-        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
+        // Handle amount vs total parameter based on order type and side
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activationPrice"});
         object isStopOrder = (!isEqual(triggerPrice, null));
-        parameters = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "triggerPrice", "stopPrice"});
+        // Handle activation price for stop orders
         if (isTrue(isStopOrder))
         {
             ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, triggerPrice);
+        }
+        object isLimitOrder = isEqual(type, "limit");
+        object total = this.safeNumber(parameters, "total");
+        if (isTrue(!isEqual(total, null)))
+        {
+            ((IDictionary<string,object>)request)["total"] = this.amountToPrecision(symbol, total);
+        } else if (isTrue(!isEqual(amount, null)))
+        {
             if (isTrue(isLimitOrder))
             {
-                // stop limit order
+                // Limit orders always use amount parameter
                 ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
-                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            } else if (isTrue(isTrue(isEqual(type, "market")) && isTrue(isEqual(side, "buy"))))
+            {
+                // Market buy orders use total parameter
+                ((IDictionary<string,object>)request)["total"] = this.amountToPrecision(symbol, amount);
             } else
             {
-                // stop market order
-                if (isTrue(isEqual(side, "buy")))
-                {
-                    // Use total parameter instead of amount for modify buy stop market order
-                    ((IDictionary<string,object>)request)["total"] = this.amountToPrecision(symbol, amount);
-                } else
-                {
-                    ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
-                }
-            }
-        } else
-        {
-            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
-            if (isTrue(isLimitOrder))
-            {
-                // limit order
-                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                // Market sell orders use amount parameter
+                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
             }
         }
+        // Handle price parameter for limit orders
+        if (isTrue(!isEqual(price, null)))
+        {
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+        }
+        // Ensure at least one modifiable parameter is provided
+        object hasModifiableParam = isTrue(isTrue(isTrue((!isEqual(amount, null))) || isTrue((!isEqual(price, null)))) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(total, null)));
+        if (!isTrue(hasModifiableParam))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
+        }
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total"});
         object response = await this.v4PrivatePostOrderModify(this.extend(request, parameters));
         return this.parseOrder(response);
     }
@@ -1688,6 +2121,37 @@ public partial class whitebit : Exchange
         // []
         //
         return this.parseOrders(response, market);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchOrders
+     * @description fetches information on multiple orders made by the user (combines open and closed orders)
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        // Fetch both open and closed orders in parallel
+        var openOrdersclosedOrdersVariable = await promiseAll(new List<object> {this.fetchOpenOrders(symbol, since, limit, parameters), this.fetchClosedOrders(symbol, since, limit, parameters)});
+        var openOrders = ((IList<object>) openOrdersclosedOrdersVariable)[0];
+        var closedOrders = ((IList<object>) openOrdersclosedOrdersVariable)[1];
+        object allOrders = this.arrayConcat(openOrders, closedOrders);
+        // Sort by timestamp (most recent first)
+        object sortedOrders = this.sortBy(allOrders, "timestamp", true);
+        // Apply limit if specified (since and symbol filtering already handled by individual methods)
+        if (isTrue(isTrue(!isEqual(limit, null)) && isTrue(isGreaterThan(getArrayLength(sortedOrders), limit))))
+        {
+            return slice(sortedOrders, 0, limit);
+        }
+        return sortedOrders;
     }
 
     /**
@@ -2110,6 +2574,123 @@ public partial class whitebit : Exchange
 
     /**
      * @method
+     * @name whitebit#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
+        }
+        if (isTrue(isTrue(isEqual(limit, null)) || isTrue(isGreaterThan(limit, 100))))
+        {
+            limit = 100;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
+        ((IDictionary<string,object>)request)["transactionMethod"] = "2";
+        object response = await this.v4PrivatePostMainAccountHistory(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "id": 123456789,                    // Transaction ID
+        //             "method": "2",                      // Method: 1=deposit, 2=withdrawal (filtered server-side)
+        //             "ticker": "BTC",                    // Currency ticker
+        //             "amount": "0.001",                  // Transaction amount
+        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Withdrawal address
+        //             "memo": "",                         // Memo/tag (if required)
+        //             "network": "BTC",                   // Network name
+        //             "fee": "0.0005",                    // Transaction fee
+        //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
+        //             "timestamp": 1641051917,            // Transaction timestamp
+        //             "txid": "abc123def456..."           // Transaction hash
+        //         },
+        //         { ... }                                 // More withdrawal transactions
+        //     ]
+        //
+        return this.parseTransactions(response, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchTransactions
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch transactions for
+     * @param {int} [limit] the maximum number of transactions structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    public async override Task<object> fetchTransactions(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
+        }
+        if (isTrue(isTrue(isEqual(limit, null)) || isTrue(isGreaterThan(limit, 100))))
+        {
+            limit = 100;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
+        object response = await this.v4PrivatePostMainAccountHistory(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "id": 123456789,                    // Transaction ID
+        //             "method": "1",                      // Method: 1=deposit, 2=withdrawal
+        //             "ticker": "BTC",                    // Currency ticker
+        //             "amount": "0.001",                  // Transaction amount
+        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
+        //             "memo": "",                         // Memo/tag (if required)
+        //             "network": "BTC",                   // Network name
+        //             "fee": "0.0005",                    // Transaction fee
+        //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
+        //             "timestamp": 1641051917,            // Transaction timestamp
+        //             "txid": "abc123def456..."           // Transaction hash
+        //         },
+        //         { ... }                                 // More transactions (deposits and withdrawals)
+        //     ]
+        //
+        return this.parseTransactions(response, currency, since, limit);
+    }
+
+    /**
+     * @method
      * @name whitebit#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-address
@@ -2248,6 +2829,53 @@ public partial class whitebit : Exchange
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "memo") },
         };
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://docs.whitebit.com/private/http-main-v4/#sub-account-list
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     */
+    public async override Task<object> fetchAccounts(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object accounts = new List<object>() {};
+        // Fetch sub-accounts
+        //
+        //     [
+        //         {
+        //             "id": "12345",
+        //             "name": "SubAccount1",
+        //             "status": "active",
+        //             "permissions": ["trade", "withdraw"]
+        //         }
+        //     ]
+        //
+        object subAccounts = await this.v4PrivatePostSubAccountList(parameters);
+        if (isTrue(isTrue(subAccounts) && isTrue(((subAccounts is IList<object>) || (subAccounts.GetType().IsGenericType && subAccounts.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(subAccounts)); postFixIncrement(ref i))
+            {
+                object subAccount = this.safeValue(subAccounts, i);
+                object accountId = this.safeString(subAccount, "id");
+                object accountName = this.safeString(subAccount, "name");
+                if (isTrue(accountId))
+                {
+                    ((IList<object>)accounts).Add(new Dictionary<string, object>() {
+                        { "id", accountId },
+                        { "type", "subaccount" },
+                        { "name", isTrue(accountName) || isTrue(add("SubAccount ", accountId)) },
+                        { "code", null },
+                        { "info", subAccount },
+                    });
+                }
+            }
+        }
+        return accounts;
     }
 
     /**
@@ -3490,6 +4118,11 @@ public partial class whitebit : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         object version = this.safeValue(((object)api), 0);
         object accessibility = this.safeValue(((object)api), 1);
+        if (isTrue(isEqual(headers, null)))
+        {
+            headers = new Dictionary<string, object>() {};
+        }
+        ((IDictionary<string,object>)headers)["User-Agent"] = add(add(add("ccxt/", this.id), "-"), this.version);
         object pathWithParams = add("/", this.implodeParams(path, parameters));
         object url = add(getValue(getValue(getValue(this.urls, "api"), version), accessibility), pathWithParams);
         if (isTrue(isEqual(accessibility, "public")))

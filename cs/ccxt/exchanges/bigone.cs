@@ -17,9 +17,12 @@ public partial class bigone : Exchange
                 { "CORS", null },
                 { "spot", true },
                 { "margin", false },
-                { "swap", null },
+                { "swap", true },
                 { "future", null },
                 { "option", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "createMarketBuyOrderWithCost", true },
@@ -30,8 +33,17 @@ public partial class bigone : Exchange
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistories", false },
+                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
+                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
@@ -41,10 +53,15 @@ public partial class bigone : Exchange
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
+                { "fetchIsolatedBorrowRate", false },
+                { "fetchIsolatedBorrowRates", false },
                 { "fetchMarkets", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -55,7 +72,10 @@ public partial class bigone : Exchange
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", false },
                 { "fetchTransactionFees", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "transfer", true },
                 { "withdraw", true },
             } },
@@ -364,7 +384,7 @@ public partial class bigone : Exchange
         object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGetV3Assets", true);
         if (isTrue(isEqual(data, null)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         //
         // {
@@ -418,12 +438,9 @@ public partial class bigone : Exchange
             object id = this.safeString(currency, "symbol");
             object code = this.safeCurrencyCode(id);
             object name = this.safeString(currency, "name");
-            object type = ((bool) isTrue(this.safeBool(currency, "is_fiat"))) ? "fiat" : "crypto";
             object networks = new Dictionary<string, object>() {};
             object chains = this.safeList(currency, "binding_gateways", new List<object>() {});
             object currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, "withdrawal_scale", "scale"));
-            object currencyDepositEnabled = null;
-            object currencyWithdrawEnabled = null;
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
@@ -431,7 +448,6 @@ public partial class bigone : Exchange
                 object networkCode = this.networkIdToCode(networkId);
                 object deposit = this.safeBool(chain, "is_deposit_enabled");
                 object withdraw = this.safeBool(chain, "is_withdrawal_enabled");
-                object isActive = (isTrue(deposit) && isTrue(withdraw));
                 object minDepositAmount = this.safeString(chain, "min_deposit_amount");
                 object minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
                 object withdrawalFee = this.safeString(chain, "withdrawal_fee");
@@ -442,7 +458,7 @@ public partial class bigone : Exchange
                     { "margin", null },
                     { "deposit", deposit },
                     { "withdraw", withdraw },
-                    { "active", isActive },
+                    { "active", null },
                     { "fee", this.parseNumber(withdrawalFee) },
                     { "precision", this.parseNumber(precision) },
                     { "limits", new Dictionary<string, object>() {
@@ -457,20 +473,34 @@ public partial class bigone : Exchange
                     } },
                     { "info", chain },
                 };
-                // fill global values
-                currencyDepositEnabled = ((bool) isTrue(isTrue((isEqual(currencyDepositEnabled, null))) || isTrue(deposit))) ? deposit : currencyDepositEnabled;
-                currencyWithdrawEnabled = ((bool) isTrue(isTrue((isEqual(currencyWithdrawEnabled, null))) || isTrue(withdraw))) ? withdraw : currencyWithdrawEnabled;
-                currencyMaxPrecision = ((bool) isTrue(isTrue((isEqual(currencyMaxPrecision, null))) || isTrue(Precise.stringGt(currencyMaxPrecision, precision)))) ? precision : currencyMaxPrecision;
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object chainLength = getArrayLength(chains);
+            object type = null;
+            if (isTrue(this.safeBool(currency, "is_fiat")))
+            {
+                type = "fiat";
+            } else if (isTrue(isEqual(chainLength, 0)))
+            {
+                if (isTrue(this.isLeveragedCurrency(id)))
+                {
+                    type = "leveraged";
+                } else
+                {
+                    type = "other";
+                }
+            } else
+            {
+                type = "crypto";
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "name", name },
                 { "type", type },
                 { "active", null },
-                { "deposit", currencyDepositEnabled },
-                { "withdraw", currencyWithdrawEnabled },
+                { "deposit", null },
+                { "withdraw", null },
                 { "fee", null },
                 { "precision", this.parseNumber(currencyMaxPrecision) },
                 { "limits", new Dictionary<string, object>() {
@@ -484,7 +514,7 @@ public partial class bigone : Exchange
                     } },
                 } },
                 { "networks", networks },
-            };
+            });
         }
         return result;
     }
@@ -1198,7 +1228,7 @@ public partial class bigone : Exchange
         object market = this.market(symbol);
         if (isTrue(getValue(market, "contract")))
         {
-            throw new BadRequest ((string)add(this.id, " fetchTrades () can only fetch trades for spot markets")) ;
+            throw new NotSupported ((string)add(this.id, " fetchTrades () can only fetch trades for spot markets")) ;
         }
         object request = new Dictionary<string, object>() {
             { "asset_pair_name", getValue(market, "id") },
@@ -1265,7 +1295,7 @@ public partial class bigone : Exchange
         object market = this.market(symbol);
         if (isTrue(getValue(market, "contract")))
         {
-            throw new BadRequest ((string)add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
+            throw new NotSupported ((string)add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
         }
         object until = this.safeInteger(parameters, "until");
         object untilIsDefined = (!isEqual(until, null));

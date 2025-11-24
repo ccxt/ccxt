@@ -1,5 +1,5 @@
 import apexRest from '../apex.js';
-import type { Int, Trade, OrderBook, Ticker, Strings, Tickers } from '../base/types.js';
+import type { Int, Trade, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { OHLCV, Order, Position, Str } from '../base/types.js';
 export default class apex extends apexRest {
@@ -147,13 +147,15 @@ export default class apex extends apexRest {
     loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
     handlePositions(client: any, lists: any): void;
     authenticate(url: any, params?: {}): Promise<any>;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {
         args: string[];
         op: string;
     };
+    pong(client: any, message: any): Promise<void>;
     handlePong(client: Client, message: any): any;
+    handlePing(client: Client, message: any): void;
     handleAccount(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;

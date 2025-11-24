@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var derive$1 = require('../derive.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class derive extends derive$1 {
+class derive extends derive$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -421,7 +423,7 @@ class derive extends derive$1 {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const requestId = this.requestId(url);
@@ -749,4 +751,4 @@ class derive extends derive$1 {
     }
 }
 
-module.exports = derive;
+exports["default"] = derive;

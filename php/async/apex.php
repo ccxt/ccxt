@@ -35,6 +35,7 @@ class apex extends Exchange {
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => false,
                 'cancelOrder' => true,
@@ -53,10 +54,14 @@ class apex extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledAndClosedOrders' => false,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrders' => false,
@@ -72,6 +77,7 @@ class apex extends Exchange {
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -90,6 +96,8 @@ class apex extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -107,6 +115,7 @@ class apex extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransfer' => true,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
@@ -505,11 +514,6 @@ class apex extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $name = $this->safe_string($currency, 'displayName');
                 $networks = array();
-                $minPrecision = null;
-                $minWithdrawFeeString = null;
-                $minWithdrawString = null;
-                $deposit = false;
-                $withdraw = false;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $tokens = $this->safe_list($chain, 'tokens', array());
@@ -519,31 +523,22 @@ class apex extends Exchange {
                         if ($tokenName === $currencyId) {
                             $networkId = $this->safe_string($chain, 'chainId');
                             $networkCode = $this->network_id_to_code($networkId);
-                            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
-                            $minPrecision = ($minPrecision === null) ? $precision : min ($minPrecision, $precision);
-                            $depositAllowed = !$this->safe_bool($chain, 'stopDeposit');
-                            $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
-                            $withdrawAllowed = $this->safe_bool($token, 'withdrawEnable');
-                            $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
-                            $minWithdrawFeeString = $this->safe_string($token, 'minFee');
-                            $minWithdrawString = $this->safe_string($token, 'minWithdraw');
-                            $minNetworkDepositString = $this->safe_string($chain, 'depositMin');
                             $networks[$networkCode] = array(
                                 'info' => $chain,
                                 'id' => $networkId,
                                 'network' => $networkCode,
-                                'active' => $depositAllowed && $withdrawAllowed,
-                                'deposit' => $depositAllowed,
-                                'withdraw' => $withdrawAllowed,
-                                'fee' => $this->parse_number($minWithdrawFeeString),
-                                'precision' => $precision,
+                                'active' => null,
+                                'deposit' => !$this->safe_bool($chain, 'depositDisable'),
+                                'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
+                                'fee' => $this->safe_number($token, 'minFee'),
+                                'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
                                 'limits' => array(
                                     'withdraw' => array(
-                                        'min' => $this->parse_number($minWithdrawString),
+                                        'min' => $this->safe_number($token, 'minWithdraw'),
                                         'max' => null,
                                     ),
                                     'deposit' => array(
-                                        'min' => $this->parse_number($minNetworkDepositString),
+                                        'min' => $this->safe_number($chain, 'minDeposit'),
                                         'max' => null,
                                     ),
                                 ),
@@ -551,24 +546,28 @@ class apex extends Exchange {
                         }
                     }
                 }
-                $result[$code] = array(
+                $networkKeys = is_array($networks) ? array_keys($networks) : array();
+                $networksLength = count($networkKeys);
+                $emptyChains = $networksLength === 0; // non-functional coins
+                $valueForEmpty = $emptyChains ? false : null;
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $currency,
                     'code' => $code,
                     'id' => $currencyId,
                     'type' => 'crypto',
                     'name' => $name,
-                    'active' => $deposit && $withdraw,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => $this->parse_number($minWithdrawFeeString),
-                    'precision' => $minPrecision,
+                    'active' => null,
+                    'deposit' => $valueForEmpty,
+                    'withdraw' => $valueForEmpty,
+                    'fee' => null,
+                    'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->parse_number($minWithdrawString),
+                            'min' => null,
                             'max' => null,
                         ),
                         'deposit' => array(
@@ -577,7 +576,7 @@ class apex extends Exchange {
                         ),
                     ),
                     'networks' => $networks,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -818,7 +817,7 @@ class apex extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -843,9 +842,9 @@ class apex extends Exchange {
                 $limit = 200; // default is 200 when requested with `$since`
             }
             $request['limit'] = $limit; // max 200, default 200
-            list($request, $params) = $this->handle_until_option('end', $request, $params);
+            list($request, $params) = $this->handle_until_option('end', $request, $params, 0.001);
             if ($since !== null) {
-                $request['start'] = $since;
+                $request['start'] = (int) floor($since / 1000);
             }
             $response = Async\await($this->publicGetV3Klines ($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
@@ -856,7 +855,7 @@ class apex extends Exchange {
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
-        // {
+        //  {
         //     "start" => 1647511440000,
         //     "symbol" => "BTC-USD",
         //     "interval" => "1",
@@ -866,7 +865,7 @@ class apex extends Exchange {
         //     "close" => "40000",
         //     "volume" => "1.002",
         //     "turnover" => "3"
-        // } array("s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466")
+        //  } array("s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466")
         //
         return array(
             $this->safe_integer_n($ohlcv, array( 'start', 't' )),
@@ -1136,9 +1135,10 @@ class apex extends Exchange {
             for ($i = 0; $i < count($resultList); $i++) {
                 $entry = $resultList[$i];
                 $timestamp = $this->safe_integer($entry, 'fundingTimestamp');
+                $marketId = $this->safe_string($entry, 'symbol');
                 $rates[] = array(
                     'info' => $entry,
-                    'symbol' => $this->safe_string($entry, 'symbol'),
+                    'symbol' => $this->safe_symbol($marketId, $market),
                     'fundingRate' => $this->safe_number($entry, 'rate'),
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
@@ -1277,14 +1277,14 @@ class apex extends Exchange {
 
     public function parse_order_type(?string $type) {
         $types = array(
-            'LIMIT' => 'LIMIT',
-            'MARKET' => 'MARKET',
-            'STOP_LIMIT' => 'STOP_LIMIT',
-            'STOP_MARKET' => 'STOP_MARKET',
-            'TAKE_PROFIT_LIMIT' => 'TAKE_PROFIT_LIMIT',
-            'TAKE_PROFIT_MARKET' => 'TAKE_PROFIT_MARKET',
+            'LIMIT' => 'limit',
+            'MARKET' => 'market',
+            'STOP_LIMIT' => 'limit',
+            'STOP_MARKET' => 'market',
+            'TAKE_PROFIT_LIMIT' => 'limit',
+            'TAKE_PROFIT_MARKET' => 'market',
         );
-        return $this->safe_string_upper($types, $type, $type);
+        return $this->safe_string($types, $type, $type);
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
@@ -1357,6 +1357,8 @@ class apex extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
+             * @param {float} [$params->stopLossPrice] The $price a stop loss order is triggered at
+             * @param {float} [$params->takeProfitPrice] The $price a take profit order is triggered at
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "POST_ONLY"
              * @param {bool} [$params->postOnly] true or false
              * @param {bool} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1373,11 +1375,20 @@ class apex extends Exchange {
                 $orderPrice = $this->price_to_precision($symbol, $price);
             }
             $fees = $this->safe_dict($this->fees, 'swap', array());
-            $taker = $this->safe_number($fees, 'taker', 0.0005);
-            $maker = $this->safe_number($fees, 'maker', 0.0002);
-            $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), (string) $taker), (string) $market['precision']['price']), TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+            $taker = $this->safe_string($fees, 'taker', '0.0005');
+            $maker = $this->safe_string($fees, 'maker', '0.0002');
+            $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), $taker), $this->number_to_string($market['precision']['price'])), TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
             $timeNow = $this->milliseconds();
-            // $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+            $triggerPrice = $this->safe_string($params, 'triggerPrice');
+            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+            if ($stopLossPrice !== null) {
+                $orderType = ($orderType === 'MARKET') ? 'STOP_MARKET' : 'STOP_LIMIT';
+                $triggerPrice = $stopLossPrice;
+            } elseif ($takeProfitPrice !== null) {
+                $orderType = ($orderType === 'MARKET') ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
+                $triggerPrice = $takeProfitPrice;
+            }
             $isMarket = $orderType === 'MARKET';
             if ($isMarket && ($price === null)) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for $market orders');
@@ -1401,7 +1412,7 @@ class apex extends Exchange {
             if ($clientOrderId === null) {
                 $clientOrderId = $this->generate_random_client_id_omni($accountId);
             }
-            $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+            $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
             $orderToSign = array(
                 'accountId' => $accountId,
                 'slotId' => $clientOrderId,
@@ -1410,9 +1421,12 @@ class apex extends Exchange {
                 'size' => $orderSize,
                 'price' => $orderPrice,
                 'direction' => $orderSide,
-                'makerFeeRate' => (string) $maker,
-                'takerFeeRate' => (string) $taker,
+                'makerFeeRate' => $maker,
+                'takerFeeRate' => $taker,
             );
+            if ($triggerPrice !== null) {
+                $orderToSign['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            }
             $signature = Async\await($this->get_zk_contract_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign));
             $request = array(
                 'symbol' => $market['id'],
@@ -1426,6 +1440,9 @@ class apex extends Exchange {
                 'clientId' => $clientOrderId,
                 'brokerId' => $this->safe_string($this->options, 'brokerId', '6956'),
             );
+            if ($triggerPrice !== null) {
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            }
             $request['signature'] = $signature;
             $response = Async\await($this->privatePostV3Order ($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
@@ -1585,7 +1602,7 @@ class apex extends Exchange {
         );
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
@@ -1605,7 +1622,7 @@ class apex extends Exchange {
             }
             $response = Async\await($this->privatePostV3DeleteOpenOrders ($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
-            return $data;
+            return array( $this->parse_order($data, $market) );
         }) ();
     }
 
@@ -1633,7 +1650,7 @@ class apex extends Exchange {
                 $response = Async\await($this->privatePostV3DeleteOrder ($this->extend($request, $params)));
             }
             $data = $this->safe_dict($response, 'data', array());
-            return $data;
+            return $this->safe_order($data);
         }) ();
     }
 
@@ -1876,7 +1893,7 @@ class apex extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

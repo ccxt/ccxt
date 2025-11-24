@@ -24,7 +24,6 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class oxfun(Exchange, ImplicitAPI):
@@ -83,7 +82,7 @@ class oxfun(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
@@ -281,7 +280,12 @@ class oxfun(Exchange, ImplicitAPI):
                         'leverage': False,
                         'marketBuyByCost': True,
                         'marketBuyRequiresPrice': False,
-                        'selfTradePrevention': True,  # todo
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': True,
+                            'EXPIRE_TAKER': True,
+                            'EXPIRE_BOTH': True,
+                            'NONE': True,
+                        },
                         'iceberg': True,  # todo
                     },
                     'createOrders': {
@@ -612,66 +616,7 @@ class oxfun(Exchange, ImplicitAPI):
         #                         "minDeposit": "0.00010",
         #                         "minWithdrawal": "0.00010"
         #                     },
-        #                     {
-        #                         "network": "Arbitrum",
-        #                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        #                         "transactionPrecision": "18",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": True,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     },
-        #                     {
-        #                         "network": "Ethereum",
-        #                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        #                         "transactionPrecision": "18",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": True,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     },
-        #                     {
-        #                         "network": "Arbitrum",
-        #                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        #                         "transactionPrecision": "18",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": False,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     },
-        #                     {
-        #                         "network": "Avalanche",
-        #                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        #                         "transactionPrecision": "18",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": False,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     },
-        #                     {
-        #                         "network": "Solana",
-        #                         "tokenId": "DV3845GEAVXfwpyVGGgWbqBVCtzHdCXNCGfcdboSEuZz",
-        #                         "transactionPrecision": "8",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": True,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     },
-        #                     {
-        #                         "network": "Ethereum",
-        #                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        #                         "transactionPrecision": "18",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": False,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     }
+        #                     ...
         #                 ]
         #             },
         #             {
@@ -721,74 +666,64 @@ class oxfun(Exchange, ImplicitAPI):
             parts = fullId.split('.')
             id = parts[0]
             code = self.safe_currency_code(id)
-            networks: dict = {}
+            if not (code in result):
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'precision': None,
+                    'type': None,
+                    'name': None,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                    'networks': {},
+                    'info': [],
+                }
             chains = self.safe_list(currency, 'networkList', [])
-            currencyMaxPrecision: Str = None
-            currencyDepositEnabled: Bool = None
-            currencyWithdrawEnabled: Bool = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'network')
                 networkCode = self.network_id_to_code(networkId)
-                deposit = self.safe_bool(chain, 'canDeposit')
-                withdraw = self.safe_bool(chain, 'canWithdraw')
-                active = (deposit and withdraw)
-                minDeposit = self.safe_string(chain, 'minDeposit')
-                minWithdrawal = self.safe_string(chain, 'minWithdrawal')
-                precision = self.parse_precision(self.safe_string(chain, 'transactionPrecision'))
-                networks[networkCode] = {
+                result[code]['networks'][networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'margin': None,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': active,
+                    'deposit': self.safe_bool(chain, 'canDeposit'),
+                    'withdraw': self.safe_bool(chain, 'canWithdraw'),
+                    'active': None,
                     'fee': None,
-                    'precision': self.parse_number(precision),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'transactionPrecision'))),
                     'limits': {
                         'deposit': {
-                            'min': minDeposit,
+                            'min': self.safe_number(chain, 'minDeposit'),
                             'max': None,
                         },
                         'withdraw': {
-                            'min': minWithdrawal,
+                            'min': self.safe_number(chain, 'minWithdrawal'),
                             'max': None,
                         },
                     },
                     'info': chain,
                 }
-                if (currencyDepositEnabled is None) or deposit:
-                    currencyDepositEnabled = deposit
-                if (currencyWithdrawEnabled is None) or withdraw:
-                    currencyWithdrawEnabled = withdraw
-                if (currencyMaxPrecision is None) or Precise.string_gt(currencyMaxPrecision, precision):
-                    currencyMaxPrecision = precision
-            if code in result:
-                # checking for specific ids.ARB
-                networks = self.extend(result[code]['networks'], networks)
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': None,
-                'type': None,
-                'active': None,
-                'deposit': currencyDepositEnabled,
-                'withdraw': currencyWithdrawEnabled,
-                'fee': None,
-                'precision': self.parse_number(currencyMaxPrecision),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'networks': networks,
-                'info': currency,
-            }
+            infos = self.safe_list(result[code], 'info', [])
+            infos.append(currency)
+            result[code]['info'] = infos
+        # only after all entries are formed in currencies, restructure each entry
+        allKeys = list(result.keys())
+        for i in range(0, len(allKeys)):
+            code = allKeys[i]
+            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
         return result
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -939,7 +874,7 @@ class oxfun(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1102,6 +1037,26 @@ class oxfun(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbols)
+
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rates for a symbol
+
+        https://docs.ox.fun/?json#get-v3-funding-estimates
+
+        :param str symbol: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        self.load_markets()
+        request: dict = {
+            'marketCode': self.market_id(symbol),
+        }
+        response = self.publicGetV3FundingEstimates(self.extend(request, params))
+        #
+        data = self.safe_list(response, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        return self.parse_funding_rate(first, self.market(symbol))
 
     def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
         #
@@ -2073,7 +2028,7 @@ class oxfun(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -2265,7 +2220,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param float [params.limitPrice]: Limit price for the STOP_LIMIT order
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param str [params.timeInForce]: GTC(default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE(reprices order to the best maker only price if the specified price were to lead to a taker trade)
-        :param str [params.selfTradePreventionMode]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+        :param str [params.selfTradePrevention]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
         :param str [params.displayQuantity]: for an iceberg order, pass both quantity and displayQuantity fields in the order request
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2450,7 +2405,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param float [params.limitPrice]: Limit price for the STOP_LIMIT order
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param str [params.timeInForce]: GTC(default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE(reprices order to the best maker only price if the specified price were to lead to a taker trade)
-        :param str [params.selfTradePreventionMode]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+        :param str [params.selfTradePrevention]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
         :param str [params.displayQuantity]: for an iceberg order, pass both quantity and displayQuantity fields in the order request
         """
         market = self.market(symbol)
@@ -2485,6 +2440,10 @@ class oxfun(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if postOnly and (timeInForce != 'MAKER_ONLY_REPRICE'):
             request['timeInForce'] = 'MAKER_ONLY'
+        selfTradePrevention = None
+        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
+        if selfTradePrevention is not None:
+            request['selfTradePreventionMode'] = selfTradePrevention.upper()
         return self.extend(request, params)
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
@@ -2634,7 +2593,8 @@ class oxfun(Exchange, ImplicitAPI):
         #         "data": {"notice": "No working orders found"}
         #     }
         #
-        return self.privateDeleteV3OrdersCancelAll(self.extend(request, params))
+        response = self.privateDeleteV3OrdersCancelAll(self.extend(request, params))
+        return [self.safe_order({'info': response})]
 
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
