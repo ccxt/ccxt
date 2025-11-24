@@ -634,7 +634,7 @@
                         "datetime": "2025-07-07T19:20:50.174Z",
                         "symbol": "BTC/USDC",
                         "id": "100088000007345488",
-                        "order": "100088000007345488",
+                        "order": null,
                         "type": null,
                         "takerOrMaker": "taker",
                         "side": "buy",
