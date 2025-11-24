@@ -186,9 +186,10 @@ export default class bullish extends Exchange {
                         'v1/wallets/deposit-instructions/fiat/{symbol}': 1, // not used
                         'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1, // not used
                         'v1/wallets/self-hosted/verification-attempts': 1, // not used
-                        'v1/trades': 1, // done
-                        'v1/history/trades': 1, // todo change endpoint https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
-                        'v1/trades/{tradeId}': 1, // not used
+                        'v1/trades': 5, // not used
+                        'v1/history/trades': 5, // done
+                        'v1/trades/{tradeId}': 5, // not used
+                        'v1/trades/client-order-id/{clientOrderId}': 1, // done
                         'v1/accounts/asset': 1, // done
                         'v1/accounts/asset/{symbol}': 1, // done
                         'v1/users/logout': 1, // not used
@@ -270,10 +271,10 @@ export default class bullish extends Exchange {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': undefined,
-                        'daysBack': 1,
+                        'limit': 100,
+                        'daysBack': 90,
                         'symbolRequired': false,
-                        'untilDays': undefined,
+                        'untilDays': 90,
                     },
                     'fetchOrder': {
                         'marginMode': false,
@@ -951,7 +952,6 @@ export default class bullish extends Exchange {
         };
         const maxLimit = 100;
         let paginate = false;
-        // todo check pagination
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
@@ -1007,19 +1007,20 @@ export default class bullish extends Exchange {
      * @method
      * @name bullish#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/trades
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {string} [params.orderId] the order id to fetch trades for
+     * @param {string} [params.clientOrderId] the client order id to fetch trades for
      * @param {string} [params.tradingAccountId] the trading account id to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let tradingAccountId: Str = undefined;
-        // todo add pagination support
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchMyTrades() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
@@ -1032,27 +1033,49 @@ export default class bullish extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetV1Trades (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "baseFee": "0.00000000",
-        //             "createdAtDatetime": "2025-05-18T15:57:28.132Z",
-        //             "createdAtTimestamp": "1747583848132",
-        //             "handle": null,
-        //             "isTaker": true,
-        //             "orderId": "844242293909618689",
-        //             "price": "103942.7048",
-        //             "publishedAtTimestamp": "1747769786131",
-        //             "quantity": "1.00000000",
-        //             "quoteAmount": "103942.7048",
-        //             "quoteFee": "0.0000",
-        //             "side": "BUY",
-        //             "symbol": "BTCUSDC",
-        //             "tradeId": "100178000000288892"
-        //         }, ...
-        //     ]
-        //
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            response = await this.privateGetV1TradesClientOrderIdClientOrderId (this.extend (request, params));
+        } else {
+            let paginate = false;
+            [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+            if (paginate) {
+                params = this.omit (params, 'paginate');
+                params = this.extend (params, { 'paginationDirection': 'backward' });
+                const until = this.safeInteger (params, 'until');
+                if (until === undefined) {
+                    const now = this.milliseconds ();
+                    params = this.extend (params, { 'until': now });
+                }
+                return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, 100, params) as Trade[];
+            }
+            params = this.handleSinceAndUntil (since, params);
+            if (limit !== undefined) {
+                request['_pageSize'] = this.getClosestLimit (limit);
+            }
+            //
+            //     [
+            //         {
+            //             "baseFee": "0.00000000",
+            //             "createdAtDatetime": "2025-05-18T15:57:28.132Z",
+            //             "createdAtTimestamp": "1747583848132",
+            //             "handle": null,
+            //             "isTaker": true,
+            //             "orderId": "844242293909618689",
+            //             "price": "103942.7048",
+            //             "publishedAtTimestamp": "1747769786131",
+            //             "quantity": "1.00000000",
+            //             "quoteAmount": "103942.7048",
+            //             "quoteFee": "0.0000",
+            //             "side": "BUY",
+            //             "symbol": "BTCUSDC",
+            //             "tradeId": "100178000000288892"
+            //         }, ...
+            //     ]
+            //
+            response = await this.privateGetV1HistoryTrades (this.extend (request, params));
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1060,17 +1083,21 @@ export default class bullish extends Exchange {
      * @method
      * @name bullish#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the client order id to fetch trades for
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        params = this.extend ({ 'orderId': id }, params);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            params = this.extend ({ 'orderId': id }, params);
+        }
         return await this.fetchMyTrades (symbol, since, limit, params);
     }
 
@@ -1145,7 +1172,7 @@ export default class bullish extends Exchange {
         } else {
             takerOrMaker = 'maker';
         }
-        const orderId = this.safeString (trade, 'tradeId');
+        const orderId = this.safeString (trade, 'orderId');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
