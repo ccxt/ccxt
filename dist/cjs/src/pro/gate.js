@@ -1,14 +1,16 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var gate$1 = require('../gate.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 var Precise = require('../base/Precise.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class gate extends gate$1 {
+class gate extends gate$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -358,6 +360,11 @@ class gate extends gate$1 {
      * @method
      * @name gate#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -375,7 +382,7 @@ class gate extends gate$1 {
         const url = this.getUrlByMarket(market);
         const payload = [marketId, interval];
         if (limit === undefined) {
-            limit = 100;
+            limit = 100; // max 100 atm
         }
         if (market['contract']) {
             const stringLimit = limit.toString();
@@ -878,8 +885,8 @@ class gate extends gate$1 {
             const ohlcv = result[i];
             const subscription = this.safeString(ohlcv, 'n', '');
             const parts = subscription.split('_');
-            const timeframe = this.safeString(parts, 0);
-            const timeframeId = this.findTimeframe(timeframe);
+            const timeframeId = this.safeString(parts, 0);
+            const timeframe = this.findTimeframe(timeframeId);
             const prefix = timeframe + '_';
             const marketId = subscription.replace(prefix, '');
             const symbol = this.safeSymbol(marketId, undefined, '_', marketType);
@@ -889,7 +896,7 @@ class gate extends gate$1 {
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new Cache.ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol][timeframeId] = stored;
+                this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append(parsed);
             marketIds[symbol] = timeframe;
@@ -1428,7 +1435,7 @@ class gate extends gate$1 {
      * @param {object} [params] exchange specific parameters for the gate api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const market = this.getMarketFromSymbols(symbols);
@@ -1956,8 +1963,10 @@ class gate extends gate$1 {
     }
     requestId() {
         // their support said that reqid must be an int32, not documented
+        this.lockId();
         const reqid = this.sum(this.safeInteger(this.options, 'reqid', 0), 1);
         this.options['reqid'] = reqid;
+        this.unlockId();
         return reqid;
     }
     async subscribePublic(url, messageHash, payload, channel, params = {}, subscription = undefined) {
@@ -2018,7 +2027,7 @@ class gate extends gate$1 {
         const channel = messageType + '.login';
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             return await this.requestPrivate(url, {}, channel, messageHash);
@@ -2110,4 +2119,4 @@ class gate extends gate$1 {
     }
 }
 
-module.exports = gate;
+exports["default"] = gate;

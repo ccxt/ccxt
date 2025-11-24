@@ -53,10 +53,10 @@ async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTi
     }
     // if minute resolution needed
     if (useMinuteTimeframe) {
-        const maxIteration = Math.ceil (minutesPerDay / limit);
+        const maxIteration = Math.ceil (minutesPerDay / limit) * 2;
         const allPromises: any[] = [];
         for (let i = 0; i < maxIteration; i++) {
-            currentSince = foundStartTime + i * limit * 60 * 1000;
+            currentSince = foundStartTime - millisecondsPerDay + i * limit * 60 * 1000; // shift one-duration back for more accuracy for different kind of exchanges, like OKX, where first daily bar is offset by one day, but minute bars present
             allPromises.push (exchange.fetchOHLCV (symbol, '1m', currentSince, limit, fetchParams));
         }
         const allResponses = await Promise.all (allPromises);
@@ -65,6 +65,7 @@ async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTi
             const response = allResponses[i];
             if (response.length > 0) {
                 foundStartTime = response[0][0];
+                break;
             }
         }
     }
@@ -78,9 +79,9 @@ if (runExample) {
     const myEx = new ccxt.binance ();
     await myEx.loadMarkets ();
     const symbol = 'TRUMP/USDT';
-    const earliest_timestamp = await fetchFirstBarTimestamp(myEx, symbol, true);
-    console.log ('- Earliest bar timestamp:', earliest_timestamp, ', readable: ', myEx.iso8601(earliest_timestamp));
-    console.log ('- market.created value:', myEx.market(symbol)['created']);
+    const earliest_timestamp = await fetchFirstBarTimestamp (myEx, symbol, true);
+    console.log ('- Earliest bar timestamp:', earliest_timestamp, ', readable: ', myEx.iso8601 (earliest_timestamp));
+    console.log ('- market.created value:', myEx.market (symbol)['created']);
 }
 
 

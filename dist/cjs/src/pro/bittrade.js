@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bittrade$1 = require('../bittrade.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class bittrade extends bittrade$1 {
+class bittrade extends bittrade$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -40,8 +42,10 @@ class bittrade extends bittrade$1 {
         });
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId.toString();
     }
     /**
@@ -602,4 +606,4 @@ class bittrade extends bittrade$1 {
     }
 }
 
-module.exports = bittrade;
+exports["default"] = bittrade;

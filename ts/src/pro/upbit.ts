@@ -45,23 +45,34 @@ export default class upbit extends upbitRest {
         const url = this.implodeParams (this.urls['api']['ws'], {
             'hostname': this.hostname,
         });
-        this.options[channel] = this.safeValue (this.options, channel, {});
-        this.options[channel][symbol] = true;
-        const symbols = Object.keys (this.options[channel]);
-        const marketIds = this.marketIds (symbols);
-        const request = [
+        const client = this.client (url);
+        const subscriptionsKey = 'upbitPublicSubscriptions';
+        if (!(subscriptionsKey in client.subscriptions)) {
+            client.subscriptions[subscriptionsKey] = {};
+        }
+        const subscriptions = client.subscriptions[subscriptionsKey];
+        let messageHash = channel;
+        const request: Dict = {
+            'type': channel,
+        };
+        if (symbol !== undefined) {
+            messageHash = channel + ':' + symbol;
+            request['codes'] = [ marketId ];
+        }
+        if (!(messageHash in subscriptions)) {
+            subscriptions[messageHash] = request;
+        }
+        const finalMessage = [
             {
                 'ticket': this.uuid (),
             },
-            {
-                'type': channel,
-                'codes': marketIds,
-                // 'isOnlySnapshot': false,
-                // 'isOnlyRealtime': false,
-            },
         ];
-        const messageHash = channel + ':' + marketId;
-        return await this.watch (url, messageHash, request, messageHash);
+        const channelKeys = Object.keys (subscriptions);
+        for (let i = 0; i < channelKeys.length; i++) {
+            const key = channelKeys[i];
+            finalMessage.push (subscriptions[key]);
+        }
+        return await this.watch (url, messageHash, finalMessage, messageHash);
     }
 
     async watchPublicMultiple (symbols: Strings, channel, params = {}) {
@@ -218,7 +229,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OHLCV[]} a list of [OHLCV structures]{@link https://docs.ccxt.com/#/?id=ohlcv-structure}
      */
-    async watchOHLCV (symbol: string, timeframe = '1s', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1s', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (timeframe !== '1s') {
             throw new NotSupported (this.id + ' watchOHLCV does not support' + timeframe + ' candle.');
         }
@@ -417,12 +428,36 @@ export default class upbit extends upbitRest {
             'hostname': this.hostname,
         });
         url += '/private';
+        const client = this.client (url);
+        // Track private channel subscriptions to support multiple concurrent watches
+        const subscriptionsKey = 'upbitPrivateSubscriptions';
+        if (!(subscriptionsKey in client.subscriptions)) {
+            client.subscriptions[subscriptionsKey] = {};
+        }
+        let channelKey = channel;
+        if (symbol !== undefined) {
+            channelKey = channel + ':' + symbol;
+        }
+        const subscriptions = client.subscriptions[subscriptionsKey];
+        const isNewChannel = !(channelKey in subscriptions);
+        if (isNewChannel) {
+            subscriptions[channelKey] = request;
+        }
+        // Build subscription message with all requested private channels
+        // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
+        const requests = [];
+        const channelKeys = Object.keys (subscriptions);
+        for (let i = 0; i < channelKeys.length; i++) {
+            requests.push (subscriptions[channelKeys[i]]);
+        }
         const message = [
             {
                 'ticket': this.uuid (),
             },
-            request,
         ];
+        for (let i = 0; i < requests.length; i++) {
+            message.push (requests[i]);
+        }
         return await this.watch (url, messageHash, message, messageHash);
     }
 
@@ -705,7 +740,7 @@ export default class upbit extends upbitRest {
         };
         const methodName = this.safeString (message, 'type');
         const method = this.safeValue (methods, methodName);
-        if (method) {
+        if (method !== undefined) {
             method.call (this, client, message);
         }
     }

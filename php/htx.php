@@ -658,7 +658,7 @@ class htx extends Exchange {
                             'api/v1/contract_batchorder' => 1,
                             'api/v1/contract_cancel' => 1,
                             'api/v1/contract_cancelall' => 1,
-                            'api/v1/contract_switch_lever_rate' => 1,
+                            'api/v1/contract_switch_lever_rate' => 30,
                             'api/v1/lightning_close_position' => 1,
                             'api/v1/contract_order_info' => 1,
                             'api/v1/contract_order_detail' => 1,
@@ -717,7 +717,7 @@ class htx extends Exchange {
                             'swap-api/v1/swap_cancel' => 1,
                             'swap-api/v1/swap_cancelall' => 1,
                             'swap-api/v1/swap_lightning_close_position' => 1,
-                            'swap-api/v1/swap_switch_lever_rate' => 1,
+                            'swap-api/v1/swap_switch_lever_rate' => 30,
                             'swap-api/v1/swap_order_info' => 1,
                             'swap-api/v1/swap_order_detail' => 1,
                             'swap-api/v1/swap_openorders' => 1,
@@ -791,8 +791,8 @@ class htx extends Exchange {
                             'linear-swap-api/v1/swap_cross_cancel' => 1,
                             'linear-swap-api/v1/swap_cancelall' => 1,
                             'linear-swap-api/v1/swap_cross_cancelall' => 1,
-                            'linear-swap-api/v1/swap_switch_lever_rate' => 1,
-                            'linear-swap-api/v1/swap_cross_switch_lever_rate' => 1,
+                            'linear-swap-api/v1/swap_switch_lever_rate' => 30,
+                            'linear-swap-api/v1/swap_cross_switch_lever_rate' => 30,
                             'linear-swap-api/v1/swap_lightning_close_position' => 1,
                             'linear-swap-api/v1/swap_cross_lightning_close_position' => 1,
                             'linear-swap-api/v1/swap_order_info' => 1,
@@ -2772,7 +2772,16 @@ class htx extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        $id = $this->safe_string_n($trade, array( 'trade_id', 'trade-id', 'id' ));
+        // htx's multi-$market $trade-$id is a bit complex to parse accordingly.
+        // - for `$id` which contains hyphen, it would be the unique $id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
+        // - otherwise the least priority is given to the `$id` key
+        $id = null;
+        $safeId = $this->safe_string($trade, 'id');
+        if ($safeId !== null && mb_strpos($safeId, '-') !== false) {
+            $id = $safeId;
+        } else {
+            $id = $this->safe_string_n($trade, array( 'trade_id', 'trade-id', 'id' ));
+        }
         return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
@@ -3110,7 +3119,7 @@ class htx extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -5228,7 +5237,7 @@ class htx extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingPercent = null, ?float $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -5910,7 +5919,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          * @param {string[]} $ids order $ids
@@ -6640,11 +6649,12 @@ class htx extends Exchange {
             'repealed' => 'failed',
             'wallet-transfer' => 'pending',
             'pre-transfer' => 'pending',
+            'verifying' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          *
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
@@ -6679,7 +6689,7 @@ class htx extends Exchange {
             $fee = $this->safe_number($params, 'fee');
             if ($fee === null) {
                 $currencies = $this->fetch_currencies();
-                $this->currencies = $this->deep_extend($this->currencies, $currencies);
+                $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
                 $targetNetwork = $this->safe_value($currency['networks'], $networkCode, array());
                 $fee = $this->safe_number($targetNetwork, 'fee');
                 if ($fee === null) {
@@ -6928,13 +6938,18 @@ class htx extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page_index', 'current_page', 1, 50);
+            return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'current_page', 'page_index', 1, 50);
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'contract_code' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        } else {
+            $request['page_size'] = 50; // max
+        }
         $response = null;
         if ($market['inverse']) {
             $response = $this->contractPublicGetSwapApiV1SwapHistoricalFundingRate ($this->extend($request, $params));
@@ -7529,7 +7544,7 @@ class htx extends Exchange {
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -9325,6 +9340,7 @@ class htx extends Exchange {
             'contracts' => $this->safe_number($liquidation, 'volume'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'price'),
+            'side' => $this->safe_string_lower($liquidation, 'direction'),
             'baseValue' => $this->safe_number($liquidation, 'amount'),
             'quoteValue' => $this->safe_number($liquidation, 'trade_turnover'),
             'timestamp' => $timestamp,

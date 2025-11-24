@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var blockchaincom$1 = require('../blockchaincom.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class blockchaincom extends blockchaincom$1 {
+class blockchaincom extends blockchaincom$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -758,7 +760,7 @@ class blockchaincom extends blockchaincom$1 {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const isAuthenticated = this.safeValue(client.subscriptions, messageHash);
         if (isAuthenticated === undefined) {
             this.checkRequiredCredentials();
@@ -773,4 +775,4 @@ class blockchaincom extends blockchaincom$1 {
     }
 }
 
-module.exports = blockchaincom;
+exports["default"] = blockchaincom;

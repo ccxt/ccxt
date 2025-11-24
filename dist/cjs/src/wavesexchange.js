@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var wavesexchange$1 = require('./abstract/wavesexchange.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class wavesexchange
  * @augments Exchange
  */
-class wavesexchange extends wavesexchange$1 {
+class wavesexchange extends wavesexchange$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'wavesexchange',
@@ -29,6 +31,9 @@ class wavesexchange extends wavesexchange$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -38,33 +43,58 @@ class wavesexchange extends wavesexchange$1 {
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -76,14 +106,20 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': true,
@@ -2319,12 +2355,25 @@ class wavesexchange extends wavesexchange$1 {
         const order1 = this.safeValue(data, 'order1');
         const order2 = this.safeValue(data, 'order2');
         let order = undefined;
-        // order2 arrived after order1
+        // at first, detect if response is from `fetch_my_trades`
         if (this.safeString(order1, 'senderPublicKey') === this.apiKey) {
             order = order1;
         }
-        else {
+        else if (this.safeString(order2, 'senderPublicKey') === this.apiKey) {
             order = order2;
+        }
+        else {
+            // response is from `fetch_trades`, so find only taker order
+            const date1 = this.safeString(order1, 'timestamp');
+            const date2 = this.safeString(order2, 'timestamp');
+            const ts1 = this.parse8601(date1);
+            const ts2 = this.parse8601(date2);
+            if (ts1 > ts2) {
+                order = order1;
+            }
+            else {
+                order = order2;
+            }
         }
         let symbol = undefined;
         const assetPair = this.safeValue(order, 'assetPair');
@@ -2730,4 +2779,4 @@ class wavesexchange extends wavesexchange$1 {
     }
 }
 
-module.exports = wavesexchange;
+exports["default"] = wavesexchange;

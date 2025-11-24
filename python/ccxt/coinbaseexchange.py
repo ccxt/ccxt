@@ -39,31 +39,73 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createOrderWithTakeProfitAndStopLoss': False,
+                'createOrderWithTakeProfitAndStopLossWs': False,
+                'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
+                'fetchLeverages': False,
+                'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -75,6 +117,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 'fetchPositionsForSymbol': False,
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -82,7 +126,16 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': 'emulated',
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
+                'repayMargin': False,
+                'setLeverage': False,
+                'setMargin': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -169,7 +222,19 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                         'conversions/{conversion_id}',
+                        'conversions',
                         'conversions/fees',
+                        'loans/lending-overview',
+                        'loans/lending-overview-xm',
+                        'loans/loan-preview',
+                        'loans/loan-preview-xm',
+                        'loans/repayment-preview',
+                        'loans/repayment-preview-xm',
+                        'loans/interest/{loan_id}',
+                        'loans/interest/history/{loan_id}',
+                        'loans/interest',
+                        'loans/assets',
+                        'loans',
                     ],
                     'post': [
                         'conversions',
@@ -186,6 +251,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'withdrawals/coinbase-account',
                         'withdrawals/crypto',
                         'withdrawals/payment-method',
+                        'loans/open',
+                        'loans/repay-interest',
+                        'loans/repay-principal',
                     ],
                     'delete': [
                         'orders',
@@ -1105,7 +1173,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
@@ -1488,7 +1556,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
-        return getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, params))
+        return self.safe_order({'info': response})
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1506,12 +1575,13 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
-        return self.privateDeleteOrders(self.extend(request, params))
+        response = self.privateDeleteOrders(self.extend(request, params))
+        return [self.safe_order({'info': response})]
 
     def fetch_payment_methods(self, params={}):
         return self.privateGetPaymentMethods(params)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

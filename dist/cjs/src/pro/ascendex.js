@@ -1,13 +1,15 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ascendex$1 = require('../ascendex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class ascendex extends ascendex$1 {
+class ascendex extends ascendex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -269,7 +271,7 @@ class ascendex extends ascendex$1 {
         const orderbook = await this.watchPublic(channel, params);
         return orderbook.limit();
     }
-    async fetchOrderBookSnapshot(symbol, limit = undefined, params = {}) {
+    async fetchOrderBookSnapshotCustom(symbol, limit = undefined, params = {}) {
         const restOrderBook = await this.fetchRestOrderBookSafe(symbol, limit, params);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
@@ -959,7 +961,7 @@ class ascendex extends ascendex$1 {
         }
         this.orderbooks[symbol] = this.orderBook({});
         if (this.options['defaultType'] === 'swap' || market['contract']) {
-            this.spawn(this.fetchOrderBookSnapshot, symbol);
+            this.spawn(this.fetchOrderBookSnapshotCustom, symbol);
         }
         else {
             this.spawn(this.watchOrderBookSnapshot, symbol);
@@ -1008,4 +1010,4 @@ class ascendex extends ascendex$1 {
     }
 }
 
-module.exports = ascendex;
+exports["default"] = ascendex;

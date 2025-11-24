@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var btcalpha$1 = require('./abstract/btcalpha.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class btcalpha
  * @augments Exchange
  */
-class btcalpha extends btcalpha$1 {
+class btcalpha extends btcalpha$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'btcalpha',
@@ -52,6 +54,7 @@ class btcalpha extends btcalpha$1 {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -1052,4 +1055,4 @@ class btcalpha extends btcalpha$1 {
     }
 }
 
-module.exports = btcalpha;
+exports["default"] = btcalpha;

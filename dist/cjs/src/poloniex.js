@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var poloniex$1 = require('./abstract/poloniex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class poloniex
  * @augments Exchange
  */
-class poloniex extends poloniex$1 {
+class poloniex extends poloniex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'poloniex',
@@ -2645,7 +2647,7 @@ class poloniex extends poloniex$1 {
         //         "scale" : "-1",
         //         "asks" : [ "23139.82", "0.317981", "23140", "0.191091", "23170.06", "0.01", "23200", "0.107758", "23230.55", "0.01", "23247.2", "0.154", "23254", "0.005121", "23263", "0.038", "23285.4", "0.308", "23300", "0.108896" ],
         //         "bids" : [ "23139.74", "0.432092", "23139.73", "0.198592", "23123.21", "0.000886", "23123.2", "0.308", "23121.4", "0.154", "23105", "0.000789", "23100", "0.078175", "23069.1", "0.026276", "23068.83", "0.001329", "23051", "0.000048" ],
-        //         "ts" : 1659695219513
+        //         "ts" : 1659695219512
         //     }
         //
         const timestamp = this.safeInteger(response, 'time');
@@ -3614,6 +3616,9 @@ class poloniex extends poloniex$1 {
         if (this.inArray(api, ['swapPublic', 'swapPrivate'])) {
             url = this.urls['api']['swap'];
         }
+        if ('symbol' in params) {
+            params['symbol'] = this.encodeURIComponent(params['symbol']); // handle symbols like 索拉拉/USDT'
+        }
         const query = this.omit(params, this.extractParams(path));
         const implodedPath = this.implodeParams(path, params);
         if (api === 'public' || api === 'swapPublic') {
@@ -3677,4 +3682,4 @@ class poloniex extends poloniex$1 {
     }
 }
 
-module.exports = poloniex;
+exports["default"] = poloniex;

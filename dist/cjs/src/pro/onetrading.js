@@ -1,13 +1,15 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var onetrading$1 = require('../onetrading.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class onetrading extends onetrading$1 {
+class onetrading extends onetrading$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1325,7 +1327,7 @@ class onetrading extends onetrading$1 {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future('authenticated');
+        const future = client.reusableFuture('authenticated');
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials();
@@ -1339,4 +1341,4 @@ class onetrading extends onetrading$1 {
     }
 }
 
-module.exports = onetrading;
+exports["default"] = onetrading;

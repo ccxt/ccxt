@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\NetworkError;
 use \React\Async;
 use \React\Promise;
 use \React\Promise\PromiseInterface;
@@ -122,16 +123,17 @@ class apex extends \ccxt\async\apex {
         //         "type" => "snapshot",
         //         "ts" => 1672304486868,
         //         "data" => array(
-        //             {
+        //             array(
         //                 "T" => 1672304486865,
         //                 "s" => "BTCUSDT",
         //                 "S" => "Buy",
         //                 "v" => "0.001",
         //                 "p" => "16578.50",
         //                 "L" => "PlusTick",
-        //                 "i" => "20f43950-d8dd-5b31-9112-a178eb6023af",
+        //                 "i" => "20f43950-d8dd-5b31-9112-a178eb6023ef",
         //                 "BT" => false
-        //             }
+        //             ),
+        //             // sorted by newest first
         //         )
         //     }
         //
@@ -148,8 +150,10 @@ class apex extends \ccxt\async\apex {
             $stored = new ArrayCache ($limit);
             $this->trades[$symbol] = $stored;
         }
-        for ($j = 0; $j < count($trades); $j++) {
-            $parsed = $this->parse_ws_trade($trades[$j], $market);
+        $length = count($trades);
+        for ($j = 0; $j < $length; $j++) {
+            $index = $length - $j - 1;
+            $parsed = $this->parse_ws_trade($trades[$index], $market);
             $stored->append ($parsed);
         }
         $messageHash = 'trade' . ':' . $symbol;
@@ -439,7 +443,7 @@ class apex extends \ccxt\async\apex {
         $client->resolve ($this->tickers[$symbol], $messageHash);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -875,7 +879,7 @@ class apex extends \ccxt\async\apex {
             $signature = $this->hmac($this->encode($messageString), $this->encode(base64_encode($this->secret)), 'sha256', 'base64');
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 // auth sign
@@ -899,7 +903,7 @@ class apex extends \ccxt\async\apex {
         }) ();
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //   {
         //       "success" => false,
@@ -996,6 +1000,7 @@ class apex extends \ccxt\async\apex {
             'recentlyTrade' => array($this, 'handle_trades'),
             'pong' => array($this, 'handle_pong'),
             'auth' => array($this, 'handle_authenticate'),
+            'ping' => array($this, 'handle_ping'),
         );
         $exacMethod = $this->safe_value($methods, $topic);
         if ($exacMethod !== null) {
@@ -1019,11 +1024,27 @@ class apex extends \ccxt\async\apex {
     }
 
     public function ping(Client $client) {
-        $timeStamp = (string) $this->milliseconds();
+        $timeStamp = $this->milliseconds();
+        $client->lastPong = $timeStamp;
         return array(
-            'args' => array( $timeStamp ),
+            'args' => array( (string) $timeStamp ),
             'op' => 'ping',
         );
+    }
+
+    public function pong($client, $message) {
+        return Async\async(function () use ($client, $message) {
+            //
+            //     array("op" => "ping", "args" => ["1761069137485"])
+            //
+            $timeStamp = $this->milliseconds();
+            try {
+                Async\await($client->send (array( 'args' => array( (string) $timeStamp ), 'op' => 'pong' )));
+            } catch (Exception $e) {
+                $error = new NetworkError ($this->id . ' handlePing failed with $error ' . $this->json($e));
+                $client->reset ($error);
+            }
+        }) ();
     }
 
     public function handle_pong(Client $client, $message) {
@@ -1039,6 +1060,10 @@ class apex extends \ccxt\async\apex {
         //
         $client->lastPong = $this->safe_integer($message, 'pong');
         return $message;
+    }
+
+    public function handle_ping(Client $client, $message) {
+        $this->spawn(array($this, 'pong'), $client, $message);
     }
 
     public function handle_account(Client $client, $message) {

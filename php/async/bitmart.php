@@ -1024,7 +1024,7 @@ class bitmart extends Exchange {
                     'swap' => false,
                     'future' => false,
                     'option' => false,
-                    'active' => true,
+                    'active' => $this->safe_string_lower_2($market, 'status', 'trade_status') === 'trading',
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,
@@ -1144,7 +1144,7 @@ class bitmart extends Exchange {
                     'swap' => $isSwap,
                     'future' => $isFutures,
                     'option' => false,
-                    'active' => true,
+                    'active' => $this->safe_string_lower($market, 'status') === 'trading',
                     'contract' => true,
                     'linear' => true,
                     'inverse' => false,
@@ -2114,7 +2114,7 @@ class bitmart extends Exchange {
         }
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -2239,6 +2239,7 @@ class bitmart extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch trades for
              * @param {boolean} [$params->marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
+             * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
@@ -2355,6 +2356,7 @@ class bitmart extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
@@ -2827,6 +2829,7 @@ class bitmart extends Exchange {
              * @param {string} [$params->stopLossPrice] *swap only* the $price to trigger a stop-loss $order
              * @param {string} [$params->takeProfitPrice] *swap only* the $price to trigger a take-profit $order
              * @param {int} [$params->plan_category] *swap tp/sl only* 1 => tp/sl, 2 => position tp/sl, default is 1
+             * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -2895,6 +2898,7 @@ class bitmart extends Exchange {
              *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -3245,7 +3249,7 @@ class bitmart extends Exchange {
             //     }
             //
             if ($market['swap']) {
-                return $response;
+                return $this->safe_order(array( 'info' => $response ));
             }
             $data = $this->safe_value($response, 'data');
             if ($data === true) {
@@ -3381,7 +3385,7 @@ class bitmart extends Exchange {
             //         "trace" => "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
             //     }
             //
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 
@@ -3464,6 +3468,7 @@ class bitmart extends Exchange {
              * @param {string} [$params->orderType] *swap only* 'limit', 'market', or 'trailing'
              * @param {boolean} [$params->trailing] *swap only* set to true if you want to fetch $trailing orders
              * @param {boolean} [$params->trigger] *swap only* set to true if you want to fetch trigger orders
+             * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -3590,6 +3595,7 @@ class bitmart extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest entry
              * @param {string} [$params->marginMode] *spot only* 'cross' or 'isolated', for margin trading
+             * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -3661,6 +3667,7 @@ class bitmart extends Exchange {
              * @param {string} [$params->clientOrderId] *spot* fetch the order by client order $id instead of order $id
              * @param {string} [$params->orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
              * @param {boolean} [$params->trailing] *swap only* set to true if you want to fetch a $trailing order
+             * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -3834,7 +3841,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -4768,7 +4775,7 @@ class bitmart extends Exchange {
         ), $market);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -4826,12 +4833,15 @@ class bitmart extends Exchange {
             //         "code" => 1000,
             //         "message" => "Ok",
             //         "data" => array(
-            //             "timestamp" => 1695184410697,
             //             "symbol" => "BTCUSDT",
-            //             "rate_value" => "-0.00002614",
-            //             "expected_rate" => "-0.00002"
+            //             "expected_rate" => "-0.0000238",
+            //             "rate_value" => "0.000009601106",
+            //             "funding_time" => 1761292800000,
+            //             "funding_upper_limit" => "0.0375",
+            //             "funding_lower_limit" => "-0.0375",
+            //             "timestamp" => 1761291544336
             //         ),
-            //         "trace" => "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+            //         "trace" => "64b7a589-e1e-4ac2-86b1-41058757421"
             //     }
             //
             $data = $this->safe_dict($response, 'data', array());
@@ -4904,14 +4914,18 @@ class bitmart extends Exchange {
     public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //     {
-        //         "timestamp" => 1695184410697,
         //         "symbol" => "BTCUSDT",
-        //         "rate_value" => "-0.00002614",
-        //         "expected_rate" => "-0.00002"
+        //         "expected_rate" => "-0.0000238",
+        //         "rate_value" => "0.000009601106",
+        //         "funding_time" => 1761292800000,
+        //         "funding_upper_limit" => "0.0375",
+        //         "funding_lower_limit" => "-0.0375",
+        //         "timestamp" => 1761291544336
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
         $timestamp = $this->safe_integer($contract, 'timestamp');
+        $fundingTimestamp = $this->safe_integer($contract, 'funding_time');
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market),
@@ -4922,8 +4936,8 @@ class bitmart extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $this->safe_number($contract, 'expected_rate'),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,

@@ -377,6 +377,7 @@ class coincatch extends Exchange {
                     'ChilizChain' => 'ChilizChain', // todo check
                     'StellarLumens' => 'XLM', // todo check
                     'CronosChain' => 'CRO', // todo check
+                    'Optimism' => 'Optimism',
                 ),
             ),
             'features' => array(
@@ -619,8 +620,8 @@ class coincatch extends Exchange {
                 for ($j = 0; $j < count($networks); $j++) {
                     $network = $networks[$j];
                     $networkId = $this->safe_string($network, 'chain');
-                    $networkCode = $this->network_code_to_id($networkId);
-                    $parsedNetworks[$networkId] = array(
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $parsedNetworks[$networkCode] = array(
                         'id' => $networkId,
                         'network' => $networkCode,
                         'limits' => array(
@@ -1381,7 +1382,7 @@ class coincatch extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -2192,7 +2193,7 @@ class coincatch extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2362,6 +2363,7 @@ class coincatch extends Exchange {
              * @param {float} $amount how much of you want to trade in units of the base currency
              * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {bool} [$params->hedged] *swap markets only* must be set to true if position mode is hedged (default false)
              * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
              * @param {float} [$params->triggerPrice] the $price that the order is to be triggered
              * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -2564,6 +2566,7 @@ class coincatch extends Exchange {
              * @param {float} $amount how much of you want to trade in units of the base currency
              * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {bool} [$params->hedged] must be set to true if position mode is hedged (default false)
              * @param {bool} [$params->postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
              * @param {bool} [$params->reduceOnly] true or false whether the order is reduce only
              * @param {string} [$params->timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2618,7 +2621,7 @@ class coincatch extends Exchange {
          * @param {float} $amount how much of you want to trade in units of the base currency
          * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->hedged] default false
+         * @param {bool} [$params->hedged] must be set to true if position mode is $hedged (default false)
          * @param {bool} [$params->postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [$params->reduceOnly] true or false whether the order is reduce only
          * @param {string} [$params->timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2657,27 +2660,38 @@ class coincatch extends Exchange {
         }
         if (($endpointType !== 'tpsl')) {
             $request['orderType'] = $type;
+            $sideIsExchangeSpecific = false;
             $hedged = false;
-            list($hedged, $params) = $this->handle_option_and_params($params, $methodName, 'hedged', $hedged);
-            // $hedged and non-$hedged orders have different $side values and $reduceOnly handling
-            $reduceOnly = false;
-            list($reduceOnly, $params) = $this->handle_param_bool($params, 'reduceOnly', $reduceOnly);
-            if ($hedged) {
-                if ($reduceOnly) {
-                    if ($side === 'buy') {
-                        $side = 'close_short';
-                    } elseif ($side === 'sell') {
-                        $side = 'close_long';
+            if (($side === 'buy_single') || ($side === 'sell_single') || ($side === 'open_long') || ($side === 'open_short') || ($side === 'close_long') || ($side === 'close_short')) {
+                $sideIsExchangeSpecific = true;
+                if (($side !== 'buy_single') && ($side !== 'sell_single')) {
+                    $hedged = true;
+                }
+            }
+            if (!$sideIsExchangeSpecific) {
+                list($hedged, $params) = $this->handle_option_and_params($params, $methodName, 'hedged', $hedged);
+                // $hedged and non-$hedged orders have different $side values and $reduceOnly handling
+                $reduceOnly = $this->safe_bool($params, 'reduceOnly');
+                if ($hedged) {
+                    if (($reduceOnly !== null) && $reduceOnly) {
+                        if ($side === 'buy') {
+                            $side = 'close_short';
+                        } elseif ($side === 'sell') {
+                            $side = 'close_long';
+                        }
+                    } else {
+                        if ($side === 'buy') {
+                            $side = 'open_long';
+                        } elseif ($side === 'sell') {
+                            $side = 'open_short';
+                        }
                     }
                 } else {
-                    if ($side === 'buy') {
-                        $side = 'open_long';
-                    } elseif ($side === 'sell') {
-                        $side = 'open_short';
-                    }
+                    $side = strtolower($side) . '_single';
                 }
-            } else {
-                $side = strtolower($side) . '_single';
+            }
+            if ($hedged) {
+                $params = $this->omit($params, 'reduceOnly');
             }
             $request['side'] = $side;
         }
@@ -4788,7 +4802,7 @@ class coincatch extends Exchange {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -4985,7 +4999,7 @@ class coincatch extends Exchange {
         }) ();
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade $position
@@ -5010,7 +5024,7 @@ class coincatch extends Exchange {
                     }
                 }
             }
-            return $positions[0];
+            return $this->safe_dict($positions, 0, array());
         }) ();
     }
 

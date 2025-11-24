@@ -1,14 +1,16 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coincatch$1 = require('../coincatch.js');
 var errors = require('../base/errors.js');
 var Precise = require('../base/Precise.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class coincatch extends coincatch$1 {
+class coincatch extends coincatch$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -99,7 +101,7 @@ class coincatch extends coincatch$1 {
         const url = this.urls['api']['ws']['private'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.seconds().toString();
@@ -1558,4 +1560,4 @@ class coincatch extends coincatch$1 {
     }
 }
 
-module.exports = coincatch;
+exports["default"] = coincatch;

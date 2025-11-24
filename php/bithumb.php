@@ -45,6 +45,7 @@ class bithumb extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
@@ -258,6 +259,14 @@ class bithumb extends Exchange {
                             'cost' => array(
                                 'min' => 500,
                                 'max' => 5000000000,
+                            ),
+                        ),
+                    ),
+                    'USDT' => array(
+                        'limits' => array(
+                            'cost' => array(
+                                'min' => null,
+                                'max' => null,
                             ),
                         ),
                     ),
@@ -664,7 +673,7 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1124,14 +1133,14 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function cancel_unified_order($order, $params = array ()) {
+    public function cancel_unified_order(array $order, $params = array ()) {
         $request = array(
             'side' => $order['side'],
         );
         return $this->cancel_order($order['id'], $order['symbol'], $this->extend($request, $params));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

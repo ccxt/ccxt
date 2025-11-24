@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -287,7 +287,7 @@ class poloniex(ccxt.async_support.poloniex):
         }
         return await self.trade_request('cancelOrders', self.extend(request, params))
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> List[Order]:
         """
 
         https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
@@ -322,7 +322,7 @@ class poloniex(ccxt.async_support.poloniex):
             orders.append(parsedOrder)
         client.resolve(orders, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1168,7 +1168,7 @@ class poloniex(ccxt.async_support.poloniex):
             if dataLength > 0:
                 method(client, message)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #    {
         #        message: 'Invalid channel value ["ordersss"]',

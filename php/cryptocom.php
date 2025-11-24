@@ -59,7 +59,7 @@ class cryptocom extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchGreeks' => false,
@@ -311,30 +311,34 @@ class cryptocom extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => $this->parse_number('0.004'),
-                    'taker' => $this->parse_number('0.004'),
+                    'maker' => $this->parse_number('0.0025'),
+                    'taker' => $this->parse_number('0.005'),
                     'tiers' => array(
                         'maker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
-                            array( $this->parse_number('25000'), $this->parse_number('0.0035') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0025') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.002') ),
                             array( $this->parse_number('50000'), $this->parse_number('0.0015') ),
-                            array( $this->parse_number('100000'), $this->parse_number('0.001') ),
-                            array( $this->parse_number('250000'), $this->parse_number('0.0009') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.0008') ),
-                            array( $this->parse_number('20000000'), $this->parse_number('0.0007') ),
-                            array( $this->parse_number('100000000'), $this->parse_number('0.0006') ),
-                            array( $this->parse_number('200000000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.00065') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('250000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('500000000'), $this->parse_number('0') ),
                         ),
                         'taker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
-                            array( $this->parse_number('25000'), $this->parse_number('0.0035') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.005') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.004') ),
                             array( $this->parse_number('50000'), $this->parse_number('0.0025') ),
-                            array( $this->parse_number('100000'), $this->parse_number('0.0016') ),
-                            array( $this->parse_number('250000'), $this->parse_number('0.00015') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.00014') ),
-                            array( $this->parse_number('20000000'), $this->parse_number('0.00013') ),
-                            array( $this->parse_number('100000000'), $this->parse_number('0.00012') ),
-                            array( $this->parse_number('200000000'), $this->parse_number('0.0001') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0.00035') ),
+                            array( $this->parse_number('250000000'), $this->parse_number('0.00031') ),
+                            array( $this->parse_number('500000000'), $this->parse_number('0.00025') ),
                         ),
                     ),
                 ),
@@ -434,6 +438,9 @@ class cryptocom extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                 ),
                 'swap' => array(
                     'linear' => array(
@@ -460,6 +467,7 @@ class cryptocom extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     '219' => '\\ccxt\\InvalidOrder',
+                    '306' => '\\ccxt\\InsufficientFunds', // array( "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : array( "client_oid" : "1753xxx", "order_id" : "6530xxx" ) )
                     '314' => '\\ccxt\\InvalidOrder', // array( "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : array( "client_oid" : "1700xxx", "order_id" : "6530xxx" ) )
                     '325' => '\\ccxt\\InvalidOrder', // array( "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : array( "client_oid" : "1741xxx", "order_id" : "6530xxx" ) )
                     '415' => '\\ccxt\\InvalidOrder', // array( "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : array( "client_oid" : "1741xxx", "order_id" : "6530xxx" ) )
@@ -528,9 +536,27 @@ class cryptocom extends Exchange {
          */
         // this endpoint requires authentication
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
-        $response = $this->v1PrivatePostPrivateGetCurrencyNetworks ($params);
+        $skipFetchCurrencies = false;
+        list($skipFetchCurrencies, $params) = $this->handle_option_and_params($params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        if ($skipFetchCurrencies) {
+            // sub-accounts can't access this endpoint
+            return array();
+        }
+        $response = array();
+        try {
+            $response = $this->v1PrivatePostPrivateGetCurrencyNetworks ($params);
+        } catch (Exception $e) {
+            if ($e instanceof ExchangeError) {
+                // sub-accounts can't access this endpoint
+                // array("code":"10001","msg":"SYS_ERROR")
+                return array();
+            }
+            throw $e;
+            // do nothing
+            // sub-accounts can't access this endpoint
+        }
         //
         //    {
         //        "id" => "1747502328559",
@@ -555,7 +581,7 @@ class cryptocom extends Exchange {
         //                            "network_id" => "CRONOS",
         //                            "withdrawal_fee" => "0.18000000",
         //                            "withdraw_enabled" => true,
-        //                            "min_withdrawal_amount" => "0.36",
+        //                            "min_withdrawal_amount" => "0.35",
         //                            "deposit_enabled" => true,
         //                            "confirmation_required" => "15"
         //                        ),
@@ -1037,7 +1063,7 @@ class cryptocom extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1127,7 +1153,7 @@ class cryptocom extends Exchange {
             'instrument_name' => $market['id'],
         );
         if ($limit) {
-            $request['depth'] = $limit;
+            $request['depth'] = min ($limit, 50); // max 50
         }
         $response = $this->v1PublicGetPublicGetBook ($this->extend($request, $params));
         //
@@ -1677,7 +1703,8 @@ class cryptocom extends Exchange {
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
         }
-        return $this->v1PrivatePostPrivateCancelAllOrders ($this->extend($request, $params));
+        $response = $this->v1PrivatePostPrivateCancelAllOrders ($this->extend($request, $params));
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1716,7 +1743,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          *
@@ -1930,7 +1957,7 @@ class cryptocom extends Exchange {
         return array( $address, $tag );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -2968,6 +2995,83 @@ class cryptocom extends Exchange {
             $result[] = $this->parse_settlement($settlements[$i], $market);
         }
         return $result;
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
+        /**
+         * fetches historical funding rates
+         *
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array(
+            'instrument_name' => $market['id'],
+            'valuation_type' => 'estimated_funding_rate',
+            'count' => 1,
+        );
+        $response = $this->v1PublicGetPublicGetValuations ($this->extend($request, $params));
+        //
+        //     {
+        //         "id" => -1,
+        //         "method" => "public/get-valuations",
+        //         "code" => 0,
+        //         "result" => {
+        //             "data" => array(
+        //                 array(
+        //                     "v" => "-0.000001884",
+        //                     "t" => 1687892400000
+        //                 ),
+        //             ),
+        //             "instrument_name" => "BTCUSD-PERP"
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $data = $this->safe_list($result, 'data', array());
+        $entry = $this->safe_dict($data, 0, array());
+        return $this->parse_funding_rate($entry, $market);
+    }
+
+    public function parse_funding_rate($contract, ?array $market = null): array {
+        //
+        //                 array(
+        //                     "v" => "-0.000001884",
+        //                     "t" => 1687892400000
+        //                 ),
+        //
+        $timestamp = $this->safe_integer($contract, 't');
+        $fundingTimestamp = null;
+        if ($timestamp !== null) {
+            $fundingTimestamp = (int) ceil($timestamp / 3600000) * 3600000; // end of the next hour
+        }
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol(null, $market),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($contract, 'v'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => '1h',
+        );
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

@@ -45,23 +45,30 @@ class upbit(ccxt.async_support.upbit):
         url = self.implode_params(self.urls['api']['ws'], {
             'hostname': self.hostname,
         })
-        self.options[channel] = self.safe_value(self.options, channel, {})
-        self.options[channel][symbol] = True
-        symbols = list(self.options[channel].keys())
-        marketIds = self.market_ids(symbols)
-        request = [
+        client = self.client(url)
+        subscriptionsKey = 'upbitPublicSubscriptions'
+        if not (subscriptionsKey in client.subscriptions):
+            client.subscriptions[subscriptionsKey] = {}
+        subscriptions = client.subscriptions[subscriptionsKey]
+        messageHash = channel
+        request: dict = {
+            'type': channel,
+        }
+        if symbol is not None:
+            messageHash = channel + ':' + symbol
+            request['codes'] = [marketId]
+        if not (messageHash in subscriptions):
+            subscriptions[messageHash] = request
+        finalMessage = [
             {
                 'ticket': self.uuid(),
             },
-            {
-                'type': channel,
-                'codes': marketIds,
-                # 'isOnlySnapshot': False,
-                # 'isOnlyRealtime': False,
-            },
         ]
-        messageHash = channel + ':' + marketId
-        return await self.watch(url, messageHash, request, messageHash)
+        channelKeys = list(subscriptions.keys())
+        for i in range(0, len(channelKeys)):
+            key = channelKeys[i]
+            finalMessage.append(subscriptions[key])
+        return await self.watch(url, messageHash, finalMessage, messageHash)
 
     async def watch_public_multiple(self, symbols: Strings, channel, params={}):
         await self.load_markets()
@@ -192,7 +199,7 @@ class upbit(ccxt.async_support.upbit):
         orderbook = await self.watch_public(symbol, 'orderbook')
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1s', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1s', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
 
@@ -392,12 +399,31 @@ class upbit(ccxt.async_support.upbit):
             'hostname': self.hostname,
         })
         url += '/private'
+        client = self.client(url)
+        # Track private channel subscriptions to support multiple concurrent watches
+        subscriptionsKey = 'upbitPrivateSubscriptions'
+        if not (subscriptionsKey in client.subscriptions):
+            client.subscriptions[subscriptionsKey] = {}
+        channelKey = channel
+        if symbol is not None:
+            channelKey = channel + ':' + symbol
+        subscriptions = client.subscriptions[subscriptionsKey]
+        isNewChannel = not (channelKey in subscriptions)
+        if isNewChannel:
+            subscriptions[channelKey] = request
+        # Build subscription message with all requested private channels
+        # Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
+        requests = []
+        channelKeys = list(subscriptions.keys())
+        for i in range(0, len(channelKeys)):
+            requests.append(subscriptions[channelKeys[i]])
         message = [
             {
                 'ticket': self.uuid(),
             },
-            request,
         ]
+        for i in range(0, len(requests)):
+            message.append(requests[i])
         return await self.watch(url, messageHash, message, messageHash)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -656,5 +682,5 @@ class upbit(ccxt.async_support.upbit):
         }
         methodName = self.safe_string(message, 'type')
         method = self.safe_value(methods, methodName)
-        if method:
+        if method is not None:
             method(client, message)

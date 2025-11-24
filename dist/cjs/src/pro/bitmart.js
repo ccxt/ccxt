@@ -1,14 +1,16 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitmart$1 = require('../bitmart.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var OrderBookSide = require('../base/ws/OrderBookSide.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class bitmart extends bitmart$1 {
+class bitmart extends bitmart$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -217,7 +219,7 @@ class bitmart extends bitmart$1 {
         //                    "fz_bal":"0.100000000000000000000000000000"
         //                 }
         //              ],
-        //              "event_time":"1701632345415",
+        //              "event_time":"1701632345416",
         //              "event_type":"TRANSACTION_COMPLETED"
         //           }
         //        ],
@@ -1500,7 +1502,7 @@ class bitmart extends bitmart$1 {
         const url = this.implodeHostname(this.urls['api']['ws'][type]['private']);
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.milliseconds().toString();
@@ -1682,4 +1684,4 @@ class bitmart extends bitmart$1 {
     }
 }
 
-module.exports = bitmart;
+exports["default"] = bitmart;

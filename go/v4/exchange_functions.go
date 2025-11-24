@@ -66,6 +66,27 @@ func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
 	return outDict
 }
 
+func (this *Exchange) Sort(input interface{}) []string {
+	var list []string
+
+	switch v := input.(type) {
+	case []string:
+		list = append([]string{}, v...) // Copy to avoid modifying the original
+	case []interface{}:
+		for _, item := range v {
+			if str, ok := item.(string); ok {
+				list = append(list, str)
+			}
+		}
+	default:
+		// Unsupported type
+		return []string{}
+	}
+
+	sort.Strings(list)
+	return list
+}
+
 // omit removes specified keys from a map.
 // func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{} {
 // 	if len(parameters) == 1 {
@@ -99,9 +120,7 @@ func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{}
 
 	// Handle variadic parameters as individual keys
 	keys := make([]interface{}, len(parameters))
-	for i, parameter := range parameters {
-		keys[i] = parameter
-	}
+	copy(keys, parameters)
 	return this.OmitMap(a, keys)
 }
 
@@ -120,6 +139,18 @@ func (this *Exchange) OmitMap(aa interface{}, k interface{}) interface{} {
 		return aa
 	}
 
+	// Handle case where aa is not a map (e.g., string, nil, etc.)
+	if aa == nil {
+		return aa
+	}
+
+	// Try to convert to map, if it fails, return the original value
+	a, ok := aa.(map[string]interface{})
+	if !ok {
+		// If it's not a map, return the original value
+		return aa
+	}
+
 	var keys []interface{}
 	switch k.(type) {
 	case string:
@@ -130,7 +161,6 @@ func (this *Exchange) OmitMap(aa interface{}, k interface{}) interface{} {
 		}
 	}
 
-	a := aa.(map[string]interface{})
 	outDict := make(map[string]interface{})
 	for key, value := range a {
 		if !this.Contains(keys, key) {
@@ -197,12 +227,24 @@ func (this *Exchange) ToArray(a interface{}) []interface{} {
 		return slice
 	}
 
+	// Check if `a` implements IArrayCache interface (handles all cache types)
+	if cache, ok := a.(IArrayCache); ok {
+		return cache.ToArray()
+	}
+
 	// Check if `a` is a map of `map[string]interface{}`
 	if m, ok := a.(map[string]interface{}); ok {
 		outList := make([]interface{}, 0, len(m))
 		for _, value := range m {
 			outList = append(outList, value)
 		}
+		return outList
+	} else if m, ok := a.(*sync.Map); ok {
+		outList := make([]interface{}, 0)
+		m.Range(func(key, value interface{}) bool {
+			outList = append(outList, value)
+			return true
+		})
 		return outList
 	}
 
@@ -233,9 +275,29 @@ func (this *Exchange) ArrayConcat(aa, bb interface{}) interface{} {
 }
 
 // aggregate is a stub function that returns an empty slice.
+// func (this *Exchange) Aggregate(bidasks interface{}) []interface{} {
+// 	var outList []interface{}
+// 	return outList
+// }
+
 func (this *Exchange) Aggregate(bidasks interface{}) []interface{} {
-	var outList []interface{}
-	return outList
+	result := make(map[float64]float64)
+
+	for _, pair := range bidasks.([][]interface{}) {
+		if len(pair) >= 2 {
+			price := ToFloat64(pair[0])
+			volume := ToFloat64(pair[1])
+			result[price] += volume
+		}
+	}
+
+	// Convert map back to [][]interface{}
+	res := make([]interface{}, 0, len(result))
+	for price, volume := range result {
+		res = append(res, []interface{}{price, volume})
+	}
+
+	return res
 }
 
 func (this *Exchange) ExtractParams(str2 interface{}) []interface{} {

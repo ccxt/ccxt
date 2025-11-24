@@ -713,6 +713,81 @@
                   "takeProfitPrice": null,
                   "stopLossPrice": null
                 }
+            },
+            {
+                "description": "createOrder hedged true with positionSide LONG and a leverage param",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    105000,
+                    {
+                        "hedged": true,
+                        "leverage": 50
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "orderId": "357928390482800640",
+                        "clientOid": "f08f5172-6275-470d-b096-4eab1206d9ff"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "357928390482800640",
+                    "clientOrderId": "f08f5172-6275-470d-b096-4eab1206d9ff",
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fee": null,
+                    "status": null,
+                    "info": {
+                        "orderId": "357928390482800640",
+                        "clientOid": "f08f5172-6275-470d-b096-4eab1206d9ff"
+                    },
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "average": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set the position mode to one-way",
+                "method": "setPositionMode",
+                "input": [
+                    false
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "positionMode": 0
+                    }
+                },
+                "parsedResponse": {
+                    "code": "200000",
+                    "data": {
+                        "positionMode": 0
+                    }
+                }
             }
         ]
     }

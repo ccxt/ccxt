@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder, RequestTimeout, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Currencies, Market, Num, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Currencies, Market, Num, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position, FundingRate } from './base/types.js';
 
 /**
  * @class cryptocom
@@ -62,7 +62,7 @@ export default class cryptocom extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
@@ -314,30 +314,34 @@ export default class cryptocom extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': this.parseNumber ('0.004'),
-                    'taker': this.parseNumber ('0.004'),
+                    'maker': this.parseNumber ('0.0025'),
+                    'taker': this.parseNumber ('0.005'),
                     'tiers': {
                         'maker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.004') ],
-                            [ this.parseNumber ('25000'), this.parseNumber ('0.0035') ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.002') ],
                             [ this.parseNumber ('50000'), this.parseNumber ('0.0015') ],
-                            [ this.parseNumber ('100000'), this.parseNumber ('0.001') ],
-                            [ this.parseNumber ('250000'), this.parseNumber ('0.0009') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0008') ],
-                            [ this.parseNumber ('20000000'), this.parseNumber ('0.0007') ],
-                            [ this.parseNumber ('100000000'), this.parseNumber ('0.0006') ],
-                            [ this.parseNumber ('200000000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.00065') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('500000000'), this.parseNumber ('0') ],
                         ],
                         'taker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.004') ],
-                            [ this.parseNumber ('25000'), this.parseNumber ('0.0035') ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.005') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.004') ],
                             [ this.parseNumber ('50000'), this.parseNumber ('0.0025') ],
-                            [ this.parseNumber ('100000'), this.parseNumber ('0.0016') ],
-                            [ this.parseNumber ('250000'), this.parseNumber ('0.00015') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00014') ],
-                            [ this.parseNumber ('20000000'), this.parseNumber ('0.00013') ],
-                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00012') ],
-                            [ this.parseNumber ('200000000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00035') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0.00031') ],
+                            [ this.parseNumber ('500000000'), this.parseNumber ('0.00025') ],
                         ],
                     },
                 },
@@ -437,6 +441,9 @@ export default class cryptocom extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -463,6 +470,7 @@ export default class cryptocom extends Exchange {
             'exceptions': {
                 'exact': {
                     '219': InvalidOrder,
+                    '306': InsufficientFunds, // { "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : { "client_oid" : "1753xxx", "order_id" : "6530xxx" } }
                     '314': InvalidOrder, // { "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : { "client_oid" : "1700xxx", "order_id" : "6530xxx" } }
                     '325': InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
                     '415': InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
@@ -531,9 +539,27 @@ export default class cryptocom extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         // this endpoint requires authentication
         if (!this.checkRequiredCredentials (false)) {
-            return undefined;
+            return {};
         }
-        const response = await this.v1PrivatePostPrivateGetCurrencyNetworks (params);
+        let skipFetchCurrencies = false;
+        [ skipFetchCurrencies, params ] = this.handleOptionAndParams (params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        if (skipFetchCurrencies) {
+            // sub-accounts can't access this endpoint
+            return {};
+        }
+        let response = {};
+        try {
+            response = await this.v1PrivatePostPrivateGetCurrencyNetworks (params);
+        } catch (e) {
+            if (e instanceof ExchangeError) {
+                // sub-accounts can't access this endpoint
+                // {"code":"10001","msg":"SYS_ERROR"}
+                return {};
+            }
+            throw e;
+            // do nothing
+            // sub-accounts can't access this endpoint
+        }
         //
         //    {
         //        "id": "1747502328559",
@@ -558,7 +584,7 @@ export default class cryptocom extends Exchange {
         //                            "network_id": "CRONOS",
         //                            "withdrawal_fee": "0.18000000",
         //                            "withdraw_enabled": true,
-        //                            "min_withdrawal_amount": "0.36",
+        //                            "min_withdrawal_amount": "0.35",
         //                            "deposit_enabled": true,
         //                            "confirmation_required": "15"
         //                        },
@@ -1054,7 +1080,7 @@ export default class cryptocom extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
@@ -1130,7 +1156,7 @@ export default class cryptocom extends Exchange {
             'instrument_name': market['id'],
         };
         if (limit) {
-            request['depth'] = limit;
+            request['depth'] = Math.min (limit, 50); // max 50
         }
         const response = await this.v1PublicGetPublicGetBook (this.extend (request, params));
         //
@@ -1680,7 +1706,8 @@ export default class cryptocom extends Exchange {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
         }
-        return await this.v1PrivatePostPrivateCancelAllOrders (this.extend (request, params));
+        const response = await this.v1PrivatePostPrivateCancelAllOrders (this.extend (request, params));
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
@@ -1729,7 +1756,7 @@ export default class cryptocom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -1945,7 +1972,7 @@ export default class cryptocom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.safeCurrency (code); // for instance, USDC is not inferred from markets but it's still available
@@ -2972,6 +2999,83 @@ export default class cryptocom extends Exchange {
             result.push (this.parseSettlement (settlements[i], market));
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name cryptocom#fetchFundingRate
+     * @description fetches historical funding rates
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRate (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request: Dict = {
+            'instrument_name': market['id'],
+            'valuation_type': 'estimated_funding_rate',
+            'count': 1,
+        };
+        const response = await this.v1PublicGetPublicGetValuations (this.extend (request, params));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-valuations",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //             ],
+        //             "instrument_name": "BTCUSD-PERP"
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'data', []);
+        const entry = this.safeDict (data, 0, {});
+        return this.parseFundingRate (entry, market);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        //
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //
+        const timestamp = this.safeInteger (contract, 't');
+        let fundingTimestamp = undefined;
+        if (timestamp !== undefined) {
+            fundingTimestamp = Math.ceil (timestamp / 3600000) * 3600000; // end of the next hour
+        }
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (undefined, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (contract, 'v'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': '1h',
+        } as FundingRate;
     }
 
     /**

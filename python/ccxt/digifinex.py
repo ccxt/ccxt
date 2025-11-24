@@ -544,7 +544,7 @@ class digifinex(Exchange, ImplicitAPI):
             networks = {}
             for j in range(0, len(networkEntries)):
                 networkEntry = networkEntries[j]
-                networkId = self.safe_string(networkEntry, 'chain')
+                networkId = self.safe_string_2(networkEntry, 'chain', 'currency')
                 networkCode = self.network_id_to_code(networkId)
                 networks[networkCode] = {
                     'id': networkId,
@@ -1493,7 +1493,7 @@ class digifinex(Exchange, ImplicitAPI):
                 self.safe_number(ohlcv, 1),  # volume
             ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1923,7 +1923,7 @@ class digifinex(Exchange, ImplicitAPI):
             }))
         return result
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -2912,7 +2912,7 @@ class digifinex(Exchange, ImplicitAPI):
             response = self.privateSpotPostTransfer(self.extend(request, params))
         return self.parse_transfer(response, currency)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3585,7 +3585,7 @@ class digifinex(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

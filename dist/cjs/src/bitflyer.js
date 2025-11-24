@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitflyer$1 = require('./abstract/bitflyer.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitflyer
  * @augments Exchange
  */
-class bitflyer extends bitflyer$1 {
+class bitflyer extends bitflyer$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitflyer',
@@ -28,19 +30,37 @@ class bitflyer extends bitflyer$1 {
                 'swap': undefined,
                 'future': undefined,
                 'option': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'createOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDeposits': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': 'emulated',
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': 'emulated',
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -52,7 +72,10 @@ class bitflyer extends bitflyer$1 {
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -1205,4 +1228,4 @@ class bitflyer extends bitflyer$1 {
     }
 }
 
-module.exports = bitflyer;
+exports["default"] = bitflyer;

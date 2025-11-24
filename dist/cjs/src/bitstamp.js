@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitstamp$1 = require('./abstract/bitstamp.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitstamp
  * @augments Exchange
  */
-class bitstamp extends bitstamp$1 {
+class bitstamp extends bitstamp$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitstamp',
@@ -518,6 +520,7 @@ class bitstamp extends bitstamp$1 {
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": errors.OnMaintenance,
                     'Order could not be placed.': errors.ExchangeNotAvailable,
                     'Invalid offset.': errors.BadRequest,
+                    'Trading is currently unavailable for your account.': errors.AccountSuspended, // {"status": "error", "reason": {"__all__": ["Trading is currently unavailable for your account."]}, "response_code": "403.004"}
                 },
                 'broad': {
                     'Minimum order size is': errors.InvalidOrder,
@@ -2440,4 +2443,4 @@ class bitstamp extends bitstamp$1 {
     }
 }
 
-module.exports = bitstamp;
+exports["default"] = bitstamp;

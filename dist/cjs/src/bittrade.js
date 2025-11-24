@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bittrade$1 = require('./abstract/bittrade.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class bittrade
  * @augments Exchange
  */
-class bittrade extends bittrade$1 {
+class bittrade extends bittrade$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bittrade',
@@ -2046,4 +2048,4 @@ class bittrade extends bittrade$1 {
     }
 }
 
-module.exports = bittrade;
+exports["default"] = bittrade;
