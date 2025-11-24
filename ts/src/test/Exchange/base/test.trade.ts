@@ -1,5 +1,6 @@
 import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
+import Precise from '../../../base/Precise.js';
 
 function testTrade (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
     const format = {
@@ -34,6 +35,9 @@ function testTrade (exchange: Exchange, skippedProperties: object, method: strin
                 testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fees'], i);
             }
         }
+    }
+    if (!('amountPriceCost' in skippedProperties)) {
+        testSharedMethods.assertAmountPriceCost (exchange, skippedProperties, method, symbol, entry, 'amount', 'price', 'cost');
     }
 }
 
