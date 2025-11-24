@@ -8,69 +8,13 @@
     "methods": {
         "editOrder": [
             {
-                "description": "Edit order by order id",
-                "method": "editOrder",
-                "input": [
-                    "913020243366380545",
-                    "USDT/USDC",
-                    "limit",
-                    null,
-                    10,
-                    0.5
-                ],
-                "httpResponse": {
-                    "message": "Command acknowledged - AmendOrder",
-                    "requestId": "913022414027752448",
-                    "orderId": "913020243366380545",
-                    "clientOrderId": null
-                },
-                "parsedResponse": {
-                    "id": "913020243366380545",
-                    "clientOrderId": null,
-                    "timestamp": null,
-                    "datetime": null,
-                    "lastTradeTimestamp": null,
-                    "status": null,
-                    "symbol": "USDT/USDC",
-                    "type": null,
-                    "timeInForce": null,
-                    "postOnly": false,
-                    "side": null,
-                    "price": null,
-                    "triggerPrice": null,
-                    "amount": null,
-                    "filled": null,
-                    "remaining": null,
-                    "cost": null,
-                    "trades": [],
-                    "fee": {},
-                    "info": {
-                        "message": "Command acknowledged - AmendOrder",
-                        "requestId": "913022414027752448",
-                        "orderId": "913020243366380545",
-                        "clientOrderId": null
-                    },
-                    "average": null,
-                    "fees": [
-                        {
-                            "cost": null
-                        }
-                    ],
-                    "lastUpdateTimestamp": null,
-                    "reduceOnly": null,
-                    "stopPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
-                }
-            },
-            {
                 "description": "Edit order by clientOrderId",
                 "method": "editOrder",
                 "input": [
-                    null,
+                    123,
                     "USDT/USDC",
-                    null,
-                    null,
+                    "limit",
+                    "buy",
                     12,
                     0.55,
                     {
@@ -80,7 +24,7 @@
                 ],
                 "httpResponse": {
                     "message": "Command acknowledged - AmendOrder",
-                    "requestId": "913022058589848576",
+                    "requestId": "913032210047042560",
                     "orderId": null,
                     "clientOrderId": "987654321"
                 },
@@ -106,9 +50,65 @@
                     "fee": {},
                     "info": {
                         "message": "Command acknowledged - AmendOrder",
-                        "requestId": "913022058589848576",
+                        "requestId": "913032210047042560",
                         "orderId": null,
                         "clientOrderId": "987654321"
+                    },
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "Edit order by order id",
+                "method": "editOrder",
+                "input": [
+                    "913020243366380545",
+                    "USDT/USDC",
+                    "limit",
+                    "buy",
+                    10,
+                    0.5
+                ],
+                "httpResponse": {
+                    "message": "Command acknowledged - AmendOrder",
+                    "requestId": "913031900536767488",
+                    "orderId": "913020243366380545",
+                    "clientOrderId": null
+                },
+                "parsedResponse": {
+                    "id": "913020243366380545",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "USDT/USDC",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {},
+                    "info": {
+                        "message": "Command acknowledged - AmendOrder",
+                        "requestId": "913031900536767488",
+                        "orderId": "913020243366380545",
+                        "clientOrderId": null
                     },
                     "average": null,
                     "fees": [
