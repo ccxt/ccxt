@@ -11,6 +11,54 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "Fetch canceled and closed orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/history/orders?tradingAccountId=111795880131063&status=CLOSED",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "Fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/orders?tradingAccountId=111795880131063&status=CANCELLED",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/orders?tradingAccountId=111795880131063&status=CLOSED",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/history/orders?tradingAccountId=111795880131063&status=OPEN",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Fetch orders with market, since and limit",
+                "method": "fetchOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/history/orders?tradingAccountId=111795880131063&symbol=USDTUSDC&createdAtDatetime%5Bgte%5D=2025-11-24T10%3A56%3A29.115Z&createdAtDatetime%5Blte%5D=2025-12-01T10%3A56%3A29.115Z",
+                "input": [
+                    "USDT/USDC",
+                    1763981789115
+                ],
+                "output": null
+            }
+        ],
         "editOrder": [
             {
                 "description": "Edit order by clientOrderId",
@@ -43,33 +91,6 @@
                     0.5
                 ],
                 "output": "{\"commandType\":\"V1AmendOrder\",\"symbol\":\"USDTUSDC\",\"tradingAccountId\":\"111795880131063\",\"orderId\":\"913020243366380545\",\"type\":\"LIMIT\",\"quantity\":\"10\",\"price\":\"0.5\"}"
-            }
-        ],
-        "fetchClosedOrders": [
-            {
-                "description": "Fetch closed orders",
-                "method": "fetchClosedOrders",
-                "url": "https://api.exchange.bullish.com/trading-api/v2/orders?tradingAccountId=111795880131063&status=CLOSED",
-                "input": [],
-                "output": null
-            }
-        ],
-        "fetchCanceledOrders": [
-            {
-                "description": "Fetch canceled orders",
-                "method": "fetchCanceledOrders",
-                "url": "https://api.exchange.bullish.com/trading-api/v2/orders?tradingAccountId=111795880131063&status=CANCELLED",
-                "input": [],
-                "output": null
-            }
-        ],
-        "fetchOpenOrders": [
-            {
-                "description": "Fetch opne orders",
-                "method": "fetchOpenOrders",
-                "url": "https://api.exchange.bullish.com/trading-api/v2/orders?tradingAccountId=111795880131063&status=OPEN",
-                "input": [],
-                "output": null
             }
         ],
         "fetchOrderTrades": [
@@ -209,17 +230,6 @@
                     100000
                 ],
                 "output": "{\"commandType\":\"V3CreateOrder\",\"symbol\":\"BTCUSDC\",\"side\":\"BUY\",\"quantity\":\"1\",\"tradingAccountId\":\"111309424211255\",\"type\":\"MARKET\",\"timeInForce\":\"GTC\"}"
-            }
-        ],
-        "fetchOrders": [
-            {
-                "description": "Fetch orders for BTC/USDC",
-                "method": "fetchOrders",
-                "url": "https://api.simnext.bullish-test.com/trading-api/v2/orders?symbol=BTCUSDC&tradingAccountId=111309424211255",
-                "input": [
-                    "BTC/USDC"
-                ],
-                "output": null
             }
         ],
         "fetchTicker": [
