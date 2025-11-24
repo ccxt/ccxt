@@ -129,7 +129,7 @@ public class Exchange {
     public Object last_request_body;
     public Object last_request_url;
     public boolean returnResponseHeaders = false;
-    public Object headers;
+    public Map<String, Object> headers = new HashMap<>();
     public Object httpExceptions;
 
     public Object httpProxy = null;
@@ -215,7 +215,7 @@ public class Exchange {
 
         this.initializeProperties(defaultConfig);
         this.afterConstruct();
-        this.transformApiNew(this.api, new ArrayList<>());.api, new ArrayList<>());
+        this.transformApiNew(this.api, new ArrayList<>());
     }
 
     Exchange (Object userConfig) {
@@ -1529,7 +1529,7 @@ public class Exchange {
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{

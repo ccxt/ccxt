@@ -13,3 +13,7 @@ plugins {
     application
     java
 }
+
+dependencies {
+    implementation(project(":lib"))
+}
