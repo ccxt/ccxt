@@ -51,6 +51,7 @@ export default class bullish extends Exchange {
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': true,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
@@ -166,7 +167,7 @@ export default class bullish extends Exchange {
                         'v1/history/markets/{symbol}/funding-rate': 1, // done
                         'v1/index-prices': 1, // not used
                         'v1/index-prices/{assetSymbol}': 1, // not used
-                        'v1/expiry-prices/{symbol}': 1, // todo check
+                        'v1/expiry-prices/{symbol}': 1, // not used
                         'v1/option-ladder': 1, // not used
                         'v1/option-ladder/{symbol}': 1, // not used
                     },
@@ -174,7 +175,7 @@ export default class bullish extends Exchange {
                 'private': {
                     'get': {
                         'v2/orders': 1, // done
-                        'v2/history/orders': 1, // todo
+                        'v2/history/orders': 1, // done
                         'v2/orders/{orderId}': 1, // done
                         'v2/amm-instructions': 1, // not used
                         'v2/amm-instructions/{instructionId}': 1, // not used
@@ -280,17 +281,51 @@ export default class bullish extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOpenOrders': undefined,
                     'fetchOrders': {
                         'marginMode': false,
-                        'limit': undefined,
-                        'daysBack': 1,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
-                        'untilDays': undefined,
                     },
-                    'fetchClosedOrders': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchCanceledAndClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 1,
+                        'untilDays': 1,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchCalnceledOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 1,
+                        'untilDays': 1,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
@@ -1427,69 +1462,125 @@ export default class bullish extends Exchange {
      * @name bullish#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
      * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for, not used by bullish
-     * @param {int} [limit] the maximum number of order structures to retrieve, not used by bullish
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve (5, 25, 50, 100, default is 25)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
+     * @param {int} [params.until] timestamp in ms of the latest order to fetch
+     * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
+     * @param {string} [params.orderId] the id of the order to fetch for
+     * @param {string} [params.clientOrderId] the client id of the order to fetch for
+     * @param {string} [params.status] filter by order status, 'OPEN', 'CANCELLED', 'CLOSED', 'REJECTED'
+     * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const paginate = this.safeBool (params, 'paginate', false);
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            params = this.extend (params, { 'paginationDirection': 'backward' });
+            const until = this.safeInteger (params, 'until');
+            if (until === undefined) {
+                const now = this.milliseconds ();
+                params = this.extend (params, { 'until': now });
+            }
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, 100, params) as Order[];
+        }
         let market = undefined;
-        // todo add pagination support
-        // todo change endpoint https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v2/history/orders
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+        }
         const request: Dict = {
+            'tradingAccountId': tradingAccountId,
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'tradingAccountId');
-        if (tradingAccountId !== undefined) {
-            request['tradingAccountId'] = tradingAccountId;
-        } else {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+        params = this.handleSinceAndUntil (since, params);
+        if (limit !== undefined) {
+            request['_pageSize'] = this.getClosestLimit (limit);
         }
-        const response = await this.privateGetV2Orders (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "clientOrderId": "187",
-        //             "orderId": "297735387747975680",
-        //             "symbol": "BTCUSDC",
-        //             "price": "1.00000000",
-        //             "averageFillPrice": "1.00000000",
-        //             "stopPrice": "1.00000000",
-        //             "allowBorrow": false,
-        //             "quantity": "1.00000000",
-        //             "quantityFilled": "1.00000000",
-        //             "quoteAmount": "1.00000000",
-        //             "baseFee": "0.00100000",
-        //             "quoteFee": "0.0010",
-        //             "borrowedBaseQuantity": "1.00000000",
-        //             "borrowedQuoteQuantity": "1.00000000",
-        //             "isLiquidation": false,
-        //             "side": "BUY",
-        //             "type": "LMT",
-        //             "timeInForce": "GTC",
-        //             "status": "OPEN",
-        //             "statusReason": "User cancelled",
-        //             "statusReasonCode": "1002",
-        //             "createdAtDatetime": "2021-05-20T01:01:01.000Z",
-        //             "createdAtTimestamp": "1621490985000",
-        //         }
-        //     ]
-        //
+        let method = 'privateGetV2HistoryOrders';
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'method', method);
+        let response = undefined;
+        if (method === 'privateGetV2Orders') {
+            //
+            //     [
+            //         {
+            //             "clientOrderId": "187",
+            //             "orderId": "297735387747975680",
+            //             "symbol": "BTCUSDC",
+            //             "price": "1.00000000",
+            //             "averageFillPrice": "1.00000000",
+            //             "stopPrice": "1.00000000",
+            //             "allowBorrow": false,
+            //             "quantity": "1.00000000",
+            //             "quantityFilled": "1.00000000",
+            //             "quoteAmount": "1.00000000",
+            //             "baseFee": "0.00100000",
+            //             "quoteFee": "0.0010",
+            //             "borrowedBaseQuantity": "1.00000000",
+            //             "borrowedQuoteQuantity": "1.00000000",
+            //             "isLiquidation": false,
+            //             "side": "BUY",
+            //             "type": "LMT",
+            //             "timeInForce": "GTC",
+            //             "status": "OPEN",
+            //             "statusReason": "User cancelled",
+            //             "statusReasonCode": "1002",
+            //             "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+            //             "createdAtTimestamp": "1621490985000",
+            //         }
+            //     ]
+            //
+            response = await this.privateGetV2Orders (this.extend (request, params));
+        } else if (method === 'privateGetV2HistoryOrders') {
+            response = await this.privateGetV2HistoryOrders (this.extend (request, params));
+        } else {
+            throw new BadRequest (this.id + ' fetchOrders() method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
+        }
         return this.parseOrders (response, market, since, limit);
+    }
+
+    handleSinceAndUntil (since: Int = undefined, params: Dict = {}): Dict {
+        let until = this.safeInteger (params, 'until');
+        const request: Dict = {};
+        if ((since !== undefined) || (until !== undefined)) {
+            const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
+            if (since === undefined) {
+                since = until - timeDelta;
+                params = this.omit (params, 'until');
+            } else if (until === undefined) {
+                until = since + timeDelta;
+            }
+            request['createdAtDatetime[gte]'] = this.iso8601 (since);
+            request['createdAtDatetime[lte]'] = this.iso8601 (until);
+        }
+        return this.extend (request, params);
+    }
+
+    getClosestLimit (limit: Int): Int {
+        let pageSize = 5;
+        if ((limit > 5) && (limit < 26)) {
+            pageSize = 25;
+        } else if ((limit > 25) && (limit < 51)) {
+            pageSize = 50;
+        } else if (limit > 50) {
+            pageSize = 100;
+        }
+        return pageSize;
     }
 
     /**
      * @method
      * @name bullish#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1513,12 +1604,13 @@ export default class bullish extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of canceled orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
+     * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const request: Dict = {
             'status': 'CANCELLED',
+            'method': 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
@@ -1538,6 +1630,27 @@ export default class bullish extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const request: Dict = {
             'status': 'CLOSED',
+            'method': 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name bullish#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+     * @param {string} symbol unified market symbol of the closed orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the max number of closed orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const request: Dict = {
+            'status': 'CLOSED',
+            'method': 'privateGetV2HistoryOrders', // current endpoint returns both CLOSED and CANCELLED orders
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
@@ -1864,7 +1977,13 @@ export default class bullish extends Exchange {
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'quantityFilled');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        if (status === 'closed') {
+            const statusReason = this.safeString (order, 'statusReason');
+            if (statusReason === 'User cancelled') {
+                status = 'canceled';
+            }
+        }
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeString (order, 'stopPrice');
         const cost = this.safeString (order, 'quoteAmount');
