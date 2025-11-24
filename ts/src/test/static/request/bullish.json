@@ -13,6 +13,26 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchOrderTrades": [
+            {
+                "description": "Fetch order trades",
+                "method": "fetchOrderTrades",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/history/trades?tradingAccountId=111795880131063&orderId=913055493538710529",
+                "input": [
+                    "913055493538710529"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/history/trades?tradingAccountId=111795880131063",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchCanceledAndClosedOrders": [
             {
                 "description": "Fetch canceled and closed orders",
@@ -93,16 +113,6 @@
                     0.5
                 ],
                 "output": "{\"commandType\":\"V1AmendOrder\",\"symbol\":\"USDTUSDC\",\"tradingAccountId\":\"111795880131063\",\"orderId\":\"913020243366380545\",\"type\":\"LIMIT\",\"quantity\":\"10\",\"price\":\"0.5\"}"
-            }
-        ],
-        "fetchOrderTrades": [
-            {
-                "description": "Fetch order trades by order id",
-                "method": "fetchOrderTrades",
-                "url": "https://api.exchange.bullish.com/trading-api/v1/trades?tradingAccountId=111795880131063&orderId=910918330718094337",
-                "input": [
-                    "910918330718094337"
-                ]
             }
         ],
         "createTriggerOrder": [
@@ -239,17 +249,6 @@
                 "description": "Fetch ticker for BTC/USDC",
                 "method": "fetchTicker",
                 "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTCUSDC/tick",
-                "input": [
-                    "BTC/USDC"
-                ],
-                "output": null
-            }
-        ],
-        "fetchMyTrades": [
-            {
-                "description": "Fetch my trades for BTC/USDC",
-                "method": "fetchMyTrades",
-                "url": "https://api.simnext.bullish-test.com/trading-api/v1/trades?symbol=BTCUSDC&tradingAccountId=111309424211255",
                 "input": [
                     "BTC/USDC"
                 ],
