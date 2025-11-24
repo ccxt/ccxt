@@ -939,11 +939,11 @@ export default class xcoin extends xcoinRest {
         //        ]
         //    }
         //
-        const balance = this.safeList (message, 'data', []);
-        // todo
-        const messageHash = 'balance';
-        const result = this.safeBalance (this.balance);
-        client.resolve (result, messageHash);
+        // const balance = this.safeList (message, 'data', []);
+        // // todo
+        // const messageHash = 'balance';
+        // const result = this.safeBalance (this.balance);
+        // client.resolve (result, messageHash);
     }
 
     parseWsBalance (response): Balances {
@@ -1003,7 +1003,7 @@ export default class xcoin extends xcoinRest {
         //
         const data = this.safeList (message, 'data', []);
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolBySide();
+            this.positions = new ArrayCacheBySymbolBySide ();
         }
         const positions = this.positions;
         for (let i = 0; i < data.length; i++) {
