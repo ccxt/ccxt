@@ -21,7 +21,7 @@ export default class upbit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'upbit',
             'name': 'Upbit',
-            'countries': [ 'KR' ],
+            'countries': [ 'KR', 'ID', 'SG', 'TH' ],
             'version': 'v1',
             'rateLimit': 50,
             'pro': true,
@@ -132,7 +132,6 @@ export default class upbit extends Exchange {
                         'ticker/all': 2,
                         'orderbook': 2,
                         'orderbook/instruments': 2,
-                        'orderbook/supported_levels': 2, // Upbit KR only, deprecatd
                     },
                 },
                 'private': {
@@ -153,11 +152,12 @@ export default class upbit extends Exchange {
                         'deposits/coin_addresses': 0.67,
                         'deposits/coin_address': 0.67,
                         'travel_rule/vasps': 0.67,
-                        'status/wallet': 0.67, // Upbit KR only
+                        'status/wallet': 0.67,
                         'api_keys': 0.67, // Upbit KR only
                     },
                     'post': {
                         'orders': 2.5, // RPS: 8
+                        'orders/test': 2.5, // RPS: 8
                         'orders/cancel_and_new': 2.5, // RPS: 8
                         'withdraws/coin': 0.67,
                         'withdraws/krw': 0.67, // Upbit KR only.
@@ -170,6 +170,7 @@ export default class upbit extends Exchange {
                         'order': 0.67,
                         'orders/open': 40, // RPS: 0.5
                         'orders/uuids': 0.67,
+                        'withdraws/coin': 0.67,
                     },
                 },
             },
