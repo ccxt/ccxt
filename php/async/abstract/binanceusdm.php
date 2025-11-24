@@ -1585,6 +1585,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function fapiprivate_get_apitradingstatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function fapiprivate_get_symboladlrisk($params = array()) {
+        return $this->request('symbolAdlRisk', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function fapiprivate_get_multiassetsmargin($params = array()) {
         return $this->request('multiAssetsMargin', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 30));
     }
@@ -3906,6 +3909,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function fapiPrivateGetApiTradingStatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateGetSymbolAdlRisk($params = array()) {
+        return $this->request('symbolAdlRisk', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiPrivateGetMultiAssetsMargin($params = array()) {
         return $this->request('multiAssetsMargin', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 30));
