@@ -2943,7 +2943,7 @@ public partial class deepcoin : Exchange
         object request = new Dictionary<string, object>() {
             { "instType", instType },
         };
-        object response = await ((Task<object>)callDynamically(this, "publicGetDeepcoinTradeFundRateCurrentFundingRate", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",
@@ -2989,7 +2989,7 @@ public partial class deepcoin : Exchange
             { "instId", getValue(market, "id") },
             { "instType", this.getProductGroupFromMarket(market) },
         };
-        object response = await ((Task<object>)callDynamically(this, "publicGetDeepcoinTradeFundRateCurrentFundingRate", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",
@@ -3070,7 +3070,7 @@ public partial class deepcoin : Exchange
         {
             ((IDictionary<string,object>)request)["size"] = limit; // default 20, max 100
         }
-        object response = await ((Task<object>)callDynamically(this, "publicGetDeepcoinTradeFundRateHistory", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetDeepcoinTradeFundRateHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",

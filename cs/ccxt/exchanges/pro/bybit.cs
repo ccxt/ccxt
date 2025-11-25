@@ -935,7 +935,7 @@ public partial class bybit : ccxt.bybit
         object market = this.market(getValue(symbols, 0));
         if (isTrue(isEqual(limit, null)))
         {
-            limit = ((bool) isTrue((getValue(market, "spot")))) ? 50 : 500;
+            limit = 50;
             if (isTrue(getValue(market, "option")))
             {
                 limit = 100;
@@ -945,7 +945,7 @@ public partial class bybit : ccxt.bybit
             object limits = new Dictionary<string, object>() {
                 { "spot", new List<object>() {1, 50, 200, 1000} },
                 { "option", new List<object>() {25, 100} },
-                { "default", new List<object>() {1, 50, 200, 500, 1000} },
+                { "default", new List<object>() {1, 50, 200, 1000} },
             };
             object selectedLimits = this.safeList2(limits, getValue(market, "type"), "default");
             if (!isTrue(this.inArray(limit, selectedLimits)))
