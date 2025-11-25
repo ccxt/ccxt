@@ -1,0 +1,49 @@
+package:
+  name: edl-compiler
+  dependencies:
+    - prelude
+    - effect
+    - console
+    - aff
+    - arrays
+    - maybe
+    - either
+    - foldable-traversable
+    - strings
+    - integers
+    - numbers
+    - transformers
+    - ordered-collections
+    - parsing
+    - node-fs
+    - node-path
+    - node-process
+    - node-buffer
+    - argonaut-core
+    - argonaut-codecs
+    - foreign
+    - foreign-object
+    - yoga-json
+    - exceptions
+    - refs
+    - tuples
+    - lists
+    - control
+    - newtype
+    - validation
+    - formatters
+    - datetime
+    - now
+    - unsafe-coerce
+    - record
+    - variant
+  test:
+    main: Test.Main
+    dependencies:
+      - spec
+      - spec-discovery
+
+workspace:
+  packageSet:
+    registry: 55.2.0
+  extraPackages: {}
