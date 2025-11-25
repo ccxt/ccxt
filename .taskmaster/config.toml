@@ -1,0 +1,4 @@
+[llm]
+provider = "xai"
+model = "grok-code-fast-1"
+max_tokens = 4096

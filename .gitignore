@@ -44,4 +44,3 @@ __debug*
 *.o
 .custom_gitignore
 # SCUD Task Master
-.taskmaster/

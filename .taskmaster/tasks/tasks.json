@@ -1,0 +1,2167 @@
+{
+  "master": {
+    "name": "master",
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Open CCXT GitHub Discussion Issue",
+        "description": "Create a GitHub discussion issue on the CCXT repository to present the implementation plan, gauge maintainer interest, and gather feedback before starting development. Include high-level overviews of all three features and the proposed timeline. Wait for initial feedback before proceeding.",
+        "status": "pending",
+        "complexity": 2,
+        "priority": "high",
+        "dependencies": [],
+        "complexity_analysis": "This task involves creating a GitHub discussion post with overviews and a timeline, which is straightforward and requires minimal research or technical work, no code changes, testing, or dependencies; it can be completed in 30 minutes to 1 hour.",
+        "created_at": "2025-11-24T23:49:21.336317+00:00",
+        "updated_at": "2025-11-25T00:26:45.435609+00:00"
+      },
+      {
+        "id": "2",
+        "title": "[PARENT] Set up PureScript development environment for EDL",
+        "description": "Install PureScript, Spago, and required dependencies. Create the initial project structure in edl/purescript/ with spago.yaml and package.json. Ensure spago build and spago test commands work. Verify integration with the existing CCXT Node.js build pipeline.\n\n[This task has been expanded into subtasks: 2.1, 2.2, 2.3, 2.4]\n\n[PARALLELISM NOTE: Can run in parallel with Task 16 (Data Lake) after Task 1 completes]",
+        "status": "pending",
+        "complexity": 5,
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "complexity_analysis": "The task involves installing niche tools (PureScript, Spago) with potential unknowns for setup, creating project files, ensuring build and test functionality, and integrating with an existing Node.js pipeline, which requires research on compatibility and build configurations; this adds complexity in testing integration points and handling edge cases like version conflicts or OS-specific issues, estimating 2-4 hours total.",
+        "created_at": "2025-11-24T23:49:21.336326+00:00",
+        "updated_at": "2025-11-25T00:29:16.404805+00:00"
+      },
+      {
+        "id": "3",
+        "title": "[PARENT] Define core ADTs in EDL/Types.purs",
+        "description": "Implement the core Algebraic Data Types in PureScript for EDL, including ExchangeMetadata, AuthMethod, Endpoint, ParserDef, ErrorPattern, and EDLDocument. Ensure all types are well-documented and cover the YAML specification requirements. Test compilation with spago build.\n\n[This task has been expanded into subtasks: 3.1, 3.2, 3.3]",
+        "status": "pending",
+        "complexity": 3,
+        "priority": "high",
+        "dependencies": [
+          "2"
+        ],
+        "complexity_analysis": "The task involves defining multiple ADTs in a single PureScript file, which is straightforward for an experienced developer. While ensuring coverage of the YAML specification may require some research into EDL requirements, the technical difficulty is low with no major unknowns, limited files affected (one), simple compilation testing, minimal dependencies, and few edge cases. Estimated time: 1-2 hours.",
+        "created_at": "2025-11-24T23:49:21.336326+00:00",
+        "updated_at": "2025-11-25T00:29:19.687321+00:00"
+      },
+      {
+        "id": "4",
+        "title": "[PARENT] Implement YAML parser in EDL/Parser.purs",
+        "description": "Build the YAML parser using purescript-yoga-yaml to convert EDL YAML into PureScript ADTs. Handle parsing of exchange metadata, auth methods, API definitions, parsers, and errors. Write unit tests for parsing valid and invalid YAML inputs.\n\n[This task has been expanded into subtasks: 4.1, 4.2, 4.3, 4.4, 4.5]",
+        "status": "pending",
+        "complexity": 8,
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "complexity_analysis": "The task involves implementing a YAML parser for multiple components (metadata, auth, APIs, parsers, errors) in PureScript using an external library, requiring research on the library and EDL YAML structure. It includes defining ADTs, error handling, and comprehensive unit tests for valid/invalid inputs with edge cases, likely taking 4-8 hours due to technical unknowns and integration.",
+        "created_at": "2025-11-24T23:49:21.336327+00:00",
+        "updated_at": "2025-11-25T00:29:23.989110+00:00"
+      },
+      {
+        "id": "5",
+        "title": "[PARENT] Create example.edl.yaml for testing",
+        "description": "Develop a fully documented example EDL YAML file that covers all features, including metadata, auth, API endpoints, parsers, and errors. Ensure it serves as a reference for contributors and provides test data for the parser.\n\n[This task has been expanded into subtasks: 5.1, 5.2, 5.3, 5.4]\n\n[PARALLELISM NOTE: Can run in parallel with Task 4 after Task 3 completes]",
+        "status": "pending",
+        "complexity": 5,
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "complexity_analysis": "The task involves creating a comprehensive example YAML file that must cover all EDL features (metadata, auth, API endpoints, parsers, errors) with full documentation and successful parsing. This requires thorough understanding of the EDL schema, research into all possible features and edge cases, and testing for parseability, making it complex (2-4 hours) due to the need for completeness and accuracy as a contributor reference, despite affecting only one file.",
+        "created_at": "2025-11-24T23:49:21.336327+00:00",
+        "updated_at": "2025-11-25T00:29:31.465563+00:00"
+      },
+      {
+        "id": "6",
+        "title": "[PARENT] Implement semantic analyzer in EDL/Analyzer.purs",
+        "description": "Build validation logic to check cross-references between endpoints and parsers, validate auth configurations, and parse compute expressions. Implement error reporting with YAML source locations. Add unit tests for various invalid configurations.\n\n[This task has been expanded into subtasks: 6.1, 6.2, 6.3, 6.4, 6.5]",
+        "status": "pending",
+        "complexity": 8,
+        "priority": "high",
+        "dependencies": [
+          "4",
+          "5"
+        ],
+        "complexity_analysis": "The task involves implementing multiple validation logics (cross-references, auth, compute expressions) with error reporting tied to YAML locations, plus comprehensive unit tests. It affects integration with endpoints, parsers, and auth configurations, requiring handling of edge cases and potential research into expression parsing and location tracking. This breadth and depth suggest 4-8 hours of work, qualifying as Very Complex.",
+        "created_at": "2025-11-24T23:49:21.336328+00:00",
+        "updated_at": "2025-11-25T00:29:35.562435+00:00"
+      },
+      {
+        "id": "7",
+        "title": "[PARENT] Define TypeScript AST types in CCXT/Types.purs",
+        "description": "Create PureScript representations of TypeScript AST elements needed for code generation, such as TSMethod, TSStatement, and related types. Ensure they align with CCXT's coding conventions and can be used to generate idiomatic TypeScript.\n\n[This task has been expanded into subtasks: 7.1, 7.2, 7.3, 7.4]",
+        "status": "pending",
+        "complexity": 5,
+        "priority": "high",
+        "dependencies": [
+          "6"
+        ],
+        "complexity_analysis": "The task requires defining PureScript representations of TypeScript AST elements for code generation, which involves technical difficulty in accurately mapping complex AST structures, researching TypeScript AST nodes, and ensuring alignment with CCXT conventions. It affects at least one file (CCXT/Types.purs) with potential integration points for code generation. Testing will need to verify correct TypeScript output, and edge cases like optional fields or various statement types must be handled. This is complex (2-4 hours) but not extremely so, as it's scoped to definitions rather than full implementation.",
+        "created_at": "2025-11-24T23:49:21.336328+00:00",
+        "updated_at": "2025-11-25T00:29:40.423750+00:00"
+      },
+      {
+        "id": "8",
+        "title": "[PARENT] Implement code generator in EDL/Generator.purs",
+        "description": "Develop the code generation logic to transform EDL ADTs into TypeScript AST, including methods for fetchTicker and other unified APIs. Use exhaustive pattern matching to ensure all FieldMapping variants are handled. Generate output that matches CCXT style.\n\n[This task has been expanded into subtasks: 8.1, 8.2, 8.3, 8.4, 8.5]",
+        "status": "pending",
+        "complexity": 8,
+        "priority": "high",
+        "dependencies": [
+          "7"
+        ],
+        "complexity_analysis": "The task involves complex code generation from EDL ADTs to TypeScript AST, requiring exhaustive pattern matching on FieldMapping variants, integration with TypeScript AST libraries, and ensuring output matches CCXT style APIs like fetchTicker. This includes technical unknowns in AST manipulation, research on CCXT conventions, handling edge cases in pattern matching, and testing generated code for correctness, likely taking 4-8 hours despite affecting primarily one file.",
+        "created_at": "2025-11-24T23:49:21.336329+00:00",
+        "updated_at": "2025-11-25T00:29:43.884939+00:00"
+      },
+      {
+        "id": "9",
+        "title": "[PARENT] Implement output emitter in EDL/Emitter.purs",
+        "description": "Build the emitter to convert TypeScript AST into formatted string output. Ensure generated code passes ESLint and TypeScript compilation. Add CLI entry point in Main.purs for running the compiler.\n\n[This task has been expanded into subtasks: 9.1, 9.2, 9.3, 9.4, 9.5]",
+        "status": "pending",
+        "complexity": 8,
+        "priority": "high",
+        "dependencies": [
+          "8"
+        ],
+        "complexity_analysis": "The task involves building a TypeScript AST emitter in PureScript, requiring deep knowledge of TypeScript syntax, AST structures, and pretty-printing to generate lint-compliant and compilable code, which introduces technical difficulty and potential unknowns in handling various TS constructs and edge cases like nested types or error handling. It affects at least two files (Emitter.purs and Main.purs), with integration into a CLI entry point and dependencies on existing compiler logic. Testing needs to verify generated code against TypeScript compiler and ESLint, necessitating research on TS AST and formatting best practices. This complexity fits a 4-8 hour effort, making it 'Very Complex' but not yet requiring splitting.",
+        "created_at": "2025-11-24T23:49:21.336329+00:00",
+        "updated_at": "2025-11-25T00:29:48.267644+00:00"
+      },
+      {
+        "id": "10",
+        "title": "[PARENT] Integrate EDL compiler into build system",
+        "description": "Update package.json scripts to include build:edl-compiler and compile-edl commands. Ensure the compiler can process multiple YAML files and output to ts/src/. Test that npm run build includes EDL compilation seamlessly.\n\n[This task has been expanded into subtasks: 10.1, 10.2, 10.3, 10.4]",
+        "status": "pending",
+        "complexity": 5,
+        "priority": "high",
+        "dependencies": [
+          "9"
+        ],
+        "complexity_analysis": "The task involves modifying package.json scripts, configuring the EDL compiler to handle multiple YAML files with correct output paths, and ensuring seamless integration into the build process. It requires some research on the compiler's usage, handling edge cases like file paths and errors, and thorough testing of the build pipeline. Technical difficulty is moderate with potential unknowns in compiler configuration, affecting a few files but with integration dependencies. Estimated time: 2-4 hours.",
+        "created_at": "2025-11-24T23:49:21.336330+00:00",
+        "updated_at": "2025-11-25T00:29:51.636353+00:00"
+      },
+      {
+        "id": "11",
+        "title": "[PARENT] Implement 5 exchange EDLs (Kraken, Coinbase, Binance, Bitfinex, Example)",
+        "description": "Create EDL YAML files for the specified exchanges based on their existing implementations. Validate that the compiler generates TypeScript code that passes static tests and compiles correctly.\n\n[This task has been expanded into subtasks: 11.1, 11.2, 11.3, 11.4, 11.5]",
+        "status": "pending",
+        "complexity": 8,
+        "priority": "high",
+        "dependencies": [
+          "10"
+        ],
+        "complexity_analysis": "The task requires creating 5 EDL YAML files based on existing implementations for different exchanges, necessitating research into each exchange's specifics (technical difficulty and unknowns). It affects 5 components, involves integration with a compiler for TypeScript generation, and requires validation through static tests and compilation (testing requirements). While each YAML might be moderate individually, handling 5 distinct exchanges with potential edge cases in API differences and dependencies pushes the total effort to 4-8 hours.",
+        "created_at": "2025-11-24T23:49:21.336331+00:00",
+        "updated_at": "2025-11-25T00:29:59.525248+00:00"
+      },
+      {
+        "id": "12",
+        "title": "[PARENT] Add override mechanism for complex methods",
+        "description": "Implement the override system to allow hand-written TypeScript for methods not easily generated, such as kraken.overrides.ts. Ensure overrides integrate with generated code without conflicts.\n\n[This task has been expanded into subtasks: 12.1, 12.2, 12.3, 12.4, 12.5]",
+        "status": "pending",
+        "complexity": 8,
+        "priority": "high",
+        "dependencies": [
+          "11"
+        ],
+        "complexity_analysis": "Implementing an override system in TypeScript requires integrating hand-written code with auto-generated methods without conflicts, which involves technical unknowns like method resolution and build integration. It affects multiple components including override files, generated code, and possibly build scripts. Extensive testing is needed for integration, edge cases (e.g., signature mismatches, obsolete overrides), and dependencies on the generation process. Research into TypeScript overriding mechanisms and the existing codebase adds to the complexity, making it very complex with an estimated 4-8 hours.",
+        "created_at": "2025-11-24T23:49:21.336331+00:00",
+        "updated_at": "2025-11-25T00:30:04.761464+00:00"
+      },
+      {
+        "id": "13",
+        "title": "[PARENT] Run live tests on generated exchanges",
+        "description": "Execute live API tests against sandbox environments for the 5 generated exchanges. Verify that generated code behaves identically to hand-written implementations and handles rate limits/errors correctly.\n\n[This task has been expanded into subtasks: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6]",
+        "status": "pending",
+        "complexity": 13,
+        "priority": "high",
+        "dependencies": [
+          "11",
+          "12"
+        ],
+        "complexity_analysis": "The task involves testing 5 distinct exchanges against their sandbox APIs, requiring setup for each, live network interactions with potential unknowns in API behaviors, detailed verification against hand-written implementations (likely involving side-by-side comparisons), and robust handling of rate limits and various errors across different platforms. This includes research on each exchange's API specifics, managing multiple dependencies and integration points, and addressing edge cases like network failures or API inconsistencies, making it extremely complex and suitable for splitting into per-exchange subtasks.",
+        "created_at": "2025-11-24T23:49:21.336331+00:00",
+        "updated_at": "2025-11-25T00:30:09.903920+00:00"
+      },
+      {
+        "id": "14",
+        "title": "[PARENT] Create EDL language reference documentation",
+        "description": "Write comprehensive documentation covering the EDL YAML specification, all fields, examples, and best practices. Include JSON Schema for IDE support and a contributor guide for adding new exchanges.\n\n[This task has been expanded into subtasks: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6]",
+        "status": "pending",
+        "complexity": 13,
+        "priority": "medium",
+        "dependencies": [
+          "13"
+        ],
+        "complexity_analysis": "This task involves creating comprehensive documentation for an entire language specification, including detailed coverage of YAML fields, examples, best practices, a JSON Schema for IDE integration, and a contributor guide. It requires significant research into the EDL spec (potential unknowns), handling multiple components (spec docs, schema file, guide), addressing edge cases in examples, and ensuring integration with IDE tools. While not code-heavy, the breadth and depth make it exceed 8 hours of focused effort, warranting splitting into subtasks like spec writing, schema creation, and guide development.",
+        "created_at": "2025-11-24T23:49:21.336332+00:00",
+        "updated_at": "2025-11-25T00:30:13.480320+00:00"
+      },
+      {
+        "id": "15",
+        "title": "[PARENT] Write migration guide for existing exchanges",
+        "description": "Develop a guide explaining how to migrate hand-written exchanges to EDL format. Include steps for identifying overrides and testing migrated implementations.\n\n[This task has been expanded into subtasks: 15.1, 15.2, 15.3, 15.4]",
+        "status": "pending",
+        "complexity": 5,
+        "priority": "medium",
+        "dependencies": [
+          "14"
+        ],
+        "complexity_analysis": "The task involves researching EDL format and exchange structures, outlining detailed migration steps including identification of overrides and testing procedures, which requires domain knowledge and handling potential edge cases. While not trivial, it's estimable in 2-4 hours without needing to split.",
+        "created_at": "2025-11-24T23:49:21.336332+00:00",
+        "updated_at": "2025-11-25T00:30:17.571237+00:00"
+      },
+      {
+        "id": "16",
+        "title": "[PARENT] Set up TypeScript project for Data Lake",
+        "description": "Initialize the lake/ directory with TypeScript setup, package.json, and basic project structure. Define core types in types.ts and set up testing framework. Ensure it integrates with CCXT's build process.\n\n[This task has been expanded into subtasks: 16.1, 16.2, 16.3, 16.4]\n\n[PARALLELISM NOTE: Can run in parallel with Task 2 (EDL) after Task 1 completes]",
+        "status": "pending",
+        "complexity": 5,
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "complexity_analysis": "Setting up a new TypeScript project involves multiple components like tsconfig.json, package.json, directory structure, and a testing framework, which is moderately complex. Defining core types in types.ts adds some technical difficulty. The key complexity arises from integrating with CCXT's build process, requiring research into their existing setup, handling dependencies, and ensuring compatibility, potentially with edge cases in build integration.",
+        "created_at": "2025-11-24T23:49:21.336333+00:00",
+        "updated_at": "2025-11-25T00:30:21.234535+00:00"
+      },
+      {
+        "id": "17",
+        "title": "[PARENT] Implement Backend interface in interface.ts",
+        "description": "Define the Backend interface with all required methods (connect, write, read, etc.). Ensure it supports different data types and provides a consistent API for all backends. Add type definitions for DataQuery, DataPoint, Gap, etc.\n\n[This task has been expanded into subtasks: 17.1, 17.2, 17.3]",
+        "status": "pending",
+        "complexity": 3,
+        "priority": "high",
+        "dependencies": [
+          "16"
+        ],
+        "complexity_analysis": "The task involves defining a Backend interface with several methods and multiple type definitions in a single file, requiring consideration of data type support and API consistency. It's a design-focused task with some edge cases for data types, but no major unknowns, integrations, or extensive testing beyond type checking. Estimated at 1-2 hours.",
+        "created_at": "2025-11-24T23:49:21.336333+00:00",
+        "updated_at": "2025-11-25T00:30:24.246282+00:00"
+      },
+      {
+        "id": "18",
+        "title": "[PARENT] Build SQLite backend with FTS5 search",
+        "description": "Implement the SQLite backend using better-sqlite3, including schema creation, write/read operations, and FTS5 for search. Ensure gap detection works accurately and achieves >50,000 candles/sec write throughput.\n\n[This task has been expanded into subtasks: 18.1, 18.2, 18.3, 18.4, 18.5]\n\n[PARALLELISM NOTE: Can run in parallel with Tasks 20 and 21 after Task 17 completes]",
+        "status": "pending",
+        "complexity": 8,
+        "priority": "high",
+        "dependencies": [
+          "17"
+        ],
+        "complexity_analysis": "This task involves multiple components: setting up better-sqlite3 with schema creation, implementing write/read operations, integrating FTS5 for search (requiring research on its specifics), and handling gap detection in time-series data. Achieving >50,000 candles/sec write throughput demands performance optimizations like batching and transaction tuning, which introduces unknowns and edge cases. Testing for accuracy and throughput adds complexity, potentially affecting 3-5 files with integration dependencies, making it very complex (4-8 hours).",
+        "created_at": "2025-11-24T23:49:21.336333+00:00",
+        "updated_at": "2025-11-25T00:30:29.880256+00:00"
+      },
+      {
+        "id": "19",
+        "title": "[PARENT] Create basic CLI tool for Data Lake",
+        "description": "Develop a CLI tool in cli/index.ts with commands for basic operations like stats and gaps. Test it with the SQLite backend to ensure it provides useful output.\n\n[This task has been expanded into subtasks: 19.1, 19.2, 19.3, 19.4]",
+        "status": "pending",
+        "complexity": 5,
+        "priority": "medium",
+        "dependencies": [
+          "18"
+        ],
+        "complexity_analysis": "The task involves creating a new CLI tool with at least two commands, integrating it with an existing SQLite backend for data operations, and testing for useful output. This requires familiarity with CLI frameworks, database queries, handling edge cases like missing data or invalid inputs, and potential research on SQLite integration. Estimated 2-4 hours due to integration and testing needs.",
+        "created_at": "2025-11-24T23:49:21.336334+00:00",
+        "updated_at": "2025-11-25T00:30:34.981528+00:00"
+      },
+      {
+        "id": "20",
+        "title": "[PARENT] Implement Parquet backend with S3 support",
+        "description": "Build the Parquet backend using parquetjs-lite, including time-based partitioning, compression, and S3 upload/download. Test with MinIO for local S3 simulation and verify partitioned data is queryable.\n\n[This task has been expanded into subtasks: 20.1, 20.2, 20.3, 20.4, 20.5, 20.6]\n\n[PARALLELISM NOTE: Can run in parallel with Tasks 18 and 21 after Task 17 completes]",
+        "status": "pending",
+        "complexity": 13,
+        "priority": "high",
+        "dependencies": [
+          "17"
+        ],
+        "complexity_analysis": "This task involves multiple integrations (parquetjs-lite, S3/MinIO), complex features like time-based partitioning and compression, extensive testing with simulation and query verification, and potential unknowns in library APIs and edge cases (e.g., large datasets, network failures). It affects several components and requires research, totaling around a day's work; should be split into subtasks like core Parquet implementation, S3 integration, and testing.",
+        "created_at": "2025-11-24T23:49:21.336334+00:00",
+        "updated_at": "2025-11-25T00:30:40.092340+00:00"
+      },
+      {
+        "id": "21",
+        "title": "[PARENT] Implement TimescaleDB backend",
+        "description": "Create the TimescaleDB backend with pg pool, hypertable creation, compression policies, and retention policies. Ensure gap detection uses window functions and integrates with PostgreSQL.\n\n[This task has been expanded into subtasks: 21.1, 21.2, 21.3, 21.4, 21.5]\n\n[PARALLELISM NOTE: Can run in parallel with Tasks 18 and 20 after Task 17 completes]",
+        "status": "pending",
+        "complexity": 8,
+        "priority": "high",
+        "dependencies": [
+          "17"
+        ],
+        "complexity_analysis": "This task involves implementing multiple interconnected components for TimescaleDB, including connection pooling, hypertable setup, compression and retention policies, and custom gap detection using window functions. It requires technical knowledge of TimescaleDB APIs, PostgreSQL integration, and SQL window functions, with potential research needed if unfamiliar. Affects several files/components like DB config, schema, and query handlers. Testing demands unit tests for policies, integration tests for data flow, and edge cases such as gap detection in large datasets or policy conflicts, making it very complex (4-8h estimate).",
+        "created_at": "2025-11-24T23:49:21.336334+00:00",
+        "updated_at": "2025-11-25T00:30:43.842733+00:00"
+      },
+      {
+        "id": "22",
+        "title": "[PARENT] Add backfill orchestration with rate limiting",
+        "description": "Implement backfill logic that respects exchange rate limits, provides progress callbacks, and handles errors. Integrate with CCXT exchange methods for fetching historical data.\n\n[This task has been expanded into subtasks: 22.1, 22.2, 22.3, 22.4, 22.5]",
+        "status": "pending",
+        "complexity": 8,
+        "priority": "high",
+        "dependencies": [
+          "18",
+          "19",
+          "20"
+        ],
+        "complexity_analysis": "The task involves integrating with CCXT for historical data fetching, implementing custom rate limiting logic to handle varying exchange limits, adding progress callbacks, and robust error handling for API failures and retries. It requires research into CCXT's capabilities and exchange-specific APIs, affects multiple components like data fetching and orchestration modules, and demands extensive testing for edge cases such as network issues, partial data, and concurrent requests. Estimated at 4-8 hours due to technical unknowns and integration challenges.",
+        "created_at": "2025-11-24T23:49:21.336336+00:00",
+        "updated_at": "2025-11-25T00:30:48.623496+00:00"
+      },
+      {
+        "id": "23",
+        "title": "[PARENT] Enhance CLI with backfill and advanced commands",
+        "description": "Expand the CLI tool to include backfill, stats, and gaps commands. Ensure it works across all backends and provides detailed progress output.\n\n[This task has been expanded into subtasks: 23.1, 23.2, 23.3, 23.4, 23.5]",
+        "status": "pending",
+        "complexity": 8,
+        "priority": "medium",
+        "dependencies": [
+          "21"
+        ],
+        "complexity_analysis": "Adding three new CLI commands (backfill, stats, gaps) with multi-backend support and progress output requires implementing logic for each command, ensuring compatibility across varying backends, handling edge cases like data gaps or failures, and extensive testing. This involves modifying multiple components, potential research on backend integrations, and integration testing, making it very complex.",
+        "created_at": "2025-11-24T23:49:21.336336+00:00",
+        "updated_at": "2025-11-25T00:30:54.465619+00:00"
+      },
+      {
+        "id": "24",
+        "title": "[PARENT] Write comprehensive tests for Data Lake",
+        "description": "Create unit and integration tests for all backends, focusing on write/read throughput, gap detection accuracy, and backfill functionality. Aim for >85% test coverage.\n\n[This task has been expanded into subtasks: 24.1, 24.2, 24.3, 24.4, 24.5, 24.6]",
+        "status": "pending",
+        "complexity": 13,
+        "priority": "medium",
+        "dependencies": [
+          "18",
+          "19",
+          "20",
+          "21",
+          "22"
+        ],
+        "complexity_analysis": "Writing comprehensive unit and integration tests for all backends in a Data Lake involves multiple components, performance benchmarking for throughput, accuracy testing for gap detection, and complex backfill logic. This requires handling numerous edge cases like partial failures and concurrent operations, significant research into backend dependencies, and achieving high test coverage, making it a multi-hour task that should ideally be split into smaller parts.",
+        "created_at": "2025-11-24T23:49:21.336337+00:00",
+        "updated_at": "2025-11-25T00:30:59.040502+00:00"
+      },
+      {
+        "id": "25",
+        "title": "[PARENT] Set up DeFi project structure (droppable)",
+        "description": "Initialize the defi/ directory with TypeScript, ethers.js/viem integration, and basic structure. Define DeFi-specific types and set up multicall batching utilities. Only proceed if EDL and Data Lake are complete.\n\n[This task has been expanded into subtasks: 25.1, 25.2, 25.3, 25.4]",
+        "status": "pending",
+        "complexity": 5,
+        "priority": "low",
+        "dependencies": [
+          "13",
+          "23"
+        ],
+        "complexity_analysis": "This task involves setting up a new directory with TypeScript integration, incorporating two Ethereum libraries (ethers.js and viem), defining DeFi-specific types, and implementing multicall batching utilities, which requires handling multiple components and potential edge cases in batching. It depends on other completed modules, involves some research for viem integration, and affects several files, making it complex but not extremely so, estimated at 2-4 hours.",
+        "created_at": "2025-11-24T23:49:21.336337+00:00",
+        "updated_at": "2025-11-25T00:31:10.814387+00:00"
+      },
+      {
+        "id": "26",
+        "title": "[PARENT] Implement gas estimation and approval utilities",
+        "description": "Build utilities for gas estimation and token approval management. Ensure they handle EVM chain specifics and integrate with the base DEXExchange class.\n\n[This task has been expanded into subtasks: 26.1, 26.2, 26.3, 26.4]",
+        "status": "pending",
+        "complexity": 5,
+        "priority": "low",
+        "dependencies": [
+          "24"
+        ],
+        "complexity_analysis": "The task requires building utilities for gas estimation and token approval management, handling EVM chain specifics, and integrating with the DEXExchange class. This involves moderate technical difficulty in estimating gas costs accurately across varying network conditions and chain differences, researching EVM-specific gas models and approval mechanisms, managing dependencies on existing DEX code, handling edge cases like failed approvals or insufficient funds, and thorough testing for reliability. Estimated at 2-4 hours, with potential for unknowns in chain-specific behaviors.",
+        "created_at": "2025-11-24T23:49:21.336337+00:00",
+        "updated_at": "2025-11-25T00:31:15.450285+00:00"
+      },
+      {
+        "id": "27",
+        "title": "[PARENT] Create Uniswap V3 adapter",
+        "description": "Implement the Uniswap V3 adapter with Quoter, SwapRouter, and Pool discovery integrations. Handle slippage calculations and NFT position management.\n\n[This task has been expanded into subtasks: 27.1, 27.2, 27.3, 27.4, 27.5, 27.6]",
+        "status": "pending",
+        "complexity": 13,
+        "priority": "low",
+        "dependencies": [
+          "25"
+        ],
+        "complexity_analysis": "This task involves integrating multiple Uniswap V3 components (Quoter, SwapRouter, Pool discovery), handling complex DeFi logic like slippage calculations and NFT position management, which requires deep knowledge of Uniswap V3 contracts, Solidity ABIs, and blockchain integrations. Significant research is needed for unfamiliar developers, including edge cases like failed transactions, liquidity constraints, and gas optimization. Multiple files (adapters, utilities, tests) are affected, with extensive testing requirements on testnets. It's extremely complex and should be split into subtasks for Quoter, SwapRouter, Pool discovery, and NFT management to be manageable within a day.",
+        "created_at": "2025-11-24T23:49:21.336337+00:00",
+        "updated_at": "2025-11-25T00:31:21.879438+00:00"
+      },
+      {
+        "id": "28",
+        "title": "[PARENT] Implement Curve and 1inch adapters",
+        "description": "Build adapters for Curve (Registry, pools, zap) and 1inch (Aggregator, routing API, Fusion). Add protocol comparison and routing logic.\n\n[This task has been expanded into subtasks: 28.1, 28.2, 28.3, 28.4, 28.5, 28.6]",
+        "status": "pending",
+        "complexity": 13,
+        "priority": "low",
+        "dependencies": [
+          "26"
+        ],
+        "complexity_analysis": "The task involves integrating multiple complex DeFi protocols (Curve and 1inch) with several sub-components each (Registry, pools, zap for Curve; Aggregator, routing API, Fusion for 1inch), requiring significant research into APIs and contracts, handling unknowns like API changes and edge cases (e.g., liquidity issues, network failures). It also includes building protocol comparison and routing logic, affecting numerous components/files with extensive testing needs across integration points and dependencies. This exceeds a single session and should be split into smaller tasks for manageability.",
+        "created_at": "2025-11-24T23:49:21.336338+00:00",
+        "updated_at": "2025-11-25T00:31:28.202309+00:00"
+      },
+      {
+        "id": "29",
+        "title": "[PARENT] Integrate DeFi adapters with CCXT unified interface",
+        "description": "Map DeFi adapters to CCXT's unified interface for fetchTicker, createOrder, etc. Implement transaction building, signing, error handling, and documentation.\n\n[This task has been expanded into subtasks: 29.1, 29.2, 29.3, 29.4, 29.5, 29.6]",
+        "status": "pending",
+        "complexity": 13,
+        "priority": "low",
+        "dependencies": [
+          "27"
+        ],
+        "complexity_analysis": "This task involves integrating multiple DeFi adapters with CCXT's interface, requiring deep research into DeFi protocols, blockchain interactions, and mapping decentralized functions to centralized exchange methods. It affects numerous components for transaction building, signing, error handling, and documentation. High technical difficulty with unknowns in protocol differences, extensive testing for edge cases like gas fees and network issues, and dependencies on blockchain libraries make it extremely complex, warranting splitting into subtasks.",
+        "created_at": "2025-11-24T23:49:21.336338+00:00",
+        "updated_at": "2025-11-25T00:31:32.703045+00:00"
+      },
+      {
+        "id": "2.1",
+        "title": "Install PureScript and Spago dependencies",
+        "description": "Install PureScript compiler, Spago package manager, and any required system dependencies (e.g., Node.js if needed) to set up the development environment.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:29:16.404720+00:00",
+        "updated_at": "2025-11-25T00:29:16.404720+00:00"
+      },
+      {
+        "id": "2.2",
+        "title": "Create initial project structure",
+        "description": "Create the directory structure in edl/purescript/, initialize spago.yaml with project configuration, and set up package.json for any Node.js integrations.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "2.1"
+        ],
+        "created_at": "2025-11-25T00:29:16.404772+00:00",
+        "updated_at": "2025-11-25T00:29:16.404772+00:00"
+      },
+      {
+        "id": "2.3",
+        "title": "Verify spago build command",
+        "description": "Run spago build to ensure the project compiles successfully and resolve any build errors.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "2.2"
+        ],
+        "created_at": "2025-11-25T00:29:16.404780+00:00",
+        "updated_at": "2025-11-25T00:29:16.404780+00:00"
+      },
+      {
+        "id": "2.4",
+        "title": "Verify spago test and integration with CCXT pipeline",
+        "description": "Run spago test to confirm testing setup works, and verify that the PureScript setup integrates properly with the existing CCXT Node.js build pipeline.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "2.3"
+        ],
+        "created_at": "2025-11-25T00:29:16.404786+00:00",
+        "updated_at": "2025-11-25T00:29:16.404786+00:00"
+      },
+      {
+        "id": "3.1",
+        "title": "Implement core ADTs",
+        "description": "Define the Algebraic Data Types (ADTs) for ExchangeMetadata, AuthMethod, Endpoint, ParserDef, ErrorPattern, and EDLDocument in EDL/Types.purs. Ensure the types are correctly structured in PureScript.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:29:19.687297+00:00",
+        "updated_at": "2025-11-25T00:29:19.687297+00:00"
+      },
+      {
+        "id": "3.2",
+        "title": "Add documentation and YAML spec coverage",
+        "description": "Document all types thoroughly and verify that they fully cover the YAML specification requirements for EDL.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "3.1"
+        ],
+        "created_at": "2025-11-25T00:29:19.687310+00:00",
+        "updated_at": "2025-11-25T00:29:19.687310+00:00"
+      },
+      {
+        "id": "3.3",
+        "title": "Test compilation",
+        "description": "Run spago build to test that the types compile successfully and there are no errors.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "low",
+        "dependencies": [
+          "3.2"
+        ],
+        "created_at": "2025-11-25T00:29:19.687315+00:00",
+        "updated_at": "2025-11-25T00:29:19.687315+00:00"
+      },
+      {
+        "id": "4.1",
+        "title": "Define PureScript ADTs for EDL Structures",
+        "description": "Create PureScript data types (ADTs) to represent EDL YAML structures including exchange metadata, auth methods, API definitions, parsers, and error types. Ensure they align with the expected YAML schema.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:29:23.989008+00:00",
+        "updated_at": "2025-11-25T00:29:23.989008+00:00"
+      },
+      {
+        "id": "4.2",
+        "title": "Implement Parser for Exchange Metadata",
+        "description": "Build the parser logic in EDL/Parser.purs to parse exchange metadata from YAML using purescript-yoga-yaml, converting it into the defined ADTs. Include basic error handling for this section.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "4.1"
+        ],
+        "created_at": "2025-11-25T00:29:23.989025+00:00",
+        "updated_at": "2025-11-25T00:29:23.989025+00:00"
+      },
+      {
+        "id": "4.3",
+        "title": "Implement Parser for Auth Methods",
+        "description": "Extend the parser to handle auth methods from YAML, integrating them into the ADTs. Ensure parsing covers various auth types and includes error handling.\n\n[PARALLELISM NOTE: Can run in parallel with 4.2 and 4.4]",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "4.1"
+        ],
+        "created_at": "2025-11-25T00:29:23.989038+00:00",
+        "updated_at": "2025-11-25T00:29:23.989038+00:00"
+      },
+      {
+        "id": "4.4",
+        "title": "Implement Parser for API Definitions and Parsers",
+        "description": "Add parsing logic for API definitions and any nested parsers within the YAML. Convert them into the corresponding ADTs and handle associated errors.\n\n[PARALLELISM NOTE: Can run in parallel with 4.2 and 4.3]",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "4.1"
+        ],
+        "created_at": "2025-11-25T00:29:23.989074+00:00",
+        "updated_at": "2025-11-25T00:29:23.989074+00:00"
+      },
+      {
+        "id": "4.5",
+        "title": "Integrate Full Parser and Write Unit Tests",
+        "description": "Combine all parser components into a complete YAML parser in EDL/Parser.purs, with comprehensive error handling. Write unit tests covering valid and invalid YAML inputs for all parsed sections.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "4.1",
+          "4.2",
+          "4.3",
+          "4.4"
+        ],
+        "created_at": "2025-11-25T00:29:23.989084+00:00",
+        "updated_at": "2025-11-25T00:29:23.989084+00:00"
+      },
+      {
+        "id": "5.1",
+        "title": "Define EDL YAML structure and schema",
+        "description": "Research and outline the complete structure of an EDL YAML file, including all required sections such as metadata, auth, API endpoints, parsers, and errors. Ensure it aligns with the project's specifications and serves as a foundation for creating the example.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:29:31.465531+00:00",
+        "updated_at": "2025-11-25T00:29:31.465531+00:00"
+      },
+      {
+        "id": "5.2",
+        "title": "Create metadata and auth sections",
+        "description": "Develop detailed, documented content for the metadata and auth sections of the example EDL YAML file, covering all features and ensuring they are realistic and comprehensive.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "5.1"
+        ],
+        "created_at": "2025-11-25T00:29:31.465541+00:00",
+        "updated_at": "2025-11-25T00:29:31.465541+00:00"
+      },
+      {
+        "id": "5.3",
+        "title": "Create API endpoints, parsers, and errors sections",
+        "description": "Develop detailed, documented content for the API endpoints, parsers, and errors sections of the example EDL YAML file, including all features and edge cases.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "5.1"
+        ],
+        "created_at": "2025-11-25T00:29:31.465546+00:00",
+        "updated_at": "2025-11-25T00:29:31.465546+00:00"
+      },
+      {
+        "id": "5.4",
+        "title": "Assemble, validate, and document the full example file",
+        "description": "Combine all sections into a single example.edl.yaml file, validate that it parses successfully with the YAML parser, add comprehensive documentation as comments, and ensure it can serve as a reference for contributors.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "5.2",
+          "5.3"
+        ],
+        "created_at": "2025-11-25T00:29:31.465551+00:00",
+        "updated_at": "2025-11-25T00:29:31.465551+00:00"
+      },
+      {
+        "id": "6.1",
+        "title": "Define Analyzer Data Structures",
+        "description": "Create the necessary types, data structures, and models in EDL/Analyzer.purs to support semantic analysis, including representations for endpoints, parsers, auth configs, and compute expressions.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:29:35.562402+00:00",
+        "updated_at": "2025-11-25T00:29:35.562402+00:00"
+      },
+      {
+        "id": "6.2",
+        "title": "Implement Cross-Reference Validation",
+        "description": "Build validation logic to check cross-references between endpoints and parsers, ensuring consistency and correctness across the configuration.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "6.1"
+        ],
+        "created_at": "2025-11-25T00:29:35.562413+00:00",
+        "updated_at": "2025-11-25T00:29:35.562413+00:00"
+      },
+      {
+        "id": "6.3",
+        "title": "Implement Auth Configuration Validation",
+        "description": "Add validation logic for auth configurations, verifying their setup and integration with other components.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "6.1"
+        ],
+        "created_at": "2025-11-25T00:29:35.562419+00:00",
+        "updated_at": "2025-11-25T00:29:35.562419+00:00"
+      },
+      {
+        "id": "6.4",
+        "title": "Implement Compute Expression Parsing",
+        "description": "Develop parsing logic for compute expressions, including syntax validation and evaluation rules.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "6.1"
+        ],
+        "created_at": "2025-11-25T00:29:35.562423+00:00",
+        "updated_at": "2025-11-25T00:29:35.562423+00:00"
+      },
+      {
+        "id": "6.5",
+        "title": "Implement Error Reporting and Unit Tests",
+        "description": "Add error reporting functionality with YAML source locations for all validations, and create unit tests for various invalid configurations to ensure robustness.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "6.2",
+          "6.3",
+          "6.4"
+        ],
+        "created_at": "2025-11-25T00:29:35.562427+00:00",
+        "updated_at": "2025-11-25T00:29:35.562427+00:00"
+      },
+      {
+        "id": "7.1",
+        "title": "Define Basic TypeScript AST Data Types",
+        "description": "Create foundational PureScript data types for basic TypeScript AST elements such as expressions, literals, and identifiers in CCXT/Types.purs, ensuring they mirror TypeScript's AST structure.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:29:40.423717+00:00",
+        "updated_at": "2025-11-25T00:29:40.423717+00:00"
+      },
+      {
+        "id": "7.2",
+        "title": "Implement Complex AST Types for Statements and Methods",
+        "description": "Add PureScript representations for complex TypeScript AST elements like TSStatement, TSMethod, TSClass, and related constructs, building on the basic types.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "7.1"
+        ],
+        "created_at": "2025-11-25T00:29:40.423731+00:00",
+        "updated_at": "2025-11-25T00:29:40.423731+00:00"
+      },
+      {
+        "id": "7.3",
+        "title": "Align Types with CCXT Coding Conventions",
+        "description": "Review and adjust the defined types to ensure they align with CCXT's naming conventions, coding style, and requirements for generating idiomatic TypeScript code.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "7.2"
+        ],
+        "created_at": "2025-11-25T00:29:40.423736+00:00",
+        "updated_at": "2025-11-25T00:29:40.423736+00:00"
+      },
+      {
+        "id": "7.4",
+        "title": "Add Type Validation and Documentation",
+        "description": "Implement basic validation checks for the AST types (e.g., via type classes or smart constructors) and add comprehensive documentation comments to facilitate usage in code generation.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "low",
+        "dependencies": [
+          "7.3"
+        ],
+        "created_at": "2025-11-25T00:29:40.423741+00:00",
+        "updated_at": "2025-11-25T00:29:40.423741+00:00"
+      },
+      {
+        "id": "8.1",
+        "title": "Set up module structure and imports",
+        "description": "Create the EDL/Generator.purs module file, import necessary libraries for TypeScript AST generation and EDL ADTs, and define any foundational types or helper functions required for the code generator.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:29:43.884909+00:00",
+        "updated_at": "2025-11-25T00:29:43.884909+00:00"
+      },
+      {
+        "id": "8.2",
+        "title": "Implement core transformation logic",
+        "description": "Develop the main function to transform EDL ADTs into TypeScript AST nodes, handling basic structure and common elements without specific API methods yet.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "8.1"
+        ],
+        "created_at": "2025-11-25T00:29:43.884920+00:00",
+        "updated_at": "2025-11-25T00:29:43.884920+00:00"
+      },
+      {
+        "id": "8.3",
+        "title": "Add generation for fetchTicker method",
+        "description": "Implement the code generation logic specifically for the fetchTicker unified API method, transforming relevant EDL ADT variants into corresponding TypeScript AST.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "8.2"
+        ],
+        "created_at": "2025-11-25T00:29:43.884924+00:00",
+        "updated_at": "2025-11-25T00:29:43.884924+00:00"
+      },
+      {
+        "id": "8.4",
+        "title": "Add generation for other unified APIs",
+        "description": "Extend the generator to handle other unified API methods (e.g., fetchBalance, createOrder), ensuring each is transformed into TypeScript AST that matches CCXT style.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "8.2",
+          "8.3"
+        ],
+        "created_at": "2025-11-25T00:29:43.884928+00:00",
+        "updated_at": "2025-11-25T00:29:43.884928+00:00"
+      },
+      {
+        "id": "8.5",
+        "title": "Implement exhaustive FieldMapping handling and testing",
+        "description": "Use exhaustive pattern matching to cover all FieldMapping variants, refine output to fully match CCXT style, and add unit tests to verify the generator handles all cases correctly.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "8.1",
+          "8.2",
+          "8.3",
+          "8.4"
+        ],
+        "created_at": "2025-11-25T00:29:43.884932+00:00",
+        "updated_at": "2025-11-25T00:29:43.884932+00:00"
+      },
+      {
+        "id": "9.1",
+        "title": "Define AST data types",
+        "description": "Create PureScript data types that represent the TypeScript AST nodes needed for emission, ensuring they match the expected structure for conversion.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:29:48.267630+00:00",
+        "updated_at": "2025-11-25T00:29:48.267630+00:00"
+      },
+      {
+        "id": "9.2",
+        "title": "Implement core emitter logic",
+        "description": "Build the main emitter function in EDL/Emitter.purs that converts AST nodes into unformatted string output.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "9.1"
+        ],
+        "created_at": "2025-11-25T00:29:48.267636+00:00",
+        "updated_at": "2025-11-25T00:29:48.267636+00:00"
+      },
+      {
+        "id": "9.3",
+        "title": "Add code formatting",
+        "description": "Enhance the emitter to produce properly formatted and indented TypeScript code strings.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "9.2"
+        ],
+        "created_at": "2025-11-25T00:29:48.267638+00:00",
+        "updated_at": "2025-11-25T00:29:48.267638+00:00"
+      },
+      {
+        "id": "9.4",
+        "title": "Create CLI entry point",
+        "description": "Add a CLI interface in Main.purs that accepts input and uses the emitter to generate and output TypeScript code.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "9.3"
+        ],
+        "created_at": "2025-11-25T00:29:48.267639+00:00",
+        "updated_at": "2025-11-25T00:29:48.267639+00:00"
+      },
+      {
+        "id": "9.5",
+        "title": "Test compilation and linting",
+        "description": "Verify that generated TypeScript code compiles successfully with TypeScript and passes ESLint checks.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "9.4"
+        ],
+        "created_at": "2025-11-25T00:29:48.267641+00:00",
+        "updated_at": "2025-11-25T00:29:48.267641+00:00"
+      },
+      {
+        "id": "10.1",
+        "title": "Update package.json scripts",
+        "description": "Add build:edl-compiler and compile-edl commands to package.json scripts section, defining the commands to invoke the EDL compiler.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:29:51.636316+00:00",
+        "updated_at": "2025-11-25T00:29:51.636316+00:00"
+      },
+      {
+        "id": "10.2",
+        "title": "Configure EDL compiler for multiple YAML files",
+        "description": "Modify the compile-edl command to process multiple YAML files as input and specify the output directory as ts/src/.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "10.1"
+        ],
+        "created_at": "2025-11-25T00:29:51.636346+00:00",
+        "updated_at": "2025-11-25T00:29:51.636346+00:00"
+      },
+      {
+        "id": "10.3",
+        "title": "Integrate EDL compilation into npm run build",
+        "description": "Update the npm run build script to include a step that runs the compile-edl command, ensuring EDL compilation happens seamlessly during the build process.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "10.1",
+          "10.2"
+        ],
+        "created_at": "2025-11-25T00:29:51.636349+00:00",
+        "updated_at": "2025-11-25T00:29:51.636349+00:00"
+      },
+      {
+        "id": "10.4",
+        "title": "Test EDL compilation integration",
+        "description": "Run npm run build and verify that the EDL compiler processes multiple YAML files correctly, outputs to ts/src/, and integrates without errors into the overall build.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "10.3"
+        ],
+        "created_at": "2025-11-25T00:29:51.636350+00:00",
+        "updated_at": "2025-11-25T00:29:51.636350+00:00"
+      },
+      {
+        "id": "11.1",
+        "title": "Analyze existing exchange implementations",
+        "description": "Review the current EDL implementations for Kraken, Coinbase, Binance, Bitfinex, and Example exchanges to understand the structure, schemas, and required fields for creating new YAML files.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:29:59.525216+00:00",
+        "updated_at": "2025-11-25T00:29:59.525216+00:00"
+      },
+      {
+        "id": "11.2",
+        "title": "Create EDL YAML for Kraken",
+        "description": "Develop the EDL YAML file for Kraken exchange based on the analyzed existing implementations, ensuring it aligns with the required schema.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "11.1"
+        ],
+        "created_at": "2025-11-25T00:29:59.525228+00:00",
+        "updated_at": "2025-11-25T00:29:59.525228+00:00"
+      },
+      {
+        "id": "11.3",
+        "title": "Create EDL YAML for Coinbase",
+        "description": "Develop the EDL YAML file for Coinbase exchange based on the analyzed existing implementations, ensuring it aligns with the required schema.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "11.1"
+        ],
+        "created_at": "2025-11-25T00:29:59.525233+00:00",
+        "updated_at": "2025-11-25T00:29:59.525233+00:00"
+      },
+      {
+        "id": "11.4",
+        "title": "Create EDL YAML for Binance, Bitfinex, and Example",
+        "description": "Develop the EDL YAML files for Binance, Bitfinex, and Example exchanges based on the analyzed existing implementations, ensuring they align with the required schema.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "11.1"
+        ],
+        "created_at": "2025-11-25T00:29:59.525237+00:00",
+        "updated_at": "2025-11-25T00:29:59.525237+00:00"
+      },
+      {
+        "id": "11.5",
+        "title": "Validate TypeScript compilation and tests",
+        "description": "Run the compiler to generate TypeScript code from all 5 EDL YAML files, ensure they compile correctly, and verify that static tests pass for each exchange.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "11.2",
+          "11.3",
+          "11.4"
+        ],
+        "created_at": "2025-11-25T00:29:59.525241+00:00",
+        "updated_at": "2025-11-25T00:29:59.525241+00:00"
+      },
+      {
+        "id": "12.1",
+        "title": "Define override file structure",
+        "description": "Create a schema or interface for the override file (e.g., kraken.overrides.ts) that defines how hand-written TypeScript methods should be structured to match generated methods.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:04.761426+00:00",
+        "updated_at": "2025-11-25T00:30:04.761426+00:00"
+      },
+      {
+        "id": "12.2",
+        "title": "Implement override loading mechanism",
+        "description": "Develop code to load and parse the override files at runtime or build time, ensuring they can be read and processed by the system.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "12.1"
+        ],
+        "created_at": "2025-11-25T00:30:04.761439+00:00",
+        "updated_at": "2025-11-25T00:30:04.761439+00:00"
+      },
+      {
+        "id": "12.3",
+        "title": "Integrate overrides with generated code",
+        "description": "Modify the code generation logic to check for and incorporate overrides for specific methods, replacing or extending generated code where overrides are present.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "12.1",
+          "12.2"
+        ],
+        "created_at": "2025-11-25T00:30:04.761444+00:00",
+        "updated_at": "2025-11-25T00:30:04.761444+00:00"
+      },
+      {
+        "id": "12.4",
+        "title": "Ensure conflict resolution",
+        "description": "Add logic to detect and resolve potential conflicts between generated code and overrides, such as validation or merging strategies to prevent runtime errors.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "12.3"
+        ],
+        "created_at": "2025-11-25T00:30:04.761450+00:00",
+        "updated_at": "2025-11-25T00:30:04.761450+00:00"
+      },
+      {
+        "id": "12.5",
+        "title": "Test integration and document usage",
+        "description": "Write unit tests for the override mechanism, verify end-to-end functionality, and create documentation explaining how to use and maintain overrides.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "12.1",
+          "12.2",
+          "12.3",
+          "12.4"
+        ],
+        "created_at": "2025-11-25T00:30:04.761455+00:00",
+        "updated_at": "2025-11-25T00:30:04.761455+00:00"
+      },
+      {
+        "id": "13.1",
+        "title": "Set up sandbox environments",
+        "description": "Configure and verify access to sandbox environments for each of the 5 generated exchanges, ensuring they are ready for live API testing.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:09.903881+00:00",
+        "updated_at": "2025-11-25T00:30:09.903881+00:00"
+      },
+      {
+        "id": "13.2",
+        "title": "Prepare generated exchange code",
+        "description": "Review and prepare the generated code for each of the 5 exchanges, ensuring it is deployable and compatible with the sandbox environments.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "13.1"
+        ],
+        "created_at": "2025-11-25T00:30:09.903896+00:00",
+        "updated_at": "2025-11-25T00:30:09.903896+00:00"
+      },
+      {
+        "id": "13.3",
+        "title": "Prepare hand-written implementations",
+        "description": "Gather or create reference hand-written implementations for each exchange to use as baselines for comparison during testing.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "13.1"
+        ],
+        "created_at": "2025-11-25T00:30:09.903901+00:00",
+        "updated_at": "2025-11-25T00:30:09.903901+00:00"
+      },
+      {
+        "id": "13.4",
+        "title": "Develop test scripts",
+        "description": "Create automated test scripts that execute API calls against the sandbox environments for both generated and hand-written implementations.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "13.2",
+          "13.3"
+        ],
+        "created_at": "2025-11-25T00:30:09.903905+00:00",
+        "updated_at": "2025-11-25T00:30:09.903905+00:00"
+      },
+      {
+        "id": "13.5",
+        "title": "Implement verification logic",
+        "description": "Build logic within the test scripts to verify that generated code behaves identically to hand-written implementations and correctly handles rate limits and errors.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "13.4"
+        ],
+        "created_at": "2025-11-25T00:30:09.903909+00:00",
+        "updated_at": "2025-11-25T00:30:09.903909+00:00"
+      },
+      {
+        "id": "13.6",
+        "title": "Execute live tests and analyze results",
+        "description": "Run the live API tests against all 5 exchanges in sandbox environments, collect results, and document any discrepancies or issues.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "13.5"
+        ],
+        "created_at": "2025-11-25T00:30:09.903913+00:00",
+        "updated_at": "2025-11-25T00:30:09.903913+00:00"
+      },
+      {
+        "id": "14.1",
+        "title": "Outline EDL YAML Specification Structure",
+        "description": "Research and create a high-level outline of the EDL YAML specification, including overall structure, key sections, and basic syntax rules.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:13.480262+00:00",
+        "updated_at": "2025-11-25T00:30:13.480262+00:00"
+      },
+      {
+        "id": "14.2",
+        "title": "Document All EDL Fields",
+        "description": "Detail each field in the EDL YAML specification, including data types, required/optional status, and descriptions.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "14.1"
+        ],
+        "created_at": "2025-11-25T00:30:13.480276+00:00",
+        "updated_at": "2025-11-25T00:30:13.480276+00:00"
+      },
+      {
+        "id": "14.3",
+        "title": "Provide Comprehensive Examples",
+        "description": "Compile and document a set of comprehensive examples illustrating the EDL YAML specification in various use cases.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "14.2"
+        ],
+        "created_at": "2025-11-25T00:30:13.480283+00:00",
+        "updated_at": "2025-11-25T00:30:13.480283+00:00"
+      },
+      {
+        "id": "14.4",
+        "title": "Write Best Practices Guide",
+        "description": "Develop a section on best practices for writing EDL YAML files, including formatting, naming conventions, and common pitfalls.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "14.2",
+          "14.3"
+        ],
+        "created_at": "2025-11-25T00:30:13.480289+00:00",
+        "updated_at": "2025-11-25T00:30:13.480289+00:00"
+      },
+      {
+        "id": "14.5",
+        "title": "Create JSON Schema for IDE Support",
+        "description": "Design and validate a JSON Schema that represents the EDL YAML specification for IDE autocompletion and validation.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "14.2"
+        ],
+        "created_at": "2025-11-25T00:30:13.480295+00:00",
+        "updated_at": "2025-11-25T00:30:13.480295+00:00"
+      },
+      {
+        "id": "14.6",
+        "title": "Write Contributor Guide for Adding New Exchanges",
+        "description": "Create a guide for contributors on how to add new exchanges to the EDL specification, including steps, templates, and review processes.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "low",
+        "dependencies": [
+          "14.1",
+          "14.2",
+          "14.4",
+          "14.5"
+        ],
+        "created_at": "2025-11-25T00:30:13.480301+00:00",
+        "updated_at": "2025-11-25T00:30:13.480301+00:00"
+      },
+      {
+        "id": "15.1",
+        "title": "Research and Outline Migration Process",
+        "description": "Gather information on existing hand-written exchanges and EDL format, then create an outline for the migration guide including main sections like introduction, steps, overrides, and testing.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:17.571205+00:00",
+        "updated_at": "2025-11-25T00:30:17.571205+00:00"
+      },
+      {
+        "id": "15.2",
+        "title": "Detail Migration Steps to EDL Format",
+        "description": "Write detailed step-by-step instructions for migrating hand-written exchanges to EDL format, covering conversion processes and best practices.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "15.1"
+        ],
+        "created_at": "2025-11-25T00:30:17.571219+00:00",
+        "updated_at": "2025-11-25T00:30:17.571219+00:00"
+      },
+      {
+        "id": "15.3",
+        "title": "Explain Identifying Overrides",
+        "description": "Develop a section in the guide that explains how to identify and handle overrides in the migration process, including examples and troubleshooting tips.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "15.1",
+          "15.2"
+        ],
+        "created_at": "2025-11-25T00:30:17.571224+00:00",
+        "updated_at": "2025-11-25T00:30:17.571224+00:00"
+      },
+      {
+        "id": "15.4",
+        "title": "Cover Testing Migrated Implementations",
+        "description": "Write the testing section of the guide, outlining methods to test migrated implementations for accuracy, functionality, and edge cases.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "15.1",
+          "15.2",
+          "15.3"
+        ],
+        "created_at": "2025-11-25T00:30:17.571229+00:00",
+        "updated_at": "2025-11-25T00:30:17.571229+00:00"
+      },
+      {
+        "id": "16.1",
+        "title": "Initialize lake/ directory with TypeScript setup and package.json",
+        "description": "Create the lake/ directory, initialize a new TypeScript project with tsconfig.json, and set up package.json with necessary dependencies for a TypeScript environment.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:21.234506+00:00",
+        "updated_at": "2025-11-25T00:30:21.234506+00:00"
+      },
+      {
+        "id": "16.2",
+        "title": "Establish basic project structure",
+        "description": "Create the foundational directory structure within lake/, including src/, test/, and other essential folders, and add any initial configuration files.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "16.1"
+        ],
+        "created_at": "2025-11-25T00:30:21.234518+00:00",
+        "updated_at": "2025-11-25T00:30:21.234518+00:00"
+      },
+      {
+        "id": "16.3",
+        "title": "Define core types in types.ts",
+        "description": "Create the types.ts file in the appropriate directory and define the core TypeScript types relevant to the Data Lake functionality.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "16.2"
+        ],
+        "created_at": "2025-11-25T00:30:21.234523+00:00",
+        "updated_at": "2025-11-25T00:30:21.234523+00:00"
+      },
+      {
+        "id": "16.4",
+        "title": "Set up testing framework and integrate with CCXT build process",
+        "description": "Configure a testing framework (e.g., Jest or Mocha) with necessary configurations, add test scripts to package.json, and ensure the setup integrates seamlessly with CCXT's existing build process.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "16.1",
+          "16.2",
+          "16.3"
+        ],
+        "created_at": "2025-11-25T00:30:21.234527+00:00",
+        "updated_at": "2025-11-25T00:30:21.234527+00:00"
+      },
+      {
+        "id": "17.1",
+        "title": "Define type definitions for core data structures",
+        "description": "Create type definitions for DataQuery, DataPoint, Gap, and any other required data structures in interface.ts, ensuring they are well-defined and support various data types.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:24.246260+00:00",
+        "updated_at": "2025-11-25T00:30:24.246260+00:00"
+      },
+      {
+        "id": "17.2",
+        "title": "Implement the Backend interface with core methods",
+        "description": "Define the Backend interface in interface.ts, including all required methods such as connect, write, read, etc., using the previously defined type definitions.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "17.1"
+        ],
+        "created_at": "2025-11-25T00:30:24.246270+00:00",
+        "updated_at": "2025-11-25T00:30:24.246270+00:00"
+      },
+      {
+        "id": "17.3",
+        "title": "Refine interface for consistency and data type support",
+        "description": "Review and refine the Backend interface to ensure it supports different data types and provides a consistent API across all backends, making any necessary adjustments.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "17.2"
+        ],
+        "created_at": "2025-11-25T00:30:24.246275+00:00",
+        "updated_at": "2025-11-25T00:30:24.246275+00:00"
+      },
+      {
+        "id": "18.1",
+        "title": "Set up SQLite database schema",
+        "description": "Create the database schema using better-sqlite3, including tables for candles, FTS5 virtual table for search, and necessary indexes. Ensure the schema supports gap detection and efficient writes.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:29.880222+00:00",
+        "updated_at": "2025-11-25T00:30:29.880222+00:00"
+      },
+      {
+        "id": "18.2",
+        "title": "Implement basic write/read operations",
+        "description": "Develop functions for inserting, updating, and querying candle data in the SQLite database using better-sqlite3. Include error handling and basic performance checks.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "18.1"
+        ],
+        "created_at": "2025-11-25T00:30:29.880233+00:00",
+        "updated_at": "2025-11-25T00:30:29.880233+00:00"
+      },
+      {
+        "id": "18.3",
+        "title": "Integrate FTS5 for search functionality",
+        "description": "Implement FTS5 virtual table and associated search operations, including indexing candle data and performing full-text searches. Ensure integration with read operations.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "18.2"
+        ],
+        "created_at": "2025-11-25T00:30:29.880239+00:00",
+        "updated_at": "2025-11-25T00:30:29.880239+00:00"
+      },
+      {
+        "id": "18.4",
+        "title": "Add gap detection logic",
+        "description": "Implement logic to detect gaps in candle data sequences accurately, using database queries to identify missing intervals and ensure data integrity.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "18.2"
+        ],
+        "created_at": "2025-11-25T00:30:29.880244+00:00",
+        "updated_at": "2025-11-25T00:30:29.880244+00:00"
+      },
+      {
+        "id": "18.5",
+        "title": "Optimize for write throughput and add tests",
+        "description": "Optimize write operations to achieve >50,000 candles/sec throughput, including batching and profiling. Add unit tests for all operations, including gap detection and search, and ensure end-to-end functionality.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "18.3",
+          "18.4"
+        ],
+        "created_at": "2025-11-25T00:30:29.880248+00:00",
+        "updated_at": "2025-11-25T00:30:29.880248+00:00"
+      },
+      {
+        "id": "19.1",
+        "title": "Set up CLI structure and dependencies",
+        "description": "Install necessary CLI libraries (e.g., Commander.js) and set up the basic structure in cli/index.ts, including command parsing and help options.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:34.981498+00:00",
+        "updated_at": "2025-11-25T00:30:34.981498+00:00"
+      },
+      {
+        "id": "19.2",
+        "title": "Implement 'stats' command",
+        "description": "Add the 'stats' command to the CLI that queries the data lake for basic statistics (e.g., data counts, sizes) and formats the output.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "19.1"
+        ],
+        "created_at": "2025-11-25T00:30:34.981509+00:00",
+        "updated_at": "2025-11-25T00:30:34.981509+00:00"
+      },
+      {
+        "id": "19.3",
+        "title": "Implement 'gaps' command",
+        "description": "Add the 'gaps' command to the CLI that identifies and reports gaps in the data lake (e.g., missing time ranges or data points).",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "19.1"
+        ],
+        "created_at": "2025-11-25T00:30:34.981515+00:00",
+        "updated_at": "2025-11-25T00:30:34.981515+00:00"
+      },
+      {
+        "id": "19.4",
+        "title": "Test CLI with SQLite backend",
+        "description": "Run tests to ensure the 'stats' and 'gaps' commands work correctly with the SQLite backend, verifying useful and accurate output.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "19.2",
+          "19.3"
+        ],
+        "created_at": "2025-11-25T00:30:34.981519+00:00",
+        "updated_at": "2025-11-25T00:30:34.981519+00:00"
+      },
+      {
+        "id": "20.1",
+        "title": "Install and configure dependencies",
+        "description": "Install parquetjs-lite, AWS SDK for S3, and any necessary dependencies. Set up basic configuration for S3 client and Parquet schema handling.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:40.092281+00:00",
+        "updated_at": "2025-11-25T00:30:40.092281+00:00"
+      },
+      {
+        "id": "20.2",
+        "title": "Implement basic Parquet read/write",
+        "description": "Create functions to write data to Parquet files and read from them using parquetjs-lite, ensuring basic functionality works.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "20.1"
+        ],
+        "created_at": "2025-11-25T00:30:40.092311+00:00",
+        "updated_at": "2025-11-25T00:30:40.092311+00:00"
+      },
+      {
+        "id": "20.3",
+        "title": "Add time-based partitioning",
+        "description": "Implement logic to partition data based on time (e.g., by year/month/day) when writing to Parquet files.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "20.2"
+        ],
+        "created_at": "2025-11-25T00:30:40.092317+00:00",
+        "updated_at": "2025-11-25T00:30:40.092317+00:00"
+      },
+      {
+        "id": "20.4",
+        "title": "Integrate compression",
+        "description": "Add compression support (e.g., GZIP or Snappy) to the Parquet writing process for efficient storage.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "20.3"
+        ],
+        "created_at": "2025-11-25T00:30:40.092322+00:00",
+        "updated_at": "2025-11-25T00:30:40.092322+00:00"
+      },
+      {
+        "id": "20.5",
+        "title": "Implement S3 upload/download",
+        "description": "Create functions to upload partitioned Parquet files to S3 and download/query them from S3.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "20.4"
+        ],
+        "created_at": "2025-11-25T00:30:40.092327+00:00",
+        "updated_at": "2025-11-25T00:30:40.092327+00:00"
+      },
+      {
+        "id": "20.6",
+        "title": "Test with MinIO and verify queryability",
+        "description": "Set up MinIO for local S3 simulation, test upload/download of partitioned data, and verify that the data is queryable (e.g., using parquetjs-lite to read partitions).",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "20.5"
+        ],
+        "created_at": "2025-11-25T00:30:40.092332+00:00",
+        "updated_at": "2025-11-25T00:30:40.092332+00:00"
+      },
+      {
+        "id": "21.1",
+        "title": "Set up PostgreSQL connection and pg pool",
+        "description": "Configure and establish a connection pool to PostgreSQL using pg library for the TimescaleDB backend.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:43.842697+00:00",
+        "updated_at": "2025-11-25T00:30:43.842697+00:00"
+      },
+      {
+        "id": "21.2",
+        "title": "Create hypertables",
+        "description": "Implement scripts or functions to create TimescaleDB hypertables for time-series data storage.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "21.1"
+        ],
+        "created_at": "2025-11-25T00:30:43.842710+00:00",
+        "updated_at": "2025-11-25T00:30:43.842710+00:00"
+      },
+      {
+        "id": "21.3",
+        "title": "Implement compression policies",
+        "description": "Add compression policies to the hypertables to optimize storage and performance.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "21.2"
+        ],
+        "created_at": "2025-11-25T00:30:43.842715+00:00",
+        "updated_at": "2025-11-25T00:30:43.842715+00:00"
+      },
+      {
+        "id": "21.4",
+        "title": "Implement retention policies",
+        "description": "Define and apply retention policies to automatically manage data lifecycle in the hypertables.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "21.2"
+        ],
+        "created_at": "2025-11-25T00:30:43.842720+00:00",
+        "updated_at": "2025-11-25T00:30:43.842720+00:00"
+      },
+      {
+        "id": "21.5",
+        "title": "Implement gap detection with window functions",
+        "description": "Develop gap detection logic using PostgreSQL window functions to identify missing data points, ensuring full integration with TimescaleDB.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "21.1",
+          "21.2"
+        ],
+        "created_at": "2025-11-25T00:30:43.842725+00:00",
+        "updated_at": "2025-11-25T00:30:43.842725+00:00"
+      },
+      {
+        "id": "22.1",
+        "title": "Define Backfill Data Models and Schemas",
+        "description": "Create data models and schemas for backfill requests, including parameters like time ranges, symbols, and rate limit configurations. Ensure compatibility with CCXT exchange methods.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:48.623450+00:00",
+        "updated_at": "2025-11-25T00:30:48.623450+00:00"
+      },
+      {
+        "id": "22.2",
+        "title": "Implement Rate Limiting Mechanism",
+        "description": "Develop a rate limiting component that tracks and enforces exchange rate limits (e.g., requests per minute) to prevent API violations.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "22.1"
+        ],
+        "created_at": "2025-11-25T00:30:48.623460+00:00",
+        "updated_at": "2025-11-25T00:30:48.623460+00:00"
+      },
+      {
+        "id": "22.3",
+        "title": "Integrate CCXT for Historical Data Fetching",
+        "description": "Integrate CCXT library methods to fetch historical data, ensuring it works with the defined models and respects rate limits.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "22.1"
+        ],
+        "created_at": "2025-11-25T00:30:48.623465+00:00",
+        "updated_at": "2025-11-25T00:30:48.623465+00:00"
+      },
+      {
+        "id": "22.4",
+        "title": "Build Backfill Orchestration Logic with Callbacks and Error Handling",
+        "description": "Implement the core backfill orchestration that sequences data fetches, provides progress callbacks to users, and handles errors gracefully (e.g., retries, logging).",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "22.2",
+          "22.3"
+        ],
+        "created_at": "2025-11-25T00:30:48.623469+00:00",
+        "updated_at": "2025-11-25T00:30:48.623469+00:00"
+      },
+      {
+        "id": "22.5",
+        "title": "Add Tests and Documentation",
+        "description": "Write unit and integration tests for the backfill functionality, including rate limiting and error scenarios. Update documentation to describe usage and integration points.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "22.4"
+        ],
+        "created_at": "2025-11-25T00:30:48.623487+00:00",
+        "updated_at": "2025-11-25T00:30:48.623487+00:00"
+      },
+      {
+        "id": "23.1",
+        "title": "Define data models and schemas for new commands",
+        "description": "Analyze the requirements for backfill, stats, and gaps commands, and define or update data models, schemas, and interfaces needed for handling data across all backends.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:54.465578+00:00",
+        "updated_at": "2025-11-25T00:30:54.465578+00:00"
+      },
+      {
+        "id": "23.2",
+        "title": "Implement core logic for backfill command",
+        "description": "Develop the core business logic for the backfill command, including data retrieval and processing functions that work with the defined models.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "23.1"
+        ],
+        "created_at": "2025-11-25T00:30:54.465592+00:00",
+        "updated_at": "2025-11-25T00:30:54.465592+00:00"
+      },
+      {
+        "id": "23.3",
+        "title": "Implement core logic for stats command",
+        "description": "Develop the core business logic for the stats command, including aggregation and calculation functions based on the defined models.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "23.1"
+        ],
+        "created_at": "2025-11-25T00:30:54.465597+00:00",
+        "updated_at": "2025-11-25T00:30:54.465597+00:00"
+      },
+      {
+        "id": "23.4",
+        "title": "Implement core logic for gaps command",
+        "description": "Develop the core business logic for the gaps command, including detection and reporting functions using the defined models.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "23.1"
+        ],
+        "created_at": "2025-11-25T00:30:54.465607+00:00",
+        "updated_at": "2025-11-25T00:30:54.465607+00:00"
+      },
+      {
+        "id": "23.5",
+        "title": "Integrate commands into CLI with progress output and backend support",
+        "description": "Add the new commands to the CLI interface, implement detailed progress output, ensure compatibility across all backends, and perform integration testing.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "23.2",
+          "23.3",
+          "23.4"
+        ],
+        "created_at": "2025-11-25T00:30:54.465611+00:00",
+        "updated_at": "2025-11-25T00:30:54.465611+00:00"
+      },
+      {
+        "id": "24.1",
+        "title": "Set up testing infrastructure",
+        "description": "Configure testing framework (e.g., pytest or JUnit), set up mocks, fixtures, and test data for Data Lake backends to enable comprehensive testing.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:30:59.040466+00:00",
+        "updated_at": "2025-11-25T00:30:59.040466+00:00"
+      },
+      {
+        "id": "24.2",
+        "title": "Write unit tests for write operations",
+        "description": "Create unit tests for write functionality across all backends, covering basic write scenarios and edge cases.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "24.1"
+        ],
+        "created_at": "2025-11-25T00:30:59.040477+00:00",
+        "updated_at": "2025-11-25T00:30:59.040477+00:00"
+      },
+      {
+        "id": "24.3",
+        "title": "Write unit tests for read operations",
+        "description": "Create unit tests for read functionality across all backends, including data retrieval and error handling.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "24.1"
+        ],
+        "created_at": "2025-11-25T00:30:59.040482+00:00",
+        "updated_at": "2025-11-25T00:30:59.040482+00:00"
+      },
+      {
+        "id": "24.4",
+        "title": "Write tests for gap detection accuracy",
+        "description": "Develop unit and integration tests specifically for gap detection logic, ensuring accuracy in identifying data gaps across backends.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "24.1",
+          "24.2",
+          "24.3"
+        ],
+        "created_at": "2025-11-25T00:30:59.040486+00:00",
+        "updated_at": "2025-11-25T00:30:59.040486+00:00"
+      },
+      {
+        "id": "24.5",
+        "title": "Write tests for backfill functionality",
+        "description": "Create unit and integration tests for backfill operations, verifying correct data filling and performance.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "24.1",
+          "24.2",
+          "24.3"
+        ],
+        "created_at": "2025-11-25T00:30:59.040490+00:00",
+        "updated_at": "2025-11-25T00:30:59.040490+00:00"
+      },
+      {
+        "id": "24.6",
+        "title": "Write integration tests for throughput and coverage",
+        "description": "Implement integration tests focusing on write/read throughput across all backends, then measure and adjust to achieve >85% test coverage.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "24.1",
+          "24.2",
+          "24.3",
+          "24.4",
+          "24.5"
+        ],
+        "created_at": "2025-11-25T00:30:59.040495+00:00",
+        "updated_at": "2025-11-25T00:30:59.040495+00:00"
+      },
+      {
+        "id": "25.1",
+        "title": "Initialize defi/ directory and TypeScript setup",
+        "description": "Create the defi/ directory, set up a basic TypeScript configuration (tsconfig.json), install necessary dependencies for TypeScript, and establish the initial folder structure (e.g., src/, types/, utils/).",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "EDL",
+          "Data Lake"
+        ],
+        "created_at": "2025-11-25T00:31:10.814353+00:00",
+        "updated_at": "2025-11-25T00:31:10.814353+00:00"
+      },
+      {
+        "id": "25.2",
+        "title": "Define DeFi-specific types",
+        "description": "Define and export TypeScript types and interfaces specific to DeFi operations, such as token types, pool structures, and transaction data models in a dedicated types file.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "25.1"
+        ],
+        "created_at": "2025-11-25T00:31:10.814365+00:00",
+        "updated_at": "2025-11-25T00:31:10.814365+00:00"
+      },
+      {
+        "id": "25.3",
+        "title": "Integrate ethers.js and viem",
+        "description": "Install and configure ethers.js and viem libraries, set up basic provider and signer connections, and integrate them into the project structure with utility functions for blockchain interactions.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "25.1"
+        ],
+        "created_at": "2025-11-25T00:31:10.814370+00:00",
+        "updated_at": "2025-11-25T00:31:10.814370+00:00"
+      },
+      {
+        "id": "25.4",
+        "title": "Set up multicall batching utilities",
+        "description": "Implement multicall batching utilities using the integrated libraries, including functions to batch multiple contract calls, handle results, and optimize gas usage for DeFi operations.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "25.2",
+          "25.3"
+        ],
+        "created_at": "2025-11-25T00:31:10.814375+00:00",
+        "updated_at": "2025-11-25T00:31:10.814375+00:00"
+      },
+      {
+        "id": "26.1",
+        "title": "Define interfaces and models for gas estimation and approval utilities",
+        "description": "Create TypeScript interfaces and data models for gas estimation parameters, approval transactions, and EVM chain specifics to ensure consistent structure across utilities.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:31:15.450273+00:00",
+        "updated_at": "2025-11-25T00:31:15.450273+00:00"
+      },
+      {
+        "id": "26.2",
+        "title": "Implement gas estimation utility",
+        "description": "Build the core logic for estimating gas costs, including handling EVM chain specifics like different gas pricing models and network fees.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "26.1"
+        ],
+        "created_at": "2025-11-25T00:31:15.450279+00:00",
+        "updated_at": "2025-11-25T00:31:15.450279+00:00"
+      },
+      {
+        "id": "26.3",
+        "title": "Implement token approval utility",
+        "description": "Develop the core logic for managing token approvals, including checking current allowances, estimating approval gas, and handling EVM-specific contract interactions.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "26.1"
+        ],
+        "created_at": "2025-11-25T00:31:15.450281+00:00",
+        "updated_at": "2025-11-25T00:31:15.450281+00:00"
+      },
+      {
+        "id": "26.4",
+        "title": "Integrate utilities into DEXExchange class and add tests",
+        "description": "Integrate gas estimation and approval utilities into the base DEXExchange class, ensuring seamless usage, and add unit tests and basic documentation for the new features.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "26.2",
+          "26.3"
+        ],
+        "created_at": "2025-11-25T00:31:15.450282+00:00",
+        "updated_at": "2025-11-25T00:31:15.450282+00:00"
+      },
+      {
+        "id": "27.1",
+        "title": "Define Uniswap V3 Adapter Interfaces and Models",
+        "description": "Create interfaces and data models for the Uniswap V3 adapter, including structures for pools, quotes, swaps, and NFT positions.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:31:21.879392+00:00",
+        "updated_at": "2025-11-25T00:31:21.879392+00:00"
+      },
+      {
+        "id": "27.2",
+        "title": "Implement Pool Discovery",
+        "description": "Integrate functionality to discover and query Uniswap V3 pools, including factory contract interactions.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "27.1"
+        ],
+        "created_at": "2025-11-25T00:31:21.879405+00:00",
+        "updated_at": "2025-11-25T00:31:21.879405+00:00"
+      },
+      {
+        "id": "27.3",
+        "title": "Integrate Quoter for Price Quotes",
+        "description": "Implement integration with Uniswap V3 Quoter contract to fetch price quotes and handle basic slippage calculations.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "27.1",
+          "27.2"
+        ],
+        "created_at": "2025-11-25T00:31:21.879411+00:00",
+        "updated_at": "2025-11-25T00:31:21.879411+00:00"
+      },
+      {
+        "id": "27.4",
+        "title": "Integrate SwapRouter for Swaps",
+        "description": "Implement integration with Uniswap V3 SwapRouter for executing token swaps, incorporating slippage parameters.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "27.1",
+          "27.3"
+        ],
+        "created_at": "2025-11-25T00:31:21.879416+00:00",
+        "updated_at": "2025-11-25T00:31:21.879416+00:00"
+      },
+      {
+        "id": "27.5",
+        "title": "Implement NFT Position Management",
+        "description": "Add functionality to manage Uniswap V3 NFT positions, including minting, burning, and querying positions.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "27.1"
+        ],
+        "created_at": "2025-11-25T00:31:21.879423+00:00",
+        "updated_at": "2025-11-25T00:31:21.879423+00:00"
+      },
+      {
+        "id": "27.6",
+        "title": "Add Unit Tests and Documentation",
+        "description": "Write comprehensive unit tests for all adapter components and create documentation for usage and integration.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "low",
+        "dependencies": [
+          "27.2",
+          "27.3",
+          "27.4",
+          "27.5"
+        ],
+        "created_at": "2025-11-25T00:31:21.879428+00:00",
+        "updated_at": "2025-11-25T00:31:21.879428+00:00"
+      },
+      {
+        "id": "28.1",
+        "title": "Define Models and Schemas for Adapters",
+        "description": "Create data models and schemas for Curve (Registry, pools, zap) and 1inch (Aggregator, routing API, Fusion) adapters, including interfaces for interactions.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:31:28.202272+00:00",
+        "updated_at": "2025-11-25T00:31:28.202272+00:00"
+      },
+      {
+        "id": "28.2",
+        "title": "Implement Curve Adapter",
+        "description": "Build the Curve adapter covering Registry, pools, and zap functionalities, ensuring it integrates with the defined models.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "28.1"
+        ],
+        "created_at": "2025-11-25T00:31:28.202283+00:00",
+        "updated_at": "2025-11-25T00:31:28.202283+00:00"
+      },
+      {
+        "id": "28.3",
+        "title": "Implement 1inch Adapter",
+        "description": "Build the 1inch adapter covering Aggregator, routing API, and Fusion functionalities, ensuring it integrates with the defined models.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "28.1"
+        ],
+        "created_at": "2025-11-25T00:31:28.202288+00:00",
+        "updated_at": "2025-11-25T00:31:28.202288+00:00"
+      },
+      {
+        "id": "28.4",
+        "title": "Implement Protocol Comparison Logic",
+        "description": "Develop logic to compare protocols (Curve vs 1inch) based on factors like fees, rates, and efficiency, using the adapters.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "28.2",
+          "28.3"
+        ],
+        "created_at": "2025-11-25T00:31:28.202293+00:00",
+        "updated_at": "2025-11-25T00:31:28.202293+00:00"
+      },
+      {
+        "id": "28.5",
+        "title": "Implement Routing Logic",
+        "description": "Create routing logic that selects and executes the best path using protocol comparison, integrating with both adapters.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "28.4"
+        ],
+        "created_at": "2025-11-25T00:31:28.202297+00:00",
+        "updated_at": "2025-11-25T00:31:28.202297+00:00"
+      },
+      {
+        "id": "28.6",
+        "title": "Add Tests and Documentation",
+        "description": "Write unit tests for all adapters and logic, and document the implementation, usage, and API endpoints.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "low",
+        "dependencies": [
+          "28.2",
+          "28.3",
+          "28.4",
+          "28.5"
+        ],
+        "created_at": "2025-11-25T00:31:28.202301+00:00",
+        "updated_at": "2025-11-25T00:31:28.202301+00:00"
+      },
+      {
+        "id": "29.1",
+        "title": "Define DeFi Adapter Mapping Schema",
+        "description": "Create a schema or model that maps DeFi adapter methods to CCXT unified interface methods like fetchTicker and createOrder, including data structures for tickers, orders, and transactions.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [],
+        "created_at": "2025-11-25T00:31:32.703010+00:00",
+        "updated_at": "2025-11-25T00:31:32.703010+00:00"
+      },
+      {
+        "id": "29.2",
+        "title": "Implement fetchTicker Functionality",
+        "description": "Integrate DeFi adapters to implement the fetchTicker method, fetching market data and converting it to CCXT format.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "29.1"
+        ],
+        "created_at": "2025-11-25T00:31:32.703020+00:00",
+        "updated_at": "2025-11-25T00:31:32.703020+00:00"
+      },
+      {
+        "id": "29.3",
+        "title": "Implement createOrder Functionality",
+        "description": "Integrate DeFi adapters to implement the createOrder method, handling order creation and mapping to DeFi protocols.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "high",
+        "dependencies": [
+          "29.1"
+        ],
+        "created_at": "2025-11-25T00:31:32.703025+00:00",
+        "updated_at": "2025-11-25T00:31:32.703025+00:00"
+      },
+      {
+        "id": "29.4",
+        "title": "Implement Transaction Building and Signing",
+        "description": "Develop logic for building transactions based on orders, integrating signing mechanisms for DeFi adapters.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "29.3"
+        ],
+        "created_at": "2025-11-25T00:31:32.703029+00:00",
+        "updated_at": "2025-11-25T00:31:32.703029+00:00"
+      },
+      {
+        "id": "29.5",
+        "title": "Add Error Handling and Validation",
+        "description": "Implement comprehensive error handling for failed transactions, invalid inputs, and network issues, with appropriate logging and user feedback.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "medium",
+        "dependencies": [
+          "29.2",
+          "29.3",
+          "29.4"
+        ],
+        "created_at": "2025-11-25T00:31:32.703033+00:00",
+        "updated_at": "2025-11-25T00:31:32.703033+00:00"
+      },
+      {
+        "id": "29.6",
+        "title": "Write Documentation and Tests",
+        "description": "Create documentation for the integration, including usage examples, and write unit tests for all implemented functionalities to ensure reliability.",
+        "status": "pending",
+        "complexity": 0,
+        "priority": "low",
+        "dependencies": [
+          "29.1",
+          "29.2",
+          "29.3",
+          "29.4",
+          "29.5"
+        ],
+        "created_at": "2025-11-25T00:31:32.703037+00:00",
+        "updated_at": "2025-11-25T00:31:32.703037+00:00"
+      }
+    ]
+  }
+}
