@@ -3940,7 +3940,7 @@ export default class gate extends Exchange {
         if (pointFee !== undefined) {
             fees.push ({
                 'cost': pointFee,
-                'currency': 'GatePoint',
+                'currency': 'GATEPOINT',
             });
         }
         const takerOrMaker = this.safeString (trade, 'role');
