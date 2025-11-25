@@ -964,79 +964,80 @@ public class Exchange {
     }
 
     public Object arraySlice(Object array, Object first, Object second) {
-        int firstInt = Integer.parseInt(String.valueOf(first));
+        int firstInt = toInt(first);
 
-        // -------- byte[] ----------
+        // ----- byte[] case -----
         if (array instanceof byte[]) {
             byte[] byteArray = (byte[]) array;
+
             if (second == null) {
-                int start = firstInt;
-                if (start < 0) {
-                    start = byteArray.length + start;
-                    if (start < 0) {
-                        start = 0;
+                // handle negative first
+                int index = firstInt;
+                if (firstInt < 0) {
+                    index = byteArray.length + firstInt;
+                    if (index < 0) {
+                        index = 0;
                     }
                 }
-                // return a List<Byte> like the C# ToList() branches
-                List<Byte> out = new ArrayList<>(byteArray.length - Math.max(0, start));
-                for (int i = Math.max(0, start); i < byteArray.length; i++) {
-                    out.add(byteArray[i]);
+                // slice [index..end) and return as List<Byte>
+                List<Byte> result = new ArrayList<>(byteArray.length - index);
+                for (int i = index; i < byteArray.length; i++) {
+                    result.add(byteArray[i]);
                 }
-                return out;
+                return result;
+            } else {
+                int secondInt = toInt(second);
+                // slice [firstInt..secondInt) and return as List<Byte>
+                int from = firstInt;
+                int to = secondInt;
+                if (from < 0 || to < from || to > byteArray.length) {
+                    throw new IndexOutOfBoundsException(
+                            "Invalid slice range: " + from + ".." + to + " for length " + byteArray.length
+                    );
+                }
+                List<Byte> result = new ArrayList<>(to - from);
+                for (int i = from; i < to; i++) {
+                    result.add(byteArray[i]);
+                }
+                return result;
             }
-            int secondInt = Integer.parseInt(String.valueOf(second));
-            // return a raw array slice in the 2-index case (close to your C# mix)
-            return Arrays.copyOfRange(byteArray, firstInt, secondInt);
         }
 
-        // -------- List / ArrayCache ----------
-        // special-case: ccxt.pro.ArrayCache — prefer its thread-safe toArray()
-        // boolean isArrayCache = array instanceof ccxt.pro.ArrayCache;
-        // if (second == null) {
-        //     if (firstInt < 0) {
-        //         if (isArrayCache) {
-        //             Object[] safe = ((ccxt.pro.ArrayCache) array).toArray();
-        //             int index = safe.length + firstInt;
-        //             if (index < 0) index = 0;
-        //             return new ArrayList<>(Arrays.asList(Arrays.copyOfRange(safe, index, safe.length)));
-        //         } else {
-        //             List<Object> parsed = (List<Object>) array;
-        //             Object[] raw = parsed.toArray();
-        //             int index = raw.length + firstInt;
-        //             if (index < 0) index = 0;
-        //             return new ArrayList<>(Arrays.asList(Arrays.copyOfRange(raw, index, raw.length)));
-        //         }
-        //     }
-        //     if (isArrayCache) {
-        //         Object[] safe = ((ccxt.pro.ArrayCache) array).toArray();
-        //         int start = Math.max(0, firstInt);
-        //         return new ArrayList<>(Arrays.asList(Arrays.copyOfRange(safe, start, safe.length)));
-        //     } else {
-        //         List<Object> parsed = (List<Object>) array;
-        //         Object[] raw = parsed.toArray();
-        //         int start = Math.max(0, firstInt);
-        //         return new ArrayList<>(Arrays.asList(Arrays.copyOfRange(raw, start, raw.length)));
-        //     }
-        // } else {
-        //     int secondInt = Integer.parseInt(String.valueOf(second));
-        //     if (isArrayCache) {
-        //         Object[] safe = ((ccxt.pro.ArrayCache) array).toArray();
-        //         int start = Math.max(0, firstInt);
-        //         int end = Math.min(secondInt, safe.length);
-        //         if (end < start) end = start;
-        //         return new ArrayList<>(Arrays.asList(Arrays.copyOfRange(safe, start, end)));
-        //     } else {
-        //         List<Object> parsed = (List<Object>) array;
-        //         Object[] raw = parsed.toArray();
-        //         int start = Math.max(0, firstInt);
-        //         int end = Math.min(secondInt, raw.length);
-        //         if (end < start) end = start;
-        //         return new ArrayList<>(Arrays.asList(Arrays.copyOfRange(raw, start, end)));
-        //     }
-        // }
-        return null;
+        // ----- List<?> case -----
+        if (!(array instanceof List<?>)) {
+            throw new IllegalArgumentException("array must be byte[] or List, got: " + array.getClass());
+        }
+
+        List<?> parsedArray = (List<?>) array;
+
+        if (second == null) {
+            if (firstInt < 0) {
+                int index = parsedArray.size() + firstInt;
+                if (index < 0) {
+                    index = 0;
+                }
+                // [index..end)
+                return new ArrayList<>(parsedArray.subList(index, parsedArray.size()));
+            } else {
+                // [firstInt..end)
+                return new ArrayList<>(parsedArray.subList(firstInt, parsedArray.size()));
+            }
+        } else {
+            int secondInt = toInt(second);
+            // [firstInt..secondInt)
+            return new ArrayList<>(parsedArray.subList(firstInt, secondInt));
+        }
     }
 
+    private static int toInt(Object value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Index argument cannot be null");
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        return Integer.parseInt(value.toString());
+    }
     // overload matching the C# default parameter (second = null)
     public Object arraySlice(Object array, Object first) {
         return arraySlice(array, first, null);
