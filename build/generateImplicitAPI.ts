@@ -374,7 +374,7 @@ function createGoHeader(exchange: Exchange, parent: string){
 // -------------------------------------------------------------------------
 
 function createJavaHeader(exchange: Exchange, parent: string){
-    const namespace = 'package io.github.ccxt;'
+    const namespace = `package io.github.ccxt.api;\nimport io.github.ccxt.${capitalize(parent)};`;
     const header = `public class ${capitalize(exchange.id)}Api extends ${capitalize(parent)}\n{\n`;
     storedJavaMethods[exchange.id] = [ getPreamble(), namespace, '', header];
 }

@@ -26,6 +26,7 @@ import io.github.ccxt.base.Time;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.base.Misc;
 import io.github.ccxt.base.Strings;
+import io.github.ccxt.errors.*;
 
 
 public class Exchange {
@@ -218,11 +219,11 @@ public class Exchange {
         this.transformApiNew(this.api, new ArrayList<>());
     }
 
-    Exchange (Object userConfig) {
+    public Exchange (Object userConfig) {
         this.initExchange(userConfig);
     }
 
-    Exchange() {
+    public Exchange() {
         this.initExchange(null);
     }
 
@@ -1529,7 +1530,7 @@ public class Exchange {
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{

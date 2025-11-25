@@ -51,7 +51,7 @@ if (platform === 'win32') {
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
-const ERRORS_FILE = './java/lib/src/main/java/io/github/ccxt/Errors.java';
+const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
@@ -288,8 +288,11 @@ class NewTranspiler {
     getJavaImports(file: any, ws = false) {
         const values = [
             // "using ccxt;",
-            'package io.github.ccxt;',
-            'import io.github.ccxt.base.Precise;'
+            'package io.github.ccxt.exchanges;',
+            `import io.github.ccxt.api.${this.capitalize(file)}Api;`,
+            'import io.github.ccxt.base.Precise;',
+            'import io.github.ccxt.errors.*;',
+            'import io.github.ccxt.Helpers;'
             // 'import io.github.ccxt.Exchange;',
             // 'import io.github.ccxt.Errors;'
         ]
@@ -630,7 +633,7 @@ class NewTranspiler {
         return res;
     }
 
-    createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false) {
+    createJavaWrappers(exchange:string, path: string, wrappers: any[], ws = false) {
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
@@ -691,30 +694,46 @@ class NewTranspiler {
 
         function javaMakeErrorClassFile (name: string, parent: string) {
             const exception =
-`   class ${name} extends ${parent}
-    {
-        ${name}() { super(); }
-        ${name}(String message) { super(message); }
-        ${name}(String message, ${parent} inner) { super(message, inner); }
-    }`;
+`public class ${name} extends ${parent}
+{
+    public ${name}() { super(); }
+    public ${name}(String message) { super(message); }
+    public ${name}(String message, ${parent} inner) { super(message, inner); }
+}`;
             return exception
         }
 
             const javaBaseError =
-`   class BaseError extends RuntimeException
-    {
-        BaseError() { super(); }
-        BaseError(String message) { super(message); }
-        BaseError(String message, Throwable cause) { super(message, cause); }
-    }`;
+`public class BaseError extends RuntimeException
+{
+    public BaseError() { super(); }
+    public BaseError(String message) { super(message); }
+    public BaseError(String message, Throwable cause) { super(message, cause); }
+}`;
 
         const javaErrors = intellisense (root as any, 'BaseError', javaMakeErrorClassFile, undefined)
-        const javaBodyIntellisense = '\npackage io.github.ccxt;\n' + this.createGeneratedHeader().join('\n') + '\n' + javaBaseError + '\n' + javaErrors.join ('\n') + '\n'
-        if (fs.existsSync (ERRORS_FILE)) {
-            log.bright.cyan (message, (ERRORS_FILE as any).yellow)
-            overwriteFileAndFolder (ERRORS_FILE, javaBodyIntellisense)
+        const allErrors = [javaBaseError].concat (javaErrors)
+        for (let i = 0; i < allErrors.length; i++) {
+            const error = allErrors[i];
+            const groups = error.match(/class (\w+) extends (\w+)/);
+            const errorName = groups[1];
+            const baseError = groups[2];
+            const file = [
+                'package io.github.ccxt.errors;',
+                this.createGeneratedHeader().join('\n'),
+                error
+            ].join('\n')
+
+            const fileName = ERRORS_FOLDER + this.capitalize(errorName) + '.java'
+            log.bright.cyan (message, (fileName as any).yellow)
+            overwriteFileAndFolder (fileName, file)
         }
-        log.bright.cyan (message, (ERRORS_FILE as any).yellow)
+        // const javaBodyIntellisense = '\npackage io.github.ccxt;\n' + this.createGeneratedHeader().join('\n') + '\n' + javaBaseError + '\n' + javaErrors.join ('\n') + '\n'
+        // if (fs.existsSync (ERRORS_FILE)) {
+        //     log.bright.cyan (message, (ERRORS_FILE as any).yellow)
+        //     overwriteFileAndFolder (ERRORS_FILE, javaBodyIntellisense)
+        // }
+        // log.bright.cyan (message, (ERRORS_FILE as any).yellow)
     }
 
     transpileBaseMethods(baseExchangeFile: string) {
@@ -842,12 +861,6 @@ class NewTranspiler {
             await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
-        // this.transpileExamples(); // disabled for now
-
-        if (examplesOnly) {
-            return;
-        }
-
         if (transpilingSingleExchange) {
             return;
         }
@@ -941,7 +954,7 @@ class NewTranspiler {
     }
 
     createJavaClass(name: string, javaVersion: any, ws = false) {
-        const javaImports = this.getJavaImports(javaVersion, ws).join("\n") + "\n\n";
+        const javaImports = this.getJavaImports(name, ws).join("\n") + "\n\n";
         let content = javaVersion.content;
 
         // override extends from Exchange to ClassApi
