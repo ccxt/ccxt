@@ -4488,7 +4488,7 @@ func (this *GateCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
 	if IsTrue(!IsEqual(pointFee, nil)) {
 		AppendToArray(&fees, map[string]interface{}{
 			"cost":     pointFee,
-			"currency": "GatePoint",
+			"currency": "GATEPOINT",
 		})
 	}
 	var takerOrMaker interface{} = this.SafeString(trade, "role")
