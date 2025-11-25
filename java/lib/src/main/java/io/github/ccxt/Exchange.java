@@ -17,6 +17,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
+import java.util.concurrent.ExecutionException;
 
 import io.github.ccxt.base.Crypto;
 import io.github.ccxt.base.Encode;
@@ -53,6 +54,7 @@ public class Exchange {
     public Map<String, Object> baseCurrencies = new HashMap<>();
     public boolean reloadingMarkets = false;
     public CompletableFuture<Object> marketsLoading = null;
+    public boolean marketsLoaded = false;
 
     public Map<String, Object> quoteCurrencies = new HashMap<>();
     public Map<String, Object> api = new HashMap<>();
@@ -1182,10 +1184,72 @@ public class Exchange {
         return Helpers.parseJson(input);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadMarkets() {
+    public java.util.concurrent.CompletableFuture<Object> loadMarketsHelper(boolean reload) throws ExecutionException, InterruptedException {
+
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-            return null;
+            if (!reload && this.markets != null) {
+                if (this.markets_by_id == null) {
+                    return this.setMarkets(this.markets);
+                }
+            }
+
+            Object currencies = null;
+            if (this.has != null && this.has.containsKey("fetchCurrencies") && (Boolean) this.has.get("fetchCurrencies")) {
+                try {
+                    currencies = this.fetchCurrencies().get();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+
+                this.options.put("cachedCurrencies", currencies);
+            }
+
+            Object markets = null;
+            try {
+                markets = this.fetchMarkets().get();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+            this.options.remove("cachedCurrencies");
+            return this.setMarkets(markets);
         });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object... args) {
+
+        var reload = (Boolean) Helpers.getArg(args, 0, false);
+        if (this.marketsLoaded && !reload) {
+            return this.marketsLoading;
+        }
+        if (!this.reloadingMarkets || reload) {
+            // var marketsLoadingFuture = java.util.concurrent
+            // this.marketsLoading;
+            this.marketsLoading = CompletableFuture.supplyAsync(() -> {
+                this.reloadingMarkets = true;
+                try {
+                    var res = this.loadMarketsHelper(reload);
+                    return res.get();
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+        return this.marketsLoading;
+    }
+
+    public CompletableFuture<Object> fetchCurrencies(Object... params) {
+        return CompletableFuture.completedFuture(this.currencies);
+    }
+
+    public CompletableFuture<Object> fetchMarkets(Object... params) {
+        return CompletableFuture.completedFuture(new ArrayList<>(((Map<String, Object>)this.markets).values()));
     }
 
     public void initThrottler() {
