@@ -313,12 +313,13 @@ export default class bullish extends Exchange {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 1,
+                        'daysBackCanceled': 1,
                         'untilDays': 1,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchCalnceledOrders': {
+                    'fetchCanceledOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 1,
