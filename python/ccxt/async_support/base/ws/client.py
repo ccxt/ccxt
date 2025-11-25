@@ -234,9 +234,8 @@ class Client(object):
     def handle_text_or_binary_message(self, data):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'message', data)
-        if isinstance(data, bytes):
-            if self.decompressBinary:
-                data = data.decode()
+        if self.decompressBinary and isinstance(data, bytes):
+            data = data.decode()
         # decoded = json.loads(data) if is_json_encoded_object(data) else data
         decode = None
         if is_json_encoded_object(data):
