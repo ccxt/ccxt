@@ -71,7 +71,7 @@
         ],
         "fetchOrders": [
             {
-                "description": "Fetch orders with market, since and limit",
+                "description": "Fetch orders with market and since",
                 "method": "fetchOrders",
                 "url": "https://api.exchange.bullish.com/trading-api/v2/history/orders?tradingAccountId=111795880131063&symbol=USDTUSDC&createdAtDatetime%5Bgte%5D=2025-11-24T10%3A56%3A29.115Z&createdAtDatetime%5Blte%5D=2025-12-01T10%3A56%3A29.115Z",
                 "input": [
@@ -267,24 +267,6 @@
                     {
                         "until": 1749551055000
                     }
-                ],
-                "output": null
-            },
-            {
-                "description": "Fetch trades for spot",
-                "method": "fetchTrades",
-                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTCUSDC/trades",
-                "input": [
-                    "BTC/USDC"
-                ],
-                "output": null
-            },
-            {
-                "description": "Fetch trades for swap",
-                "method": "fetchTrades",
-                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTC-USDC-PERP/trades",
-                "input": [
-                    "BTC/USDC:USDC"
                 ],
                 "output": null
             }
