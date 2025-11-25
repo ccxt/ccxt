@@ -197,7 +197,7 @@ export default class bullish extends Exchange {
                         'v1/accounts/trading-accounts': 1, // done
                         'v1/accounts/trading-accounts/{tradingAccountId}': 1, // done
                         'v1/derivatives-positions': 1, // done
-                        'v1/history/derivatives-settlement': 1, // todo check
+                        'v1/history/derivatives-settlement': 1, // not used
                         'v1/history/transfer': 1, // done todo check
                         'v1/history/borrow-interest': 1, // done
                         'v2/mmp-configuration': 1, // not used
@@ -431,6 +431,8 @@ export default class bullish extends Exchange {
                 'broad': {
                     'HttpInvalidParameterException': BadRequest,
                     'UNAUTHORIZED_COMMAND': AuthenticationError, // {"message":"Unauthorized to execute command","raw":null,"errorCode":6105,"errorCodeName":"UNAUTHORIZED_COMMAND"}
+                    'QUERY_FILTER_ERROR': BadRequest, // {"message":"Field 'settlementDatetime' cannot be filtered","errorCode":23001,"errorCodeName":"QUERY_FILTER_ERROR"}
+                    'INVALID_SYMBOL': BadSymbol, // {"message":"Invalid symbol provided","errorCode":28004,"errorCodeName":"INVALID_SYMBOL"}
                 },
             },
         });
@@ -947,60 +949,48 @@ export default class bullish extends Exchange {
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
+        const ninetyDays = 90 * 24 * 60 * 60 * 1000;
+        const now = this.milliseconds ();
+        const allowedSince = now - ninetyDays;
+        if ((since !== undefined) && (since < allowedSince)) {
+            throw new BadRequest (this.id + ' fetchFundingRateHistory() only allows fetching entries up to 90 days in the past');
+        }
+        await this.loadMarkets ();
+        const maxLimit = 100;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            params = this.extend (params, { 'paginationDirection': 'backward' });
+            const until = this.safeInteger (params, 'until');
+            if (until === undefined) {
+                params = this.extend (params, { 'until': now });
+            }
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
-        const maxLimit = 100;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
+        params = this.handleSinceAndUntil (since, params);
+        if (limit !== undefined) {
+            request['_pageSize'] = this.getClosestLimit (limit);
         }
-        if (since !== undefined) {
-            request['createdAtDatetime[gte]'] = this.iso8601 (since);
-        }
-        const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            request['createdAtDatetime[lte]'] = this.iso8601 (until);
-            params = this.omit (params, 'until');
-        }
-        let response = undefined;
-        if ((since !== undefined) || (until !== undefined)) {
-            request['_pageSize'] = maxLimit;
-            response = await this.publicGetV1HistoryMarketsSymbolTrades (this.extend (request, params));
-            //
-            //     [
-            //         {
-            //             "tradeId": "100178000000367159",
-            //             "symbol": "BTCUSDC",
-            //             "price": "103891.8977",
-            //             "quantity": "0.00029411",
-            //             "quoteAmount": "30.5556",
-            //             "side": "BUY",
-            //             "isTaker": true,
-            //             "createdAtTimestamp": "1747768055826",
-            //             "createdAtDatetime": "2025-05-20T19:07:35.826Z"
-            //         }, ...
-            //     ]
-            //
-        } else {
-            response = await this.publicGetV1MarketsSymbolTrades (this.extend (request, params));
-            //
-            //     [
-            //         {
-            //             "tradeId": "100020000000000060",
-            //             "symbol": "BTCUSDC",
-            //             "price": "1.00000000",
-            //             "quantity": "1.00000000",
-            //             "side": "BUY",
-            //             "isTaker": true,
-            //             "createdAtDatetime": "2021-05-20T01:01:01.000Z",
-            //             "createdAtTimestamp": "1621490985000"
-            //         }
-            //     ]
-            //
-        }
+        const response = await this.publicGetV1HistoryMarketsSymbolTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "tradeId": "100178000000367159",
+        //             "symbol": "BTCUSDC",
+        //             "price": "103891.8977",
+        //             "quantity": "0.00029411",
+        //             "quoteAmount": "30.5556",
+        //             "side": "BUY",
+        //             "isTaker": true,
+        //             "createdAtTimestamp": "1747768055826",
+        //             "createdAtDatetime": "2025-05-20T19:07:35.826Z"
+        //         }, ...
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1020,11 +1010,17 @@ export default class bullish extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchMyTrades() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+        }
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const ninetyDays = 90 * 24 * 60 * 60 * 1000;
+        const now = this.milliseconds ();
+        const allowedSince = now - ninetyDays;
+        if ((since !== undefined) && (since < allowedSince)) {
+            throw new BadRequest (this.id + ' fetchMyTrades() only allows fetching entries up to 90 days in the past');
         }
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
@@ -1046,10 +1042,9 @@ export default class bullish extends Exchange {
                 params = this.extend (params, { 'paginationDirection': 'backward' });
                 const until = this.safeInteger (params, 'until');
                 if (until === undefined) {
-                    const now = this.milliseconds ();
                     params = this.extend (params, { 'until': now });
                 }
-                return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, 100, params) as Trade[];
+                return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
             }
             params = this.handleSinceAndUntil (since, params);
             if (limit !== undefined) {
@@ -1359,7 +1354,6 @@ export default class bullish extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // todo add pagination support
         const maxLimit = 100;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
@@ -1431,30 +1425,35 @@ export default class bullish extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
+        const ninetyDays = 90 * 24 * 60 * 60 * 1000;
+        const now = this.milliseconds ();
+        const allowedSince = now - ninetyDays;
+        if ((since !== undefined) && (since < allowedSince)) {
+            throw new BadRequest (this.id + ' fetchFundingRateHistory() only allows fetching entries up to 90 days in the past');
+        }
         await this.loadMarkets ();
-        const maxLimit = 25; // current endpoint supports a maximum of 25 entries per request
+        const maxLimit = 100;
         let paginate = false;
-        // todo check pagination
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
+            params = this.extend (params, { 'paginationDirection': 'backward' });
+            const until = this.safeInteger (params, 'until');
+            if (until === undefined) {
+                params = this.extend (params, { 'until': now });
+            }
             return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, maxLimit) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap markets only');
         }
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
-            '_pageSize': maxLimit,
         };
-        if (since !== undefined) {
-            request['updatedAtDatetime[gte]'] = this.iso8601 (since);
+        if (limit !== undefined) {
+            request['_pageSize'] = this.getClosestLimit (limit);
         }
-        [ request, params ] = this.handleUntilOption ('updatedAtDatetime[lte]', request, params);
-        const until = this.safeInteger (request, 'updatedAtDatetime[lte]');
-        if (until !== undefined) {
-            request['updatedAtDatetime[lte]'] = this.iso8601 (until);
-        }
+        params = this.handleSinceAndUntil (since, params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
         const response = await this.publicGetV1HistoryMarketsSymbolFundingRate (this.extend (request, params));
         //
         //     [
@@ -1504,24 +1503,29 @@ export default class bullish extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const ninetyDays = 90 * 24 * 60 * 60 * 1000;
+        const now = this.milliseconds ();
+        const allowedSince = now - ninetyDays;
+        if ((since !== undefined) && (since < allowedSince)) {
+            throw new BadRequest (this.id + ' fetchOrders() only allows fetching entries up to 90 days in the past');
+        }
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate) {
             params = this.omit (params, 'paginate');
             params = this.extend (params, { 'paginationDirection': 'backward' });
             const until = this.safeInteger (params, 'until');
             if (until === undefined) {
-                const now = this.milliseconds ();
                 params = this.extend (params, { 'until': now });
             }
-            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, 100, params) as Order[];
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100) as Order[];
         }
         let market = undefined;
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
-        }
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
@@ -1575,7 +1579,7 @@ export default class bullish extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    handleSinceAndUntil (since: Int = undefined, params: Dict = {}): Dict {
+    handleSinceAndUntil (since: Int = undefined, params: Dict = {}, sinceKey: string = 'createdAtDatetime[gte]', untilKey: string = 'createdAtDatetime[lte]'): Dict {
         let until = this.safeInteger (params, 'until');
         const request: Dict = {};
         if ((since !== undefined) || (until !== undefined)) {
@@ -1586,8 +1590,8 @@ export default class bullish extends Exchange {
             } else if (until === undefined) {
                 until = since + timeDelta;
             }
-            request['createdAtDatetime[gte]'] = this.iso8601 (since);
-            request['createdAtDatetime[lte]'] = this.iso8601 (until);
+            request[sinceKey] = this.iso8601 (since);
+            request[untilKey] = this.iso8601 (until);
         }
         return this.extend (request, params);
     }
@@ -1695,6 +1699,11 @@ export default class bullish extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let market = undefined;
         if (symbol !== undefined) {
@@ -1702,14 +1711,8 @@ export default class bullish extends Exchange {
         }
         const request: Dict = {
             'orderId': id,
+            'tradingAccountId': tradingAccountId,
         };
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'tradingAccountId');
-        if (tradingAccountId !== undefined) {
-            request['tradingAccountId'] = tradingAccountId;
-        } else {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
-        }
         const response = await this.privateGetV2OrdersOrderId (this.extend (request, params));
         //
         //     {
@@ -1761,6 +1764,11 @@ export default class bullish extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const market = this.market (symbol);
         const request: Dict = {
@@ -1768,6 +1776,7 @@ export default class bullish extends Exchange {
             'symbol': market['id'],
             'side': side.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
+            'tradingAccountId': tradingAccountId,
         };
         const isMarketOrder = ((type === 'market') || type === 'MARKET');
         let postOnly = false;
@@ -1780,13 +1789,6 @@ export default class bullish extends Exchange {
         params['timeInForce'] = timeInForce.toUpperCase ();
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
-        }
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'tradingAccountId');
-        if (tradingAccountId !== undefined) {
-            request['tradingAccountId'] = tradingAccountId;
-        } else {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         const triggerPrice = this.safeString (params, 'triggerPrice');
         if (triggerPrice !== undefined) {
@@ -1828,12 +1830,12 @@ export default class bullish extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const market = this.market (symbol);
         const request: Dict = {
             'commandType': 'V1AmendOrder',
@@ -1876,16 +1878,16 @@ export default class bullish extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         // todo check all commandTypes
-        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
-        const market = this.market (symbol);
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
             'tradingAccountId': tradingAccountId,
@@ -1915,12 +1917,12 @@ export default class bullish extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
-        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
@@ -2455,12 +2457,12 @@ export default class bullish extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBalance() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
@@ -2528,12 +2530,12 @@ export default class bullish extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPositions() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
@@ -2642,19 +2644,20 @@ export default class bullish extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
-        let request: Dict = {};
-        let currency: Currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['assetSymbol'] = currency['id'];
-        }
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
-        request['tradingAccountId'] = tradingAccountId;
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        let request: Dict = {
+            'tradingAccountId': tradingAccountId,
+        };
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['assetSymbol'] = currency['id'];
+        }
         const now = this.milliseconds ();
         [ request, params ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
         let until = this.safeInteger (request, 'createdAtDatetime[lte]');
@@ -2797,17 +2800,17 @@ export default class bullish extends Exchange {
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
      */
     async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
-        const currency = this.currency (code);
-        let request: Dict = {
-            'assetSymbol': currency['id'],
-        };
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBorrowRateHistory', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBorrowRateHistory() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
-        request['tradingAccountId'] = tradingAccountId;
+        await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const currency = this.currency (code);
+        let request: Dict = {
+            'assetSymbol': currency['id'],
+            'tradingAccountId': tradingAccountId,
+        };
         const now = this.milliseconds ();
         let startTimestamp = since;
         [ request, params ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
