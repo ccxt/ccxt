@@ -1,3 +1,22 @@
+<a id="v4.5.22"></a>
+# [v4.5.22](https://github.com/ccxt/ccxt/releases/tag/v4.5.22) - 2025-11-25
+
+## What's Changed
+* update: Upbit Docs Link for all methods by [@LambdaBen](https://github.com/LambdaBen) in [#27364](https://github.com/ccxt/ccxt/pull/27364)
+* feat(FAQ): How do trailing orders work? by [@Dan-krm](https://github.com/Dan-krm) in [#27367](https://github.com/ccxt/ccxt/pull/27367)
+* fix(deepcoin): funding rate endpoint are public by [@kilianjanssen](https://github.com/kilianjanssen) in [#27369](https://github.com/ccxt/ccxt/pull/27369)
+* gate parseTrade fee currency fix by [@ndubel](https://github.com/ndubel) in [#27371](https://github.com/ccxt/ccxt/pull/27371)
+* fix(xt): handleSubscriptionStatus updated [#27282](https://github.com/ccxt/ccxt/issues/27282) by [@rayBastard](https://github.com/rayBastard) in [#27362](https://github.com/ccxt/ccxt/pull/27362)
+* update: Add TestOrder logic on Upbit by [@LambdaBen](https://github.com/LambdaBen) in [#27366](https://github.com/ccxt/ccxt/pull/27366)
+* fix(python): lock_id missing self by [@carlosmiei](https://github.com/carlosmiei) in [#27373](https://github.com/ccxt/ccxt/pull/27373)
+* fix(bybit): fix default swap limit orderbook by [@carlosmiei](https://github.com/carlosmiei) in [#27374](https://github.com/ccxt/ccxt/pull/27374)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.21...v4.5.22
+
+[Changes][v4.5.22]
+
+
 <a id="v4.5.21"></a>
 # [v4.5.21](https://github.com/ccxt/ccxt/releases/tag/v4.5.21) - 2025-11-24
 
@@ -11887,6 +11906,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.22]: https://github.com/ccxt/ccxt/compare/v4.5.21...v4.5.22
 [v4.5.21]: https://github.com/ccxt/ccxt/compare/v4.5.20...v4.5.21
 [v4.5.20]: https://github.com/ccxt/ccxt/compare/v4.5.19...v4.5.20
 [v4.5.19]: https://github.com/ccxt/ccxt/compare/v4.5.18...v4.5.19
