@@ -4497,39 +4497,35 @@ export default class binance extends binanceRest {
             return;
         }
         // handle other APIs
-        let methods: Dict = this.safeValue (this.options, 'wsHandlers');
-        if (methods === undefined) {
-            methods = {
-                'depthUpdate': this.handleOrderBook,
-                'trade': this.handleTrade,
-                'aggTrade': this.handleTrade,
-                'kline': this.handleOHLCV,
-                'markPrice_kline': this.handleOHLCV,
-                'indexPrice_kline': this.handleOHLCV,
-                '1hTicker@arr': this.handleTickers,
-                '4hTicker@arr': this.handleTickers,
-                '1dTicker@arr': this.handleTickers,
-                '24hrTicker@arr': this.handleTickers,
-                '24hrMiniTicker@arr': this.handleTickers,
-                '1hTicker': this.handleTickers,
-                '4hTicker': this.handleTickers,
-                '1dTicker': this.handleTickers,
-                '24hrTicker': this.handleTickers,
-                '24hrMiniTicker': this.handleTickers,
-                'markPriceUpdate': this.handleMarkPrices,
-                'markPriceUpdate@arr': this.handleMarkPrices,
-                'bookTicker': this.handleBidsAsks, // there is no "bookTicker@arr" endpoint
-                'outboundAccountPosition': this.handleBalance,
-                'balanceUpdate': this.handleBalance,
-                'ACCOUNT_UPDATE': this.handleAcountUpdate,
-                'executionReport': this.handleOrderUpdate,
-                'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
-                'forceOrder': this.handleLiquidation,
-                'eventStreamTerminated': this.handleEventStreamTerminated,
-                'externalLockUpdate': this.handleBalance,
-            };
-            this.options['wsHandlers'] = methods;
-        }
+        const methods: Dict = {
+            'depthUpdate': this.handleOrderBook,
+            'trade': this.handleTrade,
+            'aggTrade': this.handleTrade,
+            'kline': this.handleOHLCV,
+            'markPrice_kline': this.handleOHLCV,
+            'indexPrice_kline': this.handleOHLCV,
+            '1hTicker@arr': this.handleTickers,
+            '4hTicker@arr': this.handleTickers,
+            '1dTicker@arr': this.handleTickers,
+            '24hrTicker@arr': this.handleTickers,
+            '24hrMiniTicker@arr': this.handleTickers,
+            '1hTicker': this.handleTickers,
+            '4hTicker': this.handleTickers,
+            '1dTicker': this.handleTickers,
+            '24hrTicker': this.handleTickers,
+            '24hrMiniTicker': this.handleTickers,
+            'markPriceUpdate': this.handleMarkPrices,
+            'markPriceUpdate@arr': this.handleMarkPrices,
+            'bookTicker': this.handleBidsAsks, // there is no "bookTicker@arr" endpoint
+            'outboundAccountPosition': this.handleBalance,
+            'balanceUpdate': this.handleBalance,
+            'ACCOUNT_UPDATE': this.handleAcountUpdate,
+            'executionReport': this.handleOrderUpdate,
+            'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
+            'forceOrder': this.handleLiquidation,
+            'eventStreamTerminated': this.handleEventStreamTerminated,
+            'externalLockUpdate': this.handleBalance,
+        };
         let event = this.safeString (message, 'e');
         if (Array.isArray (message)) {
             const data = message[0];
