@@ -1440,12 +1440,11 @@ export default class xt extends xtRest {
         //         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
         //     }
         //
-        const method = this.safeStringLower (message, 'method');
-        const sessionId = this.safeString (message, 'sessionId');
-        if (method === 'unsubscribe' || sessionId >= '0') {
-            const id = this.safeString (message, 'id');
-            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, id, {});
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeDict (subscriptionsById, id, {});
+        const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
+        if (unsubscribe) {
             this.handleUnSubscription (client, subscription);
         }
         return message;
