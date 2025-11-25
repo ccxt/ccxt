@@ -140,7 +140,6 @@ public class Main {
         // var methodName = "fetchTrades";
 
         // var params = getParamsFromArgs(args);
-        var params = new Object[] { "BTC/USDT" };
 
         var instance = Exchange.dynamicallyCreateInstance(exchangeName, null);
 
