@@ -4145,35 +4145,38 @@ class binance(ccxt.async_support.binance):
             method(client, message)
             return
         # handle other APIs
-        methods: dict = {
-            'depthUpdate': self.handle_order_book,
-            'trade': self.handle_trade,
-            'aggTrade': self.handle_trade,
-            'kline': self.handle_ohlcv,
-            'markPrice_kline': self.handle_ohlcv,
-            'indexPrice_kline': self.handle_ohlcv,
-            '1hTicker@arr': self.handle_tickers,
-            '4hTicker@arr': self.handle_tickers,
-            '1dTicker@arr': self.handle_tickers,
-            '24hrTicker@arr': self.handle_tickers,
-            '24hrMiniTicker@arr': self.handle_tickers,
-            '1hTicker': self.handle_tickers,
-            '4hTicker': self.handle_tickers,
-            '1dTicker': self.handle_tickers,
-            '24hrTicker': self.handle_tickers,
-            '24hrMiniTicker': self.handle_tickers,
-            'markPriceUpdate': self.handle_mark_prices,
-            'markPriceUpdate@arr': self.handle_mark_prices,
-            'bookTicker': self.handle_bids_asks,  # there is no "bookTicker@arr" endpoint
-            'outboundAccountPosition': self.handle_balance,
-            'balanceUpdate': self.handle_balance,
-            'ACCOUNT_UPDATE': self.handle_acount_update,
-            'executionReport': self.handle_order_update,
-            'ORDER_TRADE_UPDATE': self.handle_order_update,
-            'forceOrder': self.handle_liquidation,
-            'eventStreamTerminated': self.handle_event_stream_terminated,
-            'externalLockUpdate': self.handle_balance,
-        }
+        methods: dict = self.safe_value(self.options, 'wsHandlers')
+        if methods is None:
+            methods = {
+                'depthUpdate': self.handle_order_book,
+                'trade': self.handle_trade,
+                'aggTrade': self.handle_trade,
+                'kline': self.handle_ohlcv,
+                'markPrice_kline': self.handle_ohlcv,
+                'indexPrice_kline': self.handle_ohlcv,
+                '1hTicker@arr': self.handle_tickers,
+                '4hTicker@arr': self.handle_tickers,
+                '1dTicker@arr': self.handle_tickers,
+                '24hrTicker@arr': self.handle_tickers,
+                '24hrMiniTicker@arr': self.handle_tickers,
+                '1hTicker': self.handle_tickers,
+                '4hTicker': self.handle_tickers,
+                '1dTicker': self.handle_tickers,
+                '24hrTicker': self.handle_tickers,
+                '24hrMiniTicker': self.handle_tickers,
+                'markPriceUpdate': self.handle_mark_prices,
+                'markPriceUpdate@arr': self.handle_mark_prices,
+                'bookTicker': self.handle_bids_asks,  # there is no "bookTicker@arr" endpoint
+                'outboundAccountPosition': self.handle_balance,
+                'balanceUpdate': self.handle_balance,
+                'ACCOUNT_UPDATE': self.handle_acount_update,
+                'executionReport': self.handle_order_update,
+                'ORDER_TRADE_UPDATE': self.handle_order_update,
+                'forceOrder': self.handle_liquidation,
+                'eventStreamTerminated': self.handle_event_stream_terminated,
+                'externalLockUpdate': self.handle_balance,
+            }
+            self.options['wsHandlers'] = methods
         event = self.safe_string(message, 'e')
         if isinstance(message, list):
             data = message[0]
