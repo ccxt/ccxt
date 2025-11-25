@@ -233,8 +233,6 @@ class xt(ccxt.async_support.xt):
             unsubscribe['params'] = [name]
         tradeType = 'contract' if isContract else 'spot'
         subMessageHash = name + '::' + tradeType
-        if symbols is not None:
-            subMessageHash = subMessageHash + '::' + ','.join(symbols)
         request = self.extend(unsubscribe, params)
         tail = access
         if isContract:
@@ -248,6 +246,10 @@ class xt(ccxt.async_support.xt):
             'symbols': symbols,
             'topic': topic,
         }
+        symbolsAndTimeframes = self.safe_list(subscriptionParams, 'symbolsAndTimeframes')
+        if symbolsAndTimeframes is not None:
+            subscription['symbolsAndTimeframes'] = symbolsAndTimeframes
+            subscriptionParams = self.omit(subscriptionParams, 'symbolsAndTimeframes')
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, self.extend(subscription, subscriptionParams))
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -310,7 +312,6 @@ class xt(ccxt.async_support.xt):
         options = self.safe_dict(self.options, 'watchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
-        symbols = self.market_symbols(symbols)
         market = None
         if symbols is not None:
             market = self.market(symbols[0])
@@ -382,8 +383,8 @@ class xt(ccxt.async_support.xt):
         market = self.market(symbol)
         name = 'kline@' + market['id'] + ',' + timeframe
         messageHash = 'unsubscribe::' + name
-        params['symbolsAndTimeframes'] = [[market['symbol'], timeframe]]
-        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOHLCV', 'kline', market, None, params)
+        symbolsAndTimeframes = [[market['symbol'], timeframe]]
+        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOHLCV', 'ohlcv', market, [symbol], params, {'symbolsAndTimeframes': symbolsAndTimeframes})
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -421,7 +422,7 @@ class xt(ccxt.async_support.xt):
         market = self.market(symbol)
         name = 'trade@' + market['id']
         messageHash = 'unsubscribe::' + name
-        return await self.un_subscribe(messageHash, name, 'public', 'unWatchTrades', 'trade', market, None, params)
+        return await self.un_subscribe(messageHash, name, 'public', 'unWatchTrades', 'trades', market, [symbol], params)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -470,7 +471,7 @@ class xt(ccxt.async_support.xt):
         if levels is not None:
             name = 'depth@' + market['id'] + ',' + levels
         messageHash = 'unsubscribe::' + name
-        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOrderBook', 'depth', market, None, params)
+        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [symbol], params)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

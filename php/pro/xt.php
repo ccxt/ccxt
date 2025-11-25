@@ -256,9 +256,6 @@ class xt extends \ccxt\async\xt {
             }
             $tradeType = $isContract ? 'contract' : 'spot';
             $subMessageHash = $name . '::' . $tradeType;
-            if ($symbols !== null) {
-                $subMessageHash = $subMessageHash . '::' . implode(',', $symbols);
-            }
             $request = $this->extend($unsubscribe, $params);
             $tail = $access;
             if ($isContract) {
@@ -273,6 +270,11 @@ class xt extends \ccxt\async\xt {
                 'symbols' => $symbols,
                 'topic' => $topic,
             );
+            $symbolsAndTimeframes = $this->safe_list($subscriptionParams, 'symbolsAndTimeframes');
+            if ($symbolsAndTimeframes !== null) {
+                $subscription['symbolsAndTimeframes'] = $symbolsAndTimeframes;
+                $subscriptionParams = $this->omit($subscriptionParams, 'symbolsAndTimeframes');
+            }
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $this->extend($subscription, $subscriptionParams)));
         }) ();
     }
@@ -344,7 +346,6 @@ class xt extends \ccxt\async\xt {
             $options = $this->safe_dict($this->options, 'watchTickers');
             $defaultMethod = $this->safe_string($options, 'method', 'tickers');
             $name = $this->safe_string($params, 'method', $defaultMethod);
-            $symbols = $this->market_symbols($symbols);
             $market = null;
             if ($symbols !== null) {
                 $market = $this->market($symbols[0]);
@@ -430,8 +431,8 @@ class xt extends \ccxt\async\xt {
             $market = $this->market($symbol);
             $name = 'kline@' . $market['id'] . ',' . $timeframe;
             $messageHash = 'unsubscribe::' . $name;
-            $params['symbolsAndTimeframes'] = [ [ $market['symbol'], $timeframe ] ];
-            return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchOHLCV', 'kline', $market, null, $params));
+            $symbolsAndTimeframes = [ [ $market['symbol'], $timeframe ] ];
+            return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchOHLCV', 'ohlcv', $market, array( $symbol ), $params, array( 'symbolsAndTimeframes' => $symbolsAndTimeframes )));
         }) ();
     }
 
@@ -476,7 +477,7 @@ class xt extends \ccxt\async\xt {
             $market = $this->market($symbol);
             $name = 'trade@' . $market['id'];
             $messageHash = 'unsubscribe::' . $name;
-            return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchTrades', 'trade', $market, null, $params));
+            return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchTrades', 'trades', $market, array( $symbol ), $params));
         }) ();
     }
 
@@ -533,7 +534,7 @@ class xt extends \ccxt\async\xt {
                 $name = 'depth@' . $market['id'] . ',' . $levels;
             }
             $messageHash = 'unsubscribe::' . $name;
-            return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchOrderBook', 'depth', $market, null, $params));
+            return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchOrderBook', 'orderbook', $market, array( $symbol ), $params));
         }) ();
     }
 

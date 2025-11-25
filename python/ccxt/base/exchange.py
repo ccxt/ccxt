@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.20'
+__version__ = '4.5.21'
 
 # -----------------------------------------------------------------------------
 
@@ -1458,6 +1458,8 @@ class Exchange(object):
     @staticmethod
     def starknet_sign (msg_hash, pri):
         # // TODO: unify to ecdsa
+        if isinstance(pri, str):
+            pri = int(pri, 16)
         r, s = message_signature(msg_hash, pri)
         return Exchange.json([hex(r), hex(s)])
 
