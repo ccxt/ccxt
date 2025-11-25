@@ -7,214 +7,214 @@
 
 package ccxt
 
-func (this *UpbitCore) PublicGetMarketAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketAll", args...)
+func (this *UpbitCore) PublicGetMarketAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketAll", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesTimeframe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesTimeframe", args...)
+func (this *UpbitCore) PublicGetCandlesTimeframe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesTimeframe", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesTimeframeUnit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesTimeframeUnit", args...)
+func (this *UpbitCore) PublicGetCandlesTimeframeUnit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesTimeframeUnit", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesSeconds (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesSeconds", args...)
+func (this *UpbitCore) PublicGetCandlesSeconds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesSeconds", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesMinutesUnit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesMinutesUnit", args...)
+func (this *UpbitCore) PublicGetCandlesMinutesUnit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesMinutesUnit", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesMinutes1 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesMinutes1", args...)
+func (this *UpbitCore) PublicGetCandlesMinutes1(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesMinutes1", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesMinutes3 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesMinutes3", args...)
+func (this *UpbitCore) PublicGetCandlesMinutes3(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesMinutes3", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesMinutes5 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesMinutes5", args...)
+func (this *UpbitCore) PublicGetCandlesMinutes5(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesMinutes5", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesMinutes10 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesMinutes10", args...)
+func (this *UpbitCore) PublicGetCandlesMinutes10(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesMinutes10", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesMinutes15 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesMinutes15", args...)
+func (this *UpbitCore) PublicGetCandlesMinutes15(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesMinutes15", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesMinutes30 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesMinutes30", args...)
+func (this *UpbitCore) PublicGetCandlesMinutes30(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesMinutes30", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesMinutes60 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesMinutes60", args...)
+func (this *UpbitCore) PublicGetCandlesMinutes60(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesMinutes60", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesMinutes240 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesMinutes240", args...)
+func (this *UpbitCore) PublicGetCandlesMinutes240(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesMinutes240", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesDays (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesDays", args...)
+func (this *UpbitCore) PublicGetCandlesDays(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesDays", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesWeeks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesWeeks", args...)
+func (this *UpbitCore) PublicGetCandlesWeeks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesWeeks", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesMonths (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesMonths", args...)
+func (this *UpbitCore) PublicGetCandlesMonths(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesMonths", args...)
 }
 
-func (this *UpbitCore) PublicGetCandlesYears (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesYears", args...)
+func (this *UpbitCore) PublicGetCandlesYears(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesYears", args...)
 }
 
-func (this *UpbitCore) PublicGetTradesTicks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTradesTicks", args...)
+func (this *UpbitCore) PublicGetTradesTicks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradesTicks", args...)
 }
 
-func (this *UpbitCore) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *UpbitCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *UpbitCore) PublicGetTickerAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickerAll", args...)
+func (this *UpbitCore) PublicGetTickerAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerAll", args...)
 }
 
-func (this *UpbitCore) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderbook", args...)
+func (this *UpbitCore) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *UpbitCore) PublicGetOrderbookInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderbookInstruments", args...)
+func (this *UpbitCore) PublicGetOrderbookInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbookInstruments", args...)
 }
 
-func (this *UpbitCore) PrivateGetAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccounts", args...)
+func (this *UpbitCore) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *UpbitCore) PrivateGetOrdersChance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersChance", args...)
+func (this *UpbitCore) PrivateGetOrdersChance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersChance", args...)
 }
 
-func (this *UpbitCore) PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrder", args...)
+func (this *UpbitCore) PrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *UpbitCore) PrivateGetOrdersClosed (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersClosed", args...)
+func (this *UpbitCore) PrivateGetOrdersClosed(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersClosed", args...)
 }
 
-func (this *UpbitCore) PrivateGetOrdersOpen (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersOpen", args...)
+func (this *UpbitCore) PrivateGetOrdersOpen(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersOpen", args...)
 }
 
-func (this *UpbitCore) PrivateGetOrdersUuids (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersUuids", args...)
+func (this *UpbitCore) PrivateGetOrdersUuids(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersUuids", args...)
 }
 
-func (this *UpbitCore) PrivateGetWithdraws (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdraws", args...)
+func (this *UpbitCore) PrivateGetWithdraws(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdraws", args...)
 }
 
-func (this *UpbitCore) PrivateGetWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdraw", args...)
+func (this *UpbitCore) PrivateGetWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdraw", args...)
 }
 
-func (this *UpbitCore) PrivateGetWithdrawsChance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdrawsChance", args...)
+func (this *UpbitCore) PrivateGetWithdrawsChance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawsChance", args...)
 }
 
-func (this *UpbitCore) PrivateGetWithdrawsCoinAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdrawsCoinAddresses", args...)
+func (this *UpbitCore) PrivateGetWithdrawsCoinAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawsCoinAddresses", args...)
 }
 
-func (this *UpbitCore) PrivateGetDeposits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDeposits", args...)
+func (this *UpbitCore) PrivateGetDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDeposits", args...)
 }
 
-func (this *UpbitCore) PrivateGetDepositsChanceCoin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDepositsChanceCoin", args...)
+func (this *UpbitCore) PrivateGetDepositsChanceCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositsChanceCoin", args...)
 }
 
-func (this *UpbitCore) PrivateGetDeposit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDeposit", args...)
+func (this *UpbitCore) PrivateGetDeposit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDeposit", args...)
 }
 
-func (this *UpbitCore) PrivateGetDepositsCoinAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDepositsCoinAddresses", args...)
+func (this *UpbitCore) PrivateGetDepositsCoinAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositsCoinAddresses", args...)
 }
 
-func (this *UpbitCore) PrivateGetDepositsCoinAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDepositsCoinAddress", args...)
+func (this *UpbitCore) PrivateGetDepositsCoinAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositsCoinAddress", args...)
 }
 
-func (this *UpbitCore) PrivateGetTravelRuleVasps (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTravelRuleVasps", args...)
+func (this *UpbitCore) PrivateGetTravelRuleVasps(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTravelRuleVasps", args...)
 }
 
-func (this *UpbitCore) PrivateGetStatusWallet (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetStatusWallet", args...)
+func (this *UpbitCore) PrivateGetStatusWallet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetStatusWallet", args...)
 }
 
-func (this *UpbitCore) PrivateGetApiKeys (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiKeys", args...)
+func (this *UpbitCore) PrivateGetApiKeys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiKeys", args...)
 }
 
-func (this *UpbitCore) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *UpbitCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *UpbitCore) PrivatePostOrdersTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersTest", args...)
+func (this *UpbitCore) PrivatePostOrdersTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersTest", args...)
 }
 
-func (this *UpbitCore) PrivatePostOrdersCancelAndNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersCancelAndNew", args...)
+func (this *UpbitCore) PrivatePostOrdersCancelAndNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersCancelAndNew", args...)
 }
 
-func (this *UpbitCore) PrivatePostWithdrawsCoin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawsCoin", args...)
+func (this *UpbitCore) PrivatePostWithdrawsCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawsCoin", args...)
 }
 
-func (this *UpbitCore) PrivatePostWithdrawsKrw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawsKrw", args...)
+func (this *UpbitCore) PrivatePostWithdrawsKrw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawsKrw", args...)
 }
 
-func (this *UpbitCore) PrivatePostDepositsKrw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDepositsKrw", args...)
+func (this *UpbitCore) PrivatePostDepositsKrw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDepositsKrw", args...)
 }
 
-func (this *UpbitCore) PrivatePostDepositsGenerateCoinAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDepositsGenerateCoinAddress", args...)
+func (this *UpbitCore) PrivatePostDepositsGenerateCoinAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDepositsGenerateCoinAddress", args...)
 }
 
-func (this *UpbitCore) PrivatePostTravelRuleDepositUuid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTravelRuleDepositUuid", args...)
+func (this *UpbitCore) PrivatePostTravelRuleDepositUuid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTravelRuleDepositUuid", args...)
 }
 
-func (this *UpbitCore) PrivatePostTravelRuleDepositTxid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTravelRuleDepositTxid", args...)
+func (this *UpbitCore) PrivatePostTravelRuleDepositTxid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTravelRuleDepositTxid", args...)
 }
 
-func (this *UpbitCore) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrder", args...)
+func (this *UpbitCore) PrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
-func (this *UpbitCore) PrivateDeleteOrdersOpen (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrdersOpen", args...)
+func (this *UpbitCore) PrivateDeleteOrdersOpen(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersOpen", args...)
 }
 
-func (this *UpbitCore) PrivateDeleteOrdersUuids (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrdersUuids", args...)
+func (this *UpbitCore) PrivateDeleteOrdersUuids(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersUuids", args...)
 }
 
-func (this *UpbitCore) PrivateDeleteWithdrawsCoin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteWithdrawsCoin", args...)
+func (this *UpbitCore) PrivateDeleteWithdrawsCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteWithdrawsCoin", args...)
 }

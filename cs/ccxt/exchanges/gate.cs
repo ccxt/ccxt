@@ -4142,7 +4142,7 @@ public partial class gate : Exchange
         {
             ((IList<object>)fees).Add(new Dictionary<string, object>() {
                 { "cost", pointFee },
-                { "currency", "GatePoint" },
+                { "currency", "GATEPOINT" },
             });
         }
         object takerOrMaker = this.safeString(trade, "role");
