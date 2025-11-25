@@ -43,3 +43,5 @@ obj/
 __debug*
 *.o
 .custom_gitignore
+# SCUD Task Master
+.taskmaster/
