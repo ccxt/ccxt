@@ -3787,7 +3787,7 @@ class gate(Exchange, ImplicitAPI):
         if pointFee is not None:
             fees.append({
                 'cost': pointFee,
-                'currency': 'GatePoint',
+                'currency': 'GATEPOINT',
             })
         takerOrMaker = self.safe_string(trade, 'role')
         return self.safe_trade({
