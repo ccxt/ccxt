@@ -22,6 +22,9 @@
   ],
   "author": "CCXT Contributors",
   "license": "MIT",
+  "dependencies": {
+    "yaml": "^2.8.1"
+  },
   "devDependencies": {
     "purescript": "^0.15.15",
     "spago": "^0.21.0"

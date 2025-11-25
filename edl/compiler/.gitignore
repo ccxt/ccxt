@@ -1,0 +1,8 @@
+# Node
+node_modules/
+
+# IDE
+.idea/
+*.swp
+*.swo
+.vscode/
