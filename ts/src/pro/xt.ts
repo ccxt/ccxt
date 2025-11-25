@@ -1441,8 +1441,8 @@ export default class xt extends xtRest {
         //     }
         //
         const method = this.safeStringLower (message, 'method');
-        const msg = this.safeStringLower (message, 'msg');
-        if (method === 'unsubscribe' || msg === 'success') {
+        const sessionId = this.safeString (message, 'sessionId');
+        if (method === 'unsubscribe' || sessionId >= '0') {
             const id = this.safeString (message, 'id');
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subscription = this.safeValue (subscriptionsById, id, {});
