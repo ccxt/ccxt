@@ -1433,8 +1433,16 @@ export default class xt extends xtRest {
         //         method: 'unsubscribe'
         //     }
         //
+        //     {
+        //         code: 0,
+        //         msg: 'success',
+        //         id: '1764032903806ticker@btc_usdt',
+        //         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
+        //     }
+        //
         const method = this.safeStringLower (message, 'method');
-        if (method === 'unsubscribe') {
+        const msg = this.safeStringLower (message, 'msg');
+        if (method === 'unsubscribe' || msg === 'success') {
             const id = this.safeString (message, 'id');
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subscription = this.safeValue (subscriptionsById, id, {});
