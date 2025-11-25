@@ -77,7 +77,7 @@ public class Main {
 
         try {
             Class<?>[] paramTypes = Arrays.stream(args)
-                                        .map(a -> a.getClass())
+                                        .map(a -> a == null ? null : a.getClass())
                                         .toArray(Class<?>[]::new);
 
             try {
@@ -130,16 +130,16 @@ public class Main {
         System.out.println("[java] CCXT CLI");
 
         if (args.length < 2) {
-            System.out.println("Usage: java -cp <classpath> cli.Main [--verbose] [--sandbox] <exchange-id> [arg1 arg2 ...]");
-            return;
+            // System.out.println("Usage: java -cp <classpath> cli.Main [--verbose] [--sandbox] <exchange-id> [arg1 arg2 ...]");
+            // return;
         }
 
-        var exchangeName = args[0];
-        // var exchangeName = "binance";
-        var methodName = args[1];
-        // var methodName = "fetchTrades";
+        // var exchangeName = args[0];
+        var exchangeName = "binance";
+        // var methodName = args[1];
+        var methodName = "fetchTrades";
 
-        // var params = getParamsFromArgs(args);
+        var params = getParamsFromArgs(args);
 
         var instance = Exchange.dynamicallyCreateInstance(exchangeName, null);
 
