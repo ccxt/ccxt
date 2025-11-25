@@ -169,6 +169,9 @@ class deepcoin(Exchange, ImplicitAPI):
                         'deepcoin/market/trades': 1,
                         'deepcoin/market/mark-price-candles': 1,
                         'deepcoin/market/step-margin': 5,
+                        'deepcoin/trade/funding-rate': 5,
+                        'deepcoin/trade/fund-rate/current-funding-rate': 5,
+                        'deepcoin/trade/fund-rate/history': 5,
                     },
                 },
                 'private': {
@@ -181,9 +184,6 @@ class deepcoin(Exchange, ImplicitAPI):
                         'deepcoin/trade/finishOrderByID': 5,
                         'deepcoin/trade/orders-history': 5,
                         'deepcoin/trade/v2/orders-pending': 5,
-                        'deepcoin/trade/funding-rate': 5,
-                        'deepcoin/trade/fund-rate/current-funding-rate': 5,
-                        'deepcoin/trade/fund-rate/history': 5,
                         'deepcoin/trade/trigger-orders-pending': 5,
                         'deepcoin/trade/trigger-orders-history': 5,
                         'deepcoin/copytrading/support-contracts': 5,
@@ -2518,7 +2518,7 @@ class deepcoin(Exchange, ImplicitAPI):
         request: dict = {
             'instType': instType,
         }
-        response = await self.privateGetDeepcoinTradeFundRateCurrentFundingRate(self.extend(request, params))
+        response = await self.publicGetDeepcoinTradeFundRateCurrentFundingRate(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -2559,7 +2559,7 @@ class deepcoin(Exchange, ImplicitAPI):
             'instId': market['id'],
             'instType': self.get_product_group_from_market(market),
         }
-        response = await self.privateGetDeepcoinTradeFundRateCurrentFundingRate(self.extend(request, params))
+        response = await self.publicGetDeepcoinTradeFundRateCurrentFundingRate(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -2631,7 +2631,7 @@ class deepcoin(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['size'] = limit  # default 20, max 100
-        response = await self.privateGetDeepcoinTradeFundRateHistory(self.extend(request, params))
+        response = await self.publicGetDeepcoinTradeFundRateHistory(self.extend(request, params))
         #
         #     {
         #         "code": "0",
