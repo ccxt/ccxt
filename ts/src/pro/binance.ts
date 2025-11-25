@@ -4497,9 +4497,8 @@ export default class binance extends binanceRest {
             return;
         }
         // handle other APIs
-        let methods: Dict = this.safeValue (this.options, 'wsHandlers');
-        if (methods === undefined) {
-            methods = {
+        if (!('wsHandlers' in this.options)) {
+            this.options['wsHandlers'] = {
                 'depthUpdate': this.handleOrderBook,
                 'trade': this.handleTrade,
                 'aggTrade': this.handleTrade,
@@ -4528,8 +4527,8 @@ export default class binance extends binanceRest {
                 'eventStreamTerminated': this.handleEventStreamTerminated,
                 'externalLockUpdate': this.handleBalance,
             };
-            this.options['wsHandlers'] = methods;
         }
+        const methods: Dict = this.options['wsHandlers'];
         let event = this.safeString (message, 'e');
         if (Array.isArray (message)) {
             const data = message[0];
