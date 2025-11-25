@@ -1344,12 +1344,21 @@ class xt(ccxt.async_support.xt):
         #         method: 'unsubscribe'
         #     }
         #
-        method = self.safe_string_lower(message, 'method')
-        if method == 'unsubscribe':
-            id = self.safe_string(message, 'id')
-            subscriptionsById = self.index_by(client.subscriptions, 'id')
-            subscription = self.safe_value(subscriptionsById, id, {})
-            self.handle_un_subscription(client, subscription)
+        #     {
+        #         code: 0,
+        #         msg: 'success',
+        #         id: '1764032903806ticker@btc_usdt',
+        #         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
+        #     }
+        #
+        id = self.safe_string(message, 'id')
+        subscriptionsById = self.index_by(client.subscriptions, 'id')
+        unsubscribe = False
+        if id is not None:
+            subscription = self.safe_dict(subscriptionsById, id, {})
+            unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
+            if unsubscribe:
+                self.handle_un_subscription(client, subscription)
         return message
 
     def handle_un_subscription(self, client: Client, subscription: dict):
