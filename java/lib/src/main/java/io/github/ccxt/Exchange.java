@@ -214,7 +214,8 @@ public class Exchange {
         } else {
             defaultConfig = new HashMap<String, Object>();
         }
-
+        System.setProperty("java.net.preferIPv4Stack", "true");
+        this.initHttpClient();
         this.initializeProperties(defaultConfig);
         this.afterConstruct();
         this.transformApiNew(this.api, new ArrayList<>());
@@ -524,6 +525,9 @@ public class Exchange {
     // =======================
     // Encode
     // =======================
+    public void Print(Object s) {
+        System.out.println(s);
+    }
 
     public Object encode (Object s) {
         return s; // stub
@@ -1198,26 +1202,25 @@ public class Exchange {
     }
 
     private void initHttpClient() {
-        HttpClient.Builder builder = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.NORMAL);
+        HttpClient builder = HttpClient.newHttpClient();
 
-        if (this.httpProxy != null && this.httpProxy.toString().length() > 0) {
-            String proxyString = this.httpProxy.toString();
-            java.net.URI proxyUri = java.net.URI.create(proxyString);
-            String host = proxyUri.getHost();
-            int port = (proxyUri.getPort() != -1) ? proxyUri.getPort() : 80;
-            builder.proxy(java.net.ProxySelector.of(new java.net.InetSocketAddress(host, port)));
-        } else if (this.httpsProxy != null && this.httpsProxy.toString().length() > 0) {
-            String proxyString = this.httpsProxy.toString();
-            java.net.URI proxyUri = java.net.URI.create(proxyString);
-            String host = proxyUri.getHost();
-            int port = (proxyUri.getPort() != -1) ? proxyUri.getPort() : 443;
-            builder.proxy(java.net.ProxySelector.of(new java.net.InetSocketAddress(host, port)));
-        } else {
-            builder.proxy(java.net.ProxySelector.of(new java.net.InetSocketAddress("", 0)));
-        }
+//        if (this.httpProxy != null && this.httpProxy.toString().length() > 0) {
+//            String proxyString = this.httpProxy.toString();
+//            java.net.URI proxyUri = java.net.URI.create(proxyString);
+//            String host = proxyUri.getHost();
+//            int port = (proxyUri.getPort() != -1) ? proxyUri.getPort() : 80;
+//            builder.proxy(java.net.ProxySelector.of(new java.net.InetSocketAddress(host, port)));
+//        } else if (this.httpsProxy != null && this.httpsProxy.toString().length() > 0) {
+//            String proxyString = this.httpsProxy.toString();
+//            java.net.URI proxyUri = java.net.URI.create(proxyString);
+//            String host = proxyUri.getHost();
+//            int port = (proxyUri.getPort() != -1) ? proxyUri.getPort() : 443;
+//            builder.proxy(java.net.ProxySelector.of(new java.net.InetSocketAddress(host, port)));
+//        } else {
+//            builder.proxy(java.net.ProxySelector.of(new java.net.InetSocketAddress("", 0)));
+//        }
 
-        this.httpClient = builder.build();
+        this.httpClient = builder;
     }
 
     public CompletableFuture<Object> fetch(Object url2, Object method2, Object headers2, Object body2) {
@@ -1248,7 +1251,7 @@ public class Exchange {
             );
         }
 
-        this.checkProxySettings();
+        // this.checkProxySettings(url, method, headers, body);
 
         List<String> headerKeys = new java.util.ArrayList<>(headers.keySet());
         String contentType = "";
@@ -1485,7 +1488,13 @@ public class Exchange {
             costMap.put("cost", cost);
 
             // body = null here, same as in your C# comment
+            // try {
             return this.fetch2(path, api, method, parameters, emptyMap, null, costMap);
+                // return CompletableFuture.completedFuture(res);
+            // } catch (Exception e) {
+            //     // throw e;
+            // }
+
         }
 
         CompletableFuture<Object> failed = new CompletableFuture<>();
@@ -2073,6 +2082,7 @@ public Object describe()
 
     public Object checkProxyUrlSettings(Object... optionalArgs)
     {
+        Print("inside check proxy url settings");
         Object url = Helpers.getArg(optionalArgs, 0, null);
         Object method = Helpers.getArg(optionalArgs, 1, null);
         Object headers = Helpers.getArg(optionalArgs, 2, null);
@@ -2130,6 +2140,7 @@ public Object describe()
 
     public Object checkProxySettings(Object... optionalArgs)
     {
+        Print("inside check proxy settings");
         Object url = Helpers.getArg(optionalArgs, 0, null);
         Object method = Helpers.getArg(optionalArgs, 1, null);
         Object headers = Helpers.getArg(optionalArgs, 2, null);
@@ -2143,6 +2154,7 @@ public Object describe()
         Object isHttp_proxy_defined = this.valueIsDefined(this.http_proxy);
         if (Helpers.isTrue(Helpers.isTrue(isHttpProxyDefined) || Helpers.isTrue(isHttp_proxy_defined)))
         {
+            Print("httpProxy is defined");
             ((java.util.List<Object>)usedProxies).add("httpProxy");
             httpProxy = ((Helpers.isTrue(isHttpProxyDefined))) ? this.httpProxy : this.http_proxy;
         }
@@ -2150,6 +2162,7 @@ public Object describe()
         Object ishttp_proxy_callback_defined = this.valueIsDefined(this.http_proxy_callback);
         if (Helpers.isTrue(Helpers.isTrue(ishttpProxyCallbackDefined) || Helpers.isTrue(ishttp_proxy_callback_defined)))
         {
+            Print("httpProxyCallback is defined");
             ((java.util.List<Object>)usedProxies).add("httpProxyCallback");
             httpProxy = ((Helpers.isTrue(ishttpProxyCallbackDefined))) ? Helpers.callDynamically(this, "httpProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "http_proxy_callback", new Object[] { url, method, headers, body });
         }
@@ -2158,7 +2171,7 @@ public Object describe()
         Object isHttps_proxy_defined = this.valueIsDefined(this.https_proxy);
         if (Helpers.isTrue(Helpers.isTrue(isHttpsProxyDefined) || Helpers.isTrue(isHttps_proxy_defined)))
         {
-            ((java.util.List<Object>)usedProxies).add("httpsProxy");
+            // Print("httpsProxy is defined");
             httpsProxy = ((Helpers.isTrue(isHttpsProxyDefined))) ? this.httpsProxy : this.https_proxy;
         }
         Object ishttpsProxyCallbackDefined = this.valueIsDefined(this.httpsProxyCallback);
