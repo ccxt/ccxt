@@ -496,8 +496,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchMarkets
-     * @see https://docs.upbit.com/kr/reference/마켓-코드-조회
-     * @see https://global-docs.upbit.com/reference/listing-market-list
+     * @see https://docs.upbit.com/kr/reference/list-trading-pairs
+     * @see https://global-docs.upbit.com/reference/list-trading-pairs
      * @description retrieves data on all markets for upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -593,8 +593,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchBalance
-     * @see https://docs.upbit.com/kr/reference/전체-계좌-조회
-     * @see https://global-docs.upbit.com/reference/overall-account-inquiry
+     * @see https://docs.upbit.com/kr/reference/get-balance
+     * @see https://global-docs.upbit.com/reference/get-balance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -619,8 +619,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchOrderBooks
-     * @see https://docs.upbit.com/kr/reference/호가-정보-조회
-     * @see https://global-docs.upbit.com/reference/order-book-list
+     * @see https://docs.upbit.com/kr/reference/list-orderbooks
+     * @see https://global-docs.upbit.com/reference/list-orderbooks
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
      * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -693,8 +693,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchOrderBook
-     * @see https://docs.upbit.com/kr/reference/호가-정보-조회
-     * @see https://global-docs.upbit.com/reference/order-book-list
+     * @see https://docs.upbit.com/kr/reference/list-orderbooks
+     * @see https://global-docs.upbit.com/reference/list-orderbooks
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -764,8 +764,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchTickers
-     * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
-     * @see https://global-docs.upbit.com/reference/tickers
+     * @see https://docs.upbit.com/kr/reference/list-tickers
+     * @see https://global-docs.upbit.com/reference/list-tickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -825,8 +825,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchTicker
-     * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
-     * @see https://global-docs.upbit.com/reference/tickers
+     * @see https://docs.upbit.com/kr/reference/list-tickers
+     * @see https://global-docs.upbit.com/reference/list-tickers
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -911,8 +911,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchTrades
-     * @see https://docs.upbit.com/kr/reference/최근-체결-내역
-     * @see https://global-docs.upbit.com/reference/today-trades-history
+     * @see https://docs.upbit.com/kr/reference/list-pair-trades
+     * @see https://global-docs.upbit.com/reference/list-pair-trades
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -958,7 +958,7 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchTradingFee
-     * @see https://docs.upbit.com/kr/reference/주문-가능-정보
+     * @see https://docs.upbit.com/kr/reference/available-order-information
      * @see https://global-docs.upbit.com/reference/available-order-information
      * @description fetch the trading fees for a market
      * @param {string} symbol unified market symbol
@@ -1072,8 +1072,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchOHLCV
-     * @see https://docs.upbit.com/kr/reference/분minute-캔들-1
-     * @see https://global-docs.upbit.com/reference/minutes
+     * @see https://docs.upbit.com/kr/reference/list-candles-minutes
+     * @see https://global-docs.upbit.com/reference/list-candles-minutes
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1168,8 +1168,8 @@ export default class upbit extends Exchange {
      * @method
      * @name upbit#createOrder
      * @description create a trade order
-     * @see https://docs.upbit.com/kr/reference/주문하기
-     * @see https://global-docs.upbit.com/reference/order
+     * @see https://docs.upbit.com/kr/reference/new-order
+     * @see https://global-docs.upbit.com/reference/new-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
      * @param {string} side 'buy' or 'sell'
@@ -1291,8 +1291,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#cancelOrder
-     * @see https://docs.upbit.com/kr/reference/주문-취소
-     * @see https://global-docs.upbit.com/reference/order-cancel
+     * @see https://docs.upbit.com/kr/reference/cancel-order
+     * @see https://global-docs.upbit.com/reference/cancel-order
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol not used by upbit cancelOrder ()
@@ -1329,8 +1329,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#editOrder
-     * @see https://docs.upbit.com/kr/reference/취소-후-재주문
-     * @see https://global-docs.upbit.com/reference/cancel-and-new
+     * @see https://docs.upbit.com/kr/reference/cancel-and-new-order
+     * @see https://global-docs.upbit.com/reference/cancel-and-new-order
      * @description canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
      * @param {string} id the uuid of the previous order you want to edit.
      * @param {string} symbol the symbol of the new order. it must be the same as the symbol of the previous order.
@@ -1461,8 +1461,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchDeposits
-     * @see https://docs.upbit.com/kr/reference/입금-리스트-조회
-     * @see https://global-docs.upbit.com/reference/deposit-list-inquiry
+     * @see https://docs.upbit.com/kr/reference/list-deposits
+     * @see https://global-docs.upbit.com/reference/list-deposits
      * @description fetch all deposits made to an account
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -1507,8 +1507,8 @@ export default class upbit extends Exchange {
      * @method
      * @name upbit#fetchDeposit
      * @description fetch information on a deposit
-     * @see https://docs.upbit.com/kr/reference/개별-입금-조회
-     * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
+     * @see https://docs.upbit.com/kr/reference/get-deposit
+     * @see https://global-docs.upbit.com/reference/get-deposit
      * @param {string} id the unique id for the deposit
      * @param {string} [code] unified currency code of the currency deposited
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1546,8 +1546,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchWithdrawals
-     * @see https://docs.upbit.com/kr/reference/전체-출금-조회
-     * @see https://global-docs.upbit.com/reference/withdrawal-list-inquiry
+     * @see https://docs.upbit.com/kr/reference/list-withdrawals
+     * @see https://global-docs.upbit.com/reference/list-withdrawals
      * @description fetch all withdrawals made from an account
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
@@ -1592,8 +1592,8 @@ export default class upbit extends Exchange {
      * @method
      * @name upbit#fetchWithdrawal
      * @description fetch data on a currency withdrawal via the withdrawal id
-     * @see https://docs.upbit.com/kr/reference/개별-출금-조회
-     * @see https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+     * @see https://docs.upbit.com/kr/reference/get-withdrawal
+     * @see https://global-docs.upbit.com/reference/get-withdrawal
      * @param {string} id the unique id for the withdrawal
      * @param {string} [code] unified currency code of the currency withdrawn
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1880,8 +1880,8 @@ export default class upbit extends Exchange {
      * @method
      * @name upbit#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.upbit.com/kr/reference/대기-주문-조회
-     * @see https://global-docs.upbit.com/reference/open-order
+     * @see https://docs.upbit.com/kr/reference/list-open-orders
+     * @see https://global-docs.upbit.com/reference/list-open-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -1929,8 +1929,8 @@ export default class upbit extends Exchange {
      * @method
      * @name upbit#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.upbit.com/kr/reference/종료-주문-조회
-     * @see https://global-docs.upbit.com/reference/closed-order
+     * @see https://docs.upbit.com/kr/reference/list-closed-orders
+     * @see https://global-docs.upbit.com/reference/list-closed-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1985,8 +1985,8 @@ export default class upbit extends Exchange {
      * @method
      * @name upbit#fetchCanceledOrders
      * @description fetches information on multiple canceled orders made by the user
-     * @see https://docs.upbit.com/kr/reference/종료-주문-조회
-     * @see https://global-docs.upbit.com/reference/closed-order
+     * @see https://docs.upbit.com/kr/reference/list-closed-orders
+     * @see https://global-docs.upbit.com/reference/list-closed-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] max number of orders to return, default is undefined
@@ -2040,8 +2040,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchOrder
-     * @see https://docs.upbit.com/kr/reference/개별-주문-조회
-     * @see https://global-docs.upbit.com/reference/individual-order-inquiry
+     * @see https://docs.upbit.com/kr/reference/get-order
+     * @see https://global-docs.upbit.com/reference/get-order
      * @description fetches information on an order made by the user
      * @param {string} id order id
      * @param {string} symbol not used by upbit fetchOrder
@@ -2102,8 +2102,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchDepositAddresses
-     * @see https://docs.upbit.com/kr/reference/전체-입금-주소-조회
-     * @see https://global-docs.upbit.com/reference/general-deposit-address-inquiry
+     * @see https://docs.upbit.com/kr/reference/list-deposit-addresses
+     * @see https://global-docs.upbit.com/reference/list-deposit-addresses
      * @description fetch deposit addresses for multiple currencies and chain types
      * @param {string[]|undefined} codes list of unified currency codes, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2159,8 +2159,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#fetchDepositAddress
-     * @see https://docs.upbit.com/kr/reference/개별-입금-주소-조회
-     * @see https://global-docs.upbit.com/reference/individual-deposit-address-inquiry
+     * @see https://docs.upbit.com/kr/reference/get-deposit-address
+     * @see https://global-docs.upbit.com/reference/get-deposit-address
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2192,8 +2192,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#createDepositAddress
-     * @see https://docs.upbit.com/kr/reference/입금-주소-생성-요청
-     * @see https://global-docs.upbit.com/reference/deposit-address-generation
+     * @see https://docs.upbit.com/kr/reference/create-deposit-address
+     * @see https://global-docs.upbit.com/reference/create-deposit-address
      * @description create a currency deposit address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2231,8 +2231,8 @@ export default class upbit extends Exchange {
     /**
      * @method
      * @name upbit#withdraw
-     * @see https://docs.upbit.com/kr/reference/디지털자산-출금하기
-     * @see https://global-docs.upbit.com/reference/withdrawal-digital-assets
+     * @see https://docs.upbit.com/kr/reference/withdraw
+     * @see https://global-docs.upbit.com/reference/withdraw
      * @description make a withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
