@@ -301,6 +301,8 @@ create a trade order
 
 - https://docs.upbit.com/kr/reference/new-order
 - https://global-docs.upbit.com/reference/new-order
+- https://docs.upbit.com/kr/reference/order-test
+- https://global-docs.upbit.com/reference/order-test
 
 
 | Param | Type | Required | Description |
@@ -315,6 +317,7 @@ create a trade order
 | params.ordType | <code>string</code> | No | this field can be used to place a ‘best’ type order |
 | params.timeInForce | <code>string</code> | No | 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'. |
 | params.selfTradePrevention | <code>string</code> | No | 'reduce', 'cancel_maker', 'cancel_taker' [https://global-docs.upbit.com/docs/smp](https://global-docs.upbit.com/docs/smp) |
+| params.test | <code>boolean</code> | No | If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false. |
 
 
 ```javascript

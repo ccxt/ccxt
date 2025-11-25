@@ -866,7 +866,7 @@ export default class bybit extends bybitRest {
         params = this.cleanParams(params);
         const market = this.market(symbols[0]);
         if (limit === undefined) {
-            limit = (market['spot']) ? 50 : 500;
+            limit = 50;
             if (market['option']) {
                 limit = 100;
             }
@@ -875,7 +875,7 @@ export default class bybit extends bybitRest {
             const limits = {
                 'spot': [1, 50, 200, 1000],
                 'option': [25, 100],
-                'default': [1, 50, 200, 500, 1000],
+                'default': [1, 50, 200, 1000],
             };
             const selectedLimits = this.safeList2(limits, market['type'], 'default');
             if (!this.inArray(limit, selectedLimits)) {

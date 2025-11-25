@@ -1170,6 +1170,8 @@ export default class upbit extends Exchange {
      * @description create a trade order
      * @see https://docs.upbit.com/kr/reference/new-order
      * @see https://global-docs.upbit.com/reference/new-order
+     * @see https://docs.upbit.com/kr/reference/order-test
+     * @see https://global-docs.upbit.com/reference/order-test
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
      * @param {string} side 'buy' or 'sell'
@@ -1180,6 +1182,7 @@ export default class upbit extends Exchange {
      * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
      * @param {string} [params.timeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
      * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+     * @param {boolean} [params.test] If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1190,6 +1193,7 @@ export default class upbit extends Exchange {
         const postOnly = this.isPostOnly(type === 'market', false, params);
         const timeInForce = this.safeStringLower2(params, 'timeInForce', 'time_in_force');
         const selfTradePrevention = this.safeString2(params, 'selfTradePrevention', 'smp_type');
+        const test = this.safeBool(params, 'test', false);
         if (postOnly && (selfTradePrevention !== undefined)) {
             throw new ExchangeError(this.id + ' createOrder() does not support post_only and selfTradePrevention simultaneously.');
         }
@@ -1264,8 +1268,14 @@ export default class upbit extends Exchange {
         if (request['ord_type'] === 'best' && timeInForce === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrder() requires a timeInForce parameter for best type orders');
         }
-        params = this.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type']);
-        const response = await this.privatePostOrders(this.extend(request, params));
+        let response = undefined;
+        params = this.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test']);
+        if (test) {
+            response = await this.privatePostOrdersTest(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostOrders(this.extend(request, params));
+        }
         //
         //     {
         //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
