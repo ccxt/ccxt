@@ -1733,12 +1733,22 @@ func  (this *XtCore) HandleSubscriptionStatus(client interface{}, message interf
     //         method: 'unsubscribe'
     //     }
     //
-    var method interface{} = this.SafeStringLower(message, "method")
-    if ccxt.IsTrue(ccxt.IsEqual(method, "unsubscribe")) {
-        var id interface{} = this.SafeString(message, "id")
-        var subscriptionsById interface{} = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
-        var subscription interface{} = this.SafeValue(subscriptionsById, id, map[string]interface{} {})
-        this.HandleUnSubscription(client, subscription)
+    //     {
+    //         code: 0,
+    //         msg: 'success',
+    //         id: '1764032903806ticker@btc_usdt',
+    //         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
+    //     }
+    //
+    var id interface{} = this.SafeString(message, "id")
+    var subscriptionsById interface{} = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+    var unsubscribe interface{} = false
+    if ccxt.IsTrue(!ccxt.IsEqual(id, nil)) {
+        var subscription interface{} = this.SafeDict(subscriptionsById, id, map[string]interface{} {})
+        unsubscribe = this.SafeBool(subscription, "unsubscribe", false)
+        if ccxt.IsTrue(unsubscribe) {
+            this.HandleUnSubscription(client, subscription)
+        }
     }
     return message
 }
