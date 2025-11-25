@@ -111,6 +111,7 @@ public class Tests
             {
                 WsCacheTests();
                 WsOrderBookTests();
+                tests.testStream();
                 Helper.Green("[C#] base WS tests passed");
             }
             else 

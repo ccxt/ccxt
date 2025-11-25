@@ -433,6 +433,7 @@ export default class bitfinex extends bitfinexRest {
                 const index = length - i - 1;
                 const parsed = this.parseWsTrade (trades[index], market);
                 stored.append (parsed);
+                this.streamProduce ('trades', parsed);
             }
         } else {
             // update
@@ -445,6 +446,7 @@ export default class bitfinex extends bitfinexRest {
             const trade = this.safeValue (message, 2, []);
             const parsed = this.parseWsTrade (trade, market);
             stored.append (parsed);
+            this.streamProduce ('trades', trade);
         }
         client.resolve (stored, messageHash);
     }
@@ -578,6 +580,7 @@ export default class bitfinex extends bitfinexRest {
         const messageHash = channel + ':' + marketId;
         this.tickers[symbol] = parsed;
         client.resolve (parsed, messageHash);
+        this.streamProduce ('tickers', parsed);
     }
 
     parseWsTicker (ticker, market = undefined) {
@@ -721,6 +724,7 @@ export default class bitfinex extends bitfinexRest {
                     bookside.storeArray ([ price, size, counter ]);
                 }
             }
+            this.streamProduce ('orderbooks', orderbook);
             orderbook['symbol'] = symbol;
             client.resolve (orderbook, messageHash);
         } else {
@@ -746,6 +750,7 @@ export default class bitfinex extends bitfinexRest {
                 const bookside = orderbookItem[side];
                 bookside.storeArray ([ this.parseNumber (price), this.parseNumber (size), this.parseNumber (counter) ]);
             }
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -1042,6 +1047,7 @@ export default class bitfinex extends bitfinexRest {
         } else {
             const error = new AuthenticationError (this.json (message));
             client.reject (error, messageHash);
+            this.streamProduce ('errors', undefined, error);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
@@ -1133,10 +1139,12 @@ export default class bitfinex extends bitfinexRest {
                 const symbol = parsed['symbol'];
                 symbolIds[symbol] = true;
                 orders.append (parsed);
+                this.streamProduce ('orders', parsed);
             }
         } else {
             const parsed = this.parseWsOrder (data);
             orders.append (parsed);
+            this.streamProduce ('orders', parsed);
             const symbol = parsed['symbol'];
             symbolIds[symbol] = true;
         }
@@ -1249,6 +1257,7 @@ export default class bitfinex extends bitfinexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const channelId = this.safeString (message, 0);
         //
         //     [

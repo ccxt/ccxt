@@ -1,6 +1,7 @@
 namespace ccxt;
 
 using System.Net.WebSockets;
+using ccxt.pro;
 using System.Collections.Concurrent;
 
 public partial class Exchange
@@ -28,10 +29,12 @@ public partial class Exchange
         if (client.error)
         {
             // what do we do here?
+            this.streamProduce("errors", null, client.error);
         }
         else
         {
             this.CleanupClients(client, error);
+            this.streamProduce("closed", null, new NetworkError("connection closed by remote server"));
         }
     }
 
@@ -50,6 +53,7 @@ public partial class Exchange
             // this.clients.Remove(client.url);
             this.clients.TryRemove(client.url, out _);
         }
+        this.streamProduce("errors", null, error);
     }
 
     void rejectFutures (WebSocketClient urlClient, object error)

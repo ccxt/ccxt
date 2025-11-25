@@ -118,6 +118,7 @@ export default class bitopro extends bitoproRest {
         const timestamp = this.safeInteger (message, 'timestamp');
         const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
         orderbook.reset (snapshot);
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -178,6 +179,7 @@ export default class bitopro extends bitoproRest {
         }
         for (let i = 0; i < trades.length; i++) {
             tradesCache.append (trades[i]);
+            this.streamProduce ('trades', trades[i]);
         }
         this.trades[symbol] = tradesCache;
         client.resolve (tradesCache, messageHash);
@@ -249,6 +251,7 @@ export default class bitopro extends bitoproRest {
         const trades = this.myTrades;
         const parsed = this.parseWsTrade (data);
         trades.append (parsed);
+        this.streamProduce ('myTrades', parsed);
         client.resolve (trades, messageHash);
         client.resolve (trades, messageHash + ':' + symbol);
     }
@@ -376,6 +379,7 @@ export default class bitopro extends bitoproRest {
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         this.tickers[symbol] = result;
+        this.streamProduce ('tickers', result);
         client.resolve (result, messageHash);
     }
 
@@ -468,10 +472,12 @@ export default class bitopro extends bitoproRest {
             result[code] = account;
         }
         this.balance = this.safeBalance (result);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, event);
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const methods: Dict = {
             'TRADE': this.handleTrade,
             'TICKER': this.handleTicker,

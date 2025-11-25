@@ -123,6 +123,9 @@ func CancelPending(v ...interface{}) error {
 func UnsubscribeError(v ...interface{}) error {
     return NewError("UnsubscribeError", v...)
 }
+func ConsumerFunctionError(v ...interface{}) error {
+    return NewError("ConsumerFunctionError", v...)
+}
 func CreateError(err string, v ...interface{}) error {
     switch err {
     case "ExchangeError":
@@ -205,6 +208,8 @@ func CreateError(err string, v ...interface{}) error {
         return CancelPending(v...)
     case "UnsubscribeError":
         return UnsubscribeError(v...)
+    case "ConsumerFunctionError":
+        return ConsumerFunctionError(v...)
         default:
             return NewError(err, v...)
     }
@@ -250,4 +255,5 @@ func CreateError(err string, v ...interface{}) error {
    NullResponseErrType ErrorType = "NullResponse"
    CancelPendingErrType ErrorType = "CancelPending"
    UnsubscribeErrorErrType ErrorType = "UnsubscribeError"
+   ConsumerFunctionErrorErrType ErrorType = "ConsumerFunctionError"
 )

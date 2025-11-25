@@ -177,6 +177,8 @@ type Exchange struct {
 
 	IsSandboxModeEnabled bool
 
+	Stream *Stream
+
 	// ws
 	WsClients   map[string]interface{} // one websocket client per URL
 	WsClientsMu sync.Mutex
@@ -258,6 +260,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	this.AfterConstruct()
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]interface{}{}).(map[string]interface{})
+	this.initStream() // Initialize Stream with config from this.streaming
 	this.transformApiNew(this.Api)
 	transport := &http.Transport{}
 
@@ -285,6 +288,22 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 		this.MarketsMutex = &sync.Mutex{}
 	}
 	// to do
+}
+
+func (this *Exchange) initStream() {
+	maxMessagesPerTopic := 0
+	verbose := false
+
+	if this.streaming != nil {
+		if maxVal := this.SafeInteger(this.streaming, "maxMessagesPerTopic", 0); maxVal != nil {
+			maxMessagesPerTopic = int(maxVal.(int64))
+		}
+		if verboseVal := this.SafeBool(this.streaming, "verbose", this.Verbose); verboseVal != nil {
+			verbose = verboseVal.(bool)
+		}
+	}
+
+	this.Stream = NewStream(maxMessagesPerTopic, verbose)
 }
 
 func NewExchange() ICoreExchange {
@@ -1425,6 +1444,57 @@ func (this *Exchange) UpdateProxySettings() {
 		this.httpClient.Transport = proxyTransport
 	}
 }
+
+// StreamToSymbol returns a callback that produces messages to topic::symbol
+func (this *Exchange) StreamToSymbol(topic interface{}) interface{} {
+	return func(message map[string]interface{}) {
+		payload, _ := message["payload"].(map[string]interface{})
+		symbol, _ := payload["symbol"].(string)
+		topicStr := ToString(topic)
+		this.Stream.Produce(topicStr+"::"+symbol, payload, nil)
+	}
+}
+
+// StreamReconnectOnError returns a callback that attempts to reconnect on error
+func (this *Exchange) StreamReconnectOnError() interface{} {
+	return func(message map[string]interface{}) {
+		error := message["payload"]
+		msgErr := message["error"]
+		if error != nil && !isExchangeClosedByUser(msgErr) {
+			defer func() {
+				if r := recover(); r != nil {
+					fmt.Println("Failed to reconnect to stream:", r)
+				}
+			}()
+			// In Go, just call the method (no await)
+			_ = this.StreamReconnect()
+		}
+	}
+}
+
+// isExchangeClosedByUser checks if the error is of type ExchangeClosedByUser (dummy for now)
+func isExchangeClosedByUser(err interface{}) bool {
+	// You can implement a more robust check if you have a custom error type
+	return false // always false for now
+}
+
+// StreamOHLCVS returns a callback that parses ohlcvs topic and produces to ohlcvs symbol and timeframe topics
+func (this *Exchange) StreamOHLCVS() interface{} {
+	return func(message map[string]interface{}) {
+		payload, _ := message["payload"].(map[string]interface{})
+		err := message["error"]
+		symbol, _ := payload["symbol"].(string)
+		ohlcv := payload["ohlcv"]
+		if symbol != "" {
+			this.StreamProduce("ohlcvs::"+symbol, ohlcv, err)
+			timeframe, _ := payload["timeframe"].(string)
+			if timeframe != "" {
+				this.StreamProduce("ohlcvs::"+symbol+"::"+timeframe, ohlcv, err)
+			}
+		}
+	}
+}
+
 
 func (this *Exchange) callEndpointAsync(endpointName string, args ...interface{}) <-chan interface{} {
 	parameters := GetArg(args, 0, nil)

@@ -450,7 +450,25 @@ const INTERFACE_METHODS = [
     'watchTrades',
     'watchTradesForSymbols',
     'withdrawWs',
-    
+    // subscribe methods
+    'subscribeBalance',
+    'subscribeTicker',
+    'subscribeTickers',
+    'subscribeTrades',
+    'subscribeMyTrades',
+    'subscribeOrders',
+    'subscribeOHLCV',
+    'subscribePosition',
+    'subscribePositions',
+    'unsubscribeBalance',
+    'unsubscribeTicker',
+    'unsubscribeTickers',
+    'unsubscribeTrades',
+    'unsubscribeMyTrades',
+    'unsubscribeOrders',
+    'unsubscribeOHLCV',
+    'unsubscribePosition',
+    'unsubscribePositions',
 ];
 
 class NewTranspiler {
@@ -1634,7 +1652,9 @@ ${constStatements.join('\n')}
         // });
 
 
-        // custom transformations needed for go
+        
+        // Fix setMarketsFromExchange parameter type
+        baseClass = baseClass.replaceAll(/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange interface\{\}\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)');
         baseClass = this.regexAll (baseClass, [
             [/\=\snew\s/gm, "= "],
             // baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
@@ -1674,6 +1694,20 @@ ${constStatements.join('\n')}
             // Fix setMarketsFromExchange parameter type
             [/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange interface\{\}\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)'],
         ]);
+        // custom transformations needed for go
+        baseClass = baseClass.replaceAll(/\=\snew\s/gm, "= ");
+        // baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
+        baseClass = baseClass.replaceAll(/callDynamically\(/gm, 'this.callDynamically(') //fix this on the transpiler
+        baseClass = baseClass.replaceAll (/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,");
+        baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
+        baseClass = baseClass.replaceAll (/client interface\{\},/g, "client Client,");
+        baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
+        baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
+        baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');
+        baseClass = baseClass.replaceAll (/var stream interface\{\} = this.Stream/g, 'var stream *Stream = this.Stream');
+        baseClass = baseClass.replaceAll (/var stream interface\{\} = this.Stream/g, 'var stream *Stream = this.Stream');
+        baseClass = baseClass.replaceAll(/args\.\.\.\)/g, '(args).([]interface{})...)');
+        baseClass = baseClass.replaceAll (/(var \w+ interface{}) = client.Futures/g, '$1 = (client.(Client)).Futures'); // tmp fix for go not needed after ws-merge
 
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
@@ -2549,6 +2583,16 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/(interface{}\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''], // remove equals
                 // Fix infinite loop bug in WebSocket tests - move now = exchange.Milliseconds() outside success check
                 [/(\s+)(if IsTrue\(IsEqual\(success, true\)\) \{\s*\n[\s\S]*?)(\s+now = exchange\.Milliseconds\(\)\s*\n\s*\})/gm, '$1$2$1now = exchange.Milliseconds()$3'],
+                // Fix named function expressions in Go (func Consumer -> func)
+                [/func\s+Consumer\s*\(/g, 'func('],
+                // Capitalize Message fields for Go
+                [/message\.error\b/g, 'message.Error'],
+                [/message\.payload\b/g, 'message.Payload'],
+                [/message\.metadata\b/g, 'message.Metadata'],
+                // Fix Message type in consumer function parameters (only in function signatures)
+                [/func\((message interface\{\})\)/g, 'func(message *ccxt.Message)'],
+                // Capitalize subscribe methods for Go
+                [/exchange\.subscribe([A-Z]\w+)/g, 'exchange.Subscribe$1'],
 
 
 

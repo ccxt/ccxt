@@ -314,6 +314,25 @@ type ICoreExchange interface {
 	WatchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WithdrawWs(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{}
+	// Subscribe methods
+	SubscribeBalance(optionalArgs ...interface{}) <-chan interface{}
+	SubscribeTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	SubscribeTickers(optionalArgs ...interface{}) <-chan interface{}
+	SubscribeTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	SubscribeMyTrades(optionalArgs ...interface{}) <-chan interface{}
+	SubscribeOrders(optionalArgs ...interface{}) <-chan interface{}
+	SubscribeOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	SubscribePosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	SubscribePositions(optionalArgs ...interface{}) <-chan interface{}
+	UnsubscribeBalance(callback interface{}) interface{}
+	UnsubscribeTicker(symbol interface{}, callback interface{}) interface{}
+	UnsubscribeTickers(callback interface{}, optionalArgs ...interface{}) interface{}
+	UnsubscribeTrades(symbol interface{}, callback interface{}) interface{}
+	UnsubscribeMyTrades(callback interface{}, optionalArgs ...interface{}) interface{}
+	UnsubscribeOrders(callback interface{}, optionalArgs ...interface{}) interface{}
+	UnsubscribeOHLCV(symbol interface{}, callback interface{}, optionalArgs ...interface{}) interface{}
+	UnsubscribePosition(symbol interface{}, callback interface{}) interface{}
+	UnsubscribePositions(callback interface{}, optionalArgs ...interface{}) interface{}
 }
 
 type IDerivedExchange interface {
@@ -401,6 +420,28 @@ type IDerivedExchange interface {
 	WatchMyLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOrdersWs(optionalArgs ...interface{}) <-chan interface{}
 	ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	// Additional Watch functions from ICoreExchange
+	WatchBalance(optionalArgs ...interface{}) <-chan interface{}
+	WatchBidsAsks(optionalArgs ...interface{}) <-chan interface{}
+	WatchLiquidations(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchMarkPrice(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchMarkPrices(optionalArgs ...interface{}) <-chan interface{}
+	WatchMyLiquidations(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchMyTrades(optionalArgs ...interface{}) <-chan interface{}
+	WatchMyTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchOHLCVForSymbols(symbolsAndTimeframes interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchOrders(optionalArgs ...interface{}) <-chan interface{}
+	WatchOrdersForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchPosition(optionalArgs ...interface{}) <-chan interface{}
+	WatchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchTickers(optionalArgs ...interface{}) <-chan interface{}
+	WatchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	// Generic Watch function from ICoreExchange
+	Watch(args ...interface{}) <-chan interface{}
 }
 
 type Describer interface {

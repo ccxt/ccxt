@@ -347,6 +347,7 @@ export default class coincatch extends coincatchRest {
         const symbol = market['symbol'];
         this.tickers[symbol] = ticker;
         const messageHash = hash + symbol;
+        this.streamProduce ('tickers', ticker);
         client.resolve (this.tickers[symbol], messageHash);
     }
 
@@ -516,6 +517,7 @@ export default class coincatch extends coincatchRest {
         for (let i = 0; i < data.length; i++) {
             const candle = this.safeList (data, i, []);
             const parsed = this.parseWsOHLCV (candle, market);
+            this.streamProduce ('ohlcvs', parsed);
             stored.append (parsed);
         }
         const messageHash = hash + symbol + ':' + timeframe;
@@ -685,12 +687,14 @@ export default class coincatch extends coincatchRest {
             orderbook.reset (parsedOrderbook);
             this.orderbooks[symbol] = orderbook;
         }
+        this.streamProduce ('orderbooks', this.orderbooks[symbol]);
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
     async handleCheckSumError (client: Client, symbol: string, messageHash: string) {
         await this.unWatchOrderBook (symbol);
         const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+        this.streamProduce ('errors', undefined, error);
         client.reject (error, messageHash);
     }
 
@@ -804,6 +808,7 @@ export default class coincatch extends coincatchRest {
             for (let i = 0; i < data.length; i++) {
                 const trade = this.safeList (data, i);
                 const parsed = this.parseWsTrade (trade, market);
+                this.streamProduce ('trades', parsed);
                 stored.append (parsed);
             }
         }
@@ -920,6 +925,7 @@ export default class coincatch extends coincatchRest {
         const arg = this.safeDict (message, 'arg');
         const instType = this.safeStringLower (arg, 'instType');
         const messageHash = 'balance:' + instType;
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -1080,6 +1086,7 @@ export default class coincatch extends coincatchRest {
             stored.append (parsed);
             symbol = parsed['symbol'];
             const messageHash = 'orders:' + symbol;
+            this.streamProduce ('orders', parsed);
             client.resolve (stored, messageHash);
         }
         client.resolve (stored, hash);
@@ -1306,6 +1313,7 @@ export default class coincatch extends coincatchRest {
                         positionsForSymbol.push (position);
                     }
                 }
+                this.streamProduce ('positions', positionsForSymbol);
                 client.resolve (positionsForSymbol, messageHash);
             }
         }
@@ -1409,11 +1417,13 @@ export default class coincatch extends coincatchRest {
         } catch (e) {
             if (e instanceof AuthenticationError) {
                 const messageHash = 'authenticated';
+                this.streamProduce ('errors', undefined, e);
                 client.reject (e, messageHash);
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
             } else {
+                this.streamProduce ('errors', undefined, e);
                 client.reject (e);
             }
             return true;
@@ -1421,6 +1431,7 @@ export default class coincatch extends coincatchRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         // todo handle with subscribe and unsubscribe
         if (this.handleErrorMessage (client, message)) {
             return;

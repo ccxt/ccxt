@@ -177,29 +177,27 @@ while (condition) {
 In CCXT Pro each public and private unified RESTful method having a `fetch*` prefix also has a corresponding stream-based counterpart method prefixed with `watch*`, as follows:
 
 - Public API
-  - `fetchStatus` → `watchStatus`
-  - `fetchOrderBook` → `watchOrderBook`
-  - `fetchOrderBookForSymbols` → `watchOrderBookForSymbols`
-  - `fetchTicker` → `watchTicker`
-  - `fetchTickers` → `watchTickers`
-  - `fetchOHLCV` → `watchOHLCV`
-  - `fetchOHLCVForSymbols` → `watchOHLCVForSymbols`
-  - `fetchTrades` → `watchTrades`
-  - `fetchTradesForSymbols` → `watchTradesForSymbols`
-  - `fetchBidsAsks` → `watchBidsAsks`
-  - `fetchLiquidations` → `watchLiquidations`
-  - `fetchLiquidationsForSymbols` → `watchLiquidationsForSymbols`
+  - `fetchStatus` → `watchStatus` → `subscribeStatus`
+  - `fetchOrderBook` → `watchOrderBook` → `subscribeOrderBook`
+  - `fetchTicker` → `watchTicker` → `subscribeTicker`
+  - `fetchTickers` → `watchTickers` → `subscribeTickers`
+  - `fetchOHLCV` → `watchOHLCV` → `subscribeOHLCV`
+  - `fetchTrades` → `watchTrades` → `subscribeTrades`
+  - `fetchTradesForSymbols` → `watchTradesForSymbols`  → `subscribeTradesForSymbols`
+  - `fetchBidsAsks` → `watchBidsAsks` → `subscribeBidsAsks`
+  - `fetchLiquidations` → `watchLiquidations` → `subscribeLiquidations`
+  - `fetchLiquidationsForSymbols` → `watchLiquidationsForSymbols` → `subscribeLiquidationsForSymbols`
 - Private API
-  - `fetchBalance` → `watchBalance`
-  - `fetchOrders` → `watchOrders`
-  - `fetchOrdersForSymbols` → `watchOrdersForSymbols`
-  - `fetchMyTrades` → `watchMyTrades`
-  - `fetchPosition` → `watchPosition`
-  - `fetchPositions` → `watchPositions`
-  - `fetchLiquidations` → `watchLiquidations`
-  - `fetchMyLiquidations` → `watchMyLiquidations`
-  - `fetchMyLiquidationsForSymbols` → `watchMyLiquidationsForSymbols`
-  - `fetchFundingRates` → `watchFundingRates`
+  - `fetchBalance` → `watchBalance` → `subscribeBalance`
+  - `fetchOrders` → `watchOrders` → `subscribeOrders`
+  - `fetchOrdersForSymbols` → `watchOrdersForSymbols` → `subscribeOrdersForSymbols`
+  - `fetchMyTrades` → `watchMyTrades` → `subscribeMyTrades`
+  - `fetchPosition` → `watchPosition` → `subscribePosition`
+  - `fetchPositions` → `watchPositions` → `subscribePositions`
+  - `fetchLiquidations` → `watchLiquidations` → `subscribeLiquidations`
+  - `fetchMyLiquidations` → `watchMyLiquidations` → `subscribeMyLiquidations`
+  - `fetchMyLiquidationsForSymbols` → `watchMyLiquidationsForSymbols` → `subscribeLiquidationsForSymbols`
+  - `fetchFundingRates` → `watchFundingRates` → `subscribeFundingRates`
 - REST alternatives
   - `fetchTrades` → `fetchTradesWs`
   - `createOrder` → `createOrderWs`
@@ -255,6 +253,742 @@ Many of the CCXT rules and concepts also apply to CCXT Pro:
 - CCXT Pro will call CCXT RESTful methods under the hood if necessary
 - CCXT Pro will throw standard CCXT exceptions where necessary
 - ...
+
+
+## Subscribe functions (Beta)
+Note: this feature is in beta and will apreciate any feedback.
+Subscribe functions allow you to listen for updates from a specific stream and use callbacks on every update. For example, subscribeTickers lets you subscribe to ticker updates for one or more symbols in real-time. When an update occurs, a callback function you define is invoked with the new data.
+
+
+### Subscribe Parameters
+You can change the parameters in exchange.streaming.
+- `maxMessagesPerTopic`: By default 0, it is the maximum number of messages stored in memory for each topic. A higher number allows to access a larger history and buffer in memory, however ocuppies more memory.
+- Example:
+    ```python
+    exchange = ccxt.pro.binance({
+        'streaming': {
+            'maxMessagesPerTopic': 1000  # Store last 1000 messages per topic
+        }
+    })
+    ```
+
+#### Accesing the stream directly
+You can also subscribe to the raw streams to access all messages received by the websockets, or to create several subscriptions to the same stream
+Here is the flow of a websocket message through the subscribe functions:
+1. **Raw Messages**
+   - All WebSocket messages are initially sent to the 'raw' topic
+   - Subscribe to raw messages using `subscribeRaw(callback)`
+   - This gives you access to every message before any processing
+
+2. **Type-Based Topics**
+   - Messages are categorized by type (e.g., tickers, trades, orderbook)
+   - Each type has its own topic (e.g., 'tickers', 'trades')
+   - Subscribe to all messages of a specific type using methods like `subscribeTickers(callback)`
+
+3. **Symbol-Specific Topics**
+   - Messages are further categorized by trading pair
+   - Topics follow the format `type::symbol` (e.g., 'tickers::BTC/USDT')
+   - Subscribe to specific symbol messages using methods like `subscribeTicker(symbol, callback)`
+
+### Setting maxMessagesPerTopic in Different Languages
+
+You can set `maxMessagesPerTopic` in two ways:
+
+1. During exchange initialization using the `streaming` config:
+2. Directly accessing the stream property after initialization
+
+Here are examples for each language:
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+// Method 1: During initialization
+const exchange = new ccxt.pro.binance({
+    'streaming': {
+        'maxMessagesPerTopic': 1000
+    }
+});
+
+// Method 2: After initialization
+exchange.stream.maxMessagesPerTopic = 1000;
+```
+
+#### **Python**
+```python
+# Method 1: During initialization
+exchange = ccxt.pro.binance({
+    'streaming': {
+        'maxMessagesPerTopic': 1000
+    }
+})
+
+# Method 2: After initialization
+exchange.stream.max_messages_per_topic = 1000
+```
+
+#### **PHP**
+```php
+// Method 1: During initialization
+$exchange = new \ccxt\pro\binance(array(
+    'streaming' => array(
+        'maxMessagesPerTopic' => 1000
+    )
+));
+
+// Method 2: After initialization
+$exchange->stream->max_messages_per_topic = 1000;
+```
+
+#### **C#**
+```csharp
+// Method 1: During initialization
+var exchange = new binance(new Dictionary<string, object> {
+    { "streaming", new Dictionary<string, object> {
+        { "maxMessagesPerTopic", 1000 }
+    }}
+});
+
+// Method 2: After initialization
+exchange.stream.maxMessagesPerTopic = 1000;
+```
+
+#### **Go**
+```go
+// Method 1: During initialization
+exchange := pro.NewBinance(&types.ExchangeConfig{
+    Streaming: &types.StreamingConfig{
+        MaxMessagesPerTopic: 1000,
+    },
+})
+
+// Method 2: After initialization
+exchange.Stream.MaxMessagesPerTopic = 1000
+```
+<!-- tabs:end -->
+
+Note: Setting `maxMessagesPerTopic` to 0 will disable message history storage, which can be useful for high-throughput scenarios where you only need the latest message.
+
+### Callback Functions
+When you subscribe to a stream, you must provide a callback function. This function is called whenever a new message is received. The callback function receives a single argument: a Message object that contains the new data (payload), any error that might have occurred, metadata about the message, and the history of messages for that topic.
+
+#### Error Handling in Callbacks
+It is recommended that your callback functions implement their own error handling to gracefully handle any errors that might occur during message processing. If an error is thrown by the consumer function, the stream will:
+1. Catch the error to prevent it from crashing the application
+2. Log the error to the console/logs
+3. Publish the error to the 'errors' topic as a `ConsumerFunctionError`, which you can subscribe to using `subscribeErrors()`
+4. Continue processing subsequent messages without interruption
+
+This design ensures that errors in one callback don't affect the processing of other messages or crash the application. You can monitor these errors by subscribing to the 'errors' topic:
+
+```javascript
+// Example of subscribing to errors
+exchange.stream.subscribe('errors', (error) => {
+    console.log('Stream error occurred:', error);
+});
+```
+
+#### Automatic Stream Reconnection
+
+CCXT Pro includes an automatic reconnection mechanism that helps maintain WebSocket connections in case of network issues or server disconnections. This feature is enabled by default and works transparently in the background.
+
+**How Automatic Reconnection Works:**
+
+1. **Active Function Tracking**: The stream automatically tracks all active `watch*` functions (like `watchTicker`, `watchOrderBook`, `watchTrades`, etc.) that are currently being used
+2. **Autoreconnect Configuration**: By default, the stream is configured with `autoreconnect: true` in the exchange options under `streaming`
+3. **Error Monitoring**: When autoreconnect is enabled, the stream subscribes to the 'errors' topic to monitor for connection errors
+4. **Automatic Recovery**: When a connection error occurs (excluding user-initiated closures and consumer function errors), the stream automatically:
+   - Attempts to reconnect to the WebSocket
+   - Re-establishes all previously active watch functions
+   - Continues streaming data seamlessly
+
+**Configuration:**
+
+```javascript
+// Autoreconnect is enabled by default
+const exchange = new ccxt.pro.binance({
+    'apiKey': 'your-api-key',
+    'secret': 'your-secret',
+    'options': {
+        'streaming': {
+            'autoreconnect': true  // default value
+        }
+    }
+});
+
+// To disable autoreconnect
+const exchange = new ccxt.pro.binance({
+    'apiKey': 'your-api-key',
+    'secret': 'your-secret',
+    'options': {
+        'streaming': {
+            'autoreconnect': false
+        }
+    }
+});
+```
+
+**Manual Reconnection:**
+
+You can also manually trigger a reconnection using the `streamReconnect()` method:
+
+```javascript
+// Manually reconnect all active watch functions
+await exchange.streamReconnect();
+```
+
+This will re-establish all currently active watch functions that were previously called. The automatic reconnection system uses this same mechanism internally.
+
+#### Accessing Metadata and Message History
+Each message contains metadata providing context about the message, such as the stream and topic it belongs to and its index in the stream. The message also includes a history of previous messages for the topic, allowing you to access past data easily. To activate the history you must set `maxMessagesPerTopic` to a value higher than 0.
+
+```typescript
+export interface Message {
+    payload: any; // payload of the message
+    error: any; // any error returned
+    metadata: {
+        stream: BaseStream // reference to the exchange stream
+        topic: Topic // string identifying the topic of the stream
+        index: number // index of the message being consumed
+        history: Message []; // reference to the history of the topic. To show messages, maxMessagesPerTopic must be higher than 0.
+    }
+}
+```
+
+### Synchronous vs. Asynchronous Consumption
+You can choose to consume messages synchronously or asynchronously:
+
+- **Synchronous consumption** means that the library will wait for one message to be fully processed in the callback before moving on to the next message. This is useful for ensuring order but can slow down processing if the callback function takes a long time to execute.
+- **Asynchronous consumption** allows the library to continue delivering messages without waiting for the callback to complete, suitable for high-throughput environments where order may not be as critical.
+
+### Example Usage
+#### subscribeTickers example
+**Syntax**
+```typescript
+async subscribeTickers(symbols?: string[], callback: ConsumerFunction, options?: { synchronous?: boolean }, params: object = {}): Promise<void>
+```
+**Parameters:**
+
+- **symbols**: Optional array of symbols to monitor. If omitted, subscribes to updates for all symbols.
+- **callback**: Function to execute with each message.
+- **options**: Optional object containing configuration options:
+  - **synchronous**: Determines if messages should be processed synchronously (true by default).
+- **params**: Extra parameters for the exchange API endpoint.
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const handleTickerUpdate: ConsumerFunction = (message: Message): void => {
+    console.log('New ticker update:', message.payload);
+    // Access metadata and history
+    console.log('Metadata:', message.metadata);
+    console.log('History:', message.history);
+};
+
+// Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
+await subscribeTickers(['BTC/USD', 'ETH/USD'], handleTickerUpdate, { synchronous: true });
+
+// Subscribe with asynchronous processing
+await subscribeTickers(['BTC/USD', 'ETH/USD'], handleTickerUpdate, { synchronous: false });
+```
+#### **Python**
+```python
+from types import ConsumerFunction, Message
+
+def handle_ticker_update(message: Message) -> None:
+    print('New ticker update:', message.payload)
+    # Access metadata and history
+    print('Metadata:', message.metadata.__dict__)
+    print('History:', [msg.payload for msg in message.history])
+
+# Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
+await subscribe_tickers(['BTC/USD', 'ETH/USD'], handle_ticker_update, { 'synchronous': True })
+
+# Subscribe with asynchronous processing
+await subscribe_tickers(['BTC/USD', 'ETH/USD'], handle_ticker_update, { 'synchronous': False })
+```
+#### **PHP**
+```php
+function handleTickerUpdate($message) {
+    echo 'New ticker update: ', $message->payload, PHP_EOL;
+    // Access metadata and history
+    echo 'Metadata: ', json_encode($message->metadata), PHP_EOL;
+    echo 'History: ', json_encode(array_map(fn($msg) => $msg->payload, $message->history)), PHP_EOL;
+}
+
+// Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
+subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', ['synchronous' => true]);
+
+// Subscribe with asynchronous processing
+subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', ['synchronous' => false]);
+```
+#### **C#**
+```csharp
+    public static async Task HandleTickerUpdate(Message message)
+    {
+        Console.WriteLine($"New ticker update: {message.Payload}");
+        // Access metadata and history
+        Console.WriteLine($"Metadata: {message.Metadata}");
+        Console.WriteLine($"History: {string.Join(", ", message.History.Select(m => m.Payload))}");
+    }
+
+    public static async Task Main(string[] args)
+    {
+        // Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
+        await SubscribeTickers(new string[] { "BTC/USD", "ETH/USD" }, HandleTickerUpdate, new Dictionary<string, object> { { "synchronous", true } });
+
+        // Subscribe with asynchronous processing
+        await SubscribeTickers(new string[] { "BTC/USD", "ETH/USD" }, HandleTickerUpdate, new Dictionary<string, object> { { "synchronous", false } });
+    }
+```
+
+#### **Go**
+```go
+handleTickerUpdate := func(message *types.Message) {
+    fmt.Println("New ticker update:", message.Payload)
+    // Access metadata and history
+    fmt.Println("Metadata:", message.Metadata)
+    fmt.Println("History:", message.History)
+}
+
+// Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
+err := exchange.SubscribeTickers([]string{"BTC/USD", "ETH/USD"}, handleTickerUpdate, map[string]interface{}{"synchronous": true}, nil)
+
+// Subscribe with asynchronous processing
+err := exchange.SubscribeTickers([]string{"BTC/USD", "ETH/USD"}, handleTickerUpdate, map[string]interface{}{"synchronous": false}, nil)
+```
+<!-- tabs:end -->
+
+### Streaming Helpers
+#### All Raw Messages
+You can use the function `subscribeRaw(callback, options?: { synchronous?: boolean })` to subscribe to all raw messages published to the stream
+### Subscribe to Errors
+You can use the function `subscribeErrors(callback, options?: { synchronous?: boolean })` to subscribe to all errors thrown to the stream
+#### Access Topic History 
+The stream will keep a history of all the messages, use `getMessageHistory(topic)` to access them.
+The history size is set by `stream.maxMessagesPerTopic`
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const history = exchange.stream.getMessageHistory(topic)
+```
+#### **Python**
+```python
+history = exchange.stream.get_message_history(topic)
+```
+#### **PHP**
+```php
+$history = $exchange->stream->get_message_history($topic)
+```
+#### **C#**
+```csharp
+var history = exchange.stream.getMessageHistory(topic);
+```
+#### **Go**
+```go
+history := exchange.Stream.GetMessageHistory(topic)
+```
+<!-- tabs:end -->
+
+
+### Available Stream Topics
+
+| Topic | Description | Data Type | Prerequisite |
+|-------|-------------|-----------|--------------|
+| `raw` | All raw WebSocket messages before processing | Raw WebSocket message | None - always active |
+| `errors` | All errors thrown to the stream | Error object | None - always active |
+| `tickers` | Real-time ticker updates for all symbols | Ticker object | `subscribeTickers()` or `subscribeTicker(symbol)` |
+| `orderbooks` | Real-time order book updates | OrderBook object | `subscribeOrderBook(symbol)` |
+| `trades` | Real-time public trades | Trade object | `subscribeTrades(symbol)` |
+| `myTrades` | Real-time private trades (requires authentication) | Trade object | `subscribeMyTrades(symbol)` |
+| `orders` | Real-time order updates (requires authentication) | Order object | `subscribeOrders(symbol)` |
+| `positions` | Real-time position updates (requires authentication) | Position object | `subscribePositions(symbol)` |
+| `ohlcvs` | Real-time OHLCV (candlestick) data | OHLCV array | `subscribeOHLCV(symbol, timeframe)` |
+| `liquidations` | Real-time liquidation events | Liquidation object | `subscribeLiquidations(symbol)` |
+| `myLiquidations` | Real-time personal liquidation events (requires authentication) | Liquidation object | `subscribeMyLiquidations(symbol)` |
+| `balance` | Real-time balance updates (requires authentication) | Balance object | `subscribeBalance()` |
+
+#### Important Notes:
+- Each topic requires its corresponding `subscribe*()` function to be called before it will receive messages
+- For example, to receive messages in the `trades` topic, you must first call `subscribeTrades('BTC/USDT', ...)` 
+- The `raw` and `errors` topics are always active and don't require explicit subscription
+- Topics marked with "requires authentication" need proper API credentials to be accessed
+- Each topic maintains its own message history, accessible via `getMessageHistory(topic)`
+- The history size is configurable via `stream.maxMessagesPerTopic`
+
+#### Example:
+```javascript
+// To receive trade messages in the 'trades' topic:
+await exchange.subscribeTrades('BTC/USDT', (trade) => {
+    console.log('New trade:', trade);
+});
+
+// To receive ticker messages in the 'tickers' topic:
+await exchange.subscribeTicker('BTC/USDT', (ticker) => {
+    console.log('New ticker:', ticker);
+});
+
+// To receive all raw messages (no prerequisite needed):
+exchange.stream.subscribe('raw', (message) => {
+    console.log('Raw message:', message);
+});
+```
+
+#### Unsubscribe Stream Callback
+You can use `exchange.stream.unsubcribe(topic, consumeFunction)` to unsubscribe a callback from stream topic. However notice this won't unsubscribe the stream from the exchange.
+The function will return true if the callback as found and unsubscribed and false if not.
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const unsubscribed = exchange.stream.unsubscribe(topic, callback)
+```
+#### **Python**
+```python
+unsubscribed = exchange.stream.unsubscribe(topic, callback)
+```
+#### **PHP**
+```php
+$unsubscribed = $exchange->stream->unsubscribe($topic, $callback)
+```
+#### **C#**
+```csharp
+var unsubscribed = exchange.stream.Unsubscribe(topic, callback);
+```
+#### **Go**
+```go
+unsubscribed := exchange.Stream.Unsubscribe(topic, callback)
+```
+<!-- tabs:end -->
+
+### Unsubscribe Functions (Beta)
+Note: this feature is in beta and will appreciate any feedback.
+
+Unsubscribe functions provide a convenient way to remove specific consumer callbacks from WebSocket streams without having to directly interact with the internal stream object. These functions mirror the subscribe functions and allow you to cleanly remove individual consumers from topics.
+
+#### Key Concepts
+
+**Unsubscribing vs Closing Connections:**
+- **Unsubscribe functions**: Remove specific consumer callbacks from topics, but keep the WebSocket connection alive
+- **unWatch functions**: Close the entire WebSocket connection and stop all streaming for that data type
+
+**When to use each:**
+- Use **unsubscribe functions** when you want to stop receiving updates for a specific callback while keeping the connection open for other consumers
+- Use **unWatch functions** when you want to completely stop streaming a particular data type and close the WebSocket connection
+
+#### Available Unsubscribe Functions
+
+| Subscribe Function | Unsubscribe Function | Description |
+|-------------------|---------------------|-------------|
+| `subscribeLiquidations` | `unsubscribeLiquidations` | Unsubscribe from liquidation events for a specific symbol |
+| `subscribeLiquidationsForSymbols` | `unsubscribeLiquidationsForSymbols` | Unsubscribe from liquidation events for multiple symbols |
+| `subscribeTrades` | `unsubscribeTrades` | Unsubscribe from trade updates for a specific symbol |
+| `subscribeTradesForSymbols` | `unsubscribeTradesForSymbols` | Unsubscribe from trade updates for multiple symbols |
+| `subscribeMyTrades` | `unsubscribeMyTrades` | Unsubscribe from personal trade updates |
+| `subscribeMyTradesForSymbols` | `unsubscribeMyTradesForSymbols` | Unsubscribe from personal trade updates for multiple symbols |
+| `subscribeOrders` | `unsubscribeOrders` | Unsubscribe from order updates |
+| `subscribeOrdersForSymbols` | `unsubscribeOrdersForSymbols` | Unsubscribe from order updates for multiple symbols |
+| `subscribeOHLCV` | `unsubscribeOHLCV` | Unsubscribe from OHLCV updates for a specific symbol and timeframe |
+| `subscribeOHLCVForSymbols` | `unsubscribeOHLCVForSymbols` | Unsubscribe from OHLCV updates for multiple symbols and timeframes |
+| `subscribeOrderBook` | `unsubscribeOrderBook` | Unsubscribe from order book updates for a specific symbol |
+| `subscribeOrderBookForSymbols` | `unsubscribeOrderBookForSymbols` | Unsubscribe from order book updates for multiple symbols |
+| `subscribePosition` | `unsubscribePosition` | Unsubscribe from position updates for a specific symbol |
+| `subscribePositions` | `unsubscribePositions` | Unsubscribe from position updates |
+| `subscribePositionForSymbols` | `unsubscribePositionForSymbols` | Unsubscribe from position updates for multiple symbols |
+| `subscribeBalance` | `unsubscribeBalance` | Unsubscribe from balance updates |
+| `subscribeTicker` | `unsubscribeTicker` | Unsubscribe from ticker updates for a specific symbol |
+| `subscribeTickers` | `unsubscribeTickers` | Unsubscribe from ticker updates |
+| `subscribeRaw` | `unsubscribeRaw` | Unsubscribe from raw message updates |
+| `subscribeErrors` | `unsubscribeErrors` | Unsubscribe from error updates |
+
+#### Function Signatures
+
+Most unsubscribe functions follow this pattern:
+```typescript
+unsubscribeXXX(callback: ConsumerFunction, ...otherParams): boolean
+```
+
+**Parameters:**
+- `callback`: The consumer function that was originally subscribed
+- `...otherParams`: Additional parameters like symbol, symbols array, or timeframe (depending on the function)
+- **Returns**: `true` if the consumer was successfully unsubscribed, `false` if streaming is disabled or unsubscription failed
+
+#### Usage Examples
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+// Define callback functions
+const tickerCallback = (message) => {
+    console.log('Ticker update:', message.payload);
+};
+
+const tradeCallback = (message) => {
+    console.log('Trade update:', message.payload);
+};
+
+// Subscribe to multiple streams
+await exchange.subscribeTicker('BTC/USDT', tickerCallback);
+await exchange.subscribeTrades('BTC/USDT', tradeCallback);
+
+// Later, unsubscribe specific callbacks (WebSocket connection remains open)
+const unsubscribed = exchange.unsubscribeTicker(tickerCallback, 'BTC/USDT');
+if (unsubscribed) {
+    console.log('Successfully unsubscribed from ticker updates');
+}
+
+// Unsubscribe from trades
+exchange.unsubscribeTrades(tradeCallback, 'BTC/USDT');
+
+// To completely stop ticker streaming and close the connection:
+await exchange.unWatchTicker('BTC/USDT');
+```
+
+#### **Python**
+```python
+# Define callback functions
+def ticker_callback(message):
+    print('Ticker update:', message.payload)
+
+def trade_callback(message):
+    print('Trade update:', message.payload)
+
+# Subscribe to multiple streams
+await exchange.subscribe_ticker('BTC/USDT', ticker_callback)
+await exchange.subscribe_trades('BTC/USDT', trade_callback)
+
+# Later, unsubscribe specific callbacks (WebSocket connection remains open)
+unsubscribed = exchange.unsubscribe_ticker(ticker_callback, 'BTC/USDT')
+if unsubscribed:
+    print('Successfully unsubscribed from ticker updates')
+
+# Unsubscribe from trades
+exchange.unsubscribe_trades(trade_callback, 'BTC/USDT')
+
+# To completely stop ticker streaming and close the connection:
+await exchange.un_watch_ticker('BTC/USDT')
+```
+
+#### **PHP**
+```php
+// Define callback functions
+function tickerCallback($message) {
+    echo 'Ticker update: ' . json_encode($message->payload) . PHP_EOL;
+}
+
+function tradeCallback($message) {
+    echo 'Trade update: ' . json_encode($message->payload) . PHP_EOL;
+}
+
+// Subscribe to multiple streams
+subscribeTicker('BTC/USDT', 'tickerCallback');
+subscribeTrades('BTC/USDT', 'tradeCallback');
+
+// Later, unsubscribe specific callbacks (WebSocket connection remains open)
+$unsubscribed = unsubscribeTicker('tickerCallback', 'BTC/USDT');
+if ($unsubscribed) {
+    echo 'Successfully unsubscribed from ticker updates' . PHP_EOL;
+}
+
+// Unsubscribe from trades
+unsubscribeTrades('tradeCallback', 'BTC/USDT');
+
+// To completely stop ticker streaming and close the connection:
+unWatchTicker('BTC/USDT');
+```
+
+#### **C#**
+```csharp
+// Define callback functions
+public static void TickerCallback(Message message)
+{
+    Console.WriteLine($"Ticker update: {message.Payload}");
+}
+
+public static void TradeCallback(Message message)
+{
+    Console.WriteLine($"Trade update: {message.Payload}");
+}
+
+// Subscribe to multiple streams
+await SubscribeTicker("BTC/USDT", TickerCallback);
+await SubscribeTrades("BTC/USDT", TradeCallback);
+
+// Later, unsubscribe specific callbacks (WebSocket connection remains open)
+bool unsubscribed = UnsubscribeTicker(TickerCallback, "BTC/USDT");
+if (unsubscribed)
+{
+    Console.WriteLine("Successfully unsubscribed from ticker updates");
+}
+
+// Unsubscribe from trades
+UnsubscribeTrades(TradeCallback, "BTC/USDT");
+
+// To completely stop ticker streaming and close the connection:
+await UnWatchTicker("BTC/USDT");
+```
+
+#### **Go**
+```go
+// Define callback functions
+tickerCallback := func(message *types.Message) {
+    fmt.Println("Ticker update:", message.Payload)
+}
+
+tradeCallback := func(message *types.Message) {
+    fmt.Println("Trade update:", message.Payload)
+}
+
+// Subscribe to multiple streams
+err := exchange.SubscribeTicker("BTC/USDT", tickerCallback, nil, nil)
+err = exchange.SubscribeTrades("BTC/USDT", tradeCallback, nil, nil)
+
+// Later, unsubscribe specific callbacks (WebSocket connection remains open)
+unsubscribed := exchange.UnsubscribeTicker(tickerCallback, "BTC/USDT")
+if unsubscribed {
+    fmt.Println("Successfully unsubscribed from ticker updates")
+}
+
+// Unsubscribe from trades
+exchange.UnsubscribeTrades(tradeCallback, "BTC/USDT")
+
+// To completely stop ticker streaming and close the connection:
+err = exchange.UnWatchTicker("BTC/USDT")
+```
+<!-- tabs:end -->
+
+#### Advanced Usage Examples
+
+**Multiple Symbol Subscriptions:**
+```javascript
+// Subscribe to multiple symbols
+const symbols = ['BTC/USDT', 'ETH/USDT', 'LTC/USDT'];
+await exchange.subscribeTradesForSymbols(symbols, tradeCallback);
+
+// Unsubscribe from all symbols at once
+exchange.unsubscribeTradesForSymbols(tradeCallback, symbols);
+
+// Or unsubscribe from specific symbols
+exchange.unsubscribeTrades(tradeCallback, 'BTC/USDT');
+```
+
+**OHLCV with Timeframes:**
+```javascript
+// Subscribe to OHLCV for multiple symbols and timeframes
+const subscriptions = [
+    ['BTC/USDT', '1m'],
+    ['ETH/USDT', '5m'],
+    ['LTC/USDT', '1h']
+];
+await exchange.subscribeOHLCVForSymbols(subscriptions, ohlcvCallback);
+
+// Unsubscribe from all OHLCV subscriptions
+exchange.unsubscribeOHLCVForSymbols(ohlcvCallback, subscriptions);
+```
+
+**Conditional Unsubscription:**
+```javascript
+// Subscribe to multiple streams
+await exchange.subscribeTicker('BTC/USDT', tickerCallback);
+await exchange.subscribeTrades('BTC/USDT', tradeCallback);
+await exchange.subscribeOrderBook('BTC/USDT', orderBookCallback);
+
+// Later, conditionally unsubscribe based on some logic
+if (someCondition) {
+    exchange.unsubscribeTicker(tickerCallback, 'BTC/USDT');
+    console.log('Stopped ticker updates but keeping trades and orderbook');
+}
+```
+
+#### Important Notes
+
+1. **WebSocket Connection Management**: Unsubscribe functions only remove consumer callbacks from topics. The WebSocket connection remains active and continues streaming data to other consumers.
+
+2. **Complete Stream Shutdown**: To completely stop streaming a data type and close the WebSocket connection, use the corresponding `unWatch` function (e.g., `unWatchTicker`, `unWatchTrades`).
+
+3. **Callback Matching**: The unsubscribe function must receive the exact same callback function reference that was used during subscription.
+
+4. **Return Values**: Unsubscribe functions return `true` on successful unsubscription and `false` if streaming is disabled or the callback wasn't found.
+
+5. **Error Handling**: If streaming is not enabled (`isStreamingEnabled()` returns false), unsubscribe functions will return `false` immediately.
+
+6. **Memory Management**: Properly unsubscribing from callbacks helps prevent memory leaks by removing references to consumer functions that are no longer needed.
+
+### Core Functionality
+- Acts as a message broker that manages topics and their subscribers
+- Maintains message history for each topic
+- Supports both synchronous and asynchronous message processing
+- Implements a message backlog system
+
+### Key Features
+#### Message Management
+- `maxMessagesPerTopic`: Configurable limit for message history per topic (default: 100)
+- Messages are stored with metadata including:
+  - Stream reference
+  - Topic
+  - Index
+  - Message history
+
+#### Topic Operations
+##### Publishing Messages
+- `produce(topic, payload, error)`: Publishes messages to a topic
+- Automatically manages message history limits
+- Notifies all subscribers of new messages
+
+##### Subscription Management
+- `subscribe(topic, consumerFn, options?: { synchronous?: boolean })`: Registers a consumer for a topic
+- `unsubscribe(topic, consumerFn)`: Removes a consumer from a topic
+- Supports both synchronous and asynchronous consumers
+
+##### Message History
+- `getMessageHistory(topic)`: Retrieves message history for a topic
+- `getLastIndex(topic)`: Gets the last message index for a topic
+
+#### Stream Lifecycle
+- `init()`: Initializes or resets the stream
+- `close()`: Cleans up the stream by resetting topics and unsubscribing consumers
+- `addWatchFunction()`: Supports reconnection functionality
+
+### Consumer Class
+#### Core Functionality
+- Handles individual message processing for subscribers
+- Manages message backlog and processing order
+- Supports both synchronous and asynchronous execution
+
+#### Key Features
+##### Message Processing
+- Maintains a currentIndex to track processed messages
+- Implements a backlog system for message queuing
+- Processes messages in order based on their index
+
+##### Processing Modes
+###### Synchronous Processing
+- Messages are processed one at a time
+- Waits for each message to complete before processing the next
+- Uses async/await for proper flow control
+
+###### Asynchronous Processing
+- Messages are processed without waiting for completion
+- Suitable for non-blocking operations
+
+##### Message Handling
+- `publish(message)`: Adds messages to the backlog
+- `_run()`: Processes the message backlog
+- `_handleMessage(message)`: Executes the consumer function with the message
+
+##### Consumer Options
+The Consumer constructor accepts an options object with the following properties:
+- `synchronous`: Boolean that determines if messages should be processed synchronously (default: false)
+  - When `true`: Messages are processed one at a time, waiting for each to complete
+  - When `false`: Messages are processed without waiting for completion
+
+Example:
+```typescript
+// Create a consumer with synchronous processing
+const consumer = new Consumer(callbackFunction, currentIndex, { synchronous: true });
+
+// Create a consumer with asynchronous processing
+const consumer = new Consumer(callbackFunction, currentIndex, { synchronous: false });
+```
 
 ## Streaming Specifics
 
