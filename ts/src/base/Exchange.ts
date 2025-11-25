@@ -2304,7 +2304,6 @@ export default class Exchange {
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        
         const value = this.safeValue (dictionary, key, defaultValue);
         if (typeof value === 'boolean') {
             return value;
