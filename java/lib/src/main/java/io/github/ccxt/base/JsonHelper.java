@@ -1,4 +1,4 @@
-package io.github.ccxt;
+package io.github.ccxt.base;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;

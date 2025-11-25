@@ -20,6 +20,7 @@ import java.net.http.HttpTimeoutException;
 
 import io.github.ccxt.base.Crypto;
 import io.github.ccxt.base.Encode;
+import io.github.ccxt.base.JsonHelper;
 import io.github.ccxt.base.NumberHelpers;
 import io.github.ccxt.base.SafeMethods;
 import io.github.ccxt.base.Time;
