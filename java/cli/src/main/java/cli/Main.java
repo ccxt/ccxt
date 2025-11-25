@@ -135,7 +135,7 @@ public class Main {
         }
 
         // var exchangeName = args[0];
-        var exchangeName = "binance";
+        // var exchangeName = "binance";
         // var methodName = args[1];
         var methodName = "fetchTrades";
 
