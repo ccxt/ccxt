@@ -1143,6 +1143,8 @@ class upbit(Exchange, ImplicitAPI):
 
         https://docs.upbit.com/kr/reference/new-order
         https://global-docs.upbit.com/reference/new-order
+        https://docs.upbit.com/kr/reference/order-test
+        https://global-docs.upbit.com/reference/order-test
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
@@ -1154,6 +1156,7 @@ class upbit(Exchange, ImplicitAPI):
         :param str [params.ordType]: self field can be used to place a ‘best’ type order
         :param str [params.timeInForce]: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. self field is required when the order type is 'best'.
         :param str [params.selfTradePrevention]: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+        :param boolean [params.test]: If test is True, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is False.
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1163,6 +1166,7 @@ class upbit(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(type == 'market', False, params)
         timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
         selfTradePrevention = self.safe_string_2(params, 'selfTradePrevention', 'smp_type')
+        test = self.safe_bool(params, 'test', False)
         if postOnly and (selfTradePrevention is not None):
             raise ExchangeError(self.id + ' createOrder() does not support post_only and selfTradePrevention simultaneously.')
         orderSide = None
@@ -1216,8 +1220,12 @@ class upbit(Exchange, ImplicitAPI):
                 request['time_in_force'] = timeInForce
         if request['ord_type'] == 'best' and timeInForce is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
-        params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type'])
-        response = await self.privatePostOrders(self.extend(request, params))
+        response = None
+        params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
+        if test:
+            response = await self.privatePostOrdersTest(self.extend(request, params))
+        else:
+            response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
         #         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",

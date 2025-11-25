@@ -282,6 +282,8 @@ public partial class upbit
     /// <remarks>
     /// See <see href="https://docs.upbit.com/kr/reference/new-order"/>  <br/>
     /// See <see href="https://global-docs.upbit.com/reference/new-order"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/order-test"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/order-test"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -317,6 +319,12 @@ public partial class upbit
     /// <term>params.selfTradePrevention</term>
     /// <description>
     /// string : 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.test</term>
+    /// <description>
+    /// boolean : If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
     /// </description>
     /// </item>
     /// </list>

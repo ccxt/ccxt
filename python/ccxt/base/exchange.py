@@ -2133,10 +2133,10 @@ class Exchange(object):
         )
         return '0x' + self.binary_to_base16(tx.SerializeToString())
 
-    def lock_id():
+    def lock_id(self):
         return None
 
-    def unlock_id():
+    def unlock_id(self):
         return None
 
     # ########################################################################

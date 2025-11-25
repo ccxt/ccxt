@@ -1171,6 +1171,8 @@ class upbit extends Exchange {
          *
          * @see https://docs.upbit.com/kr/reference/new-order
          * @see https://global-docs.upbit.com/reference/new-order
+         * @see https://docs.upbit.com/kr/reference/order-$test
+         * @see https://global-docs.upbit.com/reference/order-$test
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type supports 'market' and 'limit'. if $params->ordType is set to best, a best-$type order will be created regardless of the value of $type->
@@ -1182,6 +1184,7 @@ class upbit extends Exchange {
          * @param {string} [$params->ordType] this field can be used to place a ‘best’ $type order
          * @param {string} [$params->timeInForce] 'IOC' or 'FOK' for limit or best $type orders, 'PO' for limit orders. this field is required when the order $type is 'best'.
          * @param {string} [$params->selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' array(@link https://global-docs.upbit.com/docs/smp)
+         * @param {boolean} [$params->test] If $test is true, testOrder will be executed. It allows you to validate the $request without creating an actual order. Default is false.
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1191,6 +1194,7 @@ class upbit extends Exchange {
         $postOnly = $this->is_post_only($type === 'market', false, $params);
         $timeInForce = $this->safe_string_lower_2($params, 'timeInForce', 'time_in_force');
         $selfTradePrevention = $this->safe_string_2($params, 'selfTradePrevention', 'smp_type');
+        $test = $this->safe_bool($params, 'test', false);
         if ($postOnly && ($selfTradePrevention !== null)) {
             throw new ExchangeError($this->id . ' createOrder() does not support post_only and $selfTradePrevention simultaneously.');
         }
@@ -1259,8 +1263,13 @@ class upbit extends Exchange {
         if ($request['ord_type'] === 'best' && $timeInForce === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $timeInForce parameter for best $type orders');
         }
-        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type' ));
-        $response = $this->privatePostOrders ($this->extend($request, $params));
+        $response = null;
+        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
+        if ($test) {
+            $response = $this->privatePostOrdersTest ($this->extend($request, $params));
+        } else {
+            $response = $this->privatePostOrders ($this->extend($request, $params));
+        }
         //
         //     {
         //         "uuid" => "cdd92199-2897-4e14-9448-f923320408ad",

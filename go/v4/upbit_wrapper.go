@@ -409,6 +409,8 @@ func (this *Upbit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
  * @description create a trade order
  * @see https://docs.upbit.com/kr/reference/new-order
  * @see https://global-docs.upbit.com/reference/new-order
+ * @see https://docs.upbit.com/kr/reference/order-test
+ * @see https://global-docs.upbit.com/reference/order-test
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
  * @param {string} side 'buy' or 'sell'
@@ -419,6 +421,7 @@ func (this *Upbit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
  * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
  * @param {string} [params.timeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
  * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+ * @param {boolean} [params.test] If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Upbit) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
