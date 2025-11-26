@@ -911,7 +911,7 @@ class NewTranspiler {
         let ids: string[] = []
         try {
             // ids = (exchanges as any).ids
-            ids = ['binance']
+            ids = ['binance', 'bybit']
         } catch (e) {
         }
 
@@ -959,7 +959,7 @@ class NewTranspiler {
 
         // override extends from Exchange to ClassApi
         content = content.replace(/extends\sExchange/g, `extends ${this.capitalize(name)}Api`);
-        content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)\)/g, `, $1())`);
+        content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
 
         // const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
         // const baseWsClassExec = baseWsClassRegex.exec(content);

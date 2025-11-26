@@ -206,7 +206,6 @@ public class Exchange {
 
 
     // --- Construtor -- //
-    // 
 
     private void initExchange(Object userConfig) {
         Map<String, Object>  defaultConfig;
@@ -223,6 +222,7 @@ public class Exchange {
         this.transformApiNew(this.api, new ArrayList<>());
     }
 
+    // add to derived files constructor that calls base constructor with userConfig
     public Exchange (Object userConfig) {
         this.initExchange(userConfig);
     }
@@ -442,6 +442,39 @@ public class Exchange {
             }
         }
     }
+
+
+public static Exchange dynamicallyCreateInstance(String className, Object args) {
+    if (args == null) {
+        args = new java.util.HashMap<String, Object>();
+    }
+
+    className = className.substring(0, 1).toUpperCase() + className.substring(1); // capitalize first letter
+
+    try {
+        Class<?> clazz;
+        try {
+            String pkg = Exchange.class.getPackage().getName();
+            clazz = Class.forName(pkg + ".exchanges." + className);
+        } catch (ClassNotFoundException e) {
+            // clazz = Class.forName(pkg + ".exchanges." + className);
+            throw e;
+        }
+
+        // check this accept constructor with Object arg
+        java.lang.reflect.Constructor<?> ctor = clazz.getConstructor();
+
+        Object instance = ctor.newInstance(); // check args
+
+        return (Exchange) instance;
+    } catch (ClassNotFoundException
+             | NoSuchMethodException
+             | InstantiationException
+             | IllegalAccessException
+             | java.lang.reflect.InvocationTargetException e) {
+        throw new RuntimeException("Failed to create instance for: " + className, e);
+    }
+}
 
     private double toDoubleSafe(Object val, double defaultValue) {
         if (val == null) {
@@ -2147,7 +2180,6 @@ public Object describe()
 
     public Object checkProxyUrlSettings(Object... optionalArgs)
     {
-        Print("inside check proxy url settings");
         Object url = Helpers.getArg(optionalArgs, 0, null);
         Object method = Helpers.getArg(optionalArgs, 1, null);
         Object headers = Helpers.getArg(optionalArgs, 2, null);

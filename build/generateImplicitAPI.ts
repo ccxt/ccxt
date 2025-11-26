@@ -426,7 +426,7 @@ async function main() {
     const shouldGenerateAll = args.length === 0;
 
     // const exchanges = ccxt.exchanges;
-    const exchanges = ['binance'];
+    const exchanges = ['binance', 'bybit'];
 
     log.bright.cyan ('Exporting TypeScript implicit api methods')
     populateImplicitMethods(exchanges); // common step for all languages

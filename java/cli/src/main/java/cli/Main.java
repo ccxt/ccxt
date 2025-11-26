@@ -63,7 +63,12 @@ public class Main {
                     params.add(Boolean.parseBoolean(arg));
                } else if (arg.equals("null")) {
                     params.add(null);
-               } else {
+               } else if (arg.matches("-?\\d+")) {
+                    params.add(Integer.parseInt(arg));
+                } else if (arg.matches("-?\\d+\\.\\d+")) {
+                    params.add(Double.parseDouble(arg));
+                }
+                else {
                     params.add(arg);
                }
 
@@ -134,10 +139,10 @@ public class Main {
             // return;
         }
 
-        // var exchangeName = args[0];
+        var exchangeName = args[0];
         // var exchangeName = "binance";
-        // var methodName = args[1];
-        var methodName = "fetchTrades";
+        var methodName = args[1];
+        // var methodName = "fetchTrades";
 
         var params = getParamsFromArgs(args);
 
