@@ -172,11 +172,10 @@ export default class upbit extends upbitRest {
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market (symbols[i]);
-                const marketId = market['id'];
                 const symbol = market['symbol'];
                 this.options[channel] = this.safeValue (this.options, channel, {});
                 this.options[channel][symbol] = true;
-                messageHashes.push (channel + ':' + marketId);
+                messageHashes.push (channel + ':' + symbol);
             }
         }
         const optionSymbols = Object.keys (this.options[channel]);
