@@ -296,6 +296,9 @@ export default class okx extends Exchange {
                         'support/announcements': 4,
                         'support/announcements-types': 20,
                     },
+                    'post': {
+                        'tradingBot/grid/min-investment': 1, // public
+                    },
                 },
                 'private': {
                     'get': {
@@ -485,6 +488,7 @@ export default class okx extends Exchange {
                         'rfq/cancel-quote': 0.4,
                         'rfq/cancel-batch-quotes': 10,
                         'rfq/cancel-all-quotes': 10,
+                        'rfq/cancel-all-after': 10,
                         // sprd
                         'sprd/order': 1,
                         'sprd/cancel-order': 1,
@@ -499,59 +503,69 @@ export default class okx extends Exchange {
                         'trade/amend-order': 1 / 3,
                         'trade/amend-batch-orders': 1 / 150,
                         'trade/close-position': 1,
-                        'trade/fills-archive': 172800, // 5 req per day = 5/24/60/60 => 10/5*24*60*60=172800
-                        'trade/order-algo': 1,
-                        'trade/cancel-algos': 1,
-                        'trade/amend-algos': 1,
-                        'trade/cancel-advance-algos': 1,
+                        'trade/fills-archive': 172800, // not documented
+                        'trade/cancel-advance-algos': 1, // not documented
                         'trade/easy-convert': 20,
                         'trade/one-click-repay': 20,
                         'trade/one-click-repay-v2': 20,
                         'trade/mass-cancel': 4,
                         'trade/cancel-all-after': 10,
+                        'trade/order-precheck': 4,
+                        'trade/order-algo': 1,
+                        'trade/cancel-algos': 1,
+                        'trade/amend-algos': 1,
                         // asset
-                        'asset/transfer': 10,
+                        'asset/transfer': 5,
                         'asset/withdrawal': 5 / 3,
-                        'asset/withdrawal-lightning': 5,
+                        'asset/withdrawal-lightning': 5, // not documented
                         'asset/cancel-withdrawal': 5 / 3,
                         'asset/convert-dust-assets': 10,
-                        'asset/convert/estimate-quote': 1,
+                        'asset/monthly-statement': 1296000, // 20 req/month, 10/20*30*24*60*60 = 1296000
+                        'asset/convert/estimate-quote': 50,
                         'asset/convert/trade': 1,
-                        'asset/monthly-statement': 1,
                         // account
+                        'account/bills-history-archive': 72000, // 12 req/day
                         'account/set-position-mode': 4,
                         'account/set-leverage': 1,
                         'account/position/margin-balance': 1,
+                        'account/set-fee-type': 4,
                         'account/set-greeks': 4,
                         'account/set-isolated-mode': 4,
-                        'account/quick-margin-borrow-repay': 4,
-                        'account/borrow-repay': 5 / 3,
-                        'account/simulated_margin': 10,
+                        'account/spot-manual-borrow-repay': 30,
+                        'account/set-auto-repay': 4,
+                        'account/quick-margin-borrow-repay': 4, // not documented
+                        'account/borrow-repay': 5 / 3, // not documented
+                        'account/simulated_margin': 10, // not documented
                         'account/position-builder': 10,
+                        'account/position-builder-graph': 50,
                         'account/set-riskOffset-type': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
+                        'account/account-level-switch-preset': 4,
                         'account/set-account-level': 4,
+                        'account/set-collateral-assets': 4,
                         'account/mmp-reset': 4,
-                        'account/mmp-config': 100,
-                        'account/fixed-loan/borrowing-order': 5,
-                        'account/fixed-loan/amend-borrowing-order': 5,
-                        'account/fixed-loan/manual-reborrow': 5,
-                        'account/fixed-loan/repay-borrowing-order': 5,
-                        'account/bills-history-archive': 72000, // 12 req/day
+                        'account/mmp-config': 50,
+                        'account/fixed-loan/borrowing-order': 5, // not documented
+                        'account/fixed-loan/amend-borrowing-order': 5, // not documented
+                        'account/fixed-loan/manual-reborrow': 5, // not documented
+                        'account/fixed-loan/repay-borrowing-order': 5, // not documented
                         'account/move-positions': 10,
+                        'account/set-auto-earn': 10,
                         'account/set-settle-currency': 1,
                         'account/set-trading-config': 20,
                         // subaccount
-                        'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
-                        'users/subaccount/set-transfer-out': 10,
-                        'account/subaccount/set-loan-allocation': 4,
+                        'account/subaccount/set-loan-allocation': 4, // not documented
                         'users/subaccount/create-subaccount': 10,
-                        'users/subaccount/subaccount-apikey': 10,
+                        'users/subaccount/apikey': 10,
+                        'users/subaccount/modify-apikey': 10,
+                        'users/subaccount/subaccount-apikey': 10, // not documented
                         'users/subaccount/delete-apikey': 10,
+                        'users/subaccount/set-transfer-out': 10,
                         // grid trading
                         'tradingBot/grid/order-algo': 1,
+                        'tradingBot/grid/amend-algo-basic-param': 1,
                         'tradingBot/grid/amend-order-algo': 1,
                         'tradingBot/grid/stop-order-algo': 1,
                         'tradingBot/grid/close-position': 1,
@@ -560,7 +574,7 @@ export default class okx extends Exchange {
                         'tradingBot/grid/withdraw-income': 1,
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
-                        'tradingBot/grid/min-investment': 1,
+                        'tradingBot/grid/min-investment': 1, // public
                         'tradingBot/grid/adjust-investment': 1,
                         'tradingBot/signal/create-signal': 1,
                         'tradingBot/signal/order-algo': 1,
@@ -577,37 +591,44 @@ export default class okx extends Exchange {
                         // earn
                         'finance/savings/purchase-redempt': 5 / 3,
                         'finance/savings/set-lending-rate': 5 / 3,
-                        'finance/staking-defi/purchase': 3,
-                        'finance/staking-defi/redeem': 3,
-                        'finance/staking-defi/cancel': 3,
+                        'finance/staking-defi/purchase': 5,
+                        'finance/staking-defi/redeem': 5,
+                        'finance/staking-defi/cancel': 5,
                         // eth staking
                         'finance/staking-defi/eth/purchase': 5,
                         'finance/staking-defi/eth/redeem': 5,
+                        'finance/staking-defi/eth/cancel-redeem': 5,
                         'finance/staking-defi/sol/purchase': 5,
                         'finance/staking-defi/sol/redeem': 5,
+                        'finance/staking-defi/sol/cancel-redeem': 5,
+                        'finance/flexible-loan/max-loan': 4,
+                        'finance/flexible-loan/adjust-collateral': 4,
                         // copytrading
                         'copytrading/algo-order': 1,
                         'copytrading/close-subposition': 1,
                         'copytrading/set-instruments': 4,
+                        'copytrading/amend-profit-sharing-ratio': 4,
                         'copytrading/first-copy-settings': 4,
                         'copytrading/amend-copy-settings': 4,
                         'copytrading/stop-copy-trading': 4,
-                        'copytrading/batch-set-leverage': 4,
+                        'copytrading/batch-set-leverage': 4, // not documented
                         // broker
-                        'broker/nd/create-subaccount': 0.25,
-                        'broker/nd/delete-subaccount': 1,
-                        'broker/nd/subaccount/apikey': 0.25,
-                        'broker/nd/subaccount/modify-apikey': 1,
-                        'broker/nd/subaccount/delete-apikey': 1,
-                        'broker/nd/set-subaccount-level': 4,
-                        'broker/nd/set-subaccount-fee-rate': 4,
-                        'broker/nd/set-subaccount-assets': 0.25,
-                        'asset/broker/nd/subaccount-deposit-address': 1,
-                        'asset/broker/nd/modify-subaccount-deposit-address': 5 / 3,
-                        'broker/nd/rebate-per-orders': 36000,
-                        'finance/sfp/dcd/quote': 10,
-                        'finance/sfp/dcd/order': 10,
-                        'broker/nd/report-subaccount-ip': 0.25,
+                        'broker/nd/create-subaccount': 0.25, // not documented
+                        'broker/nd/delete-subaccount': 1, // not documented
+                        'broker/nd/subaccount/apikey': 0.25, // not documented
+                        'broker/nd/subaccount/modify-apikey': 1, // not documented
+                        'broker/nd/subaccount/delete-apikey': 1, // not documented
+                        'broker/nd/set-subaccount-level': 4, // not documented
+                        'broker/nd/set-subaccount-fee-rate': 4, // not documented
+                        'broker/nd/set-subaccount-assets': 0.25, // not documented
+                        'asset/broker/nd/subaccount-deposit-address': 1, // not documented
+                        'asset/broker/nd/modify-subaccount-deposit-address': 5 / 3, // not documented
+                        'broker/nd/rebate-per-orders': 36000, // not documented
+                        'finance/sfp/dcd/quote': 10, // not documented
+                        'finance/sfp/dcd/order': 10, // not documented
+                        'broker/nd/report-subaccount-ip': 0.25, // not documented
+                        'broker/dma/subaccount/apikey': 1 / 4,
+                        'broker/dma/trades': 36000,
                         'broker/fd/rebate-per-orders': 36000,
                     },
                 },
