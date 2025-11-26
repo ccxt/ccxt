@@ -206,6 +206,7 @@ public partial class bingx : Exchange
                             { "get", new Dictionary<string, object>() {
                                 { "market/depth", 1 },
                                 { "market/kline", 1 },
+                                { "ticker/price", 1 },
                             } },
                         } },
                     } },
