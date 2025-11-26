@@ -195,7 +195,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/depth': 1,
                                 'market/kline': 1,
                                 'ticker/24hr': 1,
-                                'ticker/price': 1,
+                                'ticker/price': 1,  # deprecated, still can be used
                                 'ticker/bookTicker': 1,
                             },
                         },
@@ -229,6 +229,7 @@ class bingx(Exchange, ImplicitAPI):
                             'get': {
                                 'market/depth': 1,
                                 'market/kline': 1,
+                                'ticker/price': 1,
                             },
                         },
                     },
