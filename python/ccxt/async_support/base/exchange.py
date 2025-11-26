@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.22'
+__version__ = '4.5.21'
 
 # -----------------------------------------------------------------------------
 
@@ -980,7 +980,7 @@ class Exchange(BaseExchange):
                 if isinstance(e, OperationFailed):
                     if i < retries:
                         if self.verbose:
-                            self.log('Request failed with the error: ' + str(e) + ', retrying ' + str(i + 1) + ' of ' + str(retries) + '...')
+                            self.log('Request failed with the error: ' + str(e) + ', retrying ' + (i + str(1)) + ' of ' + str(retries) + '...')
                         if (retryDelay is not None) and (retryDelay != 0):
                             await self.sleep(retryDelay)
                     else:
