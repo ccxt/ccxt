@@ -1334,7 +1334,6 @@ export default class okx extends Exchange {
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE': 'AET',
-                'WIN': 'WINTOKEN', // https://github.com/ccxt/ccxt/issues/5701
             },
         });
     }
