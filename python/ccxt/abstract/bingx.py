@@ -31,6 +31,7 @@ class ImplicitAPI:
     spot_v1_private_post_oco_cancel = spotV1PrivatePostOcoCancel = Entry('oco/cancel', ['spot', 'v1', 'private'], 'POST', {'cost': 5})
     spot_v2_public_get_market_depth = spotV2PublicGetMarketDepth = Entry('market/depth', ['spot', 'v2', 'public'], 'GET', {'cost': 1})
     spot_v2_public_get_market_kline = spotV2PublicGetMarketKline = Entry('market/kline', ['spot', 'v2', 'public'], 'GET', {'cost': 1})
+    spot_v2_public_get_ticker_price = spotV2PublicGetTickerPrice = Entry('ticker/price', ['spot', 'v2', 'public'], 'GET', {'cost': 1})
     spot_v3_private_get_get_asset_transfer = spotV3PrivateGetGetAssetTransfer = Entry('get/asset/transfer', ['spot', 'v3', 'private'], 'GET', {'cost': 1})
     spot_v3_private_get_asset_transfer = spotV3PrivateGetAssetTransfer = Entry('asset/transfer', ['spot', 'v3', 'private'], 'GET', {'cost': 1})
     spot_v3_private_get_capital_deposit_hisrec = spotV3PrivateGetCapitalDepositHisrec = Entry('capital/deposit/hisrec', ['spot', 'v3', 'private'], 'GET', {'cost': 1})
