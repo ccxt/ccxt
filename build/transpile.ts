@@ -3040,7 +3040,7 @@ class Transpiler {
             }
         }
 
-        // // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
+        // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
         const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, (child || !!exchanges.length))
 
         if (classes === null) {
