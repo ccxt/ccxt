@@ -755,24 +755,27 @@ class Exchange(object):
 
     @staticmethod
     def safe_float_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_float, dictionary, key1, key2, default_value)
-
+        value = Exchange.safe_float(dictionary, key1)
+        return value if value is not None else Exchange.safe_float(dictionary, key2, default_value)
     @staticmethod
     def safe_string_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_string, dictionary, key1, key2, default_value)
+        value = Exchange.safe_string(dictionary, key1)
+        return value if value is not None else Exchange.safe_string(dictionary, key2, default_value)
 
     @staticmethod
     def safe_string_lower_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_string_lower, dictionary, key1, key2, default_value)
+        value = Exchange.safe_string_2(dictionary, key1, key2, default_value)
+        return value.lower() if value is not None else value
 
     @staticmethod
     def safe_string_upper_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_string_upper, dictionary, key1, key2, default_value)
+        value = Exchange.safe_string_2(dictionary, key1, key2, default_value)
+        return value.upper() if value is not None else value
 
     @staticmethod
     def safe_integer_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_integer, dictionary, key1, key2, default_value)
-
+        value = Exchange.safe_integer(dictionary, key1)
+        return value if value is not None else Exchange.safe_integer(dictionary, key2, default_value)
     @staticmethod
     def safe_integer_product_2(dictionary, key1, key2, factor, default_value=None):
         value = Exchange.safe_integer_product(dictionary, key1, factor)
@@ -784,7 +787,8 @@ class Exchange(object):
 
     @staticmethod
     def safe_value_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
+        value = Exchange.safe_value(dictionary, key1)
+        return value if value is not None else Exchange.safe_value(dictionary, key2, default_value)
 
     # safe_method_n methods family
 
@@ -794,10 +798,9 @@ class Exchange(object):
         if value is None:
             return default_value
         try:
-            value = float(value)
+            return float(value)
         except ValueError as e:
-            value = default_value
-        return value
+            return default_value
 
     @staticmethod
     def safe_string_n(dictionary, key_list, default_value=None):
