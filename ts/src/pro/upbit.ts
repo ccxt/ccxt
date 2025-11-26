@@ -86,8 +86,8 @@ export default class upbit extends upbitRest {
             'hostname': this.hostname,
         });
         const messageHashes = [];
-        for (let i = 0; i < marketIds.length; i++) {
-            messageHashes.push (channel + ':' + marketIds[i]);
+        for (let i = 0; i < symbols.length; i++) {
+            messageHashes.push (channel + ':' + symbols[i]);
         }
         const request = [
             {
@@ -274,11 +274,10 @@ export default class upbit extends upbitRest {
         //   "acc_trade_price_24h": 2.5955306323568927,
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
-        const marketId = this.safeString (message, 'code');
-        const messageHash = 'ticker:' + marketId;
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
+        const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
     }
 
@@ -333,7 +332,7 @@ export default class upbit extends upbitRest {
         const datetime = this.iso8601 (timestamp);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = datetime;
-        const messageHash = 'orderbook:' + marketId;
+        const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
@@ -361,8 +360,7 @@ export default class upbit extends upbitRest {
             this.trades[symbol] = stored;
         }
         stored.append (trade);
-        const marketId = this.safeString (message, 'code');
-        const messageHash = 'trade:' + marketId;
+        const messageHash = 'trade:' + symbol;
         client.resolve (stored, messageHash);
     }
 
@@ -382,7 +380,8 @@ export default class upbit extends upbitRest {
         //     stream_type: 'REALTIME'
         //   }
         const marketId = this.safeString (message, 'code');
-        const messageHash = 'candle.1s:' + marketId;
+        const symbol = this.safeSymbol (marketId, undefined);
+        const messageHash = 'candle.1s:' + symbol;
         const ohlcv = this.parseOHLCV (message);
         client.resolve (ohlcv, messageHash);
     }
