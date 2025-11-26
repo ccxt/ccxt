@@ -2,6 +2,7 @@ package cli;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class Main {
     public static boolean verbose = false;
     public static boolean sandbox = false;
     public static boolean demo = false;
+    public static boolean noKeys = false;
 
     public static ArrayList<String> exchangeIds = new ArrayList<String>();
 
@@ -39,8 +41,9 @@ public class Main {
                 } else if (arg.equals("--demo")) {
                     demo = true;
                     // instance.setDemoMode(true);
-                } else {
-                    exchangeIds.add(arg);
+                    instance.enableDemoTrading(true);
+                } else if (arg.equals("--no-keys")) {
+                    noKeys = true;
                 }
             }
         }
@@ -75,6 +78,51 @@ public class Main {
             }
         }
         return params.toArray();
+    }
+
+
+    public static void setCredentials(Exchange instance) throws IllegalArgumentException, IllegalAccessException {
+
+        Map<String, Boolean> credentials = (Map<String, Boolean>)instance.requiredCredentials;
+        if (noKeys || credentials == null) {
+            return;
+        }
+
+        for (Map.Entry<String, Boolean> entry : credentials.entrySet()) {
+            String key = entry.getKey();
+            Boolean required = entry.getValue();
+
+            if (!Boolean.TRUE.equals(required)) {
+                continue;
+            }
+
+
+            String instanceIdKey = instance.id;
+
+
+            String envKey = instanceIdKey.toUpperCase() + "_" + key.toUpperCase();
+            var credentialValue = System.getenv(envKey);
+
+            if (credentialValue != null && credentialValue.startsWith("-----BEGIN")) {
+                credentialValue = credentialValue.replace("\\n", "\n");
+            }
+
+            if (credentialValue != null) {
+                setProperty(instance, key, credentialValue);
+            }
+        }
+    }
+
+    private static void setProperty(Exchange instance, String key, String value) throws IllegalArgumentException, IllegalAccessException {
+        Class<?> clazz = instance.getClass();
+
+        try {
+            Field field = clazz.getDeclaredField(key);
+            field.setAccessible(true);
+            field.set(instance, value);
+        } catch (NoSuchFieldException e) {
+            System.out.println("No field or setter found for credential: " + key);
+        }
     }
 
     public static Object callDynamic(Object instance, String methodName, Object... args) {
@@ -139,10 +187,10 @@ public class Main {
             // return;
         }
 
-        var exchangeName = args[0];
-        // var exchangeName = "binance";
-        var methodName = args[1];
-        // var methodName = "fetchTrades";
+        // var exchangeName = args[0];
+        var exchangeName = "binance";
+        // var methodName = args[1];
+        var methodName = "fetchTrades";
 
         var params = getParamsFromArgs(args);
 
@@ -153,6 +201,7 @@ public class Main {
 
         try {
             InitOptions(instance, args);
+            setCredentials(instance);
 
             if (Main.verbose) {
                 instance.verbose = true;
