@@ -72,9 +72,9 @@ class paradex(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': False,
-                'fetchFundingRateHistory': False,
+                'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchGreeks': True,
                 'fetchIndexOHLCV': False,
@@ -2460,6 +2460,70 @@ class paradex(Exchange, ImplicitAPI):
             'underlyingPrice': self.safe_number(greeks, 'underlying_price'),
             'info': greeks,
         }
+
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches historical funding rate prices
+
+        https://docs.paradex.trade/api/prod/markets/get-funding-data
+
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [limit]: the maximum amount of funding rate structures
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate to fetch
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+        }
+        if limit is not None:
+            request['page_size'] = min(limit, 5000)  # api maximum 5000
+        else:
+            request['page_size'] = 1000  # max is 5000
+        if since is not None:
+            request['start_at'] = since
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['end_at'] = until
+        response = self.publicGetFundingData(self.extend(request, params))
+        #
+        # {
+        #     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+        #     "prev": "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+        #     "results": [
+        #          {
+        #              "market":"BTC-USD-PERP",
+        #              "funding_index":"20511.93608234044552",
+        #              "funding_premium":"-6.04646651485986656",
+        #              "funding_rate":"-0.00006992598926",
+        #              "funding_rate_8h":"",
+        #              "funding_period_hours":0,
+        #              "created_at":1764160327843
+        #          }
+        #     ]
+        # }
+        #
+        results = self.safe_list(response, 'results', [])
+        rates = []
+        for i in range(0, len(results)):
+            rate = results[i]
+            timestamp = self.safe_integer(rate, 'created_at')
+            datetime = self.iso8601(timestamp)
+            rates.append({
+                'info': rate,
+                'symbol': market['symbol'],
+                'fundingRate': self.safe_number(rate, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': datetime,
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][self.version]) + '/' + self.implode_params(path, params)
