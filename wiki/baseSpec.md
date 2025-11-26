@@ -2843,6 +2843,7 @@ fetches historical funding rate prices
 * [modetrade](/exchanges/modetrade.md#modetradefetchfundingratehistory)
 * [okx](/exchanges/okx.md#okxfetchfundingratehistory)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchfundingratehistory)
+* [paradex](/exchanges/paradex.md#paradexfetchfundingratehistory)
 * [phemex](/exchanges/phemex.md#phemexfetchfundingratehistory)
 * [toobit](/exchanges/toobit.md#toobitfetchfundingratehistory)
 * [woo](/exchanges/woo.md#woofetchfundingratehistory)
