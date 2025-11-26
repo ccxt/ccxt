@@ -186,7 +186,7 @@ class bingx extends Exchange {
                                 'market/depth' => 1,
                                 'market/kline' => 1,
                                 'ticker/24hr' => 1,
-                                'ticker/price' => 1,
+                                'ticker/price' => 1, // deprecated, still can be used
                                 'ticker/bookTicker' => 1,
                             ),
                         ),
@@ -220,6 +220,7 @@ class bingx extends Exchange {
                             'get' => array(
                                 'market/depth' => 1,
                                 'market/kline' => 1,
+                                'ticker/price' => 1,
                             ),
                         ),
                     ),

@@ -94,6 +94,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spot_v2_public_get_market_kline($params = array()) {
         return $this->request('market/kline', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spot_v2_public_get_ticker_price($params = array()) {
+        return $this->request('ticker/price', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spot_v3_private_get_get_asset_transfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -648,6 +651,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function spotV2PublicGetMarketKline($params = array()) {
         return $this->request('market/kline', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function spotV2PublicGetTickerPrice($params = array()) {
+        return $this->request('ticker/price', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function spotV3PrivateGetGetAssetTransfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
