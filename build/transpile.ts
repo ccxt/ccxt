@@ -158,6 +158,8 @@ class Transpiler {
     getPythonRegexes () {
 
         return [
+            // dict transpilation should be done at first
+            [ /[\(]typeof ([^\s\)]+) === 'object'[\)] && !Array\.isArray \(\1\)/g, 'isinstance($1, dict)' ],
             [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, 'isinstance($1, int)' ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
@@ -3038,20 +3040,20 @@ class Transpiler {
             }
         }
 
-        // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
-        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, (child || !!exchanges.length))
+        // // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
+        // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, (child || !!exchanges.length))
 
-        if (classes === null) {
-            log.bright.yellow ('0 files transpiled.')
-            return;
-        }
+        // if (classes === null) {
+        //     log.bright.yellow ('0 files transpiled.')
+        //     return;
+        // }
         if (child) {
             return
         }
 
         if (!transpilingSingleExchange) {
             this.transpileBaseMethods ()
-
+return
             //*/
 
             this.transpileErrorHierarchy ()
