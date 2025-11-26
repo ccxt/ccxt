@@ -4349,7 +4349,7 @@ class bybit extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'orderId' => $id,
+            // 'orderId' => $id,
             // 'orderLinkId' => 'string', // unique client order $id, max 36 characters
             // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
             // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
@@ -4360,6 +4360,12 @@ class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         );
+        $clientOrderId = $this->safe_string_2($params, 'orderLinkId', 'clientOrderId');
+        if ($clientOrderId === null) {
+            $request['orderId'] = $id;
+        } else {
+            $request['orderLinkId'] = $clientOrderId;
+        }
         $category = null;
         list($category, $params) = $this->get_bybit_type('editOrderRequest', $market, $params);
         $request['category'] = $category;
@@ -4403,10 +4409,6 @@ class bybit extends Exchange {
                 $request['tpTriggerBy'] = $tpTriggerBy;
             }
         }
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        if ($clientOrderId !== null) {
-            $request['orderLinkId'] = $clientOrderId;
-        }
         $params = $this->omit($params, array( 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit' ));
         return $request;
     }
@@ -4420,12 +4422,13 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
          *
          * @param {string} $id cancel order $id
-         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] unique client order $id
          * @param {float} [$params->triggerPrice] The $price that a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] The $price that a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] The $price that a take profit order is triggered at
@@ -4442,6 +4445,7 @@ class bybit extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
         }
+        $market = $this->market($symbol);
         $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
         $response = $this->privatePostV5OrderAmend ($this->extend($request, $params));
         //
@@ -4460,7 +4464,8 @@ class bybit extends Exchange {
         return $this->safe_order(array(
             'info' => $response,
             'id' => $this->safe_string($result, 'orderId'),
-        ));
+            'clientOrderId' => $this->safe_string($result, 'orderLinkId'),
+        ), $market);
     }
 
     public function edit_orders(array $orders, $params = array ()): array {

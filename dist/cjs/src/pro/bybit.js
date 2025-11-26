@@ -7,7 +7,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bybit extends bybit$1["default"] {
     describe() {
@@ -865,7 +865,7 @@ class bybit extends bybit$1["default"] {
         params = this.cleanParams(params);
         const market = this.market(symbols[0]);
         if (limit === undefined) {
-            limit = (market['spot']) ? 50 : 500;
+            limit = 50;
             if (market['option']) {
                 limit = 100;
             }
@@ -874,7 +874,7 @@ class bybit extends bybit$1["default"] {
             const limits = {
                 'spot': [1, 50, 200, 1000],
                 'option': [25, 100],
-                'default': [1, 50, 200, 500, 1000],
+                'default': [1, 50, 200, 1000],
             };
             const selectedLimits = this.safeList2(limits, market['type'], 'default');
             if (!this.inArray(limit, selectedLimits)) {

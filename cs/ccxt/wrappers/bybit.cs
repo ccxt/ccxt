@@ -563,6 +563,12 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : unique client order id
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price that a trigger order is triggered at

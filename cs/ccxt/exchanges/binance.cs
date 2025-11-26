@@ -913,6 +913,7 @@ public partial class binance : Exchange
                         { "commissionRate", 20 },
                         { "rateLimit/order", 1 },
                         { "apiTradingStatus", 1 },
+                        { "symbolAdlRisk", 1 },
                         { "multiAssetsMargin", 30 },
                         { "apiReferral/ifNewUser", 1 },
                         { "apiReferral/customization", 1 },

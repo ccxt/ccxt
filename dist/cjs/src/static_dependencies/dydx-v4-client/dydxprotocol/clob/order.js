@@ -11,7 +11,6 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var _m0__default = /*#__PURE__*/_interopDefaultLegacy(_m0);
 
-// ----------------------------------------------------------------------------
 /**
  * Represents the side of the orderbook the order will be placed on.
  * Note that Side.SIDE_UNSPECIFIED is an invalid order and cannot be

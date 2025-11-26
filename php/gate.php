@@ -3928,7 +3928,7 @@ class gate extends Exchange {
         if ($pointFee !== null) {
             $fees[] = array(
                 'cost' => $pointFee,
-                'currency' => 'GatePoint',
+                'currency' => 'GATEPOINT',
             );
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
