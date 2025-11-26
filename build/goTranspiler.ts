@@ -2408,8 +2408,10 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             ]).trim ();
 
-            // Add package prefix to functions and types from the ccxt package
-            content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
+            if (testName !== 'tests.init') {
+                // Add package prefix to functions and types from the ccxt package
+                content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
+            }
 
             const file = [
                 'package base',
