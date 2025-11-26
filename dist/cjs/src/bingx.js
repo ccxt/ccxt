@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bingx
@@ -215,6 +215,7 @@ class bingx extends bingx$1["default"] {
                             'get': {
                                 'market/depth': 1,
                                 'market/kline': 1,
+                                'ticker/price': 1,
                             },
                         },
                     },
