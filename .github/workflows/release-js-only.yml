@@ -62,7 +62,7 @@ jobs:
           
           # Create release body with installation instructions
           PACKAGE_NAME=$(node -p "require('./package.json').name")
-          RELEASE_BODY="Release $TAG_NAME\n\nInstall: \`npm install $PACKAGE_NAME@$VERSION\`\n\nAdd to package.json: \`\"$PACKAGE_NAME\": \"$VERSION\"\`"
+          RELEASE_BODY="Release $TAG_NAME\n\nInstall (alias so imports stay as 'ccxt'):\n\`npm install ccxt@npm:$PACKAGE_NAME@$VERSION\`\n\nAdd to package.json dependencies:\n\`\"ccxt\": \"npm:$PACKAGE_NAME@$VERSION\"\`\n\nThis keeps \`import { Exchange } from 'ccxt';\` working without changes."
           RELEASE_BODY_JSON=$(echo "$RELEASE_BODY" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
           
           # Create GitHub release using GitHub API

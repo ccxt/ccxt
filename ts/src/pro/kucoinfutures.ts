@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import kucoinfuturesRest from '../kucoinfutures.js';
-import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -26,7 +26,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'watchOrders': true,
                 'watchBalance': true,
                 'watchPosition': true,
-                'watchPositions': false,
+                'watchPositions': true,
                 'watchPositionForSymbols': false,
                 'watchTradesForSymbols': true,
                 'watchOrderBookForSymbols': true,
@@ -394,6 +394,52 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#watchPositions
+     * @see https://www.kucoin.com/docs-new/3470093w0
+     * @description watch all open positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const url = await this.negotiate (true);
+        const client = this.client (url);
+        symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        if (!this.isEmpty (symbols)) {
+            market = this.getMarketFromSymbols (symbols);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params, 'swap');
+        if (type !== 'swap') {
+            throw new NotSupported (this.id + ' watchPositions() supports only swap markets');
+        }
+        // seed and optionally await the snapshot cache
+        this.setPositionsCache (client, symbols);
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && (this.positions === undefined)) {
+            const snapshot = await client.future ('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const topic = '/contract/positionAll';
+        const request: Dict = {
+            'privateChannel': true,
+        };
+        // subscribe once; handler will resolve global and per-symbol updates
+        const messageHash = 'swap:positions';
+        const newPositions = await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
     getCurrentPosition (symbol) {
         if (this.positions === undefined) {
             return undefined;
@@ -413,6 +459,35 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 this.spawn (this.loadPositionSnapshot, client, messageHash, symbol);
             }
         }
+    }
+
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash);
+            }
+        } else {
+            this.positions = new ArrayCacheBySymbolById ();
+        }
+    }
+
+    async loadPositionsSnapshot (client, messageHash) {
+        const positions = await this.fetchPositions ();
+        this.positions = new ArrayCacheBySymbolById ();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const contracts = this.safeNumber (position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append (position);
+            }
+        }
+        const future = client.futures[messageHash];
+        future.resolve (cache);
+        client.resolve (cache, 'swap:positions');
     }
 
     async loadPositionSnapshot (client, messageHash, symbol) {
@@ -538,6 +613,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const position = this.extend (currentPosition, newPosition);
         cache.append (position);
         client.resolve (position, messageHash);
+        client.resolve ([ position ], 'swap:positions');
     }
 
     /**
@@ -867,12 +943,43 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const quantity = this.safeNumber (splitChange, 2);
         const type = (side === 'buy') ? 'bids' : 'asks';
         const value = [ price, quantity ];
+        this.fixIntersections (orderbook, type, price);
         if (type === 'bids') {
             const storedBids = orderbook['bids'];
             storedBids.storeArray (value);
         } else {
             const storedAsks = orderbook['asks'];
             storedAsks.storeArray (value);
+        }
+    }
+
+    fixIntersections (orderbook, type, price) {
+        if (price === undefined) {
+            return;
+        }
+        let removedCount = 0;
+        if (type === 'asks') {
+            const storedBids = orderbook['bids'];
+            while ((storedBids.length > 0) && (storedBids[0][0] >= price)) {
+                const bestBid = storedBids[0][0];
+                storedBids.store (bestBid, 0);
+                removedCount++;
+            }
+        } else {
+            const storedAsks = orderbook['asks'];
+            while ((storedAsks.length > 0) && (storedAsks[0][0] <= price)) {
+                const bestAsk = storedAsks[0][0];
+                storedAsks.store (bestAsk, 0);
+                removedCount++;
+            }
+        }
+        if (removedCount > 0) {
+            const symbol = this.safeString (orderbook, 'symbol', 'unknown');
+            if (type === 'asks') {
+                this.log (this.id + ' ' + symbol + ' removed ' + removedCount + ' bids where price >= ' + price + ' due to intersections');
+            } else {
+                this.log (this.id + ' ' + symbol + ' removed ' + removedCount + ' asks where price <= ' + price + ' due to intersections');
+            }
         }
     }
 
@@ -904,6 +1011,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketId = this.safeString (topicParts, 1);
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
+        const loadOrderBookHash = 'loadOrderBook:' + symbol;
         if (!(symbol in this.orderbooks)) {
             const subscriptionArgs = this.safeDict (client.subscriptions, topic, {});
             const limit = this.safeInteger (subscriptionArgs, 'limit');
@@ -912,32 +1020,43 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         const deltaEnd = this.safeInteger (data, 'sequence');
+        if (loadOrderBookHash in client.futures) {
+            storedOrderBook.cache.push (data);
+            return;
+        }
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            const topicPartsNew = topic.split (':');
-            const topicSymbol = this.safeString (topicPartsNew, 1);
-            const topicChannel = this.safeString (topicPartsNew, 0);
-            const subscriptions = Object.keys (client.subscriptions);
-            let subscription = undefined;
-            for (let i = 0; i < subscriptions.length; i++) {
-                const key = subscriptions[i];
-                if ((key.indexOf (topicSymbol) >= 0) && (key.indexOf (topicChannel) >= 0)) {
-                    subscription = client.subscriptions[key];
-                    break;
-                }
-            }
-            const limit = this.safeInteger (subscription, 'limit');
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
-                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
+                const subscriptionArgs = this.safeDict (client.subscriptions, topic, {});
+                const limit = this.safeInteger (subscriptionArgs, 'limit');
+                this.spawnLoadOrderBook (loadOrderBookHash, client, messageHash, symbol, limit);
             }
             storedOrderBook.cache.push (data);
             return;
-        } else if (nonce >= deltaEnd) {
+        }
+        if (nonce >= deltaEnd) {
+            return;
+        }
+        if (deltaEnd !== nonce + 1) {
+            const gap = deltaEnd - nonce - 1;
+            this.log (this.id + ' orderbook sequence gap detected for ' + symbol + ': expected ' + (nonce + 1) + ', got ' + deltaEnd + ' (gap: ' + gap + '). Resyncing orderbook.');
+            const subscriptionArgs = this.safeDict (client.subscriptions, topic, {});
+            const limit = this.safeInteger (subscriptionArgs, 'limit');
+            this.spawnLoadOrderBook (loadOrderBookHash, client, messageHash, symbol, limit);
             return;
         }
         this.handleDelta (storedOrderBook, data);
         client.resolve (storedOrderBook, messageHash);
+    }
+
+    spawnLoadOrderBook (loadOrderBookHash: string, client: Client, messageHash: string, symbol: string, limit: Int) {
+        client.future (loadOrderBookHash);
+        this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {}).then (() => {
+            delete client.futures[loadOrderBookHash];
+        }).catch (() => {
+            delete client.futures[loadOrderBookHash];
+        });
     }
 
     getCacheIndex (orderbook, cache) {
