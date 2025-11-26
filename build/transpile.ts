@@ -3041,19 +3041,19 @@ class Transpiler {
         }
 
         // // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
-        // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, (child || !!exchanges.length))
+        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, (child || !!exchanges.length))
 
-        // if (classes === null) {
-        //     log.bright.yellow ('0 files transpiled.')
-        //     return;
-        // }
+        if (classes === null) {
+            log.bright.yellow ('0 files transpiled.')
+            return;
+        }
         if (child) {
             return
         }
 
         if (!transpilingSingleExchange) {
             this.transpileBaseMethods ()
-return
+
             //*/
 
             this.transpileErrorHierarchy ()
