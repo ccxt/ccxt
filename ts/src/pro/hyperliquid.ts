@@ -398,15 +398,16 @@ export default class hyperliquid extends hyperliquidRest {
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws']['public'];
+        const subscriptionType = 'userFills'; // share subscription with other watchMyTrades calls since userFills is not symbol-specific
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
-                'type': 'userFills',
+                'type': subscriptionType,
                 'user': userAddress,
             },
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades = await this.watch (url, messageHash, message, subscriptionType);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
