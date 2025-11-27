@@ -77,7 +77,7 @@ class coinbase extends \ccxt\async\coinbase {
             $market = null;
             $messageHash = $name;
             $productIds = array();
-            if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
+            if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
                 $symbols = $this->market_symbols($symbol);
                 $marketIds = $this->market_ids($symbols);
                 $productIds = $marketIds;
@@ -126,7 +126,7 @@ class coinbase extends \ccxt\async\coinbase {
             $watchMessageHash = $name;
             $unWatchMessageHash = 'unsubscribe:' . $name;
             $productIds = array();
-            if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
+            if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
                 $symbols = $this->market_symbols($symbol);
                 $marketIds = $this->market_ids($symbols);
                 $productIds = $marketIds;

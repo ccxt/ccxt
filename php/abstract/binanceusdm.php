@@ -1450,6 +1450,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function fapipublic_get_depth($params = array()) {
         return $this->request('depth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "byLimit" => [[50, 2], [100, 5], [500, 10], [1000, 20]]));
     }
+    public function fapipublic_get_rpidepth($params = array()) {
+        return $this->request('rpiDepth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function fapipublic_get_trades($params = array()) {
         return $this->request('trades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -3774,6 +3777,9 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function fapiPublicGetDepth($params = array()) {
         return $this->request('depth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "byLimit" => [[50, 2], [100, 5], [500, 10], [1000, 20]]));
+    }
+    public function fapiPublicGetRpiDepth($params = array()) {
+        return $this->request('rpiDepth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
     }
     public function fapiPublicGetTrades($params = array()) {
         return $this->request('trades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));

@@ -1875,7 +1875,7 @@ class phemex extends Exchange {
         $symbol = $market['symbol'];
         $orderId = null;
         $takerOrMaker = null;
-        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
+        if ((gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade)))) {
             $tradeLength = count($trade);
             $timestamp = $this->safe_integer_product($trade, 0, 0.000001);
             if ($tradeLength > 4) {
@@ -3142,7 +3142,7 @@ class phemex extends Exchange {
         }
         $data = $this->safe_value($response, 'data', array());
         $order = $data;
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             $numOrders = count($data);
             if ($numOrders < 1) {
                 if ($clientOrderId !== null) {
@@ -3238,7 +3238,7 @@ class phemex extends Exchange {
             throw $e;
         }
         $data = $this->safe_value($response, 'data', array());
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             return $this->parse_orders($data, $market, $since, $limit);
         } else {
             $rows = $this->safe_list($data, 'rows', array());
@@ -3324,7 +3324,7 @@ class phemex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             return $this->parse_orders($data, $market, $since, $limit);
         } else {
             $rows = $this->safe_list($data, 'rows', array());

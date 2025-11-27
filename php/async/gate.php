@@ -3529,7 +3529,7 @@ class gate extends Exchange {
         //          "l" => "40783.94"         // Lowest price
         //     }
         //
-        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
+        if ((gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv)))) {
             return array(
                 $this->safe_timestamp($ohlcv, 0),   // unix timestamp in seconds
                 $this->safe_number($ohlcv, 5),      // open price
@@ -6559,7 +6559,7 @@ class gate extends Exchange {
         //         }
         //     )
         //
-        if (gettype($info) !== 'array' || array_keys($info) !== array_keys(array_keys($info))) {
+        if ((gettype($info) !== 'array' || array_keys($info) !== array_keys(array_keys($info)))) {
             return $this->parse_emulated_leverage_tiers($info, $market);
         }
         $minNotional = 0;
@@ -6915,7 +6915,7 @@ class gate extends Exchange {
             }
             $params = $newParams;
             $query = $newParams;
-        } elseif (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) {
+        } elseif ((gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)))) {
             // endpoints like createOrders use an array instead of an object
             // so we infer the $settle from one of the elements
             // they have to be all the same so relying on the $first one is fine

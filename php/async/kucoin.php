@@ -3503,7 +3503,7 @@ class kucoin extends Exchange {
                 }
             }
             $responseData = $this->safe_dict($response, 'data', array());
-            if (gettype($responseData) === 'array' && array_keys($responseData) === array_keys(array_keys($responseData))) {
+            if ((gettype($responseData) === 'array' && array_keys($responseData) === array_keys(array_keys($responseData)))) {
                 $responseData = $this->safe_value($responseData, 0);
             }
             return $this->parse_order($responseData, $market);

@@ -2382,7 +2382,7 @@ class binance extends \ccxt\async\binance {
         $resolvedMessageHashes = array();
         $rawTickers = array();
         $newTickers = array();
-        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
+        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             $rawTickers = $message;
         } else {
             $rawTickers[] = $message;
@@ -2726,7 +2726,7 @@ class binance extends \ccxt\async\binance {
         //
         $messageHash = $this->safe_string($message, 'id');
         $rawBalance = null;
-        if (gettype($message['result']) === 'array' && array_keys($message['result']) === array_keys(array_keys($message['result']))) {
+        if ((gettype($message['result']) === 'array' && array_keys($message['result']) === array_keys(array_keys($message['result'])))) {
             // account.balance
             $rawBalance = $this->safe_list($message, 'result', array());
         } else {
@@ -4623,7 +4623,7 @@ class binance extends \ccxt\async\binance {
             'externalLockUpdate' => array($this, 'handle_balance'),
         );
         $event = $this->safe_string($message, 'e');
-        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
+        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             $data = $message[0];
             $event = $this->safe_string($data, 'e') . '@arr';
         }

@@ -2223,7 +2223,7 @@ class htx extends Exchange {
         $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
-            if ($ticker['bid'] !== null && gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
+            if ($ticker['bid'] !== null && (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid'])))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
             } else {
@@ -2232,7 +2232,7 @@ class htx extends Exchange {
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
-            if ($ticker['ask'] !== null && gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
+            if ($ticker['ask'] !== null && (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask'])))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
             } else {
@@ -3047,7 +3047,7 @@ class htx extends Exchange {
             //     }
             //
             $trades = $this->safe_value($response, 'data');
-            if (gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades))) {
+            if ((gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades)))) {
                 $trades = $this->safe_value($trades, 'trades');
             }
             return $this->parse_trades($trades, $market, $since, $limit);
@@ -4084,7 +4084,7 @@ class htx extends Exchange {
             //         "ts" => 1603703678477
             //     }
             $order = $this->safe_value($response, 'data');
-            if (gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order))) {
+            if ((gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order)))) {
                 $order = $this->safe_value($order, 0);
             }
             return $this->parse_order($order);
@@ -4424,7 +4424,7 @@ class htx extends Exchange {
             //     }
             //
             $orders = $this->safe_value($response, 'data');
-            if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
+            if ((gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders)))) {
                 $orders = $this->safe_value($orders, 'orders', array());
             }
             return $this->parse_orders($orders, $market, $since, $limit);
@@ -4822,7 +4822,7 @@ class htx extends Exchange {
             //     }
             //
             $orders = $this->safe_value($response, 'data');
-            if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
+            if ((gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders)))) {
                 $orders = $this->safe_value($orders, 'orders', array());
             }
             return $this->parse_orders($orders, $market, $since, $limit);

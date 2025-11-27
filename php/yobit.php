@@ -847,7 +847,7 @@ class yobit extends Exchange {
         //          )
         //      }
         //
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             $numElements = count($response);
             if ($numElements === 0) {
                 return array();

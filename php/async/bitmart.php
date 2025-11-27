@@ -2093,7 +2093,7 @@ class bitmart extends Exchange {
         //        "v":"146"
         //    }
         //
-        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
+        if ((gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv)))) {
             return array(
                 $this->safe_timestamp($ohlcv, 0),
                 $this->safe_number($ohlcv, 1),
