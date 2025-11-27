@@ -78,28 +78,90 @@ const VALID_TRANSFORMS = [
 ];
 
 const CCXT_METHODS = [
+    // Market data
     'fetchTicker',
     'fetchTickers',
     'fetchOrderBook',
     'fetchTrades',
     'fetchOHLCV',
+    'fetchBidsAsks',
+    'fetchLastPrices',
+    // Account
     'fetchBalance',
+    'fetchBalanceWs',
+    'fetchAccountPositions',
+    'fetchPositions',
+    'fetchPositionsRisk',
+    // Orders
     'createOrder',
+    'createOrders',
+    'createLimitOrder',
+    'createMarketOrder',
+    'createStopLimitOrder',
+    'createStopMarketOrder',
+    'createTakeProfitOrder',
+    'createOrderWs',
     'cancelOrder',
+    'cancelOrders',
+    'cancelAllOrders',
+    'cancelAllOrdersAfter',
+    'cancelOrderWs',
+    'editOrder',
     'fetchOrder',
     'fetchOrders',
     'fetchOpenOrders',
+    'fetchOpenOrdersWs',
     'fetchClosedOrders',
+    'fetchOrderWs',
+    // Trades
     'fetchMyTrades',
+    'fetchMyTradesWs',
+    // Funding
     'fetchDeposits',
     'fetchWithdrawals',
+    'fetchDepositAddress',
+    'fetchDepositAddressesByNetwork',
     'fetchLedger',
     'withdraw',
     'deposit',
+    'transfer',
+    'fetchTransfers',
+    // Derivatives
+    'fetchMarkPrice',
+    'fetchIndexPrice',
+    'fetchFundingRate',
+    'fetchFundingRates',
+    'fetchFundingRateHistory',
+    'fetchFundingHistory',
+    // Margin
+    'fetchBorrowRates',
+    'fetchBorrowRate',
+    'fetchBorrowInterest',
+    'borrowMargin',
+    'repayMargin',
+    'setMarginMode',
+    'setLeverage',
+    'fetchLeverage',
+    'fetchLeverages',
+    'addMargin',
+    'reduceMargin',
+    // Meta
     'fetchMarkets',
     'fetchCurrencies',
     'fetchTime',
     'fetchStatus',
+];
+
+// Capability flags (not methods) that belong in the `has` object
+const CCXT_CAPABILITIES = [
+    'publicAPI',
+    'privateAPI',
+    'sandbox',
+    'spot',
+    'margin',
+    'swap',
+    'future',
+    'option',
 ];
 
 export function analyzeEDL(doc: EDLDocument): ValidationResult {
@@ -546,9 +608,10 @@ function validateCrossReferences(doc: EDLDocument, errors: ValidationError[], wa
     }
 
     // Validate features match what's defined
+    // Skip capability flags (publicAPI, spot, margin, etc.) - they belong in `has`
     if (doc.features) {
         for (const [feature, enabled] of Object.entries(doc.features)) {
-            if (enabled && !CCXT_METHODS.includes(feature)) {
+            if (enabled && !CCXT_METHODS.includes(feature) && !CCXT_CAPABILITIES.includes(feature)) {
                 warnings.push({
                     path: `features.${feature}`,
                     message: `Feature "${feature}" is not a standard CCXT method`,
