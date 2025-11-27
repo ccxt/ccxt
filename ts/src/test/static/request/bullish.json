@@ -9,6 +9,8 @@
         "createdAtDatetime[lte]",
         "createdAtDatetime%5bgte%5d",
         "createdAtDatetime%5blte%5d",
+        "createdAtDatetime%5Bgte%5D",
+        "createdAtDatetime%5Blte%5D",
         "tradingAccountId"
     ],
     "outputType": "urlencoded",
