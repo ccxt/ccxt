@@ -248,6 +248,7 @@ export function main(args: string[] = process.argv.slice(2)): void {
 
     const files: string[] = [];
     let outputDir: string | undefined;
+    let quiet = false;
 
     // Parse arguments
     for (let i = 0; i < args.length; i++) {
@@ -261,6 +262,8 @@ export function main(args: string[] = process.argv.slice(2)): void {
             process.exit(0);
         } else if (arg === '--verbose') {
             options.verbose = true;
+        } else if (arg === '--quiet' || arg === '-q') {
+            quiet = true;
         } else if (arg === '--validate-only') {
             options.validateOnly = true;
         } else if (arg === '--no-comments') {
@@ -288,9 +291,11 @@ export function main(args: string[] = process.argv.slice(2)): void {
 
         const result = compileFile(file, options);
 
-        // Print warnings
-        for (const warning of result.warnings) {
-            console.warn(`  Warning: ${warning}`);
+        // Print warnings (unless --quiet)
+        if (!quiet) {
+            for (const warning of result.warnings) {
+                console.warn(`  Warning: ${warning}`);
+            }
         }
 
         // Print errors
@@ -322,6 +327,7 @@ Options:
   -h, --help           Show this help message
   -v, --version        Show version number
   -o, --out <dir>      Output directory (default: same as input)
+  -q, --quiet          Suppress warnings
   --validate-only      Only validate, don't generate code
   --no-comments        Don't include JSDoc comments
   --verbose            Print detailed progress
