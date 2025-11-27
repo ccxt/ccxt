@@ -61,6 +61,22 @@
           tabHeadings: true       // default
         },
       };
+      if (typeof navigator.serviceWorker !== 'undefined') {
+        navigator.serviceWorker.register('sw.js').then (registration => {
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (!newWorker) return;
+
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // New service worker is ready → force a one-time reload
+                // (or show a toast: "New version available – reload")
+                window.location.reload();
+              }
+            });
+        })
+      })
+    }
     </script>
     <!-- Docsify v4 -->
     <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
