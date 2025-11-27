@@ -6,6 +6,51 @@
         "tokenExpires": 9999999999999
     },
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USDC:USDC",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "fundingRate": "0.0000124845492910209",
+                        "updatedAtDatetime": "2025-11-25T11:13:18.461Z"
+                    },
+                    {
+                        "fundingRate": "0.0000173964510963766",
+                        "updatedAtDatetime": "2025-11-25T10:59:59.380Z"
+                    },
+                    {
+                        "fundingRate": "0.00000733850491921853",
+                        "updatedAtDatetime": "2025-11-25T09:59:59.009Z"
+                    },
+                    {
+                        "fundingRate": "0.0000186210791765674",
+                        "updatedAtDatetime": "2025-11-25T08:59:59.642Z"
+                    },
+                    {
+                        "fundingRate": "-0.00000241950979732705",
+                        "updatedAtDatetime": "2025-11-25T07:59:59.270Z"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fundingRate": "0.0000124845492910209",
+                            "updatedAtDatetime": "2025-11-25T11:13:18.461Z"
+                        },
+                        "symbol": "ETH/USDC:USDC",
+                        "fundingRate": 0.0000124845492910209,
+                        "timestamp": 1764069198461,
+                        "datetime": "2025-11-25T11:13:18.461Z"
+                    }
+                ]
+            }
+        ],
         "fetchOrderTrades": [
             {
                 "description": "Fetch order trades",
