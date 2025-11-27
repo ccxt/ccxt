@@ -11,6 +11,8 @@ include_once (__DIR__.'/test_cache.php');
 
 
 function base_tests_init_ws() {
-    test_ws_order_book();
-    test_ws_cache();
+    return \React\Async\async(function () {
+        test_ws_order_book();
+        test_ws_cache();
+    })();
 }
