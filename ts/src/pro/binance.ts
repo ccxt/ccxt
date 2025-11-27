@@ -673,8 +673,10 @@ export default class binance extends binanceRest {
             }
             streamHash += '::' + symbols.join (',');
         }
-        let watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
-        const rpi = this.safeValue (params, 'rpi', false);
+        let watchOrderBookRate = undefined;
+        [ watchOrderBookRate, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100');
+        let rpi = undefined;
+        [ rpi, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'rpi', false);
         if (rpi && type === 'future') {
             name = 'rpiDepth';
             watchOrderBookRate = '500';
