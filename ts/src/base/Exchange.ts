@@ -5323,7 +5323,8 @@ export default class Exchange {
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
-                            this.log ('Request failed with the error: ' + e.toString () + ', retrying ' + (i + 1).toString () + ' of ' + retries.toString () + '...');
+                            const index = i + 1;
+                            this.log ('Request failed with the error: ' + e.toString () + ', retrying ' + index.toString () + ' of ' + retries.toString () + '...');
                         }
                         if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep (retryDelay);
