@@ -651,6 +651,10 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return io.github.ccxt.base.Functions.uuidv1();
     }
 
+    public String uuid16() {
+        return io.github.ccxt.base.Functions.uuid16();
+    }
+
     public java.util.List<Object> extractParams(Object str) {
         return io.github.ccxt.base.Functions.extractParams(str);
     }
@@ -940,6 +944,14 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
 
     public String yymmdd(Object timestamp, Object infix) {
         return Time.yymmdd(timestamp, infix);
+    }
+
+    public String yyyymmdd(Object timestamp) {
+        return Time.yyyymmdd(timestamp);
+    }
+
+    public String yyyymmdd(Object timestamp, Object infix) {
+        return Time.yyyymmdd(timestamp, infix);
     }
     // public Long nonce() {
     //     return Time.nonce();
@@ -1600,6 +1612,22 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return failed;
     }
 
+    public boolean isEmpty(Object a) {
+        if (a == null) {
+            return true;
+        }
+        if (a instanceof String) {
+            return ((String) a).isEmpty();
+        }
+        if (a instanceof java.util.List) {
+            return ((java.util.List<?>) a).isEmpty();
+        }
+        if (a instanceof java.util.Map) {
+            return ((java.util.Map<?, ?>) a).isEmpty();
+        }
+        return false;
+    }
+
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
@@ -1638,7 +1666,7 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{
@@ -2237,7 +2265,6 @@ public Object describe()
 
     public Object checkProxySettings(Object... optionalArgs)
     {
-        Print("inside check proxy settings");
         Object url = Helpers.getArg(optionalArgs, 0, null);
         Object method = Helpers.getArg(optionalArgs, 1, null);
         Object headers = Helpers.getArg(optionalArgs, 2, null);
@@ -2251,7 +2278,6 @@ public Object describe()
         Object isHttp_proxy_defined = this.valueIsDefined(this.http_proxy);
         if (Helpers.isTrue(Helpers.isTrue(isHttpProxyDefined) || Helpers.isTrue(isHttp_proxy_defined)))
         {
-            Print("httpProxy is defined");
             ((java.util.List<Object>)usedProxies).add("httpProxy");
             httpProxy = ((Helpers.isTrue(isHttpProxyDefined))) ? this.httpProxy : this.http_proxy;
         }
@@ -2259,7 +2285,6 @@ public Object describe()
         Object ishttp_proxy_callback_defined = this.valueIsDefined(this.http_proxy_callback);
         if (Helpers.isTrue(Helpers.isTrue(ishttpProxyCallbackDefined) || Helpers.isTrue(ishttp_proxy_callback_defined)))
         {
-            Print("httpProxyCallback is defined");
             ((java.util.List<Object>)usedProxies).add("httpProxyCallback");
             httpProxy = ((Helpers.isTrue(ishttpProxyCallbackDefined))) ? Helpers.callDynamically(this, "httpProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "http_proxy_callback", new Object[] { url, method, headers, body });
         }
@@ -2268,7 +2293,7 @@ public Object describe()
         Object isHttps_proxy_defined = this.valueIsDefined(this.https_proxy);
         if (Helpers.isTrue(Helpers.isTrue(isHttpsProxyDefined) || Helpers.isTrue(isHttps_proxy_defined)))
         {
-            // Print("httpsProxy is defined");
+            ((java.util.List<Object>)usedProxies).add("httpsProxy");
             httpsProxy = ((Helpers.isTrue(isHttpsProxyDefined))) ? this.httpsProxy : this.https_proxy;
         }
         Object ishttpsProxyCallbackDefined = this.valueIsDefined(this.httpsProxyCallback);
@@ -3771,6 +3796,7 @@ public Object describe()
     {
         // automatically generate network-id-to-code mappings
         Object networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}})); // invert defined networks dictionary
+        
         Helpers.addElementToObject(this.options, "networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new java.util.HashMap<String, Object>() {{}}))); // support manually overriden "networksById" dictionary too
     }
 
@@ -5374,6 +5400,7 @@ public Object describe()
                 {
                     try
                     {
+                        
                         response = (Helpers.callDynamically(this, endpointMethod, new Object[] { new java.util.HashMap<String, Object>() {{}} })).join();
                         shouldBreak = true;
                         break;

@@ -281,9 +281,9 @@ public class Helpers {
         }
     }
 
-    public static int subtract(int a, int b) { return a - b; }
+    // public static int subtract(int a, int b) { return a - b; }
 
-    public float subtract(float a, float b) { return a - b; }
+    // public float subtract(float a, float b) { return a - b; }
 
     public static Object divide(Object a, Object b) {
         a = normalizeIntIfNeeded(a);
