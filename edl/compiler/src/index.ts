@@ -5,12 +5,31 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import yaml from 'yaml';
 import { parseEDLFile, parseEDLContent } from './parser/index.js';
+import { parseEDLv2File } from './parser/v2-parser.js';
 import { analyzeEDL } from './analyzer/index.js';
 import { generateExchange } from './generator/index.js';
+import { generateExchangeV2 } from './generator/v2-generator.js';
 import { emit } from './generator/emitter.js';
 import type { EDLDocument, ValidationResult } from './types/edl.js';
 import type { TSFile } from './types/ast.js';
+
+/**
+ * Detect EDL version from file content
+ */
+function detectVersion(filePath: string): '1' | '2' {
+    try {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const doc = yaml.parse(content);
+        if (doc?.version && doc.version.toString().startsWith('2')) {
+            return '2';
+        }
+    } catch (e) {
+        // Fall back to v1 on parse error
+    }
+    return '1';
+}
 
 export interface CompileOptions {
     outputDir?: string;
@@ -37,6 +56,19 @@ export function compileFile(filePath: string, options: CompileOptions = {}): Com
         warnings: [],
     };
 
+    // Detect version
+    const version = detectVersion(filePath);
+
+    if (options.verbose) {
+        console.log(`Detected EDL version: ${version}`);
+    }
+
+    // Route to appropriate compiler
+    if (version === '2') {
+        return compileFileV2(filePath, options);
+    }
+
+    // V1 compilation path
     // Parse
     if (options.verbose) {
         console.log(`Parsing ${filePath}...`);
@@ -83,6 +115,67 @@ export function compileFile(filePath: string, options: CompileOptions = {}): Com
 
     // Emit
     const code = emit(ast);
+
+    // Write output
+    const exchangeId = parseResult.document.exchange.id;
+    const outputDir = options.outputDir || path.dirname(filePath);
+    const outputPath = path.join(outputDir, `${exchangeId}.ts`);
+
+    if (options.verbose) {
+        console.log(`Writing ${outputPath}...`);
+    }
+
+    fs.mkdirSync(outputDir, { recursive: true });
+    fs.writeFileSync(outputPath, code, 'utf-8');
+
+    result.success = true;
+    result.exchangeId = exchangeId;
+    result.outputPath = outputPath;
+
+    return result;
+}
+
+/**
+ * Compile an EDL v2 file to TypeScript
+ */
+export function compileFileV2(filePath: string, options: CompileOptions = {}): CompileResult {
+    const result: CompileResult = {
+        success: false,
+        errors: [],
+        warnings: [],
+    };
+
+    // Parse with v2 parser
+    if (options.verbose) {
+        console.log(`Parsing ${filePath} with v2 parser...`);
+    }
+
+    const parseResult = parseEDLv2File(filePath);
+    if (!parseResult.success || !parseResult.document) {
+        result.errors = parseResult.errors.map(e => `${e.path}: ${e.message}`);
+        return result;
+    }
+
+    result.warnings = parseResult.warnings.map(w => `${w.path}: ${w.message}`);
+
+    // V2 doesn't have a separate analyzer yet - validation happens in parser
+    // TODO: Add v2 analyzer for more thorough validation
+
+    // Stop here if validate only
+    if (options.validateOnly) {
+        result.success = true;
+        result.exchangeId = parseResult.document.exchange.id;
+        return result;
+    }
+
+    // Generate with v2 generator
+    if (options.verbose) {
+        console.log('Generating TypeScript with v2 generator...');
+    }
+
+    const code = generateExchangeV2(parseResult.document, {
+        includeComments: options.includeComments ?? true,
+    });
 
     // Write output
     const exchangeId = parseResult.document.exchange.id;

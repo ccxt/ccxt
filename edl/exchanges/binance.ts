@@ -1,1033 +1,669 @@
-import { Exchange } from './base/Exchange.js';
-import type { Dict, Int, Num, Str, Ticker, Trade, Order, Balances, Market } from './base/types.js';
+import Exchange from './abstract/binance.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import type { Dict, Int, Num, Str, Strings, Market, Currency, Trade, Ticker, OrderBook, Order, Balances, OHLCV, Transaction } from './base/types.js';
+import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { sha256, sha512, md5 } from './static_dependencies/noble-hashes/sha2.js';
+import { eddsa, rsa } from './base/functions/crypto.js';
 
-export default class Binance extends Exchange {
+export default class binance extends Exchange {
 
-    /**
-     * Returns the exchange description object
-     *
-     * @returns {object} Exchange configuration
-     */
-    describe (): object {
-        return this.deepExtend (super.describe (), {
+    describe () {
+        return this.deepExtend(super.describe(), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': [],
+            'countries': ["JP","MT"],
             'rateLimit': 50,
-            'version': 'v3',
             'certified': true,
             'pro': true,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
-                'api': {
-                    'public': 'https://api.binance.com/api/v3',
-                    'private': 'https://api.binance.com/api/v3',
-                    'sapi': 'https://api.binance.com/sapi/v1',
-                    'fapiPublic': 'https://fapi.binance.com/fapi/v1',
-                    'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
-                    'dapiPublic': 'https://dapi.binance.com/dapi/v1',
-                    'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
-                    'eapiPublic': 'https://eapi.binance.com/eapi/v1',
-                    'eapiPrivate': 'https://eapi.binance.com/eapi/v1',
+                "logo": "https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg",
+                "api": {
+                    "public": "https://api.binance.com/api/v3",
+                    "private": "https://api.binance.com/api/v3",
+                    "sapi": "https://api.binance.com/sapi/v1",
+                    "fapiPublic": "https://fapi.binance.com/fapi/v1",
+                    "fapiPrivate": "https://fapi.binance.com/fapi/v1",
+                    "fapiPrivateV2": "https://fapi.binance.com/fapi/v2",
+                    "fapiPrivateV3": "https://fapi.binance.com/fapi/v3",
+                    "dapiPublic": "https://dapi.binance.com/dapi/v1",
+                    "dapiPrivate": "https://dapi.binance.com/dapi/v1",
+                    "papi": "https://papi.binance.com/papi/v1"
                 },
-                'test': {
-                    'public': 'https://testnet.binance.vision/api/v3',
-                    'private': 'https://testnet.binance.vision/api/v3',
-                    'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
-                    'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
-                    'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
-                    'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
-                },
-                'www': 'https://www.binance.com',
-                'doc': ['https://binance-docs.github.io/apidocs/spot/en'],
-                'fees': 'https://www.binance.com/en/fee/trading',
-                'referral': 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                "www": "https://www.binance.com",
+                "doc": [
+                    "https://binance-docs.github.io/apidocs/spot/en",
+                    "https://binance-docs.github.io/apidocs/futures/en",
+                    "https://binance-docs.github.io/apidocs/delivery/en"
+                ],
+                "fees": "https://www.binance.com/en/fee/schedule"
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'trades',
-                        'historicalTrades',
-                        'aggTrades',
-                        'klines',
-                        'avgPrice',
-                        'ticker/24hr',
-                        'ticker/tradingDay',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'ticker',
-                    ],
+                    'get': ['time', 'exchangeInfo', 'ticker24hr', 'tickerPrice', 'depth', 'trades', 'historicalTrades', 'klines'],
                 },
                 'private': {
-                    'get': ['account', 'myTrades', 'openOrders', 'allOrders', 'order'],
-                    'post': ['order', 'order/test'],
-                    'delete': ['order', 'openOrders'],
+                    'get': ['account', 'openOrders', 'allOrders', 'order', 'myTrades'],
+                    'post': ['order'],
+                    'delete': ['order'],
+                },
+                'sapi': {
+                    'get': ['capital/config/getall', 'margin/account', 'margin/isolated/account', 'asset/get-funding-asset'],
+                },
+                'fapiPrivate': {
+                    'get': ['account', 'openOrders'],
+                    'post': ['order'],
                 },
             },
             'has': {
-                'CORS': null,
-                'spot': true,
-                'margin': true,
-                'swap': true,
-                'future': true,
-                'option': true,
-                'fetchTicker': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'fetchTrades': true,
-                'fetchMyTrades': true,
-                'fetchBalance': true,
-                'fetchMarkets': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
-                'fetchDepositAddress': true,
-                'fetchTime': true,
-                'fetchOrderBook': true,
-                'fetchOHLCV': true,
-                'fetchOpenOrders': true,
-                'cancelAllOrders': true,
-                'publicAPI': true,
-                'privateAPI': true,
-                'sandbox': true,
-                'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchStatus': true,
-                'fetchBidsAsks': true,
-                'fetchLastPrices': true,
-                'fetchMarkPrice': true,
-                'fetchIndexPrice': true,
-                'fetchFundingRate': true,
-                'fetchFundingRates': true,
-                'fetchFundingRateHistory': true,
-                'fetchFundingHistory': true,
-                'createOrders': true,
-                'createLimitOrder': true,
-                'createMarketOrder': true,
-                'createStopLimitOrder': true,
-                'createStopMarketOrder': true,
-                'createTakeProfitOrder': true,
-                'createOrderWs': true,
-                'cancelOrders': true,
-                'cancelAllOrdersAfter': true,
-                'cancelOrderWs': true,
-                'editOrder': true,
-                'fetchBalanceWs': true,
-                'fetchAccountPositions': true,
-                'fetchPositions': true,
-                'fetchPositionsRisk': true,
-                'fetchOpenOrdersWs': true,
-                'fetchClosedOrders': true,
-                'fetchOrderWs': true,
-                'fetchMyTradesWs': true,
-                'fetchTransactions': false,
-                'fetchDepositAddresses': false,
-                'fetchDepositAddressesByNetwork': true,
-                'withdraw': true,
-                'transfer': true,
-                'fetchTransfers': true,
-                'fetchBorrowRates': true,
-                'fetchBorrowRate': true,
-                'fetchBorrowInterest': true,
-                'borrowMargin': true,
-                'repayMargin': true,
-                'setMarginMode': true,
-                'setLeverage': true,
-                'fetchLeverage': true,
-                'fetchLeverages': true,
-                'addMargin': true,
-                'reduceMargin': true,
-            },
-            'timeframes': {
-                '1s': '1s',
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '6h': '6h',
-                '8h': '8h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1M',
+                "publicAPI": true,
+                "privateAPI": true,
+                "sandbox": true,
+                "spot": true,
+                "margin": true,
+                "swap": true,
+                "future": true,
+                "option": true,
+                "fetchMarkets": true,
+                "fetchCurrencies": true,
+                "fetchTicker": true,
+                "fetchTickers": true,
+                "fetchOrderBook": true,
+                "fetchTrades": true,
+                "fetchOHLCV": true,
+                "fetchBalance": true,
+                "createOrder": true,
+                "cancelOrder": true,
+                "cancelAllOrders": true,
+                "editOrder": true,
+                "fetchOrder": true,
+                "fetchOrders": true,
+                "fetchOpenOrders": true,
+                "fetchClosedOrders": true,
+                "fetchMyTrades": true,
+                "fetchDeposits": true,
+                "fetchWithdrawals": true,
+                "fetchDepositAddress": true,
+                "withdraw": true,
+                "transfer": true,
+                "fetchPositions": true,
+                "setLeverage": true,
+                "setMarginMode": true
             },
             'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
-                'uid': false,
-                'login': false,
-                'password': false,
-                'twofa': false,
-                'privateKey': false,
-                'walletAddress': false,
-                'token': false,
+                "apiKey": true,
+                "secret": true
+            },
+            'broker': {
+                "spot": "x-R4BD3S82",
+                "margin": "x-R4BD3S82",
+                "future": "x-xcKtGhcu",
+                "delivery": "x-xcKtGhcu"
+            },
+            'exceptions': {
+                'exact': {
+                    '-1000': ExchangeNotAvailable,
+                    '-1001': ExchangeNotAvailable,
+                    '-1002': AuthenticationError,
+                    '-1003': RateLimitExceeded,
+                    '-1004': OperationFailed,
+                    '-1008': OperationFailed,
+                    '-1010': BadRequest,
+                    '-1013': InvalidOrder,
+                    '-1014': InvalidOrder,
+                    '-1015': RateLimitExceeded,
+                    '-1016': ExchangeNotAvailable,
+                    '-1020': NotSupported,
+                    '-1021': InvalidNonce,
+                    '-1022': AuthenticationError,
+                    '-1099': AuthenticationError,
+                    '-1100': BadRequest,
+                    '-1101': BadRequest,
+                    '-1102': BadRequest,
+                    '-1103': BadRequest,
+                    '-1104': BadRequest,
+                    '-1105': BadRequest,
+                    '-1106': BadRequest,
+                    '-1108': BadRequest,
+                    '-1109': BadRequest,
+                    '-1110': BadRequest,
+                    '-1111': BadRequest,
+                    '-1112': BadRequest,
+                    '-1114': BadRequest,
+                    '-1115': BadRequest,
+                    '-1116': BadRequest,
+                    '-1117': BadRequest,
+                    '-1118': BadRequest,
+                    '-1119': BadRequest,
+                    '-1120': BadRequest,
+                    '-1121': BadSymbol,
+                    '-1125': AuthenticationError,
+                    '-1127': BadRequest,
+                    '-1128': BadRequest,
+                    '-1130': BadRequest,
+                    '-1131': BadRequest,
+                    '-2010': InvalidOrder,
+                    '-2011': OrderNotFound,
+                    '-2013': OrderNotFound,
+                    '-2014': AuthenticationError,
+                    '-2015': AuthenticationError,
+                    '-2016': ExchangeError,
+                    '-2018': InsufficientFunds,
+                    '-2019': InsufficientFunds,
+                    '-2020': InvalidOrder,
+                    '-2021': InvalidOrder,
+                    '-2022': InvalidOrder,
+                    '-2024': InsufficientFunds,
+                    '-2025': InvalidOrder,
+                    '-2026': InvalidOrder,
+                },
             },
         });
     }
 
-    /**
-     * Parse ticker response
-     *
-     * @param {object} response API response
-     * @returns {object} Parsed ticker
-     */
-    parseTicker (response: any, market?: any) {
-        const rawData = response;
-        const marketId = market ? market.id : undefined;
-        const marketType = market ? market.type : undefined;
-        const data = response;
-        const result = {
-            'timestamp': this.safeInteger (data, 'closeTime'),
-            'high': this.safeNumber (data, 'highPrice'),
-            'low': this.safeNumber (data, 'lowPrice'),
-            'bid': this.safeNumber (data, 'bidPrice'),
-            'bidVolume': this.safeNumber (data, 'bidQty'),
-            'ask': this.safeNumber (data, 'askPrice'),
-            'askVolume': this.safeNumber (data, 'askQty'),
-            'vwap': this.safeNumber (data, 'weightedAvgPrice'),
-            'open': this.safeNumber (data, 'openPrice'),
-            'close': this.safeNumber (data, 'lastPrice'),
-            'last': this.safeNumber (data, 'lastPrice'),
-            'previousClose': this.safeNumber (data, 'prevClosePrice'),
-            'change': this.safeNumber (data, 'priceChange'),
-            'percentage': this.safeNumber (data, 'priceChangePercent'),
-            'average': undefined,
-            'baseVolume': this.safeNumber (data, 'volume'),
-            'quoteVolume': this.safeNumber (data, 'quoteVolume'),
-            'info': response,
-        };
-        result.symbol = this.safeSymbol(marketId, market, undefined, marketType);
-        result.datetime = this.iso8601(result.timestamp);
-        return result;
-    }
-
-    /**
-     * Parse order response
-     *
-     * @param {object} response API response
-     * @returns {object} Parsed order
-     */
-    parseOrder (response: any, market?: any) {
-        const rawData = response;
-        const marketId = market ? market.id : undefined;
-        const marketType = market ? market.type : undefined;
-        const data = response;
-        const result = {
-            'id': this.safeString (data, 'orderId'),
-            'clientOrderId': (this.safeValue (data, 'clientOrderId') !== undefined ? this.safeValue (data, 'clientOrderId') : null),
-            'timestamp': this.safeInteger (data, 'time'),
-            'lastTradeTimestamp': this.safeInteger (data, 'updateTime'),
-            'type': this.safeStringLower (data, 'type'),
-            'timeInForce': (this.safeValue (data, 'timeInForce') !== undefined ? this.safeValue (data, 'timeInForce') : null),
-            'side': this.safeStringLower (data, 'side'),
-            'price': this.safeNumber (data, 'price'),
-            'stopPrice': this.safeNumber (data, 'stopPrice'),
-            'triggerPrice': this.safeNumber (data, 'stopPrice'),
-            'amount': this.safeNumber (data, 'origQty'),
-            'cost': this.safeNumber (data, 'cummulativeQuoteQty'),
-            'average': this.safeNumber (data, 'avgPrice'),
-            'filled': this.safeNumber (data, 'executedQty'),
-            'status': this.safeString ({
-                ''NEW'': 'open',
-                ''PARTIALLY_FILLED'': 'open',
-                ''FILLED'': 'closed',
-                ''CANCELED'': 'canceled',
-                ''PENDING_CANCEL'': 'canceled',
-                ''REJECTED'': 'rejected',
-                ''EXPIRED'': 'expired',
-                ''EXPIRED_IN_MATCH'': 'expired',
-            }, (this.safeValue (data, 'status') !== undefined ? this.safeValue (data, 'status') : null)),
-            'fee': undefined,
-            'trades': undefined,
-            'reduceOnly': (this.safeValue (data, 'reduceOnly') !== undefined ? this.safeValue (data, 'reduceOnly') : null),
-            'info': response,
-        };
-        result.datetime = this.iso8601(result.timestamp);
-        result.symbol = this.safeSymbol(marketId, market, undefined, marketType);
-        result.postOnly = (result.type === 'limit_maker') || (result.timeInForce === 'PO');
-        result.remaining = result.amount - result.filled;
-        return result;
-    }
-
-    /**
-     * Parse trade response
-     *
-     * @param {object} response API response
-     * @returns {object} Parsed trade
-     */
-    parseTrade (response: any, market?: any) {
-        const rawData = response;
-        const marketId = market ? market.id : undefined;
-        const marketType = market ? market.type : undefined;
-        const data = response;
-        const result = {
-            'id': this.safeString (data, 'id'),
-            'order': this.safeString (data, 'orderId'),
-            'timestamp': this.safeInteger (data, 'time'),
-            'type': undefined,
-            'side': (this.safeValue (data, 'isBuyer') !== undefined ? this.safeValue (data, 'isBuyer') : null) ? 'buy' : 'sell',
-            'takerOrMaker': (this.safeValue (data, 'isMaker') !== undefined ? this.safeValue (data, 'isMaker') : null) ? 'maker' : 'taker',
-            'price': this.safeNumber (data, 'price'),
-            'amount': this.safeNumber (data, 'qty'),
-            'cost': this.safeNumber (data, 'quoteQty'),
-            'fee': this.safeNumber (data, 'commission'),
-            'feeCurrency': (this.safeCurrencyCode (this.safeValue (data, 'commissionAsset')) !== undefined ? this.safeCurrencyCode (this.safeValue (data, 'commissionAsset')) : null),
-            'info': response,
-        };
-        result.datetime = this.iso8601(result.timestamp);
-        result.symbol = this.safeSymbol(marketId, market, undefined, marketType);
-        return result;
-    }
-
-    /**
-     * Parse balance response
-     *
-     * @param {object} response API response
-     * @returns {object} Parsed balance
-     */
-    parseBalance (response: any, market?: any) {
-        const rawData = response;
-        const data = this.safeValue (response, 'balances', {});
-        const items = Array.isArray (data) ? data : data == null ? [] : [data];
-        const balances = items.map ((item) => {
-            const entry = {
-                'currency': (this.safeCurrencyCode (this.safeValue (item, 'asset')) !== undefined ? this.safeCurrencyCode (this.safeValue (item, 'asset')) : null),
-                'free': this.safeNumber (item, 'free'),
-                'used': this.safeNumber (item, 'locked'),
-            };
-            entry.total = entry.free + entry.used;
-            return entry;
-        });
-        const result = { 'info': rawData, 'timestamp': null, 'datetime': null };
-        for (const balance of balances) {
-            const currency = balance.currency;
-            result[currency] = { 'free': balance.free, 'used': balance.used, 'total': balance.total };
+    sign(path: string, api: Str = 'public', method: Str = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
+        let url = this.urls['api'][api] + '/' + path;
+        let authVariant = 'default';
+        if (this.secret.includes("PRIVATE KEY")) {
+            authVariant = {"type":"hmac"};
         }
-        return this.safeBalance (result);
-    }
-
-    /**
-     * Parse market response
-     *
-     * @param {object} response API response
-     * @returns {object} Parsed market
-     */
-    parseMarket (response: any, market?: any) {
-        const rawData = response;
-        const data = this.safeValue (response, 'symbols', {});
-        const items = Array.isArray (data) ? data : data == null ? [] : [data];
-        const results = items.map ((item) => {
-            const entry = {
-                'id': (this.safeValue (item, 'symbol') !== undefined ? this.safeValue (item, 'symbol') : null),
-                'base': (this.safeCurrencyCode (this.safeValue (item, 'baseAsset')) !== undefined ? this.safeCurrencyCode (this.safeValue (item, 'baseAsset')) : null),
-                'quote': (this.safeCurrencyCode (this.safeValue (item, 'quoteAsset')) !== undefined ? this.safeCurrencyCode (this.safeValue (item, 'quoteAsset')) : null),
-                'baseId': (this.safeValue (item, 'baseAsset') !== undefined ? this.safeValue (item, 'baseAsset') : null),
-                'quoteId': (this.safeValue (item, 'quoteAsset') !== undefined ? this.safeValue (item, 'quoteAsset') : null),
-                'active': this.safeString ({ ''TRADING'': true }, (this.safeValue (item, 'status') !== undefined ? this.safeValue (item, 'status') : false)),
-                'type': 'spot',
-                'spot': true,
-                'margin': (this.safeValue (item, 'isMarginTradingAllowed') !== undefined ? this.safeValue (item, 'isMarginTradingAllowed') : null),
-                'swap': false,
-                'future': false,
-                'option': false,
-                'contract': false,
-                'settle': null,
-                'settleId': null,
-                'contractSize': null,
-                'linear': null,
-                'inverse': null,
-                'expiry': null,
-                'expiryDatetime': null,
-                'strike': null,
-                'optionType': null,
-                'precision': {},
-                'limits': { 'amount': {}, 'price': {}, 'cost': { 'max': null } },
-                'info': item,
-            };
-            entry.symbol = entry.base + '/' + entry.quote;
-            entry.precision.amount = this.parseNumber(this.safeString(item, 'stepSize') || this.safeString(item.filters?.find(f => f.filterType === 'LOT_SIZE'), 'stepSize'));
-            entry.precision.price = this.parseNumber(this.safeString(item, 'tickSize') || this.safeString(item.filters?.find(f => f.filterType === 'PRICE_FILTER'), 'tickSize'));
-            entry.limits.amount.min = this.parseNumber(this.safeString(item, 'minQty') || this.safeString(item.filters?.find(f => f.filterType === 'LOT_SIZE'), 'minQty'));
-            entry.limits.amount.max = this.parseNumber(this.safeString(item, 'maxQty') || this.safeString(item.filters?.find(f => f.filterType === 'LOT_SIZE'), 'maxQty'));
-            entry.limits.price.min = this.parseNumber(this.safeString(item, 'minPrice') || this.safeString(item.filters?.find(f => f.filterType === 'PRICE_FILTER'), 'minPrice'));
-            entry.limits.price.max = this.parseNumber(this.safeString(item, 'maxPrice') || this.safeString(item.filters?.find(f => f.filterType === 'PRICE_FILTER'), 'maxPrice'));
-            entry.limits.cost.min = this.parseNumber(this.safeString(item, 'minNotional') || this.safeString(item.filters?.find(f => f.filterType === 'MIN_NOTIONAL'), 'minNotional'));
-            return entry;
-        });
-        return results;
-    }
-
-    /**
-     * Parse deposit response
-     *
-     * @param {object} response API response
-     * @returns {object} Parsed deposit
-     */
-    parseDeposit (response: any, market?: any) {
-        const rawData = response;
-        const data = response;
-        const result = {
-            'id': (this.safeValue (data, 'orderNo') !== undefined ? this.safeValue (data, 'orderNo') : null),
-            'type': 'deposit',
-            'currency': this.safeCurrencyCode (this.safeValue2 (data, 'coin', 'fiatCurrency')),
-            'amount': this.safeNumber (data, 'amount'),
-            'status': this.safeString ({ ''0'': 'pending', ''1'': 'ok', ''3'': 'failed', ''6'': 'ok', ''Failed'': 'failed', ''Successful'': 'ok' }, (this.safeValue (data, 'status') !== undefined ? this.safeValue (data, 'status') : null)),
-            'address': (this.safeValue (data, 'address') !== undefined ? this.safeValue (data, 'address') : null),
-            'addressTo': (this.safeValue (data, 'address') !== undefined ? this.safeValue (data, 'address') : null),
-            'addressFrom': null,
-            'tagFrom': null,
-            'network': (this.safeValue (data, 'network') !== undefined ? this.safeValue (data, 'network') : null),
-            'comment': null,
-            'info': data,
-        };
-        result.txid = this.parseTxId(this.safeString(data, 'txId'));
-        result.tag = this.parseTag(this.safeString(data, 'addressTag'));
-        result.tagTo = this.parseTag(this.safeString(data, 'addressTag'));
-        result.timestamp = this.safeInteger2(data, 'insertTime', 'createTime');
-        result.datetime = this.iso8601(result.timestamp);
-        result.updated = (this.safeInteger2(data, 'successTime', 'updateTime') !== undefined ? (this.safeInteger2(data, 'successTime', 'updateTime') : null);
-        result.internal = this.parseInternal(this.safeInteger(data, 'transferType'));
-        result.fee = this.parseTransactionFee(this.safeNumber2(data, 'transactionFee', 'totalFee'), result.currency);
-        return result;
-    }
-
-    /**
-     * Parse withdrawal response
-     *
-     * @param {object} response API response
-     * @returns {object} Parsed withdrawal
-     */
-    parseWithdrawal (response: any, market?: any) {
-        const rawData = response;
-        const data = response;
-        const result = {
-            'id': (this.safeValue2 (data, 'id', 'orderNo') !== undefined ? this.safeValue2 (data, 'id', 'orderNo') : null),
-            'type': 'withdrawal',
-            'currency': this.safeCurrencyCode (this.safeValue2 (data, 'coin', 'fiatCurrency')),
-            'amount': this.safeNumber (data, 'amount'),
-            'status': this.safeString ({
-                ''0'': 'pending',
-                ''1'': 'canceled',
-                ''2'': 'pending',
-                ''3'': 'failed',
-                ''4'': 'pending',
-                ''5'': 'failed',
-                ''6'': 'ok',
-                ''Successful'': 'ok',
-                ''Failed'': 'failed',
-            }, (this.safeValue (data, 'status') !== undefined ? this.safeValue (data, 'status') : null)),
-            'address': (this.safeValue (data, 'address') !== undefined ? this.safeValue (data, 'address') : null),
-            'addressTo': (this.safeValue (data, 'address') !== undefined ? this.safeValue (data, 'address') : null),
-            'addressFrom': null,
-            'tagFrom': null,
-            'network': (this.safeValue (data, 'network') !== undefined ? this.safeValue (data, 'network') : null),
-            'comment': null,
-            'info': data,
-        };
-        result.txid = this.parseTxId(this.safeString(data, 'txId'));
-        result.tag = this.parseTag(this.safeString(data, 'addressTag'));
-        result.tagTo = this.parseTag(this.safeString(data, 'addressTag'));
-        result.timestamp = this.parseTransactionTimestamp(this.safeInteger2(data, 'insertTime', 'createTime'), this.safeString(data, 'applyTime'));
-        result.datetime = this.iso8601(result.timestamp);
-        result.updated = (this.safeInteger2(data, 'successTime', 'updateTime') !== undefined ? (this.safeInteger2(data, 'successTime', 'updateTime') : null);
-        result.internal = this.parseInternal(this.safeInteger(data, 'transferType'));
-        result.fee = this.parseTransactionFee(this.safeNumber2(data, 'transactionFee', 'totalFee'), result.currency);
-        return result;
-    }
-
-    /**
-     * Parse depositAddress response
-     *
-     * @param {object} response API response
-     * @returns {object} Parsed depositAddress
-     */
-    parseDepositAddress (response: any, market?: any) {
-        const rawData = response;
-        const data = response;
-        const result = {
-            'currency': (this.safeCurrencyCode (this.safeValue (data, 'coin')) !== undefined ? this.safeCurrencyCode (this.safeValue (data, 'coin')) : null),
-            'address': (this.safeValue (data, 'address') !== undefined ? this.safeValue (data, 'address') : null),
-            'tag': (this.safeValue (data, 'tag') !== undefined ? this.safeValue (data, 'tag') : null),
-            'network': (this.safeValue (data, 'network') !== undefined ? this.safeValue (data, 'network') : null),
-            'info': response,
-        };
-        return result;
-    }
-
-    /**
-     * Fetch ticker for a symbol
-     *
-     * @param {string} symbol Unified symbol
-     * @param {object} params Extra parameters
-     * @returns {Ticker} Ticker structure
-     */
-    async fetchTicker (symbol: string, params: object = {}): Promise<Ticker> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = { 'symbol': market.id };
-        const response = await this.publicGetTicker24hr (this.extend (request, params));
-        return this.parseTicker (response, market);
-    }
-
-    /**
-     * Fetch recent trades for a symbol
-     *
-     * @param {string} symbol Unified symbol
-     * @param {number} since Timestamp in ms
-     * @param {number} limit Max number of trades
-     * @param {object} params Extra parameters
-     * @returns {Trade[]} Array of trades
-     */
-    async fetchTrades (symbol: string, since?: number, limit?: number, params: object = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = { 'symbol': market.id };
-        const response = await this.privateGetMyTrades (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
-    }
-
-    /**
-     * Calls the public GET ping endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetPing (params: Dict = {}, context: Dict = {}): Promise<any> {
-        return await this.request ('ping', 'public', 'GET', params, undefined, undefined, { 'cost': 0.2 }, context);
-    }
-
-    /**
-     * Calls the public GET time endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetTime (params: Dict = {}, context: Dict = {}): Promise<any> {
-        return await this.request ('time', 'public', 'GET', params, undefined, undefined, { 'cost': 0.2 }, context);
-    }
-
-    /**
-     * Calls the public GET exchangeInfo endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetExchangeInfo (params: Dict = {}, context: Dict = {}): Promise<any> {
-        return await this.request ('exchangeInfo', 'public', 'GET', params, undefined, undefined, { 'cost': 4 }, context);
-    }
-
-    /**
-     * Calls the public GET depth endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetDepth (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('publicGetDepth', params.symbol, 'symbol');
-        return await this.request ('depth', 'public', 'GET', params, undefined, undefined, { 'cost': 1 }, context);
-    }
-
-    /**
-     * Calls the public GET trades endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetTrades (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('publicGetTrades', params.symbol, 'symbol');
-        return await this.request ('trades', 'public', 'GET', params, undefined, undefined, { 'cost': 2 }, context);
-    }
-
-    /**
-     * Calls the public GET historicalTrades endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetHistoricalTrades (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('publicGetHistoricalTrades', params.symbol, 'symbol');
-        return await this.request ('historicalTrades', 'public', 'GET', params, undefined, undefined, { 'cost': 10 }, context);
-    }
-
-    /**
-     * Calls the public GET aggTrades endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetAggTrades (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('publicGetAggTrades', params.symbol, 'symbol');
-        return await this.request ('aggTrades', 'public', 'GET', params, undefined, undefined, { 'cost': 2 }, context);
-    }
-
-    /**
-     * Calls the public GET klines endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetKlines (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('publicGetKlines', params.symbol, 'symbol');
-        this.checkRequiredArgument ('publicGetKlines', params.interval, 'interval');
-        return await this.request ('klines', 'public', 'GET', params, undefined, undefined, { 'cost': 2 }, context);
-    }
-
-    /**
-     * Calls the public GET avgPrice endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetAvgPrice (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('publicGetAvgPrice', params.symbol, 'symbol');
-        return await this.request ('avgPrice', 'public', 'GET', params, undefined, undefined, { 'cost': 0.2 }, context);
-    }
-
-    /**
-     * Calls the public GET ticker/24hr endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetTicker24hr (params: Dict = {}, context: Dict = {}): Promise<any> {
-        return await this.request ('ticker/24hr', 'public', 'GET', params, undefined, undefined, { 'cost': 0.4 }, context);
-    }
-
-    /**
-     * Calls the public GET ticker/tradingDay endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetTickerTradingDay (params: Dict = {}, context: Dict = {}): Promise<any> {
-        return await this.request ('ticker/tradingDay', 'public', 'GET', params, undefined, undefined, { 'cost': 0.8 }, context);
-    }
-
-    /**
-     * Calls the public GET ticker/price endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetTickerPrice (params: Dict = {}, context: Dict = {}): Promise<any> {
-        return await this.request ('ticker/price', 'public', 'GET', params, undefined, undefined, { 'cost': 0.2 }, context);
-    }
-
-    /**
-     * Calls the public GET ticker/bookTicker endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetTickerBookTicker (params: Dict = {}, context: Dict = {}): Promise<any> {
-        return await this.request ('ticker/bookTicker', 'public', 'GET', params, undefined, undefined, { 'cost': 0.2 }, context);
-    }
-
-    /**
-     * Calls the public GET ticker endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async publicGetTicker (params: Dict = {}, context: Dict = {}): Promise<any> {
-        return await this.request ('ticker', 'public', 'GET', params, undefined, undefined, { 'cost': 0.4 }, context);
-    }
-
-    /**
-     * Calls the private GET account endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async privateGetAccount (params: Dict = {}, context: Dict = {}): Promise<any> {
-        return await this.request ('account', 'private', 'GET', params, undefined, undefined, { 'cost': 4 }, context);
-    }
-
-    /**
-     * Calls the private GET myTrades endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async privateGetMyTrades (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('privateGetMyTrades', params.symbol, 'symbol');
-        return await this.request ('myTrades', 'private', 'GET', params, undefined, undefined, { 'cost': 4 }, context);
-    }
-
-    /**
-     * Calls the private GET openOrders endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async privateGetOpenOrders (params: Dict = {}, context: Dict = {}): Promise<any> {
-        return await this.request ('openOrders', 'private', 'GET', params, undefined, undefined, { 'cost': 1.2 }, context);
-    }
-
-    /**
-     * Calls the private GET allOrders endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async privateGetAllOrders (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('privateGetAllOrders', params.symbol, 'symbol');
-        return await this.request ('allOrders', 'private', 'GET', params, undefined, undefined, { 'cost': 4 }, context);
-    }
-
-    /**
-     * Calls the private GET order endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async privateGetOrder (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('privateGetOrder', params.symbol, 'symbol');
-        return await this.request ('order', 'private', 'GET', params, undefined, undefined, { 'cost': 0.8 }, context);
-    }
-
-    /**
-     * Calls the private POST order endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async privatePostOrder (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('privatePostOrder', params.symbol, 'symbol');
-        this.checkRequiredArgument ('privatePostOrder', params.side, 'side');
-        this.checkRequiredArgument ('privatePostOrder', params.type, 'type');
-        if (["LIMIT", "STOP_LOSS_LIMIT", "TAKE_PROFIT_LIMIT"].includes(params.type)) {
-            this.checkRequiredArgument ('privatePostOrder', params.price, 'price');
+        if (true) {
+            authVariant = 'hmac';
         }
-        if (["STOP_LOSS", "STOP_LOSS_LIMIT", "TAKE_PROFIT", "TAKE_PROFIT_LIMIT"].includes(params.type)) {
-            this.checkRequiredArgument ('privatePostOrder', params.stopPrice, 'stopPrice');
-        }
-        return await this.request ('order', 'private', 'POST', params, undefined, undefined, { 'cost': 0.2 }, context);
-    }
-
-    /**
-     * Calls the private POST order/test endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async privatePostOrderTest (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('privatePostOrderTest', params.symbol, 'symbol');
-        this.checkRequiredArgument ('privatePostOrderTest', params.side, 'side');
-        this.checkRequiredArgument ('privatePostOrderTest', params.type, 'type');
-        return await this.request ('order/test', 'private', 'POST', params, undefined, undefined, { 'cost': 0.2 }, context);
-    }
-
-    /**
-     * Calls the private DELETE order endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async privateDeleteOrder (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('privateDeleteOrder', params.symbol, 'symbol');
-        return await this.request ('order', 'private', 'DELETE', params, undefined, undefined, { 'cost': 0.2 }, context);
-    }
-
-    /**
-     * Calls the private DELETE openOrders endpoint
-     *
-     * @param {Dict} params Request parameters
-     * @param {Dict} context Request context overrides
-     * @returns {Promise<any>} Raw API response
-     */
-    async privateDeleteOpenOrders (params: Dict = {}, context: Dict = {}): Promise<any> {
-        this.checkRequiredArgument ('privateDeleteOpenOrders', params.symbol, 'symbol');
-        return await this.request ('openOrders', 'private', 'DELETE', params, undefined, undefined, { 'cost': 0.2 }, context);
-    }
-
-    /**
-     * @method
-     * @name binance#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
-     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading
-     * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
-     * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
-     * @param {string} [params.subType] 'linear' or 'inverse'
-     * @returns {object} a balance structure
-     */
-    async fetchBalance ( params = {}): Promise<Balances> {
-        await this.loadMarkets();
-        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
-        let type = this.safeString(params, 'type', defaultType);
-        let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchBalance', undefined, params);
-        let isPortfolioMargin = undefined;
-        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'papi', 'portfolioMargin', false);
-        let marginMode = undefined;
-        let query = undefined;
-        [marginMode, query] = this.handleMarginModeAndParams('fetchBalance', params);
-        query = this.omit(query, 'type');
-        let response = undefined;
-        const request: Dict = {};
-
-        // Route to appropriate endpoint based on type
-        if (isPortfolioMargin || (type === 'papi')) {
-            if (this.isLinear(type, subType)) {
-                type = 'linear';
-            } else if (this.isInverse(type, subType)) {
-                type = 'inverse';
-            }
-            isPortfolioMargin = true;
-            response = await this.papiGetBalance(this.extend(request, query));
-        } else if (this.isLinear(type, subType)) {
-            type = 'linear';
-            let useV2 = undefined;
-            [useV2, params] = this.handleOptionAndParams(params, 'fetchBalance', 'useV2', false);
-            params = this.extend(request, query);
-            if (!useV2) {
-                response = await this.fapiPrivateV3GetAccount(params);
-            } else {
-                response = await this.fapiPrivateV2GetAccount(params);
-            }
-        } else if (this.isInverse(type, subType)) {
-            type = 'inverse';
-            response = await this.dapiPrivateGetAccount(this.extend(request, query));
-        } else if (marginMode === 'isolated') {
-            const paramSymbols = this.safeList(params, 'symbols');
-            query = this.omit(query, 'symbols');
-            if (paramSymbols !== undefined) {
-                let symbols = '';
-                if (Array.isArray(paramSymbols)) {
-                    symbols = this.marketId(paramSymbols[0]);
-                    for (let i = 1; i < paramSymbols.length; i++) {
-                        const symbol = paramSymbols[i];
-                        const id = this.marketId(symbol);
-                        symbols += ',' + id;
-                    }
-                } else {
-                    symbols = paramSymbols;
-                }
-                request['symbols'] = symbols;
-            }
-            response = await this.sapiGetMarginIsolatedAccount(this.extend(request, query));
-        } else if ((type === 'margin') || (marginMode === 'cross')) {
-            response = await this.sapiGetMarginAccount(this.extend(request, query));
-        } else if (type === 'savings') {
-            response = await this.sapiGetLendingUnionAccount(this.extend(request, query));
-        } else if (type === 'funding') {
-            response = await this.sapiPostAssetGetFundingAsset(this.extend(request, query));
-        } else {
-            response = await this.privateGetAccount(this.extend(request, query));
-        }
-
-        return this.parseBalanceCustom(response, type, marginMode, isPortfolioMargin);
-    }
-
-    /**
-     * @method
-     * @name binance#sign
-     * @description sign API request with authentication credentials
-     * @param {string} path endpoint path
-     * @param {string} api api type (public/private/sapi/etc)
-     * @param {string} method HTTP method
-     * @param {object} params request parameters
-     * @param {object} headers request headers
-     * @param {object} body request body
-     * @returns {object} signed request
-     */
-    sign (
-        path: string,
-        api = 'public',
-        method = 'GET',
-        params = {},
-        headers: any = undefined,
-        body: any = undefined
-    ) {
-        if (!(api in this.urls['api'])) {
-            throw new this.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
-        }
-        let url = this.urls['api'][api];
-        url += '/' + path;
-
-        // Special handling for historicalTrades endpoint
+        // Check for endpoint-specific auth
         if (path === 'historicalTrades') {
-            if (this.apiKey) {
-                headers = {
-                    'X-MBX-APIKEY': this.apiKey,
-                };
-            } else {
-                throw new this.AuthenticationError(this.id + ' historicalTrades endpoint requires `apiKey` credential');
-            }
+            authVariant = 'apiKeyOnly';
         }
-
-        // Special handling for userDataStream endpoints
-        const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
-        if (userDataStream) {
-            if (this.apiKey) {
-                headers = {
-                    'X-MBX-APIKEY': this.apiKey,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                };
-                if (method !== 'GET') {
-                    body = this.urlencode(params);
-                }
-            } else {
-                throw new this.AuthenticationError(this.id + ' userDataStream endpoint requires `apiKey` credential');
-            }
-        } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') ||
-                   (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') ||
-                   (api === 'dapiPrivate') || (api === 'dapiPrivateV2') ||
-                   (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'fapiPrivateV3') ||
-                   (api === 'papi') || (api === 'papiV2' && path !== 'ping') ||
-                   (api === 'eapiPrivate')) {
-            this.checkRequiredCredentials();
-
-            let query = undefined;
-            const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
-            let extendedParams = this.extend({
-                'timestamp': this.nonce(),
-            }, params);
-
-            if (defaultRecvWindow !== undefined) {
-                extendedParams['recvWindow'] = defaultRecvWindow;
-            }
-            const recvWindow = this.safeInteger(params, 'recvWindow');
-            if (recvWindow !== undefined) {
-                extendedParams['recvWindow'] = recvWindow;
-            }
-
-            query = this.urlencode(extendedParams);
-
-            // Generate signature - supports RSA, EdDSA, and HMAC
-            let signature = undefined;
-            if (this.secret.indexOf('PRIVATE KEY') > -1) {
-                // RSA or EdDSA signature
-                if (this.secret.length > 120) {
-                    // RSA signature
-                    signature = this.encodeURIComponent(this.rsa(query, this.secret, 'sha256'));
-                } else {
-                    // EdDSA signature
-                    signature = this.encodeURIComponent(this.eddsa(this.encode(query), this.secret, 'ed25519'));
-                }
-            } else {
-                // HMAC signature
-                signature = this.hmac(this.encode(query), this.encode(this.secret), 'sha256');
-            }
-
-            query += '&signature=' + signature;
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-            };
-
-            if ((method === 'GET') || (method === 'DELETE')) {
-                url += '?' + query;
-            } else {
-                body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
-            }
-        } else {
-            // Public endpoints
-            if (Object.keys(params).length) {
-                url += '?' + this.urlencode(params);
-            }
+        if (path === 'userDataStream') {
+            authVariant = 'apiKeyOnly';
+        }
+        if (path === 'listenKey') {
+            authVariant = 'apiKeyOnly';
         }
 
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    /**
-     * @method
-     * @name binance#parseTxId
-     * @description Parse transaction ID, stripping 'Internal transfer ' prefix if present
-     * @param {string|undefined} txid transaction ID from API
-     * @returns {string|null} cleaned transaction ID
-     */
-    parseTxId ( txid: string | undefined): string | null {
-        if (txid !== undefined && txid.indexOf('Internal transfer ') >= 0) {
-            return txid.slice(18);
+    parseTime (response: any, market: Market = undefined) {
+        const data = response;
+        return {
+            'serverTime': this.safeInteger(this.safeValue(data, 'serverTime')),
+        };
+    }
+
+    parseExchangeInfo (response: any, market: Market = undefined) {
+        const data = response;
+        return {
+            'timezone': (this.safeValue(data, 'timezone') !== undefined ? this.safeValue(data, 'timezone') : null),
+            'serverTime': (this.safeValue(data, 'serverTime') !== undefined ? this.safeValue(data, 'serverTime') : null),
+            'rateLimits': (this.safeValue(data, 'rateLimits') !== undefined ? this.safeValue(data, 'rateLimits') : null),
+            'symbols': this.parseMarkets(this.safeValue(data, 'symbols')),
+        };
+    }
+
+    parseTicker (response: any, market: Market = undefined) {
+        const data = response;
+        return {
+            'symbol': this.safeSymbol(this.safeValue(data, 'symbol')),
+            'timestamp': this.safeTimestamp(this.safeValue(data, 'closeTime')),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeNumber(this.safeValue(data, 'highPrice')),
+            'low': this.safeNumber(this.safeValue(data, 'lowPrice')),
+            'bid': this.safeNumber(this.safeValue(data, 'bidPrice')),
+            'bidVolume': this.safeNumber(this.safeValue(data, 'bidQty')),
+            'ask': this.safeNumber(this.safeValue(data, 'askPrice')),
+            'askVolume': this.safeNumber(this.safeValue(data, 'askQty')),
+            'vwap': this.safeNumber(this.safeValue(data, 'weightedAvgPrice')),
+            'open': this.safeNumber(this.safeValue(data, 'openPrice')),
+            'close': this.safeNumber(this.safeValue(data, 'lastPrice')),
+            'last': this.safeNumber(this.safeValue(data, 'lastPrice')),
+            'previousClose': this.safeNumber(this.safeValue(data, 'prevClosePrice')),
+            'change': this.safeNumber(this.safeValue(data, 'priceChange')),
+            'percentage': this.safeNumber(this.safeValue(data, 'priceChangePercent')),
+            'average': null,
+            'baseVolume': this.safeNumber(this.safeValue(data, 'volume')),
+            'quoteVolume': this.safeNumber(this.safeValue(data, 'quoteVolume')),
+            'info': (this.safeValue(data, 'response') !== undefined ? this.safeValue(data, 'response') : null),
+        };
+    }
+
+    parseTickers (response: any, market: Market = undefined) {
+        const data = response;
+        return this.parseTicker(data, market);
+    }
+
+    parseOrderBook (response: any, market: Market = undefined) {
+        const data = response;
+        return {
+            'symbol': params['symbol'],
+            'timestamp': this.safeInteger(this.safeValue(data, 'lastUpdateId')),
+            'datetime': null,
+            'nonce': this.safeInteger(this.safeValue(data, 'lastUpdateId')),
+            'bids': this.parseOrderBookSide(this.safeValue(data, 'bids')),
+            'asks': this.parseOrderBookSide(this.safeValue(data, 'asks')),
+        };
+    }
+
+    parsePublicTrades (response: any, market: Market = undefined) {
+        const data = response;
+        const result: any[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            result.push(this.parsePublicTradesEntry(item, market));
         }
-        return txid !== undefined ? txid : null;
+        return result;
     }
 
-    /**
-     * @method
-     * @name binance#parseTag
-     * @description Parse address tag, returning null for empty strings
-     * @param {string|undefined} tag address tag from API
-     * @returns {string|null} tag or null if empty
-     */
-    parseTag ( tag: string | undefined): string | null {
-        return (tag !== undefined && tag.length > 0) ? tag : null;
+    parsePublicTradesEntry (item: any, market: Market = undefined) {
+        return {
+            'id': this.safeString(this.safeValue(item, 'id')),
+            'timestamp': this.safeTimestamp(this.safeValue(item, 'time')),
+            'datetime': this.iso8601(timestamp),
+            'symbol': params['symbol'],
+            'side': (isBuyerMaker) ? "sell" : "buy",
+            'type': null,
+            'price': this.safeNumber(this.safeValue(item, 'price')),
+            'amount': this.safeNumber(this.safeValue(item, 'qty')),
+            'cost': this.safeNumber(this.safeValue(item, 'quoteQty')),
+            'info': (this.safeValue(item, 'item') !== undefined ? this.safeValue(item, 'item') : null),
+        };
     }
 
-    /**
-     * @method
-     * @name binance#parseInternal
-     * @description Parse internal transfer flag from transferType
-     * @param {number|undefined} transferType transfer type from API
-     * @returns {boolean|null} true if internal transfer, false if external, null if unknown
-     */
-    parseInternal ( transferType: number | undefined): boolean | null {
-        return transferType !== undefined ? (transferType !== 0) : null;
-    }
-
-    /**
-     * @method
-     * @name binance#parseTransactionFee
-     * @description Parse transaction fee into fee object
-     * @param {number|undefined} feeCost fee cost from API
-     * @param {string} currency currency code
-     * @returns {object|null} fee object with currency and cost, or null if undefined
-     */
-    parseTransactionFee ( feeCost: number | undefined, currency: string): { currency: string, cost: number } | null {
-        if (feeCost !== undefined) {
-            return { currency: currency, cost: feeCost };
+    parseKlines (response: any, market: Market = undefined) {
+        const data = response;
+        const result: any[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            result.push(this.parseKlinesEntry(item, market));
         }
-        return null;
+        return result;
     }
 
-    /**
-     * @method
-     * @name binance#parseTransactionTimestamp
-     * @description Parse transaction timestamp with fallback to applyTime
-     * @param {number|undefined} timestamp timestamp in milliseconds
-     * @param {string|undefined} applyTime ISO8601 timestamp string
-     * @returns {number|undefined} timestamp in milliseconds
-     */
-    parseTransactionTimestamp ( timestamp: number | undefined, applyTime: string | undefined): number | undefined {
-        if (timestamp === undefined) {
-            return this.parse8601(applyTime);
-        }
-        return timestamp;
+    parseKlinesEntry (item: any, market: Market = undefined) {
+        return {
+            'timestamp': this.safeInteger(item[0]),
+            'open': this.safeNumber(item[1]),
+            'high': this.safeNumber(item[2]),
+            'low': this.safeNumber(item[3]),
+            'close': this.safeNumber(item[4]),
+            'volume': this.safeNumber(item[5]),
+        };
     }
+
+    parseBalance (response: any, market: Market = undefined) {
+        const data = this.safeValue(response, 'balances', response);
+        const result: any[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            result.push(this.parseBalanceEntry(item, market));
+        }
+        return result;
+    }
+
+    parseBalanceEntry (item: any, market: Market = undefined) {
+        return {
+            'currency': this.safeCurrencyCode(this.safeValue(item, 'asset')),
+            'free': this.safeString(this.safeValue(item, 'free')),
+            'used': this.safeString(this.safeValue(item, 'locked')),
+            'total': null,
+        };
+    }
+
+    parseMarginBalance (response: any, market: Market = undefined) {
+        const data = this.safeValue(response, 'userAssets', response);
+        const result: any[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            result.push(this.parseMarginBalanceEntry(item, market));
+        }
+        return result;
+    }
+
+    parseMarginBalanceEntry (item: any, market: Market = undefined) {
+        return {
+            'currency': this.safeCurrencyCode(this.safeValue(item, 'asset')),
+            'free': this.safeString(this.safeValue(item, 'free')),
+            'used': this.safeString(this.safeValue(item, 'locked')),
+            'total': null,
+            'borrowed': this.safeString(this.safeValue(item, 'borrowed')),
+            'interest': this.safeString(this.safeValue(item, 'interest')),
+            'debt': (borrowed + interest),
+        };
+    }
+
+    parseIsolatedMarginBalance (response: any, market: Market = undefined) {
+        const data = this.safeValue(response, 'assets', response);
+        const result: any[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            result.push(this.parseIsolatedMarginBalanceEntry(item, market));
+        }
+        return result;
+    }
+
+    parseIsolatedMarginBalanceEntry (item: any, market: Market = undefined) {
+        return {
+            '_symbolKey': this.safeSymbol(this.safeValue(item, 'asset', 'symbol')),
+            '_baseAsset': (this.safeValue(item, 'asset', 'baseAsset') !== undefined ? this.safeValue(item, 'asset', 'baseAsset') : null),
+            '_quoteAsset': (this.safeValue(item, 'asset', 'quoteAsset') !== undefined ? this.safeValue(item, 'asset', 'quoteAsset') : null),
+        };
+    }
+
+    parseFundingBalance (response: any, market: Market = undefined) {
+        const data = response;
+        const result: any[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            result.push(this.parseFundingBalanceEntry(item, market));
+        }
+        return result;
+    }
+
+    parseFundingBalanceEntry (item: any, market: Market = undefined) {
+        return {
+            'currency': this.safeCurrencyCode(this.safeValue(item, 'asset')),
+            'free': this.safeString(this.safeValue(item, 'free')),
+            'used': (freeze + (locked + withdrawing)),
+            'total': null,
+        };
+    }
+
+    parseFuturesBalance (response: any, market: Market = undefined) {
+        const data = this.safeValue(response, 'assets', response);
+        const result: any[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            result.push(this.parseFuturesBalanceEntry(item, market));
+        }
+        return result;
+    }
+
+    parseFuturesBalanceEntry (item: any, market: Market = undefined) {
+        return {
+            'currency': this.safeCurrencyCode(this.safeValue(item, 'asset')),
+            'free': this.safeString(this.safeValue(item, 'availableBalance')),
+            'used': this.safeString(this.safeValue(item, 'initialMargin')),
+            'total': this.safeString(this.safeValue(item, 'walletBalance')),
+        };
+    }
+
+    parseOrder (response: any, market: Market = undefined) {
+        const data = response;
+        return {
+            'id': this.safeString(this.safeValue(data, 'orderId')),
+            'clientOrderId': this.safeString(this.safeValue(data, 'clientOrderId')),
+            'timestamp': this.safeTimestamp(this.safeValueN(data, [['time'], ['transactTime'], ['updateTime']])),
+            'datetime': this.iso8601(timestamp),
+            'lastTradeTimestamp': this.safeTimestamp(this.safeValue(data, 'updateTime')),
+            'symbol': this.safeSymbol(this.safeValue(data, 'symbol')),
+            'type': this.parseOrderType((this.safeValue(data, 'type'))?.toLowerCase()),
+            'timeInForce': this.safeString(this.safeValue(data, 'timeInForce')),
+            'postOnly': (timeInForce === "GTX"),
+            'side': (this.safeValue(data, 'side'))?.toLowerCase(),
+            'price': this.safeNumber(this.safeValue(data, 'price')),
+            'stopPrice': this.safeNumber(this.safeValue(data, 'stopPrice')),
+            'amount': this.safeNumber(this.safeValue(data, 'origQty')),
+            'cost': this.safeNumber(this.safeValue(data, 'cummulativeQuoteQty')),
+            'average': ((filled > 0)) ? (cost / filled) : null,
+            'filled': this.safeNumber(this.safeValue(data, 'executedQty')),
+            'remaining': (amount - filled),
+            'status': this.parseOrderStatus(this.safeValue(data, 'status')),
+            'fee': null,
+            'trades': (this.safeValue(data, 'fills') !== undefined ? this.safeValue(data, 'fills') : null),
+            'info': (this.safeValue(data, 'response') !== undefined ? this.safeValue(data, 'response') : null),
+        };
+    }
+
+    parseOrders (response: any, market: Market = undefined) {
+        const data = response;
+        return this.parseOrder(data, market);
+    }
+
+    parseOrderResult (response: any, market: Market = undefined) {
+        const data = response;
+        return this.parseOrder(data, market);
+    }
+
+    parseCancelResult (response: any, market: Market = undefined) {
+        const data = response;
+        return this.parseOrder(data, market);
+    }
+
+    parseMyTrades (response: any, market: Market = undefined) {
+        const data = response;
+        const result: any[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            result.push(this.parseMyTradesEntry(item, market));
+        }
+        return result;
+    }
+
+    parseMyTradesEntry (item: any, market: Market = undefined) {
+        return {
+            'id': this.safeString(this.safeValue(item, 'id')),
+            'order': this.safeString(this.safeValue(item, 'orderId')),
+            'timestamp': this.safeTimestamp(this.safeValue(item, 'time')),
+            'datetime': this.iso8601(timestamp),
+            'symbol': this.safeSymbol(this.safeValue(item, 'symbol')),
+            'side': (isBuyer) ? "buy" : "sell",
+            'type': null,
+            'takerOrMaker': (isMaker) ? "maker" : "taker",
+            'price': this.safeNumber(this.safeValue(item, 'price')),
+            'amount': this.safeNumber(this.safeValue(item, 'qty')),
+            'cost': this.safeNumber(this.safeValue(item, 'quoteQty')),
+            'fee': { 'cost': { 'path': "commission", 'transform': "safeNumber" }, 'currency': { 'path': "commissionAsset", 'transform': "safeCurrencyCode" } },
+            'info': (this.safeValue(item, 'item') !== undefined ? this.safeValue(item, 'item') : null),
+        };
+    }
+
+    parseCurrencies (response: any, market: Market = undefined) {
+        const data = response;
+        const result: any[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            result.push(this.parseCurrenciesEntry(item, market));
+        }
+        return result;
+    }
+
+    parseCurrenciesEntry (item: any, market: Market = undefined) {
+        return {
+            'id': (this.safeValue(item, 'coin') !== undefined ? this.safeValue(item, 'coin') : null),
+            'code': this.safeCurrencyCode(this.safeValue(item, 'coin')),
+            'name': (this.safeValue(item, 'name') !== undefined ? this.safeValue(item, 'name') : null),
+            'active': (depositAllEnable && withdrawAllEnable),
+            'fee': null,
+            'precision': null,
+            'limits': undefined,
+            'networks': this.parseNetworks(this.safeValue(item, 'networkList')),
+            'info': (this.safeValue(item, 'item') !== undefined ? this.safeValue(item, 'item') : null),
+        };
+    }
+
+    parseOrderType (value: any) {
+        switch (value) {
+            case 'limit':
+                return 'limit';
+            case 'market':
+                return 'market';
+            case 'stop_loss':
+                return 'stop';
+            case 'stop_loss_limit':
+                return 'stop';
+            case 'take_profit':
+                return 'takeProfit';
+            case 'take_profit_limit':
+                return 'takeProfit';
+            case 'limit_maker':
+                return 'limit';
+            case 'trailing_stop_market':
+                return 'trailing';
+            default:
+                return value;
+        }
+    }
+
+    parseOrderStatus (value: any) {
+        switch (value) {
+            case 'NEW':
+                return 'open';
+            case 'PARTIALLY_FILLED':
+                return 'open';
+            case 'FILLED':
+                return 'closed';
+            case 'CANCELED':
+                return 'canceled';
+            case 'PENDING_CANCEL':
+                return 'canceling';
+            case 'REJECTED':
+                return 'rejected';
+            case 'EXPIRED':
+                return 'expired';
+            case 'EXPIRED_IN_MATCH':
+                return 'expired';
+            default:
+                return value;
+        }
+    }
+
+    parseOrderBookSide (value: any) {
+        const result: any[] = [];
+        for (let i = 0; i < value.length; i++) {
+            const item = value[i];
+            result.push([this.safeNumber(item[0]), this.safeNumber(item[1])]);
+        }
+        return result;
+    }
+
+    parseMarkets (value: any) {
+        const result: any[] = [];
+        for (let i = 0; i < value.length; i++) {
+            const item = value[i];
+            result.push({
+                'id': (this.safeValue(item, 'symbol') !== undefined ? this.safeValue(item, 'symbol') : null),
+                'symbol': this.buildSymbol(base, quote),
+                'base': this.safeCurrencyCode(this.safeValue(item, 'baseAsset')),
+                'quote': this.safeCurrencyCode(this.safeValue(item, 'quoteAsset')),
+                'baseId': (this.safeValue(item, 'baseAsset') !== undefined ? this.safeValue(item, 'baseAsset') : null),
+                'quoteId': (this.safeValue(item, 'quoteAsset') !== undefined ? this.safeValue(item, 'quoteAsset') : null),
+                'active': (this.safeValue(item, 'status') == 'TRADING'),
+                'type': (contractType) ? {"switch":"$contractType","cases":{"PERPETUAL":"swap","CURRENT_QUARTER":"future","NEXT_QUARTER":"future"},"default":"spot"} : 'spot',
+                'spot': (type === 'spot'),
+                'margin': (this.safeValue(item, 'isMarginTradingAllowed') !== undefined ? this.safeValue(item, 'isMarginTradingAllowed') : null),
+                'swap': (type === 'swap'),
+                'future': (type === 'future'),
+                'option': false,
+                'precision': undefined,
+                'limits': undefined,
+            });
+        }
+        return result;
+    }
+
+    parsePrecision (value: any) {
+        return Math.pow(10, (0 - value));
+    }
+
+    parseNetworks (value: any) {
+        const result: any[] = [];
+        for (let i = 0; i < value.length; i++) {
+            const item = value[i];
+            result.push({
+                'id': (this.safeValue(item, 'network') !== undefined ? this.safeValue(item, 'network') : null),
+                'network': (this.safeValue(item, 'network') !== undefined ? this.safeValue(item, 'network') : null),
+                'name': (this.safeValue(item, 'name') !== undefined ? this.safeValue(item, 'name') : null),
+                'active': (depositEnable && withdrawEnable),
+                'fee': this.safeNumber(this.safeValue(item, 'withdrawFee')),
+                'limits': undefined,
+            });
+        }
+        return result;
+    }
+
+    async fetchBalance (params: Dict = {}): Promise<Balances> {
+        await this.loadMarkets();
+        let type = this.safeString(params, 'type', 'spot');
+        params = this.omit(params, 'type');
+        let response: any;
+        let parser: string;
+
+        if (type === 'margin') {
+            response = await this.sapiGetMarginAccount(params);
+            parser = 'marginBalance';
+        }
+        else if (type === 'isolatedMargin') {
+            response = await this.sapiGetMarginIsolatedAccount(params);
+            parser = 'isolatedMarginBalance';
+        }
+        else if (type === 'funding') {
+            response = await this.sapiGetAssetGetFundingAsset(params);
+            parser = 'fundingBalance';
+        }
+        else if (type === 'linear') {
+            response = await this.fapiPrivateGetAccount(params);
+            parser = 'futuresBalance';
+        }
+        else if (type === 'inverse') {
+            response = await this.dapiPrivateGetAccount(params);
+            parser = 'deliveryBalance';
+        }
+        else if (type === 'portfolioMargin') {
+            response = await this.papiGetBalance(params);
+            parser = 'portfolioBalance';
+        } else {
+            response = await this.privateGetAccount(params);
+            parser = 'balance';
+        }
+
+        return this.parseBalance(response);
+    }
+
+    async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request: Dict = { 'symbol': market['id'] };
+        const response = await this.publicGetTicker(this.extend(request, params));
+        return this.parseTicker(response, market);
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request: Dict = { 'symbol': market['id'] };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetDepth(this.extend(request, params));
+        return this.parseOrderBook(response, market['symbol']);
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request: Dict = { 'symbol': market['id'] };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetTrades(this.extend(request, params));
+        return this.parseTrades(response, market, since, limit);
+    }
+
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'interval': this.safeString(this.timeframes, timeframe, timeframe),
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetKlines(this.extend(request, params));
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
+    }
+
 }
