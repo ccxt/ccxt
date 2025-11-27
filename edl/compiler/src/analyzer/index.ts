@@ -164,6 +164,18 @@ const CCXT_CAPABILITIES = [
     'option',
 ];
 
+// Runtime parameters that are passed into parser methods (not fields in the mapping)
+const PARSER_RUNTIME_PARAMS = [
+    'market',
+    'marketId',
+    'marketType',
+    'currency',
+    'currencyId',
+    'code',
+    'network',
+    'networkId',
+];
+
 export function analyzeEDL(doc: EDLDocument): ValidationResult {
     const errors: ValidationError[] = [];
     const warnings: ValidationError[] = [];
@@ -414,6 +426,10 @@ function validateMappings(
 
     for (const [field, missingDeps] of dependencyAnalysis.missing.entries()) {
         for (const dep of missingDeps) {
+            // Skip runtime parameters that are passed into parser methods
+            if (PARSER_RUNTIME_PARAMS.includes(dep)) {
+                continue;
+            }
             warnings.push({
                 path: `${pathPrefix}.mapping.${field}.dependencies`,
                 message: `Field "${field}" depends on "${dep}", which is not defined in this mapping`,
