@@ -23,7 +23,7 @@ import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFr
 import testParsePrecision from './test.parsePrecision.js';
 import testArraysConcat from './test.arraysConcat.js';
 
-async function baseTestsInit () {
+function baseTestsInit () {
     testLanguageSpecific ();
     testAfterConstructor ();
     testExtend ();
