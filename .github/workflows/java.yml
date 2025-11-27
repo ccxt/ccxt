@@ -1,4 +1,4 @@
-name: C#
+name: Java
 
 on:
   workflow_dispatch:
