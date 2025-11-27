@@ -62,8 +62,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 },
                 'tradesLimit': 1000,
                 'watchOrderBook': {
-                    'snapshotDelay': 20,
-                    'snapshotMaxRetries': 3,
+                    'snapshotMaxRetries': 5,
                 },
                 'watchPosition': {
                     'fetchPositionSnapshot': true, // or false
@@ -160,12 +159,15 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const message = this.extend (request, params);
         const subscriptionRequest: Dict = {
             'id': requestId,
+            'topic': subscriptionHash,
         };
         if (subscription === undefined) {
             subscription = subscriptionRequest;
         } else {
             subscription = this.extend (subscriptionRequest, subscription);
         }
+        const client = this.client (url);
+        client.subscriptions[requestId] = subscriptionHash;
         return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
@@ -177,7 +179,17 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'topic': topic,
             'response': true,
         };
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscriptionArgs);
+        let subscription: Dict = subscriptionArgs;
+        if (subscription === undefined) {
+            subscription = {};
+        }
+        subscription = this.extend ({}, subscription);
+        subscription['id'] = requestId;
+        subscription['topic'] = topic;
+        const client = this.client (url);
+        client.subscriptions[requestId] = topic;
+        client.subscriptions[topic] = subscription;
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscription);
     }
 
     async unSubscribeMultiple (url, messageHashes, topic, subscriptionHashes, params = {}, subscription: Dict = undefined) {
@@ -872,8 +884,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false);
         const topic = '/contractMarket/level2:' + marketIds.join (',');
-        const subscriptionArgs: Dict = {
+        const subscription: Dict = {
             'limit': limit,
+            'symbols': symbols,
+            'method': this.handleOrderBookSubscription,
         };
         const subscriptionHashes = [];
         const messageHashes = [];
@@ -883,7 +897,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             messageHashes.push ('orderbook:' + symbol);
             subscriptionHashes.push ('/contractMarket/level2:' + marketId);
         }
-        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params);
+        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscription, params);
         return orderbook.limit ();
     }
 
@@ -1025,13 +1039,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
             return;
         }
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
-            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
-            if (cacheLength === snapshotDelay) {
-                const subscriptionArgs = this.safeDict (client.subscriptions, topic, {});
-                const limit = this.safeInteger (subscriptionArgs, 'limit');
-                this.spawnLoadOrderBook (loadOrderBookHash, client, messageHash, symbol, limit);
-            }
+            const subscriptionArgs = this.safeDict (client.subscriptions, topic, {});
+            const limit = this.safeInteger (subscriptionArgs, 'limit');
+            this.spawnLoadOrderBook (loadOrderBookHash, client, messageHash, symbol, limit);
             storedOrderBook.cache.push (data);
             return;
         }
@@ -1057,6 +1067,24 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }).catch (() => {
             delete client.futures[loadOrderBookHash];
         });
+    }
+
+    handleOrderBookSubscription (client: Client, message, subscription) {
+        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        const symbols = this.safeList (subscription, 'symbols', []);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            if (symbol in this.orderbooks) {
+                delete this.orderbooks[symbol];
+            }
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            const messageHash = 'orderbook:' + symbol;
+            const loadOrderBookHash = 'loadOrderBook:' + symbol;
+            if (!(loadOrderBookHash in client.futures)) {
+                this.spawnLoadOrderBook (loadOrderBookHash, client, messageHash, symbol, limit);
+            }
+        }
     }
 
     getCacheIndex (orderbook, cache) {
