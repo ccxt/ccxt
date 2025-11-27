@@ -953,7 +953,7 @@ export default class bullish extends Exchange {
         const now = this.milliseconds ();
         const allowedSince = now - ninetyDays;
         if ((since !== undefined) && (since < allowedSince)) {
-            throw new BadRequest (this.id + ' fetchFundingRateHistory() only allows fetching entries up to 90 days in the past');
+            throw new BadRequest (this.id + ' fetchTrades() only allows fetching entries up to 90 days in the past');
         }
         await this.loadMarkets ();
         const maxLimit = 100;
@@ -971,7 +971,7 @@ export default class bullish extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        params = this.handleSinceAndUntil (since, params);
+        params = this.handleSinceAndUntil (since, undefined, undefined, params);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
@@ -1046,7 +1046,7 @@ export default class bullish extends Exchange {
                 }
                 return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
             }
-            params = this.handleSinceAndUntil (since, params);
+            params = this.handleSinceAndUntil (since, undefined, undefined, params);
             if (limit !== undefined) {
                 request['_pageSize'] = this.getClosestLimit (limit);
             }
@@ -1453,7 +1453,7 @@ export default class bullish extends Exchange {
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
-        params = this.handleSinceAndUntil (since, params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
+        params = this.handleSinceAndUntil (since, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]', params);
         const response = await this.publicGetV1HistoryMarketsSymbolFundingRate (this.extend (request, params));
         //
         //     [
@@ -1533,7 +1533,7 @@ export default class bullish extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        params = this.handleSinceAndUntil (since, params);
+        params = this.handleSinceAndUntil (since, undefined, undefined, params);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
@@ -1579,7 +1579,7 @@ export default class bullish extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    handleSinceAndUntil (since: Int = undefined, params: Dict = {}, sinceKey: string = 'createdAtDatetime[gte]', untilKey: string = 'createdAtDatetime[lte]'): Dict {
+    handleSinceAndUntil (since: Int = undefined, sinceKey: Str = 'createdAtDatetime[gte]', untilKey: Str = 'createdAtDatetime[lte]', params: Dict = {}): Dict {
         let until = this.safeInteger (params, 'until');
         const request: Dict = {};
         if ((since !== undefined) || (until !== undefined)) {
