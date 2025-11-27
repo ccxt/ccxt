@@ -1,10 +1,10 @@
-# Exchange Definition Language (EDL) Compiler
+# Exchange Definition Language (EDL)
 
-A PureScript-based compiler that transforms declarative YAML exchange definitions into TypeScript code compatible with CCXT.
+EDL is a declarative YAML-based domain-specific language for defining cryptocurrency exchange integrations. It compiles to TypeScript code that is compatible with CCXT's transpiler, enabling automatic generation of Python, PHP, C#, and Go implementations.
 
 ## Overview
 
-EDL provides a declarative way to define cryptocurrency exchange integrations:
+Instead of manually implementing exchange classes with repetitive boilerplate code, EDL allows you to define exchanges declaratively:
 
 ```yaml
 exchange:
@@ -16,160 +16,219 @@ exchange:
 auth:
   type: hmac
   algorithm: sha256
-  encoding: hex
 
 api:
   public:
     get:
       ticker:
-        cost: 1
+        path: /ticker/{symbol}
         params:
-          symbol:
-            type: string
-            required: true
+          symbol: { type: string, required: true }
 
 parsers:
   ticker:
-    source: ticker
     mapping:
-      symbol: { from_context: symbol }
-      last: { path: price, transform: parse_number }
+      symbol: { path: symbol }
+      last: { path: lastPrice, transform: parseNumber }
+      bid: { path: bidPrice, transform: parseNumber }
+      ask: { path: askPrice, transform: parseNumber }
 ```
+
+The EDL compiler transforms this into a fully functional TypeScript exchange class that integrates with the CCXT ecosystem.
 
 ## Directory Structure
 
 ```
 edl/
-├── purescript/           # PureScript compiler source
+├── compiler/             # TypeScript-based EDL compiler
 │   ├── src/
-│   │   ├── EDL/
-│   │   │   ├── Types.purs       # Core ADTs
-│   │   │   ├── Parser.purs      # YAML parsing
-│   │   │   ├── Analyzer.purs    # Semantic validation
-│   │   │   ├── Generator.purs   # Code generation
-│   │   │   └── Emitter.purs     # TypeScript output
-│   │   ├── CCXT/
-│   │   │   └── Types.purs       # TypeScript AST types
-│   │   └── Main.purs            # CLI entry point
-│   ├── bin/
-│   │   └── edl-compile.js       # CLI wrapper
-│   ├── spago.yaml               # PureScript dependencies
-│   └── package.json             # npm integration
+│   │   ├── parser/       # YAML parsing and validation
+│   │   ├── analyzer/     # Semantic analysis
+│   │   ├── generator/    # Code generation
+│   │   └── types/        # TypeScript type definitions
+│   ├── bin/              # CLI tools
+│   └── dist/             # Compiled output
 ├── exchanges/            # EDL exchange definitions
-│   ├── example.edl.yaml
-│   ├── binance.edl.yaml
-│   └── kraken.edl.yaml
-├── overrides/            # Hand-written TypeScript for complex methods
+│   ├── binance.edl.yaml  # Binance definition
+│   ├── kraken.edl.yaml   # Kraken definition
+│   └── *.ts              # Generated TypeScript
+├── overrides/            # Hand-written methods for complex logic
 │   └── binance.overrides.ts
-└── schemas/
-    └── edl.schema.json   # JSON Schema for IDE support
+├── schemas/              # JSON Schema for IDE support
+│   └── edl.schema.json
+└── docs/                 # Additional documentation
 ```
 
-## Building the Compiler
+## Quick Start
+
+### Building the Compiler
 
 ```bash
-# Install PureScript dependencies
-cd edl/purescript
+cd edl/compiler
 npm install
 npm run build
-
-# Bundle for production
-npm run bundle
 ```
 
-## Using the Compiler
+### Compiling an Exchange
 
 ```bash
 # Compile a single exchange
-npm run compile-edl -- edl/exchanges/binance.edl.yaml
+node bin/edl-compile-v2.js ../exchanges/binance.edl.yaml
 
-# Compile all exchanges
-npm run compile-edl -- edl/exchanges/*.edl.yaml --out ts/src/
-
-# Validate without generating code
-npm run compile-edl -- edl/exchanges/kraken.edl.yaml --validate-only
+# Output is written to ../exchanges/binance.ts
 ```
 
-## EDL Specification
+### Validating an EDL File
+
+```bash
+# Validate without generating code
+node bin/edl-compile-v2.js ../exchanges/myexchange.edl.yaml --validate-only
+```
+
+## EDL Schema Reference
 
 ### Exchange Metadata
 
 ```yaml
 exchange:
-  id: myexchange              # Unique identifier (lowercase)
-  name: My Exchange           # Display name
-  countries: [US, EU]         # ISO country codes
-  version: v1                 # API version
-  rateLimit: 1000            # Milliseconds between requests
-  certified: false           # CCXT certification status
-  pro: false                 # CCXT Pro support
+  id: binance              # Unique identifier (lowercase)
+  name: Binance            # Display name
+  countries: [US, EU]      # ISO country codes
+  version: v3              # API version
+  rateLimit: 50            # Milliseconds between requests
+  certified: true          # CCXT certification status
+  pro: true                # CCXT Pro (WebSocket) support
+  dex: false               # Decentralized exchange flag
 ```
 
-### Authentication Types
+### URLs
 
-EDL supports multiple authentication methods:
+```yaml
+urls:
+  api:
+    public: https://api.exchange.com/v1
+    private: https://api.exchange.com/v1
+  test:
+    public: https://testnet.exchange.com/v1
+  www: https://www.exchange.com
+  doc:
+    - https://docs.exchange.com/api
+  fees: https://www.exchange.com/fees
+```
 
-- **HMAC**: `sha256`, `sha384`, `sha512`
-- **JWT**: `ES256`, `RS256`, etc.
-- **RSA**: Private key signatures
-- **EdDSA**: Ed25519/Ed448 signatures
-- **API Key**: Simple header-based auth
+### Capabilities (has flags)
 
-### API Definitions
+```yaml
+has:
+  # Market types
+  spot: true
+  margin: true
+  swap: true
+  future: true
+  option: false
+
+  # Market data
+  fetchMarkets: true
+  fetchTicker: true
+  fetchOrderBook: true
+  fetchOHLCV: true
+
+  # Trading
+  createOrder: true
+  cancelOrder: true
+  fetchBalance: true
+  fetchOpenOrders: true
+```
+
+### Authentication
+
+EDL supports multiple authentication schemes:
+
+```yaml
+auth:
+  type: hmac               # hmac, jwt, rsa, eddsa, apiKey
+  algorithm: sha256        # Signing algorithm
+  encoding: hex            # Output encoding (hex, base64)
+
+  # Optional: custom signature construction
+  signatureComponents:
+    - timestamp
+    - method
+    - path
+    - body
+```
+
+### API Endpoints
 
 ```yaml
 api:
   public:
     get:
       ticker:
-        cost: 1                    # Rate limit cost
+        path: /ticker/24hr
+        cost: 1                      # Rate limit weight
         params:
           symbol:
             type: string
             required: true
+            location: query
 
   private:
     post:
       order:
-        cost: 0.5
+        path: /order
+        cost: 1
         params:
           symbol: { type: string, required: true }
-          side: { type: string, required: true }
+          side: { type: string, required: true, enum: [buy, sell] }
           type: { type: string, required: true }
-          amount: { type: float, required: true }
-          price: { type: float, required_if: "type == limit" }
+          quantity: { type: float, required: true }
+          price: { type: float, requiredIf: "type == 'limit'" }
 ```
 
 ### Response Parsers
 
+Parsers define how API responses map to CCXT's unified data structures:
+
 ```yaml
 parsers:
   ticker:
-    source: ticker              # API endpoint source
-    path: data                  # Response path to data
+    source: ticker
+    path: data                       # Path to data in response
     mapping:
-      symbol: { from_context: symbol }
-      last: { path: lastPrice, transform: parse_number }
-      bid: { path: bidPrice, transform: parse_number }
-      ask: { path: askPrice, transform: parse_number }
+      symbol: { path: symbol }
+      last: { path: lastPrice, transform: parseNumber }
+      high: { path: highPrice, transform: parseNumber }
+      low: { path: lowPrice, transform: parseNumber }
+      bid: { path: bidPrice, transform: parseNumber }
+      ask: { path: askPrice, transform: parseNumber }
+      volume: { path: volume, transform: parseNumber }
+      timestamp: { path: closeTime, transform: parseTimestamp }
+
+      # Computed fields
       change:
-        compute: "{last} - {open}"
-        dependencies: [last, open]
+        compute: "this.safeNumber(data, 'priceChange')"
+      percentage:
+        compute: "this.safeNumber(data, 'priceChangePercent')"
 ```
 
 ### Transform Functions
 
-- `parse_number` - Parse string to number
-- `parse_string` - Ensure string type
-- `parse_timestamp` - Parse Unix timestamp (seconds)
-- `parse_timestamp_ms` - Parse Unix timestamp (milliseconds)
-- `parse_currency_code` - Normalize currency code
-- `parse_symbol` - Convert to CCXT symbol format
-- `parse_order_status` - Map exchange status to CCXT status
-- `lowercase` / `uppercase` - Case transformation
-- `omit_zero` - Return undefined for zero values
+Built-in transforms for common data conversions:
 
-### Error Patterns
+| Transform | Description |
+|-----------|-------------|
+| `parseNumber` | Convert string to number |
+| `parseString` | Ensure string type |
+| `parseTimestamp` | Unix timestamp (seconds) to milliseconds |
+| `parseTimestampMs` | Unix timestamp (milliseconds) |
+| `parseCurrencyCode` | Normalize currency codes |
+| `parseSymbol` | Convert to CCXT symbol format |
+| `parseOrderStatus` | Map exchange status to CCXT status |
+| `lowercase` / `uppercase` | Case transformation |
+| `omitZero` | Return undefined for zero values |
+
+### Error Handling
 
 ```yaml
 errors:
@@ -181,22 +240,54 @@ errors:
     - match: "Rate limit exceeded"
       type: RateLimitExceeded
       retry: exponential
+    - match: "Order not found"
+      type: OrderNotFound
 ```
 
 ### Overrides
 
-For complex methods that can't be generated:
+For complex methods that cannot be generated declaratively:
 
 ```yaml
 overrides:
-  - method: fetchBalance
-    description: "Requires multiple API calls"
+  - method: sign
+    description: "Custom request signing"
     file: myexchange.overrides.ts
 ```
 
+Override files contain TypeScript functions that are merged into the generated class:
+
+```typescript
+// myexchange.overrides.ts
+export function sign(
+  this: any,
+  path: string,
+  api: string,
+  method: string,
+  params: any,
+  headers: any,
+  body: any
+): any {
+  // Custom signing logic
+  return { url, method, body, headers };
+}
+```
+
+## Transpiler Compatibility
+
+The EDL compiler generates TypeScript that is compatible with CCXT's regex-based transpiler. This means:
+
+- No arrow functions in class methods
+- No nullish coalescing (`??`) operators
+- No optional chaining (`?.`) in certain contexts
+- Proper spacing for method declarations
+- Quoted object keys for Python/PHP compatibility
+
+Generated code automatically transpiles to Python, PHP, C#, and Go.
+
 ## IDE Support
 
-Add the JSON Schema to your IDE for autocomplete:
+Add the JSON Schema to your IDE for autocomplete and validation:
 
 **VS Code** (`.vscode/settings.json`):
 ```json
@@ -207,48 +298,61 @@ Add the JSON Schema to your IDE for autocomplete:
 }
 ```
 
+## Testing
+
+The compiler includes comprehensive tests:
+
+```bash
+cd edl/compiler
+npm test                    # Run all tests
+npm test -- --watch         # Watch mode
+npm test -- snapshot.test   # Run specific test file
+```
+
+Snapshot tests verify generated output matches expected baselines:
+- `test-snapshots/binance.ts.snap`
+- `test-snapshots/kraken.ts.snap`
+
 ## Contributing
 
 1. Create a new `.edl.yaml` file in `edl/exchanges/`
-2. Run `npm run compile-edl -- edl/exchanges/yourexchange.edl.yaml --validate-only`
+2. Run validation: `node bin/edl-compile-v2.js ../exchanges/yourexchange.edl.yaml --validate-only`
 3. Fix any validation errors
-4. Generate the TypeScript with `npm run compile-edl`
-5. Test the generated exchange
+4. Generate TypeScript: `node bin/edl-compile-v2.js ../exchanges/yourexchange.edl.yaml`
+5. Add snapshot test if needed
+6. Run full test suite
 
 ## Architecture
 
 ```
-YAML Input
+YAML Input (.edl.yaml)
     │
     ▼
 ┌──────────────┐
-│    Parser    │  yoga-yaml → PureScript ADTs
+│    Parser    │  YAML → Internal AST
 └──────────────┘
     │
     ▼
 ┌──────────────┐
-│   Analyzer   │  Semantic validation, cross-reference checks
+│   Analyzer   │  Semantic validation, cross-references
 └──────────────┘
     │
     ▼
 ┌──────────────┐
-│  Generator   │  EDL ADTs → TypeScript AST
+│  Generator   │  AST → TypeScript code structures
 └──────────────┘
     │
     ▼
 ┌──────────────┐
-│   Emitter    │  TypeScript AST → Formatted code
+│   Emitter    │  Code structures → Formatted TypeScript
 └──────────────┘
     │
     ▼
-TypeScript Output → CCXT Transpiler → JS/Python/PHP/C#/Go
+TypeScript Output (.ts)
+    │
+    ▼
+CCXT Transpiler → JavaScript, Python, PHP, C#, Go
 ```
-
-The PureScript compiler ensures:
-- **Type safety**: Exhaustive pattern matching catches missing cases
-- **Correctness**: ADTs prevent invalid states
-- **Maintainability**: Clear separation of concerns
-- **Extensibility**: Easy to add new features
 
 ## License
 
