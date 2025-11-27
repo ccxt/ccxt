@@ -576,9 +576,19 @@ function validateCrossReferences(doc: EDLDocument, errors: ValidationError[], wa
 
                 for (const method of ['get', 'post', 'put', 'delete', 'patch'] as const) {
                     const endpoints = category[method];
-                    if (endpoints && source in endpoints) {
-                        found = true;
-                        break;
+                    if (endpoints) {
+                        // Check direct match (e.g., "ticker/24hr" in public.get)
+                        if (source in endpoints) {
+                            found = true;
+                            break;
+                        }
+                        // Check prefixed match (e.g., "sapi/capital/deposit/hisrec" matches sapi.get["capital/deposit/hisrec"])
+                        for (const endpointName of Object.keys(endpoints)) {
+                            if (source === `${categoryName}/${endpointName}`) {
+                                found = true;
+                                break;
+                            }
+                        }
                     }
                 }
                 if (found) break;

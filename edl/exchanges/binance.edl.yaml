@@ -492,6 +492,75 @@ api:
             type: int
             required: false
 
+  # SAPI (Wallet) endpoints
+  sapi:
+    get:
+      capital/deposit/hisrec:
+        cost: 1
+        params:
+          coin:
+            type: string
+            required: false
+          status:
+            type: int
+            required: false
+          startTime:
+            type: timestamp_ms
+            required: false
+          endTime:
+            type: timestamp_ms
+            required: false
+          offset:
+            type: int
+            required: false
+          limit:
+            type: int
+            required: false
+            default: "1000"
+          recvWindow:
+            type: int
+            required: false
+      capital/withdraw/history:
+        cost: 1
+        params:
+          coin:
+            type: string
+            required: false
+          withdrawOrderId:
+            type: string
+            required: false
+          status:
+            type: int
+            required: false
+          startTime:
+            type: timestamp_ms
+            required: false
+          endTime:
+            type: timestamp_ms
+            required: false
+          offset:
+            type: int
+            required: false
+          limit:
+            type: int
+            required: false
+            default: "1000"
+          recvWindow:
+            type: int
+            required: false
+      capital/deposit/address:
+        cost: 10
+        params:
+          coin:
+            type: string
+            required: true
+          network:
+            type: string
+            required: false
+          recvWindow:
+            type: int
+            required: false
+
 parsers:
   ticker:
     source: ticker/24hr
