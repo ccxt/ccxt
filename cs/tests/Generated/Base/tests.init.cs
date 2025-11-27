@@ -20,7 +20,7 @@ public partial class BaseTest
             testPrecise();
             testSafeMethods();
             testSafeTicker();
-            // testJson ();
+            testJson();
             testSortBy();
             testSum();
             testOmit();
