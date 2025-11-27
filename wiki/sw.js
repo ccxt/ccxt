@@ -12,6 +12,12 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', event => {
   const requestUrl = new URL(event.request.url);
 
+  if (new URL(event.request.url).origin !== self.location.origin) {
+    // Forward directly to network without modification if cors
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   // 1. Only apply cache-busting to same-origin requests
   if (requestUrl.origin === self.location.origin) {
     requestUrl.search += (requestUrl.search ? '&' : '?') + 'cache-bust=' + Date.now();
