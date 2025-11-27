@@ -22,7 +22,7 @@ function run_base_tests() {
             } else {
                 // test base things
                 require_once (__DIR__ . '/base/tests_init.php');
-                \React\Async\await(\base_tests_init())  ;
+                \React\Async\await(\ccxt\base_tests_init())  ;
                 print('base REST tests passed!');
             }
             if (!$runAll) {
