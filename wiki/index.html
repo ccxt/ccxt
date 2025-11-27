@@ -36,7 +36,9 @@
       window.$docsify = {
         name: "ccxt",
         repo: "ccxt/ccxt",
-        search: "auto",
+        search: {
+          paths: [ '/baseSpec' ],
+        },
         homepage: 'Manual.md',
         logo: 'https://user-images.githubusercontent.com/1294454/112665445-2008ec80-8e6c-11eb-9647-623a347ddade.png',
         loadSidebar: true,
