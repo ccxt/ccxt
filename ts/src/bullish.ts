@@ -232,6 +232,8 @@ export default class bullish extends Exchange {
             'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'BTC': 'BTC',
                     'EOS': 'EOS',
@@ -447,7 +449,6 @@ export default class bullish extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
-        // todo implement time difference
         const response = await this.publicGetV1Time (params);
         //
         //     {
@@ -549,6 +550,9 @@ export default class bullish extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const response = await this.publicGetV1Markets (params);
         return this.parseMarkets (response);
     }
@@ -2837,6 +2841,10 @@ export default class bullish extends Exchange {
         };
     }
 
+    getTimestamp () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
@@ -2844,7 +2852,7 @@ export default class bullish extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.microseconds ().toString ();
-            const timestamp = this.milliseconds ().toString ();
+            const timestamp = this.getTimestamp ().toString ();
             if (method === 'GET') {
                 const payload = timestamp + nonce + method + '/trading-api/' + path;
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
