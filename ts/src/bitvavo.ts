@@ -21,7 +21,6 @@ export default class bitvavo extends Exchange {
             'name': 'Bitvavo',
             'countries': [ 'NL' ], // Netherlands
             'rateLimit': 60, // 1000 requests per minute
-            'rollingWindowSize': 60000.0,
             'version': 'v2',
             'certified': false,
             'pro': true,

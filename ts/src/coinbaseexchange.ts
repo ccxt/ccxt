@@ -21,7 +21,6 @@ export default class coinbaseexchange extends Exchange {
             'name': 'Coinbase Exchange',
             'countries': [ 'US' ],
             'rateLimit': 100,
-            'rollingWindowSize': 60000.0,
             'userAgent': this.userAgents['chrome'],
             'pro': true,
             'has': {

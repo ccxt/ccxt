@@ -22,7 +22,6 @@ export default class poloniex extends Exchange {
             'countries': [ 'US' ],
             // 200 requests per second for some unauthenticated market endpoints => 1000ms / 200 = 5ms between requests
             'rateLimit': 5,
-            'rollingWindowSize': 60000.0,
             'certified': false,
             'pro': true,
             'has': {

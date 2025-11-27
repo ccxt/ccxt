@@ -21,7 +21,6 @@ export default class exmo extends Exchange {
             'name': 'EXMO',
             'countries': [ 'LT' ], // Lithuania
             'rateLimit': 100, // 10 requests per 1 second
-            'rollingWindowSize': 60000.0,
             'version': 'v1.1',
             'has': {
                 'CORS': undefined,

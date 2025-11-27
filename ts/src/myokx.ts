@@ -12,7 +12,6 @@ export default class myokx extends okx {
             'name': 'MyOKX (EEA)',
             'certified': false,
             'pro': true,
-            'rollingWindowSize': 60000.0,
             'hostname': 'eea.okx.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg',

@@ -21,7 +21,6 @@ export default class cryptomus extends Exchange {
             'name': 'Cryptomus',
             'countries': [ 'CA' ],
             'rateLimit': 100, // todo check
-            'rollingWindowSize': 60000.0,
             'version': 'v2',
             'certified': false,
             'pro': false,

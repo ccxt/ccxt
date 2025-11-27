@@ -22,7 +22,6 @@ export default class bitflyer extends Exchange {
             'countries': [ 'JP' ],
             'version': 'v1',
             'rateLimit': 1000, // their nonce-timestamp is in seconds...
-            'rollingWindowSize': 60000.0,
             'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
                 'CORS': undefined,

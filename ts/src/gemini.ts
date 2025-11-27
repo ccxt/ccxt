@@ -23,7 +23,6 @@ export default class gemini extends Exchange {
             // 600 requests a minute = 10 requests per second => 1000ms / 10 = 100ms between requests (private endpoints)
             // 120 requests a minute = 2 requests per second => ( 1000ms / rateLimit ) / 2 = 5 (public endpoints)
             'rateLimit': 100,
-            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'pro': true,
             'has': {

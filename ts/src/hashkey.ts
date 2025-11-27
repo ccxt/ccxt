@@ -21,7 +21,6 @@ export default class hashkey extends Exchange {
             'name': 'HashKey Global',
             'countries': [ 'BM' ], // Bermuda
             'rateLimit': 100,
-            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'certified': true,
             'pro': true,

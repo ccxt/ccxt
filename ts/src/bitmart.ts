@@ -22,7 +22,6 @@ export default class bitmart extends Exchange {
             // 150 per 5 seconds = 30 per second
             // rateLimit = 1000ms / 30 ~= 33.334
             'rateLimit': 33.34,
-            'rollingWindowSize': 60000.0,
             'version': 'v2',
             'certified': true,
             'pro': true,

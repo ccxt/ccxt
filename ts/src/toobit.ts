@@ -21,7 +21,6 @@ export default class toobit extends Exchange {
             'countries': [ 'KY' ], // Cayman Islands
             'version': 'v1',
             'rateLimit': 20, // 50 requests per second
-            'rollingWindowSize': 60000.0,
             'certified': false,
             'pro': true,
             'has': {

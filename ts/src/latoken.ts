@@ -21,7 +21,6 @@ export default class latoken extends Exchange {
             'countries': [ 'KY' ], // Cayman Islands
             'version': 'v2',
             'rateLimit': 1000,
-            'rollingWindowSize': 60000.0,
             'has': {
                 'CORS': undefined,
                 'spot': true,

@@ -20,7 +20,6 @@ export default class p2b extends Exchange {
             'name': 'p2b',
             'countries': [ 'LT' ],
             'rateLimit': 100,
-            'rollingWindowSize': 60000.0,
             'version': 'v2',
             'pro': true,
             'has': {

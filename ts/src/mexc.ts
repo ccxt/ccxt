@@ -21,7 +21,6 @@ export default class mexc extends Exchange {
             'name': 'MEXC Global',
             'countries': [ 'SC' ], // Seychelles
             'rateLimit': 50, // default rate limit is 20 times per second
-            'rollingWindowSize': 60000.0,
             'version': 'v3',
             'certified': true,
             'pro': true,

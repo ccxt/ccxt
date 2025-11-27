@@ -21,7 +21,6 @@ export default class bitrue extends Exchange {
             'name': 'Bitrue',
             'countries': [ 'SG' ], // Singapore, Malta
             'rateLimit': 10,
-            'rollingWindowSize': 60000.0,
             'certified': false,
             'version': 'v1',
             'pro': true,

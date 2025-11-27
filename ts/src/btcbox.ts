@@ -22,7 +22,6 @@ export default class btcbox extends Exchange {
             'name': 'BtcBox',
             'countries': [ 'JP' ],
             'rateLimit': 1000,
-            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'pro': false,
             'has': {

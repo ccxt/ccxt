@@ -20,7 +20,6 @@ export default class bitbank extends Exchange {
             'name': 'bitbank',
             'countries': [ 'JP' ],
             'version': 'v1',
-            'rollingWindowSize': 60000.0,
             'has': {
                 'CORS': undefined,
                 'spot': true,

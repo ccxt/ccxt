@@ -23,7 +23,6 @@ export default class coinbaseinternational extends Exchange {
             'certified': false,
             'pro': true,
             'rateLimit': 100, // 10 requests per second
-            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'userAgent': this.userAgents['chrome'],
             'headers': {

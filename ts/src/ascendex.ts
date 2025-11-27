@@ -23,7 +23,6 @@ export default class ascendex extends Exchange {
             // 8 requests per minute = 0.13333 per second => rateLimit = 750
             // testing 400 works
             'rateLimit': 400,
-            'rollingWindowSize': 60000.0,
             'certified': false,
             'pro': true,
             // new metainfo interface

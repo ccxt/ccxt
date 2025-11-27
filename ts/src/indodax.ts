@@ -23,7 +23,6 @@ export default class indodax extends Exchange {
             // 10 requests per second for making trades => 1000ms / 10 = 100ms
             // 180 requests per minute (public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
             'rateLimit': 50,
-            'rollingWindowSize': 60000.0,
             'has': {
                 'CORS': undefined,
                 'spot': true,

@@ -21,7 +21,6 @@ export default class delta extends Exchange {
             'name': 'Delta Exchange',
             'countries': [ 'VC' ], // Saint Vincent and the Grenadines
             'rateLimit': 300,
-            'rollingWindowSize': 60000.0,
             'version': 'v2',
             // new metainfo interface
             'has': {

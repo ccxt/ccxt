@@ -21,7 +21,6 @@ export default class bit2c extends Exchange {
             'name': 'Bit2C',
             'countries': [ 'IL' ], // Israel
             'rateLimit': 3000,
-            'rollingWindowSize': 60000.0,
             'pro': false,
             'has': {
                 'CORS': undefined,

@@ -22,7 +22,6 @@ export default class oceanex extends Exchange {
             'countries': [ 'BS' ], // Bahamas
             'version': 'v1',
             'rateLimit': 3000,
-            'rollingWindowSize': 60000.0,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg',
                 'api': {

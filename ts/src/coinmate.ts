@@ -21,7 +21,6 @@ export default class coinmate extends Exchange {
             'name': 'CoinMate',
             'countries': [ 'GB', 'CZ', 'EU' ], // UK, Czech Republic
             'rateLimit': 600,
-            'rollingWindowSize': 60000.0,
             'has': {
                 'CORS': true,
                 'spot': true,

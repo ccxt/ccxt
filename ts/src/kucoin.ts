@@ -1099,7 +1099,6 @@ export default class kucoin extends Exchange {
                     'inverse': undefined,
                 },
             },
-            'rollingWindowSize': 60.0,
         });
     }
 

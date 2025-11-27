@@ -22,7 +22,6 @@ export default class okx extends Exchange {
             'countries': [ 'CN', 'US' ],
             'version': 'v5',
             'rateLimit': 100 * 1.10, // 10% tolerance because of #26973
-            'rollingWindowSize': 60000.0,
             'pro': true,
             'certified': true,
             'has': {

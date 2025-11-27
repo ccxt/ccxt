@@ -21,7 +21,6 @@ export default class luno extends Exchange {
             'countries': [ 'GB', 'SG', 'ZA' ],
             // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit': 200,
-            'rollingWindowSize': 60000.0,
             'version': '1',
             'pro': true,
             'has': {

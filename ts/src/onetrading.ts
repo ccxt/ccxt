@@ -20,7 +20,6 @@ export default class onetrading extends Exchange {
             'name': 'One Trading',
             'countries': [ 'AT' ], // Austria
             'rateLimit': 300,
-            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'pro': true,
             // new metainfo interface

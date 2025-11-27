@@ -22,7 +22,6 @@ export default class zaif extends Exchange {
             'countries': [ 'JP' ],
             // 10 requests per second = 1000ms / 10 = 100ms between requests (public market endpoints)
             'rateLimit': 100,
-            'rollingWindowSize': 60000.0,
             'version': '1',
             'has': {
                 'CORS': undefined,

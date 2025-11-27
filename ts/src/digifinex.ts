@@ -22,7 +22,6 @@ export default class digifinex extends Exchange {
             'countries': [ 'SG' ],
             'version': 'v3',
             'rateLimit': 900, // 300 for posts
-            'rollingWindowSize': 60000.0,
             'has': {
                 'CORS': undefined,
                 'spot': true,

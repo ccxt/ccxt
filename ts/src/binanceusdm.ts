@@ -11,7 +11,6 @@ export default class binanceusdm extends binance {
         return this.deepExtend (super.describe (), {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
-            'rollingWindowSize': 60000.0,
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a',
                 'doc': [

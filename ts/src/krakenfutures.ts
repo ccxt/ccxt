@@ -23,7 +23,6 @@ export default class krakenfutures extends Exchange {
             'version': 'v3',
             'userAgent': undefined,
             'rateLimit': 600,
-            'rollingWindowSize': 60000.0,
             'pro': true,
             'has': {
                 'CORS': undefined,

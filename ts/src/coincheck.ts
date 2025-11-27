@@ -20,7 +20,6 @@ export default class coincheck extends Exchange {
             'name': 'coincheck',
             'countries': [ 'JP', 'ID' ],
             'rateLimit': 1500,
-            'rollingWindowSize': 60000.0,
             'has': {
                 'CORS': undefined,
                 'spot': true,

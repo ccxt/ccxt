@@ -21,7 +21,6 @@ export default class yobit extends Exchange {
             'name': 'YoBit',
             'countries': [ 'RU' ],
             'rateLimit': 2000, // responses are cached every 2 seconds
-            'rollingWindowSize': 60000.0,
             'version': '3',
             'pro': false,
             'has': {

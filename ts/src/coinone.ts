@@ -21,7 +21,6 @@ export default class coinone extends Exchange {
             'name': 'CoinOne',
             'countries': [ 'KR' ], // Korea
             'rateLimit': 50,
-            'rollingWindowSize': 60000.0,
             'version': 'v2',
             'pro': false,
             'has': {

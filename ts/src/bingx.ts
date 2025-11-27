@@ -21,7 +21,6 @@ export default class bingx extends Exchange {
             'name': 'BingX',
             'countries': [ 'US' ], // North America, Canada, the EU, Hong Kong and Taiwan
             'rateLimit': 100,
-            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'certified': true,
             'pro': true,

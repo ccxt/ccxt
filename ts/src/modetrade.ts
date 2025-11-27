@@ -24,7 +24,6 @@ export default class modetrade extends Exchange {
             'name': 'Mode Trade',
             'countries': [ 'KY' ], // Cayman Islands
             'rateLimit': 100,
-            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'certified': false,
             'pro': true,

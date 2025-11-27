@@ -22,7 +22,6 @@ export default class hollaex extends Exchange {
             'countries': [ 'KR' ],
             // 4 requests per second => 1000ms / 4 = 250 ms between requests
             'rateLimit': 250,
-            'rollingWindowSize': 60000.0,
             'version': 'v2',
             'pro': true,
             'has': {

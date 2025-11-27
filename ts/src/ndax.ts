@@ -21,7 +21,6 @@ export default class ndax extends Exchange {
             'name': 'NDAX',
             'countries': [ 'CA' ], // Canada
             'rateLimit': 1000,
-            'rollingWindowSize': 60000.0,
             'pro': true,
             'has': {
                 'CORS': undefined,

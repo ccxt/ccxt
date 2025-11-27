@@ -23,7 +23,6 @@ export default class hyperliquid extends Exchange {
             'countries': [ ],
             'version': 'v1',
             'rateLimit': 50, // 1200 requests per minute, 20 request per second
-            'rollingWindowSize': 60000.0,
             'certified': true,
             'pro': true,
             'dex': true,

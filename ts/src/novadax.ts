@@ -24,7 +24,6 @@ export default class novadax extends Exchange {
             // 6000 weight per min => 100 weight per second => min weight = 1
             // 100 requests per second => ( 1000ms / 100 ) = 10 ms between requests on average
             'rateLimit': 10,
-            'rollingWindowSize': 60000.0,
             'version': 'v1',
             // new metainfo interface
             'has': {

@@ -23,7 +23,6 @@ export default class hibachi extends Exchange {
             'name': 'Hibachi',
             'countries': [ 'US' ],
             'rateLimit': 100,
-            'rollingWindowSize': 60000.0,
             'userAgent': this.userAgents['chrome'],
             'certified': false,
             'pro': false,

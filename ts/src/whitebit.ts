@@ -22,7 +22,6 @@ export default class whitebit extends Exchange {
             'version': 'v4',
             'countries': [ 'EE' ],
             'rateLimit': 50,
-            'rollingWindowSize': 60000.0,
             'pro': true,
             'has': {
                 'CORS': undefined,

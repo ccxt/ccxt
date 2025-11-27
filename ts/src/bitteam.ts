@@ -21,7 +21,6 @@ export default class bitteam extends Exchange {
             'countries': [ 'UK' ],
             'version': 'v2.0.6',
             'rateLimit': 1, // the exchange has no rate limit
-            'rollingWindowSize': 60000.0,
             'certified': false,
             'pro': false,
             'has': {

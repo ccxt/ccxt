@@ -18,7 +18,6 @@ export default class gate extends Exchange {
             'name': 'Gate',
             'countries': [ 'KR' ],
             'rateLimit': 50, // 200 requests per 10 second or 50ms
-            'rollingWindowSize': 60000.0,
             'version': 'v4',
             'certified': true,
             'pro': true,

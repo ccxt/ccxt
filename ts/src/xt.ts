@@ -25,7 +25,6 @@ export default class xt extends Exchange {
             // futures 10 requests per second => 1000ms / (100 * 1) = 10 (all other)
             // futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit': 100,
-            'rollingWindowSize': 60000.0,
             'version': 'v4',
             'certified': false,
             'pro': true,

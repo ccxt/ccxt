@@ -21,7 +21,6 @@ export default class mercado extends Exchange {
             'name': 'Mercado Bitcoin',
             'countries': [ 'BR' ], // Brazil
             'rateLimit': 1000,
-            'rollingWindowSize': 60000.0,
             'version': 'v3',
             'has': {
                 'CORS': true,

@@ -22,7 +22,6 @@ export default class bitstamp extends Exchange {
             'countries': [ 'GB' ],
             // 8000 requests per 10 minutes = 8000 / 600 = 13.33333333 requests per second => 1000ms / 13.33333333 = 75ms between requests on average
             'rateLimit': 75,
-            'rollingWindowSize': 60000.0,
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
             'pro': true,

@@ -21,7 +21,6 @@ export default class bitbns extends Exchange {
             'name': 'Bitbns',
             'countries': [ 'IN' ], // India
             'rateLimit': 1000,
-            'rollingWindowSize': 60000.0,
             'certified': false,
             'version': 'v2',
             // new metainfo interface

@@ -21,7 +21,6 @@ export default class woo extends Exchange {
             'name': 'WOO X',
             'countries': [ 'KY' ], // Cayman Islands
             'rateLimit': 100,
-            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'certified': true,
             'pro': true,

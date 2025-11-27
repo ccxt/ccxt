@@ -21,7 +21,6 @@ export default class btcturk extends Exchange {
             'name': 'BTCTurk',
             'countries': [ 'TR' ], // Turkey
             'rateLimit': 100,
-            'rollingWindowSize': 60000.0,
             'pro': false,
             'has': {
                 'CORS': true,

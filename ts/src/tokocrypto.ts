@@ -21,7 +21,6 @@ export default class tokocrypto extends Exchange {
             'countries': [ 'ID' ], // Indonesia
             'certified': false,
             'pro': false,
-            'rollingWindowSize': 60000.0,
             'version': 'v1',
             // new metainfo interface
             'has': {

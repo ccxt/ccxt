@@ -24,7 +24,6 @@ export default class upbit extends Exchange {
             'countries': [ 'KR', 'ID', 'SG', 'TH' ],
             'version': 'v1',
             'rateLimit': 50,
-            'rollingWindowSize': 60000.0,
             'pro': true,
             // new metainfo interface
             'has': {
