@@ -5,6 +5,8 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [setSandboxMode](#setsandboxmode)
+* [enableDemoTrading](#enabledemotrading)
 * [fetchTime](#fetchtime)
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
@@ -41,6 +43,7 @@
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchFundingIntervals](#fetchfundingintervals)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reduceMargin](#reducemargin)
 * [addMargin](#addmargin)
@@ -86,6 +89,42 @@
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
+
+<a name="setSandboxMode" id="setsandboxmode"></a>
+
+### setSandboxMode{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.setSandboxMode (enabled, [undefined])
+```
+
+
+<a name="enableDemoTrading" id="enabledemotrading"></a>
+
+### enableDemoTrading{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.enableDemoTrading (enabled, [undefined])
+```
+
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -667,6 +706,7 @@ edit a trade order
 **See**
 
 - https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+- https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
 - https://www.bitget.com/api-doc/contract/trade/Modify-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -789,9 +829,8 @@ cancel all open orders
 - https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
 - https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
 - https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-- https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+- https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+- https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
 
 
 | Param | Type | Required | Description |
@@ -1187,10 +1226,33 @@ fetch the current funding rates for all markets
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+| params.method | <code>string</code> | No | either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate' |
 
 
 ```javascript
 bitget.fetchFundingRates ([symbols, params])
+```
+
+
+<a name="fetchFundingIntervals" id="fetchfundingintervals"></a>
+
+### fetchFundingIntervals{docsify-ignore}
+fetch the funding rate interval for multiple markets
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.productType | <code>string</code> | No | 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+
+
+```javascript
+bitget.fetchFundingIntervals ([symbols, params])
 ```
 
 
@@ -2291,6 +2353,7 @@ watches information on multiple orders made by the user
 **See**
 
 - https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+- https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
 - https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
 - https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
 - https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
@@ -2381,6 +2444,8 @@ bitget.watchBalance ([params])
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [setSandboxMode](#setsandboxmode)
+* [enableDemoTrading](#enabledemotrading)
 * [fetchTime](#fetchtime)
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
@@ -2417,6 +2482,7 @@ bitget.watchBalance ([params])
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchFundingIntervals](#fetchfundingintervals)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reduceMargin](#reducemargin)
 * [addMargin](#addmargin)
@@ -2462,6 +2528,42 @@ bitget.watchBalance ([params])
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
+
+<a name="setSandboxMode" id="setsandboxmode"></a>
+
+### setSandboxMode{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.setSandboxMode (enabled, [undefined])
+```
+
+
+<a name="enableDemoTrading" id="enabledemotrading"></a>
+
+### enableDemoTrading{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.enableDemoTrading (enabled, [undefined])
+```
+
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -3043,6 +3145,7 @@ edit a trade order
 **See**
 
 - https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+- https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
 - https://www.bitget.com/api-doc/contract/trade/Modify-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -3165,9 +3268,8 @@ cancel all open orders
 - https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
 - https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
 - https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-- https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+- https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+- https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
 
 
 | Param | Type | Required | Description |
@@ -3563,10 +3665,33 @@ fetch the current funding rates for all markets
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+| params.method | <code>string</code> | No | either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate' |
 
 
 ```javascript
 bitget.fetchFundingRates ([symbols, params])
+```
+
+
+<a name="fetchFundingIntervals" id="fetchfundingintervals"></a>
+
+### fetchFundingIntervals{docsify-ignore}
+fetch the funding rate interval for multiple markets
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.productType | <code>string</code> | No | 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+
+
+```javascript
+bitget.fetchFundingIntervals ([symbols, params])
 ```
 
 
@@ -4667,6 +4792,7 @@ watches information on multiple orders made by the user
 **See**
 
 - https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+- https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
 - https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
 - https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
 - https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders

@@ -118,7 +118,7 @@ class mexc(ccxt.async_support.mexc):
         #         "symbol": "BTC_USDT",
         #         "data": {
         #             "symbol": "BTC_USDT",
-        #             "lastPrice": 76376.2,
+        #             "lastPrice": 76376.1,
         #             "riseFallRate": -0.0006,
         #             "fairPrice": 76374.4,
         #             "indexPrice": 76385.8,
@@ -530,7 +530,7 @@ class mexc(ccxt.async_support.mexc):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
@@ -964,14 +964,16 @@ class mexc(ccxt.async_support.mexc):
         # swap
         #     {
         #         "symbol": "BTC_USDT",
-        #         "data": {
-        #             "p": 27307.3,
-        #             "v": 5,
-        #             "T": 2,
-        #             "O": 3,
-        #             "M": 1,
-        #             "t": 1680055941870
-        #         },
+        #         "data": [
+        #            {
+        #                "p": 114350.4,
+        #                "v": 4,
+        #                "T": 2,
+        #                "O": 3,
+        #                "M": 2,
+        #                "t": 1760368563597
+        #            }
+        #         ],
         #         "channel": "push.deal",
         #         "ts": 1680055941870
         #     }
@@ -985,8 +987,10 @@ class mexc(ccxt.async_support.mexc):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        d = self.safe_dict_n(message, ['d', 'data', 'publicAggreDeals'])
+        d = self.safe_dict_n(message, ['d', 'publicAggreDeals'])
         trades = self.safe_list_2(d, 'deals', 'dealsList', [d])
+        if d is None:
+            trades = self.safe_list(message, 'data', [])
         for j in range(0, len(trades)):
             parsedTrade = None
             if market['spot']:
@@ -1623,7 +1627,7 @@ class mexc(ccxt.async_support.mexc):
         self.handle_unsubscriptions(client, messageHashes)
         return None
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for

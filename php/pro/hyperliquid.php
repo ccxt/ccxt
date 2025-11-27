@@ -492,8 +492,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             $assetObject = $spotAssets[$i];
             $marketId = $this->safe_string($assetObject, 'coin');
             $market = $this->safe_market($marketId, null, null, 'spot');
+            $symbol = $market['symbol'];
             $ticker = $this->parse_ws_ticker($assetObject, $market);
             $parsedTickers[] = $ticker;
+            $this->tickers[$symbol] = $ticker;
         }
         // perpetuals
         $meta = $this->safe_dict($rawData, 'meta', array());
@@ -506,7 +508,9 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             );
             $id = $data['name'] . '/USDC:USDC';
             $market = $this->safe_market($id, null, null, 'swap');
+            $symbol = $market['symbol'];
             $ticker = $this->parse_ws_ticker($data, $market);
+            $this->tickers[$symbol] = $ticker;
             $parsedTickers[] = $ticker;
         }
         $tickers = $this->index_by($parsedTickers, 'symbol');
@@ -740,7 +744,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
@@ -776,7 +780,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market

@@ -3911,6 +3911,10 @@ public partial class poloniex : Exchange
         {
             url = getValue(getValue(this.urls, "api"), "swap");
         }
+        if (isTrue(inOp(parameters, "symbol")))
+        {
+            ((IDictionary<string,object>)parameters)["symbol"] = this.encodeURIComponent(getValue(parameters, "symbol")); // handle symbols like 索拉拉/USDT'
+        }
         object query = this.omit(parameters, this.extractParams(path));
         object implodedPath = this.implodeParams(path, parameters);
         if (isTrue(isTrue(isEqual(api, "public")) || isTrue(isEqual(api, "swapPublic"))))

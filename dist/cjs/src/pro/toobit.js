@@ -232,14 +232,15 @@ class toobit extends toobit$1["default"] {
         //     }
         //
         const marketId = this.safeString(message, 'symbol');
-        const symbol = this.safeSymbol(marketId);
+        const market = this.safeMarket(marketId);
+        const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new Cache.ArrayCache(limit);
         }
         const stored = this.trades[symbol];
         const data = this.safeList(message, 'data', []);
-        const parsed = this.parseWsTrades(data);
+        const parsed = this.parseWsTrades(data, market);
         for (let i = 0; i < parsed.length; i++) {
             const trade = parsed[i];
             trade['symbol'] = symbol;
@@ -1082,7 +1083,7 @@ class toobit extends toobit$1["default"] {
     async authenticate(params = {}) {
         const client = this.client(this.getUserStreamUrl());
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials();

@@ -179,16 +179,8 @@ func (this *WooCore) V1PrivatePostOrderCancelAllAfter(args ...interface{}) <-cha
 	return this.callEndpointAsync("v1PrivatePostOrderCancelAllAfter", args...)
 }
 
-func (this *WooCore) V1PrivatePostAssetMainSubTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostAssetMainSubTransfer", args...)
-}
-
 func (this *WooCore) V1PrivatePostAssetLtv(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PrivatePostAssetLtv", args...)
-}
-
-func (this *WooCore) V1PrivatePostAssetWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostAssetWithdraw", args...)
 }
 
 func (this *WooCore) V1PrivatePostAssetInternalWithdraw(args ...interface{}) <-chan interface{} {
@@ -409,10 +401,6 @@ func (this *WooCore) V3PrivateGetAlgoOrderOid(args ...interface{}) <-chan interf
 
 func (this *WooCore) V3PrivateGetAlgoOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivateGetAlgoOrders", args...)
-}
-
-func (this *WooCore) V3PrivateGetBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v3PrivateGetBalances", args...)
 }
 
 func (this *WooCore) V3PrivateGetPositions(args ...interface{}) <-chan interface{} {

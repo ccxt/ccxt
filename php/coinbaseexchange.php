@@ -857,7 +857,7 @@ class coinbaseexchange extends Exchange {
         $open = null;
         $volume = null;
         $symbol = ($market === null) ? null : $market['symbol'];
-        if (gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker))) {
+        if ((gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker)))) {
             $last = $this->safe_string($ticker, 4);
             $timestamp = $this->milliseconds();
         } else {
@@ -1191,7 +1191,7 @@ class coinbaseexchange extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles

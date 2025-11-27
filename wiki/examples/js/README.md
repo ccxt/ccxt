@@ -131,6 +131,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Fetch All Tickers To Files](./examples/js/fetch-all-tickers-to-files.md)
 
+- [Fetch Balance All Exchanges](./examples/js/fetch-balance-all-exchanges.md)
+
 - [Fetch Balance](./examples/js/fetch-balance.md)
 
 - [Fetch Create Deposit Address](./examples/js/fetch-create-deposit-address.md)

@@ -388,6 +388,7 @@ class coincatch(Exchange, ImplicitAPI):
                     'ChilizChain': 'ChilizChain',  # todo check
                     'StellarLumens': 'XLM',  # todo check
                     'CronosChain': 'CRO',  # todo check
+                    'Optimism': 'Optimism',
                 },
             },
             'features': {
@@ -1345,7 +1346,7 @@ class coincatch(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'ts')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://coincatch.github.io/github.io/en/spot/#get-candle-data

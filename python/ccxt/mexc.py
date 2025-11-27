@@ -186,6 +186,7 @@ class mexc(Exchange, ImplicitAPI):
                         'get': {
                             'ping': 1,
                             'time': 1,
+                            'defaultSymbols': 1,
                             'exchangeInfo': 10,
                             'depth': 1,
                             'trades': 5,
@@ -201,14 +202,19 @@ class mexc(Exchange, ImplicitAPI):
                     },
                     'private': {
                         'get': {
+                            'kyc/status': 1,
+                            'uid': 1,
                             'order': 2,
                             'openOrders': 3,
                             'allOrders': 10,
                             'account': 10,
                             'myTrades': 10,
+                            'strategy/group': 20,
+                            'strategy/group/uid': 20,
                             'tradeFee': 10,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
+                            'sub-account/asset': 1,
                             'capital/config/getall': 10,
                             'capital/deposit/hisrec': 1,
                             'capital/withdraw/history': 1,
@@ -254,6 +260,7 @@ class mexc(Exchange, ImplicitAPI):
                             'sub-account/futures': 1,
                             'sub-account/margin': 1,
                             'batchOrders': 10,
+                            'strategy/group': 20,
                             'capital/withdraw/apply': 1,
                             'capital/withdraw': 1,
                             'capital/transfer': 1,
@@ -943,6 +950,7 @@ class mexc(Exchange, ImplicitAPI):
                     '30029': InvalidOrder,  # Cannot exceed the maximum order limit
                     '30032': InvalidOrder,  # Cannot exceed the maximum position
                     '30041': InvalidOrder,  # current order type can not place order
+                    '30087': InvalidOrder,  # {"msg":"Order price exceeds allowed range","code":30087}
                     '60005': ExchangeError,  # your account is abnormal
                     '700001': AuthenticationError,  # {"code":700002,"msg":"Signature for self request is not valid."}  # same message for expired API keys
                     '700002': AuthenticationError,  # Signature for self request is not valid  # or the API secret is incorrect
@@ -1725,7 +1733,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
@@ -2877,9 +2885,8 @@ class mexc(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for spot market')
-            request['symbol'] = market['id']
+            if symbol is not None:
+                request['symbol'] = market['id']
             marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
             response = None
             if marginMode is not None:
@@ -3093,7 +3100,7 @@ class mexc(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg)
         return self.parse_order(data, market)
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -3421,7 +3428,8 @@ class mexc(Exchange, ImplicitAPI):
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,  # TODO: self might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
+            'lastTradeTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
             'status': self.parse_order_status(self.safe_string_2(order, 'status', 'state')),
             'symbol': market['symbol'],
             'type': self.parse_order_type(typeRaw),

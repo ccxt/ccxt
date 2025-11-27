@@ -71,17 +71,17 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         parameters ??= new Dictionary<string, object>();
         object connectId = ((bool) isTrue(privateChannel)) ? "private" : "public";
         object urls = this.safeValue(this.options, "urls", new Dictionary<string, object>() {});
-        object spawaned = this.safeValue(urls, connectId);
-        if (isTrue(!isEqual(spawaned, null)))
+        var future = this.safeValue(urls, connectId);
+        if (isTrue(!isEqual(future, null)))
         {
-            return await (spawaned as Exchange.Future);
+            return await (future as Exchange.Future);
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         ((IDictionary<string,object>)urls)[(string)connectId] = this.spawn(this.negotiateHelper, new object[] { privateChannel, parameters}); // we have to wait here otherwsie in c# will not work
         ((IDictionary<string,object>)this.options)["urls"] = urls;
-        var future = getValue(urls, connectId);
+        future = getValue(urls, connectId);
         return await (future as Exchange.Future);
     }
 
@@ -124,8 +124,10 @@ public partial class kucoinfutures : ccxt.kucoinfutures
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return requestId;
     }
 
@@ -412,7 +414,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         {
             return null;
         }
-        object cache = (this.positions as ArrayCacheBySymbolById).hashmap;
+        object cache = (this.positions as ArrayCache).hashmap;
         object symbolCache = this.safeValue(cache, symbol, new Dictionary<string, object>() {});
         object values = new List<object>(((IDictionary<string,object>)symbolCache).Values);
         return this.safeValue(values, 0);
@@ -1154,7 +1156,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             object cachedOrders = this.orders;
-            object orders = this.safeValue((cachedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+            object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             object order = this.safeValue(orders, orderId);
             if (isTrue(!isEqual(order, null)))
             {

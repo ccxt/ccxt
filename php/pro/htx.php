@@ -139,8 +139,10 @@ class htx extends \ccxt\async\htx {
     }
 
     public function request_id() {
+        $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
+        $this->unlock_id();
         return (string) $requestId;
     }
 
@@ -336,7 +338,7 @@ class htx extends \ccxt\async\htx {
         return $message;
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -366,7 +368,7 @@ class htx extends \ccxt\async\htx {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -432,9 +434,9 @@ class htx extends \ccxt\async\htx {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-$market-$depth-data
-             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-$market-$depth-data
-             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-$market-$depth-data
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-$market-depth-data
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-$market-depth-data
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-$market-depth-data
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -445,21 +447,23 @@ class htx extends \ccxt\async\htx {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $allowedLimits = array( 20, 150 );
+            $allowedLimits = array( 5, 20, 150, 400 );
             // 2) 5-level/20-level incremental MBP is a tick by tick feed,
             // which means whenever there is an order book change at that level, it pushes an update;
             // 150-levels/400-level incremental MBP feed is based on the gap
             // between two snapshots at 100ms interval.
             $options = $this->safe_dict($this->options, 'watchOrderBook', array());
-            $depth = $this->safe_integer($options, 'depth', 150);
-            if (!$this->in_array($depth, $allowedLimits)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $market accepts limits of 20 and 150 only');
+            if ($limit === null) {
+                $limit = $this->safe_integer($options, 'depth', 150);
+            }
+            if (!$this->in_array($limit, $allowedLimits)) {
+                throw new ExchangeError($this->id . ' watchOrderBook $market accepts limits of 5, 20, 150 or 400 only');
             }
             $messageHash = null;
             if ($market['spot']) {
-                $messageHash = 'market.' . $market['id'] . '.mbp.' . $this->number_to_string($depth);
+                $messageHash = 'market.' . $market['id'] . '.mbp.' . $this->number_to_string($limit);
             } else {
-                $messageHash = 'market.' . $market['id'] . '.depth.size_' . $this->number_to_string($depth) . '.high_freq';
+                $messageHash = 'market.' . $market['id'] . '.depth.size_' . $this->number_to_string($limit) . '.high_freq';
             }
             $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, true);
             $method = array($this, 'handle_order_book_subscription');
@@ -965,23 +969,39 @@ class htx extends \ccxt\async\htx {
         //
         // spot
         //
+        //     for new $order creation
+        //
         //     {
         //         "action":"push",
         //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         //         "data" => {
+        //             "orderStatus" => "submitted",
+        //             "eventType" => "creation",
+        //             "totalTradeAmount" => 0 // for "submitted" $order $status
+        //             "orderCreateTime" => 1645116048355, // only when `submitted` $status
         //             "orderSource" => "spot-web",
-        //             "orderCreateTime" => 1645116048355,
         //             "accountId" => 44234548,
         //             "orderPrice" => "100",
         //             "orderSize" => "0.05",
         //             "symbol" => "ethusdt",
         //             "type" => "buy-$limit",
         //             "orderId" => "478861479986886",
-        //             "eventType" => "creation",
         //             "clientOrderId" => '',
-        //             "orderStatus" => "submitted"
         //         }
         //     }
+        //
+        //     for $filled $order, additional fields are present:
+        //
+        //             "orderStatus" => "filled",
+        //             "eventType" => "trade",
+        //             "totalTradeAmount" => "5.9892649859",
+        //             "tradePrice" => "0.676669",
+        //             "tradeVolume" => "8.8511",
+        //             "tradeTime" => 1760427775894,
+        //             "aggressor" => false,
+        //             "execAmt" => "8.8511",
+        //             "tradeId" => 100599712781,
+        //             "remainAmt" => "0",
         //
         // spot wrapped trade
         //
@@ -1094,6 +1114,9 @@ class htx extends \ccxt\async\htx {
                     'symbol' => $market['symbol'],
                     'filled' => $this->parse_number($filled),
                     'remaining' => $this->parse_number($remaining),
+                    'price' => $this->safe_number($data, 'orderPrice'),
+                    'amount' => $this->safe_number($data, 'orderSize'),
+                    'info' => $data,
                 );
                 $parsedOrder = $order;
             } else {

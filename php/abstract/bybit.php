@@ -385,6 +385,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_account_borrow_history($params = array()) {
         return $this->request('v5/account/borrow-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_v5_account_instruments_info($params = array()) {
+        return $this->request('v5/account/instruments-info', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_v5_account_collateral_info($params = array()) {
         return $this->request('v5/account/collateral-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -472,6 +475,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_asset_coin_query_info($params = array()) {
         return $this->request('v5/asset/coin/query-info', 'private', 'GET', $params, null, null, array("cost" => 28));
     }
+    public function private_get_v5_asset_withdraw_query_address($params = array()) {
+        return $this->request('v5/asset/withdraw/query-address', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_get_v5_asset_withdraw_query_record($params = array()) {
         return $this->request('v5/asset/withdraw/query-record', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -513,6 +519,18 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function private_get_v5_spot_margin_trade_state($params = array()) {
         return $this->request('v5/spot-margin-trade/state', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v5_spot_margin_trade_max_borrowable($params = array()) {
+        return $this->request('v5/spot-margin-trade/max-borrowable', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v5_spot_margin_trade_position_tiers($params = array()) {
+        return $this->request('v5/spot-margin-trade/position-tiers', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v5_spot_margin_trade_coinstate($params = array()) {
+        return $this->request('v5/spot-margin-trade/coinstate', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v5_spot_margin_trade_repayment_available_amount($params = array()) {
+        return $this->request('v5/spot-margin-trade/repayment-available-amount', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_v5_spot_cross_margin_trade_loan_info($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/loan-info', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -580,11 +598,20 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_broker_asset_query_sub_member_deposit_record($params = array()) {
         return $this->request('v5/broker/asset/query-sub-member-deposit-record', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_v5_earn_product($params = array()) {
+        return $this->request('v5/earn/product', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v5_earn_order($params = array()) {
         return $this->request('v5/earn/order', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_v5_earn_position($params = array()) {
         return $this->request('v5/earn/position', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v5_earn_yield($params = array()) {
+        return $this->request('v5/earn/yield', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v5_earn_hourly_yield($params = array()) {
+        return $this->request('v5/earn/hourly-yield', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_post_spot_v3_private_order($params = array()) {
         return $this->request('spot/v3/private/order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
@@ -825,6 +852,15 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function private_post_v5_account_mmp_reset($params = array()) {
         return $this->request('v5/account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_v5_account_borrow($params = array()) {
+        return $this->request('v5/account/borrow', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_v5_account_repay($params = array()) {
+        return $this->request('v5/account/repay', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_v5_account_no_convert_repay($params = array()) {
+        return $this->request('v5/account/no-convert-repay', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_v5_asset_exchange_quote_apply($params = array()) {
         return $this->request('v5/asset/exchange/quote-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -1312,6 +1348,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function privateGetV5AccountBorrowHistory($params = array()) {
         return $this->request('v5/account/borrow-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetV5AccountInstrumentsInfo($params = array()) {
+        return $this->request('v5/account/instruments-info', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetV5AccountCollateralInfo($params = array()) {
         return $this->request('v5/account/collateral-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1399,6 +1438,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function privateGetV5AssetCoinQueryInfo($params = array()) {
         return $this->request('v5/asset/coin/query-info', 'private', 'GET', $params, null, null, array("cost" => 28));
     }
+    public function privateGetV5AssetWithdrawQueryAddress($params = array()) {
+        return $this->request('v5/asset/withdraw/query-address', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function privateGetV5AssetWithdrawQueryRecord($params = array()) {
         return $this->request('v5/asset/withdraw/query-record', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1440,6 +1482,18 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privateGetV5SpotMarginTradeState($params = array()) {
         return $this->request('v5/spot-margin-trade/state', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5SpotMarginTradeMaxBorrowable($params = array()) {
+        return $this->request('v5/spot-margin-trade/max-borrowable', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5SpotMarginTradePositionTiers($params = array()) {
+        return $this->request('v5/spot-margin-trade/position-tiers', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5SpotMarginTradeCoinstate($params = array()) {
+        return $this->request('v5/spot-margin-trade/coinstate', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5SpotMarginTradeRepaymentAvailableAmount($params = array()) {
+        return $this->request('v5/spot-margin-trade/repayment-available-amount', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV5SpotCrossMarginTradeLoanInfo($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/loan-info', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1507,11 +1561,20 @@ abstract class bybit extends \ccxt\Exchange {
     public function privateGetV5BrokerAssetQuerySubMemberDepositRecord($params = array()) {
         return $this->request('v5/broker/asset/query-sub-member-deposit-record', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function privateGetV5EarnProduct($params = array()) {
+        return $this->request('v5/earn/product', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetV5EarnOrder($params = array()) {
         return $this->request('v5/earn/order', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV5EarnPosition($params = array()) {
         return $this->request('v5/earn/position', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5EarnYield($params = array()) {
+        return $this->request('v5/earn/yield', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5EarnHourlyYield($params = array()) {
+        return $this->request('v5/earn/hourly-yield', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privatePostSpotV3PrivateOrder($params = array()) {
         return $this->request('spot/v3/private/order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
@@ -1752,6 +1815,15 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privatePostV5AccountMmpReset($params = array()) {
         return $this->request('v5/account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AccountBorrow($params = array()) {
+        return $this->request('v5/account/borrow', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AccountRepay($params = array()) {
+        return $this->request('v5/account/repay', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AccountNoConvertRepay($params = array()) {
+        return $this->request('v5/account/no-convert-repay', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostV5AssetExchangeQuoteApply($params = array()) {
         return $this->request('v5/asset/exchange/quote-apply', 'private', 'POST', $params, null, null, array("cost" => 1));

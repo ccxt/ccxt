@@ -272,7 +272,7 @@ class gemini extends \ccxt\async\gemini {
         }
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -871,7 +871,7 @@ class gemini extends \ccxt\async\gemini {
         //         }
         //     )
         //
-        $isArray = gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message));
+        $isArray = (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)));
         if ($isArray) {
             $this->handle_order($client, $message);
             return;

@@ -426,7 +426,7 @@ make a withdrawal
 | address | <code>string</code> | Yes | the address to withdraw to |
 | tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.network | <code>string</code> | No | the network to withdraw on (mandatory) |
+| params.network | <code>string</code> | Yes | the network to withdraw on (mandatory) |
 
 
 ```javascript

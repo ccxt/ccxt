@@ -143,8 +143,10 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         return None
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return requestId
 
     async def subscribe(self, url, messageHash, subscriptionHash, subscription, params={}):
@@ -626,7 +628,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client.resolve(trades, messageHash)
         return message
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://www.kucoin.com/docs/websocket/futures-trading/public-channels/klines

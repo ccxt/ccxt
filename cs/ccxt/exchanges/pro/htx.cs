@@ -129,8 +129,10 @@ public partial class htx : ccxt.htx
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return ((object)requestId).ToString();
     }
 
@@ -384,7 +386,7 @@ public partial class htx : ccxt.htx
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -454,24 +456,27 @@ public partial class htx : ccxt.htx
         await this.loadMarkets();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object allowedLimits = new List<object>() {20, 150};
+        object allowedLimits = new List<object>() {5, 20, 150, 400};
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        object depth = this.safeInteger(options, "depth", 150);
-        if (!isTrue(this.inArray(depth, allowedLimits)))
+        if (isTrue(isEqual(limit, null)))
         {
-            throw new ExchangeError ((string)add(this.id, " watchOrderBook market accepts limits of 20 and 150 only")) ;
+            limit = this.safeInteger(options, "depth", 150);
+        }
+        if (!isTrue(this.inArray(limit, allowedLimits)))
+        {
+            throw new ExchangeError ((string)add(this.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
         }
         object messageHash = null;
         if (isTrue(getValue(market, "spot")))
         {
-            messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), this.numberToString(depth));
+            messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), this.numberToString(limit));
         } else
         {
-            messageHash = add(add(add(add("market.", getValue(market, "id")), ".depth.size_"), this.numberToString(depth)), ".high_freq");
+            messageHash = add(add(add(add("market.", getValue(market, "id")), ".depth.size_"), this.numberToString(limit)), ".high_freq");
         }
         object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"), false, true);
         object method = this.handleOrderBookSubscription;
@@ -1026,23 +1031,39 @@ public partial class htx : ccxt.htx
         //
         // spot
         //
+        //     for new order creation
+        //
         //     {
         //         "action":"push",
         //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         //         "data": {
+        //             "orderStatus": "submitted",
+        //             "eventType": "creation",
+        //             "totalTradeAmount": 0 // for "submitted" order status
+        //             "orderCreateTime": 1645116048355, // only when `submitted` status
         //             "orderSource": "spot-web",
-        //             "orderCreateTime": 1645116048355,
         //             "accountId": 44234548,
         //             "orderPrice": "100",
         //             "orderSize": "0.05",
         //             "symbol": "ethusdt",
         //             "type": "buy-limit",
         //             "orderId": "478861479986886",
-        //             "eventType": "creation",
         //             "clientOrderId": '',
-        //             "orderStatus": "submitted"
         //         }
         //     }
+        //
+        //     for filled order, additional fields are present:
+        //
+        //             "orderStatus": "filled",
+        //             "eventType": "trade",
+        //             "totalTradeAmount": "5.9892649859",
+        //             "tradePrice": "0.676669",
+        //             "tradeVolume": "8.8511",
+        //             "tradeTime": 1760427775894,
+        //             "aggressor": false,
+        //             "execAmt": "8.8511",
+        //             "tradeId": 100599712781,
+        //             "remainAmt": "0",
         //
         // spot wrapped trade
         //
@@ -1158,6 +1179,9 @@ public partial class htx : ccxt.htx
                     { "symbol", getValue(market, "symbol") },
                     { "filled", this.parseNumber(filled) },
                     { "remaining", this.parseNumber(remaining) },
+                    { "price", this.safeNumber(data, "orderPrice") },
+                    { "amount", this.safeNumber(data, "orderSize") },
+                    { "info", data },
                 };
                 parsedOrder = order;
             } else
@@ -2754,7 +2778,7 @@ public partial class htx : ccxt.htx
         object messageHash = "auth";
         object relativePath = ((string)url).Replace((string)add("wss://", hostname), (string)"");
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -2778,7 +2802,7 @@ public partial class htx : ccxt.htx
                 };
             }
             signatureParams = this.keysort(signatureParams);
-            object auth = this.urlencode(signatureParams);
+            object auth = this.urlencode(signatureParams, true); // true required in go
             object payload = String.Join("\n", ((IList<object>)new List<object>() {"GET", hostname, relativePath, auth}).ToArray()); // eslint-disable-line quotes
             object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             object request = null;

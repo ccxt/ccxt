@@ -314,30 +314,34 @@ export default class cryptocom extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': this.parseNumber ('0.004'),
-                    'taker': this.parseNumber ('0.004'),
+                    'maker': this.parseNumber ('0.0025'),
+                    'taker': this.parseNumber ('0.005'),
                     'tiers': {
                         'maker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.004') ],
-                            [ this.parseNumber ('25000'), this.parseNumber ('0.0035') ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.002') ],
                             [ this.parseNumber ('50000'), this.parseNumber ('0.0015') ],
-                            [ this.parseNumber ('100000'), this.parseNumber ('0.001') ],
-                            [ this.parseNumber ('250000'), this.parseNumber ('0.0009') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0008') ],
-                            [ this.parseNumber ('20000000'), this.parseNumber ('0.0007') ],
-                            [ this.parseNumber ('100000000'), this.parseNumber ('0.0006') ],
-                            [ this.parseNumber ('200000000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.00065') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('500000000'), this.parseNumber ('0') ],
                         ],
                         'taker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.004') ],
-                            [ this.parseNumber ('25000'), this.parseNumber ('0.0035') ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.005') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.004') ],
                             [ this.parseNumber ('50000'), this.parseNumber ('0.0025') ],
-                            [ this.parseNumber ('100000'), this.parseNumber ('0.0016') ],
-                            [ this.parseNumber ('250000'), this.parseNumber ('0.00015') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00014') ],
-                            [ this.parseNumber ('20000000'), this.parseNumber ('0.00013') ],
-                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00012') ],
-                            [ this.parseNumber ('200000000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00035') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0.00031') ],
+                            [ this.parseNumber ('500000000'), this.parseNumber ('0.00025') ],
                         ],
                     },
                 },
@@ -1076,7 +1080,7 @@ export default class cryptocom extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
@@ -1752,7 +1756,7 @@ export default class cryptocom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }

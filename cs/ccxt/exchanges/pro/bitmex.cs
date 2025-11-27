@@ -724,7 +724,7 @@ public partial class bitmex : ccxt.bitmex
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -1182,7 +1182,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 object currentOrder = getValue(data, i);
                 object orderId = this.safeString(currentOrder, "orderID");
-                object previousOrder = this.safeValue((stored as ArrayCacheBySymbolById).hashmap, orderId);
+                object previousOrder = this.safeValue((stored as ArrayCache).hashmap, orderId);
                 object rawOrder = currentOrder;
                 if (isTrue(!isEqual(previousOrder, null)))
                 {

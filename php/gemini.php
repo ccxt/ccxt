@@ -729,7 +729,7 @@ class gemini extends Exchange {
         $linear = null;
         $inverse = null;
         $isString = (gettype($response) === 'string');
-        $isArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
+        $isArray = ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))));
         if (!$isString && !$isArray) {
             $marketId = $this->safe_string_lower($response, 'symbol');
             $amountPrecision = $this->safe_number($response, 'tick_size'); // right, exchange has an imperfect naming and this turns out to be an amount-precision
@@ -1992,7 +1992,7 @@ class gemini extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *

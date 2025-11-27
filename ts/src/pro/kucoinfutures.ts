@@ -144,8 +144,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
     }
 
     requestId () {
+        this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId ();
         return requestId;
     }
 
@@ -686,7 +688,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const url = await this.negotiate (false);

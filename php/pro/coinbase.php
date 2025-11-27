@@ -77,7 +77,7 @@ class coinbase extends \ccxt\async\coinbase {
             $market = null;
             $messageHash = $name;
             $productIds = array();
-            if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
+            if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
                 $symbols = $this->market_symbols($symbol);
                 $marketIds = $this->market_ids($symbols);
                 $productIds = $marketIds;
@@ -126,7 +126,7 @@ class coinbase extends \ccxt\async\coinbase {
             $watchMessageHash = $name;
             $unWatchMessageHash = 'unsubscribe:' . $name;
             $productIds = array();
-            if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
+            if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
                 $symbols = $this->market_symbols($symbol);
                 $marketIds = $this->market_ids($symbols);
                 $productIds = $marketIds;
@@ -836,8 +836,9 @@ class coinbase extends \ccxt\async\coinbase {
         $id = $this->safe_string($order, 'order_id');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
         $marketId = $this->safe_string($order, 'product_id');
-        $datetime = $this->safe_string($order, 'time');
+        $datetime = $this->safe_string_2($order, 'time', 'creation_time');
         $market = $this->safe_market($marketId, $market);
+        $stopPrice = $this->safe_string($order, 'stop_price');
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -849,12 +850,12 @@ class coinbase extends \ccxt\async\coinbase {
             'type' => $this->safe_string($order, 'order_type'),
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $this->safe_string($order, 'side'),
-            'price' => null,
-            'stopPrice' => null,
-            'triggerPrice' => null,
-            'amount' => null,
-            'cost' => null,
+            'side' => $this->safe_string_2($order, 'side', 'order_side'),
+            'price' => $this->safe_string($order, 'limit_price'),
+            'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
+            'amount' => $this->safe_string($order, 'cumulative_quantity'),
+            'cost' => $this->omit_zero($this->safe_string($order, 'filled_value')),
             'average' => $this->safe_string($order, 'avg_price'),
             'filled' => $this->safe_string($order, 'cumulative_quantity'),
             'remaining' => $this->safe_string($order, 'leaves_quantity'),

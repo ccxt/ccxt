@@ -343,6 +343,7 @@ class defx extends defx$1["default"] {
                 'exact': {
                     '404': errors.BadRequest,
                     'missing_auth_signature': errors.AuthenticationError,
+                    'leverage_higher_than_capped_leverage': errors.BadRequest,
                     'order_rejected': errors.InvalidOrder,
                     'invalid_order_id': errors.InvalidOrder,
                     'filter_lotsize_maxqty': errors.InvalidOrder,
@@ -1170,7 +1171,8 @@ class defx extends defx$1["default"] {
         //
         const markPrice = this.safeNumber(contract, 'markPrice');
         const indexPrice = this.safeNumber(contract, 'indexPrice');
-        const fundingRate = this.safeNumber(contract, 'payoutFundingRate');
+        const fundingRateRaw = this.safeString(contract, 'payoutFundingRate');
+        const fundingRate = Precise["default"].stringDiv(fundingRateRaw, '100');
         const fundingTime = this.safeInteger(contract, 'nextFundingPayout');
         return {
             'info': contract,
@@ -1181,7 +1183,7 @@ class defx extends defx$1["default"] {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': fundingRate,
+            'fundingRate': this.parseNumber(fundingRate),
             'fundingTimestamp': fundingTime,
             'fundingDatetime': this.iso8601(fundingTime),
             'nextFundingRate': undefined,

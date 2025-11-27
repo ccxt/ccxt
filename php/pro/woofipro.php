@@ -381,7 +381,7 @@ class woofipro extends \ccxt\async\woofipro {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -909,7 +909,7 @@ class woofipro extends \ccxt\async\woofipro {
         //
         $topic = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data');
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             // algoexecutionreport
             for ($i = 0; $i < count($data); $i++) {
                 $order = $data[$i];

@@ -1342,10 +1342,52 @@ func  (this *WooCore) ParseWsOrder(order interface{}, optionalArgs ...interface{
     //         "reduceOnly": false,
     //         "maker": false
     //     }
+    //     {
+    //      "symbol": "SPOT_BTC_USDT",
+    //      "rootAlgoOrderId": 2573778,
+    //      "parentAlgoOrderId": 0,
+    //      "algoOrderId": 2573778,
+    //      "clientOrderId": 0,
+    //      "orderTag": "default",
+    //      "algoType": "STOP_LOSS",
+    //      "side": "SELL",
+    //      "quantity": 0.00011,
+    //      "triggerPrice": 98566.67,
+    //      "triggerStatus": "USELESS",
+    //      "price": 0,
+    //      "type": "MARKET",
+    //      "triggerTradePrice": 0,
+    //      "triggerTime": 0,
+    //      "tradeId": 0,
+    //      "executedPrice": 0,
+    //      "executedQuantity": 0,
+    //      "fee": 0,
+    //      "reason": "",
+    //      "feeAsset": "",
+    //      "totalExecutedQuantity": 0,
+    //      "averageExecutedPrice": 0,
+    //      "totalFee": 0,
+    //      "timestamp": 1761030467426,
+    //      "visibleQuantity": 0,
+    //      "reduceOnly": false,
+    //      "triggerPriceType": "MARKET_PRICE",
+    //      "positionSide": "BOTH",
+    //      "feeCurrency": "",
+    //      "totalRebate": 0.0,
+    //      "rebateCurrency": "",
+    //      "triggered": false,
+    //      "maker": false,
+    //      "activated": false,
+    //      "isTriggered": false,
+    //      "isMaker": false,
+    //      "isActivated": false,
+    //      "rootAlgoStatus": "NEW",
+    //      "algoStatus": "NEW"
+    // }
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var orderId interface{} = this.SafeString(order, "orderId")
+    var orderId interface{} = this.SafeString2(order, "orderId", "algoOrderId")
     var marketId interface{} = this.SafeString(order, "symbol")
     market = this.Market(marketId)
     var symbol interface{} = ccxt.GetValue(market, "symbol")
@@ -1369,10 +1411,11 @@ func  (this *WooCore) ParseWsOrder(order interface{}, optionalArgs ...interface{
     if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(amount, totalExecQuantity)) {
         remaining = ccxt.Subtract(remaining, totalExecQuantity)
     }
-    var rawStatus interface{} = this.SafeString(order, "status")
+    var rawStatus interface{} = this.SafeString2(order, "status", "algoStatus")
     var status interface{} = this.ParseOrderStatus(rawStatus)
     var trades interface{} = nil
     var clientOrderId interface{} = this.SafeString(order, "clientOrderId")
+    var triggerPrice interface{} = this.SafeString(order, "triggerPrice")
     return this.SafeOrder(map[string]interface{} {
         "info": order,
         "symbol": symbol,
@@ -1386,8 +1429,9 @@ func  (this *WooCore) ParseWsOrder(order interface{}, optionalArgs ...interface{
         "postOnly": nil,
         "side": side,
         "price": price,
-        "stopPrice": nil,
-        "triggerPrice": nil,
+        "stopPrice": triggerPrice,
+        "triggerPrice": triggerPrice,
+        "reduceOnly": this.SafeBool(order, "reduceOnly"),
         "amount": amount,
         "cost": nil,
         "average": avgPrice,
@@ -1548,8 +1592,8 @@ func  (this *WooCore) WatchPositions(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes12038 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes12038)
+            retRes12478 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes12478)
             var messageHashes interface{} = []interface{}{}
             symbols = this.MarketSymbols(symbols)
             if !ccxt.IsTrue(this.IsEmpty(symbols)) {
@@ -1693,8 +1737,8 @@ func  (this *WooCore) WatchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes13208 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes13208)
+            retRes13648 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes13648)
             var topic interface{} = "balance"
             var messageHash interface{} = topic
             var request interface{} = map[string]interface{} {
@@ -1703,9 +1747,9 @@ func  (this *WooCore) WatchBalance(optionalArgs ...interface{}) <- chan interfac
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes132815 :=  (<-this.WatchPrivate(messageHash, message))
-                ccxt.PanicOnError(retRes132815)
-                ch <- retRes132815
+                retRes137215 :=  (<-this.WatchPrivate(messageHash, message))
+                ccxt.PanicOnError(retRes137215)
+                ch <- retRes137215
                 return nil
         
             }()

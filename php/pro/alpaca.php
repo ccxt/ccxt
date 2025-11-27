@@ -17,15 +17,31 @@ class alpaca extends \ccxt\async\alpaca {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createReduceOnlyOrderWs' => false,
+                'createStopLossOrderWs' => false,
+                'createTakeProfitOrderWs' => false,
+                'fetchPositionForSymbolWs' => false,
+                'fetchPositionsForSymbolWs' => false,
+                'fetchPositionsWs' => false,
+                'fetchPositionWs' => false,
+                'unWatchPositions' => false,
                 'watchBalance' => false,
+                'watchLiquidations' => false,
+                'watchLiquidationsForSymbols' => false,
+                'watchMarkPrice' => false,
+                'watchMarkPrices' => false,
+                'watchMyLiquidations' => false,
+                'watchMyLiquidationsForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
+                'watchPosition' => false,
+                'watchPositions' => false,
                 'watchTicker' => true,
                 'watchTickers' => false, // for now
                 'watchTrades' => true,
-                'watchPosition' => false,
             ),
             'urls' => array(
                 'api' => array(
@@ -134,7 +150,7 @@ class alpaca extends \ccxt\async\alpaca {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -696,7 +712,7 @@ class alpaca extends \ccxt\async\alpaca {
     }
 
     public function handle_message(Client $client, $message) {
-        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
+        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             $this->handle_crypto_message($client, $message);
             return;
         }

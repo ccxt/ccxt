@@ -1320,7 +1320,7 @@ class tokocrypto extends Exchange {
                 'symbol' => $market['baseId'] . $market['quoteId'],
             );
             $response = Async\await($this->binanceGetTicker24hr ($this->extend($request, $params)));
-            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                 $firstTicker = $this->safe_dict($response, 0, array());
                 return $this->parse_ticker($firstTicker, $market);
             }
@@ -1390,7 +1390,7 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *

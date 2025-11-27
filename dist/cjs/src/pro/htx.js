@@ -130,8 +130,10 @@ class htx extends htx$1["default"] {
         });
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId.toString();
     }
     /**
@@ -413,22 +415,24 @@ class htx extends htx$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const allowedLimits = [20, 150];
+        const allowedLimits = [5, 20, 150, 400];
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         const options = this.safeDict(this.options, 'watchOrderBook', {});
-        const depth = this.safeInteger(options, 'depth', 150);
-        if (!this.inArray(depth, allowedLimits)) {
-            throw new errors.ExchangeError(this.id + ' watchOrderBook market accepts limits of 20 and 150 only');
+        if (limit === undefined) {
+            limit = this.safeInteger(options, 'depth', 150);
+        }
+        if (!this.inArray(limit, allowedLimits)) {
+            throw new errors.ExchangeError(this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
         let messageHash = undefined;
         if (market['spot']) {
-            messageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString(depth);
+            messageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString(limit);
         }
         else {
-            messageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString(depth) + '.high_freq';
+            messageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString(limit) + '.high_freq';
         }
         const url = this.getUrlByMarketType(market['type'], market['linear'], false, true);
         let method = this.handleOrderBookSubscription;
@@ -928,23 +932,39 @@ class htx extends htx$1["default"] {
         //
         // spot
         //
+        //     for new order creation
+        //
         //     {
         //         "action":"push",
         //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         //         "data": {
+        //             "orderStatus": "submitted",
+        //             "eventType": "creation",
+        //             "totalTradeAmount": 0 // for "submitted" order status
+        //             "orderCreateTime": 1645116048355, // only when `submitted` status
         //             "orderSource": "spot-web",
-        //             "orderCreateTime": 1645116048355,
         //             "accountId": 44234548,
         //             "orderPrice": "100",
         //             "orderSize": "0.05",
         //             "symbol": "ethusdt",
         //             "type": "buy-limit",
         //             "orderId": "478861479986886",
-        //             "eventType": "creation",
         //             "clientOrderId": '',
-        //             "orderStatus": "submitted"
         //         }
         //     }
+        //
+        //     for filled order, additional fields are present:
+        //
+        //             "orderStatus": "filled",
+        //             "eventType": "trade",
+        //             "totalTradeAmount": "5.9892649859",
+        //             "tradePrice": "0.676669",
+        //             "tradeVolume": "8.8511",
+        //             "tradeTime": 1760427775894,
+        //             "aggressor": false,
+        //             "execAmt": "8.8511",
+        //             "tradeId": 100599712781,
+        //             "remainAmt": "0",
         //
         // spot wrapped trade
         //
@@ -1057,6 +1077,9 @@ class htx extends htx$1["default"] {
                     'symbol': market['symbol'],
                     'filled': this.parseNumber(filled),
                     'remaining': this.parseNumber(remaining),
+                    'price': this.safeNumber(data, 'orderPrice'),
+                    'amount': this.safeNumber(data, 'orderSize'),
+                    'info': data,
                 };
                 parsedOrder = order;
             }
@@ -2492,7 +2515,7 @@ class htx extends htx$1["default"] {
         const messageHash = 'auth';
         const relativePath = url.replace('wss://' + hostname, '');
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.ymdhms(this.milliseconds(), 'T');
@@ -2514,7 +2537,7 @@ class htx extends htx$1["default"] {
                 };
             }
             signatureParams = this.keysort(signatureParams);
-            const auth = this.urlencode(signatureParams);
+            const auth = this.urlencode(signatureParams, true); // true required in go
             const payload = ['GET', hostname, relativePath, auth].join("\n"); // eslint-disable-line quotes
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
             let request = undefined;

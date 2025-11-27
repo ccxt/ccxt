@@ -2,12 +2,15 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+require('./_virtual/_commonjsHelpers.js');
+require('./_virtual/index.cjs.js');
 var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
+var arkham = require('./src/arkham.js');
 var ascendex = require('./src/ascendex.js');
 var backpack = require('./src/backpack.js');
 var bequant = require('./src/bequant.js');
@@ -55,11 +58,13 @@ var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
 var cryptocom = require('./src/cryptocom.js');
 var cryptomus = require('./src/cryptomus.js');
+var deepcoin = require('./src/deepcoin.js');
 var defx = require('./src/defx.js');
 var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
 var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
+var dydx = require('./src/dydx.js');
 var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
@@ -89,7 +94,6 @@ var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
 var novadax = require('./src/novadax.js');
 var oceanex = require('./src/oceanex.js');
-var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
@@ -114,6 +118,7 @@ var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
+var arkham$1 = require('./src/pro/arkham.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
 var backpack$1 = require('./src/pro/backpack.js');
 var bequant$1 = require('./src/pro/bequant.js');
@@ -145,9 +150,11 @@ var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
+var deepcoin$1 = require('./src/pro/deepcoin.js');
 var defx$1 = require('./src/pro/defx.js');
 var deribit$1 = require('./src/pro/deribit.js');
 var derive$1 = require('./src/pro/derive.js');
+var dydx$1 = require('./src/pro/dydx.js');
 var exmo$1 = require('./src/pro/exmo.js');
 var gate$1 = require('./src/pro/gate.js');
 var gateio$1 = require('./src/pro/gateio.js');
@@ -169,7 +176,6 @@ var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
 var myokx$1 = require('./src/pro/myokx.js');
 var ndax$1 = require('./src/pro/ndax.js');
-var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
 var okxus$1 = require('./src/pro/okxus.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
@@ -186,14 +192,14 @@ var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
 var xt$1 = require('./src/pro/xt.js');
 
-// ----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.8';
+const version = '4.5.22';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
+    'arkham': arkham["default"],
     'ascendex': ascendex["default"],
     'backpack': backpack["default"],
     'bequant': bequant["default"],
@@ -241,11 +247,13 @@ const exchanges = {
     'coinspot': coinspot["default"],
     'cryptocom': cryptocom["default"],
     'cryptomus': cryptomus["default"],
+    'deepcoin': deepcoin["default"],
     'defx': defx["default"],
     'delta': delta["default"],
     'deribit': deribit["default"],
     'derive': derive["default"],
     'digifinex': digifinex["default"],
+    'dydx': dydx["default"],
     'exmo': exmo["default"],
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
@@ -275,7 +283,6 @@ const exchanges = {
     'ndax': ndax["default"],
     'novadax': novadax["default"],
     'oceanex': oceanex["default"],
-    'okcoin': okcoin["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
     'onetrading': onetrading["default"],
@@ -302,6 +309,7 @@ const exchanges = {
 const pro = {
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
+    'arkham': arkham$1["default"],
     'ascendex': ascendex$1["default"],
     'backpack': backpack$1["default"],
     'bequant': bequant$1["default"],
@@ -333,9 +341,11 @@ const pro = {
     'coinex': coinex$1["default"],
     'coinone': coinone$1["default"],
     'cryptocom': cryptocom$1["default"],
+    'deepcoin': deepcoin$1["default"],
     'defx': defx$1["default"],
     'deribit': deribit$1["default"],
     'derive': derive$1["default"],
+    'dydx': dydx$1["default"],
     'exmo': exmo$1["default"],
     'gate': gate$1["default"],
     'gateio': gateio$1["default"],
@@ -357,7 +367,6 @@ const pro = {
     'modetrade': modetrade$1["default"],
     'myokx': myokx$1["default"],
     'ndax': ndax$1["default"],
-    'okcoin': okcoin$1["default"],
     'okx': okx$1["default"],
     'okxus': okxus$1["default"],
     'onetrading': onetrading$1["default"],
@@ -427,6 +436,7 @@ exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
+exports.arkham = arkham["default"];
 exports.ascendex = ascendex["default"];
 exports.backpack = backpack["default"];
 exports.bequant = bequant["default"];
@@ -474,11 +484,13 @@ exports.coinsph = coinsph["default"];
 exports.coinspot = coinspot["default"];
 exports.cryptocom = cryptocom["default"];
 exports.cryptomus = cryptomus["default"];
+exports.deepcoin = deepcoin["default"];
 exports.defx = defx["default"];
 exports.delta = delta["default"];
 exports.deribit = deribit["default"];
 exports.derive = derive["default"];
 exports.digifinex = digifinex["default"];
+exports.dydx = dydx["default"];
 exports.exmo = exmo["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];
@@ -508,7 +520,6 @@ exports.myokx = myokx["default"];
 exports.ndax = ndax["default"];
 exports.novadax = novadax["default"];
 exports.oceanex = oceanex["default"];
-exports.okcoin = okcoin["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];

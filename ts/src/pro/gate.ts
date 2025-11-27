@@ -7,7 +7,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBy
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import Precise from '../base/Precise.js';
+import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -346,7 +346,7 @@ export default class gate extends gateRest {
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -862,7 +862,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -910,8 +910,8 @@ export default class gate extends gateRest {
             const ohlcv = result[i];
             const subscription = this.safeString (ohlcv, 'n', '');
             const parts = subscription.split ('_');
-            const timeframe = this.safeString (parts, 0);
-            const timeframeId = this.findTimeframe (timeframe);
+            const timeframeId = this.safeString (parts, 0);
+            const timeframe = this.findTimeframe (timeframeId);
             const prefix = timeframe + '_';
             const marketId = subscription.replace (prefix, '');
             const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
@@ -921,7 +921,7 @@ export default class gate extends gateRest {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframeId] = stored;
+                this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
             marketIds[symbol] = timeframe;
@@ -2000,8 +2000,10 @@ export default class gate extends gateRest {
 
     requestId () {
         // their support said that reqid must be an int32, not documented
+        this.lockId ();
         const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
         this.options['reqid'] = reqid;
+        this.unlockId ();
         return reqid;
     }
 

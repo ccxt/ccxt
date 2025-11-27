@@ -87,8 +87,10 @@ class coinex extends coinex$1["default"] {
         });
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId;
     }
     handleTicker(client, message) {
@@ -1398,7 +1400,7 @@ class coinex extends coinex$1["default"] {
         const time = this.milliseconds();
         const timestamp = time.toString();
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated !== undefined) {
             return await future;

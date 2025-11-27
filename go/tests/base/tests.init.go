@@ -15,7 +15,7 @@ func BaseTestsInit() {
 	TestPrecise()
 	TestSafeMethods()
 	TestSafeTicker()
-	// testJson ();
+	TestJson()
 	TestSortBy()
 	TestSum()
 	TestOmit()

@@ -14,7 +14,7 @@ public partial class toobit : Exchange
             { "version", "v1" },
             { "rateLimit", 20 },
             { "certified", false },
-            { "pro", false },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -54,7 +54,7 @@ public partial class toobit : Exchange
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/3fc13870-5406-431b-8be0-2aab69c4f225" },
+                { "logo", "https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e" },
                 { "api", new Dictionary<string, object>() {
                     { "common", "https://api.toobit.com" },
                     { "private", "https://api.toobit.com" },
@@ -1940,7 +1940,7 @@ public partial class toobit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2985,6 +2985,7 @@ public partial class toobit : Exchange
                 body = add(body, add("&signature=", signature));
             }
             headers = new Dictionary<string, object>() {
+                { "Referrer", "CCXT" },
                 { "X-BB-APIKEY", this.apiKey },
                 { "Content-Type", "application/x-www-form-urlencoded" },
             };

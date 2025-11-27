@@ -461,7 +461,7 @@ public partial class derive : ccxt.derive
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -611,7 +611,7 @@ public partial class derive : ccxt.derive
                     this.orders = new ArrayCacheBySymbolById(limit);
                 }
                 object cachedOrders = this.orders;
-                object orders = this.safeValue((cachedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+                object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
                 object order = this.safeValue(orders, orderId);
                 if (isTrue(!isEqual(order, null)))
                 {

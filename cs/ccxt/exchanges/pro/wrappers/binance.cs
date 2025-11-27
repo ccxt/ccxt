@@ -585,9 +585,9 @@ public partial class binance
         var res = await this.watchBidsAsks(symbols, parameters);
         return new Tickers(res);
     }
-    public async Task<Dictionary<string, object>> WatchMultiTickerHelper(object methodName, string channelName, List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> WatchMultiTickerHelper(object methodName, string channelName, List<String> symbols = null, Dictionary<string, object> parameters = null, bool isUnsubscribe = false)
     {
-        var res = await this.watchMultiTickerHelper(methodName, channelName, symbols, parameters);
+        var res = await this.watchMultiTickerHelper(methodName, channelName, symbols, parameters, isUnsubscribe);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
@@ -780,10 +780,10 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersWs(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetches information on an order made by the user

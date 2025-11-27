@@ -901,7 +901,7 @@ make a withdrawal
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
 
-**See**: https://docs.woox.io/#token-withdraw  
+**See**: https://docs.woox.io/#token-withdraw-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

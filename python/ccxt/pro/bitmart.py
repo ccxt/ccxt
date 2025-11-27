@@ -1052,7 +1052,7 @@ class bitmart(ccxt.async_support.bitmart):
             'indexPrice': self.safe_string(ticker, 'index_price'),
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://developer-pro.bitmart.com/en/spot/#public-kline-channel

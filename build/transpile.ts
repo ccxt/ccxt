@@ -104,13 +104,16 @@ class Transpiler {
     getCommonRegexes (): any[] {
 
         return [
-            [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
+            [ /(?<!assert|equals|verify)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.featuresGenerator/g, '.features_generator'],
             [ /\.featuresMapper/g, '.features_mapper'],
             [ /\.safeValue2/g, '.safe_value_2'],
             [ /\.safeInteger2/g, '.safe_integer_2'],
             [ /\.safeString2/g, '.safe_string_2'],
+            [ /safeString \(/g, 'safe_string('],
+            [ /safeInteger \(/g, 'safe_integer('],
+            [ /inArray \(/g, 'in_array('],
             [ /\.safeFloat2/g, '.safe_float_2'],
             [ /\.safeDict2/g, '.safe_dict_2'],
             [ /\.safeList2/g, '.safe_list_2'],
@@ -400,8 +403,8 @@ class Transpiler {
             [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
-            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) !== 'array' || array_keys($1) !== array_keys(array_keys($1))" ],
-            [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1))" ],
+            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "(gettype($1) !== 'array' || array_keys($1) !== array_keys(array_keys($1)))" ],
+            [ /Array\.isArray\s*\(([^\)]+)\)/g, "(gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1)))" ],
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
@@ -1154,7 +1157,7 @@ class Transpiler {
             const closure = variables && variables.length ? 'use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
             phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
         }
-
+        phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
     }
 
@@ -1997,6 +2000,9 @@ class Transpiler {
             "hmac = Exchange.hmac",
             "ecdsa = Exchange.ecdsa",
             "eddsa = Exchange.eddsa",
+            "safe_string = Exchange.safe_string",
+            "safe_integer = Exchange.safe_integer",
+            "in_array = Exchange.in_array",
             "jwt = Exchange.jwt",
             "crc32 = Exchange.crc32",
             "rsa = Exchange.rsa",
@@ -2158,13 +2164,19 @@ class Transpiler {
             if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
                 continue;
             }
-            const test = {
+            const test: any = {
                 base: true,
                 name: testName,
                 tsFile: tsFile,
                 pyFileSync: baseFolders.py + unCamelCasedFileName + '.py',
                 phpFileSync: baseFolders.php + unCamelCasedFileName + '.php',
             };
+            // Add ArrayCache imports if the test uses cache classes
+            if (tsContent.includes('ArrayCache') || tsContent.includes('ArrayCacheByTimestamp') || 
+                tsContent.includes('ArrayCacheBySymbolById') || tsContent.includes('ArrayCacheBySymbolBySide')) {
+                test.pyHeaders = ['from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402'];
+                test.phpHeaders = ['use ccxt\\pro\\ArrayCache;', 'use ccxt\\pro\\ArrayCacheByTimestamp;', 'use ccxt\\pro\\ArrayCacheBySymbolById;', 'use ccxt\\pro\\ArrayCacheBySymbolBySide;'];
+            }
             tests.push(test);
         }
         this.transpileAndSaveExchangeTests (tests);
@@ -2625,6 +2637,12 @@ class Transpiler {
             test.phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
             test.phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
             test.pythonPreambleAsync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n\n';
+
+            // Remove incorrect ArrayCache imports from transpiled Python code if we added the correct one in headers
+            if (test.pyHeaders && test.pyHeaders.some((h: string) => h.includes('from ccxt.async_support.base.ws.cache import'))) {
+                pythonSync = pythonSync.replace(/from ccxt\.base\.ws\.cache import ArrayCache[^\n]*\n/g, '');
+                pythonAsync = pythonAsync.replace(/from ccxt\.base\.ws\.cache import ArrayCache[^\n]*\n/g, '');
+            }
 
             test.phpFileSyncContent = test.phpPreambleSync + phpSync;
             test.pyFileSyncContent = test.pythonPreambleSync + pythonSync;
