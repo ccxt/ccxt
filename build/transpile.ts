@@ -403,8 +403,8 @@ class Transpiler {
             [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
-            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) !== 'array' || array_keys($1) !== array_keys(array_keys($1))" ],
-            [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1))" ],
+            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "(gettype($1) !== 'array' || array_keys($1) !== array_keys(array_keys($1)))" ],
+            [ /Array\.isArray\s*\(([^\)]+)\)/g, "(gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1)))" ],
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
