@@ -4859,7 +4859,6 @@ public class Binance extends BinanceApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Print("After loadMarkets");
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -10245,6 +10244,7 @@ public class Binance extends BinanceApi
             Object data = response;
             if (Helpers.isTrue(((data instanceof java.util.List) || (data.getClass().isArray()))))
             {
+                
                 data = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             }
             return this.parseTradingFee(data, market);
@@ -15481,6 +15481,7 @@ final Object finalMarket = market;
             if (Helpers.isTrue(Helpers.isEqual(code, "BUSD")))
             {
                 Object rows = this.safeList(response, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                
                 data = this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
             }
             Object fromCurrencyId = this.safeString2(data, "deductedAsset", "fromAsset");

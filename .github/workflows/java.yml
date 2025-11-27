@@ -31,10 +31,6 @@ jobs:
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
-    - uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-        dotnet-quality: 'preview'
     - uses: actions/setup-node@v4
       with:
         node-version: '20'

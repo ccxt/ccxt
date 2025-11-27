@@ -16,4 +16,5 @@ plugins {
 
 dependencies {
     implementation(project(":lib"))
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.+")
 }

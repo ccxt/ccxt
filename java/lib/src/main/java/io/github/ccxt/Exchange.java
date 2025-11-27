@@ -842,7 +842,7 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     }
 
     public Object safeIntegerProductN(Object obj, Object keys, Object... defaultValue) {
-        return SafeMethods.safeIntegerProductN(obj, keys, defaultValue);
+        return SafeMethods.safeIntegerProductN(obj, (List<Object>)keys, defaultValue);
     }
 
     public Object safeStringUpper(Object obj, Object key, Object... defaultValue) {
@@ -1703,7 +1703,7 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{
