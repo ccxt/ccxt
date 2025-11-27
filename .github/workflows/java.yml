@@ -35,6 +35,11 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: '21'   # or '20' – but match what :lib is targeting
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Determine modified files
