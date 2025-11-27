@@ -528,6 +528,7 @@ export default class hyperliquid extends hyperliquidRest {
         //     }
         //
         const entry = this.safeDict (message, 'data', {});
+        const isSnapshot = this.safeBool (entry, 'isSnapshot');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
@@ -545,6 +546,16 @@ export default class hyperliquid extends hyperliquidRest {
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             trades.append (parsed);
+        }
+        // in newUpdates mode we only want to notify the client about incremental fills that arrive after subscription
+        // so we skip resolving the initial snapshot, while still keeping it in the cache
+        if (this.newUpdates && isSnapshot) {
+            // consume the new updates counters for snapshot fills so they don't count as "new" in subsequent getLimit() calls
+            const snapshotSymbols = Object.keys (symbols);
+            for (let i = 0; i < snapshotSymbols.length; i++) {
+                trades.getLimit (snapshotSymbols[i], undefined);
+            }
+            return;
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
