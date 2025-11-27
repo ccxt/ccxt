@@ -6,8 +6,7 @@ import java.util.List;
 
 public class Precise {
 
-    // fields (C# auto-properties → plain fields + getters/setters if needed)
-    public int decimals = -1;
+    public Object decimals = -1;
     public BigInteger integer = BigInteger.ZERO;
     public long baseNumber = 10;
 
@@ -33,7 +32,7 @@ public class Precise {
             this.decimals = newDecimals;
             String integerString = number.replace(".", "");
             this.integer = new BigInteger(integerString);
-            this.decimals = this.decimals - modified;
+            this.decimals = toInt(this.decimals) - modified;
         } else {
             this.integer = new BigInteger(number);
             this.decimals = dec;
@@ -43,7 +42,7 @@ public class Precise {
     // ---------- ops ----------
     public Precise mul(Precise other) {
         BigInteger integer = this.integer.multiply(other.integer);
-        int decimals = this.decimals + other.decimals;
+        int decimals = toInt(this.decimals) + toInt(other.decimals);
         return new Precise(integer.toString(), decimals);
     }
 
@@ -53,7 +52,7 @@ public class Precise {
 
     public Precise div(Precise other, Object precision2) {
         int precision = (precision2 == null) ? 18 : toInt(precision2);
-        int distance = precision - this.decimals + other.decimals;
+        int distance = precision - toInt(this.decimals) + toInt(other.decimals);
 
         BigInteger numerator;
         if (distance == 0) {
@@ -76,14 +75,14 @@ public class Precise {
         } else {
             Precise smaller;
             Precise bigger;
-            if (this.decimals < other.decimals) {
+            if (toInt(this.decimals) < toInt(other.decimals)) {
                 smaller = this;
                 bigger = other;
             } else {
                 smaller = other;
                 bigger = this;
             }
-            int exponent = bigger.decimals - smaller.decimals;
+            int exponent = toInt(bigger.decimals) - toInt(smaller.decimals);
             BigInteger factor = BigInteger.valueOf(baseNumber).pow(exponent);
             BigInteger normalized = smaller.integer.multiply(factor);
             BigInteger result = normalized.add(bigger.integer);
@@ -92,12 +91,12 @@ public class Precise {
     }
 
     public Precise mod(Precise other) {
-        int rationizerNumerator = Math.max(-this.decimals + other.decimals, 0);
+        int rationizerNumerator = Math.max(-toInt(this.decimals) + toInt(other.decimals), 0);
         BigInteger numerator = this.integer.multiply(BigInteger.valueOf(this.baseNumber).pow(rationizerNumerator));
-        int rationizerDenominator = Math.max(-other.decimals + this.decimals, 0);
+        int rationizerDenominator = Math.max(-toInt(other.decimals) + toInt(this.decimals), 0);
         BigInteger denominator = other.integer.multiply(BigInteger.valueOf(this.baseNumber).pow(rationizerDenominator));
         BigInteger result = numerator.remainder(denominator);
-        return new Precise(result.toString(), rationizerDenominator + other.decimals);
+        return new Precise(result.toString(), rationizerDenominator + toInt(other.decimals));
     }
 
     public Precise sub(Precise other) {
@@ -107,7 +106,7 @@ public class Precise {
 
     public Precise or(Precise other) {
         BigInteger integer = this.integer.or(other.integer);
-        int decimals = this.decimals + other.decimals;
+        int decimals = toInt(this.decimals) + toInt(other.decimals);
         return new Precise(integer.toString(), decimals);
     }
 
@@ -167,7 +166,7 @@ public class Precise {
         if (difference == 0) {
             return this;
         }
-        this.decimals = this.decimals - difference;
+        this.decimals = toInt(this.decimals) - difference;
         this.integer = new BigInteger(str.substring(0, i + 1));
         return this;
     }
@@ -191,7 +190,7 @@ public class Precise {
         }
         String absParsed = abs.toString();
 
-        int padSize = Math.max(this.decimals, 0);
+        int padSize = Math.max(toInt(this.decimals), 0);
         String padded = leftPad(absParsed, Math.max(padSize, absParsed.length()), '0');
 
         List<String> integerArray = new ArrayList<>(padded.length());
@@ -199,14 +198,14 @@ public class Precise {
             integerArray.add(String.valueOf(padded.charAt(i)));
         }
 
-        int index = integerArray.size() - this.decimals;
+        int index = integerArray.size() - toInt(this.decimals);
 
         String item;
         if (index == 0) {
             item = "0.";
-        } else if (this.decimals < 0) {
-            item = repeat('0', -this.decimals);
-        } else if (this.decimals == 0) {
+        } else if (toInt(this.decimals) < 0) {
+            item = repeat('0', -toInt(this.decimals));
+        } else if (toInt(this.decimals) == 0) {
             item = "";
         } else {
             item = ".";

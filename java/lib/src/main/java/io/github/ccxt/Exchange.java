@@ -833,6 +833,18 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return SafeMethods.SafeIntegerN(obj, keys, defaultValue);
     }
 
+    public Object safeIntegerProduct(Object obj, Object key, Object... defaultValue) {
+        return SafeMethods.safeIntegerProduct(obj, key, defaultValue);
+    }
+
+    public Object safeIntegerProduct2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        return SafeMethods.safeIntegerProduct2(obj, key1, key2, defaultValue);
+    }
+
+    public Object safeIntegerProductN(Object obj, Object keys, Object... defaultValue) {
+        return SafeMethods.safeIntegerProductN(obj, keys, defaultValue);
+    }
+
     public Object safeStringUpper(Object obj, Object key, Object... defaultValue) {
         return SafeMethods.safeStringUpper(obj, key, defaultValue);
     }
@@ -859,6 +871,10 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
 
     public Object safeTimestamp(Object obj, Object key, Object... defaultValue) {
         return SafeMethods.safeTimestamp(obj, key, defaultValue);
+    }
+
+    public Object safeTimestamp2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        return SafeMethods.safeTimestamp2(obj, key1, key2, defaultValue);
     }
 
     // SafeNumber / SafeNumberN
@@ -1628,6 +1644,27 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return false;
     }
 
+    public static void setProperty(Object obj, Object property, Object defaultValue) {
+        if (obj == null || property == null) {
+            return;
+        }
+
+        try {
+            Class<?> clazz = obj.getClass();
+            String propName = property.toString();
+
+            try {
+                java.lang.reflect.Field field = clazz.getDeclaredField(propName);
+                field.setAccessible(true);
+                field.set(obj, defaultValue);
+                return;
+            } catch (NoSuchFieldException ignored) {}
+
+        }
+        catch (Exception e) {
+        }
+    }
+
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
@@ -1666,7 +1703,7 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{

@@ -1,5 +1,6 @@
 package io.github.ccxt.base;
 
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
@@ -10,6 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SuppressWarnings("unchecked")
 public final class Functions {
+
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private Functions() {}
 
@@ -216,6 +219,11 @@ public final class Functions {
     // -------------------------------------------------
     public static String uuidv1() {
         return java.util.UUID.randomUUID().toString(); // stub
+    }
+
+    public static String uuid16() {
+        long value = RANDOM.nextLong();           // 64-bit random
+        return String.format("%016x", value);      // 16 hex chars
     }
 
     // -------------------------------------------------
