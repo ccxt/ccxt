@@ -1534,7 +1534,7 @@ export default class hyperliquid extends Exchange {
         const responseObj = this.safeDict (response, 'response', {});
         const data = this.safeDict (responseObj, 'data', {});
         const statuses = this.safeList (data, 'statuses', []);
-        return this.parseOrders (statuses, undefined);
+        return this.parseOrders (statuses);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: string, price: Str = undefined, params = {}) {
@@ -2863,7 +2863,7 @@ export default class hyperliquid extends Exchange {
         const data = this.safeList (response, 'assetPositions', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            result.push (this.parsePosition (data[i], undefined));
+            result.push (this.parsePosition (data[i]));
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
@@ -3178,10 +3178,11 @@ export default class hyperliquid extends Exchange {
                 vaultAddress = this.formatVaultAddress (vaultAddress);
                 strAmount = strAmount + ' subaccount:' + vaultAddress;
             }
+            const strAmountFinal = strAmount; // java req
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
             const transferPayload: Dict = {
                 'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
-                'amount': strAmount,
+                'amount': strAmountFinal,
                 'toPerp': toPerp,
                 'nonce': nonce,
             };
@@ -3191,7 +3192,7 @@ export default class hyperliquid extends Exchange {
                     'hyperliquidChain': transferPayload['hyperliquidChain'],
                     'signatureChainId': '0x66eee',
                     'type': 'usdClassTransfer',
-                    'amount': strAmount,
+                    'amount': strAmountFinal,
                     'toPerp': toPerp,
                     'nonce': nonce,
                 },

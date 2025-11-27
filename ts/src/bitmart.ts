@@ -3217,9 +3217,9 @@ export default class bitmart extends Exchange {
         }
         const succeeded = this.safeValue (data, 'succeed');
         if (succeeded !== undefined) {
-            id = this.safeString (succeeded, 0);
-            if (id === undefined) {
-                throw new InvalidOrder (this.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id);
+            const id2 = this.safeString (succeeded, 0);
+            if (id2 === undefined) {
+                throw new InvalidOrder (this.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id2);
             }
         } else {
             const result = this.safeValue (data, 'result');
