@@ -13,6 +13,19 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/history/markets/ETH-USDC-PERP/funding-rate?_pageSize=5",
+                "input": [
+                    "ETH/USDC:USDC",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
         "fetchOrderTrades": [
             {
                 "description": "Fetch order trades",
@@ -257,16 +270,11 @@
         ],
         "fetchTrades": [
             {
-                "description": "Fetch trades with since and until",
+                "description": "Fetch trades",
                 "method": "fetchTrades",
-                "url": "https://api.exchange.bullish.com/trading-api/v1/history/markets/BTCUSDC/trades?createdAtDatetime[gte]=2025-06-10T11:24:15.000Z&createdAtDatetime[lte]=2025-06-10T10:24:15.000Z&_pageSize=100",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/history/markets/BTCUSDC/trades",
                 "input": [
-                    "BTC/USDC",
-                    1749554655000,
-                    null,
-                    {
-                        "until": 1749551055000
-                    }
+                    "BTC/USDC"
                 ],
                 "output": null
             }
