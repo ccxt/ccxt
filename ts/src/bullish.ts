@@ -2882,7 +2882,8 @@ export default class bullish extends Exchange {
             }
         }
         if (method === 'GET') {
-            const query = this.urlencode (request);
+            const rawQuery = this.urlencode (request);
+            const query = rawQuery.replaceAll ('%5b', '%5B').replaceAll ('%5d', '%5D'); // fixes static test error for CS
             if (query.length) {
                 url += '?' + query;
             }
