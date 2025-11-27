@@ -21,20 +21,22 @@ isBaseTests = get_cli_arg_value('--baseTests')
 runAll = get_cli_arg_value('--all')
 
 # ###### base tests #######
-if (isBaseTests):
-    if (isWs):
-        test_base_init_ws()
-        print('base WS tests passed!')
-    else:
-        base_tests_init()
-        print('base REST tests passed!')
-    if not runAll:
-        exit(0)
+async def run_base_tests():
+    if (isBaseTests):
+        if (isWs):
+            await test_base_init_ws()
+            print('base WS tests passed!')
+        else:
+            await base_tests_init()
+            print('base REST tests passed!')
+        if not runAll:
+            exit(0)
 
 # ###### exchange tests #######
 if (IS_SYNCHRONOUS):
     from tests_sync import testMainClass as testMainClassSync
     testMainClassSync().init(argvExchange, argvSymbol, argvMethod)
 else:
+    asyncio.run(run_base_tests())
     from tests_async import testMainClass as testMainClassAsync
     asyncio.run(testMainClassAsync().init(argvExchange, argvSymbol, argvMethod))
