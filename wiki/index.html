@@ -44,13 +44,20 @@
         coverpage: false,
         onlyCover: false,
         sidebarDisplayLevel: 1,
+        requestHeaders: {
+          'cache-control': 'max-age=6000'
+        },
+        routerMode: 'history',
+        alias: {
+          '/exchanges/_sidebar.md': '/_sidebar.md'  // Redirects any nested _sidebar.md to root
+        },
         tabs: {
           persist    : true,      // default
           sync       : true,      // default
           theme      : 'classic', // default
           tabComments: true,      // default
           tabHeadings: true       // default
-        }
+        },
       };
     </script>
     <!-- Docsify v4 -->
