@@ -2,6 +2,11 @@
  * Enhanced EDL Parser v2
  * Parses YAML files into enhanced EDL document structures
  * with support for expressions, pipelines, and variants
+ *
+ * ⚠️ EXPERIMENTAL - Work in Progress
+ *
+ * The v2 parser is functional but the overall v2 pipeline
+ * produces code with known issues. See v2-generator.ts for details.
  */
 
 import yaml from 'yaml';

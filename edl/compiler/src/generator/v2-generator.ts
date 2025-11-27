@@ -1,6 +1,15 @@
 /**
  * Enhanced EDL Code Generator v2
  * Generates TypeScript code from enhanced EDL documents
+ *
+ * ⚠️ EXPERIMENTAL - Work in Progress
+ *
+ * This generator is functional but produces code with known issues:
+ * - timestamp variable may be used before defined in some methods
+ * - sign() method implementation is incomplete
+ * - Some computed expressions don't resolve correctly
+ *
+ * Generated code should be reviewed and tested before production use.
  */
 
 import type {
