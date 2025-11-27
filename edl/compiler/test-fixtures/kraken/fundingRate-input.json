@@ -1,0 +1,11 @@
+{
+  "error": [],
+  "result": {
+    "PI_XBTUSD": {
+      "symbol": "PI_XBTUSD",
+      "fundingRate": 0.0001,
+      "relativeFundingRate": 0.00003,
+      "nextFundingRateTime": 1732543200000
+    }
+  }
+}

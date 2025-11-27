@@ -1,0 +1,195 @@
+[
+  {
+    "id": "BTCUSDT",
+    "symbol": "BTC/USDT:USDT",
+    "base": "BTC",
+    "quote": "USDT",
+    "baseId": "BTC",
+    "quoteId": "USDT",
+    "active": true,
+    "type": "swap",
+    "subType": "linear",
+    "spot": false,
+    "margin": false,
+    "swap": true,
+    "future": false,
+    "option": false,
+    "contract": true,
+    "settle": "USDT",
+    "settleId": "USDT",
+    "contractSize": 1,
+    "linear": true,
+    "inverse": false,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "taker": 0.0004,
+    "maker": 0.0002,
+    "percentage": true,
+    "tierBased": true,
+    "feeSide": "quote",
+    "precision": {
+      "amount": 0.001,
+      "price": 0.1,
+      "cost": null
+    },
+    "limits": {
+      "amount": {
+        "min": 0.001,
+        "max": 1000
+      },
+      "price": {
+        "min": 0.1,
+        "max": 1000000
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      },
+      "leverage": {
+        "min": 1,
+        "max": 125
+      }
+    },
+    "created": 1568822400000,
+    "info": {
+      "symbol": "BTCUSDT",
+      "contractType": "PERPETUAL",
+      "status": "TRADING",
+      "baseAsset": "BTC",
+      "quoteAsset": "USDT",
+      "marginAsset": "USDT",
+      "contractSize": 1
+    }
+  },
+  {
+    "id": "ETHUSD_PERP",
+    "symbol": "ETH/USD:ETH",
+    "base": "ETH",
+    "quote": "USD",
+    "baseId": "ETH",
+    "quoteId": "USD",
+    "active": true,
+    "type": "swap",
+    "subType": "inverse",
+    "spot": false,
+    "margin": false,
+    "swap": true,
+    "future": false,
+    "option": false,
+    "contract": true,
+    "settle": "ETH",
+    "settleId": "ETH",
+    "contractSize": 10,
+    "linear": false,
+    "inverse": true,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "taker": 0.0005,
+    "maker": 0.0001,
+    "percentage": true,
+    "tierBased": true,
+    "feeSide": "base",
+    "precision": {
+      "amount": 1,
+      "price": 0.01,
+      "cost": null
+    },
+    "limits": {
+      "amount": {
+        "min": 1,
+        "max": 1000000
+      },
+      "price": {
+        "min": 0.01,
+        "max": 100000
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      },
+      "leverage": {
+        "min": 1,
+        "max": 75
+      }
+    },
+    "created": 1598918400000,
+    "info": {
+      "symbol": "ETHUSD_PERP",
+      "contractType": "PERPETUAL",
+      "status": "TRADING",
+      "baseAsset": "ETH",
+      "quoteAsset": "USD",
+      "marginAsset": "ETH",
+      "contractSize": 10
+    }
+  },
+  {
+    "id": "BTCUSDT_240329",
+    "symbol": "BTC/USDT:USDT-240329",
+    "base": "BTC",
+    "quote": "USDT",
+    "baseId": "BTC",
+    "quoteId": "USDT",
+    "active": true,
+    "type": "future",
+    "subType": "linear",
+    "spot": false,
+    "margin": false,
+    "swap": false,
+    "future": true,
+    "option": false,
+    "contract": true,
+    "settle": "USDT",
+    "settleId": "USDT",
+    "contractSize": 1,
+    "linear": true,
+    "inverse": false,
+    "expiry": 1711699200000,
+    "expiryDatetime": "2024-03-29T08:00:00.000Z",
+    "strike": null,
+    "optionType": null,
+    "taker": 0.0004,
+    "maker": 0.0002,
+    "percentage": true,
+    "tierBased": true,
+    "feeSide": "quote",
+    "precision": {
+      "amount": 0.001,
+      "price": 0.1,
+      "cost": null
+    },
+    "limits": {
+      "amount": {
+        "min": 0.001,
+        "max": 1000
+      },
+      "price": {
+        "min": 0.1,
+        "max": 1000000
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      },
+      "leverage": {
+        "min": 1,
+        "max": 125
+      }
+    },
+    "created": 1703894400000,
+    "info": {
+      "symbol": "BTCUSDT_240329",
+      "contractType": "CURRENT_QUARTER",
+      "status": "TRADING",
+      "baseAsset": "BTC",
+      "quoteAsset": "USDT",
+      "marginAsset": "USDT",
+      "contractSize": 1,
+      "deliveryDate": 1711699200000
+    }
+  }
+]

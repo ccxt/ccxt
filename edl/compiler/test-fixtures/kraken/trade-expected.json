@@ -1,0 +1,23 @@
+{
+  "id": null,
+  "order": null,
+  "info": [
+    "0.032310",
+    "4.28169434",
+    1541390792.763,
+    "s",
+    "l",
+    ""
+  ],
+  "timestamp": 1541390792763,
+  "datetime": "2018-11-05T04:53:12.763Z",
+  "symbol": "ETH/BTC",
+  "type": "limit",
+  "side": "sell",
+  "takerOrMaker": null,
+  "price": 0.032310,
+  "amount": 4.28169434,
+  "cost": 0.13834154412539998,
+  "fee": null,
+  "fees": []
+}

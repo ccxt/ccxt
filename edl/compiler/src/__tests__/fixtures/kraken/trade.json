@@ -1,0 +1,52 @@
+{
+  "raw": {
+    "error": [],
+    "result": {
+      "trades": {
+        "TXID-ABC123": {
+          "ordertxid": "ORDERTXID-XYZ789",
+          "postxid": "POSTTXID-123",
+          "pair": "XXBTZUSD",
+          "time": 1700086400.123,
+          "type": "buy",
+          "ordertype": "limit",
+          "price": "40150.00",
+          "cost": "20075.00",
+          "fee": "52.20",
+          "vol": "0.5",
+          "margin": "0.00000",
+          "misc": ""
+        }
+      },
+      "count": 1
+    }
+  },
+  "expected": {
+    "id": "TXID-ABC123",
+    "order": "ORDERTXID-XYZ789",
+    "timestamp": 1700086400123,
+    "datetime": "2023-11-15T16:00:00.123Z",
+    "symbol": "BTC/USD",
+    "type": "limit",
+    "side": "buy",
+    "takerOrMaker": null,
+    "price": 40150.0,
+    "amount": 0.5,
+    "cost": 20075.0,
+    "fee": 52.2,
+    "info": {
+      "ordertxid": "ORDERTXID-XYZ789",
+      "postxid": "POSTTXID-123",
+      "pair": "XXBTZUSD",
+      "time": 1700086400.123,
+      "type": "buy",
+      "ordertype": "limit",
+      "price": "40150.00",
+      "cost": "20075.00",
+      "fee": "52.20",
+      "vol": "0.5",
+      "margin": "0.00000",
+      "misc": ""
+    }
+  }
+}
