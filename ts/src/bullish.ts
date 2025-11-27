@@ -949,29 +949,18 @@ export default class bullish extends Exchange {
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        const ninetyDays = 90 * 24 * 60 * 60 * 1000;
-        const now = this.milliseconds ();
-        const allowedSince = now - ninetyDays;
-        if ((since !== undefined) && (since < allowedSince)) {
-            throw new BadRequest (this.id + ' fetchTrades() only allows fetching entries up to 90 days in the past');
-        }
-        await this.loadMarkets ();
         const maxLimit = 100;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            params = this.extend (params, { 'paginationDirection': 'backward' });
-            const until = this.safeInteger (params, 'until');
-            if (until === undefined) {
-                params = this.extend (params, { 'until': now });
-            }
+            params = this.handlePaginationParams ('fetchTrades', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
         }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
-        params = this.handleSinceAndUntil (since, undefined, undefined, params);
+        params = this.handleSinceAndUntil (since, params);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
@@ -1016,12 +1005,6 @@ export default class bullish extends Exchange {
             throw new ArgumentsRequired (this.id + 'fetchMyTrades() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
-        const ninetyDays = 90 * 24 * 60 * 60 * 1000;
-        const now = this.milliseconds ();
-        const allowedSince = now - ninetyDays;
-        if ((since !== undefined) && (since < allowedSince)) {
-            throw new BadRequest (this.id + ' fetchMyTrades() only allows fetching entries up to 90 days in the past');
-        }
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
@@ -1038,15 +1021,10 @@ export default class bullish extends Exchange {
             let paginate = false;
             [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
             if (paginate) {
-                params = this.omit (params, 'paginate');
-                params = this.extend (params, { 'paginationDirection': 'backward' });
-                const until = this.safeInteger (params, 'until');
-                if (until === undefined) {
-                    params = this.extend (params, { 'until': now });
-                }
+                params = this.handlePaginationParams ('fetchMyTrades', since, params);
                 return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
             }
-            params = this.handleSinceAndUntil (since, undefined, undefined, params);
+            params = this.handleSinceAndUntil (since, params);
             if (limit !== undefined) {
                 request['_pageSize'] = this.getClosestLimit (limit);
             }
@@ -1425,22 +1403,12 @@ export default class bullish extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        const ninetyDays = 90 * 24 * 60 * 60 * 1000;
-        const now = this.milliseconds ();
-        const allowedSince = now - ninetyDays;
-        if ((since !== undefined) && (since < allowedSince)) {
-            throw new BadRequest (this.id + ' fetchFundingRateHistory() only allows fetching entries up to 90 days in the past');
-        }
         await this.loadMarkets ();
         const maxLimit = 100;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            params = this.extend (params, { 'paginationDirection': 'backward' });
-            const until = this.safeInteger (params, 'until');
-            if (until === undefined) {
-                params = this.extend (params, { 'until': now });
-            }
+            params = this.handlePaginationParams ('fetchFundingRateHistory', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, maxLimit) as FundingRateHistory[];
         }
         const market = this.market (symbol);
@@ -1453,7 +1421,7 @@ export default class bullish extends Exchange {
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
-        params = this.handleSinceAndUntil (since, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]', params);
+        params = this.handleSinceAndUntil (since, params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
         const response = await this.publicGetV1HistoryMarketsSymbolFundingRate (this.extend (request, params));
         //
         //     [
@@ -1509,20 +1477,9 @@ export default class bullish extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
-        const ninetyDays = 90 * 24 * 60 * 60 * 1000;
-        const now = this.milliseconds ();
-        const allowedSince = now - ninetyDays;
-        if ((since !== undefined) && (since < allowedSince)) {
-            throw new BadRequest (this.id + ' fetchOrders() only allows fetching entries up to 90 days in the past');
-        }
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate) {
-            params = this.omit (params, 'paginate');
-            params = this.extend (params, { 'paginationDirection': 'backward' });
-            const until = this.safeInteger (params, 'until');
-            if (until === undefined) {
-                params = this.extend (params, { 'until': now });
-            }
+            params = this.handlePaginationParams ('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100) as Order[];
         }
         let market = undefined;
@@ -1533,7 +1490,7 @@ export default class bullish extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        params = this.handleSinceAndUntil (since, undefined, undefined, params);
+        params = this.handleSinceAndUntil (since, params);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
@@ -1579,21 +1536,38 @@ export default class bullish extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    handleSinceAndUntil (since: Int = undefined, sinceKey: Str = 'createdAtDatetime[gte]', untilKey: Str = 'createdAtDatetime[lte]', params: Dict = {}): Dict {
+    handlePaginationParams (method: string, since: Int = undefined, params: Dict = {}): Dict {
+        const ninetyDays = 90 * 24 * 60 * 60 * 1000;
+        const now = this.milliseconds ();
+        const allowedSince = now - ninetyDays;
+        if ((since !== undefined) && (since < allowedSince)) {
+            throw new BadRequest (this.id + ' ' + method + '() only allows fetching entries up to 90 days in the past');
+        }
+        params = this.omit (params, 'paginate');
+        params = this.extend (params, { 'paginationDirection': 'backward' });
+        const until = this.safeInteger (params, 'until');
+        if (until === undefined) {
+            params = this.extend (params, { 'until': now });
+        }
+        return params;
+    }
+
+    handleSinceAndUntil (since: Int = undefined, params: Dict = {}, sinceKey: Str = 'createdAtDatetime[gte]', untilKey: Str = 'createdAtDatetime[lte]'): Dict {
         let until = this.safeInteger (params, 'until');
-        const request: Dict = {};
         if ((since !== undefined) || (until !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             if (since === undefined) {
                 since = until - timeDelta;
                 params = this.omit (params, 'until');
             } else if (until === undefined) {
-                until = since + timeDelta;
+                until = this.sum (since, timeDelta);
             }
-            request[sinceKey] = this.iso8601 (since);
-            request[untilKey] = this.iso8601 (until);
+            const sinceDate = this.iso8601 (since);
+            const untilDate = this.iso8601 (until);
+            params[sinceKey] = sinceDate;
+            params[untilKey] = untilDate;
         }
-        return this.extend (request, params);
+        return params;
     }
 
     getClosestLimit (limit: Int): Int {
