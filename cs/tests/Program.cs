@@ -105,6 +105,23 @@ public class Tests
         ReadConfig();
         InitOptions(args);
 
+        RunBaseTests().Wait();
+
+        if (raceCondition)
+        {
+            RaceConditionTests();
+            return;
+        }
+
+        if (isExchangeTests || isReqResTests || isAllTest) {
+            var testClass = new testMainClass();
+            testClass.init(exchangeId, symbol, methodName).Wait();
+        }
+    }
+
+    static Task RunBaseTests()
+    {
+        
         if (isBaseTests)
         {
             if (isWs)
@@ -119,17 +136,7 @@ public class Tests
                 Helper.Green("[C#] base REST tests passed");
             }
         }
-
-        if (raceCondition)
-        {
-            RaceConditionTests();
-            return;
-        }
-
-        if (isExchangeTests || isReqResTests || isAllTest) {
-            var testClass = new testMainClass();
-            testClass.init(exchangeId, symbol, methodName).Wait();
-        }
+        return Task.CompletedTask;
     }
 
     static void RestBaseTests()
@@ -140,7 +147,7 @@ public class Tests
         RunAutoTranspiledBaseTests (tests);
     }
 
-    static void RunAutoTranspiledBaseTests(object testsInstance) {
+    static async void RunAutoTranspiledBaseTests(object testsInstance) {
         MethodInfo[] methods = testsInstance.GetType()
                         .GetMethods(BindingFlags.Instance | BindingFlags.Public)
                         .Where(m => m.Name.StartsWith("test") && m.ReturnType == typeof(void))
@@ -148,7 +155,11 @@ public class Tests
         // 2. Invoke Each Method
         foreach (MethodInfo method in methods)
         {
-            method.Invoke(testsInstance, null); 
+            var res = method.Invoke(testsInstance, null);
+            if (res is Task)
+            {
+                await (Task)res;
+            }
             Helper.Green(" [C#] " + method.ToString() + " tests passed");
         }
     }
