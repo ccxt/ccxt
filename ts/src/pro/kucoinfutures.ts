@@ -1053,6 +1053,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
             this.log (this.id + ' orderbook sequence gap detected for ' + symbol + ': expected ' + (nonce + 1) + ', got ' + deltaEnd + ' (gap: ' + gap + '). Resyncing orderbook.');
             const subscriptionArgs = this.safeDict (client.subscriptions, topic, {});
             const limit = this.safeInteger (subscriptionArgs, 'limit');
+            storedOrderBook.cache.length = 0;
+            storedOrderBook.cache.push (data);
             this.spawnLoadOrderBook (loadOrderBookHash, client, messageHash, symbol, limit);
             return;
         }
@@ -1075,15 +1077,17 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const symbols = this.safeList (subscription, 'symbols', []);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
+            const messageHash = 'orderbook:' + symbol;
+            const loadOrderBookHash = 'loadOrderBook:' + symbol;
+            // skip if handleOrderBook already initiated the orderbook and spawned loadOrderBook
+            if (loadOrderBookHash in client.futures) {
+                continue;
+            }
             if (symbol in this.orderbooks) {
                 delete this.orderbooks[symbol];
             }
             this.orderbooks[symbol] = this.orderBook ({}, limit);
-            const messageHash = 'orderbook:' + symbol;
-            const loadOrderBookHash = 'loadOrderBook:' + symbol;
-            if (!(loadOrderBookHash in client.futures)) {
-                this.spawnLoadOrderBook (loadOrderBookHash, client, messageHash, symbol, limit);
-            }
+            this.spawnLoadOrderBook (loadOrderBookHash, client, messageHash, symbol, limit);
         }
     }
 
