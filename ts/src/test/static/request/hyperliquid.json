@@ -64,7 +64,7 @@
                 "method": "fetchCurrencies",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [],
-                "output": "{\"type\":\"meta\"}"
+                "output": "{\"type\":\"spotMeta\"}"
             }
         ],
         "fetchTickers": [
@@ -905,7 +905,7 @@
                         "dex": "flx"
                     }
                 ],
-                "output": "{\"type\":\"frontendOpenOrders\",\"user\":\"0x193bD350ec838B1e22d6F302Da5343b920aA1c2B\",\"dex\":\"flx\"}"
+                "output": "{\"type\":\"frontendOpenOrders\",\"user\":\"wallet\",\"dex\":\"flx\"}"
             },
             {
                 "description": "fetch hip3 open orders",
