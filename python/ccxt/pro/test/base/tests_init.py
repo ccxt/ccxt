@@ -16,5 +16,5 @@ async def test_base_init_ws():
     test_ws_order_book()
     test_ws_cache()
     # todo : run(test_ws_close())
-    run(test_ws_future())
+    await test_ws_future()
     # run(test_abnormal_close()) stays in infinite loop in travis
