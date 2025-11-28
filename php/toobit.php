@@ -58,7 +58,7 @@ class toobit extends Exchange {
                 'withdraw' => true,
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/3fc13870-5406-431b-8be0-2aab69c4f225',
+                'logo' => 'https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e',
                 'api' => array(
                     'common' => 'https://api.toobit.com',
                     'private' => 'https://api.toobit.com',
@@ -2977,7 +2977,7 @@ class toobit extends Exchange {
             $queryString = '';
             if ($isPost || $isDelete) {
                 // everything else except Batch-Orders
-                if (gettype($params) !== 'array' || array_keys($params) !== array_keys(array_keys($params))) {
+                if ((gettype($params) !== 'array' || array_keys($params) !== array_keys(array_keys($params)))) {
                     $body = $this->urlencode($queryExtended);
                 } else {
                     $queryString = $this->urlencode($extraQuery);
@@ -2998,6 +2998,7 @@ class toobit extends Exchange {
                 $body .= '&$signature=' . $signature;
             }
             $headers = array(
+                'Referrer' => 'CCXT',
                 'X-BB-APIKEY' => $this->apiKey,
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );

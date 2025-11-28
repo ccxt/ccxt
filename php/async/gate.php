@@ -1631,8 +1631,8 @@ class gate extends Exchange {
             'contract' => true,
             'linear' => $isLinear,
             'inverse' => !$isLinear,
-            'taker' => null,
-            'maker' => null,
+            'taker' => $this->parse_number('0.0005'), // 0.05% vip0
+            'maker' => $this->parse_number('0.0002'), // 0.02% vip0
             'contractSize' => $this->parse_number($contractSize),
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
@@ -1752,8 +1752,8 @@ class gate extends Exchange {
                         'contract' => true,
                         'linear' => true,
                         'inverse' => false,
-                        'taker' => null,
-                        'maker' => null,
+                        'taker' => $this->parse_number('0.0003'), // assume 0.03% for maker/taker vip0 btc/eth options
+                        'maker' => $this->parse_number('0.0003'),
                         'contractSize' => $this->parse_number('1'),
                         'expiry' => $expiry,
                         'expiryDatetime' => $this->iso8601($expiry),
@@ -3529,7 +3529,7 @@ class gate extends Exchange {
         //          "l" => "40783.94"         // Lowest price
         //     }
         //
-        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
+        if ((gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv)))) {
             return array(
                 $this->safe_timestamp($ohlcv, 0),   // unix timestamp in seconds
                 $this->safe_number($ohlcv, 5),      // open price
@@ -3998,7 +3998,7 @@ class gate extends Exchange {
         if ($pointFee !== null) {
             $fees[] = array(
                 'cost' => $pointFee,
-                'currency' => 'GatePoint',
+                'currency' => 'GATEPOINT',
             );
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
@@ -6559,7 +6559,7 @@ class gate extends Exchange {
         //         }
         //     )
         //
-        if (gettype($info) !== 'array' || array_keys($info) !== array_keys(array_keys($info))) {
+        if ((gettype($info) !== 'array' || array_keys($info) !== array_keys(array_keys($info)))) {
             return $this->parse_emulated_leverage_tiers($info, $market);
         }
         $minNotional = 0;
@@ -6915,7 +6915,7 @@ class gate extends Exchange {
             }
             $params = $newParams;
             $query = $newParams;
-        } elseif (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) {
+        } elseif ((gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)))) {
             // endpoints like createOrders use an array instead of an object
             // so we infer the $settle from one of the elements
             // they have to be all the same so relying on the $first one is fine

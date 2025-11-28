@@ -766,7 +766,7 @@ public partial class bitmart : ccxt.bitmart
             object updatedTimestamp = this.safeInteger(orderInfo, "update_time");
             object lastTrade = this.safeValue(orderInfo, "last_trade");
             object cachedOrders = this.orders;
-            object orders = this.safeValue((cachedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+            object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             object cachedOrder = this.safeValue(orders, orderId);
             object trades = null;
             if (isTrue(!isEqual(cachedOrder, null)))

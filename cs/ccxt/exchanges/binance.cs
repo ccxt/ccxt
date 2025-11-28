@@ -824,6 +824,7 @@ public partial class binance : Exchange
                             { "cost", 2 },
                             { "byLimit", new List<object>() {new List<object>() {50, 2}, new List<object>() {100, 5}, new List<object>() {500, 10}, new List<object>() {1000, 20}} },
                         } },
+                        { "rpiDepth", 20 },
                         { "trades", 5 },
                         { "historicalTrades", 20 },
                         { "aggTrades", 20 },
@@ -913,6 +914,7 @@ public partial class binance : Exchange
                         { "commissionRate", 20 },
                         { "rateLimit/order", 1 },
                         { "apiTradingStatus", 1 },
+                        { "symbolAdlRisk", 1 },
                         { "multiAssetsMargin", 30 },
                         { "apiReferral/ifNewUser", 1 },
                         { "apiReferral/customization", 1 },
@@ -935,6 +937,9 @@ public partial class binance : Exchange
                         { "symbolConfig", 5 },
                         { "accountConfig", 5 },
                         { "convert/orderStatus", 5 },
+                        { "algoOrder", 1 },
+                        { "openAlgoOrders", 1 },
+                        { "allAlgoOrders", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "batchOrders", 5 },
@@ -942,6 +947,7 @@ public partial class binance : Exchange
                         { "positionMargin", 1 },
                         { "marginType", 1 },
                         { "order", 4 },
+                        { "order/test", 1 },
                         { "leverage", 1 },
                         { "listenKey", 1 },
                         { "countdownCancelAll", 10 },
@@ -951,6 +957,7 @@ public partial class binance : Exchange
                         { "feeBurn", 1 },
                         { "convert/getQuote", 200 },
                         { "convert/acceptQuote", 20 },
+                        { "algoOrder", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", 1 },
@@ -962,6 +969,8 @@ public partial class binance : Exchange
                         { "order", 1 },
                         { "allOpenOrders", 1 },
                         { "listenKey", 1 },
+                        { "algoOrder", 1 },
+                        { "algoOpenOrders", 1 },
                     } },
                 } },
                 { "fapiPublicV2", new Dictionary<string, object>() {
@@ -4013,13 +4022,15 @@ public partial class binance : Exchange
      * @method
      * @name binance#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book     // spot
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   // swap
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book   // future
-     * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           // option
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book       // spot
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book     // swap
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI // swap rpi
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book     // future
+     * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                             // option
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.rpi] *swap only* set to true to use the RPI endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -4040,7 +4051,15 @@ public partial class binance : Exchange
             response = await this.eapiPublicGetDepth(this.extend(request, parameters));
         } else if (isTrue(getValue(market, "linear")))
         {
-            response = await this.fapiPublicGetDepth(this.extend(request, parameters));
+            object rpi = this.safeValue(parameters, "rpi", false);
+            parameters = this.omit(parameters, "rpi");
+            if (isTrue(rpi))
+            {
+                response = await ((Task<object>)callDynamically(this, "fapiPublicGetRpiDepth", new object[] { this.extend(request, parameters) }));
+            } else
+            {
+                response = await this.fapiPublicGetDepth(this.extend(request, parameters));
+            }
         } else if (isTrue(getValue(market, "inverse")))
         {
             response = await this.dapiPublicGetDepth(this.extend(request, parameters));
@@ -4096,7 +4115,7 @@ public partial class binance : Exchange
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "11793.63104561", // mark price
+        //         "markPrice": "11793.63104562", // mark price
         //         "indexPrice": "11781.80495970", // index price
         //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate

@@ -1270,8 +1270,8 @@ func  (this *GateCore) HandleOHLCV(client interface{}, message interface{})  {
         var ohlcv interface{} = ccxt.GetValue(result, i)
         var subscription interface{} = this.SafeString(ohlcv, "n", "")
         var parts interface{} = ccxt.Split(subscription, "_")
-        var timeframe interface{} = this.SafeString(parts, 0)
-        var timeframeId interface{} = this.FindTimeframe(timeframe)
+        var timeframeId interface{} = this.SafeString(parts, 0)
+        var timeframe interface{} = this.FindTimeframe(timeframeId)
         var prefix interface{} = ccxt.Add(timeframe, "_")
         var marketId interface{} = ccxt.Replace(subscription, prefix, "")
         var symbol interface{} = this.SafeSymbol(marketId, nil, "_", marketType)
@@ -1281,7 +1281,7 @@ func  (this *GateCore) HandleOHLCV(client interface{}, message interface{})  {
         if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
             var limit interface{} = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
             stored = ccxt.NewArrayCacheByTimestamp(limit)
-            ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframeId, stored)
+            ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
         }
         stored.(ccxt.Appender).Append(parsed)
         ccxt.AddElementToObject(marketIds, symbol, timeframe)
@@ -2509,8 +2509,10 @@ func  (this *GateCore) GetMarketTypeByUrl(url interface{}) interface{}  {
 }
 func  (this *GateCore) RequestId() interface{}  {
     // their support said that reqid must be an int32, not documented
+    this.LockId()
     var reqid interface{} = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1)
     ccxt.AddElementToObject(this.Options, "reqid", reqid)
+    this.UnlockId()
     return reqid
 }
 func  (this *GateCore) SubscribePublic(url interface{}, messageHash interface{}, payload interface{}, channel interface{}, optionalArgs ...interface{}) <- chan interface{} {
@@ -2540,9 +2542,9 @@ func  (this *GateCore) SubscribePublic(url interface{}, messageHash interface{},
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes202515 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
-                ccxt.PanicOnError(retRes202515)
-                ch <- retRes202515
+                retRes202715 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
+                ccxt.PanicOnError(retRes202715)
+                ch <- retRes202715
                 return nil
         
             }()
@@ -2566,9 +2568,9 @@ func  (this *GateCore) SubscribePublicMultiple(url interface{}, messageHashes in
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes203915 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-                ccxt.PanicOnError(retRes203915)
-                ch <- retRes203915
+                retRes204115 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+                ccxt.PanicOnError(retRes204115)
+                ch <- retRes204115
                 return nil
         
             }()
@@ -2600,9 +2602,9 @@ func  (this *GateCore) UnSubscribePublicMultiple(url interface{}, topic interfac
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes206115 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub))
-                ccxt.PanicOnError(retRes206115)
-                ch <- retRes206115
+                retRes206315 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub))
+                ccxt.PanicOnError(retRes206315)
+                ch <- retRes206315
                 return nil
         
             }()
@@ -2620,9 +2622,9 @@ func  (this *GateCore) Authenticate(url interface{}, messageType interface{}) <-
             var authenticated interface{} = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
             if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
         
-                    retRes207119 :=  (<-this.RequestPrivate(url, map[string]interface{} {}, channel, messageHash))
-                    ccxt.PanicOnError(retRes207119)
-                    ch <- retRes207119
+                    retRes207319 :=  (<-this.RequestPrivate(url, map[string]interface{} {}, channel, messageHash))
+                    ccxt.PanicOnError(retRes207319)
+                    ch <- retRes207319
                     return nil
             }
         
@@ -2676,9 +2678,9 @@ func  (this *GateCore) RequestPrivate(url interface{}, reqParams interface{}, ch
                 "payload": payload,
             }
         
-                retRes211415 :=  (<-this.Watch(url, messageHash, request, messageHash, requestId))
-                ccxt.PanicOnError(retRes211415)
-                ch <- retRes211415
+                retRes211615 :=  (<-this.Watch(url, messageHash, request, messageHash, requestId))
+                ccxt.PanicOnError(retRes211615)
+                ch <- retRes211615
                 return nil
         
             }()
@@ -2732,9 +2734,9 @@ func  (this *GateCore) SubscribePrivate(url interface{}, messageHash interface{}
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes215815 :=  (<-this.Watch(url, messageHash, message, messageHash, messageHash))
-                ccxt.PanicOnError(retRes215815)
-                ch <- retRes215815
+                retRes216015 :=  (<-this.Watch(url, messageHash, message, messageHash, messageHash))
+                ccxt.PanicOnError(retRes216015)
+                ch <- retRes216015
                 return nil
         
             }()

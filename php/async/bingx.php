@@ -37,6 +37,9 @@ class bingx extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
@@ -57,9 +60,18 @@ class bingx extends Exchange {
                 'createTrailingPercentOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -70,6 +82,9 @@ class bingx extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => true,
                 'fetchLiquidations' => false,
                 'fetchMarginAdjustmentHistory' => false,
@@ -83,6 +98,8 @@ class bingx extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -97,8 +114,11 @@ class bingx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => true,
@@ -166,7 +186,7 @@ class bingx extends Exchange {
                                 'market/depth' => 1,
                                 'market/kline' => 1,
                                 'ticker/24hr' => 1,
-                                'ticker/price' => 1,
+                                'ticker/price' => 1, // deprecated, still can be used
                                 'ticker/bookTicker' => 1,
                             ),
                         ),
@@ -200,6 +220,7 @@ class bingx extends Exchange {
                             'get' => array(
                                 'market/depth' => 1,
                                 'market/kline' => 1,
+                                'ticker/price' => 1,
                             ),
                         ),
                     ),
@@ -243,6 +264,7 @@ class bingx extends Exchange {
                                 'user/marginAssets' => 5,
                             ),
                             'post' => array(
+                                'trade/amend' => 2,
                                 'trade/cancelReplace' => 2,
                                 'positionSide/dual' => 5,
                                 'trade/batchCancelReplace' => 5,
@@ -458,10 +480,19 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'swap/trace/currentTrack' => 2,
+                                'PFutures/traderDetail' => 2,
+                                'PFutures/profitHistorySummarys' => 2,
+                                'PFutures/profitDetail' => 2,
+                                'PFutures/tradingPairs' => 2,
+                                'spot/traderDetail' => 2,
+                                'spot/profitHistorySummarys' => 2,
+                                'spot/profitDetail' => 2,
+                                'spot/historyOrder' => 2,
                             ),
                             'post' => array(
                                 'swap/trace/closeTrackOrder' => 2,
                                 'swap/trace/setTPSL' => 2,
+                                'PFutures/setCommission' => 2,
                                 'spot/trader/sellOrder' => 10,
                             ),
                         ),
@@ -1225,7 +1256,7 @@ class bingx extends Exchange {
             //    }
             //
             $ohlcvs = $this->safe_value($response, 'data', array());
-            if (gettype($ohlcvs) !== 'array' || array_keys($ohlcvs) !== array_keys(array_keys($ohlcvs))) {
+            if ((gettype($ohlcvs) !== 'array' || array_keys($ohlcvs) !== array_keys(array_keys($ohlcvs)))) {
                 $ohlcvs = array( $ohlcvs );
             }
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
@@ -1266,7 +1297,7 @@ class bingx extends Exchange {
         //        17221.07
         //    )
         //
-        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
+        if ((gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv)))) {
             return array(
                 $this->safe_integer($ohlcv, 0),
                 $this->safe_number($ohlcv, 1),
@@ -2099,7 +2130,7 @@ class bingx extends Exchange {
                 // }
                 //
             }
-            if (gettype($response['data']) === 'array' && array_keys($response['data']) === array_keys(array_keys($response['data']))) {
+            if ((gettype($response['data']) === 'array' && array_keys($response['data']) === array_keys(array_keys($response['data'])))) {
                 return $this->parse_ticker($this->safe_dict($response['data'], 0, array()), $market);
             }
             return $this->parse_ticker($response['data'], $market);
@@ -6042,7 +6073,7 @@ class bingx extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $value = $params[$key];
-            if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+            if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                 $arrStr = '[';
                 for ($j = 0; $j < count($value); $j++) {
                     $arrayElement = $value[$j];
@@ -6705,7 +6736,7 @@ class bingx extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $value = $params[$key];
-            if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+            if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                 $arrStr = null;
                 for ($j = 0; $j < count($value); $j++) {
                     $arrayElement = $value[$j];

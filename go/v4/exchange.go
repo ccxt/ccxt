@@ -185,6 +185,9 @@ type Exchange struct {
 	Clients     map[string]interface{}
 	newUpdates  bool
 	streaming   map[string]interface{}
+
+	// id lock
+	idMutex sync.Mutex
 }
 
 const (
@@ -1312,6 +1315,52 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 	return ch
 }
 
+func (this *Exchange) LoadDydxProtos() <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		ch <- "panic:" + "Dydx currently does not support transfer asset in Go language"
+	}()
+	return ch
+}
+
+func (this *Exchange) ToDydxLong(numStr interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) RetrieveDydxCredentials(entropy interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxForSimulation(
+	message interface{},
+	memo interface{},
+	sequence interface{},
+	publicKey interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxForSigning(
+	message interface{},
+	memo interface{},
+	chainId interface{},
+	account interface{},
+	authenticators interface{},
+	fee interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxRaw(signDoc interface{}, signature interface{}) interface{} {
+	return nil
+}
+
 func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 	options := options2.(map[string]interface{})
 	extended := this.Extend(this.SafeMapToMap(this.Options), options)
@@ -1889,15 +1938,16 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
 	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
+		orderBookInterface := stored.(OrderBookInterface)
 		for tries < maxRetries.(int) {
-			cache := this.GetProperty(stored, "Cache")
 			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
+			cache := (*orderBookInterface.GetCache()).([]interface{})
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
 				// Call Reset method on stored orderbook
-				stored.(OrderBookInterface).Reset(orderBook)
-				this.DerivedExchange.HandleDeltas(stored, cache.([]interface{})[int(index):])
-				stored.(OrderBookInterface).SetCache(map[string]interface{}{})
+				orderBookInterface.Reset(orderBook)
+				this.DerivedExchange.HandleDeltas(stored, cache[int(index):])
+				orderBookInterface.SetCache(map[string]interface{}{})
 				// this.SetProperty(cache, "length", 0)
 				client.(*Client).Resolve(stored, messageHash)
 				return nil
@@ -1986,4 +2036,18 @@ func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
 	var v interface{}
 	_ = json.Unmarshal(jsonBytes, &v)
 	return v
+}
+
+func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
+	return ""
+}
+
+func (this *Exchange) LockId() bool {
+	this.idMutex.Lock()
+	return true
+}
+
+func (this *Exchange) UnlockId() bool {
+	this.idMutex.Unlock()
+	return true
 }

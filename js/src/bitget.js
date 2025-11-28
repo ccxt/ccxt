@@ -257,6 +257,9 @@ export default class bitget extends Exchange {
                             'mix/v1/market/history-mark-candles': 1,
                             'mix/v1/market/merge-depth': 1,
                             'v2/mix/market/vip-fee-rate': 2,
+                            'v2/mix/market/union-interest-rate-history': 4,
+                            'v2/mix/market/exchange-rate': 4,
+                            'v2/mix/market/discount-rate': 4,
                             'v2/mix/market/merge-depth': 1,
                             'v2/mix/market/ticker': 1,
                             'v2/mix/market/tickers': 1,
@@ -271,6 +274,7 @@ export default class bitget extends Exchange {
                             'v2/mix/market/symbol-price': 1,
                             'v2/mix/market/history-fund-rate': 1,
                             'v2/mix/market/current-fund-rate': 1,
+                            'v2/mix/market/oi-limit': 2,
                             'v2/mix/market/contracts': 1,
                             'v2/mix/market/query-position-lever': 2,
                             'v2/mix/market/account-long-short': 20,
@@ -408,6 +412,7 @@ export default class bitget extends Exchange {
                             'v2/spot/trade/place-plan-order': 1,
                             'v2/spot/trade/modify-plan-order': 1,
                             'v2/spot/trade/cancel-plan-order': 1,
+                            'v2/spot/trade/cancel-replace-order': 2,
                             'v2/spot/trade/batch-cancel-plan-order': 2,
                             'v2/spot/wallet/transfer': 2,
                             'v2/spot/wallet/subaccount-transfer': 2,
@@ -452,17 +457,26 @@ export default class bitget extends Exchange {
                             'v2/mix/account/account': 2,
                             'v2/mix/account/accounts': 2,
                             'v2/mix/account/sub-account-assets': 200,
+                            'v2/mix/account/interest-history': 4,
+                            'v2/mix/account/max-open': 1,
+                            'v2/mix/account/liq-price': 1,
                             'v2/mix/account/open-count': 2,
                             'v2/mix/account/bill': 2,
+                            'v2/mix/account/transfer-limits': 20,
+                            'v2/mix/account/union-config': 20,
+                            'v2/mix/account/switch-union-usdt': 20,
+                            'v2/mix/account/isolated-symbols': 2,
                             'v2/mix/market/query-position-lever': 2,
                             'v2/mix/position/single-position': 2,
                             'v2/mix/position/all-position': 4,
+                            'v2/mix/position/adlRank': 4,
                             'v2/mix/position/history-position': 1,
                             'v2/mix/order/detail': 2,
                             'v2/mix/order/fills': 2,
                             'v2/mix/order/fill-history': 2,
                             'v2/mix/order/orders-pending': 2,
                             'v2/mix/order/orders-history': 2,
+                            'v2/mix/order/plan-sub-order': 2,
                             'v2/mix/order/orders-plan-pending': 2,
                             'v2/mix/order/orders-plan-history': 2,
                             'v2/mix/market/position-long-short': 20,
@@ -510,9 +524,13 @@ export default class bitget extends Exchange {
                             'mix/v1/trace/report/order/currentList': 2,
                             'mix/v1/trace/queryTraderTpslRatioConfig': 2,
                             'mix/v1/trace/traderUpdateTpslRatioConfig': 2,
+                            'v2/mix/account/set-auto-margin': 4,
                             'v2/mix/account/set-leverage': 4,
+                            'v2/mix/account/set-all-leverage': 4,
                             'v2/mix/account/set-margin': 4,
+                            'v2/mix/account/set-asset-mode': 10,
                             'v2/mix/account/set-margin-mode': 4,
+                            'v2/mix/account/union-convert': 20,
                             'v2/mix/account/set-position-mode': 4,
                             'v2/mix/order/place-order': 2,
                             'v2/mix/order/click-backhand': 20,
@@ -521,7 +539,9 @@ export default class bitget extends Exchange {
                             'v2/mix/order/cancel-order': 2,
                             'v2/mix/order/batch-cancel-orders': 2,
                             'v2/mix/order/close-positions': 20,
+                            'v2/mix/order/cancel-all-orders': 20,
                             'v2/mix/order/place-tpsl-order': 2,
+                            'v2/mix/order/place-pos-tpsl': 2,
                             'v2/mix/order/place-plan-order': 2,
                             'v2/mix/order/modify-tpsl-order': 2,
                             'v2/mix/order/modify-plan-order': 2,
@@ -1414,6 +1434,7 @@ export default class bitget extends Exchange {
                     'spot': {
                         '1m': '1min',
                         '5m': '5min',
+                        '3m': '3min',
                         '15m': '15min',
                         '30m': '30min',
                         '1h': '1h',
@@ -1476,6 +1497,7 @@ export default class bitget extends Exchange {
                         '15m': 30,
                         '30m': 30,
                         '1h': 60,
+                        '2h': 120,
                         '4h': 240,
                         '6h': 360,
                         '12h': 720,
@@ -4246,11 +4268,17 @@ export default class bitget extends Exchange {
             request['startTime'] = since;
             if (!untilDefined) {
                 calculatedEndTime = this.sum(calculatedStartTime, limitMultipliedDuration);
+                if (calculatedEndTime > now) {
+                    calculatedEndTime = now;
+                }
                 request['endTime'] = calculatedEndTime;
             }
         }
         if (untilDefined) {
             calculatedEndTime = until;
+            if (calculatedEndTime > now) {
+                calculatedEndTime = now;
+            }
             request['endTime'] = calculatedEndTime;
             if (!sinceDefined) {
                 calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
@@ -5652,6 +5680,7 @@ export default class bitget extends Exchange {
      * @name bitget#editOrder
      * @description edit a trade order
      * @see https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+     * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
      * @see https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
      * @see https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -5685,8 +5714,16 @@ export default class bitget extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'orderId': id,
+        // 'orderId': id,
         };
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientOid');
+        if (clientOrderId !== undefined) {
+            params = this.omit(params, ['clientOrderId']);
+            request['clientOid'] = clientOrderId;
+        }
+        else {
+            request['orderId'] = id;
+        }
         const isMarketOrder = type === 'market';
         const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
         const isTriggerOrder = triggerPrice !== undefined;
@@ -5703,10 +5740,6 @@ export default class bitget extends Exchange {
         const isTrailingPercentOrder = trailingPercent !== undefined;
         if (this.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1) {
             throw new ExchangeError(this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
-        }
-        const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOid'] = clientOrderId;
         }
         params = this.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent']);
         let response = undefined;
@@ -5754,28 +5787,38 @@ export default class bitget extends Exchange {
             }
         }
         else if (market['spot']) {
-            if (triggerPrice === undefined) {
-                throw new NotSupported(this.id + ' editOrder() only supports plan/trigger spot orders');
-            }
+            const cost = this.safeString(params, 'cost');
+            params = this.omit(params, 'cost');
             const editMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'editMarketBuyOrderRequiresPrice', true);
-            if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
-                if (price === undefined) {
-                    throw new InvalidOrder(this.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the editMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+            if ((editMarketBuyOrderRequiresPrice || (cost !== undefined)) && isMarketOrder && (side === 'buy')) {
+                if (price === undefined && cost === undefined) {
+                    throw new InvalidOrder(this.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params');
                 }
                 else {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
-                    const cost = this.parseNumber(Precise.stringMul(amountString, priceString));
-                    request['size'] = this.priceToPrecision(symbol, cost);
+                    const finalCost = (cost === undefined) ? (Precise.stringMul(amountString, priceString)) : cost;
+                    request['size'] = this.priceToPrecision(symbol, finalCost);
                 }
             }
             else {
                 request['size'] = this.amountToPrecision(symbol, amount);
             }
             request['orderType'] = type;
-            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-            request['executePrice'] = this.priceToPrecision(symbol, price);
-            response = await this.privateSpotPostV2SpotTradeModifyPlanOrder(this.extend(request, params));
+            if (triggerPrice !== undefined) {
+                request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+                request['executePrice'] = this.priceToPrecision(symbol, price);
+            }
+            else {
+                request['price'] = this.priceToPrecision(symbol, price);
+            }
+            if (triggerPrice !== undefined) {
+                response = await this.privateSpotPostV2SpotTradeModifyPlanOrder(this.extend(request, params));
+            }
+            else {
+                request['symbol'] = market['id'];
+                response = await this.privateSpotPostV2SpotTradeCancelReplaceOrder(this.extend(request, params));
+            }
         }
         else {
             if ((!market['swap']) && (!market['future'])) {
@@ -6178,9 +6221,8 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
      * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-     * @see https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
@@ -6232,28 +6274,7 @@ export default class bitget extends Exchange {
         }
         else if (market['spot']) {
             if (marginMode !== undefined) {
-                if (marginMode === 'cross') {
-                    response = await this.privateMarginPostMarginV1CrossOrderBatchCancelOrder(this.extend(request, params));
-                }
-                else {
-                    response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(this.extend(request, params));
-                }
-                //
-                //     {
-                //         "code": "00000",
-                //         "msg": "success",
-                //         "requestTime": 1700717155622,
-                //         "data": {
-                //             "resultList": [
-                //                 {
-                //                     "orderId": "1111453253721796609",
-                //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-                //                 },
-                //             ],
-                //             "failure": []
-                //         }
-                //     }
-                //
+                throw new NotSupported(this.id + ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead');
             }
             else {
                 if (trigger) {

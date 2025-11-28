@@ -1888,77 +1888,7 @@ class binance extends binance$1["default"] {
         if (channelName === 'bookTicker') {
             throw new errors.BadRequest(this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
-        await this.loadMarkets();
-        const methodName = 'watchTickers';
-        symbols = this.marketSymbols(symbols, undefined, true, false, true);
-        let firstMarket = undefined;
-        let marketType = undefined;
-        const symbolsDefined = (symbols !== undefined);
-        if (symbolsDefined) {
-            firstMarket = this.market(symbols[0]);
-        }
-        [marketType, params] = this.handleMarketTypeAndParams(methodName, firstMarket, params);
-        let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams(methodName, firstMarket, params);
-        let rawMarketType = undefined;
-        if (this.isLinear(marketType, subType)) {
-            rawMarketType = 'future';
-        }
-        else if (this.isInverse(marketType, subType)) {
-            rawMarketType = 'delivery';
-        }
-        else if (marketType === 'spot') {
-            rawMarketType = marketType;
-        }
-        else {
-            throw new errors.NotSupported(this.id + ' ' + methodName + '() does not support options markets');
-        }
-        const isBidAsk = (channelName === 'bookTicker');
-        const subscriptionArgs = [];
-        const subMessageHashes = [];
-        const messageHashes = [];
-        if (symbolsDefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.market(symbol);
-                subscriptionArgs.push(market['lowercaseId'] + '@' + channelName);
-                subMessageHashes.push(this.getMessageHash(channelName, market['symbol'], isBidAsk));
-                messageHashes.push('unsubscribe:ticker:' + symbol);
-            }
-        }
-        else {
-            if (isBidAsk) {
-                if (marketType === 'spot') {
-                    throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
-                }
-                subscriptionArgs.push('!' + channelName);
-            }
-            else {
-                subscriptionArgs.push('!' + channelName + '@arr');
-            }
-            subMessageHashes.push(this.getMessageHash(channelName, undefined, isBidAsk));
-            messageHashes.push('unsubscribe:ticker');
-        }
-        let streamHash = channelName;
-        if (symbolsDefined) {
-            streamHash = channelName + '::' + symbols.join(',');
-        }
-        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream(rawMarketType, streamHash);
-        const requestId = this.requestId(url);
-        const request = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': requestId,
-        };
-        const subscription = {
-            'unsubscribe': true,
-            'id': requestId.toString(),
-            'subMessageHashes': subMessageHashes,
-            'messageHashes': messageHashes,
-            'symbols': symbols,
-            'topic': 'ticker',
-        };
-        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscription);
+        return await this.watchMultiTickerHelper('unWatchTickers', channelName, symbols, params, true);
     }
     /**
      * @method
@@ -1973,60 +1903,7 @@ class binance extends binance$1["default"] {
         let channelName = undefined;
         [channelName, params] = this.handleOptionAndParams(params, 'watchMarkPrices', 'name', 'markPrice');
         await this.loadMarkets();
-        const use1sFreq = this.safeBool(params, 'use1sFreq', true);
-        const suffix = (use1sFreq) ? '@1s' : '';
-        const methodName = 'watchMarkPrices';
-        symbols = this.marketSymbols(symbols, undefined, true, false, true);
-        let firstMarket = undefined;
-        let marketType = undefined;
-        const symbolsDefined = (symbols !== undefined);
-        if (symbolsDefined) {
-            firstMarket = this.market(symbols[0]);
-        }
-        [marketType, params] = this.handleMarketTypeAndParams(methodName, firstMarket, params);
-        if (marketType !== 'swap' && marketType !== 'future') {
-            throw new errors.NotSupported(this.id + ' ' + methodName + '() only supports swap markets');
-        }
-        const rawMarketType = 'future';
-        const subscriptionArgs = [];
-        const subMessageHashes = [];
-        const messageHashes = [];
-        if (symbolsDefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.market(symbol);
-                const msgHash = this.getMessageHash(channelName, market['symbol'], false);
-                subscriptionArgs.push(market['lowercaseId'] + '@' + channelName + suffix);
-                subMessageHashes.push(msgHash);
-                messageHashes.push('unsubscribe:' + msgHash);
-            }
-        }
-        else {
-            const msgHashNoSymbol = this.getMessageHash(channelName, undefined, false);
-            subscriptionArgs.push('!' + channelName + '@arr');
-            subMessageHashes.push(msgHashNoSymbol);
-            messageHashes.push('unsubscribe:' + msgHashNoSymbol);
-        }
-        let streamHash = channelName;
-        if (symbolsDefined) {
-            streamHash = channelName + '::' + symbols.join(',');
-        }
-        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream(rawMarketType, streamHash);
-        const requestId = this.requestId(url);
-        const request = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': requestId,
-        };
-        const subscription = {
-            'unsubscribe': true,
-            'id': requestId.toString(),
-            'subMessageHashes': subMessageHashes,
-            'messageHashes': messageHashes,
-            'symbols': symbols,
-            'topic': 'ticker',
-        };
-        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscription);
+        return await this.watchMultiTickerHelper('unWatchMarkPrices', channelName, symbols, params, true);
     }
     /**
      * @method
@@ -2077,7 +1954,7 @@ class binance extends binance$1["default"] {
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
-    async watchMultiTickerHelper(methodName, channelName, symbols = undefined, params = {}) {
+    async watchMultiTickerHelper(methodName, channelName, symbols = undefined, params = {}, isUnsubscribe = false) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, false, true);
         const isBidAsk = (channelName === 'bookTicker');
@@ -2106,18 +1983,35 @@ class binance extends binance$1["default"] {
         else {
             throw new errors.NotSupported(this.id + ' ' + methodName + '() does not support options markets');
         }
+        if (isMarkPrice && !this.inArray(marketType, ['swap', 'future'])) {
+            throw new errors.NotSupported(this.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet');
+        }
         const subscriptionArgs = [];
         const messageHashes = [];
+        const unsubscribeMessageHashes = [];
         let suffix = '';
         if (isMarkPrice) {
             suffix = (use1sFreq) ? '@1s' : '';
+        }
+        let unifiedPrefix = undefined;
+        if (isBidAsk) {
+            unifiedPrefix = 'bidask';
+        }
+        else if (isMarkPrice) {
+            unifiedPrefix = 'markPrice';
+        }
+        else {
+            unifiedPrefix = 'ticker';
         }
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market(symbol);
                 subscriptionArgs.push(market['lowercaseId'] + '@' + channelName + suffix);
-                messageHashes.push(this.getMessageHash(channelName, market['symbol'], isBidAsk));
+                messageHashes.push(unifiedPrefix + ':' + channelName + '@' + symbol);
+                if (isUnsubscribe) {
+                    unsubscribeMessageHashes.push('unsubscribe::' + unifiedPrefix + ':' + channelName + '@' + symbol);
+                }
             }
         }
         else {
@@ -2133,7 +2027,8 @@ class binance extends binance$1["default"] {
             else {
                 subscriptionArgs.push('!' + channelName + '@arr');
             }
-            messageHashes.push(this.getMessageHash(channelName, undefined, isBidAsk));
+            messageHashes.push(unifiedPrefix + 's:' + channelName);
+            unsubscribeMessageHashes.push('unsubscribe::' + channelName);
         }
         let streamHash = channelName;
         if (symbolsDefined) {
@@ -2142,14 +2037,29 @@ class binance extends binance$1["default"] {
         const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream(rawMarketType, streamHash);
         const requestId = this.requestId(url);
         const request = {
-            'method': 'SUBSCRIBE',
+            'method': isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE',
             'params': subscriptionArgs,
             'id': requestId,
         };
-        const subscribe = {
+        let hashes = messageHashes;
+        let subscription = {
             'id': requestId,
         };
-        const result = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), subscriptionArgs, subscribe);
+        if (isUnsubscribe) {
+            subscription = {
+                'unsubscribe': true,
+                'id': requestId.toString(),
+                'subMessageHashes': messageHashes,
+                'messageHashes': unsubscribeMessageHashes,
+                'symbols': symbols,
+                'topic': 'ticker',
+            };
+            hashes = unsubscribeMessageHashes;
+        }
+        const result = await this.watchMultiple(url, hashes, this.deepExtend(request, params), hashes, subscription);
+        if (isUnsubscribe) {
+            return result;
+        }
         // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
         // ticker dict comes in, otherwise all-tickers dict comes in
         if (!symbolsDefined) {
@@ -2360,10 +2270,24 @@ class binance extends binance$1["default"] {
         //
         this.handleTickersAndBidsAsks(client, message, 'tickers');
     }
+    handleMarkPrices(client, message) {
+        this.handleTickersAndBidsAsks(client, message, 'markPrices');
+    }
     handleTickersAndBidsAsks(client, message, methodType) {
         const isSpot = this.isSpotUrl(client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const isBidAsk = (methodType === 'bidasks');
+        const isMarkPrice = (methodType === 'markPrices');
+        let unifiedPrefix = undefined;
+        if (isBidAsk) {
+            unifiedPrefix = 'bidask';
+        }
+        else if (isMarkPrice) {
+            unifiedPrefix = 'markPrice';
+        }
+        else {
+            unifiedPrefix = 'ticker';
+        }
         let channelName = undefined;
         const resolvedMessageHashes = [];
         let rawTickers = [];
@@ -2393,24 +2317,15 @@ class binance extends binance$1["default"] {
             else {
                 this.tickers[symbol] = parsedTicker;
             }
-            const messageHash = this.getMessageHash(channelName, symbol, isBidAsk);
+            const messageHash = unifiedPrefix + ':' + channelName + '@' + symbol;
             resolvedMessageHashes.push(messageHash);
             client.resolve(parsedTicker, messageHash);
         }
         // resolve batch endpoint
         const length = resolvedMessageHashes.length;
         if (length > 0) {
-            const batchMessageHash = this.getMessageHash(channelName, undefined, isBidAsk);
+            const batchMessageHash = unifiedPrefix + 's:' + channelName;
             client.resolve(newTickers, batchMessageHash);
-        }
-    }
-    getMessageHash(channelName, symbol, isBidAsk) {
-        const prefix = isBidAsk ? 'bidask' : 'ticker';
-        if (symbol !== undefined) {
-            return prefix + ':' + channelName + '@' + symbol;
-        }
-        else {
-            return prefix + 's' + ':' + channelName;
         }
     }
     signParams(params = {}) {
@@ -4561,8 +4476,8 @@ class binance extends binance$1["default"] {
             '1dTicker': this.handleTickers,
             '24hrTicker': this.handleTickers,
             '24hrMiniTicker': this.handleTickers,
-            'markPriceUpdate': this.handleTickers,
-            'markPriceUpdate@arr': this.handleTickers,
+            'markPriceUpdate': this.handleMarkPrices,
+            'markPriceUpdate@arr': this.handleMarkPrices,
             'bookTicker': this.handleBidsAsks,
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,

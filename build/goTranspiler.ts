@@ -1085,6 +1085,9 @@ class NewTranspiler {
             return `(res).(int64)`;
         }
 
+        if (unwrappedType === 'float64') {
+            return `(res).(float64)`;
+        }
         if (methodName.startsWith('watchOrderBook')) {
             return `NewOrderBookFromWs(res)`;
         }
@@ -1300,15 +1303,17 @@ class NewTranspiler {
             methodDoc.push(goComments[exchangeName][methodName]);
         }
 
-        let emtpyObject = `${unwrappedType}{}`;
+        let emptyObject = `${unwrappedType}{}`;
         if (unwrappedType.startsWith('[]')) {
-            emtpyObject = 'nil';
+            emptyObject = 'nil'
         } else if (unwrappedType.includes('int64')) {
-            emtpyObject = '-1';
+            emptyObject = '-1'
+        } else if (unwrappedType.includes('float64')) {
+            emptyObject = 'float64(-1)'
         } else if (unwrappedType === 'string') {
-            emtpyObject = '""';
+            emptyObject = '""'
         } else if (unwrappedType === 'interface{}') {
-            emtpyObject = 'nil';
+            emptyObject = 'nil';
         }
 
         const defaultParams =  this.getDefaultParamsWrappers(methodName, methodWrapper.parameters);
@@ -1326,7 +1331,7 @@ class NewTranspiler {
            `${defaultParams}`,
             `${two}res := <- ${accessor}${methodNameCapitalized}(${params})`,
             `${two}if IsError(res) {`,
-            `${three}return ${emtpyObject}, CreateReturnError(res)`,
+            `${three}return ${emptyObject}, CreateReturnError(res)`,
             `${two}}`,
             `${two}return ${this.createReturnStatement(methodName, unwrappedType)}, nil`,
             // `${two}}()`,
@@ -2052,7 +2057,11 @@ ${caseStatements.join('\n')}
             'TRUNCATE',
             'ROUND',
             'toFixed',
-            'throwDynamicException'
+            'throwDynamicException',
+            'NewArrayCache',
+            'NewArrayCacheByTimestamp',
+            'NewArrayCacheBySymbolById',
+            'NewArrayCacheBySymbolBySide'
         ]);
 
         const files = fs.readdirSync(dirPath);
@@ -2385,8 +2394,24 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 [ /Assert\("GO_SKIP_START"\)[\S\s]+?Assert\("GO_SKIP_END"\)/gm, '' ], // remove equals
+                // Match ArrayCache variables and cast to appropriate type based on variable name
+                // Order matters: check most specific types first
+                [/(\w*ArrayCacheBySymbolBySide\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolBySide).Hashmap'],
+                [/(\w*ArrayCacheByTimestamp\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheByTimestamp).Hashmap'],
+                [/(\w*ArrayCacheBySymbolById\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolById).Hashmap'],
+                // General ArrayCache pattern (must not match the specific types above)
+                [/(\w+ArrayCache(?!BySymbolBySide|ByTimestamp|BySymbolById)\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCache).Hashmap'],
+                // Match stored/cached/orders patterns - explicit patterns for common variable names
+                [/\bstored\.Hashmap/g, 'stored.(*ccxt.ArrayCache).Hashmap'],
+                [/\bcached\.Hashmap/g, 'cached.(*ccxt.ArrayCache).Hashmap'],
+                [/\b([Oo]rders)\.Hashmap/g, '$1.(*ccxt.ArrayCache).Hashmap'],
 
             ]).trim ();
+
+            if (testName !== 'tests.init') {
+                // Add package prefix to functions and types from the ccxt package
+                content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
+            }
 
             const file = [
                 'package base',

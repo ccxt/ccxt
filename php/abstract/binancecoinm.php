@@ -1450,6 +1450,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function fapipublic_get_depth($params = array()) {
         return $this->request('depth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "byLimit" => [[50, 2], [100, 5], [500, 10], [1000, 20]]));
     }
+    public function fapipublic_get_rpidepth($params = array()) {
+        return $this->request('rpiDepth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function fapipublic_get_trades($params = array()) {
         return $this->request('trades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1585,6 +1588,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function fapiprivate_get_apitradingstatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function fapiprivate_get_symboladlrisk($params = array()) {
+        return $this->request('symbolAdlRisk', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function fapiprivate_get_multiassetsmargin($params = array()) {
         return $this->request('multiAssetsMargin', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 30));
     }
@@ -1651,6 +1657,15 @@ abstract class binancecoinm extends \ccxt\binance {
     public function fapiprivate_get_convert_orderstatus($params = array()) {
         return $this->request('convert/orderStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function fapiprivate_get_algoorder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_get_openalgoorders($params = array()) {
+        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_get_allalgoorders($params = array()) {
+        return $this->request('allAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function fapiprivate_post_batchorders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -1665,6 +1680,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function fapiprivate_post_order($params = array()) {
         return $this->request('order', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function fapiprivate_post_order_test($params = array()) {
+        return $this->request('order/test', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
     public function fapiprivate_post_leverage($params = array()) {
         return $this->request('leverage', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -1693,6 +1711,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function fapiprivate_post_convert_acceptquote($params = array()) {
         return $this->request('convert/acceptQuote', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 20));
     }
+    public function fapiprivate_post_algoorder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function fapiprivate_put_listenkey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -1713,6 +1734,12 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function fapiprivate_delete_listenkey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_delete_algoorder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_delete_algoopenorders($params = array()) {
+        return $this->request('algoOpenOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function fapipublicv2_get_ticker_price($params = array()) {
         return $this->request('ticker/price', 'fapiPublicV2', 'GET', $params, null, null, array("cost" => 0));
@@ -3751,6 +3778,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function fapiPublicGetDepth($params = array()) {
         return $this->request('depth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "byLimit" => [[50, 2], [100, 5], [500, 10], [1000, 20]]));
     }
+    public function fapiPublicGetRpiDepth($params = array()) {
+        return $this->request('rpiDepth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function fapiPublicGetTrades($params = array()) {
         return $this->request('trades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -3886,6 +3916,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function fapiPrivateGetApiTradingStatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function fapiPrivateGetSymbolAdlRisk($params = array()) {
+        return $this->request('symbolAdlRisk', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function fapiPrivateGetMultiAssetsMargin($params = array()) {
         return $this->request('multiAssetsMargin', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 30));
     }
@@ -3952,6 +3985,15 @@ abstract class binancecoinm extends \ccxt\binance {
     public function fapiPrivateGetConvertOrderStatus($params = array()) {
         return $this->request('convert/orderStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function fapiPrivateGetAlgoOrder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateGetOpenAlgoOrders($params = array()) {
+        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateGetAllAlgoOrders($params = array()) {
+        return $this->request('allAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function fapiPrivatePostBatchOrders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -3966,6 +4008,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function fapiPrivatePostOrder($params = array()) {
         return $this->request('order', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function fapiPrivatePostOrderTest($params = array()) {
+        return $this->request('order/test', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
     public function fapiPrivatePostLeverage($params = array()) {
         return $this->request('leverage', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -3994,6 +4039,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function fapiPrivatePostConvertAcceptQuote($params = array()) {
         return $this->request('convert/acceptQuote', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 20));
     }
+    public function fapiPrivatePostAlgoOrder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function fapiPrivatePutListenKey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -4014,6 +4062,12 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function fapiPrivateDeleteListenKey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateDeleteAlgoOrder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateDeleteAlgoOpenOrders($params = array()) {
+        return $this->request('algoOpenOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function fapiPublicV2GetTickerPrice($params = array()) {
         return $this->request('ticker/price', 'fapiPublicV2', 'GET', $params, null, null, array("cost" => 0));

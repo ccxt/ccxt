@@ -99,9 +99,11 @@ public partial class deepcoin : ccxt.deepcoin
 
     public virtual object requestId()
     {
+        this.lockId();
         object previousValue = this.safeInteger(this.options, "lastRequestId", 0);
         object newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)this.options)["lastRequestId"] = newValue;
+        this.unlockId();
         return newValue;
     }
 

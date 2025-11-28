@@ -6,8 +6,14 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./js/ccxt.js",
-      "require": "./dist/ccxt.cjs"
+      "import": {
+        "types": "./js/ccxt.d.ts",
+        "default": "./js/ccxt.js"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./dist/ccxt.cjs"
+      }
     }
   },
   "engines": {

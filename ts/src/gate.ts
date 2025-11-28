@@ -1609,8 +1609,8 @@ export default class gate extends Exchange {
             'contract': true,
             'linear': isLinear,
             'inverse': !isLinear,
-            'taker': undefined,
-            'maker': undefined,
+            'taker': this.parseNumber ('0.0005'), // 0.05% vip0
+            'maker': this.parseNumber ('0.0002'), // 0.02% vip0
             'contractSize': this.parseNumber (contractSize),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -1729,8 +1729,8 @@ export default class gate extends Exchange {
                     'contract': true,
                     'linear': true,
                     'inverse': false,
-                    'taker': undefined,
-                    'maker': undefined,
+                    'taker': this.parseNumber ('0.0003'), // assume 0.03% for maker/taker vip0 btc/eth options
+                    'maker': this.parseNumber ('0.0003'),
                     'contractSize': this.parseNumber ('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
@@ -3940,7 +3940,7 @@ export default class gate extends Exchange {
         if (pointFee !== undefined) {
             fees.push ({
                 'cost': pointFee,
-                'currency': 'GatePoint',
+                'currency': 'GATEPOINT',
             });
         }
         const takerOrMaker = this.safeString (trade, 'role');

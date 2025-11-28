@@ -1,3 +1,115 @@
+<a id="v4.5.22"></a>
+# [v4.5.22](https://github.com/ccxt/ccxt/releases/tag/v4.5.22) - 2025-11-25
+
+## What's Changed
+* update: Upbit Docs Link for all methods by [@LambdaBen](https://github.com/LambdaBen) in [#27364](https://github.com/ccxt/ccxt/pull/27364)
+* feat(FAQ): How do trailing orders work? by [@Dan-krm](https://github.com/Dan-krm) in [#27367](https://github.com/ccxt/ccxt/pull/27367)
+* fix(deepcoin): funding rate endpoint are public by [@kilianjanssen](https://github.com/kilianjanssen) in [#27369](https://github.com/ccxt/ccxt/pull/27369)
+* gate parseTrade fee currency fix by [@ndubel](https://github.com/ndubel) in [#27371](https://github.com/ccxt/ccxt/pull/27371)
+* fix(xt): handleSubscriptionStatus updated [#27282](https://github.com/ccxt/ccxt/issues/27282) by [@rayBastard](https://github.com/rayBastard) in [#27362](https://github.com/ccxt/ccxt/pull/27362)
+* update: Add TestOrder logic on Upbit by [@LambdaBen](https://github.com/LambdaBen) in [#27366](https://github.com/ccxt/ccxt/pull/27366)
+* fix(python): lock_id missing self by [@carlosmiei](https://github.com/carlosmiei) in [#27373](https://github.com/ccxt/ccxt/pull/27373)
+* fix(bybit): fix default swap limit orderbook by [@carlosmiei](https://github.com/carlosmiei) in [#27374](https://github.com/ccxt/ccxt/pull/27374)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.21...v4.5.22
+
+[Changes][v4.5.22]
+
+
+<a id="v4.5.21"></a>
+# [v4.5.21](https://github.com/ccxt/ccxt/releases/tag/v4.5.21) - 2025-11-24
+
+## What's Changed
+* fix(upbit): multiple streams by [@ttodua](https://github.com/ttodua) in [#26954](https://github.com/ccxt/ccxt/pull/26954)
+* bitflyer.has margin and option methods by [@samgermain](https://github.com/samgermain) in [#27339](https://github.com/ccxt/ccxt/pull/27339)
+* fix(gate): lock request id to avoid data races by [@carlosmiei](https://github.com/carlosmiei) in [#27335](https://github.com/ccxt/ccxt/pull/27335)
+* bitfinex.has option methods by [@samgermain](https://github.com/samgermain) in [#27327](https://github.com/ccxt/ccxt/pull/27327)
+* build(deps): bump golang.org/x/crypto from 0.35.0 to 0.45.0 in /go/tests/types by [@dependabot](https://github.com/dependabot)[bot] in [#27336](https://github.com/ccxt/ccxt/pull/27336)
+* build(deps): bump golang.org/x/crypto from 0.35.0 to 0.45.0 in /go/tests/profile by [@dependabot](https://github.com/dependabot)[bot] in [#27337](https://github.com/ccxt/ccxt/pull/27337)
+* build(deps): bump golang.org/x/crypto from 0.36.0 to 0.45.0 in /go/v4 by [@dependabot](https://github.com/dependabot)[bot] in [#27338](https://github.com/ccxt/ccxt/pull/27338)
+* fix(exchange): fix loadorderbook in go by [@pcriadoperez](https://github.com/pcriadoperez) in [#27342](https://github.com/ccxt/ccxt/pull/27342)
+* build(deps): bump golang.org/x/crypto from 0.36.0 to 0.45.0 in /go/cli by [@dependabot](https://github.com/dependabot)[bot] in [#27343](https://github.com/ccxt/ccxt/pull/27343)
+* fix(bybit): handle clientOrderId inside editOrder by [@carlosmiei](https://github.com/carlosmiei) in [#27345](https://github.com/ccxt/ccxt/pull/27345)
+* feat(hyperliquid): index hip3 dex name from symbol by [@carlosmiei](https://github.com/carlosmiei) in [#27346](https://github.com/ccxt/ccxt/pull/27346)
+* fix(paradex): set public key to hex string by [@sc0Vu](https://github.com/sc0Vu) in [#27347](https://github.com/ccxt/ccxt/pull/27347)
+* fix(go): fix safeValueN for map strings and array cache by [@pcriadoperez](https://github.com/pcriadoperez) in [#27344](https://github.com/ccxt/ccxt/pull/27344)
+* update: Upbit describe by [@LambdaBen](https://github.com/LambdaBen) in [#27356](https://github.com/ccxt/ccxt/pull/27356)
+* ascendex.has fetchBorrowRates by [@samgermain](https://github.com/samgermain) in [#27348](https://github.com/ccxt/ccxt/pull/27348)
+* feat(deribit): add fetchOpenInterest by [@Dan-krm](https://github.com/Dan-krm) in [#27341](https://github.com/ccxt/ccxt/pull/27341)
+* feat(bingx): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27354](https://github.com/ccxt/ccxt/pull/27354)
+* feat(bitget): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27355](https://github.com/ccxt/ccxt/pull/27355)
+* perf(python):  optimization of safe_float, safe_integer, safe_string, safe_value  (50% - 70%) by [@ttodua](https://github.com/ttodua) in [#27334](https://github.com/ccxt/ccxt/pull/27334)
+* fix(xt): ohlcv, trades, orderbook parameters in unWatch methods fix [#27282](https://github.com/ccxt/ccxt/issues/27282) by [@rayBastard](https://github.com/rayBastard) in [#27329](https://github.com/ccxt/ccxt/pull/27329)
+* feat(binance): add symbolAdlRisk endpoint by [@carlosmiei](https://github.com/carlosmiei) in [#27357](https://github.com/ccxt/ccxt/pull/27357)
+* fix(hyperliquid): clientOrderId encoding in go by [@carlosmiei](https://github.com/carlosmiei) in [#27352](https://github.com/ccxt/ccxt/pull/27352)
+* fix(paradex): stark_sign by [@sc0Vu](https://github.com/sc0Vu) in [#27358](https://github.com/ccxt/ccxt/pull/27358)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.20...v4.5.21
+
+[Changes][v4.5.21]
+
+
+<a id="v4.5.20"></a>
+# [v4.5.20](https://github.com/ccxt/ccxt/releases/tag/v4.5.20) - 2025-11-18
+
+## What's Changed
+* fix(dydx): dex flag by [@carlosmiei](https://github.com/carlosmiei) in [#27309](https://github.com/ccxt/ccxt/pull/27309)
+* chore: fix go module by [@carlosmiei](https://github.com/carlosmiei) in [#27312](https://github.com/ccxt/ccxt/pull/27312)
+* build(deps-dev): bump js-yaml from 4.1.0 to 4.1.1 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#27306](https://github.com/ccxt/ccxt/pull/27306)
+* feat(bybit): update borrowCrossMargin, repayCrossMargin by [@Dan-krm](https://github.com/Dan-krm) in [#27308](https://github.com/ccxt/ccxt/pull/27308)
+* chore(cli): remove extra print by [@ttodua](https://github.com/ttodua) in [#27303](https://github.com/ccxt/ccxt/pull/27303)
+* fix(ws/Client) onPingInterval log by [@CH-EdwinB](https://github.com/CH-EdwinB) in [#27315](https://github.com/ccxt/ccxt/pull/27315)
+* feat(binance): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27316](https://github.com/ccxt/ccxt/pull/27316)
+* fix(mexc): fetchOpenOrders no symbol by [@carlosmiei](https://github.com/carlosmiei) in [#27317](https://github.com/ccxt/ccxt/pull/27317)
+* build(deps-dev): bump js-yaml from 4.1.0 to 4.1.1 by [@dependabot](https://github.com/dependabot)[bot] in [#27313](https://github.com/ccxt/ccxt/pull/27313)
+* perf(base): safeMarket optimize by [@ttodua](https://github.com/ttodua) in [#27320](https://github.com/ccxt/ccxt/pull/27320)
+* feat(hyperliquid): add hip-3 tokens by [@sc0Vu](https://github.com/sc0Vu) in [#27201](https://github.com/ccxt/ccxt/pull/27201)
+* fix(python): key_exists opt 2x by [@ttodua](https://github.com/ttodua) in [#27318](https://github.com/ccxt/ccxt/pull/27318)
+* fix(gate): assume vip0 fees by [@carlosmiei](https://github.com/carlosmiei) in [#27325](https://github.com/ccxt/ccxt/pull/27325)
+* fix(js): remove direct protobufjs import from dydx helper by [@carlosmiei](https://github.com/carlosmiei) in [#27324](https://github.com/ccxt/ccxt/pull/27324)
+* fix(xt): watchTickers cast in c# by [@carlosmiei](https://github.com/carlosmiei) in [#27326](https://github.com/ccxt/ccxt/pull/27326)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.19...v4.5.20
+
+[Changes][v4.5.20]
+
+
+<a id="v4.5.19"></a>
+# [v4.5.19](https://github.com/ccxt/ccxt/releases/tag/v4.5.19) - 2025-11-14
+
+## What's Changed
+* fix(client.py): fixes race condition when sending a message over ws when connection has been closed by [@pcriadoperez](https://github.com/pcriadoperez) in [#27275](https://github.com/ccxt/ccxt/pull/27275)
+* refactor(bitget): cancelAllOrders by [@ttodua](https://github.com/ttodua) in [#26980](https://github.com/ccxt/ccxt/pull/26980)
+* feat(bitget): edit spot orders by [@carlosmiei](https://github.com/carlosmiei) in [#27277](https://github.com/ccxt/ccxt/pull/27277)
+* fix(deribit): add limit to fetchClosedOrders by [@carlosmiei](https://github.com/carlosmiei) in [#27278](https://github.com/ccxt/ccxt/pull/27278)
+* fix(toobit): logo by [@carlosmiei](https://github.com/carlosmiei) in [#27279](https://github.com/ccxt/ccxt/pull/27279)
+* feat(kucoin): add public uta support by [@Dan-krm](https://github.com/Dan-krm) in [#27205](https://github.com/ccxt/ccxt/pull/27205)
+* fix(javascript): intellisense for common js by [@pcriadoperez](https://github.com/pcriadoperez) in [#27287](https://github.com/ccxt/ccxt/pull/27287)
+* fix(go) Greeks struct and NewGreeks by [@Fiboniak](https://github.com/Fiboniak) in [#27283](https://github.com/ccxt/ccxt/pull/27283)
+* fix(go) MarketInterface - data could be nil by [@Fiboniak](https://github.com/Fiboniak) in [#27284](https://github.com/ccxt/ccxt/pull/27284)
+* fix(hibachi): assume default taker/maker values by [@carlosmiei](https://github.com/carlosmiei) in [#27289](https://github.com/ccxt/ccxt/pull/27289)
+* fix(python): coincurve versions by [@ttodua](https://github.com/ttodua) in [#27280](https://github.com/ccxt/ccxt/pull/27280)
+* fix(bitget): add 3min mapping to timeframes by [@carlosmiei](https://github.com/carlosmiei) in [#27290](https://github.com/ccxt/ccxt/pull/27290)
+* fix(setMarketsFromExchange): add currencies by id by [@carlosmiei](https://github.com/carlosmiei) in [#27295](https://github.com/ccxt/ccxt/pull/27295)
+* bingx.has margin and option methods by [@samgermain](https://github.com/samgermain) in [#27298](https://github.com/ccxt/ccxt/pull/27298)
+* fix(bitget): 2h max days and cap until by [@carlosmiei](https://github.com/carlosmiei) in [#27302](https://github.com/ccxt/ccxt/pull/27302)
+* fix(kraken): watchOrders handle message with no symbol by [@carlosmiei](https://github.com/carlosmiei) in [#27300](https://github.com/ccxt/ccxt/pull/27300)
+* fix(OrderBook.cs): check if reset snapshot is available by [@carlosmiei](https://github.com/carlosmiei) in [#27301](https://github.com/ccxt/ccxt/pull/27301)
+* fix(binance): recurring unwatch & watch by [@ttodua](https://github.com/ttodua) in [#27292](https://github.com/ccxt/ccxt/pull/27292)
+* feat(dydx): new exchange by [@sc0Vu](https://github.com/sc0Vu) in [#26456](https://github.com/ccxt/ccxt/pull/26456)
+* XT exchange update with unWatch methods by [@rayBastard](https://github.com/rayBastard) in [#27291](https://github.com/ccxt/ccxt/pull/27291)
+* fix(dydx): link and flag by [@carlosmiei](https://github.com/carlosmiei) in [#27304](https://github.com/ccxt/ccxt/pull/27304)
+* fix(dydx): ref link by [@carlosmiei](https://github.com/carlosmiei) in [#27305](https://github.com/ccxt/ccxt/pull/27305)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.18...v4.5.19
+
+[Changes][v4.5.19]
+
+
 <a id="v4.5.18"></a>
 # [v4.5.18](https://github.com/ccxt/ccxt/releases/tag/v4.5.18) - 2025-11-10
 
@@ -11794,6 +11906,10 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.22]: https://github.com/ccxt/ccxt/compare/v4.5.21...v4.5.22
+[v4.5.21]: https://github.com/ccxt/ccxt/compare/v4.5.20...v4.5.21
+[v4.5.20]: https://github.com/ccxt/ccxt/compare/v4.5.19...v4.5.20
+[v4.5.19]: https://github.com/ccxt/ccxt/compare/v4.5.18...v4.5.19
 [v4.5.18]: https://github.com/ccxt/ccxt/compare/v4.5.17...v4.5.18
 [v4.5.17]: https://github.com/ccxt/ccxt/compare/v4.5.16...v4.5.17
 [v4.5.16]: https://github.com/ccxt/ccxt/compare/v4.5.15...v4.5.16

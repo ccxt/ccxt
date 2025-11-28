@@ -4163,7 +4163,7 @@ class bybit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request: dict = {
             'symbol': market['id'],
-            'orderId': id,
+            # 'orderId': id,
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
@@ -4174,6 +4174,11 @@ class bybit(Exchange, ImplicitAPI):
             # Valid for option only.
             # 'orderIv': '0',  # Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         }
+        clientOrderId = self.safe_string_2(params, 'orderLinkId', 'clientOrderId')
+        if clientOrderId is None:
+            request['orderId'] = id
+        else:
+            request['orderLinkId'] = clientOrderId
         category = None
         category, params = self.get_bybit_type('editOrderRequest', market, params)
         request['category'] = category
@@ -4210,9 +4215,6 @@ class bybit(Exchange, ImplicitAPI):
                 request['takeProfit'] = takeProfitRequest
                 tpTriggerBy = self.safe_string(params, 'tpTriggerBy', 'LastPrice')
                 request['tpTriggerBy'] = tpTriggerBy
-        clientOrderId = self.safe_string(params, 'clientOrderId')
-        if clientOrderId is not None:
-            request['orderLinkId'] = clientOrderId
         params = self.omit(params, ['stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit'])
         return request
 
@@ -4231,6 +4233,7 @@ class bybit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: unique client order id
         :param float [params.triggerPrice]: The price that a trigger order is triggered at
         :param float [params.stopLossPrice]: The price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: The price that a take profit order is triggered at
@@ -4246,6 +4249,7 @@ class bybit(Exchange, ImplicitAPI):
         await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
+        market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
         response = await self.privatePostV5OrderAmend(self.extend(request, params))
         #
@@ -4264,7 +4268,8 @@ class bybit(Exchange, ImplicitAPI):
         return self.safe_order({
             'info': response,
             'id': self.safe_string(result, 'orderId'),
-        })
+            'clientOrderId': self.safe_string(result, 'orderLinkId'),
+        }, market)
 
     async def edit_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
         """
@@ -7066,7 +7071,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         create a loan to borrow margin
 
-        https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+        https://bybit-exchange.github.io/docs/v5/account/borrow
 
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
@@ -7077,32 +7082,29 @@ classic accounts only/ spot not supported*  fetches information on an order made
         currency = self.currency(code)
         request: dict = {
             'coin': currency['id'],
-            'qty': self.currency_to_precision(code, amount),
+            'amount': self.currency_to_precision(code, amount),
         }
-        response = await self.privatePostV5SpotCrossMarginTradeLoan(self.extend(request, params))
+        response = await self.privatePostV5AccountBorrow(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
         #         "retMsg": "success",
         #         "result": {
-        #             "transactId": "14143"
+        #             "coin": "BTC",
+        #             "amount": "0.001"
         #         },
-        #         "retExtInfo": null,
-        #         "time": 1662617848970
+        #         "retExtInfo": {},
+        #         "time": 1763194940073
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        transaction = self.parse_margin_loan(result, currency)
-        return self.extend(transaction, {
-            'symbol': None,
-            'amount': amount,
-        })
+        return self.parse_margin_loan(result, currency)
 
     async def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
 
-        https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+        https://bybit-exchange.github.io/docs/v5/account/no-convert-repay
 
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
@@ -7113,24 +7115,23 @@ classic accounts only/ spot not supported*  fetches information on an order made
         currency = self.currency(code)
         request: dict = {
             'coin': currency['id'],
-            'qty': self.number_to_string(amount),
+            'amount': self.number_to_string(amount),
         }
-        response = await self.privatePostV5SpotCrossMarginTradeRepay(self.extend(request, params))
+        response = await self.privatePostV5AccountNoConvertRepay(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
         #         "retMsg": "success",
         #         "result": {
-        #            "repayId": "12128"
+        #             "resultStatus": "SU"
         #         },
-        #         "retExtInfo": null,
-        #         "time": 1662618298452
+        #         "retExtInfo": {},
+        #         "time": 1763195201119
         #     }
         #
         result = self.safe_dict(response, 'result', {})
         transaction = self.parse_margin_loan(result, currency)
         return self.extend(transaction, {
-            'symbol': None,
             'amount': amount,
         })
 
@@ -7139,19 +7140,21 @@ classic accounts only/ spot not supported*  fetches information on an order made
         # borrowCrossMargin
         #
         #     {
-        #         "transactId": "14143"
+        #         "coin": "BTC",
+        #         "amount": "0.001"
         #     }
         #
         # repayCrossMargin
         #
         #     {
-        #         "repayId": "12128"
+        #         "resultStatus": "SU"
         #     }
         #
+        currencyId = self.safe_string(info, 'coin')
         return {
-            'id': self.safe_string_2(info, 'transactId', 'repayId'),
-            'currency': self.safe_string(currency, 'code'),
-            'amount': None,
+            'id': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_string(info, 'amount'),
             'symbol': None,
             'timestamp': None,
             'datetime': None,

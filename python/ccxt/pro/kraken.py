@@ -615,8 +615,10 @@ class kraken(ccxt.async_support.kraken):
 
     def request_id(self):
         # their support said that reqid must be an int32, not documented
+        self.lock_id()
         reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
         self.options['reqid'] = reqid
+        self.unlock_id()
         return reqid
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -1176,8 +1178,7 @@ class kraken(ccxt.async_support.kraken):
         :param dict [params]: maximum number of orderic to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['snap_orders'] = True
-        return await self.watch_private('orders', symbol, since, limit, params)
+        return await self.watch_private('orders', symbol, since, limit, self.extend(params, {'snap_orders': True}))
 
     def handle_orders(self, client: Client, message, subscription=None):
         #
@@ -1233,7 +1234,8 @@ class kraken(ccxt.async_support.kraken):
                     if first['id'] in symbolsByOrderId:
                         del symbolsByOrderId[first['id']]
                 stored.append(newOrder)
-                symbols[symbol] = True
+                if symbol is not None:
+                    symbols[symbol] = True
             name = 'orders'
             client.resolve(self.orders, name)
             keys = list(symbols.keys())

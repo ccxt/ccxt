@@ -818,6 +818,7 @@ class binance extends Exchange {
                         'time' => 1,
                         'exchangeInfo' => 1,
                         'depth' => array( 'cost' => 2, 'byLimit' => array( array( 50, 2 ), array( 100, 5 ), array( 500, 10 ), array( 1000, 20 ) ) ),
+                        'rpiDepth' => 20,
                         'trades' => 5,
                         'historicalTrades' => 20,
                         'aggTrades' => 20,
@@ -871,6 +872,7 @@ class binance extends Exchange {
                         'commissionRate' => 20,
                         'rateLimit/order' => 1,
                         'apiTradingStatus' => 1,
+                        'symbolAdlRisk' => 1,
                         'multiAssetsMargin' => 30,
                         // broker endpoints
                         'apiReferral/ifNewUser' => 1,
@@ -894,6 +896,9 @@ class binance extends Exchange {
                         'symbolConfig' => 5,
                         'accountConfig' => 5,
                         'convert/orderStatus' => 5,
+                        'algoOrder' => 1,
+                        'openAlgoOrders' => 1,
+                        'allAlgoOrders' => 5,
                     ),
                     'post' => array(
                         'batchOrders' => 5,
@@ -901,6 +906,7 @@ class binance extends Exchange {
                         'positionMargin' => 1,
                         'marginType' => 1,
                         'order' => 4,
+                        'order/test' => 1,
                         'leverage' => 1,
                         'listenKey' => 1,
                         'countdownCancelAll' => 10,
@@ -911,6 +917,7 @@ class binance extends Exchange {
                         'feeBurn' => 1,
                         'convert/getQuote' => 200, // 360 requests per hour
                         'convert/acceptQuote' => 20,
+                        'algoOrder' => 1,
                     ),
                     'put' => array(
                         'listenKey' => 1,
@@ -922,6 +929,8 @@ class binance extends Exchange {
                         'order' => 1,
                         'allOpenOrders' => 1,
                         'listenKey' => 1,
+                        'algoOrder' => 1,
+                        'algoOpenOrders' => 1,
                     ),
                 ),
                 'fapiPublicV2' => array(
@@ -3131,7 +3140,7 @@ class binance extends Exchange {
         $this->options['isolatedMarginPairsData'] = array();
         for ($i = 0; $i < count($results); $i++) {
             $res = $this->safe_value($results, $i);
-            if ($fetchMargins && gettype($res) === 'array' && array_keys($res) === array_keys(array_keys($res))) {
+            if ($fetchMargins && (gettype($res) === 'array' && array_keys($res) === array_keys(array_keys($res)))) {
                 $keysList = is_array($this->index_by($res, 'symbol')) ? array_keys($this->index_by($res, 'symbol')) : array();
                 $length = count($this->options['crossMarginPairsData']);
                 // first one is the cross-margin promise
@@ -3658,7 +3667,7 @@ class binance extends Exchange {
             }
         } else {
             $balances = $response;
-            if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
+            if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
                 $balances = $this->safe_list($response, 'assets', array());
             }
             for ($i = 0; $i < count($balances); $i++) {
@@ -3737,7 +3746,7 @@ class binance extends Exchange {
             $query = $this->omit($query, 'symbols');
             if ($paramSymbols !== null) {
                 $symbols = '';
-                if (gettype($paramSymbols) === 'array' && array_keys($paramSymbols) === array_keys(array_keys($paramSymbols))) {
+                if ((gettype($paramSymbols) === 'array' && array_keys($paramSymbols) === array_keys(array_keys($paramSymbols)))) {
                     $symbols = $this->market_id($paramSymbols[0]);
                     for ($i = 1; $i < count($paramSymbols); $i++) {
                         $symbol = $paramSymbols[$i];
@@ -3946,14 +3955,16 @@ class binance extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book     // spot
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   // swap
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book   // future
-         * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           // option
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book       // spot
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book     // swap
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI // swap $rpi
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book     // future
+         * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                             // option
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->rpi] *swap only* set to true to use the RPI endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
@@ -3968,7 +3979,13 @@ class binance extends Exchange {
         if ($market['option']) {
             $response = $this->eapiPublicGetDepth ($this->extend($request, $params));
         } elseif ($market['linear']) {
-            $response = $this->fapiPublicGetDepth ($this->extend($request, $params));
+            $rpi = $this->safe_value($params, 'rpi', false);
+            $params = $this->omit($params, 'rpi');
+            if ($rpi) {
+                $response = $this->fapiPublicGetRpiDepth ($this->extend($request, $params));
+            } else {
+                $response = $this->fapiPublicGetDepth ($this->extend($request, $params));
+            }
         } elseif ($market['inverse']) {
             $response = $this->dapiPublicGetDepth ($this->extend($request, $params));
         } else {
@@ -4021,7 +4038,7 @@ class binance extends Exchange {
         //
         //     {
         //         "symbol" => "BTCUSDT",
-        //         "markPrice" => "11793.63104561", // mark price
+        //         "markPrice" => "11793.63104562", // mark price
         //         "indexPrice" => "11781.80495970", // index price
         //         "estimatedSettlePrice" => "11781.16138815", // Estimated Settle Price, only useful in the $last hour before the settlement starts
         //         "lastFundingRate" => "0.00038246",  // This is the lastest estimated funding rate
@@ -4266,7 +4283,7 @@ class binance extends Exchange {
                 $response = $this->publicGetTicker24hr ($this->extend($request, $params));
             }
         }
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             $firstTicker = $this->safe_dict($response, 0, array());
             return $this->parse_ticker($firstTicker, $market);
         }
@@ -4507,7 +4524,7 @@ class binance extends Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchMarkPrice() does not support ' . $type . ' markets yet');
         }
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             return $this->parse_ticker($this->safe_dict($response, 0, array()), $market);
         }
         return $this->parse_ticker($response, $market);
@@ -7704,7 +7721,7 @@ class binance extends Exchange {
             //    )
             //
         }
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             return $this->parse_orders($response, $market);
         } else {
             return array(
@@ -9451,7 +9468,7 @@ class binance extends Exchange {
         //     }
         //
         $data = $response;
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             $data = $this->safe_dict($data, 0, array());
         }
         return $this->parse_trading_fee($data, $market);
@@ -10640,7 +10657,7 @@ class binance extends Exchange {
         $market = null;
         if ($symbols !== null) {
             $symbol = null;
-            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+            if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
                 $symbolsLength = count($symbols);
                 if ($symbolsLength > 1) {
                     throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
@@ -10799,7 +10816,7 @@ class binance extends Exchange {
          * @return {array} data on account positions
          */
         if ($symbols !== null) {
-            if (gettype($symbols) !== 'array' || array_keys($symbols) !== array_keys(array_keys($symbols))) {
+            if ((gettype($symbols) !== 'array' || array_keys($symbols) !== array_keys(array_keys($symbols)))) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() requires an array argument for symbols');
             }
         }
@@ -10926,7 +10943,7 @@ class binance extends Exchange {
          * @return {array} data on the positions risk
          */
         if ($symbols !== null) {
-            if (gettype($symbols) !== 'array' || array_keys($symbols) !== array_keys(array_keys($symbols))) {
+            if ((gettype($symbols) !== 'array' || array_keys($symbols) !== array_keys(array_keys($symbols)))) {
                 throw new ArgumentsRequired($this->id . ' fetchPositionsRisk() requires an array argument for symbols');
             }
         }
@@ -11360,7 +11377,7 @@ class binance extends Exchange {
             throw new NotSupported($this->id . ' fetchLeverages() supports linear and inverse contracts only');
         }
         $leverages = $this->safe_list($response, 'positions', array());
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             $leverages = $response;
         }
         return $this->parse_leverages($leverages, $symbols, 'symbol');
@@ -12078,7 +12095,7 @@ class binance extends Exchange {
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             // cancelOrders returns an array like this => [array("code":-2011,"msg":"Unknown order sent.")]
             $arrayLength = count($response);
             if ($arrayLength === 1) { // when there's a single $error we can throw, otherwise we have a partial $success
@@ -13496,7 +13513,7 @@ class binance extends Exchange {
             throw new BadRequest($this->id . ' fetchMarginModes () supports linear and inverse subTypes only');
         }
         $assets = $this->safe_list($response, 'positions', array());
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             $assets = $response;
         }
         return $this->parse_margin_modes($assets, $symbols, 'symbol', 'swap');

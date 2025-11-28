@@ -31,11 +31,24 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.kucoin.com/#service-status"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-service-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.tradeType</term>
+    /// <description>
+    /// string : *uta only* set to SPOT or FUTURES
     /// </description>
     /// </item>
     /// </list>
@@ -59,12 +72,23 @@ public partial class kucoin
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
     public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchUtaMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchUtaMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
@@ -132,11 +156,24 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.kucoin.com/#get-all-tickers"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.tradeType</term>
+    /// <description>
+    /// string : *uta only* set to SPOT or FUTURES
     /// </description>
     /// </item>
     /// </list>
@@ -172,11 +209,18 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.kucoin.com/#get-24hr-stats"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -212,6 +256,7 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.kucoin.com/#get-klines"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-klines"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -229,6 +274,12 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// <item>
@@ -325,6 +376,7 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -336,6 +388,12 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -1110,6 +1168,7 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1127,6 +1186,12 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -1585,5 +1650,65 @@ public partial class kucoin
     {
         var res = await this.setLeverage(leverage, symbol, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch the current funding rate
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
+    /// fetches historical funding rate prices
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : not used by kucuoinfutures
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : end time in ms
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
+    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
 }
