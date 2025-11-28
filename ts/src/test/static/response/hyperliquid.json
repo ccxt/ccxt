@@ -352,6 +352,86 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "open order using a non usdc hip3 market",
+                "method": "fetchOpenOrders",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "dex": "flx"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "coin": "flx:CRCL",
+                        "side": "B",
+                        "limitPx": "70.0",
+                        "sz": "0.14",
+                        "oid": "251733169011",
+                        "timestamp": "1764346344235",
+                        "triggerCondition": "N/A",
+                        "isTrigger": false,
+                        "triggerPx": "0.0",
+                        "children": [],
+                        "isPositionTpsl": false,
+                        "reduceOnly": false,
+                        "orderType": "Limit",
+                        "origSz": "0.14",
+                        "tif": "Gtc",
+                        "cloid": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "coin": "flx:CRCL",
+                            "side": "B",
+                            "limitPx": "70.0",
+                            "sz": "0.14",
+                            "oid": "251733169011",
+                            "timestamp": "1764346344235",
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "0.14",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "id": "251733169011",
+                        "clientOrderId": null,
+                        "timestamp": 1764346344235,
+                        "datetime": "2025-11-28T16:12:24.235Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "FLX-CRCL/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 70,
+                        "triggerPrice": null,
+                        "amount": 0.14,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.14,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
                 "description": "open orders",
                 "method": "fetchOpenOrders",
                 "input": [

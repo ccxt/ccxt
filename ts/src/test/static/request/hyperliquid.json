@@ -894,6 +894,20 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "open order using a non usdc hip3 market",
+                "method": "fetchOpenOrders",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "dex": "flx"
+                    }
+                ],
+                "output": "{\"type\":\"frontendOpenOrders\",\"user\":\"0x193bD350ec838B1e22d6F302Da5343b920aA1c2B\",\"dex\":\"flx\"}"
+            },
+            {
                 "description": "fetch hip3 open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.hyperliquid.xyz/info",
