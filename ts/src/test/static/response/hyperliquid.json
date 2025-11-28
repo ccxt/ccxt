@@ -1,7 +1,14 @@
 {
     "exchange": "hyperliquid",
     "skipKeys": [],
-    "options": {},
+    "options": {
+        "hip3TokensByName": {
+            "flx:CRCL": {
+                "quote": "USDH",
+                "code": "FLX-CRCL"
+            }
+        }
+    },
     "methods": {
         "createOrderWithTakeProfitAndStopLoss": [
             {
@@ -75,6 +82,8 @@
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
+                "disabled": true,
+                "reason": "using spotMeta now",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": {
@@ -408,7 +417,7 @@
                         "datetime": "2025-11-28T16:12:24.235Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "FLX-CRCL/USDC:USDC",
+                        "symbol": "FLX-CRCL/USDH:USDH",
                         "type": "limit",
                         "timeInForce": "GTC",
                         "postOnly": false,

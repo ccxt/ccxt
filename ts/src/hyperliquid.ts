@@ -221,6 +221,7 @@ export default class hyperliquid extends Exchange {
                 'defaultType': 'swap',
                 'sandboxMode': false,
                 'defaultSlippage': 0.05,
+                'marketHelperProps': [ 'hip3TokensByName', 'cachedCurrenciesById' ],
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
                 'spotCurrencyMapping': {
                     'UDZ': '2Z',
@@ -578,7 +579,7 @@ export default class hyperliquid extends Exchange {
             rawPromises.push (this.publicPostInfo (this.extend (request, params)));
         }
         const promises = await Promise.all (rawPromises);
-        this.options['hip3CollateralByName'] = {};
+        this.options['hip3TokensByName'] = {};
         let markets = [];
         for (let i = 0; i < promises.length; i++) {
             const dexName = fetchDexesList[i];
@@ -598,7 +599,7 @@ export default class hyperliquid extends Exchange {
                 );
                 data['baseId'] = j + offset;
                 data['collateralToken'] = collateralToken;
-                const cachedCurrencies = this.safeDict (this.options, 'cachedCurrenciesById', {});
+                const cachedCurrencies = this.safeDict (this.options, 'c', {});
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
                 if (collateralToken in cachedCurrencies) {
                     const name = this.safeString (data, 'name');
@@ -606,7 +607,7 @@ export default class hyperliquid extends Exchange {
                     data['collateralTokenName'] = collateralTokenCode;
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     const safeCode = this.safeCurrencyCode (name);
-                    this.options['hip3CollateralByName'][name] = {
+                    this.options['hip3TokensByName'][name] = {
                         'quote': collateralTokenCode,
                         'code': safeCode.replace (':', '-'),
                     };
@@ -4331,8 +4332,8 @@ export default class hyperliquid extends Exchange {
 
     coinToMarketId (coin: Str) {
         // handle also hip3 tokens like flx:CRCL
-        if (this.safeDict (this.options['hip3CollateralByName'], coin)) {
-            const hip3Dict = this.options['hip3CollateralByName'][coin];
+        if (this.safeDict (this.options['hip3TokensByName'], coin)) {
+            const hip3Dict = this.options['hip3TokensByName'][coin];
             const quote = this.safeString (hip3Dict, 'quote', 'USDC');
             const code = this.safeString (hip3Dict, 'code', coin);
             return code + '/' + quote + ':' + quote;
