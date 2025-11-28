@@ -983,6 +983,109 @@
         ],
         "fetchPositions": [
             {
+                "description": "fetch hip3 positions",
+                "method": "fetchPositions",
+                "input": [
+                    null,
+                    {
+                        "dex": "flx"
+                    }
+                ],
+                "httpResponse": {
+                    "marginSummary": {
+                        "accountValue": "6.889701",
+                        "totalNtlPos": "10.41482",
+                        "totalRawUsd": "-3.525119",
+                        "totalMarginUsed": "3.459702"
+                    },
+                    "crossMarginSummary": {
+                        "accountValue": "3.429999",
+                        "totalNtlPos": "0.0",
+                        "totalRawUsd": "3.429999",
+                        "totalMarginUsed": "0.0"
+                    },
+                    "crossMaintenanceMarginUsed": "0.0",
+                    "withdrawable": "0.163333",
+                    "assetPositions": [
+                        {
+                            "type": "oneWay",
+                            "position": {
+                                "coin": "flx:CRCL",
+                                "szi": "0.13",
+                                "leverage": {
+                                    "type": "isolated",
+                                    "value": "3",
+                                    "rawUsd": "-6.955118"
+                                },
+                                "entryPx": "80.262",
+                                "positionValue": "10.41482",
+                                "unrealizedPnl": "-0.01924",
+                                "returnOnEquity": "-0.0055318831",
+                                "liquidationPx": "64.2010892308",
+                                "marginUsed": "3.459702",
+                                "maxLeverage": "3",
+                                "cumFunding": {
+                                    "allTime": "0.0",
+                                    "sinceOpen": "0.0",
+                                    "sinceChange": "0.0"
+                                }
+                            }
+                        }
+                    ],
+                    "time": "1764350959056"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "type": "oneWay",
+                            "position": {
+                                "coin": "flx:CRCL",
+                                "szi": "0.13",
+                                "leverage": {
+                                    "type": "isolated",
+                                    "value": "3",
+                                    "rawUsd": "-6.955118"
+                                },
+                                "entryPx": "80.262",
+                                "positionValue": "10.41482",
+                                "unrealizedPnl": "-0.01924",
+                                "returnOnEquity": "-0.0055318831",
+                                "liquidationPx": "64.2010892308",
+                                "marginUsed": "3.459702",
+                                "maxLeverage": "3",
+                                "cumFunding": {
+                                    "allTime": "0.0",
+                                    "sinceOpen": "0.0",
+                                    "sinceChange": "0.0"
+                                }
+                            }
+                        },
+                        "id": null,
+                        "symbol": "FLX-CRCL/USDH:USDH",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": true,
+                        "hedged": null,
+                        "side": "long",
+                        "contracts": 0.13,
+                        "contractSize": 1,
+                        "entryPrice": 80.262,
+                        "markPrice": null,
+                        "notional": 10.41482,
+                        "leverage": 3,
+                        "collateral": 3.459702,
+                        "initialMargin": 3.478942,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": -0.01924,
+                        "liquidationPrice": 64.2010892308,
+                        "marginMode": "isolated",
+                        "percentage": 0.5561172609664069
+                    }
+                ]
+            },
+            {
                 "description": "fetch positions",
                 "method": "fetchPositions",
                 "input": [

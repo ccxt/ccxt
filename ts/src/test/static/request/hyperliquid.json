@@ -1088,6 +1088,18 @@
         ],
         "fetchPositions": [
             {
+                "description": "fetch hip3 positions",
+                "method": "fetchPositions",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    null,
+                    {
+                        "dex": "flx"
+                    }
+                ],
+                "output": "{\"type\":\"clearinghouseState\",\"user\":\"0x193bD350ec838B1e22d6F302Da5343b920aA1c2B\",\"dex\":\"flx\"}"
+            },
+            {
                 "description": "fetchPositions",
                 "method": "fetchPositions",
                 "url": "https://api.hyperliquid.xyz/info",
