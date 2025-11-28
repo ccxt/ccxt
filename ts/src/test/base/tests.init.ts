@@ -22,6 +22,7 @@ import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testParsePrecision from './test.parsePrecision.js';
 import testArraysConcat from './test.arraysConcat.js';
+import testSleep from './test.sleep.js';
 
 async function baseTestsInit () {
     testLanguageSpecific ();
@@ -45,6 +46,7 @@ async function baseTestsInit () {
     testRemoveRepeatedElementsFromArray ();
     testParsePrecision ();
     testArraysConcat ();
+    await testSleep ();
 }
 
 export default baseTestsInit;

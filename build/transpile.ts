@@ -2527,6 +2527,8 @@ class Transpiler {
                 phpHeaderAsync.push ('use React\\Promise;');
             }
 
+            phpAsync = phpAsync.replace ('\\ccxt\\Exchange', '\\ccxt\\async\\Exchange');
+
             const decimalProps = [ 'DECIMAL_PLACES', 'TICK_SIZE', 'NO_PADDING', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'SIGNIFICANT_DIGITS', 'PAD_WITH_ZERO', 'decimal_to_precision', 'number_to_string' ];
             for (const propName of decimalProps) {
                 if (pythonAsync.includes (propName)) {
@@ -2536,7 +2538,7 @@ class Transpiler {
             }
             if (pythonAsync.match (/\sccxt\./)) {
                 pythonHeaderSync.push ('import ccxt  # noqa: F402')
-                pythonHeaderAsync.push ('import ccxt  # noqa: F402')
+                pythonHeaderAsync.push ('import ccxt.async_support as ccxt  # noqa: F402')
             }
             if (usesNumber) {
                 pythonHeaderSync.push ('import numbers  # noqa E402')

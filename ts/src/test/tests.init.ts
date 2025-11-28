@@ -12,7 +12,7 @@ const isBaseTests = getCliArgValue ('--baseTests');
 const runAll = getCliArgValue ('--all');
 
 // ####### base tests #######
-async function runBaseTests () {
+async function main () {
     if (isBaseTests) {
         if (isWs) {
             await baseTestsInitWs ();
@@ -25,8 +25,8 @@ async function runBaseTests () {
             process.exit (0);
         }
     }
+    (new testMainClass ()).init (argvExchange, argvSymbol, argvMethod);
 }
 
-runBaseTests ();
+main ();
 
-(new testMainClass ()).init (argvExchange, argvSymbol, argvMethod);
