@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bingx$1 = require('./abstract/bingx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var number = require('./base/functions/number.js');
  * @class bingx
  * @augments Exchange
  */
-class bingx extends bingx$1 {
+class bingx extends bingx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bingx',
@@ -30,6 +32,9 @@ class bingx extends bingx$1 {
                 'future': false,
                 'option': false,
                 'addMargin': true,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
@@ -50,9 +55,18 @@ class bingx extends bingx$1 {
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -63,6 +77,9 @@ class bingx extends bingx$1 {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': true,
                 'fetchLiquidations': false,
                 'fetchMarginAdjustmentHistory': false,
@@ -76,6 +93,8 @@ class bingx extends bingx$1 {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -90,8 +109,11 @@ class bingx extends bingx$1 {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': true,
                 'setMargin': true,
@@ -103,6 +125,7 @@ class bingx extends bingx$1 {
             'urls': {
                 'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
+                    'fund': 'https://open-api.{hostname}/openApi',
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
@@ -112,6 +135,7 @@ class bingx extends bingx$1 {
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                     'cswap': 'https://open-api.{hostname}/openApi',
+                    'api': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
                     'swap': 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
@@ -138,6 +162,15 @@ class bingx extends bingx$1 {
                 'secret': true,
             },
             'api': {
+                'fund': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'account/balance': 1,
+                            },
+                        },
+                    },
+                },
                 'spot': {
                     'v1': {
                         'public': {
@@ -160,6 +193,9 @@ class bingx extends bingx$1 {
                                 'trade/myTrades': 2,
                                 'user/commissionRate': 5,
                                 'account/balance': 2,
+                                'oco/orderList': 5,
+                                'oco/openOrderList': 5,
+                                'oco/historyOrderList': 5,
                             },
                             'post': {
                                 'trade/order': 2,
@@ -169,6 +205,8 @@ class bingx extends bingx$1 {
                                 'trade/cancelOrders': 5,
                                 'trade/cancelOpenOrders': 5,
                                 'trade/cancelAllAfter': 5,
+                                'oco/order': 5,
+                                'oco/cancel': 5,
                             },
                         },
                     },
@@ -177,6 +215,7 @@ class bingx extends bingx$1 {
                             'get': {
                                 'market/depth': 1,
                                 'market/kline': 1,
+                                'ticker/price': 1,
                             },
                         },
                     },
@@ -202,6 +241,7 @@ class bingx extends bingx$1 {
                                 'market/historicalTrades': 1,
                                 'market/markPriceKlines': 1,
                                 'trade/multiAssetsRules': 1,
+                                'tradingRules': 1,
                             },
                         },
                         'private': {
@@ -219,6 +259,7 @@ class bingx extends bingx$1 {
                                 'user/marginAssets': 5,
                             },
                             'post': {
+                                'trade/amend': 2,
                                 'trade/cancelReplace': 2,
                                 'positionSide/dual': 5,
                                 'trade/batchCancelReplace': 5,
@@ -227,6 +268,8 @@ class bingx extends bingx$1 {
                                 'twap/order': 5,
                                 'twap/cancelOrder': 5,
                                 'trade/assetMode': 5,
+                                'trade/reverse': 5,
+                                'trade/autoAddMargin': 5,
                             },
                         },
                     },
@@ -285,6 +328,11 @@ class bingx extends bingx$1 {
                         'public': {
                             'get': {
                                 'quote/klines': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                'user/balance': 2,
                             },
                         },
                     },
@@ -427,10 +475,19 @@ class bingx extends bingx$1 {
                         'private': {
                             'get': {
                                 'swap/trace/currentTrack': 2,
+                                'PFutures/traderDetail': 2,
+                                'PFutures/profitHistorySummarys': 2,
+                                'PFutures/profitDetail': 2,
+                                'PFutures/tradingPairs': 2,
+                                'spot/traderDetail': 2,
+                                'spot/profitHistorySummarys': 2,
+                                'spot/profitDetail': 2,
+                                'spot/historyOrder': 2,
                             },
                             'post': {
                                 'swap/trace/closeTrackOrder': 2,
                                 'swap/trace/setTPSL': 2,
+                                'PFutures/setCommission': 2,
                                 'spot/trader/sellOrder': 10,
                             },
                         },
@@ -441,11 +498,42 @@ class bingx extends bingx$1 {
                         'private': {
                             'get': {
                                 'asset/transfer': 1,
+                                'asset/transferRecord': 5,
                                 'capital/deposit/hisrec': 1,
                                 'capital/withdraw/history': 1,
                             },
                             'post': {
                                 'post/asset/transfer': 1,
+                            },
+                        },
+                    },
+                    'asset': {
+                        'v1': {
+                            'private': {
+                                'post': {
+                                    'transfer': 5,
+                                },
+                            },
+                            'public': {
+                                'get': {
+                                    'transfer/supportCoins': 5,
+                                },
+                            },
+                        },
+                    },
+                },
+                'agent': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'account/inviteAccountList': 5,
+                                'reward/commissionDataList': 5,
+                                'account/inviteRelationCheck': 5,
+                                'asset/depositDetailList': 5,
+                                'reward/third/commissionDataList': 5,
+                                'asset/partnerData': 5,
+                                'commissionDataList/referralCode': 5,
+                                'account/superiorCheck': 5,
                             },
                         },
                     },
@@ -497,7 +585,9 @@ class bingx extends bingx$1 {
                     '100419': errors.PermissionDenied,
                     '100437': errors.BadRequest,
                     '101204': errors.InsufficientFunds,
-                    '110425': errors.InvalidOrder, // {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
+                    '110425': errors.InvalidOrder,
+                    'Insufficient assets': errors.InsufficientFunds,
+                    'illegal transferType': errors.BadRequest, // {"transferErrorMsg":"illegal transferType"}
                 },
                 'broad': {},
             },
@@ -511,14 +601,19 @@ class bingx extends bingx$1 {
             'options': {
                 'defaultType': 'spot',
                 'accountsByType': {
-                    'spot': 'FUND',
-                    'swap': 'PFUTURES',
-                    'future': 'SFUTURES',
+                    'funding': 'fund',
+                    'spot': 'spot',
+                    'future': 'stdFutures',
+                    'swap': 'USDTMPerp',
+                    'linear': 'USDTMPerp',
+                    'inverse': 'coinMPerp',
                 },
                 'accountsById': {
-                    'FUND': 'spot',
-                    'PFUTURES': 'swap',
-                    'SFUTURES': 'future',
+                    'fund': 'funding',
+                    'spot': 'spot',
+                    'stdFutures': 'future',
+                    'USDTMPerp': 'linear',
+                    'coinMPerp': 'inverse',
                 },
                 'recvWindow': 5 * 1000,
                 'broker': 'CCXT',
@@ -530,8 +625,11 @@ class bingx extends bingx$1 {
                     'LTC': 'LTC',
                 },
                 'networks': {
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARB',
                     'MATIC': 'POLYGON',
+                    'ZKSYNC': 'ZKSYNCERA',
+                    'AVAXC': 'AVAX-C',
+                    'HBAR': 'HEDERA',
                 },
             },
             'features': {
@@ -628,6 +726,9 @@ class bingx extends bingx$1 {
                 //
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'triggerPriceType': undefined,
                         'attachedStopLossTakeProfit': undefined,
@@ -699,11 +800,11 @@ class bingx extends bingx$1 {
      */
     async fetchCurrencies(params = {}) {
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
         if (isSandbox) {
-            return undefined;
+            return {};
         }
         const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
         //
@@ -762,6 +863,10 @@ class bingx extends bingx$1 {
                         'min': this.safeNumber(rawNetwork, 'withdrawMin'),
                         'max': this.safeNumber(rawNetwork, 'withdrawMax'),
                     },
+                    'deposit': {
+                        'min': this.safeNumber(rawNetwork, 'depositMin'),
+                        'max': undefined,
+                    },
                 };
                 const precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, 'withdrawPrecision')));
                 networks[networkCode] = {
@@ -776,20 +881,40 @@ class bingx extends bingx$1 {
                     'limits': limits,
                 };
             }
-            result[code] = this.safeCurrencyStructure({
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'precision': undefined,
-                'name': name,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'networks': networks,
-                'fee': undefined,
-                'limits': undefined,
-                'type': 'crypto', // only cryptos now
-            });
+            if (!(code in result)) { // the exchange could return the same currency with different networks
+                result[code] = {
+                    'info': entry,
+                    'code': code,
+                    'id': currencyId,
+                    'precision': undefined,
+                    'name': name,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'networks': networks,
+                    'fee': undefined,
+                    'limits': undefined,
+                    'type': 'crypto', // only cryptos now
+                };
+            }
+            else {
+                const existing = result[code];
+                const existingNetworks = this.safeDict(existing, 'networks', {});
+                const newNetworkCodes = Object.keys(networks);
+                for (let j = 0; j < newNetworkCodes.length; j++) {
+                    const newNetworkCode = newNetworkCodes[j];
+                    if (!(newNetworkCode in existingNetworks)) {
+                        existingNetworks[newNetworkCode] = networks[newNetworkCode];
+                    }
+                }
+                result[code]['networks'] = existingNetworks;
+            }
+        }
+        const codes = Object.keys(result);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = result[code];
+            result[code] = this.safeCurrencyStructure(currency);
         }
         return result;
     }
@@ -1557,7 +1682,7 @@ class bingx extends bingx$1 {
         //        ]
         //    }
         //
-        const data = this.safeList(response, 'data', []);
+        const data = this.safeDict(response, 'data');
         return this.parseFundingRate(data, market);
     }
     /**
@@ -2135,11 +2260,12 @@ class bingx extends bingx$1 {
      * @name bingx#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
-     * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20account%20data
      * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.standard] whether to fetch standard contract balances
+     * @param {string} [params.type] the type of balance to fetch (spot, swap, funding) default is `spot`
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
@@ -2170,6 +2296,22 @@ class bingx extends bingx$1 {
             //         ]
             //     }
             //
+        }
+        else if ((marketType === 'funding') || (marketType === 'fund')) {
+            response = await this.fundV1PrivateGetAccountBalance(marketTypeQuery);
+            // {
+            //     code: '0',
+            //     timestamp: '1754906016631',
+            //     data: {
+            //         assets: [
+            //             {
+            //                 asset: 'USDT',
+            //                 free: '44.37692200000000237300',
+            //                 locked: '0.00000000000000000000'
+            //             }
+            //         ]
+            //     }
+            // }
         }
         else if (marketType === 'spot') {
             response = await this.spotV1PrivateGetAccountBalance(marketTypeQuery);
@@ -2214,27 +2356,26 @@ class bingx extends bingx$1 {
                 //
             }
             else {
-                response = await this.swapV2PrivateGetUserBalance(marketTypeQuery);
+                response = await this.swapV3PrivateGetUserBalance(marketTypeQuery);
                 //
                 //     {
                 //         "code": 0,
                 //         "msg": "",
-                //         "data": {
-                //             "balance": {
-                //                 "userId": "1177064765068660742",
+                //         "data": [
+                //             {
+                //                 "userId": "116***295",
                 //                 "asset": "USDT",
-                //                 "balance": "51.5198",
-                //                 "equity": "50.5349",
-                //                 "unrealizedProfit": "-0.9849",
-                //                 "realisedProfit": "-0.2134",
-                //                 "availableMargin": "49.1428",
-                //                 "usedMargin": "1.3922",
+                //                 "balance": "194.8212",
+                //                 "equity": "196.7431",
+                //                 "unrealizedProfit": "1.9219",
+                //                 "realisedProfit": "-109.2504",
+                //                 "availableMargin": "193.7609",
+                //                 "usedMargin": "1.0602",
                 //                 "freezedMargin": "0.0000",
                 //                 "shortUid": "12851936"
                 //             }
-                //         }
+                //         ]
                 //     }
-                //
             }
         }
         return this.parseBalance(response);
@@ -2302,34 +2443,35 @@ class bingx extends bingx$1 {
         //     {
         //         "code": 0,
         //         "msg": "",
-        //         "data": {
-        //             "balance": {
-        //                 "userId": "1177064765068660742",
+        //         "data": [
+        //             {
+        //                 "userId": "116***295",
         //                 "asset": "USDT",
-        //                 "balance": "51.5198",
-        //                 "equity": "50.5349",
-        //                 "unrealizedProfit": "-0.9849",
-        //                 "realisedProfit": "-0.2134",
-        //                 "availableMargin": "49.1428",
-        //                 "usedMargin": "1.3922",
+        //                 "balance": "194.8212",
+        //                 "equity": "196.7431",
+        //                 "unrealizedProfit": "1.9219",
+        //                 "realisedProfit": "-109.2504",
+        //                 "availableMargin": "193.7609",
+        //                 "usedMargin": "1.0602",
         //                 "freezedMargin": "0.0000",
         //                 "shortUid": "12851936"
         //             }
-        //         }
+        //         ]
         //     }
         //
         const result = { 'info': response };
-        const standardAndInverseBalances = this.safeList(response, 'data');
-        const firstStandardOrInverse = this.safeDict(standardAndInverseBalances, 0);
-        const isStandardOrInverse = firstStandardOrInverse !== undefined;
+        const contractBalances = this.safeList(response, 'data');
+        const firstContractBalances = this.safeDict(contractBalances, 0);
+        const isContract = firstContractBalances !== undefined;
         const spotData = this.safeDict(response, 'data', {});
-        const spotBalances = this.safeList(spotData, 'balances');
-        const firstSpot = this.safeDict(spotBalances, 0);
-        const isSpot = firstSpot !== undefined;
-        if (isStandardOrInverse) {
-            for (let i = 0; i < standardAndInverseBalances.length; i++) {
-                const balance = standardAndInverseBalances[i];
+        const spotBalances = this.safeList2(spotData, 'balances', 'assets', []);
+        if (isContract) {
+            for (let i = 0; i < contractBalances.length; i++) {
+                const balance = contractBalances[i];
                 const currencyId = this.safeString(balance, 'asset');
+                if (currencyId === undefined) { // linear v3 returns empty asset
+                    break;
+                }
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString2(balance, 'availableMargin', 'availableBalance');
@@ -2338,7 +2480,7 @@ class bingx extends bingx$1 {
                 result[code] = account;
             }
         }
-        else if (isSpot) {
+        else {
             for (let i = 0; i < spotBalances.length; i++) {
                 const balance = spotBalances[i];
                 const currencyId = this.safeString(balance, 'asset');
@@ -2346,18 +2488,6 @@ class bingx extends bingx$1 {
                 const account = this.account();
                 account['free'] = this.safeString(balance, 'free');
                 account['used'] = this.safeString(balance, 'locked');
-                result[code] = account;
-            }
-        }
-        else {
-            const linearSwapData = this.safeDict(response, 'data', {});
-            const linearSwapBalance = this.safeDict(linearSwapData, 'balance');
-            if (linearSwapBalance) {
-                const currencyId = this.safeString(linearSwapBalance, 'asset');
-                const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
-                account['free'] = this.safeString(linearSwapBalance, 'availableMargin');
-                account['used'] = this.safeString(linearSwapBalance, 'usedMargin');
                 result[code] = account;
             }
         }
@@ -4855,11 +4985,11 @@ class bingx extends bingx$1 {
      * @method
      * @name bingx#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @param {string} fromAccount account to transfer from (spot, swap, futures, or funding)
+     * @param {string} toAccount account to transfer to (spot, swap (linear or inverse), future, or funding)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
@@ -4867,22 +4997,42 @@ class bingx extends bingx$1 {
         await this.loadMarkets();
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
-        const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString(accountsByType, toAccount, toAccount);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('transfer', undefined, params);
+        let fromId = this.safeString(accountsByType, fromAccount, fromAccount);
+        let toId = this.safeString(accountsByType, toAccount, toAccount);
+        if (fromId === 'swap') {
+            if (subType === 'inverse') {
+                fromId = 'coinMPerp';
+            }
+            else {
+                fromId = 'USDTMPerp';
+            }
+        }
+        if (toId === 'swap') {
+            if (subType === 'inverse') {
+                toId = 'coinMPerp';
+            }
+            else {
+                toId = 'USDTMPerp';
+            }
+        }
         const request = {
+            'fromAccount': fromId,
+            'toAccount': toId,
             'asset': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
-            'type': fromId + '_' + toId,
         };
-        const response = await this.spotV3PrivateGetGetAssetTransfer(this.extend(request, params));
+        const response = await this.apiAssetV1PrivatePostTransfer(this.extend(request, params));
         //
-        //    {
-        //        "tranId":13526853623
-        //    }
+        //     {
+        //         "tranId": 1933130865269936128,
+        //         "transferId": "1051450703949464903736"
+        //     }
         //
         return {
             'info': response,
-            'id': this.safeString(response, 'tranId'),
+            'id': this.safeString(response, 'transferId'),
             'timestamp': undefined,
             'datetime': undefined,
             'currency': code,
@@ -4896,15 +5046,19 @@ class bingx extends bingx$1 {
      * @method
      * @name bingx#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
+     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
+     * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+     * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -4915,30 +5069,42 @@ class bingx extends bingx$1 {
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         if (fromId === undefined || toId === undefined) {
-            throw new errors.ExchangeError(this.id + ' fromAccount & toAccount parameter are required');
+            throw new errors.ExchangeError(this.id + ' fromAccount & toAccount parameters are required');
         }
-        const request = {
-            'type': fromId + '_' + toId,
-        };
+        if (fromAccount !== undefined) {
+            request['fromAccount'] = fromId;
+        }
+        if (toAccount !== undefined) {
+            request['toAccount'] = toId;
+        }
+        params = this.omit(params, ['fromAccount', 'toAccount']);
+        const maxLimit = 100;
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchTransfers', undefined, since, limit, params, maxLimit);
+        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['pageSize'] = limit;
         }
-        const response = await this.spotV3PrivateGetAssetTransfer(this.extend(request, params));
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        const response = await this.apiV3PrivateGetAssetTransferRecord(this.extend(request, params));
         //
         //     {
-        //         "total": 3,
+        //         "total": 2,
         //         "rows": [
         //             {
-        //                 "asset":"USDT",
-        //                 "amount":"-100.00000000000000000000",
-        //                 "type":"FUND_SFUTURES",
-        //                 "status":"CONFIRMED",
-        //                 "tranId":1067594500957016069,
-        //                 "timestamp":1658388859000
-        //             },
+        //                 "asset": "LTC",
+        //                 "amount": "0.05000000000000000000",
+        //                 "status": "CONFIRMED",
+        //                 "transferId": "1051461075661819338791",
+        //                 "timestamp": 1752202092000,
+        //                 "fromAccount": "spot",
+        //                 "toAccount": "USDTMPerp"
+        //             }
         //         ]
         //     }
         //
@@ -4946,15 +5112,14 @@ class bingx extends bingx$1 {
         return this.parseTransfers(rows, currency, since, limit);
     }
     parseTransfer(transfer, currency = undefined) {
-        const tranId = this.safeString(transfer, 'tranId');
+        const tranId = this.safeString(transfer, 'transferId');
         const timestamp = this.safeInteger(transfer, 'timestamp');
-        const currencyCode = this.safeCurrencyCode(undefined, currency);
+        const currencyId = this.safeString(transfer, 'asset');
+        const currencyCode = this.safeCurrencyCode(currencyId, currency);
         const status = this.safeString(transfer, 'status');
         const accountsById = this.safeDict(this.options, 'accountsById', {});
-        const typeId = this.safeString(transfer, 'type');
-        const typeIdSplit = typeId.split('_');
-        const fromId = this.safeString(typeIdSplit, 0);
-        const toId = this.safeString(typeId, 1);
+        const fromId = this.safeString(transfer, 'fromAccount');
+        const toId = this.safeString(transfer, 'toAccount');
         const fromAccount = this.safeString(accountsById, fromId, fromId);
         const toAccount = this.safeString(accountsById, toId, toId);
         return {
@@ -4966,8 +5131,14 @@ class bingx extends bingx$1 {
             'amount': this.safeNumber(transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': status,
+            'status': this.parseTransferStatus(status),
         };
+    }
+    parseTransferStatus(status) {
+        const statuses = {
+            'CONFIRMED': 'ok',
+        };
+        return this.safeString(statuses, status, status);
     }
     /**
      * @method
@@ -5213,7 +5384,7 @@ class bingx extends bingx$1 {
         const id = this.safeString(transaction, 'id', dataId);
         const address = this.safeString(transaction, 'address');
         const tag = this.safeString(transaction, 'addressTag');
-        let timestamp = this.safeInteger(transaction, 'insertTime');
+        let timestamp = this.safeInteger2(transaction, 'insertTime', 'timestamp');
         let datetime = this.iso8601(timestamp);
         if (timestamp === undefined) {
             datetime = this.safeString(transaction, 'applyTime');
@@ -5694,37 +5865,13 @@ class bingx extends bingx$1 {
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
-        //    {
-        //        "coin": "BTC",
-        //        "name": "BTC",
-        //        "networkList": [
-        //          {
-        //            "name": "BTC",
-        //            "network": "BTC",
-        //            "isDefault": true,
-        //            "minConfirm": "2",
-        //            "withdrawEnable": true,
-        //            "withdrawFee": "0.00035",
-        //            "withdrawMax": "1.62842",
-        //            "withdrawMin": "0.0005"
-        //          },
-        //          {
-        //            "name": "BTC",
-        //            "network": "BEP20",
-        //            "isDefault": false,
-        //            "minConfirm": "15",
-        //            "withdrawEnable": true,
-        //            "withdrawFee": "0.00001",
-        //            "withdrawMax": "1.62734",
-        //            "withdrawMin": "0.0001"
-        //          }
-        //        ]
-        //    }
+        // currencie structure
         //
-        const networkList = this.safeList(fee, 'networkList', []);
-        const networkListLength = networkList.length;
+        const networks = this.safeDict(fee, 'networks', {});
+        const networkCodes = Object.keys(networks);
+        const networksLength = networkCodes.length;
         const result = {
-            'info': fee,
+            'info': networks,
             'withdraw': {
                 'fee': undefined,
                 'percentage': undefined,
@@ -5735,18 +5882,15 @@ class bingx extends bingx$1 {
             },
             'networks': {},
         };
-        if (networkListLength !== 0) {
-            for (let i = 0; i < networkListLength; i++) {
-                const network = networkList[i];
-                const networkId = this.safeString(network, 'network');
-                const isDefault = this.safeBool(network, 'isDefault');
-                const currencyCode = this.safeString(currency, 'code');
-                const networkCode = this.networkIdToCode(networkId, currencyCode);
+        if (networksLength !== 0) {
+            for (let i = 0; i < networksLength; i++) {
+                const networkCode = networkCodes[i];
+                const network = networks[networkCode];
                 result['networks'][networkCode] = {
                     'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber(network, 'withdrawFee'), 'percentage': false },
+                    'withdraw': { 'fee': this.safeNumber(network, 'fee'), 'percentage': false },
                 };
-                if (isDefault) {
+                if (networksLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber(network, 'withdrawFee');
                     result['withdraw']['percentage'] = false;
                 }
@@ -5765,9 +5909,17 @@ class bingx extends bingx$1 {
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
         await this.loadMarkets();
-        const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
-        const coins = this.safeList(response, 'data');
-        return this.parseDepositWithdrawFees(coins, codes, 'coin');
+        const response = await this.fetchCurrencies(params);
+        const depositWithdrawFees = {};
+        const responseCodes = Object.keys(response);
+        for (let i = 0; i < responseCodes.length; i++) {
+            const code = responseCodes[i];
+            if ((codes === undefined) || (this.inArray(code, codes))) {
+                const entry = response[code];
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee(entry);
+            }
+        }
+        return depositWithdrawFees;
     }
     /**
      * @method
@@ -5779,7 +5931,7 @@ class bingx extends bingx$1 {
      * @param {string} address the address to withdraw to
      * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
+     * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -5787,7 +5939,17 @@ class bingx extends bingx$1 {
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
-        const walletType = this.safeInteger(params, 'walletType', 1);
+        const defaultWalletType = 15; // spot
+        let walletType = undefined;
+        [walletType, params] = this.handleOptionAndParams2(params, 'withdraw', 'type', 'walletType', defaultWalletType);
+        const walletTypes = {
+            'funding': 1,
+            'fund': 1,
+            'standard': 2,
+            'perpetual': 3,
+            'spot': 15,
+        };
+        walletType = this.safeInteger(walletTypes, walletType, defaultWalletType);
         const request = {
             'coin': currency['id'],
             'address': address,
@@ -5814,11 +5976,12 @@ class bingx extends bingx$1 {
         return this.parseTransaction(data);
     }
     parseParams(params) {
-        const sortedParams = this.keysort(params);
-        const keys = Object.keys(sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys(params);
+        const keys = this.sort(rawKeys);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = sortedParams[key];
+            const value = params[key];
             if (Array.isArray(value)) {
                 let arrStr = '[';
                 for (let j = 0; j < value.length; j++) {
@@ -5829,10 +5992,10 @@ class bingx extends bingx$1 {
                     arrStr += arrayElement.toString();
                 }
                 arrStr += ']';
-                sortedParams[key] = arrStr;
+                params[key] = arrStr;
             }
         }
-        return sortedParams;
+        return params;
     }
     /**
      * @method
@@ -6455,13 +6618,14 @@ class bingx extends bingx$1 {
         };
     }
     customEncode(params) {
-        const sortedParams = this.keysort(params);
-        const keys = Object.keys(sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys(params);
+        const keys = this.sort(rawKeys);
         let adjustedValue = undefined;
         let result = undefined;
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            let value = sortedParams[key];
+            let value = params[key];
             if (Array.isArray(value)) {
                 let arrStr = undefined;
                 for (let j = 0; j < value.length; j++) {
@@ -6506,8 +6670,15 @@ class bingx extends bingx$1 {
         }
         let url = this.implodeHostname(this.urls['api'][type]);
         path = this.implodeParams(path, params);
-        if (version === 'transfer') {
-            type = 'account/transfer';
+        const versionIsTransfer = (version === 'transfer');
+        const versionIsAsset = (version === 'asset');
+        if (versionIsTransfer || versionIsAsset) {
+            if (versionIsTransfer) {
+                type = 'account/transfer';
+            }
+            else {
+                type = 'api/asset';
+            }
             version = section[2];
             access = section[3];
         }
@@ -6538,7 +6709,7 @@ class bingx extends bingx$1 {
             }
             else {
                 parsedParams = this.parseParams(params);
-                encodeRequest = this.rawencode(parsedParams);
+                encodeRequest = this.rawencode(parsedParams, true);
             }
             const signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256.sha256);
             headers = {
@@ -6551,7 +6722,7 @@ class bingx extends bingx$1 {
                 body = this.json(params);
             }
             else {
-                const query = this.urlencode(parsedParams);
+                const query = this.urlencode(parsedParams, true);
                 url += '?' + query + '&' + 'signature=' + signature;
             }
         }
@@ -6577,8 +6748,12 @@ class bingx extends bingx$1 {
         //    }
         //
         const code = this.safeString(response, 'code');
-        const message = this.safeString(response, 'msg');
-        if (code !== undefined && code !== '0') {
+        let message = this.safeString(response, 'msg');
+        const transferErrorMsg = this.safeString(response, 'transferErrorMsg'); // handling with errors from transfer endpoint
+        if ((transferErrorMsg !== undefined) || (code !== undefined && code !== '0')) {
+            if (transferErrorMsg !== undefined) {
+                message = transferErrorMsg;
+            }
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
@@ -6589,4 +6764,4 @@ class bingx extends bingx$1 {
     }
 }
 
-module.exports = bingx;
+exports["default"] = bingx;

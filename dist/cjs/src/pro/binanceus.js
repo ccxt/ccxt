@@ -1,14 +1,16 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var binance = require('./binance.js');
 var binanceus$1 = require('../binanceus.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class binanceus extends binance {
+class binanceus extends binance["default"] {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new binanceus$1();
+        const restInstance = new binanceus$1["default"]();
         const restDescribe = restInstance.describe();
         const parentWsDescribe = super.describeData();
         const extended = this.deepExtend(restDescribe, parentWsDescribe);
@@ -36,14 +38,35 @@ class binanceus extends binance {
                 'doc': 'https://github.com/binance-us/binance-official-api-docs',
                 'fees': 'https://www.binance.us/en/fee/schedule',
             },
+            'has': {
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createReduceOnlyOrderWs': false,
+                'createStopLossOrderWs': false,
+                'createTakeProfitOrderWs': false,
+                'fetchPositionForSymbolWs': false,
+                'fetchPositionsForSymbolWs': false,
+                'fetchPositionsWs': false,
+                'fetchPositionWs': false,
+                'unWatchPositions': false,
+                'watchLiquidations': false,
+                'watchLiquidationsForSymbols': false,
+                'watchMarkPrice': false,
+                'watchMarkPrices': false,
+                'watchMyLiquidations': false,
+                'watchMyLiquidationsForSymbols': false,
+                'watchPosition': false,
+                'watchPositions': false,
+            },
             'options': {
                 'fetchCurrencies': false,
                 'quoteOrderQty': false,
                 'defaultType': 'spot',
-                'fetchMarkets': ['spot'],
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
             },
         });
     }
 }
 
-module.exports = binanceus;
+exports["default"] = binanceus;

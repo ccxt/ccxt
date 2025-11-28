@@ -1706,7 +1706,7 @@ class derive extends Exchange {
             //     "result" => "ok"
             // }
             //
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 

@@ -21,6 +21,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("spotPublicGetTime",parameters);
     }
 
+    public async Task<object> spotPublicGetDefaultSymbols (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetDefaultSymbols",parameters);
+    }
+
     public async Task<object> spotPublicGetExchangeInfo (object parameters = null)
     {
         return await this.callAsync ("spotPublicGetExchangeInfo",parameters);
@@ -76,6 +81,16 @@ public partial class mexc : Exchange
         return await this.callAsync ("spotPublicGetEtfInfo",parameters);
     }
 
+    public async Task<object> spotPrivateGetKycStatus (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetKycStatus",parameters);
+    }
+
+    public async Task<object> spotPrivateGetUid (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetUid",parameters);
+    }
+
     public async Task<object> spotPrivateGetOrder (object parameters = null)
     {
         return await this.callAsync ("spotPrivateGetOrder",parameters);
@@ -101,6 +116,16 @@ public partial class mexc : Exchange
         return await this.callAsync ("spotPrivateGetMyTrades",parameters);
     }
 
+    public async Task<object> spotPrivateGetStrategyGroup (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetStrategyGroup",parameters);
+    }
+
+    public async Task<object> spotPrivateGetStrategyGroupUid (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetStrategyGroupUid",parameters);
+    }
+
     public async Task<object> spotPrivateGetTradeFee (object parameters = null)
     {
         return await this.callAsync ("spotPrivateGetTradeFee",parameters);
@@ -114,6 +139,11 @@ public partial class mexc : Exchange
     public async Task<object> spotPrivateGetSubAccountApiKey (object parameters = null)
     {
         return await this.callAsync ("spotPrivateGetSubAccountApiKey",parameters);
+    }
+
+    public async Task<object> spotPrivateGetSubAccountAsset (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetSubAccountAsset",parameters);
     }
 
     public async Task<object> spotPrivateGetCapitalConfigGetall (object parameters = null)
@@ -291,6 +321,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("spotPrivateGetSelfSymbols",parameters);
     }
 
+    public async Task<object> spotPrivateGetAssetInternalTransferRecord (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetAssetInternalTransferRecord",parameters);
+    }
+
     public async Task<object> spotPrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("spotPrivatePostOrder",parameters);
@@ -324,6 +359,11 @@ public partial class mexc : Exchange
     public async Task<object> spotPrivatePostBatchOrders (object parameters = null)
     {
         return await this.callAsync ("spotPrivatePostBatchOrders",parameters);
+    }
+
+    public async Task<object> spotPrivatePostStrategyGroup (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostStrategyGroup",parameters);
     }
 
     public async Task<object> spotPrivatePostCapitalWithdrawApply (object parameters = null)

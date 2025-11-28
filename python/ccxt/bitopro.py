@@ -857,7 +857,7 @@ class bitopro(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1198,7 +1198,7 @@ class bitopro(Exchange, ImplicitAPI):
                 }))
         return orders
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}) -> List[Order]:
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 
@@ -1680,7 +1680,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

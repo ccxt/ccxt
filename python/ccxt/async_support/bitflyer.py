@@ -33,19 +33,37 @@ class bitflyer(Exchange, ImplicitAPI):
                 'swap': None,  # has but not fully implemented
                 'future': None,  # has but not fully implemented
                 'option': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': None,  # https://lightning.bitflyer.com/docs?lang=en#cancel-all-orders
                 'cancelOrder': True,
                 'createOrder': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': 'emulated',
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': 'emulated',
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': 'emulated',
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -57,7 +75,10 @@ class bitflyer(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'transfer': False,
                 'withdraw': True,
             },
@@ -879,7 +900,7 @@ class bitflyer(Exchange, ImplicitAPI):
         # todo unify parsePosition/parsePositions
         return response
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

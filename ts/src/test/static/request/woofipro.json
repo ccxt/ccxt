@@ -450,6 +450,8 @@
         ],
         "fetchCurrencies": [
             {
+                "disabled": true,
+                "disableReason": "multi request method",
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://api-evm.orderly.org/v1/public/token",
@@ -504,6 +506,14 @@
                 "input": [
                     "BTC/USDC:USDC"
                 ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://api-evm.orderly.org/v1/funding_fee/history",
+                "input": []
             }
         ],
         "fetchOpenOrders": [

@@ -1299,7 +1299,7 @@ class tokocrypto extends Exchange {
             'symbol' => $market['baseId'] . $market['quoteId'],
         );
         $response = $this->binanceGetTicker24hr ($this->extend($request, $params));
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             $firstTicker = $this->safe_dict($response, 0, array());
             return $this->parse_ticker($firstTicker, $market);
         }
@@ -1366,7 +1366,7 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-$data
@@ -2429,7 +2429,7 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          *
          * @see https://www.tokocrypto.com/apidocs/#withdraw-signed

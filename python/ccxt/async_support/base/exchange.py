@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.86'
+__version__ = '4.5.22'
 
 # -----------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ from ccxt.async_support.base.throttler import Throttler
 # -----------------------------------------------------------------------------
 
 from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded, OperationFailed
-from ccxt.base.types import ConstructorArgs, OrderType, OrderSide, OrderRequest, CancellationRequest
+from ccxt.base.types import ConstructorArgs, OrderType, OrderSide, OrderRequest, CancellationRequest, Order
 
 # -----------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
 # -----------------------------------------------------------------------------
 
 from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
-from ccxt.async_support.base.ws.aiohttp_client import AiohttpClient
+from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
@@ -42,9 +42,9 @@ from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, C
 # -----------------------------------------------------------------------------
 
 try:
-    from aiohttp_socks import ProxyConnector
+    from aiohttp_socks import ProxyConnector as SocksProxyConnector
 except ImportError:
-    ProxyConnector = None
+    SocksProxyConnector = None
 
 # -----------------------------------------------------------------------------
 
@@ -52,6 +52,15 @@ __all__ = [
     'BaseExchange',
     'Exchange',
 ]
+
+# -----------------------------------------------------------------------------
+# --- PROTO BUF IMPORTS
+try:
+    from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
+    from google.protobuf.json_format import MessageToDict
+except ImportError:
+    PushDataV3ApiWrapper_pb2 = None
+    MessageToDict = None
 
 # -----------------------------------------------------------------------------
 
@@ -168,7 +177,7 @@ class Exchange(BaseExchange):
         elif httpsProxy:
             final_proxy = httpsProxy
         elif socksProxy:
-            if ProxyConnector is None:
+            if SocksProxyConnector is None:
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # override session
             if (self.socks_proxy_sessions is None):
@@ -176,7 +185,7 @@ class Exchange(BaseExchange):
             if (socksProxy not in self.socks_proxy_sessions):
                 # Create our SSL context object with our CA cert file
                 self.open()  # ensure `asyncio_loop` is set
-                proxy_session = self.get_socks_proxy_session(socksProxy)
+            proxy_session = self.get_socks_proxy_session(socksProxy)
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
@@ -231,6 +240,8 @@ class Exchange(BaseExchange):
                     self.last_json_response = json_response
                 if self.verbose:
                     self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
+                if json_response and not isinstance(json_response, list) and self.returnResponseHeaders:
+                    json_response['responseHeaders'] = headers
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
@@ -263,12 +274,15 @@ class Exchange(BaseExchange):
         if (self.socks_proxy_sessions is None):
             self.socks_proxy_sessions = {}
         if (socksProxy not in self.socks_proxy_sessions):
-            self.aiohttp_socks_connector = ProxyConnector.from_url(
-                socksProxy,
+            reverse_dns = socksProxy.startswith('socks5h://')
+            socks_proxy_selected = socksProxy if not reverse_dns else socksProxy.replace('socks5h://', 'socks5://')
+            self.aiohttp_socks_connector = SocksProxyConnector.from_url(
+                socks_proxy_selected,
                 # extra args copied from self.open()
                 ssl=self.ssl_context,
                 loop=self.asyncio_loop,
-                enable_cleanup_closed=True
+                enable_cleanup_closed=True,
+                rdns=reverse_dns if reverse_dns else None
             )
             self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
         return self.socks_proxy_sessions[socksProxy]
@@ -282,7 +296,10 @@ class Exchange(BaseExchange):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = await self.fetch_currencies()
+            self.options['cachedCurrencies'] = currencies
         markets = await self.fetch_markets(params)
+        if 'cachedCurrencies' in self.options:
+            del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
 
@@ -413,10 +430,11 @@ class Exchange(BaseExchange):
                 'verbose': self.verbose,
                 'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
+                'decompressBinary': self.safe_bool(self.options, 'decompressBinary', True),
             }, ws_options)
             # we use aiohttp instead of fastClient now because of this
             # https://github.com/ccxt/ccxt/pull/25995
-            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, on_connected, options)
+            self.clients[url] = Client(url, on_message, on_error, on_close, on_connected, options)
             # set http/s proxy (socks proxy should be set in other place)
             httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
             if (httpProxy or httpsProxy):
@@ -568,6 +586,34 @@ class Exchange(BaseExchange):
             return '0e-00'
         return format(n, 'g')
 
+    def decode_proto_msg(self, data):
+        if not MessageToDict:
+            raise NotSupported(self.id + ' requires protobuf to decode messages, please install it with `pip install "protobuf==5.29.5"`')
+        message = PushDataV3ApiWrapper_pb2.PushDataV3ApiWrapper()
+        message.ParseFromString(data)
+        dict_msg = MessageToDict(message)
+        # {
+        #    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+        #    "symbol":"BTCUSDT",
+        #    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+        #    "createTime":"1754735110559",
+        #    "publicSpotKline":{
+        #       "interval":"Min1",
+        #       "windowStart":"1754735100",
+        #       "openingPrice":"117792.45",
+        #       "closingPrice":"117805.32",
+        #       "highestPrice":"117814.63",
+        #       "lowestPrice":"117792.45",
+        #       "volume":"0.13425465",
+        #       "amount":"15815.77",
+        #       "windowEnd":"1754735160"
+        #    }
+        # }
+        return dict_msg
+
+    async def load_dydx_protos(self):
+        return
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -605,7 +651,7 @@ class Exchange(BaseExchange):
     # ########################################################################
     # ########################################################################
 
-    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    # METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
     async def fetch_accounts(self, params={}):
         raise NotSupported(self.id + ' fetchAccounts() is not supported yet')
@@ -635,6 +681,9 @@ class Exchange(BaseExchange):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
+    async def un_watch_orders(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' unWatchOrders() is not supported yet')
+
     async def un_watch_trades(self, symbol: str, params={}):
         raise NotSupported(self.id + ' unWatchTrades() is not supported yet')
 
@@ -661,6 +710,18 @@ class Exchange(BaseExchange):
 
     async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}):
         raise NotSupported(self.id + ' unWatchOrderBookForSymbols() is not supported yet')
+
+    async def un_watch_positions(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchPositions() is not supported yet')
+
+    async def un_watch_ticker(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchTicker() is not supported yet')
+
+    async def un_watch_mark_price(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchMarkPrice() is not supported yet')
+
+    async def un_watch_mark_prices(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchMarkPrices() is not supported yet')
 
     async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
@@ -731,13 +792,13 @@ class Exchange(BaseExchange):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}):
         raise NotSupported(self.id + ' transfer() is not supported yet')
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
     async def create_deposit_address(self, code: str, params={}):
         raise NotSupported(self.id + ' createDepositAddress() is not supported yet')
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setLeverage() is not supported yet')
 
     async def fetch_leverage(self, symbol: str, params={}):
@@ -786,7 +847,7 @@ class Exchange(BaseExchange):
     async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         raise NotSupported(self.id + ' fetchDepositAddressesByNetwork() is not supported yet')
 
-    async def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_interest_history(self, symbol: str, timeframe: str = '1h', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOpenInterestHistory() is not supported yet')
 
     async def fetch_open_interest(self, symbol: str, params={}):
@@ -822,19 +883,19 @@ class Exchange(BaseExchange):
     async def repay_margin(self, code: str, amount: float, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead')
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         message = ''
         if self.has['fetchTrades']:
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
         raise NotSupported(self.id + ' fetchOHLCV() is not supported yet' + message)
 
-    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         message = ''
         if self.has['fetchTradesWs']:
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
         raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.' + message)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
     async def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
@@ -903,15 +964,15 @@ class Exchange(BaseExchange):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             await self.throttle(cost)
+        retries = None
+        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
+        retryDelay = None
+        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']
         self.last_request_body = request['body']
         self.last_request_url = request['url']
-        retries = None
-        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
-        retryDelay = None
-        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         for i in range(0, retries + 1):
             try:
                 return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
@@ -919,7 +980,8 @@ class Exchange(BaseExchange):
                 if isinstance(e, OperationFailed):
                     if i < retries:
                         if self.verbose:
-                            self.log('Request failed with the error: ' + str(e) + ', retrying ' + (i + str(1)) + ' of ' + str(retries) + '...')
+                            index = i + 1
+                            self.log('Request failed with the error: ' + str(e) + ', retrying ' + str(index) + ' of ' + str(retries) + '...')
                         if (retryDelay is not None) and (retryDelay != 0):
                             await self.sleep(retryDelay)
                     else:
@@ -954,6 +1016,9 @@ class Exchange(BaseExchange):
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, type, side, amount, price, params)
+
+    async def edit_order_with_client_order_id(self, clientOrderId: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        return await self.edit_order('', symbol, type, side, amount, price, self.extend({'clientOrderId': clientOrderId}, params))
 
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         await self.cancel_order_ws(id, symbol)
@@ -1144,6 +1209,17 @@ class Exchange(BaseExchange):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
 
+    async def fetch_order_with_client_order_id(self, clientOrderId: str, symbol: Str = None, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+        :param str clientOrderId: client order Id
+        :param str symbol: unified symbol of the market to create an order in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        extendedParams = self.extend(params, {'clientOrderId': clientOrderId})
+        return await self.fetch_order('', symbol, extendedParams)
+
     async def fetch_order_ws(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchOrderWs() is not supported yet')
 
@@ -1171,7 +1247,7 @@ class Exchange(BaseExchange):
     async def fetch_position_mode(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchPositionMode() is not supported yet')
 
-    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}):
+    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
         :param str symbol: unified symbol of the market to create an order in
@@ -1193,7 +1269,7 @@ class Exchange(BaseExchange):
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingAmountOrder() is not supported yet')
 
-    async def create_trailing_amount_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}):
+    async def create_trailing_amount_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
         :param str symbol: unified symbol of the market to create an order in
@@ -1215,7 +1291,7 @@ class Exchange(BaseExchange):
             return await self.create_order_ws(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingAmountOrderWs() is not supported yet')
 
-    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}):
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -1237,7 +1313,7 @@ class Exchange(BaseExchange):
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingPercentOrder() is not supported yet')
 
-    async def create_trailing_percent_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}):
+    async def create_trailing_percent_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -1487,8 +1563,33 @@ class Exchange(BaseExchange):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
+    async def cancel_order_with_client_order_id(self, clientOrderId: str, symbol: Str = None, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+        :param str clientOrderId: client order Id
+        :param str symbol: unified symbol of the market to create an order in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        extendedParams = self.extend(params, {'clientOrderId': clientOrderId})
+        return await self.cancel_order('', symbol, extendedParams)
+
     async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrderWs() is not supported yet')
+
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelOrders() is not supported yet')
+
+    async def cancel_orders_with_client_order_ids(self, clientOrderIds: List[str], symbol: Str = None, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+        :param str[] clientOrderIds: client order Ids
+        :param str symbol: unified symbol of the market to create an order in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        extendedParams = self.extend(params, {'clientOrderIds': clientOrderIds})
+        return await self.cancel_orders([], symbol, extendedParams)
 
     async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrdersWs() is not supported yet')
@@ -1505,7 +1606,7 @@ class Exchange(BaseExchange):
     async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrdersWs() is not supported yet')
 
-    async def cancel_unified_order(self, order, params={}):
+    async def cancel_unified_order(self, order: Order, params={}):
         return self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1567,6 +1668,9 @@ class Exchange(BaseExchange):
     async def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
 
+    async def fetch_all_greeks(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchAllGreeks() is not supported yet')
+
     async def fetch_option_chain(self, code: str, params={}):
         raise NotSupported(self.id + ' fetchOptionChain() is not supported yet')
 
@@ -1587,10 +1691,10 @@ class Exchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
 
-    async def fetch_deposits(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchDeposits() is not supported yet')
 
-    async def fetch_withdrawals(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
 
     async def fetch_deposits_ws(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1801,7 +1905,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchFundingInterval() is not supported yet')
 
-    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def fetch_mark_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
         fetches historical mark price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1819,7 +1923,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
 
-    async def fetch_index_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def fetch_index_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
         fetches historical index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1837,7 +1941,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
 
-    async def fetch_premium_index_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def fetch_premium_index_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
         fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1883,7 +1987,7 @@ class Exchange(BaseExchange):
         calls = 0
         result = []
         errors = 0
-        until = self.safe_integer_2(params, 'untill', 'till')  # do not omit it from params here
+        until = self.safe_integer_n(params, ['until', 'untill', 'till'])  # do not omit it from params here
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         if (paginationDirection == 'forward'):
             if since is None:
@@ -2129,3 +2233,80 @@ class Exchange(BaseExchange):
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        raise NotSupported(self.id + ' unWatchOHLCV() is not supported yet')
+
+    async def watch_mark_price(self, symbol: str, params={}):
+        """
+        watches a mark price for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        raise NotSupported(self.id + ' watchMarkPrice() is not supported yet')
+
+    async def watch_mark_prices(self, symbols: Strings = None, params={}):
+        """
+        watches the mark price for all markets
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        raise NotSupported(self.id + ' watchMarkPrices() is not supported yet')
+
+    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag:
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        raise NotSupported(self.id + ' withdrawWs() is not supported yet')
+
+    async def un_watch_my_trades(self, symbol: Str = None, params={}):
+        """
+        unWatches information on multiple trades made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        raise NotSupported(self.id + ' unWatchMyTrades() is not supported yet')
+
+    async def create_orders_ws(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        raise NotSupported(self.id + ' createOrdersWs() is not supported yet')
+
+    async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        raise NotSupported(self.id + ' fetchOrdersByStatusWs() is not supported yet')
+
+    async def un_watch_bids_asks(self, symbols: Strings = None, params={}):
+        """
+        unWatches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        raise NotSupported(self.id + ' unWatchBidsAsks() is not supported yet')

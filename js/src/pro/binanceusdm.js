@@ -18,7 +18,9 @@ export default class binanceusdm extends binance {
                 'doc': 'https://developers.binance.com/en',
             },
             'options': {
-                'fetchMarkets': ['linear'],
+                'fetchMarkets': {
+                    'types': ['linear'],
+                },
                 'defaultSubType': 'linear',
             },
             // https://binance-docs.github.io/apidocs/futures/en/#error-codes

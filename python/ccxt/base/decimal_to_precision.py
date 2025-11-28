@@ -34,17 +34,21 @@ PAD_WITH_ZERO = 6
 
 
 def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
-    assert precision is not None
-    if counting_mode == TICK_SIZE:
-        assert(isinstance(precision, float) or isinstance(precision, decimal.Decimal) or isinstance(precision, numbers.Integral) or isinstance(precision, str))
-    else:
-        assert(isinstance(precision, numbers.Integral))
-    assert rounding_mode in [TRUNCATE, ROUND]
-    assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE]
-    assert padding_mode in [NO_PADDING, PAD_WITH_ZERO]
+    assert precision is not None, 'precision should not be None'
 
     if isinstance(precision, str):
         precision = float(precision)
+    assert isinstance(precision, float) or isinstance(precision, decimal.Decimal) or isinstance(precision, numbers.Integral), 'precision has an invalid number'
+
+    if counting_mode == TICK_SIZE:
+        assert precision > 0, 'negative or zero precision can not be used with TICK_SIZE precisionMode'
+    else:
+        assert isinstance(precision, numbers.Integral)
+
+    assert rounding_mode in [TRUNCATE, ROUND]
+    assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE]
+    assert padding_mode in [NO_PADDING, PAD_WITH_ZERO]
+    # end of checks
 
     context = decimal.getcontext()
 
@@ -78,12 +82,12 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
         if missing != 0:
             if rounding_mode == ROUND:
                 if dec > 0:
-                    if missing >= precision / 2:
+                    if missing >= precision_dec / 2:
                         dec = dec - missing + precision_dec
                     else:
                         dec = dec - missing
                 else:
-                    if missing >= precision / 2:
+                    if missing >= precision_dec / 2:
                         dec = dec + missing - precision_dec
                     else:
                         dec = dec + missing
@@ -117,7 +121,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
                 precise = '{:f}'.format(min((below, above), key=lambda x: abs(x - dec)))
             else:
                 precise = '{:f}'.format(dec.quantize(sigfig))
-        if precise == ('-0.' + len(precise) * '0')[:2] or precise == '-0':
+        if precise.startswith('-0') and all(c in '0.' for c in precise[1:]):
             precise = precise[1:]
 
     elif rounding_mode == TRUNCATE:
@@ -138,7 +142,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
                 precise = string
             else:
                 precise = string[:end].ljust(dot, '0')
-        if precise == ('-0.' + len(precise) * '0')[:3] or precise == '-0':
+        if precise.startswith('-0') and all(c in '0.' for c in precise[1:]):
             precise = precise[1:]
         precise = precise.rstrip('.')
 

@@ -723,7 +723,7 @@ class alpaca extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1181,7 +1181,7 @@ class alpaca extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->traderPrivateDeleteV2Orders ($params));
-            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                 return $this->parse_orders($response, null);
             } else {
                 return array(
@@ -1661,7 +1661,7 @@ class alpaca extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

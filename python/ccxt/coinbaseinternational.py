@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbaseinternational import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, MarginModification, Market, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -422,7 +422,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = 100, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = 100, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -875,7 +875,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             },
         })
 
-    def set_margin(self, symbol: str, amount: float, params={}) -> Any:
+    def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         Either adds or reduces margin in order to set the margin to a specific value
 
@@ -2127,7 +2127,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'results', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

@@ -856,7 +856,7 @@ class blofin(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 6),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -904,6 +904,7 @@ class blofin(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param int [params.until]: timestamp in ms of the latest funding rate to fetch
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
         if symbol is None:
@@ -912,7 +913,7 @@ class blofin(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100)
         market = self.market(symbol)
         request: dict = {
             'instId': market['id'],
@@ -921,6 +922,10 @@ class blofin(Exchange, ImplicitAPI):
             request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            request['after'] = until
+            params = self.omit(params, 'until')
         response = await self.publicGetMarketFundingRateHistory(self.extend(request, params))
         rates = []
         data = self.safe_list(response, 'data', [])
@@ -1250,11 +1255,13 @@ class blofin(Exchange, ImplicitAPI):
         elif type == 'ioc':
             timeInForce = 'IOC'
             type = 'limit'
+        elif type == 'conditional':
+            type = 'trigger'
         marketId = self.safe_string(order, 'instId')
         market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market, '-')
         filled = self.safe_string(order, 'filledSize')
-        price = self.safe_string_2(order, 'px', 'price')
+        price = self.safe_string_n(order, ['px', 'price', 'orderPrice'])
         average = self.safe_string(order, 'averagePrice')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCostString = self.safe_string(order, 'fee')
@@ -1352,25 +1359,26 @@ class blofin(Exchange, ImplicitAPI):
         method, params = self.handle_option_and_params(params, 'createOrder', 'method', 'privatePostTradeOrder')
         isStopLossPriceDefined = self.safe_string(params, 'stopLossPrice') is not None
         isTakeProfitPriceDefined = self.safe_string(params, 'takeProfitPrice') is not None
-        isTriggerOrder = self.safe_string(params, 'triggerPrice') is not None
+        hasTriggerPrice = self.safe_string(params, 'triggerPrice') is not None
         isType2Order = (isStopLossPriceDefined or isTakeProfitPriceDefined)
         response = None
         reduceOnly = self.safe_bool(params, 'reduceOnly')
         if reduceOnly is not None:
             params['reduceOnly'] = 'true' if reduceOnly else 'false'
-        if tpsl or (method == 'privatePostTradeOrderTpsl') or isType2Order:
+        isTpslOrder = tpsl or (method == 'privatePostTradeOrderTpsl') or isType2Order
+        isTriggerOrder = hasTriggerPrice or (method == 'privatePostTradeOrderAlgo')
+        if isTpslOrder:
             tpslRequest = self.create_tpsl_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrderTpsl(tpslRequest)
-        elif isTriggerOrder or (method == 'privatePostTradeOrderAlgo'):
+        elif isTriggerOrder:
             triggerRequest = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrderAlgo(triggerRequest)
         else:
             request = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrder(request)
-        if isTriggerOrder or (method == 'privatePostTradeOrderAlgo'):
+        if isTpslOrder or isTriggerOrder:
             dataDict = self.safe_dict(response, 'data', {})
-            triggerOrder = self.parse_order(dataDict, market)
-            return triggerOrder
+            return self.parse_order(dataDict, market)
         data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0)
         order = self.parse_order(first, market)
@@ -1806,7 +1814,7 @@ class blofin(Exchange, ImplicitAPI):
         else:
             return ids
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -2154,7 +2162,7 @@ class blofin(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

@@ -25,6 +25,9 @@ class ndax extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
@@ -37,6 +40,7 @@ class ndax extends Exchange {
                 'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
@@ -67,12 +71,15 @@ class ndax extends Exchange {
                 'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
                 'fetchMySettlementHistory' => false,
@@ -80,6 +87,7 @@ class ndax extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
                 'fetchOption' => false,
                 'fetchOptionChain' => false,
@@ -857,7 +865,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1024,7 +1032,7 @@ class ndax extends Exchange {
         $takerOrMaker = null;
         $fee = null;
         $type = null;
-        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
+        if ((gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade)))) {
             $priceString = $this->safe_string($trade, 3);
             $amountString = $this->safe_string($trade, 2);
             $timestamp = $this->safe_integer($trade, 6);
@@ -2426,7 +2434,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

@@ -249,7 +249,12 @@ public partial class oxfun : Exchange
                         { "leverage", false },
                         { "marketBuyByCost", true },
                         { "marketBuyRequiresPrice", false },
-                        { "selfTradePrevention", true },
+                        { "selfTradePrevention", new Dictionary<string, object>() {
+                            { "EXPIRE_MAKER", true },
+                            { "EXPIRE_TAKER", true },
+                            { "EXPIRE_BOTH", true },
+                            { "NONE", true },
+                        } },
                         { "iceberg", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
@@ -2394,7 +2399,7 @@ public partial class oxfun : Exchange
      * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
-     * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+     * @param {string} [params.selfTradePrevention] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
      * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2591,7 +2596,7 @@ public partial class oxfun : Exchange
         * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
         * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
-        * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+        * @param {string} [params.selfTradePrevention] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
         * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
         */
         parameters ??= new Dictionary<string, object>();
@@ -2641,6 +2646,14 @@ public partial class oxfun : Exchange
         if (isTrue(isTrue(postOnly) && isTrue((!isEqual(timeInForce, "MAKER_ONLY_REPRICE")))))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "MAKER_ONLY";
+        }
+        object selfTradePrevention = null;
+        var selfTradePreventionparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
+        selfTradePrevention = ((IList<object>)selfTradePreventionparametersVariable)[0];
+        parameters = ((IList<object>)selfTradePreventionparametersVariable)[1];
+        if (isTrue(!isEqual(selfTradePrevention, null)))
+        {
+            ((IDictionary<string,object>)request)["selfTradePreventionMode"] = ((string)selfTradePrevention).ToUpper();
         }
         return this.extend(request, parameters);
     }
@@ -2816,7 +2829,10 @@ public partial class oxfun : Exchange
         //         "data": { "notice": "No working orders found" }
         //     }
         //
-        return await this.privateDeleteV3OrdersCancelAll(this.extend(request, parameters));
+        object response = await this.privateDeleteV3OrdersCancelAll(this.extend(request, parameters));
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**
@@ -2832,7 +2848,7 @@ public partial class oxfun : Exchange
      * @param {string} [params.responseType] 'FULL' or 'ACK'
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))

@@ -1,5 +1,5 @@
 import coincatchRest from '../coincatch.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coincatch extends coincatchRest {
     describe(): any;
@@ -194,7 +194,7 @@ export default class coincatch extends coincatchRest {
     getPrivateInstType(market: Market): "umcbl" | "dmcbl";
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: any, market?: any): Position;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;

@@ -5,6 +5,32 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "createOrders": [
+            {
+                "description": "createOrders spot",
+                "method": "createOrders",
+                "url": "https://api.kraken.com/0/private/AddOrderBatch",
+                "input": [
+                    [
+                        {
+                            "symbol": "ADA/USDC",
+                            "type": "limit",
+                            "amount": 6,
+                            "side": "sell",
+                            "price": 0.4
+                        },
+                        {
+                            "symbol": "ADA/USDC",
+                            "type": "limit",
+                            "amount": 6,
+                            "side": "sell",
+                            "price": 0.4
+                        }
+                    ]
+                ],
+                "output": "{\"nonce\":\"1762290765599\",\"orders\":[{\"type\":\"sell\",\"ordertype\":\"limit\",\"volume\":\"6\",\"price\":\"0.4\"},{\"type\":\"sell\",\"ordertype\":\"limit\",\"volume\":\"6\",\"price\":\"0.4\"}],\"pair\":\"ADAUSDC\"}"
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -15,6 +41,32 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "createOrder long precisions2",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                    "ALPHA/USD",
+                    "limit",
+                    "buy",
+                    50.12345678,
+                    0.0123456789
+                ],
+                "output": "nonce=1749617742768&pair=ALPHAUSD&type=buy&ordertype=limit&volume=50.12345&price=0.01235"
+            },
+            {
+                "description": "createOrder long precisions",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.00012345678,
+                    12345.123456789
+                ],
+                "output": "nonce=1749616648149&pair=XBTUSDT&type=buy&ordertype=limit&volume=0.00012345&price=12345.1"
+            },
             {
                 "description": "Spot market buy",
                 "method": "createOrder",

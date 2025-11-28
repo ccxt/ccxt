@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var defx$1 = require('./abstract/defx.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var errors = require('./base/errors.js');
  * @class defx
  * @augments Exchange
  */
-class defx extends defx$1 {
+class defx extends defx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'defx',
@@ -341,6 +343,7 @@ class defx extends defx$1 {
                 'exact': {
                     '404': errors.BadRequest,
                     'missing_auth_signature': errors.AuthenticationError,
+                    'leverage_higher_than_capped_leverage': errors.BadRequest,
                     'order_rejected': errors.InvalidOrder,
                     'invalid_order_id': errors.InvalidOrder,
                     'filter_lotsize_maxqty': errors.InvalidOrder,
@@ -1168,7 +1171,8 @@ class defx extends defx$1 {
         //
         const markPrice = this.safeNumber(contract, 'markPrice');
         const indexPrice = this.safeNumber(contract, 'indexPrice');
-        const fundingRate = this.safeNumber(contract, 'payoutFundingRate');
+        const fundingRateRaw = this.safeString(contract, 'payoutFundingRate');
+        const fundingRate = Precise["default"].stringDiv(fundingRateRaw, '100');
         const fundingTime = this.safeInteger(contract, 'nextFundingPayout');
         return {
             'info': contract,
@@ -1179,7 +1183,7 @@ class defx extends defx$1 {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': fundingRate,
+            'fundingRate': this.parseNumber(fundingRate),
             'fundingTimestamp': fundingTime,
             'fundingDatetime': this.iso8601(fundingTime),
             'nextFundingRate': undefined,
@@ -1489,7 +1493,7 @@ class defx extends defx$1 {
         //     }
         // }
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method
@@ -2135,4 +2139,4 @@ class defx extends defx$1 {
     }
 }
 
-module.exports = defx;
+exports["default"] = defx;

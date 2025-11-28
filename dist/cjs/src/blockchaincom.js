@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var blockchaincom$1 = require('./abstract/blockchaincom.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -11,7 +13,7 @@ var number = require('./base/functions/number.js');
  * @class blockchaincom
  * @augments Exchange
  */
-class blockchaincom extends blockchaincom$1 {
+class blockchaincom extends blockchaincom$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'blockchaincom',
@@ -37,6 +39,7 @@ class blockchaincom extends blockchaincom$1 {
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': false,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -1255,4 +1258,4 @@ class blockchaincom extends blockchaincom$1 {
     }
 }
 
-module.exports = blockchaincom;
+exports["default"] = blockchaincom;

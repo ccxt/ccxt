@@ -565,10 +565,13 @@ public partial class blofin : ccxt.blofin
      * @method
      * @name biofin#watchOrders
      * @description watches information on multiple orders made by the user
+     * @see https://docs.blofin.com/index.html#ws-order-channel
+     * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -584,10 +587,12 @@ public partial class blofin : ccxt.blofin
      * @name blofin#watchOrdersForSymbols
      * @description watches information on multiple orders made by the user across multiple symbols
      * @see https://docs.blofin.com/index.html#ws-order-channel
+     * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
      * @param {string[]} symbols
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true for trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
      */
     public async override Task<object> watchOrdersForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
@@ -595,7 +600,10 @@ public partial class blofin : ccxt.blofin
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
         await this.loadMarkets();
-        object orders = await this.watchMultipleWrapper(false, "orders", "watchOrdersForSymbols", symbols, parameters);
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        object channel = ((bool) isTrue(trigger)) ? "orders-algo" : "orders";
+        object orders = await this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, parameters);
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(orders, 0);
@@ -765,7 +773,7 @@ public partial class blofin : ccxt.blofin
             ((IList<object>)messageHashes).Add(channelName);
         }
         // private channel are difference, they only need plural channel name for multiple symbols
-        if (isTrue(this.inArray(channelName, new List<object>() {"orders", "positions"})))
+        if (isTrue(this.inArray(channelName, new List<object>() {"orders", "orders-algo", "positions"})))
         {
             rawSubscriptions = new List<object>() {new Dictionary<string, object>() {
     { "channel", channelName },
@@ -808,6 +816,7 @@ public partial class blofin : ccxt.blofin
             { "candle", this.handleOHLCV },
             { "account", this.handleBalance },
             { "orders", this.handleOrders },
+            { "orders-algo", this.handleOrders },
             { "positions", this.handlePositions },
         };
         object method = null;
