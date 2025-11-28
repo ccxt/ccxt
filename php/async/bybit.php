@@ -4967,7 +4967,7 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             $orders = $this->safe_list($result, 'list');
-            if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
+            if ((gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders)))) {
                 return array( $this->safe_order(array( 'info' => $response )) );
             }
             return $this->parse_orders($orders, $market);
@@ -6525,7 +6525,7 @@ class bybit extends Exchange {
                 return Async\await($this->fetch_paginated_call_cursor('fetchPositions', $symbols, null, null, $params, 'nextPageCursor', 'cursor', null, 200));
             }
             $symbol = null;
-            if (($symbols !== null) && gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+            if (($symbols !== null) && (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
                 $symbolsLength = count($symbols);
                 if ($symbolsLength > 1) {
                     throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');

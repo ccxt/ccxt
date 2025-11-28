@@ -2162,7 +2162,7 @@ class hyperliquid extends Exchange {
         );
         $baseId = $this->parse_to_numeric($market['baseId']);
         if ($clientOrderId !== null) {
-            if (gettype($clientOrderId) !== 'array' || array_keys($clientOrderId) !== array_keys(array_keys($clientOrderId))) {
+            if ((gettype($clientOrderId) !== 'array' || array_keys($clientOrderId) !== array_keys(array_keys($clientOrderId)))) {
                 $clientOrderId = array( $clientOrderId );
             }
             $cancelAction['type'] = 'cancelByCloid';

@@ -2317,7 +2317,7 @@ class backpack extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $path;
         $url = $this->urls['api'][$api];
-        $sortedParams = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)) ? $params : $this->keysort($params);
+        $sortedParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->keysort($params);
         if ($api === 'private') {
             $this->check_required_credentials();
             $ts = (string) $this->nonce();
