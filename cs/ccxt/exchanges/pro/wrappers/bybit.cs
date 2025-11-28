@@ -487,6 +487,7 @@ public partial class bybit
     /// </summary>
     /// <remarks>
     /// See <see href="https://bybit-exchange.github.io/docs/v5/websocket/private/execution"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -510,6 +511,12 @@ public partial class bybit
     /// <term>params.unifiedMargin</term>
     /// <description>
     /// boolean : use unified margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.executionFast</term>
+    /// <description>
+    /// boolean : use fast execution
     /// </description>
     /// </item>
     /// </list>

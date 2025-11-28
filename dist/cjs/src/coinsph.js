@@ -329,6 +329,9 @@ class coinsph extends coinsph$1["default"] {
             'features': {
                 'spot': {
                     'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,
@@ -524,7 +527,7 @@ class coinsph extends coinsph$1["default"] {
      */
     async fetchCurrencies(params = {}) {
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         const response = await this.privateGetOpenapiWalletV1ConfigGetall(params);
         //

@@ -18,6 +18,7 @@ include_once __DIR__ . '/test_deep_extend.php';
 include_once __DIR__ . '/language_specific/test_language_specific.php';
 include_once __DIR__ . '/test_safe_methods.php';
 include_once __DIR__ . '/test_safe_ticker.php';
+include_once __DIR__ . '/test_json.php';
 include_once __DIR__ . '/test_sort_by.php';
 include_once __DIR__ . '/test_sum.php';
 include_once __DIR__ . '/test_omit.php';
@@ -27,6 +28,7 @@ include_once __DIR__ . '/test_after_constructor.php';
 include_once __DIR__ . '/test_handle_methods.php';
 include_once __DIR__ . '/test_remove_repeated_elements_from_array.php';
 include_once __DIR__ . '/test_parse_precision.php';
+include_once __DIR__ . '/test_arrays_concat.php';
 
 function base_tests_init() {
     test_language_specific();
@@ -40,7 +42,7 @@ function base_tests_init() {
     test_precise();
     test_safe_methods();
     test_safe_ticker();
-    // testJson ();
+    test_json();
     test_sort_by();
     test_sum();
     test_omit();
@@ -49,4 +51,5 @@ function base_tests_init() {
     test_handle_methods();
     test_remove_repeated_elements_from_array();
     test_parse_precision();
+    test_arrays_concat();
 }

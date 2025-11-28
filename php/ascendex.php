@@ -39,8 +39,14 @@ class ascendex extends Exchange {
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -55,6 +61,8 @@ class ascendex extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => 'emulated',
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
@@ -1227,7 +1235,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+        if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             return $this->parse_tickers(array( $data ), $symbols);
         }
         return $this->parse_tickers($data, $symbols);
@@ -1260,7 +1268,7 @@ class ascendex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1622,7 +1630,7 @@ class ascendex extends Exchange {
         //         "code" => "0",
         //         "data" => {
         //           "domain" => "spot",
-        //           "userUID" => "U1479576458",
+        //           "userUID" => "U1479576457",
         //           "vipLevel" => "0",
         //           "fees" => array(
         //             array( $symbol => 'HT/USDT', $fee => array( taker => '0.001', maker => "0.001" ) ),
@@ -2328,7 +2336,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+        if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             $data = $this->safe_list($data, 'data', array());
         }
         return $this->parse_orders($data, $market, $since, $limit);

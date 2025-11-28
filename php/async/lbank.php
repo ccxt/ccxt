@@ -466,6 +466,9 @@ class lbank extends Exchange {
                 for ($j = 0; $j < count($networksRaw); $j++) {
                     $networkEntry = $networksRaw[$j];
                     $networkId = $this->safe_string($networkEntry, 'chain');
+                    if ($networkId === null) {
+                        $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
+                    }
                     $networkCode = $this->network_id_to_code($networkId);
                     $networks[$networkCode] = array(
                         'id' => $networkId,
@@ -1180,7 +1183,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1355,7 +1358,7 @@ class lbank extends Exchange {
             return $this->safe_balance($result);
         }
         // from spotPrivatePostSupplementUserInfo
-        $isArray = gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data));
+        $isArray = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)));
         if ($isArray === true) {
             for ($i = 0; $i < count($data); $i++) {
                 $item = $data[$i];

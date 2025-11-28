@@ -76,6 +76,8 @@ class deribit extends Exchange {
                 'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
                 'fetchOption' => true,
                 'fetchOptionChain' => true,
@@ -623,24 +625,26 @@ class deribit extends Exchange {
             $response = Async\await($this->publicGetGetCurrencies ($params));
             //
             //    {
-            //      "jsonrpc" => "2.0",
-            //      "result" => array(
-            //        array(
-            //          "withdrawal_priorities" => array(),
-            //          "withdrawal_fee" => 0.01457324,
-            //          "min_withdrawal_fee" => 0.000001,
-            //          "min_confirmations" => 1,
-            //          "fee_precision" => 8,
-            //          "currency_long" => "Solana",
-            //          "currency" => "SOL",
-            //          "coin_type" => "SOL"
+            //        "jsonrpc" => "2.0",
+            //        "result" => array(
+            //            array(
+            //                "currency" => "XRP",
+            //                "network_fee" => "1.5e-5",
+            //                "min_withdrawal_fee" => "0.0001",
+            //                "apr" => "0.0",
+            //                "withdrawal_fee" => "0.0001",
+            //                "network_currency" => "XRP",
+            //                "coin_type" => "XRP",
+            //                "withdrawal_priorities" => array(),
+            //                "min_confirmations" => "1",
+            //                "currency_long" => "XRP",
+            //                "in_cross_collateral_pool" => false
+            //            ),
             //        ),
-            //        ...
-            //      ),
-            //      "usIn" => 1688652701456124,
-            //      "usOut" => 1688652701456390,
-            //      "usDiff" => 266,
-            //      "testnet" => true
+            //        "usIn" => "1760110326693923",
+            //        "usOut" => "1760110326944891",
+            //        "usDiff" => "250968",
+            //        "testnet" => false
             //    }
             //
             $data = $this->safe_list($response, 'result', array());
@@ -659,7 +663,7 @@ class deribit extends Exchange {
                     'withdraw' => null,
                     'type' => 'crypto',
                     'fee' => $this->safe_number($currency, 'withdrawal_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'fee_precision'))),
+                    'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -1442,7 +1446,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -2382,6 +2386,11 @@ class deribit extends Exchange {
             $request = array();
             $market = null;
             $response = null;
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            } else {
+                $request['count'] = 1000; // max value
+            }
             if ($symbol === null) {
                 $code = $this->code_from_options('fetchClosedOrders', $params);
                 $currency = $this->currency($code);
@@ -2773,8 +2782,9 @@ class deribit extends Exchange {
             'notional' => $this->parse_number($notionalStringAbs),
             'leverage' => $this->safe_integer($position, 'leverage'),
             'unrealizedPnl' => $this->parse_number($unrealizedPnl),
-            'contracts' => null,
-            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'realizedPnl' => $this->safe_number($position, 'realized_profit_loss'),
+            'contracts' => $this->safe_number($position, 'size'),
+            'contractSize' => $this->safe_number($position, 'contractSize'),
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'estimated_liquidation_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
@@ -3841,6 +3851,109 @@ class deribit extends Exchange {
             'baseVolume' => $this->safe_number($chain, 'volume'),
             'quoteVolume' => $this->safe_number($chain, 'volume_usd'),
         );
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * Retrieves the open interest of a $symbol
+             *
+             * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+             *
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {array} [$params] exchange specific parameters
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+            }
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            $response = Async\await($this->publicGetGetBookSummaryByInstrument ($this->extend($request, $params)));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "result" => array(
+            //             {
+            //                 "high" => 93099.5,
+            //                 "low" => 81773.0,
+            //                 "last" => 87197.0,
+            //                 "instrument_name" => "BTC-PERPETUAL",
+            //                 "bid_price" => 87083.0,
+            //                 "ask_price" => 87149.5,
+            //                 "open_interest" => 9978911260,
+            //                 "mark_price" => 87102.01,
+            //                 "creation_timestamp" => 1763674177068,
+            //                 "price_change" => -3.2032,
+            //                 "volume" => 7377.18657991,
+            //                 "estimated_delivery_price" => 87047.2,
+            //                 "base_currency" => "BTC",
+            //                 "quote_currency" => "USD",
+            //                 "volume_usd" => 661040250.0,
+            //                 "volume_notional" => 661040250.0,
+            //                 "current_funding" => 1.2966e-4,
+            //                 "funding_8h" => -8.1069e-4,
+            //                 "mid_price" => 87116.25
+            //             }
+            //         ),
+            //         "usIn" => 1763674177068845,
+            //         "usOut" => 1763674177068996,
+            //         "usDiff" => 151,
+            //         "testnet" => true
+            //     }
+            //
+            $result = $this->safe_list($response, 'result', array());
+            $data = $this->safe_dict($result, 0, array());
+            return $this->parse_open_interest($data, $market);
+        }) ();
+    }
+
+    public function parse_open_interest($interest, ?array $market = null) {
+        //
+        //     {
+        //         "high" => 93099.5,
+        //         "low" => 81773.0,
+        //         "last" => 87197.0,
+        //         "instrument_name" => "BTC-PERPETUAL",
+        //         "bid_price" => 87083.0,
+        //         "ask_price" => 87149.5,
+        //         "open_interest" => 9978911260,
+        //         "mark_price" => 87102.01,
+        //         "creation_timestamp" => 1763674177068,
+        //         "price_change" => -3.2032,
+        //         "volume" => 7377.18657991,
+        //         "estimated_delivery_price" => 87047.2,
+        //         "base_currency" => "BTC",
+        //         "quote_currency" => "USD",
+        //         "volume_usd" => 661040250.0,
+        //         "volume_notional" => 661040250.0,
+        //         "current_funding" => 1.2966e-4,
+        //         "funding_8h" => -8.1069e-4,
+        //         "mid_price" => 87116.25
+        //     }
+        //
+        $timestamp = $this->safe_integer($interest, 'creation_timestamp');
+        $marketId = $this->safe_string($interest, 'instrument_name');
+        $market = $this->safe_market($marketId, $market);
+        $openInterest = $this->safe_number($interest, 'open_interest');
+        $openInterestAmount = null;
+        $openInterestValue = null;
+        if ($market['option'] || ($market['future'] && $market['linear'])) {
+            $openInterestAmount = $openInterest;
+        } else {
+            $openInterestValue = $openInterest;
+        }
+        return $this->safe_open_interest(array(
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'openInterestAmount' => $openInterestAmount,
+            'openInterestValue' => $openInterestValue,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        ), $market);
     }
 
     public function nonce() {

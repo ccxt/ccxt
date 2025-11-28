@@ -104,6 +104,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
                 'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': true,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': undefined,
             },
@@ -198,6 +199,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
                         'sub/api-key/update': 1,
                         'changeCrossUserLeverage': 1,
                         'position/changeMarginMode': 1,
+                        'position/switchPositionMode': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -228,7 +230,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
                     '429': errors.RateLimitExceeded,
                     '500': errors.ExchangeNotAvailable,
                     '503': errors.ExchangeNotAvailable,
-                    '100001': errors.InvalidOrder,
+                    '100001': errors.OrderNotFound,
                     '100004': errors.BadRequest,
                     '101030': errors.PermissionDenied,
                     '200004': errors.InsufficientFunds,
@@ -247,7 +249,8 @@ class kucoinfutures extends kucoinfutures$1["default"] {
                     '400100': errors.BadRequest,
                     '411100': errors.AccountSuspended,
                     '500000': errors.ExchangeNotAvailable,
-                    '300009': errors.InvalidOrder, // {"msg":"No open positions to close.","code":"300009"}
+                    '300009': errors.InvalidOrder,
+                    '330008': errors.InsufficientFunds, // {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
                     'Position does not exist': errors.OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }
@@ -341,6 +344,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
                             'transfer-out': 'v2',
                             'changeCrossUserLeverage': 'v2',
                             'position/changeMarginMode': 'v2',
+                            'position/switchPositionMode': 'v2',
                         },
                     },
                     'futuresPublic': {
@@ -468,7 +472,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const status = this.safeString(data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
@@ -551,12 +555,12 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //    }
         //
         const result = [];
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString(market, 'symbol');
             const expiry = this.safeInteger(market, 'expireDate');
-            const future = expiry ? true : false;
+            const future = this.safeString(market, 'nextFundingRateTime') === undefined;
             const swap = !future;
             const baseId = this.safeString(market, 'baseCurrency');
             const quoteId = this.safeString(market, 'quoteCurrency');
@@ -768,7 +772,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const address = this.safeString(data, 'address');
         if (currencyId !== 'NIM') {
             // contains spaces
@@ -832,7 +836,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const timestamp = this.parseToInt(this.safeInteger(data, 'ts') / 1000000);
         const orderbook = this.parseOrderBook(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger(data, 'sequence');
@@ -1162,7 +1166,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const dataList = this.safeValue(data, 'dataList', []);
+        const dataList = this.safeList(data, 'dataList', []);
         const fees = [];
         for (let i = 0; i < dataList.length; i++) {
             const listItem = dataList[i];
@@ -1534,6 +1538,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
+     * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -1543,7 +1548,8 @@ class kucoinfutures extends kucoinfutures$1["default"] {
      * @param {string} [params.stopPriceType] exchange-specific alternative for triggerPriceType: TP, IP or MP
      * @param {bool} [params.closeOrder] set to true to close position
      * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
-     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+     * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1727,7 +1733,23 @@ class kucoinfutures extends kucoinfutures$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
-        params = this.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
+        let hedged = undefined;
+        [hedged, params] = this.handleParamBool(params, 'hedged', false);
+        if (reduceOnly) {
+            request['reduceOnly'] = reduceOnly;
+            if (hedged) {
+                const reduceOnlyPosSide = (side === 'sell') ? 'LONG' : 'SHORT';
+                request['positionSide'] = reduceOnlyPosSide;
+            }
+        }
+        else {
+            if (hedged) {
+                const posSide = (side === 'buy') ? 'LONG' : 'SHORT';
+                request['positionSide'] = posSide;
+            }
+        }
+        params = this.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged']); // Time in force only valid for limit orders, exchange error when gtc for market orders
         return this.extend(request, params);
     }
     /**
@@ -2123,7 +2145,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         }
         //     }
         //
-        const responseData = this.safeValue(response, 'data', {});
+        const responseData = this.safeDict(response, 'data', {});
         const orders = this.safeList(responseData, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -3051,7 +3073,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseMarketLeverageTiers(data, market);
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -3140,7 +3162,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseFundingRateHistories(data, market, since, limit);
     }
     parseFundingRateHistory(info, market = undefined) {
@@ -3297,6 +3319,33 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //
         const data = this.safeDict(response, 'data', {});
         return this.parseMarginMode(data, market);
+    }
+    /**
+     * @method
+     * @name kucoinfutures#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://www.kucoin.com/docs-new/3475097e0
+     * @param {bool} hedged set to true to use two way position
+     * @param {string} [symbol] not used by bybit setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response from the exchange
+     */
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const posMode = hedged ? '1' : '0';
+        const request = {
+            'positionMode': posMode,
+        };
+        const response = await this.futuresPrivatePostPositionSwitchPositionMode(this.extend(request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "positionMode": 1
+        //         }
+        //     }
+        //
+        return response;
     }
     /**
      * @method

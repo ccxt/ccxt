@@ -55,6 +55,7 @@ class bitso extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -765,7 +766,7 @@ class bitso extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1155,7 +1156,7 @@ class bitso extends Exchange {
         }) ();
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple $orders
@@ -1167,7 +1168,7 @@ class bitso extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
              */
-            if (gettype($ids) !== 'array' || array_keys($ids) !== array_keys(array_keys($ids))) {
+            if ((gettype($ids) !== 'array' || array_keys($ids) !== array_keys(array_keys($ids)))) {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() $ids argument should be an array');
             }
             $market = null;
@@ -1342,7 +1343,7 @@ class bitso extends Exchange {
                 'oid' => $id,
             )));
             $payload = $this->safe_value($response, 'payload');
-            if (gettype($payload) === 'array' && array_keys($payload) === array_keys(array_keys($payload))) {
+            if ((gettype($payload) === 'array' && array_keys($payload) === array_keys(array_keys($payload)))) {
                 $numOrders = count($response['payload']);
                 if ($numOrders === 1) {
                     return $this->parse_order($payload[0]);

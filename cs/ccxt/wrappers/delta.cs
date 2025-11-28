@@ -372,6 +372,39 @@ public partial class delta
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// fetches information on an order made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.delta.exchange/#get-order-by-id"/>  <br/>
+    /// See <see href="https://docs.delta.exchange/#get-order-by-client-oid"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market the order was made in
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id of the order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>

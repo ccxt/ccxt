@@ -221,6 +221,9 @@ class luno extends Exchange {
             'features' => array(
                 'spot' => array(
                     'sandbox' => false,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => false,
                         'triggerPrice' => true, // todo
@@ -306,7 +309,7 @@ class luno extends Exchange {
          * @return {dict} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         $response = $this->privateGetSendNetworks ($params);
         //
@@ -970,7 +973,7 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          *
          * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles

@@ -53,8 +53,14 @@ class ascendex(Exchange, ImplicitAPI):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchAccounts': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
@@ -69,6 +75,8 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchFundingRates': True,
                 'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': True,
                 'fetchLeverageTiers': True,
@@ -1240,7 +1248,7 @@ class ascendex(Exchange, ImplicitAPI):
             self.safe_number(data, 'v'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1583,7 +1591,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         "code": "0",
         #         "data": {
         #           "domain": "spot",
-        #           "userUID": "U1479576458",
+        #           "userUID": "U1479576457",
         #           "vipLevel": "0",
         #           "fees": [
         #             {symbol: 'HT/USDT', fee: {taker: '0.001', maker: "0.001"}},

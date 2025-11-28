@@ -23,6 +23,9 @@ public partial class bingx : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", true },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
@@ -43,9 +46,18 @@ public partial class bingx : Exchange
                 { "createTrailingPercentOrder", true },
                 { "createTriggerOrder", true },
                 { "editOrder", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistories", false },
+                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
+                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
@@ -56,6 +68,9 @@ public partial class bingx : Exchange
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
+                { "fetchGreeks", false },
+                { "fetchIsolatedBorrowRate", false },
+                { "fetchIsolatedBorrowRates", false },
                 { "fetchLeverage", true },
                 { "fetchLiquidations", false },
                 { "fetchMarginAdjustmentHistory", false },
@@ -69,6 +84,8 @@ public partial class bingx : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -83,8 +100,11 @@ public partial class bingx : Exchange
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTransfers", true },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", true },
@@ -164,6 +184,9 @@ public partial class bingx : Exchange
                                 { "trade/myTrades", 2 },
                                 { "user/commissionRate", 5 },
                                 { "account/balance", 2 },
+                                { "oco/orderList", 5 },
+                                { "oco/openOrderList", 5 },
+                                { "oco/historyOrderList", 5 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "trade/order", 2 },
@@ -173,6 +196,8 @@ public partial class bingx : Exchange
                                 { "trade/cancelOrders", 5 },
                                 { "trade/cancelOpenOrders", 5 },
                                 { "trade/cancelAllAfter", 5 },
+                                { "oco/order", 5 },
+                                { "oco/cancel", 5 },
                             } },
                         } },
                     } },
@@ -181,6 +206,7 @@ public partial class bingx : Exchange
                             { "get", new Dictionary<string, object>() {
                                 { "market/depth", 1 },
                                 { "market/kline", 1 },
+                                { "ticker/price", 1 },
                             } },
                         } },
                     } },
@@ -206,6 +232,7 @@ public partial class bingx : Exchange
                                 { "market/historicalTrades", 1 },
                                 { "market/markPriceKlines", 1 },
                                 { "trade/multiAssetsRules", 1 },
+                                { "tradingRules", 1 },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
@@ -223,6 +250,7 @@ public partial class bingx : Exchange
                                 { "user/marginAssets", 5 },
                             } },
                             { "post", new Dictionary<string, object>() {
+                                { "trade/amend", 2 },
                                 { "trade/cancelReplace", 2 },
                                 { "positionSide/dual", 5 },
                                 { "trade/batchCancelReplace", 5 },
@@ -231,6 +259,8 @@ public partial class bingx : Exchange
                                 { "twap/order", 5 },
                                 { "twap/cancelOrder", 5 },
                                 { "trade/assetMode", 5 },
+                                { "trade/reverse", 5 },
+                                { "trade/autoAddMargin", 5 },
                             } },
                         } },
                     } },
@@ -289,6 +319,11 @@ public partial class bingx : Exchange
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
                                 { "quote/klines", 1 },
+                            } },
+                        } },
+                        { "private", new Dictionary<string, object>() {
+                            { "get", new Dictionary<string, object>() {
+                                { "user/balance", 2 },
                             } },
                         } },
                     } },
@@ -431,10 +466,19 @@ public partial class bingx : Exchange
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
                                 { "swap/trace/currentTrack", 2 },
+                                { "PFutures/traderDetail", 2 },
+                                { "PFutures/profitHistorySummarys", 2 },
+                                { "PFutures/profitDetail", 2 },
+                                { "PFutures/tradingPairs", 2 },
+                                { "spot/traderDetail", 2 },
+                                { "spot/profitHistorySummarys", 2 },
+                                { "spot/profitDetail", 2 },
+                                { "spot/historyOrder", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "swap/trace/closeTrackOrder", 2 },
                                 { "swap/trace/setTPSL", 2 },
+                                { "PFutures/setCommission", 2 },
                                 { "spot/trader/sellOrder", 10 },
                             } },
                         } },
@@ -465,6 +509,22 @@ public partial class bingx : Exchange
                                 { "get", new Dictionary<string, object>() {
                                     { "transfer/supportCoins", 5 },
                                 } },
+                            } },
+                        } },
+                    } },
+                } },
+                { "agent", new Dictionary<string, object>() {
+                    { "v1", new Dictionary<string, object>() {
+                        { "private", new Dictionary<string, object>() {
+                            { "get", new Dictionary<string, object>() {
+                                { "account/inviteAccountList", 5 },
+                                { "reward/commissionDataList", 5 },
+                                { "account/inviteRelationCheck", 5 },
+                                { "asset/depositDetailList", 5 },
+                                { "reward/third/commissionDataList", 5 },
+                                { "asset/partnerData", 5 },
+                                { "commissionDataList/referralCode", 5 },
+                                { "account/superiorCheck", 5 },
                             } },
                         } },
                     } },
@@ -656,6 +716,9 @@ public partial class bingx : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "defaultForLinear" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                     { "createOrder", new Dictionary<string, object>() {
                         { "triggerPriceType", null },
                         { "attachedStopLossTakeProfit", null },
@@ -734,12 +797,12 @@ public partial class bingx : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(isSandbox))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object response = await this.walletsV1PrivateGetCapitalConfigGetall(parameters);
         //
@@ -2284,7 +2347,7 @@ public partial class bingx : Exchange
      * @name bingx#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
-     * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20account%20data
      * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2324,7 +2387,7 @@ public partial class bingx : Exchange
                 response = await this.cswapV1PrivateGetUserBalance(marketTypeQuery);
             } else
             {
-                response = await this.swapV2PrivateGetUserBalance(marketTypeQuery);
+                response = await this.swapV3PrivateGetUserBalance(marketTypeQuery);
             }
         }
         return this.parseBalance(response);
@@ -2394,38 +2457,40 @@ public partial class bingx : Exchange
         //     {
         //         "code": 0,
         //         "msg": "",
-        //         "data": {
-        //             "balance": {
-        //                 "userId": "1177064765068660742",
+        //         "data": [
+        //             {
+        //                 "userId": "116***295",
         //                 "asset": "USDT",
-        //                 "balance": "51.5198",
-        //                 "equity": "50.5349",
-        //                 "unrealizedProfit": "-0.9849",
-        //                 "realisedProfit": "-0.2134",
-        //                 "availableMargin": "49.1428",
-        //                 "usedMargin": "1.3922",
+        //                 "balance": "194.8212",
+        //                 "equity": "196.7431",
+        //                 "unrealizedProfit": "1.9219",
+        //                 "realisedProfit": "-109.2504",
+        //                 "availableMargin": "193.7609",
+        //                 "usedMargin": "1.0602",
         //                 "freezedMargin": "0.0000",
         //                 "shortUid": "12851936"
         //             }
-        //         }
+        //         ]
         //     }
         //
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object standardAndInverseBalances = this.safeList(response, "data");
-        object firstStandardOrInverse = this.safeDict(standardAndInverseBalances, 0);
-        object isStandardOrInverse = !isEqual(firstStandardOrInverse, null);
+        object contractBalances = this.safeList(response, "data");
+        object firstContractBalances = this.safeDict(contractBalances, 0);
+        object isContract = !isEqual(firstContractBalances, null);
         object spotData = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object spotBalances = this.safeList2(spotData, "balances", "assets", new List<object>() {});
-        object firstSpot = this.safeDict(spotBalances, 0);
-        object isSpot = !isEqual(firstSpot, null);
-        if (isTrue(isStandardOrInverse))
+        if (isTrue(isContract))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(standardAndInverseBalances)); postFixIncrement(ref i))
+            for (object i = 0; isLessThan(i, getArrayLength(contractBalances)); postFixIncrement(ref i))
             {
-                object balance = getValue(standardAndInverseBalances, i);
+                object balance = getValue(contractBalances, i);
                 object currencyId = this.safeString(balance, "asset");
+                if (isTrue(isEqual(currencyId, null)))
+                {
+                    break;
+                }
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "availableMargin", "availableBalance");
@@ -2433,7 +2498,7 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "maxWithdrawAmount");
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
-        } else if (isTrue(isSpot))
+        } else
         {
             for (object i = 0; isLessThan(i, getArrayLength(spotBalances)); postFixIncrement(ref i))
             {
@@ -2443,19 +2508,6 @@ public partial class bingx : Exchange
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
-                ((IDictionary<string,object>)result)[(string)code] = account;
-            }
-        } else
-        {
-            object linearSwapData = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            object linearSwapBalance = this.safeDict(linearSwapData, "balance");
-            if (isTrue(linearSwapBalance))
-            {
-                object currencyId = this.safeString(linearSwapBalance, "asset");
-                object code = this.safeCurrencyCode(currencyId);
-                object account = this.account();
-                ((IDictionary<string,object>)account)["free"] = this.safeString(linearSwapBalance, "availableMargin");
-                ((IDictionary<string,object>)account)["used"] = this.safeString(linearSwapBalance, "usedMargin");
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
         }
@@ -3996,7 +4048,7 @@ public partial class bingx : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -5517,7 +5569,7 @@ public partial class bingx : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
+     * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -5529,7 +5581,19 @@ public partial class bingx : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        object walletType = this.safeInteger(parameters, "walletType", 1);
+        object defaultWalletType = 15; // spot
+        object walletType = null;
+        var walletTypeparametersVariable = this.handleOptionAndParams2(parameters, "withdraw", "type", "walletType", defaultWalletType);
+        walletType = ((IList<object>)walletTypeparametersVariable)[0];
+        parameters = ((IList<object>)walletTypeparametersVariable)[1];
+        object walletTypes = new Dictionary<string, object>() {
+            { "funding", 1 },
+            { "fund", 1 },
+            { "standard", 2 },
+            { "perpetual", 3 },
+            { "spot", 15 },
+        };
+        walletType = this.safeInteger(walletTypes, walletType, defaultWalletType);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },

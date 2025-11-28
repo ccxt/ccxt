@@ -449,7 +449,7 @@ public partial class bybit
     /// <item>
     /// <term>params.tpslMode</term>
     /// <description>
-    /// string : *contract only* 'full' or 'partial'
+    /// string : *contract only* 'Full' or 'Partial'
     /// </description>
     /// </item>
     /// <item>
@@ -560,6 +560,12 @@ public partial class bybit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : unique client order id
     /// </description>
     /// </item>
     /// <item>
@@ -698,7 +704,7 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
@@ -1742,6 +1748,12 @@ public partial class bybit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountType</term>
+    /// <description>
+    /// string : 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
     /// </description>
     /// </item>
     /// </list>

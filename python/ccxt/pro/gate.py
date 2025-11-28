@@ -330,7 +330,7 @@ class gate(ccxt.async_support.gate):
         """
         return await self.fetch_orders_by_status_ws('finished', symbol, since, limit, params)
 
-    async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
 
         https://www.gate.io/docs/developers/futures/ws/en/#order-list
@@ -365,6 +365,13 @@ class gate(ccxt.async_support.gate):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel
+        https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
+        https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
+        https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -381,7 +388,7 @@ class gate(ccxt.async_support.gate):
         url = self.get_url_by_market(market)
         payload = [marketId, interval]
         if limit is None:
-            limit = 100
+            limit = 100  # max 100 atm
         if market['contract']:
             stringLimit = str(limit)
             payload.append(stringLimit)
@@ -787,7 +794,7 @@ class gate(ccxt.async_support.gate):
             hash = 'trades:' + symbol
             client.resolve(cachedTrades, hash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -841,8 +848,8 @@ class gate(ccxt.async_support.gate):
             ohlcv = result[i]
             subscription = self.safe_string(ohlcv, 'n', '')
             parts = subscription.split('_')
-            timeframe = self.safe_string(parts, 0)
-            timeframeId = self.find_timeframe(timeframe)
+            timeframeId = self.safe_string(parts, 0)
+            timeframe = self.find_timeframe(timeframeId)
             prefix = timeframe + '_'
             marketId = subscription.replace(prefix, '')
             symbol = self.safe_symbol(marketId, None, '_', marketType)
@@ -852,7 +859,7 @@ class gate(ccxt.async_support.gate):
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol][timeframeId] = stored
+                self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
             marketIds[symbol] = timeframe
         keys = list(marketIds.keys())
@@ -1825,8 +1832,10 @@ class gate(ccxt.async_support.gate):
 
     def request_id(self):
         # their support said that reqid must be an int32, not documented
+        self.lock_id()
         reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
         self.options['reqid'] = reqid
+        self.unlock_id()
         return reqid
 
     async def subscribe_public(self, url, messageHash, payload, channel, params={}, subscription=None):
@@ -1885,7 +1894,7 @@ class gate(ccxt.async_support.gate):
         channel = messageType + '.login'
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             return await self.request_private(url, {}, channel, messageHash)

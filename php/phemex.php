@@ -186,7 +186,8 @@ class phemex extends Exchange {
                         // swap
                         'accounts/accountPositions' => 1, // ?currency=<currency>
                         'g-accounts/accountPositions' => 1, // ?currency=<currency>
-                        'accounts/positions' => 25, // ?currency=<currency>
+                        'g-accounts/positions' => 25, // ?currency=<currency>
+                        'g-accounts/risk-unit' => 1,
                         'api-data/futures/funding-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/funding-fees' => 5, // ?symbol=<symbol>
                         'api-data/futures/orders' => 5, // ?symbol=<symbol>
@@ -1346,7 +1347,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1874,7 +1875,7 @@ class phemex extends Exchange {
         $symbol = $market['symbol'];
         $orderId = null;
         $takerOrMaker = null;
-        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
+        if ((gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade)))) {
             $tradeLength = count($trade);
             $timestamp = $this->safe_integer_product($trade, 0, 0.000001);
             if ($tradeLength > 4) {
@@ -3141,7 +3142,7 @@ class phemex extends Exchange {
         }
         $data = $this->safe_value($response, 'data', array());
         $order = $data;
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             $numOrders = count($data);
             if ($numOrders < 1) {
                 if ($clientOrderId !== null) {
@@ -3237,7 +3238,7 @@ class phemex extends Exchange {
             throw $e;
         }
         $data = $this->safe_value($response, 'data', array());
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             return $this->parse_orders($data, $market, $since, $limit);
         } else {
             $rows = $this->safe_list($data, 'rows', array());
@@ -3323,7 +3324,7 @@ class phemex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             return $this->parse_orders($data, $market, $since, $limit);
         } else {
             $rows = $this->safe_list($data, 'rows', array());
@@ -3350,19 +3351,21 @@ class phemex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $request = array();
         if ($limit !== null) {
             $limit = min (200, $limit);
             $request['limit'] = $limit;
         }
-        $isUSDTSettled = ($symbol === null) || ($this->safe_string($market, 'settle') === 'USDT');
+        $isUSDTSettled = ($type !== 'spot') && (($symbol === null) || ($this->safe_string($market, 'settle') === 'USDT'));
         if ($isUSDTSettled) {
             $request['currency'] = 'USDT';
             $request['offset'] = 0;
             if ($limit === null) {
                 $request['limit'] = 200;
             }
-        } else {
+        } elseif ($symbol !== null) {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
@@ -3371,7 +3374,8 @@ class phemex extends Exchange {
         $response = null;
         if ($isUSDTSettled) {
             $response = $this->privateGetExchangeOrderV2TradingList ($this->extend($request, $params));
-        } elseif ($market['swap']) {
+        } elseif ($type === 'swap') {
+            $request['tradeType'] = 'Trade';
             $response = $this->privateGetExchangeOrderTrade ($this->extend($request, $params));
         } else {
             $response = $this->privateGetExchangeSpotOrderTrades ($this->extend($request, $params));
@@ -3772,7 +3776,7 @@ class phemex extends Exchange {
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->code] the $currency $code to fetch $positions for, USD, BTC or USDT, USDT is the default
-         * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
+         * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
@@ -3810,7 +3814,7 @@ class phemex extends Exchange {
             if ($method === 'privateGetGAccountsAccountPositions') {
                 $response = $this->privateGetGAccountsAccountPositions ($this->extend($request, $params));
             } else {
-                $response = $this->privateGetAccountsPositions ($this->extend($request, $params));
+                $response = $this->privateGetGAccountsPositions ($this->extend($request, $params));
             }
         } else {
             $response = $this->privateGetAccountsAccountPositions ($this->extend($request, $params));
@@ -3984,7 +3988,7 @@ class phemex extends Exchange {
         $initialMarginPercentageString = Precise::string_div($initialMarginString, $notionalString);
         $liquidationPrice = $this->safe_number_2($position, 'liquidationPrice', 'liquidationPriceRp');
         $markPriceString = $this->safe_string_2($position, 'markPrice', 'markPriceRp');
-        $contracts = $this->safe_string($position, 'size');
+        $contracts = $this->safe_string_2($position, 'size', 'sizeRq');
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         $leverage = $this->parse_number(Precise::string_abs(($this->safe_string_2($position, 'leverage', 'leverageRr'))));
@@ -3994,9 +3998,12 @@ class phemex extends Exchange {
         if ($rawSide !== null) {
             $side = ($rawSide === 'Buy') ? 'long' : 'short';
         }
+        // Inverse long contract => unRealizedPnl = (posSize * $contractSize) / avgEntryPrice - (posSize * $contractSize) / markPrice
+        // Inverse short contract => unRealizedPnl =  (posSize *$contractSize) / markPrice - (posSize * $contractSize) / avgEntryPrice
+        // Linear long contract =>  unRealizedPnl = (posSize * $contractSize) * markPrice - (posSize * $contractSize) * avgEntryPrice
+        // Linear short contract =>  unRealizedPnl = (posSize * $contractSize) * avgEntryPrice - (posSize * $contractSize) * markPrice
         $priceDiff = null;
-        $currency = $this->safe_string($position, 'currency');
-        if ($currency === 'USD') {
+        if ($market['linear']) {
             if ($side === 'long') {
                 $priceDiff = Precise::string_sub($markPriceString, $entryPriceString);
             } else {
@@ -4011,15 +4018,18 @@ class phemex extends Exchange {
             }
         }
         $unrealizedPnl = Precise::string_mul(Precise::string_mul($priceDiff, $contracts), $contractSizeString);
+        // the $unrealizedPnl is only available in a specific endpoint which much higher RL limits
+        $apiUnrealizedPnl = $this->safe_string($position, 'unRealisedPnlRv', $unrealizedPnl);
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateral);
         $isCross = $this->safe_value($position, 'crossMargin');
         return $this->safe_position(array(
             'info' => $position,
-            'id' => null,
+            'id' => $this->safe_string($position, 'execSeq'),
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => $contractSize,
-            'unrealizedPnl' => $this->parse_number($unrealizedPnl),
+            'realizedPnl' => $this->safe_number($position, 'curTermRealisedPnlRv'),
+            'unrealizedPnl' => $this->parse_number($apiUnrealizedPnl),
             'leverage' => $leverage,
             'liquidationPrice' => $liquidationPrice,
             'collateral' => $this->parse_number($collateral),
@@ -4028,7 +4038,7 @@ class phemex extends Exchange {
             'lastPrice' => null,
             'entryPrice' => $this->parse_number($entryPriceString),
             'timestamp' => null,
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $this->safe_integer_product($position, 'transactTimeNs', 0.000001),
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentageString),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
@@ -4037,7 +4047,7 @@ class phemex extends Exchange {
             'datetime' => null,
             'marginMode' => $isCross ? 'cross' : 'isolated',
             'side' => $side,
-            'hedged' => false,
+            'hedged' => $this->safe_string($position, 'posMode') === 'Hedged',
             'percentage' => null,
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
@@ -4330,12 +4340,24 @@ class phemex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['swap'] || $market['settle'] === 'USDT' || $market['settle'] === 'USDC') {
-            throw new BadSymbol($this->id . ' setMarginMode() supports swap (non USDT/USDC based) contracts only');
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
         $marginMode = strtolower($marginMode);
         if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
             throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $isCross = $marginMode === 'cross';
+        if ($this->in_array($market['settle'], array( 'USDT', 'USDC' ))) {
+            $currentLeverage = $this->safe_string($params, 'leverage');
+            if ($currentLeverage === null) {
+                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a "leverage" parameter for USDT markets');
+            }
+            $request['leverageRr'] = $isCross ? Precise::string_neg(Precise::string_abs($currentLeverage)) : Precise::string_abs($currentLeverage);
+            return $this->privatePutGPositionsLeverage ($this->extend($request, $params));
         }
         $leverage = $this->safe_integer($params, 'leverage');
         if ($marginMode === 'cross') {
@@ -4344,10 +4366,7 @@ class phemex extends Exchange {
         if ($leverage === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
         }
-        $request = array(
-            'symbol' => $market['id'],
-            'leverage' => $leverage,
-        );
+        $request['leverage'] = $leverage;
         return $this->privatePutPositionsLeverage ($this->extend($request, $params));
     }
 

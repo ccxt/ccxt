@@ -87,7 +87,7 @@ public partial class hitbtc : ccxt.hitbtc
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -694,7 +694,7 @@ public partial class hitbtc : ccxt.hitbtc
         return message;
     }
 
-    public virtual object parseWsTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    public override object parseWsTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         trades = this.toArray(trades);

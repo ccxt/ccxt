@@ -303,11 +303,11 @@ public partial class cryptocom : Exchange
             } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
-                    { "maker", this.parseNumber("0.004") },
-                    { "taker", this.parseNumber("0.004") },
+                    { "maker", this.parseNumber("0.0025") },
+                    { "taker", this.parseNumber("0.005") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("25000"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("200000000"), this.parseNumber("0.0004")}} },
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("25000"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.00015")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.00014")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.00013")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.00012")}, new List<object> {this.parseNumber("200000000"), this.parseNumber("0.0001")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.00065")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0")}} },
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.005")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.00035")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0.00031")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.00025")}} },
                     } },
                 } },
             } },
@@ -405,6 +405,9 @@ public partial class cryptocom : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                 } },
                 { "swap", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
@@ -502,7 +505,7 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object skipFetchCurrencies = false;
         var skipFetchCurrenciesparametersVariable = this.handleOptionAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
@@ -511,7 +514,7 @@ public partial class cryptocom : Exchange
         if (isTrue(skipFetchCurrencies))
         {
             // sub-accounts can't access this endpoint
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object response = new Dictionary<string, object>() {};
         try
@@ -523,7 +526,7 @@ public partial class cryptocom : Exchange
             {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
-                return null;
+                return new Dictionary<string, object>() {};
             }
             throw e;
         }
@@ -1883,7 +1886,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))

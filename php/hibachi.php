@@ -61,7 +61,7 @@ class hibachi extends Exchange {
                 'fetchClosedOrders' => false,
                 'fetchConvertCurrencies' => false,
                 'fetchConvertQuote' => false,
-                'fetchCurrencies' => true,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
@@ -181,6 +181,7 @@ class hibachi extends Exchange {
                     'taker' => $this->parse_number('0.00045'),
                 ),
             ),
+            'currencies' => $this->hardcoded_currencies(),
             'options' => array(
             ),
             'features' => array(
@@ -371,15 +372,7 @@ class hibachi extends Exchange {
         return $this->parse_markets($rows);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
-        /**
-         * fetches all available currencies on an exchange
-         *
-         * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
-         *
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an associative dictionary of currencies
-         */
+    public function hardcoded_currencies(): ?array {
         // Hibachi only supports USDT on Arbitrum at this time
         // We don't have an API endpoint to expose this information yet
         $result = array();
@@ -839,7 +832,7 @@ class hibachi extends Exchange {
 
     public function create_order_request(float $nonce, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
-        $feeRate = max ($this->safe_number($market, 'taker'), $this->safe_number($market, 'maker'));
+        $feeRate = max ($this->safe_number($market, 'taker', $this->safe_number($this->options, 'defaultTakerFee', 0.00045)), $this->safe_number($market, 'maker', $this->safe_number($this->options, 'defaultMakerFee', 0.00015)));
         $sideInternal = '';
         if ($side === 'sell') {
             $sideInternal = 'ASK';
@@ -1267,12 +1260,12 @@ class hibachi extends Exchange {
             return $this->hmac($message, $this->encode($privateKey), 'sha256', 'hex');
         } else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the $message
-            $hash = $this->hash($this->encode($message), 'sha256', 'hex');
+            $hash = $this->hash($message, 'sha256', 'hex');
             $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
             $r = $signature['r'];
             $s = $signature['s'];
-            $v = $signature['v'];
-            return str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $this->int_to_base16($v).padStart (2, '0');
+            $v = $this->int_to_base16($signature['v']);
+            return str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . str_pad($v, 2, '0', STR_PAD_LEFT);
         }
     }
 
@@ -1457,7 +1450,7 @@ class hibachi extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see  https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
@@ -1616,7 +1609,7 @@ class hibachi extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
-        $headers = array();
+        $headers = array( 'Hibachi-Client' => 'HibachiCCXT/unversioned' );
         if ($method === 'GET') {
             $request = $this->omit($params, $this->extract_params($path));
             $query = $this->urlencode($request);

@@ -28,9 +28,12 @@ export default class bigone extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
+                'swap': true,
                 'future': undefined,
                 'option': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketBuyOrderWithCost': true,
@@ -41,8 +44,17 @@ export default class bigone extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -52,10 +64,15 @@ export default class bigone extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -66,7 +83,10 @@ export default class bigone extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -452,7 +472,7 @@ export default class bigone extends Exchange {
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         const data = await this.fetchWebEndpoint('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         //
         // {
@@ -1257,7 +1277,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['contract']) {
-            throw new BadRequest(this.id + ' fetchTrades () can only fetch trades for spot markets');
+            throw new NotSupported(this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request = {
             'asset_pair_name': market['id'],
@@ -1324,7 +1344,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['contract']) {
-            throw new BadRequest(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
+            throw new NotSupported(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger(params, 'until');
         const untilIsDefined = (until !== undefined);

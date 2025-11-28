@@ -353,7 +353,7 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
-    public function fetch_orders_by_status_ws(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders_by_status_ws(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
              *
@@ -394,6 +394,13 @@ class gate extends \ccxt\async\gate {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-$channel
+             * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
+             * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
+             * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
+             * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -410,7 +417,7 @@ class gate extends \ccxt\async\gate {
             $url = $this->get_url_by_market($market);
             $payload = array( $marketId, $interval );
             if ($limit === null) {
-                $limit = 100;
+                $limit = 100; // max 100 atm
             }
             if ($market['contract']) {
                 $stringLimit = (string) $limit;
@@ -579,7 +586,7 @@ class gate extends \ccxt\async\gate {
     public function handle_bid_asks($bookSide, $bidAsks) {
         for ($i = 0; $i < count($bidAsks); $i++) {
             $bidAsk = $bidAsks[$i];
-            if (gettype($bidAsk) === 'array' && array_keys($bidAsk) === array_keys(array_keys($bidAsk))) {
+            if ((gettype($bidAsk) === 'array' && array_keys($bidAsk) === array_keys(array_keys($bidAsk)))) {
                 $bookSide->storeArray ($this->parse_bid_ask($bidAsk));
             } else {
                 $price = $this->safe_float($bidAsk, 'p');
@@ -733,7 +740,7 @@ class gate extends \ccxt\async\gate {
         $marketType = ($rawMarketType === 'futures') ? 'contract' : 'spot';
         $result = $this->safe_value($message, 'result');
         $results = array();
-        if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
+        if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
             $results = $this->safe_list($message, 'result', array());
         } else {
             $rawTicker = $this->safe_dict($message, 'result', array());
@@ -858,7 +865,7 @@ class gate extends \ccxt\async\gate {
         // }
         //
         $result = $this->safe_value($message, 'result');
-        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
+        if ((gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result)))) {
             $result = array( $result );
         }
         $parsedTrades = $this->parse_trades($result);
@@ -877,7 +884,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -928,7 +935,7 @@ class gate extends \ccxt\async\gate {
         $rawMarketType = $this->safe_string($channelParts, 0);
         $marketType = ($rawMarketType === 'spot') ? 'spot' : 'contract';
         $result = $this->safe_value($message, 'result');
-        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
+        if ((gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result)))) {
             $result = array( $result );
         }
         $marketIds = array();
@@ -936,8 +943,8 @@ class gate extends \ccxt\async\gate {
             $ohlcv = $result[$i];
             $subscription = $this->safe_string($ohlcv, 'n', '');
             $parts = explode('_', $subscription);
-            $timeframe = $this->safe_string($parts, 0);
-            $timeframeId = $this->find_timeframe($timeframe);
+            $timeframeId = $this->safe_string($parts, 0);
+            $timeframe = $this->find_timeframe($timeframeId);
             $prefix = $timeframe . '_';
             $marketId = str_replace($prefix, '', $subscription);
             $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
@@ -947,7 +954,7 @@ class gate extends \ccxt\async\gate {
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp ($limit);
-                $this->ohlcvs[$symbol][$timeframeId] = $stored;
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             $stored->append ($parsed);
             $marketIds[$symbol] = $timeframe;
@@ -2032,8 +2039,10 @@ class gate extends \ccxt\async\gate {
 
     public function request_id() {
         // their support said that $reqid must be an int32, not documented
+        $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;
+        $this->unlock_id();
         return $reqid;
     }
 
@@ -2105,7 +2114,7 @@ class gate extends \ccxt\async\gate {
             $channel = $messageType . '.login';
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 return Async\await($this->request_private($url, array(), $channel, $messageHash));

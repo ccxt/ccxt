@@ -121,6 +121,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Order-Book"/>  <br/>
     /// <list type="table">
@@ -134,6 +135,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.rpi</term>
+    /// <description>
+    /// boolean : *swap only* set to true to use the RPI endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -735,7 +742,7 @@ public partial class binance
     /// <item>
     /// <term>params.selfTradePrevention</term>
     /// <description>
-    /// string : set unified value for stp (see .features for available values)
+    /// string : set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
     /// </description>
     /// </item>
     /// <item>

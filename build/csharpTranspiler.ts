@@ -98,10 +98,19 @@ class NewTranspiler {
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
             [/this\.safeValue\(client\.futures,/gm, 'this.safeValue((client as WebSocketClient).futures,'],
             [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
+            [/(object \w+) = client\.futures/, '$1 = (client as WebSocketClient).futures'],
             [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
             [/(\w+)(\.cache)/gm, '($1 as ccxt.pro.OrderBook)$2'],
             //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
-            [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
+            // Match ArrayCache variables and cast to appropriate type based on variable name
+            // Order matters: check most specific types first
+            [/((?:this\.)?\w*ArrayCacheBySymbolBySide\w*)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolBySide)$2'],
+            [/((?:this\.)?\w*ArrayCacheByTimestamp\w*)(\.hashmap)/gm, '($1 as ArrayCacheByTimestamp)$2'],
+            [/((?:this\.)?\w*ArrayCacheBySymbolById\w*)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
+            // General ArrayCache pattern (must not match the specific types above)
+            [/((?:this\.)?\w+ArrayCache(?!BySymbolBySide|ByTimestamp|BySymbolById)\w*)(\.hashmap)/gm, '($1 as ArrayCache)$2'],
+            // Fallback for other variables (keep original behavior for backwards compatibility)
+            [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCache)$2'],
             [/(countedBookSide)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
             [/(\w+)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
             [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
@@ -421,7 +430,11 @@ class NewTranspiler {
         const isOptional =  param.optional || param.initializer !== undefined;
         const op = isOptional ? '?' : '';
         let paramType: any = undefined;
-        if (param.type == undefined) {
+        
+        // Special case for setMarketsFromExchange method
+        if (name === 'sourceExchange' && param.type === undefined) {
+            paramType = 'Exchange';
+        } else if (param.type == undefined) {
             paramType = 'object';
         } else {
             paramType = this.convertJavascriptTypeToCsharpType(name, param.type);
@@ -483,6 +496,7 @@ class NewTranspiler {
             'fetchCurrencies',
             'loadMarketsHelper',
             'createNetworksByIdObject',
+            'setMarketsFromExchange',
             'setProperty',
             'setProxyAgents',
             'watch',
@@ -528,6 +542,10 @@ class NewTranspiler {
         // custom handling for now
         if (methodName === 'fetchTime'){
             return `return (Int64)res;`;
+        }
+
+        if (unwrappedType === 'double') {
+            return `return (double)res;`;
         }
 
         // handle the typescript type Dict
@@ -718,7 +736,7 @@ class NewTranspiler {
 
     transpileBaseMethods(baseExchangeFile: string) {
         const csharpExchangeBase = BASE_METHODS_FILE;
-        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
@@ -736,6 +754,9 @@ class NewTranspiler {
         baseClass = baseClass.replaceAll("client.resolve", "// client.resolve"); // tmp fix for c#
         baseClass = baseClass.replaceAll("((object)this).number = float;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replaceAll(/(\w+)(\.storeArray\(.+\))/gm, '($1 as ccxt.pro.IOrderBookSide)$2'); // tmp fix for c#
+        
+        // Fix setMarketsFromExchange parameter type
+        baseClass = baseClass.replaceAll(/public virtual object setMarketsFromExchange\(object sourceExchange\)/g, 'public virtual Exchange setMarketsFromExchange(Exchange sourceExchange)');
         // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
         // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
@@ -745,6 +766,8 @@ class NewTranspiler {
 
         // WS fixes
         baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
+        baseClass = baseClass.replace(/(object \w+) = client\.futures/gm, '$1 = (client as WebSocketClient).futures');
+
         baseClass = baseClass.replace(/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
         baseClass = baseClass.replaceAll (/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe");
 
@@ -1212,6 +1235,16 @@ class NewTranspiler {
                 [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
+                // Match ArrayCache variables and cast to appropriate type based on variable name
+                // Order matters: check most specific types first
+                [/(\w*ArrayCacheBySymbolBySide\w*)\.hashmap/g, '(($1 as ArrayCacheBySymbolBySide).hashmap)'],
+                [/(\w*ArrayCacheByTimestamp\w*)\.hashmap/g, '(($1 as ArrayCacheByTimestamp).hashmap)'],
+                [/(\w*ArrayCacheBySymbolById\w*)\.hashmap/g, '(($1 as ArrayCacheBySymbolById).hashmap)'],
+                // General ArrayCache pattern (must not match the specific types above)
+                [/(\w+ArrayCache(?!BySymbolBySide|ByTimestamp|BySymbolById)\w*)\.hashmap/g, '(($1 as ArrayCache).hashmap)'],
+                // Match stored/cached variables
+                [/\bstored\.hashmap/g, '((stored as ArrayCache).hashmap)'],
+                [/\bcached\.hashmap/g, '((cached as ArrayCache).hashmap)'],
             ]).trim ()
 
             const contentLines = content.split ('\n');
@@ -1219,6 +1252,7 @@ class NewTranspiler {
 
             const file = [
                 'using ccxt;',
+                'using ccxt.pro;',
                 'namespace Tests;',
                 '',
                 this.createGeneratedHeader().join('\n'),

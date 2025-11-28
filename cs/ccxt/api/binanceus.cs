@@ -2676,6 +2676,11 @@ public partial class binanceus : binance
         return await this.callAsync ("fapiPublicGetDepth",parameters);
     }
 
+    public async Task<object> fapiPublicGetRpiDepth (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetRpiDepth",parameters);
+    }
+
     public async Task<object> fapiPublicGetTrades (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetTrades",parameters);
@@ -2901,6 +2906,11 @@ public partial class binanceus : binance
         return await this.callAsync ("fapiPrivateGetApiTradingStatus",parameters);
     }
 
+    public async Task<object> fapiPrivateGetSymbolAdlRisk (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetSymbolAdlRisk",parameters);
+    }
+
     public async Task<object> fapiPrivateGetMultiAssetsMargin (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetMultiAssetsMargin",parameters);
@@ -3011,6 +3021,21 @@ public partial class binanceus : binance
         return await this.callAsync ("fapiPrivateGetConvertOrderStatus",parameters);
     }
 
+    public async Task<object> fapiPrivateGetAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetAlgoOrder",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetOpenAlgoOrders (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetOpenAlgoOrders",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetAllAlgoOrders (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetAllAlgoOrders",parameters);
+    }
+
     public async Task<object> fapiPrivatePostBatchOrders (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePostBatchOrders",parameters);
@@ -3034,6 +3059,11 @@ public partial class binanceus : binance
     public async Task<object> fapiPrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePostOrder",parameters);
+    }
+
+    public async Task<object> fapiPrivatePostOrderTest (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostOrderTest",parameters);
     }
 
     public async Task<object> fapiPrivatePostLeverage (object parameters = null)
@@ -3081,6 +3111,11 @@ public partial class binanceus : binance
         return await this.callAsync ("fapiPrivatePostConvertAcceptQuote",parameters);
     }
 
+    public async Task<object> fapiPrivatePostAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostAlgoOrder",parameters);
+    }
+
     public async Task<object> fapiPrivatePutListenKey (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePutListenKey",parameters);
@@ -3114,6 +3149,16 @@ public partial class binanceus : binance
     public async Task<object> fapiPrivateDeleteListenKey (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateDeleteListenKey",parameters);
+    }
+
+    public async Task<object> fapiPrivateDeleteAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateDeleteAlgoOrder",parameters);
+    }
+
+    public async Task<object> fapiPrivateDeleteAlgoOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateDeleteAlgoOpenOrders",parameters);
     }
 
     public async Task<object> fapiPublicV2GetTickerPrice (object parameters = null)
@@ -4099,6 +4144,11 @@ public partial class binanceus : binance
     public async Task<object> papiDeleteListenKey (object parameters = null)
     {
         return await this.callAsync ("papiDeleteListenKey",parameters);
+    }
+
+    public async Task<object> papiV2GetUmAccount (object parameters = null)
+    {
+        return await this.callAsync ("papiV2GetUmAccount",parameters);
     }
 
 }

@@ -69,7 +69,7 @@ export default class hibachi extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -189,6 +189,7 @@ export default class hibachi extends Exchange {
                     'taker': this.parseNumber('0.00045'),
                 },
             },
+            'currencies': this.hardcodedCurrencies(),
             'options': {},
             'features': {
                 'default': {
@@ -373,15 +374,7 @@ export default class hibachi extends Exchange {
         const rows = this.safeList(response, 'futureContracts');
         return this.parseMarkets(rows);
     }
-    /**
-     * @method
-     * @name hibachi#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    async fetchCurrencies(params = {}) {
+    hardcodedCurrencies() {
         // Hibachi only supports USDT on Arbitrum at this time
         // We don't have an API endpoint to expose this information yet
         const result = {};
@@ -837,7 +830,7 @@ export default class hibachi extends Exchange {
     }
     createOrderRequest(nonce, symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
-        const feeRate = Math.max(this.safeNumber(market, 'taker'), this.safeNumber(market, 'maker'));
+        const feeRate = Math.max(this.safeNumber(market, 'taker', this.safeNumber(this.options, 'defaultTakerFee', 0.00045)), this.safeNumber(market, 'maker', this.safeNumber(this.options, 'defaultMakerFee', 0.00015)));
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -1256,12 +1249,12 @@ export default class hibachi extends Exchange {
         }
         else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-            const hash = this.hash(this.encode(message), sha256, 'hex');
+            const hash = this.hash(message, sha256, 'hex');
             const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
             const r = signature['r'];
             const s = signature['s'];
-            const v = signature['v'];
-            return r.padStart(64, '0') + s.padStart(64, '0') + this.intToBase16(v).padStart(2, '0');
+            const v = this.intToBase16(signature['v']);
+            return r.padStart(64, '0') + s.padStart(64, '0') + v.padStart(2, '0');
         }
     }
     /**
@@ -1596,7 +1589,7 @@ export default class hibachi extends Exchange {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + endpoint;
-        headers = {};
+        headers = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
         if (method === 'GET') {
             const request = this.omit(params, this.extractParams(path));
             const query = this.urlencode(request);

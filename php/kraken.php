@@ -39,6 +39,7 @@ class kraken extends Exchange {
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
@@ -228,6 +229,24 @@ class kraken extends Exchange {
                 'UST' => 'USTC',
                 'XBT' => 'BTC',
                 'XDG' => 'DOGE',
+                'FEE' => 'KFEE',
+                'XETC' => 'ETC',
+                'XETH' => 'ETH',
+                'XLTC' => 'LTC',
+                'XMLN' => 'MLN',
+                'XREP' => 'REP',
+                'XXBT' => 'BTC',
+                'XXDG' => 'DOGE',
+                'XXLM' => 'XLM',
+                'XXMR' => 'XMR',
+                'XXRP' => 'XRP',
+                'XZEC' => 'ZEC',
+                'ZAUD' => 'AUD',
+                'ZCAD' => 'CAD',
+                'ZEUR' => 'EUR',
+                'ZGBP' => 'GBP',
+                'ZJPY' => 'JPY',
+                'ZUSD' => 'USD',
             ),
             'options' => array(
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -421,6 +440,7 @@ class kraken extends Exchange {
                     'OriginTrail' => 'OTP',
                     'Celestia' => 'TIA',
                 ),
+                'marketHelperProps' => array( 'marketsByAltname', 'delistedMarketsById' ), // used by setMarketsFromExchange
             ),
             'features' => array(
                 'spot' => array(
@@ -447,7 +467,11 @@ class kraken extends Exchange {
                         'selfTradePrevention' => true, // todo implement
                         'iceberg' => true, // todo implement
                     ),
-                    'createOrders' => null,
+                    'createOrders' => array(
+                        'min' => 2,
+                        'max' => 15,
+                        'sameSymbolOnly' => true,
+                    ),
                     'fetchMyTrades' => array(
                         'marginMode' => false,
                         'limit' => null,
@@ -609,10 +633,12 @@ class kraken extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
             $market = $markets[$id];
-            $baseId = $this->safe_string($market, 'base');
-            $quoteId = $this->safe_string($market, 'quote');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
+            $baseIdRaw = $this->safe_string($market, 'base');
+            $quoteIdRaw = $this->safe_string($market, 'quote');
+            $baseId = $this->safe_currency_code($baseIdRaw);
+            $quoteId = $this->safe_currency_code($quoteIdRaw);
+            $base = $baseId;
+            $quote = $quoteId;
             $makerFees = $this->safe_list($market, 'fees_maker', array());
             $firstMakerFee = $this->safe_list($makerFees, 0, array());
             $firstMakerFeeRate = $this->safe_string($firstMakerFee, 1);
@@ -699,19 +725,6 @@ class kraken extends Exchange {
         }
         $this->options['marketsByAltname'] = $this->index_by($result, 'altname');
         return $result;
-    }
-
-    public function safe_currency($currencyId, ?array $currency = null) {
-        if ($currencyId !== null) {
-            if (strlen($currencyId) > 3) {
-                if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
-                    if (!(mb_strpos($currencyId, '.') > 0) && ($currencyId !== 'ZEUS')) {
-                        $currencyId = mb_substr($currencyId, 1);
-                    }
-                }
-            }
-        }
-        return parent::safe_currency($currencyId, $currency);
     }
 
     public function fetch_status($params = array ()) {
@@ -1134,7 +1147,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1415,7 +1428,7 @@ class kraken extends Exchange {
         $orderId = null;
         $fee = null;
         $symbol = null;
-        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
+        if ((gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade)))) {
             $timestamp = $this->safe_timestamp($trade, 2);
             $side = ($trade[3] === 's') ? 'sell' : 'buy';
             $type = ($trade[4] === 'l') ? 'limit' : 'market';
@@ -1682,6 +1695,79 @@ class kraken extends Exchange {
         return $this->parse_order($result);
     }
 
+    public function create_orders(array $orders, $params = array ()) {
+        /**
+         * create a list of trade $orders
+         *
+         * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+         *
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        $orderSymbols = array();
+        $symbol = null;
+        $market = null;
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $marketId = $this->safe_string($rawOrder, 'symbol');
+            if ($symbol === null) {
+                $symbol = $marketId;
+            } else {
+                if ($symbol !== $marketId) {
+                    throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                }
+            }
+            $market = $this->market($marketId);
+            $orderSymbols[] = $marketId;
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $req = array(
+                'type' => $side,
+                'ordertype' => $type,
+                'volume' => $this->amount_to_precision($market['symbol'], $amount),
+            );
+            $orderRequest = $this->order_request('createOrders', $marketId, $type, $req, $amount, $price, $orderParams);
+            $ordersRequests[] = $orderRequest[0];
+        }
+        $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
+        $response = null;
+        $request = array(
+            'orders' => $ordersRequests,
+            'pair' => $market['id'],
+        );
+        $request = $this->extend($request, $params);
+        $response = $this->privatePostAddOrderBatch ($request);
+        //
+        //         {
+        //    "error":array(
+        //    ),
+        //    "result":{
+        //       "orders":array(
+        //          {
+        //             "txid":"OEPPJX-34RMM-OROGZE",
+        //             "descr":array(
+        //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+        //             }
+        //          ),
+        //          {
+        //             "txid":"OLQY7O-OYBXW-W23PGL",
+        //             "descr":{
+        //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
+        //             }
+        //          }
+        //       )
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_orders($this->safe_list($result, 'orders'));
+    }
+
     public function find_market_by_altname_or_id($id) {
         $marketsByAltname = $this->safe_value($this->options, 'marketsByAltname', array());
         if (is_array($marketsByAltname) && array_key_exists($id, $marketsByAltname)) {
@@ -1732,6 +1818,10 @@ class kraken extends Exchange {
         $statuses = array(
             'pending' => 'open', // order pending book entry
             'open' => 'open',
+            'pending_new' => 'open',
+            'new' => 'open',
+            'partially_filled' => 'open',
+            'filled' => 'closed',
             'closed' => 'closed',
             'canceled' => 'canceled',
             'expired' => 'expired',
@@ -2504,7 +2594,7 @@ class kraken extends Exchange {
         ));
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          *
@@ -2540,7 +2630,7 @@ class kraken extends Exchange {
          *
          * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
          *
-         * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {string} $symbol unified market $symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -3050,7 +3140,7 @@ class kraken extends Exchange {
         //
         $rawWithdrawals = null;
         $result = $this->safe_value($response, 'result');
-        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
+        if ((gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result)))) {
             $rawWithdrawals = $this->add_pagination_cursor_to_result($result);
         } else {
             $rawWithdrawals = $result;
@@ -3220,21 +3310,24 @@ class kraken extends Exchange {
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
+         * @param {string} $address the $address to withdraw to, not required can be '' or null/none/null
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
         if (is_array($params) && array_key_exists('key', $params)) {
             $this->load_markets();
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
                 'amount' => $amount,
-                'address' => $address,
+                // 'address' => $address,
             );
+            if ($address !== null && $address !== '') {
+                $request['address'] = $address;
+                $this->check_address($address);
+            }
             $response = $this->privatePostWithdraw ($this->extend($request, $params));
             //
             //     {
@@ -3475,10 +3568,11 @@ class kraken extends Exchange {
                 $isTriggerPercent = (str_ends_with($price, '%')) ? true : false;
             }
             $isCancelOrderBatch = ($path === 'CancelOrderBatch');
+            $isBatchOrder = ($path === 'AddOrderBatch');
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if ($isCancelOrderBatch || $isTriggerPercent) {
+            if ($isCancelOrderBatch || $isTriggerPercent || $isBatchOrder) {
                 $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             } else {
                 $body = $this->urlencode_nested($this->extend(array( 'nonce' => $nonce ), $params));
@@ -3493,7 +3587,7 @@ class kraken extends Exchange {
                 'API-Key' => $this->apiKey,
                 'API-Sign' => $signature,
             );
-            if ($isCancelOrderBatch || $isTriggerPercent) {
+            if ($isCancelOrderBatch || $isTriggerPercent || $isBatchOrder) {
                 $headers['Content-Type'] = 'application/json';
             } else {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -3518,16 +3612,32 @@ class kraken extends Exchange {
         }
         if ($body[0] === '{') {
             if (gettype($response) !== 'string') {
+                $message = $this->id . ' ' . $body;
                 if (is_array($response) && array_key_exists('error', $response)) {
                     $numErrors = count($response['error']);
                     if ($numErrors) {
-                        $message = $this->id . ' ' . $body;
                         for ($i = 0; $i < count($response['error']); $i++) {
                             $error = $response['error'][$i];
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
                             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
                         }
                         throw new ExchangeError($message);
+                    }
+                }
+                // handleCreateOrdersErrors:
+                if (is_array($response) && array_key_exists('result', $response)) {
+                    $result = $this->safe_dict($response, 'result', array());
+                    if (is_array($result) && array_key_exists('orders', $result)) {
+                        $orders = $this->safe_list($result, 'orders', array());
+                        for ($i = 0; $i < count($orders); $i++) {
+                            $order = $orders[$i];
+                            $error = $this->safe_string($order, 'error');
+                            if ($error !== null) {
+                                $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
+                                $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
+                                throw new ExchangeError($message);
+                            }
+                        }
                     }
                 }
             }

@@ -118,7 +118,7 @@ class mexc(ccxt.async_support.mexc):
         #         "symbol": "BTC_USDT",
         #         "data": {
         #             "symbol": "BTC_USDT",
-        #             "lastPrice": 76376.2,
+        #             "lastPrice": 76376.1,
         #             "riseFallRate": -0.0006,
         #             "fairPrice": 76374.4,
         #             "indexPrice": 76385.8,
@@ -181,7 +181,7 @@ class mexc(ccxt.async_support.mexc):
         self.handle_bid_ask(client, message)
         rawTicker = self.safe_dict_n(message, ['d', 'data', 'publicAggreBookTicker'])
         marketId = self.safe_string_2(message, 's', 'symbol')
-        timestamp = self.safe_integer_2(message, 't', 'sendtime')
+        timestamp = self.safe_integer_2(message, 't', 'sendTime')
         market = self.safe_market(marketId)
         symbol = market['symbol']
         ticker = None
@@ -530,7 +530,7 @@ class mexc(ccxt.async_support.mexc):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
@@ -843,6 +843,7 @@ class mexc(ccxt.async_support.mexc):
             self.orderbooks[symbol] = self.order_book()
         storedOrderBook = self.orderbooks[symbol]
         nonce = self.safe_integer(storedOrderBook, 'nonce')
+        shouldReturn = False
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
@@ -855,10 +856,13 @@ class mexc(ccxt.async_support.mexc):
             timestamp = self.safe_integer_n(message, ['t', 'ts', 'sendTime'])
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
-            storedOrderBook['nonce'] = self.safe_integer(data, 'fromVersion')
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
+            # return
+            shouldReturn = True
+        if shouldReturn:
+            return  # go requirement
         client.resolve(storedOrderBook, messageHash)
 
     def handle_bookside_delta(self, bookside, bidasks):
@@ -960,14 +964,16 @@ class mexc(ccxt.async_support.mexc):
         # swap
         #     {
         #         "symbol": "BTC_USDT",
-        #         "data": {
-        #             "p": 27307.3,
-        #             "v": 5,
-        #             "T": 2,
-        #             "O": 3,
-        #             "M": 1,
-        #             "t": 1680055941870
-        #         },
+        #         "data": [
+        #            {
+        #                "p": 114350.4,
+        #                "v": 4,
+        #                "T": 2,
+        #                "O": 3,
+        #                "M": 2,
+        #                "t": 1760368563597
+        #            }
+        #         ],
         #         "channel": "push.deal",
         #         "ts": 1680055941870
         #     }
@@ -981,8 +987,10 @@ class mexc(ccxt.async_support.mexc):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        d = self.safe_dict_n(message, ['d', 'data', 'publicAggreDeals'])
+        d = self.safe_dict_n(message, ['d', 'publicAggreDeals'])
         trades = self.safe_list_2(d, 'deals', 'dealsList', [d])
+        if d is None:
+            trades = self.safe_list(message, 'data', [])
         for j in range(0, len(trades)):
             parsedTrade = None
             if market['spot']:
@@ -1369,7 +1377,7 @@ class mexc(ccxt.async_support.mexc):
             }
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
-            'clientOrderId': self.safe_string(order, 'clientOrderId'),
+            'clientOrderId': self.safe_string(order, 'clientId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -1449,18 +1457,21 @@ class mexc(ccxt.async_support.mexc):
     def handle_balance(self, client: Client, message):
         #
         # spot
+        #
         #    {
-        #        "c": "spot@private.account.v3.api",
-        #        "d": {
-        #            "a": "USDT",
-        #            "c": 1678185928428,
-        #            "f": "302.185113007893322435",
-        #            "fd": "-4.990689704",
-        #            "l": "4.990689704",
-        #            "ld": "4.990689704",
-        #            "o": "ENTRUST_PLACE"
-        #        },
-        #        "t": 1678185928435
+        #        channel: "spot@private.account.v3.api.pb",
+        #        createTime: "1758134605364",
+        #        sendTime: "1758134605373",
+        #        privateAccount: {
+        #          vcoinName: "USDT",
+        #          coinId: "128f589271cb4951b03e71e6323eb7be",
+        #          balanceAmount: "0.006016465074677006",
+        #          balanceAmountChange: "-4.4022",
+        #          frozenAmount: "4.4022",
+        #          frozenAmountChange: "4.4022",
+        #          type: "ENTRUST_PLACE",
+        #          time: "1758134605364",
+        #       }
         #    }
         #
         #
@@ -1478,22 +1489,22 @@ class mexc(ccxt.async_support.mexc):
         #         "ts": 1680059188190
         #     }
         #
-        c = self.safe_string_2(message, 'c', 'channel')
-        type = 'swap' if (c is None) else 'spot'
+        channel = self.safe_string(message, 'channel')
+        type = 'spot' if (channel == 'spot@private.account.v3.api.pb') else 'swap'
         messageHash = 'balance:' + type
-        data = self.safe_dict_n(message, ['d', 'data', 'privateAccount'])
-        futuresTimestamp = self.safe_integer(message, 'ts')
-        timestamp = self.safe_integer_2(data, 'c', 'time', futuresTimestamp)
+        data = self.safe_dict_n(message, ['data', 'privateAccount'])
+        futuresTimestamp = self.safe_integer_2(message, 'ts', 'createTime')
+        timestamp = self.safe_integer_2(data, 'time', futuresTimestamp)
         if not (type in self.balance):
             self.balance[type] = {}
         self.balance[type]['info'] = data
         self.balance[type]['timestamp'] = timestamp
         self.balance[type]['datetime'] = self.iso8601(timestamp)
-        currencyId = self.safe_string_n(data, ['a', 'currency', 'vcoinName'])
+        currencyId = self.safe_string_n(data, ['currency', 'vcoinName'])
         code = self.safe_currency_code(currencyId)
         account = self.account()
-        account['total'] = self.safe_string_n(data, ['f', 'availableBalance', 'balanceAmount'])
-        account['used'] = self.safe_string_n(data, ['l', 'frozenBalance', 'frozenAmount'])
+        account['free'] = self.safe_string_2(data, 'balanceAmount', 'availableBalance')
+        account['used'] = self.safe_string_n(data, ['frozenBalance', 'frozenAmount'])
         self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], messageHash)
@@ -1514,14 +1525,14 @@ class mexc(ccxt.async_support.mexc):
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id']
             url = self.urls['api']['ws']['spot']
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'unsub.ticker'
             requestParams: dict = {
                 'symbol': market['id'],
             }
             url = self.urls['api']['ws']['swap']
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None
@@ -1578,7 +1589,7 @@ class mexc(ccxt.async_support.mexc):
             request['params'] = {}
             messageHashes.append('unsubscribe:ticker')
         client = self.client(url)
-        await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         self.handle_unsubscriptions(client, messageHashes)
         return None
 
@@ -1612,11 +1623,11 @@ class mexc(ccxt.async_support.mexc):
             'params': topics,
         }
         client = self.client(url)
-        await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         self.handle_unsubscriptions(client, messageHashes)
         return None
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1636,7 +1647,7 @@ class mexc(ccxt.async_support.mexc):
             url = self.urls['api']['ws']['spot']
             channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.kline'
@@ -1644,7 +1655,7 @@ class mexc(ccxt.async_support.mexc):
                 'symbol': market['id'],
                 'interval': timeframeId,
             }
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None
@@ -1668,14 +1679,14 @@ class mexc(ccxt.async_support.mexc):
             frequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'frequency', '100ms')
             channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id']
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.depth'
             requestParams: dict = {
                 'symbol': market['id'],
             }
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None
@@ -1697,14 +1708,14 @@ class mexc(ccxt.async_support.mexc):
             url = self.urls['api']['ws']['spot']
             channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id']
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.deal'
             requestParams: dict = {
                 'symbol': market['id'],
             }
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None

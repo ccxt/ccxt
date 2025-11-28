@@ -12,6 +12,46 @@
         "leverageBrackets":{"BTC/USDT:USDT":[["0","0.004"],["50000","0.005"],["250000","0.01"],["3000000","0.025"],["20000000","0.05"],["40000000","0.1"],["100000000","0.125"],["120000000","0.15"],["200000000","0.25"],["300000000","0.5"]],"ETH/USDT:USDT":[["0","0.005"],["100000","0.0065"],["250000","0.01"],["2000000","0.02"],["15000000","0.05"],["30000000","0.1"],["60000000","0.125"],["80000000","0.15"],["100000000","0.25"],["150000000","0.5"]],"LTC/USDT:USDT":[["0","0.0065"],["10000","0.01"],["50000","0.02"],["250000","0.05"],["1000000","0.1"],["2000000","0.125"],["5000000","0.15"],["10000000","0.25"]],"ADA/USDT:USDT":[["0","0.0065"],["10000","0.01"],["50000","0.02"],["250000","0.05"],["1000000","0.1"],["2000000","0.125"],["5000000","0.15"],["10000000","0.25"]],"BTC/USD:BTC":[["0","0.004"],["5","0.005"],["10","0.01"],["20","0.025"],["50","0.05"],["100","0.1"],["200","0.125"],["400","0.15"],["1000","0.25"],["1500","0.5"]]}
     },
     "methods": {
+        "cancelOrderWithClientOrderId": [
+            {
+                "description": "cancel order with clientOrderId",
+                "method": "cancelOrderWithClientOrderId",
+                "url": "https://demo-fapi.binance.com/fapi/v1/order?timestamp=1762259428215&symbol=LTCUSDT&origClientOrderId=myid123&recvWindow=10000&signature=daf4d5fb32379b627965552800d412f40252494e7bd40bafab3cef56435378a5",
+                "input": [
+                    "myid123",
+                    "LTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "editOrderWithClientOrderId": [
+            {
+                "description": "edit  order with clientOrderId",
+                "method": "editOrderWithClientOrderId",
+                "url": "https://demo-fapi.binance.com/fapi/v1/order",
+                "input": [
+                    "myid123",
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    55
+                ],
+                "output": "timestamp=1762259388167&symbol=LTCUSDT&side=BUY&orderId=&quantity=0.2&price=55&origClientOrderId=myid123&clientOrderId=myid123&recvWindow=10000&signature=e8aba7b4fca2658e23f74d60acb374cb2691155b531c2f01b978545502bb81c3"
+            }
+        ],
+        "fetchOrderWithClientOrderId": [
+            {
+                "description": "fetch order with clientOrderId",
+                "method": "fetchOrderWithClientOrderId",
+                "url": "https://demo-fapi.binance.com/fapi/v1/order?timestamp=1762259346959&symbol=LTCUSDT&origClientOrderId=myid123&recvWindow=10000&signature=220e2d45dbeeae63cd2474359959e3917f902744db78bb7c9efd0db8880b6ffc",
+                "input": [
+                    "myid123",
+                    "LTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot +selfTradePrevention +iceberg",
@@ -609,6 +649,23 @@
                   }
                 ],
                 "output": "timestamp=1727850728450&symbol=BTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu7115017eb3284b84905830&newOrderRespType=RESULT&type=MARKET&quantity=0.01&positionSide=SHORT&recvWindow=10000&signature=5709d8de55d46bce7ef997580b9a223d3145772c1d5c22160b53e4539246b9b2"
+            },
+            {
+                "description": "spot trailingPercent market buy order with stopLossOrTakeProfit param",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0.0086,
+                    null,
+                    {
+                        "trailingPercent": 5,
+                        "stopLossOrTakeProfit": "takeProfit"
+                    }
+                ],
+                "output": "timestamp=1758618616301&symbol=ETHUSDT&side=BUY&trailingDelta=500&newClientOrderId=x-TKT5PX2Fc0ccf4c20afe486783218b&newOrderRespType=FULL&type=TAKE_PROFIT&quantity=0.0086&recvWindow=10000&signature=8810c6839ae473d4db809a4f0c6bab214af52eb4aefa1457eed5c528dad97b49"
             }
         ],
         "createOrders": [
@@ -904,6 +961,22 @@
             }
         ],
         "cancelOrders": [
+            {
+                "description": "cancelOrders with clientOrderIds",
+                "method": "cancelOrders",
+                "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders?timestamp=1756029958875&symbol=ETHUSDT&recvWindow=10000&origclientorderidlist=%5B%22id1%22%2C%22id2%22%5D&signature=6a3b8cc049c6a824c4c6b839ec465b67c619496a33833176d7c04210d3a5335b",
+                "input": [
+                    [],
+                    "ETH/USDT:USDT",
+                    {
+                        "clientOrderIds": [
+                            "id1",
+                            "id2"
+                        ]
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Swap cancelOrders",
                 "method": "cancelOrders",
@@ -2692,6 +2765,18 @@
         ],
         "fetchAccountPositions": [
             {
+                "description": "fetch accountPositions using v2",
+                "method": "fetchAccountPositions",
+                "url": "https://papi.binance.com/papi/v2/um/account?timestamp=1761645071513&recvWindow=10000&signature=36c55ff1cbc7609dc42073c7c4b53be76503ef5f777e7a640bd9750f81f46ec0",
+                "input": [
+                    null,
+                    {
+                        "papi": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch Account Positions - linear",
                 "method": "fetchAccountPositions",
                 "url": "https://fapi.binance.com/fapi/v3/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
@@ -2728,7 +2813,7 @@
             {
                 "description": "Linear portfolio margin fetch account positions",
                 "method": "fetchAccountPositions",
-                "url": "https://papi.binance.com/papi/v1/um/account?timestamp=1707464139103&recvWindow=10000&signature=2d245f910f1fe4d4a5481bdfe529e9e1815cea7085e6dc4e1d7640e4e9d5bb12",
+                "url": "https://papi.binance.com/papi/v2/um/account?timestamp=1707464139103&recvWindow=10000&signature=2d245f910f1fe4d4a5481bdfe529e9e1815cea7085e6dc4e1d7640e4e9d5bb12",
                 "input": [
                     null,
                     {
@@ -3104,6 +3189,18 @@
                 "url": "https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap rpi orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://fapi.binance.com/fapi/v1/rpiDepth?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    {
+                        "rpi": true
+                    }
                 ]
             }
         ],
@@ -3641,6 +3738,36 @@
                   }
                 ],
                 "output": "timestamp=1718724487672&coin=USDT&address=TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N&amount=10.34332&network=TRX&recvWindow=10000&signature=d9a2ecdfd7a207b2e7770b45a1971a3ea6bfcdb9c0796691b6528a7a7b77fe02"
+            },
+            {
+                "description": "withdraw using custom precision 1",
+                "method": "withdraw",
+                "url": "https://api.binance.com/sapi/v1/capital/withdraw/apply",
+                "input": [
+                  "ASR",
+                  10.34,
+                  "xyz",
+                  null,
+                  {
+                    "network": "BSC"
+                  }
+                ],
+                "output": "timestamp=1718724487672&coin=ASR&address=xyz&amount=10.34&network=BSC&recvWindow=10000&signature=signature"
+            },
+            {
+                "description": "withdraw using custom precision 2",
+                "method": "withdraw",
+                "url": "https://api.binance.com/sapi/v1/capital/withdraw/apply",
+                "input": [
+                  "ASR",
+                  10.34,
+                  "xyz",
+                  null,
+                  {
+                    "network": "CHZ"
+                  }
+                ],
+                "output": "timestamp=1718724487672&coin=ASR&address=xyz&amount=10&network=CHZ&recvWindow=10000&signature=signature"
             }
         ],
         "fetchCurrencies": [

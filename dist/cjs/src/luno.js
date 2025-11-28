@@ -225,6 +225,9 @@ class luno extends luno$1["default"] {
             'features': {
                 'spot': {
                     'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,
@@ -311,7 +314,7 @@ class luno extends luno$1["default"] {
      */
     async fetchCurrencies(params = {}) {
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         const response = await this.privateGetSendNetworks(params);
         //

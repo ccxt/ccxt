@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.100'
+__version__ = '4.5.22'
 
 # ----------------------------------------------------------------------------
 
@@ -59,7 +59,9 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
+from ccxt.pro.arkham import arkham                                        # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
+from ccxt.pro.backpack import backpack                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
 from ccxt.pro.binance import binance                                      # noqa: F401
 from ccxt.pro.binancecoinm import binancecoinm                            # noqa: F401
@@ -89,9 +91,11 @@ from ccxt.pro.coincheck import coincheck                                  # noqa
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.coinone import coinone                                      # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
+from ccxt.pro.deepcoin import deepcoin                                    # noqa: F401
 from ccxt.pro.defx import defx                                            # noqa: F401
 from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.derive import derive                                        # noqa: F401
+from ccxt.pro.dydx import dydx                                            # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateio import gateio                                        # noqa: F401
@@ -113,7 +117,6 @@ from ccxt.pro.mexc import mexc                                            # noqa
 from ccxt.pro.modetrade import modetrade                                  # noqa: F401
 from ccxt.pro.myokx import myokx                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
-from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.okxus import okxus                                          # noqa: F401
 from ccxt.pro.onetrading import onetrading                                # noqa: F401
@@ -123,9 +126,8 @@ from ccxt.pro.paradex import paradex                                      # noqa
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
-from ccxt.pro.tradeogre import tradeogre                                  # noqa: F401
+from ccxt.pro.toobit import toobit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
-from ccxt.pro.vertex import vertex                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.woo import woo                                              # noqa: F401
 from ccxt.pro.woofipro import woofipro                                    # noqa: F401
@@ -134,7 +136,9 @@ from ccxt.pro.xt import xt                                                # noqa
 exchanges = [
     'alpaca',
     'apex',
+    'arkham',
     'ascendex',
+    'backpack',
     'bequant',
     'binance',
     'binancecoinm',
@@ -164,9 +168,11 @@ exchanges = [
     'coinex',
     'coinone',
     'cryptocom',
+    'deepcoin',
     'defx',
     'deribit',
     'derive',
+    'dydx',
     'exmo',
     'gate',
     'gateio',
@@ -188,7 +194,6 @@ exchanges = [
     'modetrade',
     'myokx',
     'ndax',
-    'okcoin',
     'okx',
     'okxus',
     'onetrading',
@@ -198,9 +203,8 @@ exchanges = [
     'phemex',
     'poloniex',
     'probit',
-    'tradeogre',
+    'toobit',
     'upbit',
-    'vertex',
     'whitebit',
     'woo',
     'woofipro',

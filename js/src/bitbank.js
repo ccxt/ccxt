@@ -49,6 +49,7 @@ export default class bitbank extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -937,7 +938,7 @@ export default class bitbank extends Exchange {
         const address = this.safeString(firstAccount, 'address');
         return {
             'info': response,
-            'currency': currency,
+            'currency': currency['code'],
             'network': undefined,
             'address': address,
             'tag': undefined,

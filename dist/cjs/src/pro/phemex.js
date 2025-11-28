@@ -74,8 +74,10 @@ class phemex extends phemex$1["default"] {
         return this.fromEn(er, this.safeInteger(market, 'ratioScale'));
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId;
     }
     parseSwapTicker(ticker, market = undefined) {
@@ -113,7 +115,7 @@ class phemex extends phemex$1["default"] {
             average = this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(lastString, openString), '2'));
             percentage = this.parseNumber(Precise["default"].stringMul(Precise["default"].stringSub(Precise["default"].stringDiv(lastString, openString), '1'), '100'));
         }
-        const result = {
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -136,8 +138,7 @@ class phemex extends phemex$1["default"] {
             'markPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'markPrice'), market)),
             'indexPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'indexPrice'), market)),
             'info': ticker,
-        };
-        return result;
+        });
     }
     parsePerpetualTicker(ticker, market = undefined) {
         //
@@ -173,7 +174,7 @@ class phemex extends phemex$1["default"] {
             average = this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(lastString, openString), '2'));
             percentage = this.parseNumber(Precise["default"].stringMul(Precise["default"].stringSub(Precise["default"].stringDiv(lastString, openString), '1'), '100'));
         }
-        const result = {
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -194,8 +195,7 @@ class phemex extends phemex$1["default"] {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
-        return result;
+        });
     }
     handleTicker(client, message) {
         //
@@ -1145,6 +1145,10 @@ class phemex extends phemex$1["default"] {
             }
         }
         else {
+            const messageLength = message.length;
+            if (messageLength === 0) {
+                return;
+            }
             for (let i = 0; i < message.length; i++) {
                 const update = message[i];
                 const action = this.safeString(update, 'action');

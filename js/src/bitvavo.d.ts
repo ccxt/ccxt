@@ -6,8 +6,6 @@ import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Ord
  */
 export default class bitvavo extends Exchange {
     describe(): any;
-    amountToPrecision(symbol: any, amount: any): string;
-    priceToPrecision(symbol: any, price: any): string;
     /**
      * @method
      * @name bitvavo#fetchTime
@@ -148,7 +146,7 @@ export default class bitvavo extends Exchange {
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
      * @param {string} [params.triggerType] "price"
      * @param {string} [params.triggerReference] "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
-     * @param {string} [params.selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+     * @param {string} [params.selfTradePrevention] one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
      * @param {bool} [params.disableMarketProtection] don't cancel if the next fill price is 10% worse than the best fill price
      * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
