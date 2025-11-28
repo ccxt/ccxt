@@ -105,8 +105,6 @@ public class Tests
         ReadConfig();
         InitOptions(args);
 
-        BaseTest.testSharedMethods = new testMainClass.SharedMethods();
-
         RunBaseTests().Wait();
 
         if (raceCondition)
