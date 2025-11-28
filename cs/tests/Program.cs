@@ -42,7 +42,7 @@ public class Tests
 
     public static string[] args;
 
-    public static BaseTest tests = new BaseTest();
+    public static BaseTest baseTestInstance = new BaseTest();
 
     static void InitOptions(string[] args)
     {
@@ -105,6 +105,8 @@ public class Tests
         ReadConfig();
         InitOptions(args);
 
+        BaseTest.testSharedMethods = new testMainClass.SharedMethods();
+
         RunBaseTests().Wait();
 
         if (raceCondition)
@@ -141,10 +143,10 @@ public class Tests
 
     static void RestBaseTests()
     {
-        tests.testCryptography();
+        baseTestInstance.testCryptography();
         Helper.Green(" [C#] Crypto tests passed");
         // run auto-transpiled tests (all of them start by 'testFunction')
-        RunAutoTranspiledBaseTests (tests);
+        RunAutoTranspiledBaseTests (baseTestInstance);
     }
 
     static async void RunAutoTranspiledBaseTests(object testsInstance) {
@@ -166,19 +168,19 @@ public class Tests
 
     static void WsCacheTests()
     {
-        tests.testWsCache();
+        baseTestInstance.testWsCache();
         Helper.Green(" [C#] ArrayCache tests passed");
     }
 
     static void WsOrderBookTests()
     {
-        tests.testWsOrderBook();
+        baseTestInstance.testWsOrderBook();
         Helper.Green(" [C#] OrderBook tests passed");
     }
 
     static void RaceConditionTests()
     {
-        var res = tests.RaceTest();
+        var res = baseTestInstance.RaceTest();
         res.Wait();
         Helper.Green(" [C#] RaceCondition tests passed");
     }
