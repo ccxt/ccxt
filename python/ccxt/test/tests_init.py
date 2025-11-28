@@ -38,5 +38,5 @@ else:
             if not runAll:
                 exit(0)
         await testMainClassAsync().init(argvExchange, argvSymbol, argvMethod)
-    
+
     asyncio.run(main())
