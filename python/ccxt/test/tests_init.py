@@ -37,6 +37,6 @@ if (IS_SYNCHRONOUS):
     from tests_sync import testMainClass as testMainClassSync
     testMainClassSync().init(argvExchange, argvSymbol, argvMethod)
 else:
-    asyncio.run(run_base_tests())
+    run_base_tests()
     from tests_async import testMainClass as testMainClassAsync
     asyncio.run(testMainClassAsync().init(argvExchange, argvSymbol, argvMethod))
