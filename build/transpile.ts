@@ -2149,8 +2149,10 @@ class Transpiler {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
-            py: './python/ccxt/test/base/',
-            php: './php/test/base/',
+            pySync: './python/ccxt/test/base/sync/',
+            pyAsync: './python/ccxt/test/base/async/',
+            phpSync: './php/test/base/sync/',
+            phpAsync: './php/test/base/async/',
         };
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -2168,8 +2170,10 @@ class Transpiler {
                 base: true,
                 name: testName,
                 tsFile: tsFile,
-                pyFileSync: baseFolders.py + unCamelCasedFileName + '.py',
-                phpFileSync: baseFolders.php + unCamelCasedFileName + '.php',
+                pyFileSync  : baseFolders.pySync   + unCamelCasedFileName + '.py',
+                pyFileAsync : baseFolders.pyAsync  + unCamelCasedFileName + '.py',
+                phpFileSync : baseFolders.phpSync  + unCamelCasedFileName + '.php',
+                phpFileAsync: baseFolders.phpAsync + unCamelCasedFileName + '.php',
             };
             // Add ArrayCache imports if the test uses cache classes
             if (tsContent.includes('ArrayCache') || tsContent.includes('ArrayCacheByTimestamp') || 
@@ -2402,16 +2406,6 @@ class Transpiler {
             fileConfig.push({"language": "python", "async": true})
         }
 
-        // @ts-expect-error
-        if (tests.base) {
-            fileConfig = []
-            if (this.buildPHP) {
-                fileConfig.push({ language: "php", async: false})
-            }
-            if (this.buildPython) {
-                fileConfig.push({ language: "python", async: false})
-            }
-        }
         const parserConfig = {
             'verbose': false,
             'python':{
@@ -2499,11 +2493,6 @@ class Transpiler {
             }
 
             const usesEqualsFunction = needsEquals[i];
-            // @ts-expect-error
-            if (tests.base) {
-                phpAsync = '';
-                pythonAsync = '';
-            }
 
             const imports: any[] = result[0].imports;
 
@@ -2586,22 +2575,19 @@ class Transpiler {
 
             for (const subTestName of requiredSubTests) {
                 const snake_case = unCamelCase(subTestName);
-                const isSharedMethodsImport = subTestName.includes ('SharedMethods');
+                const hasSharedMethodsImport = subTestName.includes ('SharedMethods');
                 const isSameDirImport = tests.find(t => t.name === subTestName);
                 const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/exchange/base/';
                 let pySuffix = isSameDirImport ? '' : '.exchange.base';
                 const isLangSpec = subTestName === 'testLanguageSpecific';
 
-                if (isSharedMethodsImport) {
+                if (hasSharedMethodsImport) {
                     pythonHeaderAsync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
                     pythonHeaderSync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
 
                     // php
-                    if (!test.base) {
-                        phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
-                    } else {
-                        phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
-                    }
+                    phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
+                    phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
                 } else {
                     if (test.base) {
                         const phpLangSpec =  isLangSpec ? 'language_specific/' : '';
@@ -2649,16 +2635,10 @@ class Transpiler {
             test.phpFileAsyncContent = test.phpPreambleAsync + phpAsync;
             test.pyFileAsyncContent = test.pythonPreambleAsync + pythonAsync;
 
-            if (!test.base) {
-                if (test.phpFileAsync && this.buildPHP) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
-                if (test.pyFileAsync && this.buildPython) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
-            }
-            if (test.phpFileSync) {
-                if (test.phpFileSync && this.buildPHP) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
-            }
-            if (test.pyFileSync) {
-                if (test.pyFileSync && this.buildPython) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
-            }
+            if (test.phpFileAsync && this.buildPHP) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
+            if (test.pyFileAsync && this.buildPython) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
+            if (test.phpFileSync && this.buildPHP) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
+            if (test.pyFileSync && this.buildPython) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
         }
     }
 
