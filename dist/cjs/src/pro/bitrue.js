@@ -1,11 +1,13 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitrue$1 = require('../bitrue.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitrue extends bitrue$1 {
+class bitrue extends bitrue$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -457,4 +459,4 @@ class bitrue extends bitrue$1 {
     }
 }
 
-module.exports = bitrue;
+exports["default"] = bitrue;

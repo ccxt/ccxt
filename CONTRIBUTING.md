@@ -7,31 +7,8 @@
 
 ## How To Submit An Issue
 
-If you want to submit an issue and you want your issue to be resolved quickly, here's a checklist for you:
+Read the notes when opening a [new issue on github](https://github.com/ccxt/ccxt/issues/new/choose) and provide the requested details, so we can assist you better. You can aso read [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section.
 
-- Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and especially carefully read the following sections:
-  - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
-  - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
-  - [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
-  - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
-  - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
-- Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
-- Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions.
-- Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
-- Search for similar issues first to avoid duplicates.
-- If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
-  - **set `exchange.verbose = true` property on the exchange instance before calling its functions or methods**
-  - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
-  - **surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**
-  - don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''
-  - don't confuse a single backtick with triple backticks: &#096;BAD&#096;
-  - paste a complete code snippet you're having difficulties with, avoid one-liners
-  - paste the **full verbose output** of the failing method without your keys
-  - the verbose output should include the request and response from the exchange (not just an error callstack)
-  - write your language **and version**
-  - write ccxt library version
-  - which exchange it is
-  - which method you're trying to call
 
 ### Reporting Vulnerabilities And Critical Issues
 
@@ -524,7 +501,7 @@ Therefore we have a family of `safe*` functions:
 - `safeNumber (object, key, default)`, `safeNumber2 (object, key1, key2, default)` – for parsing amounts, prices, costs
 - `safeString (object, key, default)`, `safeString2 (object, key1, key2, default)` – for parsing ids, types, statuses
 - `safeStringLower (object, key, default)`, `safeStringLower2 (object, key1, key2, default)` – for parsing and turning to lowercase
-- `safeStringUpper (object, key, default)`, `safeStringUpper2 (object, key1, key2, default)` – for parsing and turning to lowercase
+- `safeStringUpper (object, key, default)`, `safeStringUpper2 (object, key1, key2, default)` – for parsing and turning to uppercase
 - `safeBool(object, key, default)` - for parsing bools inside dictionaries and arrays/lists
 - `safeList(object, key, default)` - for parsing lists/arrays inside dictionaries and arrays/lists
 - `safeDict(object, key, default)` - for parsing dictionaries inside dictionaries and arrays/lists
@@ -754,7 +731,7 @@ This section covers the request-assembly part. The `.toFixed ()` method has [kno
 
 #### Escaped Control Characters
 
-When using strings containing control characters like `"\n"`, `"\t"`, always enclose them in double quotes (`"`), not single quotes (`'`)! Single-quoted strings are not parsed for control characters and are treated as is in many languages apart from JavaScript. Therefore for tabs and newlines to work in PHP, we need to surround them with double quotes (especially in the `sign()` implementation).
+When using strings containing control characters like `"\n"`, `"\t"`, always enclose them in double quotes (`"`), not single quotes (`'`)! Single-quoted strings are not parsed for control characters and are treated as is in many languages apart from TypeScript. Therefore for tabs and newlines to work in PHP, we need to surround them with double quotes (especially in the `sign()` implementation).
 
 Bad:
 

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var vertex$1 = require('./abstract/vertex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +16,7 @@ var crypto = require('./base/functions/crypto.js');
  * @class vertex
  * @augments Exchange
  */
-class vertex extends vertex$1 {
+class vertex extends vertex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'vertex',
@@ -2421,7 +2423,7 @@ class vertex extends vertex$1 {
             // }
             //
         }
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method
@@ -2435,7 +2437,8 @@ class vertex extends vertex$1 {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        return await this.cancelOrders([id], symbol, params);
+        const order = await this.cancelOrders([id], symbol, params);
+        return this.safeOrder({ 'info': order });
     }
     /**
      * @method
@@ -3141,4 +3144,4 @@ class vertex extends vertex$1 {
     }
 }
 
-module.exports = vertex;
+exports["default"] = vertex;

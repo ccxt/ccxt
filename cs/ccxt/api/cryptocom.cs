@@ -11,6 +11,11 @@ public partial class cryptocom : Exchange
 {
     public cryptocom (object args = null): base(args) {}
 
+    public async Task<object> basePublicGetV1PublicGetAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("basePublicGetV1PublicGetAnnouncements",parameters);
+    }
+
     public async Task<object> v1PublicGetPublicAuth (object parameters = null)
     {
         return await this.callAsync ("v1PublicGetPublicAuth",parameters);
@@ -94,6 +99,11 @@ public partial class cryptocom : Exchange
     public async Task<object> v1PrivatePostPrivateCreateOrder (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostPrivateCreateOrder",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateAmendOrder (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateAmendOrder",parameters);
     }
 
     public async Task<object> v1PrivatePostPrivateCreateOrderList (object parameters = null)

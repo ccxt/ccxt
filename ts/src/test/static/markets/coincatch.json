@@ -618,18 +618,18 @@
         "subType": "inverse",
         "taker": 0.0006,
         "maker": 0.0002,
-        "contractSize": 0.001,
+        "contractSize": 0.0001,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.001,
+            "amount": 0.0001,
             "price": 0.1
         },
         "limits": {
             "amount": {
-                "min": 0.001,
+                "min": 0.0001,
                 "max": null
             },
             "price": {
@@ -653,5 +653,5 @@
         "percentage": true,
         "tierBased": false,
         "feeSide": "get"
-    }   
+    }
 }

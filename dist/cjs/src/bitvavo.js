@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitvavo$1 = require('./abstract/bitvavo.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class bitvavo
  * @augments Exchange
  */
-class bitvavo extends bitvavo$1 {
+class bitvavo extends bitvavo$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitvavo',
@@ -30,19 +32,29 @@ class bitvavo extends bitvavo$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -53,21 +65,39 @@ class bitvavo extends bitvavo$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -79,6 +109,7 @@ class bitvavo extends bitvavo$1 {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -87,9 +118,14 @@ class bitvavo extends bitvavo$1 {
                 'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
@@ -216,7 +252,12 @@ class bitvavo extends bitvavo$1 {
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': true,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': false,
+                            'EXPIRE_TAKER': false,
+                            'EXPIRE_BOTH': true,
+                            'NONE': false,
+                        },
                         'iceberg': false,
                     },
                     'createOrders': undefined,
@@ -346,25 +387,11 @@ class bitvavo extends bitvavo$1 {
                 'operatorId': undefined,
                 'fiatCurrencies': ['EUR'], // only fiat atm
             },
-            'precisionMode': number.SIGNIFICANT_DIGITS,
+            'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
         });
-    }
-    amountToPrecision(symbol, amount) {
-        // https://docs.bitfinex.com/docs/introduction#amount-precision
-        // The amount field allows up to 8 decimals.
-        // Anything exceeding this will be rounded to the 8th decimal.
-        return this.decimalToPrecision(amount, number.TRUNCATE, this.markets[symbol]['precision']['amount'], number.DECIMAL_PLACES);
-    }
-    priceToPrecision(symbol, price) {
-        price = this.decimalToPrecision(price, number.ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
-        // https://docs.bitfinex.com/docs/introduction#price-precision
-        // The precision level of all trading prices is based on significant figures.
-        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
-        // Prices submit with a precision larger than 5 will be cut by the API.
-        return this.decimalToPrecision(price, number.TRUNCATE, 8, number.DECIMAL_PLACES);
     }
     /**
      * @method
@@ -391,24 +418,27 @@ class bitvavo extends bitvavo$1 {
     async fetchMarkets(params = {}) {
         const response = await this.publicGetMarkets(params);
         //
-        //     [
-        //         {
-        //             "market":"ADA-BTC",
-        //             "status":"trading", // "trading" "halted" "auction"
-        //             "base":"ADA",
-        //             "quote":"BTC",
-        //             "pricePrecision":5,
-        //             "minOrderInBaseAsset":"100",
-        //             "minOrderInQuoteAsset":"0.001",
-        //             "orderTypes": [ "market", "limit" ]
-        //         }
-        //     ]
+        //    {
+        //        "market": "BTC-EUR",
+        //        "status": "trading",
+        //        "base": "BTC",
+        //        "quote": "EUR",
+        //        "pricePrecision": "0", // deprecated, this is mostly 0 across other markets too, which is abnormal, so we ignore this.
+        //        "tickSize": "1.00",
+        //        "minOrderInBaseAsset": "0.00006100",
+        //        "minOrderInQuoteAsset": "5.00",
+        //        "maxOrderInBaseAsset": "1000000000.00000000",
+        //        "maxOrderInQuoteAsset": "1000000000.00",
+        //        "quantityDecimals": "8",
+        //        "notionalDecimals": "2",
+        //        "maxOpenOrders": "100",
+        //        "feeCategory": "A",
+        //        "orderTypes": [ "market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit" ]
+        //    }
         //
         return this.parseMarkets(response);
     }
     parseMarkets(markets) {
-        const currencies = this.currencies;
-        const currenciesById = this.indexBy(currencies, 'id');
         const result = [];
         const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
@@ -419,8 +449,6 @@ class bitvavo extends bitvavo$1 {
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             const status = this.safeString(market, 'status');
-            const baseCurrency = this.safeValue(currenciesById, baseId);
-            const basePrecision = this.safeInteger(baseCurrency, 'precision');
             result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -448,8 +476,9 @@ class bitvavo extends bitvavo$1 {
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
                 'precision': {
-                    'amount': this.safeInteger(baseCurrency, 'decimals', basePrecision),
-                    'price': this.safeInteger(market, 'pricePrecision'),
+                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityDecimals'))),
+                    'price': this.safeNumber(market, 'tickSize'),
+                    'cost': this.parseNumber(this.parsePrecision(this.safeString(market, 'notionalDecimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -458,7 +487,7 @@ class bitvavo extends bitvavo$1 {
                     },
                     'amount': {
                         'min': this.safeNumber(market, 'minOrderInBaseAsset'),
-                        'max': undefined,
+                        'max': this.safeNumber(market, 'maxOrderInBaseAsset'),
                     },
                     'price': {
                         'min': undefined,
@@ -466,7 +495,7 @@ class bitvavo extends bitvavo$1 {
                     },
                     'cost': {
                         'min': this.safeNumber(market, 'minOrderInQuoteAsset'),
-                        'max': undefined,
+                        'max': this.safeNumber(market, 'maxOrderInQuoteAsset'),
                     },
                 },
                 'created': undefined,
@@ -567,7 +596,7 @@ class bitvavo extends bitvavo$1 {
             const withdrawal = this.safeString(currency, 'withdrawalStatus') === 'OK';
             const active = deposit && withdrawal;
             const withdrawFee = this.safeNumber(currency, 'withdrawalFee');
-            const precision = this.safeInteger(currency, 'decimals', 8);
+            const precision = this.safeString(currency, 'decimals', '8');
             const minWithdraw = this.safeNumber(currency, 'withdrawalMinAmount');
             // btw, absolutely all of them have 1 network atm
             for (let j = 0; j < networksArray.length; j++) {
@@ -581,7 +610,7 @@ class bitvavo extends bitvavo$1 {
                     'deposit': deposit,
                     'withdraw': withdrawal,
                     'fee': withdrawFee,
-                    'precision': precision,
+                    'precision': this.parseNumber(this.parsePrecision(precision)),
                     'limits': {
                         'withdraw': {
                             'min': minWithdraw,
@@ -600,7 +629,7 @@ class bitvavo extends bitvavo$1 {
                 'withdraw': withdrawal,
                 'networks': networks,
                 'fee': withdrawFee,
-                'precision': precision,
+                'precision': undefined,
                 'type': isFiat ? 'fiat' : 'crypto',
                 'limits': {
                     'amount': {
@@ -618,8 +647,6 @@ class bitvavo extends bitvavo$1 {
                 },
             });
         }
-        // set currencies here to avoid calling publicGetAssets twice
-        this.currencies = this.deepExtend(this.currencies, result);
         return result;
     }
     /**
@@ -1191,6 +1218,19 @@ class bitvavo extends bitvavo$1 {
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
+        else {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+        }
+        let selfTradePrevention = undefined;
+        [selfTradePrevention, params] = this.handleOptionAndParams(params, 'createOrder', 'selfTradePrevention');
+        if (selfTradePrevention !== undefined) {
+            if (selfTradePrevention === 'EXPIRE_BOTH') {
+                request['selfTradePrevention'] = 'cancelBoth';
+            }
+            else {
+                request['selfTradePrevention'] = selfTradePrevention;
+            }
+        }
         return this.extend(request, params);
     }
     /**
@@ -1212,7 +1252,7 @@ class bitvavo extends bitvavo$1 {
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
      * @param {string} [params.triggerType] "price"
      * @param {string} [params.triggerReference] "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
-     * @param {string} [params.selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+     * @param {string} [params.selfTradePrevention] one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
      * @param {bool} [params.disableMarketProtection] don't cancel if the next fill price is 10% worse than the best fill price
      * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1295,6 +1335,9 @@ class bitvavo extends bitvavo$1 {
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
+        else {
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+        }
         request['market'] = market['id'];
         return request;
     }
@@ -1335,6 +1378,9 @@ class bitvavo extends bitvavo$1 {
         [operatorId, params] = this.handleOptionAndParams(params, 'cancelOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
+        }
+        else {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         return this.extend(request, params);
     }
@@ -1377,6 +1423,14 @@ class bitvavo extends bitvavo$1 {
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['market'] = market['id'];
+        }
+        let operatorId = undefined;
+        [operatorId, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt(operatorId);
+        }
+        else {
+            throw new errors.ArgumentsRequired(this.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         const response = await this.privateDeleteOrders(this.extend(request, params));
         //
@@ -2157,4 +2211,4 @@ class bitvavo extends bitvavo$1 {
     }
 }
 
-module.exports = bitvavo;
+exports["default"] = bitvavo;

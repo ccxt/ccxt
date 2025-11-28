@@ -373,6 +373,7 @@ export default class coincatch extends Exchange {
                     'ChilizChain': 'ChilizChain', // todo check
                     'StellarLumens': 'XLM', // todo check
                     'CronosChain': 'CRO', // todo check
+                    'Optimism': 'Optimism',
                 },
             },
             'features': {
@@ -612,8 +613,8 @@ export default class coincatch extends Exchange {
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString (network, 'chain');
-                const networkCode = this.networkCodeToId (networkId);
-                parsedNetworks[networkId] = {
+                const networkCode = this.networkIdToCode (networkId);
+                parsedNetworks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'limits': {
@@ -1378,7 +1379,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.price] "mark" for mark price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const methodName = 'fetchOHLCV';
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2171,7 +2172,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2320,6 +2321,7 @@ export default class coincatch extends Exchange {
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] *swap markets only* must be set to true if position mode is hedged (default false)
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.triggerPrice] the price that the order is to be triggered
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -2520,6 +2522,7 @@ export default class coincatch extends Exchange {
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
      * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
      * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2576,7 +2579,7 @@ export default class coincatch extends Exchange {
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.hedged] default false
+         * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
          * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
          * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2615,27 +2618,38 @@ export default class coincatch extends Exchange {
         }
         if ((endpointType !== 'tpsl')) {
             request['orderType'] = type;
-            let hedged: Bool = false;
-            [ hedged, params ] = this.handleOptionAndParams (params, methodName, 'hedged', hedged);
-            // hedged and non-hedged orders have different side values and reduceOnly handling
-            let reduceOnly: Bool = false;
-            [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly', reduceOnly);
-            if (hedged) {
-                if (reduceOnly) {
-                    if (side === 'buy') {
-                        side = 'close_short';
-                    } else if (side === 'sell') {
-                        side = 'close_long';
+            let sideIsExchangeSpecific = false;
+            let hedged = false;
+            if ((side === 'buy_single') || (side === 'sell_single') || (side === 'open_long') || (side === 'open_short') || (side === 'close_long') || (side === 'close_short')) {
+                sideIsExchangeSpecific = true;
+                if ((side !== 'buy_single') && (side !== 'sell_single')) {
+                    hedged = true;
+                }
+            }
+            if (!sideIsExchangeSpecific) {
+                [ hedged, params ] = this.handleOptionAndParams (params, methodName, 'hedged', hedged);
+                // hedged and non-hedged orders have different side values and reduceOnly handling
+                const reduceOnly = this.safeBool (params, 'reduceOnly');
+                if (hedged) {
+                    if ((reduceOnly !== undefined) && reduceOnly) {
+                        if (side === 'buy') {
+                            side = 'close_short';
+                        } else if (side === 'sell') {
+                            side = 'close_long';
+                        }
+                    } else {
+                        if (side === 'buy') {
+                            side = 'open_long';
+                        } else if (side === 'sell') {
+                            side = 'open_short';
+                        }
                     }
                 } else {
-                    if (side === 'buy') {
-                        side = 'open_long';
-                    } else if (side === 'sell') {
-                        side = 'open_short';
-                    }
+                    side = side.toLowerCase () + '_single';
                 }
-            } else {
-                side = side.toLowerCase () + '_single';
+            }
+            if (hedged) {
+                params = this.omit (params, 'reduceOnly');
             }
             request['side'] = side;
         }
@@ -4717,7 +4731,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         const methodName = 'setLeverage';
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument');
@@ -4905,7 +4919,7 @@ export default class coincatch extends Exchange {
      * @param {string}  [params.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPosition (symbol: string, params = {}) {
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
         const methodName = 'fetchPosition';
         let side = 'long';
         [ side, params ] = this.handleOptionAndParams (params, methodName, 'side');
@@ -4919,7 +4933,7 @@ export default class coincatch extends Exchange {
                 }
             }
         }
-        return positions[0] as Position;
+        return this.safeDict (positions, 0, {}) as Position;
     }
 
     /**

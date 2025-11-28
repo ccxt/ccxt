@@ -330,6 +330,18 @@ public partial class apex
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// float : The price a stop loss order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// float : The price a take profit order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
     /// string : "GTC", "IOC", or "POST_ONLY"
@@ -402,10 +414,10 @@ public partial class apex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// cancels an open order
@@ -422,10 +434,10 @@ public partial class apex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// fetches information on an order made by the user

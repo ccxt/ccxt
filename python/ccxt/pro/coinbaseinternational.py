@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Any, Bool, Int, Market, OrderBook, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -427,7 +427,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             'previousClose': None,
         })
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -729,7 +729,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         self.fundingRates[fundingRate['symbol']] = fundingRate
         client.resolve(fundingRate, channel + '::' + fundingRate['symbol'])
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #    {
         #        message: 'Failed to subscribe',

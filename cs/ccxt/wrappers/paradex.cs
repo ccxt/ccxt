@@ -356,10 +356,10 @@ public partial class paradex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetches information on an order made by the user
@@ -784,5 +784,65 @@ public partial class paradex
     {
         var res = await this.fetchGreeks(symbol, parameters);
         return new Greeks(res);
+    }
+    /// <summary>
+    /// fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.api.testnet.paradex.trade/#list-available-markets-summary"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}.</returns>
+    public async Task<List<Greeks>> FetchAllGreeks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchAllGreeks(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Greeks(item)).ToList<Greeks>();
+    }
+    /// <summary>
+    /// fetches historical funding rate prices
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.paradex.trade/api/prod/markets/get-funding-data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest funding rate to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of funding rate structures
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest funding rate to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
+    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
 }

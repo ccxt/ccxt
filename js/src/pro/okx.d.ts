@@ -1,5 +1,5 @@
 import okxRest from '../okx.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Liquidation } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class okx extends okxRest {
     describe(): any;
@@ -9,6 +9,8 @@ export default class okx extends okxRest {
     /**
      * @method
      * @name okx#watchTrades
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -20,11 +22,14 @@ export default class okx extends okxRest {
     /**
      * @method
      * @name okx#watchTradesForSymbols
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbols
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be 'trades' and 'trades-all'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -34,6 +39,7 @@ export default class okx extends okxRest {
      * @description unWatches from the stream channel
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be trades, trades-all
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
@@ -158,7 +164,7 @@ export default class okx extends okxRest {
      * @param {object} [params] exchange specific parameters for the okx api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchLiquidationsForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: any): void;
     /**
      * @method
@@ -171,7 +177,7 @@ export default class okx extends okxRest {
      * @param {object} [params] exchange specific parameters for the okx api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchMyLiquidationsForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleMyLiquidation(client: Client, message: any): void;
     parseWsMyLiquidation(liquidation: any, market?: any): Liquidation;
     parseWsLiquidation(liquidation: any, market?: any): Liquidation;
@@ -382,7 +388,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name okx#cancelAllOrdersWs
@@ -392,15 +398,15 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
     handleCancelAllOrders(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
-    handleUnSubscriptionTrades(client: Client, symbol: string): void;
+    handleUnSubscriptionTrades(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionOrderBook(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionOHLCV(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionTicker(client: Client, symbol: string, channel: any): void;

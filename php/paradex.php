@@ -47,6 +47,7 @@ class paradex extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchAccounts' => false,
+                'fetchAllGreeks' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRateHistories' => false,
@@ -61,9 +62,9 @@ class paradex extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => false,
-                'fetchFundingRateHistory' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchGreeks' => true,
                 'fetchIndexOHLCV' => false,
@@ -293,7 +294,7 @@ class paradex extends Exchange {
             'commonCurrencies' => array(
             ),
             'options' => array(
-                'paradexAccount' => null, // add array("privateKey" => A, "publicKey" => B, "address" => C)
+                'paradexAccount' => null, // add array("privateKey" => "copy Paradex Private Key from UI", "publicKey" => "used when onboard (optional)", "address" => "copy Paradex Address from UI")
                 'broker' => 'CCXT',
             ),
             'features' => array(
@@ -615,7 +616,7 @@ class paradex extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -788,7 +789,7 @@ class paradex extends Exchange {
         //         "ask" => "69578.2",
         //         "volume_24h" => "5815541.397939004",
         //         "total_volume" => "584031465.525259686",
-        //         "created_at" => 1718170156580,
+        //         "created_at" => 1718170156581,
         //         "underlying_price" => "67367.37268422",
         //         "open_interest" => "162.272",
         //         "funding_rate" => "0.01629574927887",
@@ -1277,7 +1278,11 @@ class paradex extends Exchange {
         $cancelReason = $this->safe_string($order, 'cancel_reason');
         $status = $this->safe_string($order, 'status');
         if ($cancelReason !== null) {
-            $status = 'canceled';
+            if ($cancelReason === 'NOT_ENOUGH_MARGIN' || $cancelReason === 'ORDER_EXCEEDS_POSITION_LIMIT') {
+                $status = 'rejected';
+            } else {
+                $status = 'canceled';
+            }
         }
         $side = $this->safe_string_lower($order, 'side');
         $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
@@ -1575,7 +1580,7 @@ class paradex extends Exchange {
         //
         // if success, no $response->..
         //
-        return $response;
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -2045,6 +2050,7 @@ class paradex extends Exchange {
             'contracts' => null,
             'contractSize' => null,
             'price' => null,
+            'side' => null,
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -2363,7 +2369,7 @@ class paradex extends Exchange {
         return $this->safe_string($modes, $mode, $mode);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -2444,6 +2450,60 @@ class paradex extends Exchange {
         return $this->parse_greeks($greeks, $market);
     }
 
+    public function fetch_all_greeks(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         *
+         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $request = array(
+            'market' => 'ALL',
+        );
+        $response = $this->publicGetMarketsSummary ($this->extend($request, $params));
+        //
+        //     {
+        //         "results" => array(
+        //             {
+        //                 "symbol" => "BTC-USD-114000-P",
+        //                 "mark_price" => "10835.66892602",
+        //                 "mark_iv" => "0.71781855",
+        //                 "delta" => "-0.98726024",
+        //                 "greeks" => array(
+        //                     "delta" => "-0.9872602390817709",
+        //                     "gamma" => "0.000004560958862297231",
+        //                     "vega" => "227.11344863639806",
+        //                     "rho" => "-302.0617972461581",
+        //                     "vanna" => "0.06609830491614832",
+        //                     "volga" => "925.9501532805552"
+        //                 ),
+        //                 "last_traded_price" => "10551.5",
+        //                 "bid" => "10794.9",
+        //                 "bid_iv" => "0.05",
+        //                 "ask" => "10887.3",
+        //                 "ask_iv" => "0.8783283",
+        //                 "last_iv" => "0.05",
+        //                 "volume_24h" => "0",
+        //                 "total_volume" => "195240.72672261014",
+        //                 "created_at" => 1747644009995,
+        //                 "underlying_price" => "103164.79162649",
+        //                 "open_interest" => "0",
+        //                 "funding_rate" => "0.000004464241170536191",
+        //                 "price_change_rate_24h" => "0.074915",
+        //                 "future_funding_rate" => "0.0001"
+        //             }
+        //         )
+        //     }
+        //
+        $results = $this->safe_list($response, 'results', array());
+        return $this->parse_all_greeks($results, $symbols);
+    }
+
     public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
@@ -2503,6 +2563,76 @@ class paradex extends Exchange {
             'underlyingPrice' => $this->safe_number($greeks, 'underlying_price'),
             'info' => $greeks,
         );
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding $rate prices
+         *
+         * @see https://docs.paradex.trade/api/prod/markets/get-funding-data
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding $rate history for
+         * @param {int} [$since] $timestamp in ms of the earliest funding $rate to fetch
+         * @param {int} [$limit] the maximum amount of funding $rate structures
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] $timestamp in ms of the latest funding $rate to fetch
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-$rate-history-structure funding $rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['page_size'] = min ($limit, 5000); // api maximum 5000
+        } else {
+            $request['page_size'] = 1000; // max is 5000
+        }
+        if ($since !== null) {
+            $request['start_at'] = $since;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['end_at'] = $until;
+        }
+        $response = $this->publicGetFundingData ($this->extend($request, $params));
+        //
+        // {
+        //     "next" => "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+        //     "prev" => "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+        //     "results" => array(
+        //          {
+        //              "market":"BTC-USD-PERP",
+        //              "funding_index":"20511.93608234044552",
+        //              "funding_premium":"-6.04646651485986656",
+        //              "funding_rate":"-0.00006992598926",
+        //              "funding_rate_8h":"",
+        //              "funding_period_hours":0,
+        //              "created_at":1764160327843
+        //          }
+        //     )
+        // }
+        //
+        $results = $this->safe_list($response, 'results', array());
+        $rates = array();
+        for ($i = 0; $i < count($results); $i++) {
+            $rate = $results[$i];
+            $timestamp = $this->safe_integer($rate, 'created_at');
+            $datetime = $this->iso8601($timestamp);
+            $rates[] = array(
+                'info' => $rate,
+                'symbol' => $market['symbol'],
+                'fundingRate' => $this->safe_number($rate, 'funding_rate'),
+                'timestamp' => $timestamp,
+                'datetime' => $datetime,
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -3,7 +3,7 @@
 import deriveRest from '../derive.js';
 import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -437,7 +437,7 @@ export default class derive extends deriveRest {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const requestId = this.requestId (url);
@@ -663,7 +663,7 @@ export default class derive extends deriveRest {
         }
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         // {
         //     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',

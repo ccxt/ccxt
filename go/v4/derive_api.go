@@ -7,1810 +7,454 @@
 
 package ccxt
 
-func (this *derive) PublicGetGetAllCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetGetAllCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostBuildRegisterSessionKeyTx (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostBuildRegisterSessionKeyTx", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostRegisterSessionKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostRegisterSessionKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostDeregisterSessionKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostDeregisterSessionKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostLogin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostLogin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostStatistics (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostStatistics", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetAllCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetAllCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetInstrument (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetInstrument", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetAllInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetAllInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetLatestSignedFeeds (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetLatestSignedFeeds", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetOptionSettlementPrices (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetOptionSettlementPrices", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetSpotFeedHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetSpotFeedHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetSpotFeedHistoryCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetSpotFeedHistoryCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetFundingRateHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetFundingRateHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetTradeHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetTradeHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetOptionSettlementHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetOptionSettlementHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetLiquidationHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetLiquidationHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetInterestRateHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetInterestRateHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetTransaction (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetTransaction", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostMarginWatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostMarginWatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostValidateInviteCode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostValidateInviteCode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetPoints (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetPoints", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetAllPoints (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetAllPoints", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetPointsLeaderboard (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetPointsLeaderboard", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetDescendantTree (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetDescendantTree", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetTreeRoots (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetTreeRoots", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetSwellPercentPoints (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetSwellPercentPoints", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetVaultAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetVaultAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetEtherfiEffectiveBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetEtherfiEffectiveBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetKelpEffectiveBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetKelpEffectiveBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetBridgeBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetBridgeBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetEthenaParticipants (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetEthenaParticipants", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetVaultShare (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetVaultShare", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetVaultStatistics (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetVaultStatistics", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetVaultBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetVaultBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostEstimateIntegratorPoints (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostEstimateIntegratorPoints", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostCreateSubaccountDebug (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostCreateSubaccountDebug", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostDepositDebug (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostDepositDebug", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostWithdrawDebug (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostWithdrawDebug", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostSendQuoteDebug (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostSendQuoteDebug", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostExecuteQuoteDebug (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostExecuteQuoteDebug", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetInviteCode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetInviteCode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostRegisterInvite (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostRegisterInvite", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetLiveIncidents (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetLiveIncidents", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetMakerPrograms (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetMakerPrograms", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PublicPostGetMakerProgramScores (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetMakerProgramScores", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostCreateSubaccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCreateSubaccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetSubaccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetSubaccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetSubaccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetSubaccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetAllPortfolios (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetAllPortfolios", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostChangeSubaccountLabel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostChangeSubaccountLabel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetNotificationsv (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetNotificationsv", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostUpdateNotifications (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUpdateNotifications", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostDeposit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDeposit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostTransferErc20 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransferErc20", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostTransferPosition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransferPosition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostTransferPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransferPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostReplace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostReplace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostOrderDebug (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderDebug", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostCancelByLabel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelByLabel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostCancelByNonce (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelByNonce", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostCancelByInstrument (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelByInstrument", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostCancelTriggerOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelTriggerOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetOrderHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetOrderHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetTradeHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetTradeHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetDepositHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetDepositHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetWithdrawalHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetWithdrawalHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostSendRfq (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSendRfq", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostCancelRfq (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelRfq", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostCancelBatchRfqs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelBatchRfqs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetRfqs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetRfqs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostPollRfqs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPollRfqs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostSendQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSendQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostCancelQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostCancelBatchQuotes (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelBatchQuotes", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetQuotes (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetQuotes", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostPollQuotes (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPollQuotes", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostExecuteQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExecuteQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostRfqGetBestQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqGetBestQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetCollaterals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetCollaterals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetOptionSettlementHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetOptionSettlementHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetSubaccountValueHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetSubaccountValueHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostExpiredAndCancelledHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExpiredAndCancelledHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetFundingHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetFundingHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetInterestHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetInterestHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetErc20TransferHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetErc20TransferHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetLiquidationHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetLiquidationHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostLiquidate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLiquidate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetLiquidatorHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetLiquidatorHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostSessionKeys (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSessionKeys", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostEditSessionKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEditSessionKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostRegisterScopedSessionKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRegisterScopedSessionKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetMmpConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetMmpConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostSetMmpConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSetMmpConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostResetMmp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostResetMmp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostSetCancelOnDisconnect (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSetCancelOnDisconnect", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostGetInviteCode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetInviteCode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *derive) PrivatePostRegisterInvite (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRegisterInvite", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeriveCore) PublicGetGetAllCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetAllCurrencies", args...)
+}
+
+func (this *DeriveCore) PublicPostBuildRegisterSessionKeyTx(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostBuildRegisterSessionKeyTx", args...)
+}
+
+func (this *DeriveCore) PublicPostRegisterSessionKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostRegisterSessionKey", args...)
+}
+
+func (this *DeriveCore) PublicPostDeregisterSessionKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostDeregisterSessionKey", args...)
+}
+
+func (this *DeriveCore) PublicPostLogin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostLogin", args...)
+}
+
+func (this *DeriveCore) PublicPostStatistics(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostStatistics", args...)
+}
+
+func (this *DeriveCore) PublicPostGetAllCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetAllCurrencies", args...)
+}
+
+func (this *DeriveCore) PublicPostGetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetCurrency", args...)
+}
+
+func (this *DeriveCore) PublicPostGetInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetInstrument", args...)
+}
+
+func (this *DeriveCore) PublicPostGetAllInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetAllInstruments", args...)
+}
+
+func (this *DeriveCore) PublicPostGetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetInstruments", args...)
+}
+
+func (this *DeriveCore) PublicPostGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetTicker", args...)
+}
+
+func (this *DeriveCore) PublicPostGetLatestSignedFeeds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetLatestSignedFeeds", args...)
+}
+
+func (this *DeriveCore) PublicPostGetOptionSettlementPrices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetOptionSettlementPrices", args...)
+}
+
+func (this *DeriveCore) PublicPostGetSpotFeedHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetSpotFeedHistory", args...)
+}
+
+func (this *DeriveCore) PublicPostGetSpotFeedHistoryCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetSpotFeedHistoryCandles", args...)
+}
+
+func (this *DeriveCore) PublicPostGetFundingRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetFundingRateHistory", args...)
+}
+
+func (this *DeriveCore) PublicPostGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetTradeHistory", args...)
+}
+
+func (this *DeriveCore) PublicPostGetOptionSettlementHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetOptionSettlementHistory", args...)
+}
+
+func (this *DeriveCore) PublicPostGetLiquidationHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetLiquidationHistory", args...)
+}
+
+func (this *DeriveCore) PublicPostGetInterestRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetInterestRateHistory", args...)
+}
+
+func (this *DeriveCore) PublicPostGetTransaction(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetTransaction", args...)
+}
+
+func (this *DeriveCore) PublicPostGetMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetMargin", args...)
+}
+
+func (this *DeriveCore) PublicPostMarginWatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostMarginWatch", args...)
+}
+
+func (this *DeriveCore) PublicPostValidateInviteCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostValidateInviteCode", args...)
+}
+
+func (this *DeriveCore) PublicPostGetPoints(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetPoints", args...)
+}
+
+func (this *DeriveCore) PublicPostGetAllPoints(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetAllPoints", args...)
+}
+
+func (this *DeriveCore) PublicPostGetPointsLeaderboard(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetPointsLeaderboard", args...)
+}
+
+func (this *DeriveCore) PublicPostGetDescendantTree(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetDescendantTree", args...)
+}
+
+func (this *DeriveCore) PublicPostGetTreeRoots(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetTreeRoots", args...)
+}
+
+func (this *DeriveCore) PublicPostGetSwellPercentPoints(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetSwellPercentPoints", args...)
+}
+
+func (this *DeriveCore) PublicPostGetVaultAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetVaultAssets", args...)
+}
+
+func (this *DeriveCore) PublicPostGetEtherfiEffectiveBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetEtherfiEffectiveBalances", args...)
+}
+
+func (this *DeriveCore) PublicPostGetKelpEffectiveBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetKelpEffectiveBalances", args...)
+}
+
+func (this *DeriveCore) PublicPostGetBridgeBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetBridgeBalances", args...)
+}
+
+func (this *DeriveCore) PublicPostGetEthenaParticipants(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetEthenaParticipants", args...)
+}
+
+func (this *DeriveCore) PublicPostGetVaultShare(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetVaultShare", args...)
+}
+
+func (this *DeriveCore) PublicPostGetVaultStatistics(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetVaultStatistics", args...)
+}
+
+func (this *DeriveCore) PublicPostGetVaultBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetVaultBalances", args...)
+}
+
+func (this *DeriveCore) PublicPostEstimateIntegratorPoints(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostEstimateIntegratorPoints", args...)
+}
+
+func (this *DeriveCore) PublicPostCreateSubaccountDebug(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostCreateSubaccountDebug", args...)
+}
+
+func (this *DeriveCore) PublicPostDepositDebug(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostDepositDebug", args...)
+}
+
+func (this *DeriveCore) PublicPostWithdrawDebug(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostWithdrawDebug", args...)
+}
+
+func (this *DeriveCore) PublicPostSendQuoteDebug(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostSendQuoteDebug", args...)
+}
+
+func (this *DeriveCore) PublicPostExecuteQuoteDebug(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostExecuteQuoteDebug", args...)
+}
+
+func (this *DeriveCore) PublicPostGetInviteCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetInviteCode", args...)
+}
+
+func (this *DeriveCore) PublicPostRegisterInvite(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostRegisterInvite", args...)
+}
+
+func (this *DeriveCore) PublicPostGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetTime", args...)
+}
+
+func (this *DeriveCore) PublicPostGetLiveIncidents(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetLiveIncidents", args...)
+}
+
+func (this *DeriveCore) PublicPostGetMakerPrograms(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetMakerPrograms", args...)
+}
+
+func (this *DeriveCore) PublicPostGetMakerProgramScores(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetMakerProgramScores", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetAccount", args...)
+}
+
+func (this *DeriveCore) PrivatePostCreateSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCreateSubaccount", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetSubaccount", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetSubaccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetSubaccounts", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetAllPortfolios(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetAllPortfolios", args...)
+}
+
+func (this *DeriveCore) PrivatePostChangeSubaccountLabel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostChangeSubaccountLabel", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetNotificationsv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetNotificationsv", args...)
+}
+
+func (this *DeriveCore) PrivatePostUpdateNotifications(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUpdateNotifications", args...)
+}
+
+func (this *DeriveCore) PrivatePostDeposit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDeposit", args...)
+}
+
+func (this *DeriveCore) PrivatePostWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdraw", args...)
+}
+
+func (this *DeriveCore) PrivatePostTransferErc20(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransferErc20", args...)
+}
+
+func (this *DeriveCore) PrivatePostTransferPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransferPosition", args...)
+}
+
+func (this *DeriveCore) PrivatePostTransferPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransferPositions", args...)
+}
+
+func (this *DeriveCore) PrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrder", args...)
+}
+
+func (this *DeriveCore) PrivatePostReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostReplace", args...)
+}
+
+func (this *DeriveCore) PrivatePostOrderDebug(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderDebug", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetOrder", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetOrders", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetOpenOrders", args...)
+}
+
+func (this *DeriveCore) PrivatePostCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancel", args...)
+}
+
+func (this *DeriveCore) PrivatePostCancelByLabel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelByLabel", args...)
+}
+
+func (this *DeriveCore) PrivatePostCancelByNonce(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelByNonce", args...)
+}
+
+func (this *DeriveCore) PrivatePostCancelByInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelByInstrument", args...)
+}
+
+func (this *DeriveCore) PrivatePostCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelAll", args...)
+}
+
+func (this *DeriveCore) PrivatePostCancelTriggerOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelTriggerOrder", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetOrderHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetTradeHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetDepositHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetWithdrawalHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetWithdrawalHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostSendRfq(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSendRfq", args...)
+}
+
+func (this *DeriveCore) PrivatePostCancelRfq(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelRfq", args...)
+}
+
+func (this *DeriveCore) PrivatePostCancelBatchRfqs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelBatchRfqs", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetRfqs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetRfqs", args...)
+}
+
+func (this *DeriveCore) PrivatePostPollRfqs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPollRfqs", args...)
+}
+
+func (this *DeriveCore) PrivatePostSendQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSendQuote", args...)
+}
+
+func (this *DeriveCore) PrivatePostCancelQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelQuote", args...)
+}
+
+func (this *DeriveCore) PrivatePostCancelBatchQuotes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelBatchQuotes", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetQuotes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetQuotes", args...)
+}
+
+func (this *DeriveCore) PrivatePostPollQuotes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPollQuotes", args...)
+}
+
+func (this *DeriveCore) PrivatePostExecuteQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExecuteQuote", args...)
+}
+
+func (this *DeriveCore) PrivatePostRfqGetBestQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqGetBestQuote", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMargin", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetCollaterals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetCollaterals", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetPositions", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetOptionSettlementHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetOptionSettlementHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetSubaccountValueHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetSubaccountValueHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostExpiredAndCancelledHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExpiredAndCancelledHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetFundingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetFundingHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetInterestHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetInterestHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetErc20TransferHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetErc20TransferHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetLiquidationHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetLiquidationHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostLiquidate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLiquidate", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetLiquidatorHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetLiquidatorHistory", args...)
+}
+
+func (this *DeriveCore) PrivatePostSessionKeys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSessionKeys", args...)
+}
+
+func (this *DeriveCore) PrivatePostEditSessionKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEditSessionKey", args...)
+}
+
+func (this *DeriveCore) PrivatePostRegisterScopedSessionKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRegisterScopedSessionKey", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetMmpConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMmpConfig", args...)
+}
+
+func (this *DeriveCore) PrivatePostSetMmpConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSetMmpConfig", args...)
+}
+
+func (this *DeriveCore) PrivatePostResetMmp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostResetMmp", args...)
+}
+
+func (this *DeriveCore) PrivatePostSetCancelOnDisconnect(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSetCancelOnDisconnect", args...)
+}
+
+func (this *DeriveCore) PrivatePostGetInviteCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetInviteCode", args...)
+}
+
+func (this *DeriveCore) PrivatePostRegisterInvite(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRegisterInvite", args...)
 }

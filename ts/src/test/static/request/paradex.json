@@ -12,6 +12,17 @@
         "authToken": "token"
     },
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=1000",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": null
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",
@@ -423,6 +434,14 @@
                 "input": [
                   "BTC/USD:USDC-117000-P"
                 ]
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetch greeks for all markets",
+                "method": "fetchAllGreeks",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": []
             }
         ]
     }

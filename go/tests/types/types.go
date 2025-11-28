@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sync"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
@@ -91,7 +92,7 @@ func IoFileRead(path interface{}, decode ...interface{}) interface{} {
 	}
 }
 
-func testOrderBook(exchange ccxt.Binance) {
+func testOrderBook(exchange *ccxt.Binance) {
 	Blue("Testing OrderBook type")
 	obFile := GetRootDir() + BASE_DIR + "orderbook.json"
 	obFileContent := IoFileRead(obFile, true)
@@ -105,7 +106,7 @@ func testOrderBook(exchange ccxt.Binance) {
 	Assert(typedOb.Asks[0][1] > 0)
 }
 
-func testOHLCV(exchange ccxt.Binance) {
+func testOHLCV(exchange *ccxt.Binance) {
 	Blue("Testing OHLCV type")
 	ohlcvFile := GetRootDir() + BASE_DIR + "ohlcv.json"
 	ohlcvContent := IoFileRead(ohlcvFile, true)
@@ -121,11 +122,11 @@ func testOHLCV(exchange ccxt.Binance) {
 	Assert(typedOHLCV[0].Timestamp > 0)
 }
 
-func testTrade(exchange ccxt.Binance) {
+func testTrade(exchange *ccxt.Binance) {
 	Blue("Testing Trade type")
 	file := GetRootDir() + BASE_DIR + "trades.json"
 	content := IoFileRead(file, true)
-	market := exchange.Markets["BTC/USDT"]
+	market, _ := exchange.Markets.Load("BTC/USDT")
 	parsed := exchange.ParseTrades(content, market)
 	typed := ccxt.NewTradeArray(parsed)
 	Assert(len(typed) > 0)
@@ -137,7 +138,7 @@ func testTrade(exchange ccxt.Binance) {
 
 }
 
-func testTicker(exchange ccxt.Binance) {
+func testTicker(exchange *ccxt.Binance) {
 	Blue("Testing Ticker type")
 	file := GetRootDir() + BASE_DIR + "tickers.json"
 	content := IoFileRead(file, true)
@@ -153,7 +154,7 @@ func testTicker(exchange ccxt.Binance) {
 	Assert(len(ticker.Info) > 0)
 }
 
-func testOrder(exchange ccxt.Binance) {
+func testOrder(exchange *ccxt.Binance) {
 	Blue("Testing Order type")
 	file := GetRootDir() + BASE_DIR + "orders.json"
 	content := IoFileRead(file, true)
@@ -170,7 +171,7 @@ func testOrder(exchange ccxt.Binance) {
 	Assert(len(typed[0].Info) > 0)
 }
 
-func testPosition(exchange ccxt.Binance) {
+func testPosition(exchange *ccxt.Binance) {
 	Blue("Testing Position type")
 	file := GetRootDir() + BASE_DIR + "positions.json"
 	content := IoFileRead(file, true).([]interface{})
@@ -191,7 +192,7 @@ func testPosition(exchange ccxt.Binance) {
 	Assert(len(typed[0].Info) > 0)
 }
 
-func testBalance(exchange ccxt.Binance) {
+func testBalance(exchange *ccxt.Binance) {
 	Blue("Testing Balance type")
 	file := GetRootDir() + BASE_DIR + "balance.json"
 	content := IoFileRead(file, true)
@@ -206,12 +207,32 @@ func testBalance(exchange ccxt.Binance) {
 	Assert(*typed.Balances["USDT"].Used > 0)
 }
 
-func initExchangeOffline() ccxt.Binance {
+func testWsOrderBook(exchange *ccxt.Binance) {
+	Blue("Testing WS OrderBook type")
+	obFile := GetRootDir() + BASE_DIR + "orderbook.json"
+	obFileContent := IoFileRead(obFile, true)
+
+	wsOrderBook := exchange.OrderBook()
+	parsedOb := exchange.ParseOrderBook(obFileContent, "BTC/USDT")
+	wsOrderBook.Reset(parsedOb)
+	typedOb := ccxt.NewOrderBookFromWs(wsOrderBook)
+	Assert(wsOrderBook != nil)
+	Assert(wsOrderBook.Symbol == "BTC/USDT")
+	Assert(wsOrderBook.Bids != nil)
+	Assert(wsOrderBook.Asks != nil)
+	Assert(*typedOb.Symbol == "BTC/USDT")
+	Assert(len(typedOb.Asks) > 0)
+	Assert(len(typedOb.Bids) > 0)
+	Assert(typedOb.Asks[0][0] > 0)
+	Assert(typedOb.Asks[0][1] > 0)
+}
+
+func initExchangeOffline() *ccxt.Binance {
 	exchange := ccxt.NewBinance(nil)
 	marketsFile := GetRootDir() + "ts/src/test/static/markets/binance.json"
 	marketsContent := IoFileRead(marketsFile, true)
-	exchange.Markets = marketsContent.(map[string]interface{})
-	<-exchange.LoadMarkets()
+	exchange.Markets = MapToSafeMap(marketsContent.(map[string]interface{}))
+	exchange.LoadMarkets()
 	return exchange
 }
 
@@ -225,6 +246,26 @@ func main() {
 	testOrder(exchange)
 	testPosition(exchange)
 	testBalance(exchange)
+	testWsOrderBook(exchange)
 
 	Green("All tests passed")
+}
+
+func MapToSafeMap(input map[string]interface{}) *sync.Map {
+	var sm sync.Map
+	for k, v := range input {
+		sm.Store(k, v)
+	}
+	return &sm
+}
+
+func SafeMapToMap(sm *sync.Map) map[string]interface{} {
+	result := make(map[string]interface{})
+	sm.Range(func(key, value interface{}) bool {
+		if strKey, ok := key.(string); ok {
+			result[strKey] = value
+		}
+		return true
+	})
+	return result
 }

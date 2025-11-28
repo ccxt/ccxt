@@ -84,8 +84,10 @@ public partial class phemex : ccxt.phemex
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return requestId;
     }
 
@@ -126,7 +128,7 @@ public partial class phemex : ccxt.phemex
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), "2"));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), "1"), "100"));
         }
-        object result = new Dictionary<string, object>() {
+        return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -149,8 +151,7 @@ public partial class phemex : ccxt.phemex
             { "markPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "markPrice"), market)) },
             { "indexPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "indexPrice"), market)) },
             { "info", ticker },
-        };
-        return result;
+        });
     }
 
     public virtual object parsePerpetualTicker(object ticker, object market = null)
@@ -189,7 +190,7 @@ public partial class phemex : ccxt.phemex
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), "2"));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), "1"), "100"));
         }
-        object result = new Dictionary<string, object>() {
+        return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
@@ -210,8 +211,7 @@ public partial class phemex : ccxt.phemex
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
             { "info", ticker },
-        };
-        return result;
+        });
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -1240,6 +1240,11 @@ public partial class phemex : ccxt.phemex
             }
         } else
         {
+            object messageLength = getArrayLength(message);
+            if (isTrue(isEqual(messageLength, 0)))
+            {
+                return;
+            }
             for (object i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
             {
                 object update = getValue(message, i);

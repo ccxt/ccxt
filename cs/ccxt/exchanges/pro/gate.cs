@@ -175,7 +175,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> createOrdersWs(object orders, object parameters = null)
+    public async override Task<object> createOrdersWs(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -371,7 +371,7 @@ public partial class gate : ccxt.gate
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -402,6 +402,11 @@ public partial class gate : ccxt.gate
      * @method
      * @name gate#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -424,7 +429,7 @@ public partial class gate : ccxt.gate
         object payload = new List<object>() {marketId, interval};
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100;
+            limit = 100; // max 100 atm
         }
         if (isTrue(getValue(market, "contract")))
         {
@@ -1013,8 +1018,8 @@ public partial class gate : ccxt.gate
             object ohlcv = getValue(result, i);
             object subscription = this.safeString(ohlcv, "n", "");
             object parts = ((string)subscription).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object timeframe = this.safeString(parts, 0);
-            object timeframeId = this.findTimeframe(timeframe);
+            object timeframeId = this.safeString(parts, 0);
+            object timeframe = this.findTimeframe(timeframeId);
             object prefix = add(timeframe, "_");
             object marketId = ((string)subscription).Replace((string)prefix, (string)"");
             object symbol = this.safeSymbol(marketId, null, "_", marketType);
@@ -1025,7 +1030,7 @@ public partial class gate : ccxt.gate
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframeId] = stored;
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
             callDynamically(stored, "append", new object[] {parsed});
             ((IDictionary<string,object>)marketIds)[(string)symbol] = timeframe;
@@ -2243,8 +2248,10 @@ public partial class gate : ccxt.gate
     public virtual object requestId()
     {
         // their support said that reqid must be an int32, not documented
+        this.lockId();
         object reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
         ((IDictionary<string,object>)this.options)["reqid"] = reqid;
+        this.unlockId();
         return reqid;
     }
 
@@ -2318,7 +2325,7 @@ public partial class gate : ccxt.gate
         object channel = add(messageType, ".login");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

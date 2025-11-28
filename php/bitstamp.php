@@ -515,6 +515,7 @@ class bitstamp extends Exchange {
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon." => '\\ccxt\\OnMaintenance', // array( "error" => "Bitstamp.net is under scheduled maintenance. We'll be back soon." )
                     'Order could not be placed.' => '\\ccxt\\ExchangeNotAvailable', // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.' => '\\ccxt\\BadRequest',
+                    'Trading is currently unavailable for your account.' => '\\ccxt\\AccountSuspended', // array("status" => "error", "reason" => array("__all__" => ["Trading is currently unavailable for your account."]), "response_code" => "403.004")
                 ),
                 'broad' => array(
                     'Minimum order size is' => '\\ccxt\\InvalidOrder', // Minimum order size is 5.0 EUR.
@@ -1196,7 +1197,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -2241,7 +2242,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -2423,7 +2424,7 @@ class bitstamp extends Exchange {
                 for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];
                     $value = $this->safe_value($error, $key);
-                    if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+                    if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                         $errors = $this->array_concat($errors, $value);
                     } else {
                         $errors[] = $value;

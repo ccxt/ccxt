@@ -7,434 +7,110 @@
 
 package ccxt
 
-func (this *apex) PublicGetV3Symbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV3Symbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PublicGetV3Symbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Symbols", args...)
 }
 
-func (this *apex) PublicGetV3HistoryFunding (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV3HistoryFunding", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PublicGetV3HistoryFunding(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3HistoryFunding", args...)
 }
 
-func (this *apex) PublicGetV3Ticker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV3Ticker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PublicGetV3Ticker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Ticker", args...)
 }
 
-func (this *apex) PublicGetV3Klines (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV3Klines", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PublicGetV3Klines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Klines", args...)
 }
 
-func (this *apex) PublicGetV3Trades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV3Trades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PublicGetV3Trades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Trades", args...)
 }
 
-func (this *apex) PublicGetV3Depth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV3Depth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PublicGetV3Depth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Depth", args...)
 }
 
-func (this *apex) PublicGetV3Time (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV3Time", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PublicGetV3Time(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3Time", args...)
 }
 
-func (this *apex) PublicGetV3DataAllTickerInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV3DataAllTickerInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PublicGetV3DataAllTickerInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3DataAllTickerInfo", args...)
 }
 
-func (this *apex) PrivateGetV3Account (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3Account", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3Account(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Account", args...)
 }
 
-func (this *apex) PrivateGetV3AccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3AccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3AccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3AccountBalance", args...)
 }
 
-func (this *apex) PrivateGetV3Fills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3Fills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3Fills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Fills", args...)
 }
 
-func (this *apex) PrivateGetV3OrderFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3OrderFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3OrderFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3OrderFills", args...)
 }
 
-func (this *apex) PrivateGetV3Order (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3Order", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3Order(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Order", args...)
 }
 
-func (this *apex) PrivateGetV3HistoryOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3HistoryOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3HistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3HistoryOrders", args...)
 }
 
-func (this *apex) PrivateGetV3OrderByClientOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3OrderByClientOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3OrderByClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3OrderByClientOrderId", args...)
 }
 
-func (this *apex) PrivateGetV3Funding (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3Funding", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3Funding(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Funding", args...)
 }
 
-func (this *apex) PrivateGetV3HistoricalPnl (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3HistoricalPnl", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3HistoricalPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3HistoricalPnl", args...)
 }
 
-func (this *apex) PrivateGetV3OpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3OpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3OpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3OpenOrders", args...)
 }
 
-func (this *apex) PrivateGetV3Transfers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3Transfers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3Transfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Transfers", args...)
 }
 
-func (this *apex) PrivateGetV3Transfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV3Transfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivateGetV3Transfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV3Transfer", args...)
 }
 
-func (this *apex) PrivatePostV3DeleteOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV3DeleteOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivatePostV3DeleteOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3DeleteOpenOrders", args...)
 }
 
-func (this *apex) PrivatePostV3DeleteClientOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV3DeleteClientOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivatePostV3DeleteClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3DeleteClientOrderId", args...)
 }
 
-func (this *apex) PrivatePostV3DeleteOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV3DeleteOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivatePostV3DeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3DeleteOrder", args...)
 }
 
-func (this *apex) PrivatePostV3Order (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV3Order", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivatePostV3Order(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3Order", args...)
 }
 
-func (this *apex) PrivatePostV3SetInitialMarginRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV3SetInitialMarginRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivatePostV3SetInitialMarginRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3SetInitialMarginRate", args...)
 }
 
-func (this *apex) PrivatePostV3TransferOut (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV3TransferOut", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivatePostV3TransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3TransferOut", args...)
 }
 
-func (this *apex) PrivatePostV3ContractTransferOut (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV3ContractTransferOut", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ApexCore) PrivatePostV3ContractTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV3ContractTransferOut", args...)
 }

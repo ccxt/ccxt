@@ -52,6 +52,7 @@ class bithumb extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
@@ -268,6 +269,14 @@ class bithumb extends Exchange {
                             ),
                         ),
                     ),
+                    'USDT' => array(
+                        'limits' => array(
+                            'cost' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                    ),
                 ),
             ),
             'commonCurrencies' => array(
@@ -361,7 +370,7 @@ class bithumb extends Exchange {
                     $market = $data[$currencyId];
                     $base = $this->safe_currency_code($currencyId);
                     $active = true;
-                    if (gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market))) {
+                    if ((gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market)))) {
                         $numElements = count($market);
                         if ($numElements === 0) {
                             $active = false;
@@ -681,7 +690,7 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1153,7 +1162,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function cancel_unified_order($order, $params = array ()) {
+    public function cancel_unified_order(array $order, $params = array ()) {
         return Async\async(function () use ($order, $params) {
             $request = array(
                 'side' => $order['side'],
@@ -1162,7 +1171,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

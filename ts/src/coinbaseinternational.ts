@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionD
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, DepositAddress } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -442,7 +442,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = 100, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = 100, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
@@ -925,7 +925,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    async setMargin (symbol: string, amount: number, params = {}): Promise<any> {
+    async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         let portfolio = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('setMargin', params);
         if (symbol !== undefined) {
@@ -2257,7 +2257,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.nonce] a unique integer representing the withdrawal request
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

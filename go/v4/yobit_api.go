@@ -7,194 +7,50 @@
 
 package ccxt
 
-func (this *yobit) PublicGetDepthPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDepthPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PublicGetDepthPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDepthPair", args...)
 }
 
-func (this *yobit) PublicGetInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PublicGetInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetInfo", args...)
 }
 
-func (this *yobit) PublicGetTickerPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickerPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PublicGetTickerPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerPair", args...)
 }
 
-func (this *yobit) PublicGetTradesPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTradesPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PublicGetTradesPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradesPair", args...)
 }
 
-func (this *yobit) PrivatePostActiveOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostActiveOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PrivatePostActiveOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostActiveOrders", args...)
 }
 
-func (this *yobit) PrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *yobit) PrivatePostGetDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PrivatePostGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetDepositAddress", args...)
 }
 
-func (this *yobit) PrivatePostGetInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PrivatePostGetInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetInfo", args...)
 }
 
-func (this *yobit) PrivatePostOrderInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PrivatePostOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderInfo", args...)
 }
 
-func (this *yobit) PrivatePostTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PrivatePostTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTrade", args...)
 }
 
-func (this *yobit) PrivatePostTradeHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PrivatePostTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeHistory", args...)
 }
 
-func (this *yobit) PrivatePostWithdrawCoinsToAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawCoinsToAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *YobitCore) PrivatePostWithdrawCoinsToAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawCoinsToAddress", args...)
 }

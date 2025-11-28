@@ -7,6 +7,7 @@
 // AUTO_TRANSPILE_ENABLED
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../../base/ws/Cache.js';
 function equals(a, b) {
     // does not check if b has more properties than a
     // eslint-disable-next-line no-restricted-syntax
@@ -274,5 +275,76 @@ function testSafeMethods() {
     assert(exchange.safeNumberOmitZero(inputDict, 'floatString') !== undefined);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+    // Test cache types - ArrayCache
+    const arrayCache = new ArrayCache(100);
+    arrayCache.append({ 'symbol': 'BTC/USDT', 'id': 'order1', 'price': 50000 });
+    assert(arrayCache.length > 0);
+    // Test cache types - ArrayCacheByTimestamp
+    const arrayCacheByTimestamp = new ArrayCacheByTimestamp(100);
+    arrayCacheByTimestamp.append([1000, 50000, 1, 2, 3]);
+    const arrayCacheByTimestampData = exchange.safeValue(arrayCacheByTimestamp, 'Data');
+    const cacheByTimestampData = arrayCacheByTimestampData !== undefined ? arrayCacheByTimestampData : arrayCacheByTimestamp;
+    assert(cacheByTimestampData.length > 0);
+    // Test cache types - ArrayCacheBySymbolById
+    const arrayCacheBySymbolById = new ArrayCacheBySymbolById(100);
+    arrayCacheBySymbolById.append({ 'symbol': 'ETH/USDT', 'id': 'order2', 'price': 3000 });
+    // Use direct property access for object attributes
+    const arrayCacheBySymbolByIdHashmap = arrayCacheBySymbolById.hashmap;
+    assert(arrayCacheBySymbolByIdHashmap['ETH/USDT'] !== undefined);
+    assert(arrayCacheBySymbolByIdHashmap['ETH/USDT']['order2'] !== undefined);
+    const arrayCacheBySymbolByIdData = exchange.safeValue(arrayCacheBySymbolById, 'Data');
+    const cacheBySymbolByIdData = arrayCacheBySymbolByIdData !== undefined ? arrayCacheBySymbolByIdData : arrayCacheBySymbolById;
+    assert(cacheBySymbolByIdData.length > 0);
+    // Test cache types - ArrayCacheBySymbolBySide
+    const arrayCacheBySymbolBySide = new ArrayCacheBySymbolBySide();
+    arrayCacheBySymbolBySide.append({ 'symbol': 'BNB/USDT', 'side': 'buy', 'price': 400 });
+    // Use direct property access for object attributes
+    const arrayCacheBySymbolBySideHashmap = arrayCacheBySymbolBySide.hashmap;
+    assert(arrayCacheBySymbolBySideHashmap['BNB/USDT'] !== undefined);
+    const arrayCacheBySymbolBySideData = exchange.safeValue(arrayCacheBySymbolBySide, 'Data');
+    const cacheBySymbolBySideData = arrayCacheBySymbolBySideData !== undefined ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;
+    assert(cacheBySymbolBySideData.length > 0);
+    // Test map[string]map[string]interface{} (ArrayCache.hashmap)
+    // Use direct property access for object attributes
+    const arrayCacheHashmapDirect = arrayCache.hashmap;
+    const nestedMap = arrayCacheHashmapDirect;
+    assert(exchange.safeValue(nestedMap, 'NONEXISTENT') === undefined);
+    // Test map[string]*ArrayCache (Trades structure)
+    const tradesMap = {
+        'BTC/USDT': arrayCache,
+        'ETH/USDT': arrayCacheBySymbolById,
+    };
+    const stored = exchange.safeValue(tradesMap, 'BTC/USDT');
+    assert(stored !== undefined);
+    // Use direct property access for hashmap (object attribute)
+    const retrievedArrayCacheHashmap = stored.hashmap;
+    assert(retrievedArrayCacheHashmap !== undefined);
+    const retrievedArrayCacheBySymbolById = exchange.safeValue(tradesMap, 'ETH/USDT');
+    assert(retrievedArrayCacheBySymbolById !== undefined);
+    // Use direct property access for hashmap (object attribute)
+    const retrievedArrayCacheBySymbolByIdHashmap = retrievedArrayCacheBySymbolById.hashmap;
+    assert(retrievedArrayCacheBySymbolByIdHashmap !== undefined);
+    assert(exchange.safeValue(tradesMap, 'NONEXISTENT') === undefined);
+    // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
+    const ohlcvInnerMap = {
+        '1m': arrayCacheByTimestamp,
+        '5m': new ArrayCacheByTimestamp(100),
+    };
+    const retrievedArrayCacheByTimestamp = exchange.safeValue(ohlcvInnerMap, '1m');
+    assert(retrievedArrayCacheByTimestamp !== undefined);
+    // Use direct property access for object attributes
+    const retrievedArrayCacheByTimestampHashmap = retrievedArrayCacheByTimestamp.hashmap;
+    assert(retrievedArrayCacheByTimestampHashmap !== undefined);
+    assert(exchange.safeValue(ohlcvInnerMap, '5m') !== undefined);
+    assert(exchange.safeValue(ohlcvInnerMap, 'NONEXISTENT') === undefined);
+    // Test map[string]*ArrayCacheBySymbolBySide
+    const cacheBySideMap = {
+        'BTC/USDT': arrayCacheBySymbolBySide,
+    };
+    const retrievedArrayCacheBySymbolBySide = exchange.safeValue(cacheBySideMap, 'BTC/USDT');
+    assert(retrievedArrayCacheBySymbolBySide !== undefined);
+    const retrievedArrayCacheBySymbolBySideHashmap = retrievedArrayCacheBySymbolBySide.hashmap;
+    assert(retrievedArrayCacheBySymbolBySideHashmap !== undefined);
+    assert(exchange.safeValue(cacheBySideMap, 'NONEXISTENT') === undefined);
 }
 export default testSafeMethods;

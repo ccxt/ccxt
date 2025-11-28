@@ -48,6 +48,7 @@ export default class bitfinex extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -68,6 +69,7 @@ export default class bitfinex extends Exchange {
                 'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -85,6 +87,8 @@ export default class bitfinex extends Exchange {
                 'fetchOpenInterests': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -100,6 +104,7 @@ export default class bitfinex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': 'emulated',
+                'fetchVolatilityHistory': false,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -1519,7 +1524,7 @@ export default class bitfinex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = 100, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = 100, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
@@ -1998,13 +2003,15 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = this.parseToNumeric (ids[i]);
+            // numericIds[i] = this.parseToNumeric (ids[i]);
+            numericIds.push (this.parseToNumeric (ids[i]));
         }
         const request: Dict = {
-            'id': ids,
+            'id': numericIds,
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -2761,7 +2768,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -3711,12 +3718,15 @@ export default class bitfinex extends Exchange {
         const contractSize = this.safeString (market, 'contractSize');
         const baseValue = Precise.stringMul (contracts, contractSize);
         const price = this.safeString (entry, 11);
+        const sideFlag = this.safeInteger (entry, 8);
+        const side = (sideFlag === 1) ? 'buy' : 'sell';
         return this.safeLiquidation ({
             'info': entry,
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
             'contracts': this.parseNumber (contracts),
             'contractSize': this.parseNumber (contractSize),
             'price': this.parseNumber (price),
+            'side': side,
             'baseValue': this.parseNumber (baseValue),
             'quoteValue': this.parseNumber (Precise.stringMul (baseValue, price)),
             'timestamp': timestamp,
