@@ -3,6 +3,7 @@
 namespace ccxt;
 use Exception; // a common import
 require_once (__DIR__ . '/tests_helpers.php');
+require_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 
 $isWs = get_cli_arg_value ('--ws');

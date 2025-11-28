@@ -2149,10 +2149,8 @@ class Transpiler {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
-            pySync: './python/ccxt/test/base/sync/',
-            pyAsync: './python/ccxt/test/base/async/',
-            phpSync: './php/test/base/sync/',
-            phpAsync: './php/test/base/async/',
+            pyAsync: './python/ccxt/test/base/',
+            phpAsync: './php/test/base/',
         };
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -2170,9 +2168,7 @@ class Transpiler {
                 base: true,
                 name: testName,
                 tsFile: tsFile,
-                pyFileSync  : baseFolders.pySync   + unCamelCasedFileName + '.py',
                 pyFileAsync : baseFolders.pyAsync  + unCamelCasedFileName + '.py',
-                phpFileSync : baseFolders.phpSync  + unCamelCasedFileName + '.php',
                 phpFileAsync: baseFolders.phpAsync + unCamelCasedFileName + '.php',
             };
             // Add ArrayCache imports if the test uses cache classes
@@ -2526,8 +2522,10 @@ class Transpiler {
             let phpHeaderSync: string[] = []
             let phpHeaderAsync: string[] = []
 
-            phpHeaderAsync.push ('use React\\Async;');
-            phpHeaderAsync.push ('use React\\Promise;');
+            if (phpAsync.includes ('React\\') || phpAsync.includes ('Async\\')) {
+                phpHeaderAsync.push ('use React\\Async;');
+                phpHeaderAsync.push ('use React\\Promise;');
+            }
 
             const decimalProps = [ 'DECIMAL_PLACES', 'TICK_SIZE', 'NO_PADDING', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'SIGNIFICANT_DIGITS', 'PAD_WITH_ZERO', 'decimal_to_precision', 'number_to_string' ];
             for (const propName of decimalProps) {
@@ -2575,28 +2573,31 @@ class Transpiler {
 
             for (const subTestName of requiredSubTests) {
                 const snake_case = unCamelCase(subTestName);
-                const hasSharedMethodsImport = subTestName.includes ('SharedMethods');
+                const isSharedMethodsImport = subTestName.includes ('SharedMethods');
                 const isSameDirImport = tests.find(t => t.name === subTestName);
                 const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/exchange/base/';
                 let pySuffix = isSameDirImport ? '' : '.exchange.base';
                 const isLangSpec = subTestName === 'testLanguageSpecific';
 
-                if (hasSharedMethodsImport) {
+                if (isSharedMethodsImport) {
                     pythonHeaderAsync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
                     pythonHeaderSync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
 
-                    // php
-                    phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
-                    phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
+                    // in php, we don't need to import this, as it's imported once in `tests_init.php`
+                    // phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
+                    // phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
                 } else {
                     if (test.base) {
                         const phpLangSpec =  isLangSpec ? 'language_specific/' : '';
                         phpHeaderSync.push (`include_once __DIR__ . '/${phpLangSpec}${snake_case}.php';`)
+                        phpHeaderAsync.push (`include_once __DIR__ . '/${phpLangSpec}${snake_case}.php';`)
                         if (test.tsFile.includes('Exchange/base')) {
                             pythonHeaderSync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
+                            pythonHeaderAsync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
                         } else {
                             const pyLangSpec =  isLangSpec ? 'language_specific.' : '';
                             pythonHeaderSync.push (`from ccxt.test.base.${pyLangSpec}${snake_case} import ${snake_case}  # noqa E402`)
+                            pythonHeaderAsync.push (`from ccxt.test.base.${pyLangSpec}${snake_case} import ${snake_case}  # noqa E402`)
                         }
                     } else {
                         phpHeaderSync.push (`include_once ${phpPrefix}${snake_case}.php';`)
