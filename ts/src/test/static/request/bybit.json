@@ -7,6 +7,25 @@
     ],
     "outputType": "json",
     "methods": {
+        "editOrder": [
+            {
+                "description": "edit order using clientOrderId",
+                "method": "editOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/amend",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.22,
+                    73,
+                    {
+                        "clientOrderId": "bybit1"
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderLinkId\":\"bybit1\",\"category\":\"spot\",\"qty\":\"0.22\",\"price\":\"73\",\"clientOrderId\":\"bybit1\"}"
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -17,6 +36,64 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "spot order with sl type 3",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    50,
+                    0.2,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 0.1
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"0.2\",\"category\":\"spot\",\"qty\":\"50\",\"stopLoss\":\"0.1\",\"slOrderType\":\"Market\"}"
+            },
+            {
+                "description": "spot order with to/sl",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    50,
+                    0.2,
+                    {
+                        "takeProfit": {
+                            "triggerPrice": 5,
+                            "price": 5
+                        },
+                        "stopLoss": {
+                            "price": 0.1,
+                            "triggerPrice": 0.1
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"0.2\",\"category\":\"spot\",\"qty\":\"50\",\"stopLoss\":\"0.1\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"0.1\",\"takeProfit\":\"5\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"5\"}"
+            },
+            {
+                "description": "spot stopLossPrice order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.2,
+                    null,
+                    {
+                        "reduceOnly": true,
+                        "stopLossPrice": 90
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"orderFilter\":\"tpslOrder\",\"category\":\"spot\",\"marketUnit\":\"baseCoin\",\"qty\":\"0.2\",\"triggerDirection\":2,\"triggerPrice\":\"90\",\"reduceOnly\":true}"
+            },
             {
                 "description": "spot market buy order",
                 "method": "createOrder",
@@ -232,6 +309,74 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"takeProfit\":\"98000\",\"tpslMode\":\"Partial\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"99000\",\"tpSize\":\"1\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode full",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "stopLossPrice": 3999,
+                    "tpslMode": "Full"
+                  }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"stopLoss\":\"3999\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode full",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "takeProfitPrice": 4000,
+                    "tpslMode": "Full"
+                  }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"takeProfit\":\"4000\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode partial",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "stopLossPrice": 3.9,
+                    "tpslMode": "Partial"
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"stopLoss\":\"3.9\",\"tpslMode\":\"Partial\",\"slSize\":\"1\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode partial",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "takeProfitPrice": 2.2,
+                    "tpslMode": "Partial"
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"takeProfit\":\"2.2\",\"tpslMode\":\"Partial\",\"tpSize\":\"1\",\"category\":\"linear\"}"
             },
             {
                 "description": "Opening position with sl + tp attached (type 3)",
@@ -534,6 +679,16 @@
             }
         ],
         "createMarketBuyOrderWithCost": [
+            {
+                "description": "order with cost, using a decimal amount",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.bybit.com/v5/order/create",
+                "input": [
+                    "DOGE/USDT",
+                    12.45
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"12.45\"}"
+            },
             {
                 "description": "Spot market buy with createMarketBuyOrderWithCost",
                 "method": "createMarketBuyOrderWithCost",
@@ -1521,8 +1676,57 @@
         ],
         "withdraw": [
             {
-                "description": "withdraw usdt on tron",
+                "description": "withdraw  using UTA account",
                 "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                    "USDT",
+                    4.34,
+                    "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6",
+                    null,
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"4.34\",\"address\":\"TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6\",\"timestamp\":1758879504108,\"accountType\":\"UTA\",\"chain\":\"TRX\"}"
+            },
+            {
+                "description": "withdraw from fund account using UTA account",
+                "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                    "USDT",
+                    4.34,
+                    "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6",
+                    null,
+                    {
+                        "network": "TRC20",
+                        "accountType": "FUND"
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"4.34\",\"address\":\"TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6\",\"timestamp\":1758879459515,\"accountType\":\"FUND\",\"chain\":\"TRX\"}"
+            },
+            {
+                "description": "withdraw usdt on uta",
+                "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                  "USDT",
+                  10,
+                  "TFC#SYyBLBnF1JWPAhTbGBEoXHtDX6rYT6",
+                  null,
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"10\",\"address\":\"TFC#SYyBLBnF1JWPAhTbGBEoXHtDX6rYT6\",\"timestamp\":1754478062727,\"accountType\":\"UTA\",\"chain\":\"TRX\"}"
+            },
+            {
+                "description": "withdraw usdt on tron non uta",
+                "method": "withdraw",
+                "options": {
+                    "enableUnifiedAccount": false
+                },
                 "url": "https://api.bybit.com/v5/asset/withdraw/create",
                 "input": [
                   "USDT",
@@ -1630,6 +1834,45 @@
                 "input": [
                   "BTC/USD:BTC"
                 ]
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetch all greeks with a single symbol argument and baseCoin parameter",
+                "method": "fetchAllGreeks",
+                "url": "https://api-testnet.bybit.com/v5/market/tickers?category=option&baseCoin=BTC&symbol=BTC-30MAY25-70000-C-USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT-250530-70000-C"
+                    ],
+                    {
+                        "baseCoin": "BTC"
+                    }
+                ]
+            }
+        ],
+        "borrowCrossMargin": [
+            {
+                "description": "borrowCrossMargin BTC 0.001",
+                "method": "borrowCrossMargin",
+                "url": "https://api-testnet.bybit.com/v5/account/borrow",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "output": "{\"coin\":\"BTC\",\"amount\":\"0.001\"}"
+            }
+        ],
+        "repayCrossMargin": [
+            {
+                "description": "repayCrossMargin BTC 0.001",
+                "method": "repayCrossMargin",
+                "url": "https://api-testnet.bybit.com/v5/account/no-convert-repay",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "output": "{\"coin\":\"BTC\",\"amount\":\"0.001\"}"
             }
         ]
     },

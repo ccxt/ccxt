@@ -196,7 +196,7 @@ class oxfun extends \ccxt\async\oxfun {
         ));
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -245,7 +245,7 @@ class oxfun extends \ccxt\async\oxfun {
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             $symbolsLength = count($symbolsAndTimeframes);
-            if ($symbolsLength === 0 || gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0]))) {
+            if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
                 throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and $timeframes, like  [['BTC/USDT:OX', '1m'], ['OX/USDT', '5m']]");
             }
             Async\await($this->load_markets());
@@ -1003,7 +1003,7 @@ class oxfun extends \ccxt\async\oxfun {
             $method = $this->safe_string($message, 'event');
             $stringMsg = $this->json($message);
             $code = $this->safe_integer($message, 'code');
-            $this->handle_errors($code, null, $client->url, $method, null, $stringMsg, $message, null, null);
+            $this->handle_errors($code, '', $client->url, $method, array(), $stringMsg, $message, array(), array());
         }
         $data = $this->safe_value($message, 'data', array());
         $order = $this->parse_order($data);
@@ -1088,7 +1088,7 @@ class oxfun extends \ccxt\async\oxfun {
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_dict($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $this->check_required_credentials();

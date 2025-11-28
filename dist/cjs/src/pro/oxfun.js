@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var oxfun$1 = require('../oxfun.js');
 var errors = require('../base/errors.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
@@ -7,7 +9,7 @@ var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class oxfun extends oxfun$1 {
+class oxfun extends oxfun$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -943,7 +945,7 @@ class oxfun extends oxfun$1 {
             const method = this.safeString(message, 'event');
             const stringMsg = this.json(message);
             const code = this.safeInteger(message, 'code');
-            this.handleErrors(code, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
+            this.handleErrors(code, '', client.url, method, {}, stringMsg, message, {}, {});
         }
         const data = this.safeValue(message, 'data', {});
         const order = this.parseOrder(data);
@@ -1020,7 +1022,7 @@ class oxfun extends oxfun$1 {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeDict(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials();
@@ -1108,4 +1110,4 @@ class oxfun extends oxfun$1 {
     }
 }
 
-module.exports = oxfun;
+exports["default"] = oxfun;

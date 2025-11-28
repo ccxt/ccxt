@@ -5,7 +5,7 @@ import bitmartRest from '../bitmart.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Asks, Bids } from '../base/ws/OrderBookSide.js';
 
@@ -224,7 +224,7 @@ export default class bitmart extends bitmartRest {
         //                    "fz_bal":"0.100000000000000000000000000000"
         //                 }
         //              ],
-        //              "event_time":"1701632345415",
+        //              "event_time":"1701632345416",
         //              "event_type":"TRANSACTION_COMPLETED"
         //           }
         //        ],
@@ -1142,7 +1142,7 @@ export default class bitmart extends bitmartRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const market = this.market (symbol);
@@ -1523,7 +1523,7 @@ export default class bitmart extends bitmartRest {
         const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
         const messageHash = 'authenticated';
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.milliseconds ().toString ();
@@ -1577,7 +1577,7 @@ export default class bitmart extends bitmartRest {
         future.resolve (true);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    { event: "error", message: "Invalid sign", errorCode: 30013 }
         //    {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}

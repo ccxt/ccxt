@@ -54,8 +54,10 @@ class cex extends \ccxt\async\cex {
     }
 
     public function request_id() {
+        $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
+        $this->unlock_id();
         return (string) $requestId;
     }
 
@@ -210,7 +212,7 @@ class cex extends \ccxt\async\cex {
         //  update $trade
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
-        if (gettype($trade) !== 'array' || array_keys($trade) !== array_keys(array_keys($trade))) {
+        if ((gettype($trade) !== 'array' || array_keys($trade) !== array_keys(array_keys($trade)))) {
             $trade = explode(':', $trade);
         }
         $side = $this->safe_string($trade, 0);
@@ -1073,6 +1075,7 @@ class cex extends \ccxt\async\cex {
         if ($incrementalId !== $storedOrderBook['nonce'] + 1) {
             unset($client->subscriptions[$messageHash]);
             $client->reject ($this->id . ' watchOrderBook() skipped a message', $messageHash);
+            return;
         }
         $timestamp = $this->safe_integer($data, 'time');
         $asks = $this->safe_value($data, 'asks', array());
@@ -1096,7 +1099,7 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1507,7 +1510,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "e" => "get-balance",
@@ -1529,6 +1532,7 @@ class cex extends \ccxt\async\cex {
             $future = $this->safe_value($client['futures'], $messageHash);
             if ($future !== null) {
                 $client->reject ($error, $messageHash);
+                return true;
             } else {
                 throw $error;
             }
@@ -1593,7 +1597,7 @@ class cex extends \ccxt\async\cex {
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ('authenticated');
+            $future = $client->reusableFuture ('authenticated');
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $this->check_required_credentials();
@@ -1608,7 +1612,7 @@ class cex extends \ccxt\async\cex {
                         'timestamp' => $nonce,
                     ),
                 );
-                Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+                $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
             }
             return Async\await($future);
         }) ();

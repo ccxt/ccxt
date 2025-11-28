@@ -7,402 +7,102 @@
 
 package ccxt
 
-func (this *novadax) PublicGetCommonSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCommonSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PublicGetCommonSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCommonSymbol", args...)
 }
 
-func (this *novadax) PublicGetCommonSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCommonSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PublicGetCommonSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCommonSymbols", args...)
 }
 
-func (this *novadax) PublicGetCommonTimestamp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCommonTimestamp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PublicGetCommonTimestamp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCommonTimestamp", args...)
 }
 
-func (this *novadax) PublicGetMarketTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PublicGetMarketTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketTickers", args...)
 }
 
-func (this *novadax) PublicGetMarketTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PublicGetMarketTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketTicker", args...)
 }
 
-func (this *novadax) PublicGetMarketDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PublicGetMarketDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketDepth", args...)
 }
 
-func (this *novadax) PublicGetMarketTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PublicGetMarketTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *novadax) PublicGetMarketKlineHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketKlineHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PublicGetMarketKlineHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketKlineHistory", args...)
 }
 
-func (this *novadax) PrivateGetOrdersGet (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersGet", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivateGetOrdersGet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersGet", args...)
 }
 
-func (this *novadax) PrivateGetOrdersList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivateGetOrdersList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersList", args...)
 }
 
-func (this *novadax) PrivateGetOrdersFill (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersFill", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivateGetOrdersFill(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersFill", args...)
 }
 
-func (this *novadax) PrivateGetOrdersFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivateGetOrdersFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersFills", args...)
 }
 
-func (this *novadax) PrivateGetAccountGetBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountGetBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivateGetAccountGetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountGetBalance", args...)
 }
 
-func (this *novadax) PrivateGetAccountSubs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountSubs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivateGetAccountSubs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSubs", args...)
 }
 
-func (this *novadax) PrivateGetAccountSubsBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountSubsBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivateGetAccountSubsBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSubsBalance", args...)
 }
 
-func (this *novadax) PrivateGetAccountSubsTransferRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountSubsTransferRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivateGetAccountSubsTransferRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSubsTransferRecord", args...)
 }
 
-func (this *novadax) PrivateGetWalletQueryDepositWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetWalletQueryDepositWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivateGetWalletQueryDepositWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletQueryDepositWithdraw", args...)
 }
 
-func (this *novadax) PrivatePostOrdersCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivatePostOrdersCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersCreate", args...)
 }
 
-func (this *novadax) PrivatePostOrdersBatchCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersBatchCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivatePostOrdersBatchCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersBatchCreate", args...)
 }
 
-func (this *novadax) PrivatePostOrdersCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivatePostOrdersCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersCancel", args...)
 }
 
-func (this *novadax) PrivatePostOrdersBatchCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersBatchCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivatePostOrdersBatchCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersBatchCancel", args...)
 }
 
-func (this *novadax) PrivatePostOrdersCancelBySymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersCancelBySymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivatePostOrdersCancelBySymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersCancelBySymbol", args...)
 }
 
-func (this *novadax) PrivatePostAccountSubsTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountSubsTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivatePostAccountSubsTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSubsTransfer", args...)
 }
 
-func (this *novadax) PrivatePostWalletWithdrawCoin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWalletWithdrawCoin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivatePostWalletWithdrawCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletWithdrawCoin", args...)
 }
 
-func (this *novadax) PrivatePostAccountWithdrawCoin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountWithdrawCoin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *NovadaxCore) PrivatePostAccountWithdrawCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountWithdrawCoin", args...)
 }

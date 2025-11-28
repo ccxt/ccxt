@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var bitfinex$1 = require('./abstract/bitfinex.js');
@@ -12,7 +14,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class bitfinex
  * @augments Exchange
  */
-class bitfinex extends bitfinex$1 {
+class bitfinex extends bitfinex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitfinex',
@@ -48,6 +50,7 @@ class bitfinex extends bitfinex$1 {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -68,6 +71,7 @@ class bitfinex extends bitfinex$1 {
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -85,6 +89,8 @@ class bitfinex extends bitfinex$1 {
                 'fetchOpenInterests': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -100,6 +106,7 @@ class bitfinex extends bitfinex$1 {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': 'emulated',
+                'fetchVolatilityHistory': false,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -1981,11 +1988,13 @@ class bitfinex extends bitfinex$1 {
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         await this.loadMarkets();
+        const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = this.parseToNumeric(ids[i]);
+            // numericIds[i] = this.parseToNumeric (ids[i]);
+            numericIds.push(this.parseToNumeric(ids[i]));
         }
         const request = {
-            'id': ids,
+            'id': numericIds,
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -3679,12 +3688,15 @@ class bitfinex extends bitfinex$1 {
         const contractSize = this.safeString(market, 'contractSize');
         const baseValue = Precise["default"].stringMul(contracts, contractSize);
         const price = this.safeString(entry, 11);
+        const sideFlag = this.safeInteger(entry, 8);
+        const side = (sideFlag === 1) ? 'buy' : 'sell';
         return this.safeLiquidation({
             'info': entry,
             'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
             'contracts': this.parseNumber(contracts),
             'contractSize': this.parseNumber(contractSize),
             'price': this.parseNumber(price),
+            'side': side,
             'baseValue': this.parseNumber(baseValue),
             'quoteValue': this.parseNumber(Precise["default"].stringMul(baseValue, price)),
             'timestamp': timestamp,
@@ -3944,4 +3956,4 @@ class bitfinex extends bitfinex$1 {
     }
 }
 
-module.exports = bitfinex;
+exports["default"] = bitfinex;

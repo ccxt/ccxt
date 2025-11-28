@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Int, OrderBook, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Bool, Int, OrderBook, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -84,7 +84,7 @@ class p2b(ccxt.async_support.p2b):
         query = self.extend(subscribe, params)
         return await self.watch(url, messageHash, query, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='15m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '15m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. Can only subscribe to one timeframe at a time for each symbol
 
@@ -448,7 +448,7 @@ class p2b(ccxt.async_support.p2b):
         if endpoint is not None:
             endpoint(client, message)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         error = self.safe_string(message, 'error')
         if error is not None:
             raise ExchangeError(self.id + ' error: ' + self.json(error))

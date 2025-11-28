@@ -234,7 +234,7 @@ class bitmart extends \ccxt\async\bitmart {
         //                    "fz_bal":"0.100000000000000000000000000000"
         //                 }
         //              ),
-        //              "event_time":"1701632345415",
+        //              "event_time":"1701632345416",
         //              "event_type":"TRANSACTION_COMPLETED"
         //           }
         //        ),
@@ -260,7 +260,7 @@ class bitmart extends \ccxt\async\bitmart {
         $type = $isSpot ? 'spot' : 'swap';
         $this->balance[$type]['info'] = $message;
         if ($isSpot) {
-            if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+            if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
                 return;
             }
             for ($i = 0; $i < count($data); $i++) {
@@ -1153,7 +1153,7 @@ class bitmart extends \ccxt\async\bitmart {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1554,7 +1554,7 @@ class bitmart extends \ccxt\async\bitmart {
             $url = $this->implode_hostname($this->urls['api']['ws'][$type]['private']);
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = (string) $this->milliseconds();
@@ -1609,7 +1609,7 @@ class bitmart extends \ccxt\async\bitmart {
         $future->resolve (true);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    array( event => "error", $message => "Invalid sign", $errorCode => 30013 )
         //    array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)

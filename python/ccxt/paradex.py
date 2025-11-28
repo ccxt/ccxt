@@ -57,6 +57,7 @@ class paradex(Exchange, ImplicitAPI):
                 'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchAccounts': False,
+                'fetchAllGreeks': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRateHistories': False,
@@ -71,9 +72,9 @@ class paradex(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': False,
-                'fetchFundingRateHistory': False,
+                'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchGreeks': True,
                 'fetchIndexOHLCV': False,
@@ -303,7 +304,7 @@ class paradex(Exchange, ImplicitAPI):
             'commonCurrencies': {
             },
             'options': {
-                'paradexAccount': None,  # add {"privateKey": A, "publicKey": B, "address": C}
+                'paradexAccount': None,  # add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard(optional)", "address": "copy Paradex Address from UI"}
                 'broker': 'CCXT',
             },
             'features': {
@@ -619,7 +620,7 @@ class paradex(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -785,7 +786,7 @@ class paradex(Exchange, ImplicitAPI):
         #         "ask": "69578.2",
         #         "volume_24h": "5815541.397939004",
         #         "total_volume": "584031465.525259686",
-        #         "created_at": 1718170156580,
+        #         "created_at": 1718170156581,
         #         "underlying_price": "67367.37268422",
         #         "open_interest": "162.272",
         #         "funding_rate": "0.01629574927887",
@@ -1248,7 +1249,10 @@ class paradex(Exchange, ImplicitAPI):
         cancelReason = self.safe_string(order, 'cancel_reason')
         status = self.safe_string(order, 'status')
         if cancelReason is not None:
-            status = 'canceled'
+            if cancelReason == 'NOT_ENOUGH_MARGIN' or cancelReason == 'ORDER_EXCEEDS_POSITION_LIMIT':
+                status = 'rejected'
+            else:
+                status = 'canceled'
         side = self.safe_string_lower(order, 'side')
         average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
@@ -1523,7 +1527,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         # if success, no response...
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1967,6 +1971,7 @@ class paradex(Exchange, ImplicitAPI):
             'contracts': None,
             'contractSize': None,
             'price': None,
+            'side': None,
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,
@@ -2264,7 +2269,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string(modes, mode, mode)
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -2343,6 +2348,59 @@ class paradex(Exchange, ImplicitAPI):
         greeks = self.safe_dict(data, 0, {})
         return self.parse_greeks(greeks, market)
 
+    def fetch_all_greeks(self, symbols: Strings = None, params={}) -> List[Greeks]:
+        """
+        fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+
+        https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+
+        :param str[] [symbols]: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        request: dict = {
+            'market': 'ALL',
+        }
+        response = self.publicGetMarketsSummary(self.extend(request, params))
+        #
+        #     {
+        #         "results": [
+        #             {
+        #                 "symbol": "BTC-USD-114000-P",
+        #                 "mark_price": "10835.66892602",
+        #                 "mark_iv": "0.71781855",
+        #                 "delta": "-0.98726024",
+        #                 "greeks": {
+        #                     "delta": "-0.9872602390817709",
+        #                     "gamma": "0.000004560958862297231",
+        #                     "vega": "227.11344863639806",
+        #                     "rho": "-302.0617972461581",
+        #                     "vanna": "0.06609830491614832",
+        #                     "volga": "925.9501532805552"
+        #                 },
+        #                 "last_traded_price": "10551.5",
+        #                 "bid": "10794.9",
+        #                 "bid_iv": "0.05",
+        #                 "ask": "10887.3",
+        #                 "ask_iv": "0.8783283",
+        #                 "last_iv": "0.05",
+        #                 "volume_24h": "0",
+        #                 "total_volume": "195240.72672261014",
+        #                 "created_at": 1747644009995,
+        #                 "underlying_price": "103164.79162649",
+        #                 "open_interest": "0",
+        #                 "funding_rate": "0.000004464241170536191",
+        #                 "price_change_rate_24h": "0.074915",
+        #                 "future_funding_rate": "0.0001"
+        #             }
+        #         ]
+        #     }
+        #
+        results = self.safe_list(response, 'results', [])
+        return self.parse_all_greeks(results, symbols)
+
     def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
@@ -2402,6 +2460,70 @@ class paradex(Exchange, ImplicitAPI):
             'underlyingPrice': self.safe_number(greeks, 'underlying_price'),
             'info': greeks,
         }
+
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches historical funding rate prices
+
+        https://docs.paradex.trade/api/prod/markets/get-funding-data
+
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [limit]: the maximum amount of funding rate structures
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate to fetch
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+        }
+        if limit is not None:
+            request['page_size'] = min(limit, 5000)  # api maximum 5000
+        else:
+            request['page_size'] = 1000  # max is 5000
+        if since is not None:
+            request['start_at'] = since
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['end_at'] = until
+        response = self.publicGetFundingData(self.extend(request, params))
+        #
+        # {
+        #     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+        #     "prev": "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+        #     "results": [
+        #          {
+        #              "market":"BTC-USD-PERP",
+        #              "funding_index":"20511.93608234044552",
+        #              "funding_premium":"-6.04646651485986656",
+        #              "funding_rate":"-0.00006992598926",
+        #              "funding_rate_8h":"",
+        #              "funding_period_hours":0,
+        #              "created_at":1764160327843
+        #          }
+        #     ]
+        # }
+        #
+        results = self.safe_list(response, 'results', [])
+        rates = []
+        for i in range(0, len(results)):
+            rate = results[i]
+            timestamp = self.safe_integer(rate, 'created_at')
+            datetime = self.iso8601(timestamp)
+            rates.append({
+                'info': rate,
+                'symbol': market['symbol'],
+                'fundingRate': self.safe_number(rate, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': datetime,
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][self.version]) + '/' + self.implode_params(path, params)

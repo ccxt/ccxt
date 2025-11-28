@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var timex$1 = require('./abstract/timex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -10,7 +12,7 @@ var number = require('./base/functions/number.js');
  * @class timex
  * @augments Exchange
  */
-class timex extends timex$1 {
+class timex extends timex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'timex',
@@ -26,17 +28,27 @@ class timex extends timex$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -47,21 +59,40 @@ class timex extends timex$1 {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
@@ -72,15 +103,21 @@ class timex extends timex$1 {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
             },
@@ -1415,11 +1452,6 @@ class timex extends timex$1 {
         //
         const id = this.safeString(currency, 'symbol');
         const code = this.safeCurrencyCode(id);
-        const name = this.safeString(currency, 'name');
-        const depositEnabled = this.safeValue(currency, 'depositEnabled');
-        const withdrawEnabled = this.safeValue(currency, 'withdrawalEnabled');
-        const isActive = this.safeValue(currency, 'active');
-        const active = depositEnabled && withdrawEnabled && isActive;
         // const fee = this.safeNumber (currency, 'withdrawalFee');
         const feeString = this.safeString(currency, 'withdrawalFee');
         const tradeDecimals = this.safeInteger(currency, 'tradeDecimals');
@@ -1445,14 +1477,14 @@ class timex extends timex$1 {
             'code': code,
             'info': currency,
             'type': undefined,
-            'name': name,
-            'active': active,
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
+            'name': this.safeString(currency, 'name'),
+            'active': this.safeBool(currency, 'active'),
+            'deposit': this.safeBool(currency, 'depositEnabled'),
+            'withdraw': this.safeBool(currency, 'withdrawalEnabled'),
             'fee': fee,
             'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
             'limits': {
-                'withdraw': { 'min': fee, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
             },
             'networks': {},
@@ -1759,4 +1791,4 @@ class timex extends timex$1 {
     }
 }
 
-module.exports = timex;
+exports["default"] = timex;

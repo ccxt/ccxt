@@ -16,7 +16,7 @@ import (
 // =====================================  Hyperliquid Structs ===================================== //
 // OrderMessage Struct
 // {
-// "brokerCode": 1,
+// "builder": "0xxxxxx",
 // "grouping": "na",
 // "orders": [
 //
@@ -40,24 +40,32 @@ type TimeInForce struct {
 	TIF string `mapstructure:"tif" msgpack:"tif"`
 }
 
-type Limit struct {
-	TimeInForce TimeInForce `mapstructure:"limit" msgpack:"limit"`
+type TriggerSpec struct {
+	IsMarket  bool   `mapstructure:"isMarket" msgpack:"isMarket"`
+	TriggerPx string `mapstructure:"triggerPx" msgpack:"triggerPx"`
+	TPSL      string `mapstructure:"tpsl" msgpack:"tpsl"`
+}
+
+type OrderKind struct {
+	Limit   *TimeInForce `mapstructure:"limit" msgpack:"limit,omitempty"`
+	Trigger *TriggerSpec `mapstructure:"trigger" msgpack:"trigger,omitempty"`
 }
 
 type OrderHyperliquid struct {
-	A int    `mapstructure:"a" msgpack:"a"`
-	B bool   `mapstructure:"b" msgpack:"b"`
-	P string `mapstructure:"p" msgpack:"p"`
-	S string `mapstructure:"s" msgpack:"s"`
-	R bool   `mapstructure:"r" msgpack:"r"`
-	T Limit  `mapstructure:"t" msgpack:"t"`
+	A int       `mapstructure:"a" msgpack:"a"`
+	B bool      `mapstructure:"b" msgpack:"b"`
+	P string    `mapstructure:"p" msgpack:"p"`
+	S string    `mapstructure:"s" msgpack:"s"`
+	R bool      `mapstructure:"r" msgpack:"r"`
+	T OrderKind `mapstructure:"t" msgpack:"t"`
+	C string    `mapstructure:"c,omitempty" msgpack:"c,omitempty"` // optional client order id
 }
 
 type OrderMessage struct {
-	Type       string             `mapstructure:"type" msgpack:"type"`
-	Orders     []OrderHyperliquid `mapstructure:"orders" msgpack:"orders"`
-	Grouping   string             `mapstructure:"grouping" msgpack:"grouping"`
-	BrokerCode int                `mapstructure:"brokerCode" msgpack:"brokerCode"`
+	Type     string                 `mapstructure:"type" msgpack:"type"`
+	Orders   []OrderHyperliquid     `mapstructure:"orders" msgpack:"orders"`
+	Grouping string                 `mapstructure:"grouping" msgpack:"grouping"`
+	Builder  map[string]interface{} `mapstructure:"builder" msgpack:"builder,omitempty"`
 }
 
 // cancel
@@ -81,6 +89,12 @@ type TransferMessage struct {
 	ToPerp           bool   `mapstructure:"toPerp" msgpack:"toPerp"`
 	Nonce            int64  `mapstructure:"nonce" msgpack:"nonce"`
 }
+type SubAccountTransferMessage struct {
+	Type           string `mapstructure:"type" msgpack:"type"`
+	SubAccountUser string `mapstructure:"subAccountUser" msgpack:"subAccountUser"`
+	IsDeposit      bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Usd            int    `mapstructure:"usd" msgpack:"usd"`
+}
 
 // withdraw
 // {"hyperliquidChain":"Mainnet","signatureChainId":"0x66eee","destination":"0xc950889d14a3717f541ec246bc253d7a9e98c78f","amount":"100000","time":1737458231937,"type":"withdraw3"}
@@ -96,8 +110,8 @@ type WithdrawMessage struct {
 // editOrder
 // {"type":"batchModify","modifies":[{"oid":8553833906,"order":{"a":5,"b":true,"p":"151","s":"0.2","r":false,"t":{"limit":{"tif":"Gtc"}}}}]}
 type Modify struct {
-	OID   int64 `mapstructure:"oid" msgpack:"oid"`
-	Order Order `mapstructure:"order" msgpack:"order"`
+	OID   int              `mapstructure:"oid" msgpack:"oid"`
+	Order OrderHyperliquid `mapstructure:"order" msgpack:"order"`
 }
 
 // EditOrderMessage represents the batch modification message.
@@ -262,7 +276,7 @@ func DeepExtend(objs ...interface{}) map[string]interface{} { //tmp duplicated i
 				outObj = make(map[string]interface{})
 			}
 			dictX := x.(map[string]interface{})
-			for k, _ := range dictX {
+			for k := range dictX {
 				arg1 := outObj.(map[string]interface{})[k]
 				arg2 := dictX[k]
 				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
@@ -345,7 +359,8 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 
 	typeA := this.SafeString(converted, "type", "").(string)
 
-	if typeA == "order" {
+	switch typeA {
+	case "order":
 		var orderMsg OrderMessage
 
 		err := mapstructure.Decode(converted, &orderMsg)
@@ -359,7 +374,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "cancel" {
+	case "cancel":
 		var cancelMsg CancelMessage
 
 		err := mapstructure.Decode(converted, &cancelMsg)
@@ -373,7 +388,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "withdraw3" {
+	case "withdraw3":
 		var withdrawMsg WithdrawMessage
 
 		err := mapstructure.Decode(converted, &withdrawMsg)
@@ -386,7 +401,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "batchModify" {
+	case "batchModify":
 		var editMsg EditOrderMessage
 
 		err := mapstructure.Decode(converted, &editMsg)
@@ -395,6 +410,19 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 
 		packed, err := msgpack.Marshal(editMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "subAccountTransfer":
+		var subAccountTransferMsg SubAccountTransferMessage
+
+		err := mapstructure.Decode(converted, &subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(subAccountTransferMsg)
 		if err != nil {
 			panic(err)
 		}
