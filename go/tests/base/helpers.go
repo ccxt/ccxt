@@ -27,6 +27,11 @@ var TRUNCATE int = 0
 var NO_PADDING = 5
 var PAD_WITH_ZERO int = 6
 
+// support two arg signature
+func assert(condition2 interface{}, message2 ...interface{}) {
+	Assert(condition2, message2...)
+}
+
 func Assert(condition2 interface{}, message2 ...interface{}) {
 	condition := true
 
