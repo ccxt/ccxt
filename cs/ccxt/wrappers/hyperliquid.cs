@@ -120,6 +120,12 @@ public partial class hyperliquid
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : for hip3 markets, the dex name, eg: 'xyz'
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.subAccountAddress</term>
     /// <description>
     /// string : sub account user address
