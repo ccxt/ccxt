@@ -126,6 +126,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
+| params.price | <code>string</code> | No | "last", "mark", "index", default is "last" |
 
 
 ```javascript

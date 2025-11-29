@@ -217,6 +217,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
 | params.type | <code>string</code> | No | wallet type, ['spot', 'swap'], defaults to swap |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
+| params.dex | <code>string</code> | No | for hip3 markets, the dex name, eg: 'xyz' |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
 
 
