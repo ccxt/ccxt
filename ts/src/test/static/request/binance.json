@@ -1107,6 +1107,17 @@
                         "stop": true
                     }
                 ]
+            },
+            {
+                "description": "Linear swap trigger cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOpenOrders?timestamp=1764496137606&symbol=BTCUSDT&recvWindow=10000&signature=366e0bf8af3e3c266818c2c6e262122ac9621102b0b5fb98bd9e12364c24d752",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ]
             }
         ],
         "fetchBalance": [

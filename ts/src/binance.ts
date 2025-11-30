@@ -7717,7 +7717,10 @@ export default class binance extends Exchange {
                 if (isConditional) {
                     response = await this.fapiPrivateDeleteAlgoOpenOrders (this.extend (request, params));
                     //
-                    // {"code":-5000,"msg":"Path /fapi/v1/algoOpenOrders, Method DELETE is invalid"}
+                    //     {
+                    //         "code": 200,
+                    //         "msg": "The operation of cancel all open order is done."
+                    //     }
                     //
                 } else {
                     response = await this.fapiPrivateDeleteAllOpenOrders (this.extend (request, params));
