@@ -3194,7 +3194,7 @@
             {
                 "description": "swap rpi orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://fapi.binance.com/fapi/v1/rpiDepth?symbol=BTCUSDT",
+                "url": "https://fapi.binance.com/fapi/v1/rpiDepth?symbol=BTCUSDT&limit=1000",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
