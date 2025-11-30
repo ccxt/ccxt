@@ -817,7 +817,7 @@ export default class coinbase extends coinbaseRest {
             'average': this.safeString (order, 'avg_price'),
             'filled': this.safeString (order, 'cumulative_quantity'),
             'remaining': this.safeString (order, 'leaves_quantity'),
-            'status': this.safeStringLower (order, 'status'),
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': {
                 'amount': this.safeString (order, 'total_fees'),
                 'currency': this.safeString (market, 'quote'),
