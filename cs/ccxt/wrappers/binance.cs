@@ -140,7 +140,7 @@ public partial class binance
     /// <item>
     /// <term>params.rpi</term>
     /// <description>
-    /// boolean : *swap only* set to true to use the RPI endpoint
+    /// boolean : *future only* set to true to use the RPI endpoint
     /// </description>
     /// </item>
     /// </list>
