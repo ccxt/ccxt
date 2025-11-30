@@ -3905,7 +3905,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.rpi]: *swap only* set to True to use the RPI endpoint
+        :param boolean [params.rpi]: *future only* set to True to use the RPI endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
@@ -3922,6 +3922,8 @@ class binance(Exchange, ImplicitAPI):
             rpi = self.safe_value(params, 'rpi', False)
             params = self.omit(params, 'rpi')
             if rpi:
+                # rpi limit only supports 1000
+                request['limit'] = 1000
                 response = self.fapiPublicGetRpiDepth(self.extend(request, params))
             else:
                 response = self.fapiPublicGetDepth(self.extend(request, params))
