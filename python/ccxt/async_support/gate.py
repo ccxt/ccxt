@@ -1107,7 +1107,6 @@ class gate(Exchange, ImplicitAPI):
                     'LOAN_RECORD_NOT_FOUND': OrderNotFound,
                     'NO_MATCHED_LOAN': ExchangeError,
                     'NOT_MERGEABLE': ExchangeError,
-                    'NO_CHANGE': ExchangeError,
                     'REPAY_TOO_MUCH': ExchangeError,
                     'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
                     'TOO_MANY_ORDERS': InvalidOrder,
@@ -1150,6 +1149,7 @@ class gate(Exchange, ImplicitAPI):
                     'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder,  # {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
                     'POSITION_HOLDING': BadRequest,
                     'USER_LOAN_EXCEEDED': BadRequest,  # {"label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded"}
+                    'NO_CHANGE': InvalidOrder,  # {"label":"NO_CHANGE","message":"No change is made"}
                 },
                 'broad': {},
             },
