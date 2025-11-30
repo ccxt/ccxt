@@ -3986,7 +3986,7 @@ class binance extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->rpi] *swap only* set to true to use the RPI endpoint
+             * @param {boolean} [$params->rpi] *future only* set to true to use the RPI endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -4004,6 +4004,8 @@ class binance extends Exchange {
                 $rpi = $this->safe_value($params, 'rpi', false);
                 $params = $this->omit($params, 'rpi');
                 if ($rpi) {
+                    // $rpi $limit only supports 1000
+                    $request['limit'] = 1000;
                     $response = Async\await($this->fapiPublicGetRpiDepth ($this->extend($request, $params)));
                 } else {
                     $response = Async\await($this->fapiPublicGetDepth ($this->extend($request, $params)));
