@@ -1097,7 +1097,6 @@ class gate extends Exchange {
                     'LOAN_RECORD_NOT_FOUND' => '\\ccxt\\OrderNotFound',
                     'NO_MATCHED_LOAN' => '\\ccxt\\ExchangeError',
                     'NOT_MERGEABLE' => '\\ccxt\\ExchangeError',
-                    'NO_CHANGE' => '\\ccxt\\ExchangeError',
                     'REPAY_TOO_MUCH' => '\\ccxt\\ExchangeError',
                     'TOO_MANY_CURRENCY_PAIRS' => '\\ccxt\\InvalidOrder',
                     'TOO_MANY_ORDERS' => '\\ccxt\\InvalidOrder',
@@ -1140,6 +1139,7 @@ class gate extends Exchange {
                     'AUTO_TRIGGER_PRICE_GREATE_LAST' => '\\ccxt\\InvalidOrder', // array("label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument => Trigger.Price must > last_price")
                     'POSITION_HOLDING' => '\\ccxt\\BadRequest',
                     'USER_LOAN_EXCEEDED' => '\\ccxt\\BadRequest', // array("label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded")
+                    'NO_CHANGE' => '\\ccxt\\InvalidOrder', // array("label":"NO_CHANGE","message":"No change is made")
                 ),
                 'broad' => array(),
             ),
