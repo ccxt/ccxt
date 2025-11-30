@@ -63,7 +63,7 @@ export default class bullish extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
-                'fetchDepositsWithdrawals': false,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
@@ -153,70 +153,70 @@ export default class bullish extends Exchange {
                 'public': {
                     'get': {
                         'v1/nonce': 1,
-                        'v1/time': 1, // done
-                        'v1/assets': 1, // done
-                        'v1/assets/{symbol}': 1, // not used
-                        'v1/markets': 1, // done
-                        'v1/markets/{symbol}': 1, // not used
-                        'v1/history/markets/{symbol}': 1, // not used
-                        'v1/markets/{symbol}/orderbook/hybrid': 1, // done
-                        'v1/markets/{symbol}/trades': 1, // done
-                        'v1/markets/{symbol}/tick': 1, // done
-                        'v1/markets/{symbol}/candle': 1, // done
-                        'v1/history/markets/{symbol}/trades': 1, // done
-                        'v1/history/markets/{symbol}/funding-rate': 1, // done
-                        'v1/index-prices': 1, // not used
-                        'v1/index-prices/{assetSymbol}': 1, // not used
-                        'v1/expiry-prices/{symbol}': 1, // not used
-                        'v1/option-ladder': 1, // not used
-                        'v1/option-ladder/{symbol}': 1, // not used
+                        'v1/time': 1,
+                        'v1/assets': 1,
+                        'v1/assets/{symbol}': 1,
+                        'v1/markets': 1,
+                        'v1/markets/{symbol}': 1,
+                        'v1/history/markets/{symbol}': 1,
+                        'v1/markets/{symbol}/orderbook/hybrid': 1,
+                        'v1/markets/{symbol}/trades': 1,
+                        'v1/markets/{symbol}/tick': 1,
+                        'v1/markets/{symbol}/candle': 1,
+                        'v1/history/markets/{symbol}/trades': 1,
+                        'v1/history/markets/{symbol}/funding-rate': 1,
+                        'v1/index-prices': 1,
+                        'v1/index-prices/{assetSymbol}': 1,
+                        'v1/expiry-prices/{symbol}': 1,
+                        'v1/option-ladder': 1,
+                        'v1/option-ladder/{symbol}': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/orders': 1, // done
-                        'v2/history/orders': 1, // done
-                        'v2/orders/{orderId}': 1, // done
-                        'v2/amm-instructions': 1, // not used
-                        'v2/amm-instructions/{instructionId}': 1, // not used
-                        'v1/wallets/transactions': 1, // todo complete after withdraw
-                        'v1/wallets/limits/{symbol}': 1, // not used
-                        'v1/wallets/deposit-instructions/crypto/{symbol}': 1, // done
-                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1, // not used
-                        'v1/wallets/deposit-instructions/fiat/{symbol}': 1, // not used
-                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1, // not used
-                        'v1/wallets/self-hosted/verification-attempts': 1, // not used
-                        'v1/trades': 5, // not used
-                        'v1/history/trades': 5, // done
-                        'v1/trades/{tradeId}': 5, // not used
-                        'v1/trades/client-order-id/{clientOrderId}': 1, // done
-                        'v1/accounts/asset': 1, // done
-                        'v1/accounts/asset/{symbol}': 1, // done
-                        'v1/users/logout': 1, // not used
-                        'v1/users/hmac/login': 1, // done
-                        'v1/accounts/trading-accounts': 1, // done
-                        'v1/accounts/trading-accounts/{tradingAccountId}': 1, // done
-                        'v1/derivatives-positions': 1, // done
-                        'v1/history/derivatives-settlement': 1, // not used
-                        'v1/history/transfer': 1, // done todo check
-                        'v1/history/borrow-interest': 1, // done
-                        'v2/mmp-configuration': 1, // not used
-                        'v2/otc-trades': 1, // not used
-                        'v2/otc-trades/{otcTradeId}': 1, // not used
-                        'v2/otc-trades/unconfirmed-trade': 1, // not used
+                        'v2/orders': 1,
+                        'v2/history/orders': 1,
+                        'v2/orders/{orderId}': 1,
+                        'v2/amm-instructions': 1,
+                        'v2/amm-instructions/{instructionId}': 1,
+                        'v1/wallets/transactions': 1,
+                        'v1/wallets/limits/{symbol}': 1,
+                        'v1/wallets/deposit-instructions/crypto/{symbol}': 1,
+                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1,
+                        'v1/wallets/deposit-instructions/fiat/{symbol}': 1,
+                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1,
+                        'v1/wallets/self-hosted/verification-attempts': 1,
+                        'v1/trades': 5,
+                        'v1/history/trades': 5,
+                        'v1/trades/{tradeId}': 5,
+                        'v1/trades/client-order-id/{clientOrderId}': 1,
+                        'v1/accounts/asset': 1,
+                        'v1/accounts/asset/{symbol}': 1,
+                        'v1/users/logout': 1,
+                        'v1/users/hmac/login': 1,
+                        'v1/accounts/trading-accounts': 1,
+                        'v1/accounts/trading-accounts/{tradingAccountId}': 1,
+                        'v1/derivatives-positions': 1,
+                        'v1/history/derivatives-settlement': 1,
+                        'v1/history/transfer': 1,
+                        'v1/history/borrow-interest': 1,
+                        'v2/mmp-configuration': 1,
+                        'v2/otc-trades': 1,
+                        'v2/otc-trades/{otcTradeId}': 1,
+                        'v2/otc-trades/unconfirmed-trade': 1,
                     },
                     'post': {
-                        'v2/orders': 5, // done
-                        'v2/command': 5, // done // todo check all commands
-                        'v2/amm-instructions': 1, // not used
-                        'v1/wallets/withdrawal': 1, // todo check
-                        'v2/users/login': 1, // done
-                        'v1/command?commandType=V1TransferAsset': 1, // todo check
-                        'v1/simulate-portfolio-margin': 1, // not used
-                        'v1/wallets/self-hosted/initiate': 1, // not used
-                        'v2/mmp-configuration': 1, // not used
-                        'v2/otc-trades': 1, // not used
-                        'v2/otc-command': 1, // not used
+                        'v2/orders': 5,
+                        'v2/command': 5,
+                        'v2/amm-instructions': 1,
+                        'v1/wallets/withdrawal': 1,
+                        'v2/users/login': 1,
+                        'v1/command?commandType=V1TransferAsset': 1,
+                        'v1/simulate-portfolio-margin': 1,
+                        'v1/wallets/self-hosted/initiate': 1,
+                        'v2/mmp-configuration': 1,
+                        'v2/otc-trades': 1,
+                        'v2/otc-command': 1,
                     },
                 },
             },
@@ -1855,7 +1855,6 @@ export default class bullish extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        // todo check all commandTypes
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'tradingAccountId');
         if (tradingAccountId === undefined) {
@@ -2129,6 +2128,7 @@ export default class bullish extends Exchange {
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        // todo check this method properly
         const currency = this.currency (code);
         const request: Dict = {
             'command': {
@@ -2683,18 +2683,16 @@ export default class bullish extends Exchange {
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
-        // todo check this endpoint
+        // todo check this method properly
         const currency = this.currency (code);
         const request: Dict = {
-            'command': {
-                'commandType': 'V2TransferAsset',
-                'assetSymbol': currency['id'],
-                'quantity': this.currencyToPrecision (code, amount),
-                'fromTradingAccountId': fromAccount,
-                'toTradingAccountId': toAccount,
-            },
+            'commandType': 'V2TransferAsset',
+            'assetSymbol': currency['id'],
+            'quantity': this.currencyToPrecision (code, amount),
+            'fromTradingAccountId': fromAccount,
+            'toTradingAccountId': toAccount,
         };
-        const response = await this.privatePostV1CommandCommandTypeV1TransferAsset (this.extend (request, params));
+        const response = await this.privatePostV2Command (this.extend (request, params));
         //
         //     {
         //         "message": "Command acknowledged - TransferAsset",
@@ -2916,6 +2914,8 @@ export default class bullish extends Exchange {
         //     }
         //
         const token = this.safeString (response, 'token');
+        const authorizer = this.safeString (response, 'authorizer');
+        this.options['authorizer'] = authorizer;
         this.token = token;
         this.options['tokenExpires'] = this.sum (this.milliseconds (), 1000 * 60 * 60 * 24); // token expires in 24 hours
         return token;
