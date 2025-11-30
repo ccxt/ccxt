@@ -302,7 +302,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.rpi | <code>boolean</code> | No | *swap only* set to true to use the RPI endpoint |
+| params.rpi | <code>boolean</code> | No | *future only* set to true to use the RPI endpoint |
 
 
 ```javascript
@@ -2853,6 +2853,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 - https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
 
@@ -2883,6 +2884,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 - https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
 
@@ -2892,6 +2894,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.rpi | <code>boolean</code> | No | *future only* set to true to use the RPI endpoint |
 
 
 ```javascript
