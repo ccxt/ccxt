@@ -773,7 +773,7 @@ class coinbase(ccxt.async_support.coinbase):
             'average': self.safe_string(order, 'avg_price'),
             'filled': self.safe_string(order, 'cumulative_quantity'),
             'remaining': self.safe_string(order, 'leaves_quantity'),
-            'status': self.safe_string_lower(order, 'status'),
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
             'fee': {
                 'amount': self.safe_string(order, 'total_fees'),
                 'currency': self.safe_string(market, 'quote'),
