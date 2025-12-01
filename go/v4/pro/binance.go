@@ -4105,7 +4105,7 @@ func  (this *BinanceCore) CancelOrderWs(id interface{}, optionalArgs ...interfac
             if ccxt.IsTrue(!ccxt.IsEqual(clientOrderId, nil)) {
                 ccxt.AddElementToObject(payload, "origClientOrderId", clientOrderId)
             } else {
-                ccxt.AddElementToObject(payload, "orderId", this.ParseToInt(id))
+                ccxt.AddElementToObject(payload, "orderId", this.NumberToString(id))
             }
             params = this.Omit(params, []interface{}{"origClientOrderId", "clientOrderId"})
             var message interface{} = map[string]interface{} {
@@ -4226,7 +4226,7 @@ func  (this *BinanceCore) FetchOrderWs(id interface{}, optionalArgs ...interface
             if ccxt.IsTrue(!ccxt.IsEqual(clientOrderId, nil)) {
                 ccxt.AddElementToObject(payload, "origClientOrderId", clientOrderId)
             } else {
-                ccxt.AddElementToObject(payload, "orderId", this.ParseToInt(id))
+                ccxt.AddElementToObject(payload, "orderId", this.NumberToString(id))
             }
             var message interface{} = map[string]interface{} {
                 "id": messageHash,
