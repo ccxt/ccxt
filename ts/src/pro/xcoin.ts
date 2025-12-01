@@ -304,9 +304,9 @@ export default class xcoin extends xcoinRest {
         //        "event": "subscribe",
         //        "data": [
         //            {
+        //                "stream": "trade",
         //                "businessType": "linear_perpetual",
         //                "symbol": "BTC-USDT-PERP",
-        //                "stream": "trade",
         //                "message": "成功",
         //                "code": 0
         //            }
@@ -939,15 +939,17 @@ export default class xcoin extends xcoinRest {
         //        ]
         //    }
         //
-        // const balance = this.safeList (message, 'data', []);
-        // // todo
-        // const messageHash = 'balance';
-        // const result = this.safeBalance (this.balance);
-        // client.resolve (result, messageHash);
+        const parsed = this.parseWsBalance (message);
+        if (this.balance === undefined) {
+            this.balance = this.safeBalance ({});
+        }
+        this.balance = this.extend (this.balance, parsed);
+        client.resolve (this.balance, 'balance');
     }
 
-    parseWsBalance (response): Balances {
-        return this.parseBalance (response);
+    parseWsBalance (balance) {
+        // same as REST api
+        return this.parseBalance (balance);
     }
 
     /**
