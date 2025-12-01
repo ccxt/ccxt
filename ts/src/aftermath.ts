@@ -1,6 +1,6 @@
 import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction, OrderType, OrderSide, Num } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
@@ -73,7 +73,7 @@ export default class aftermath extends Exchange {
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807',
                 'api': {
-                    'rest': 'https://aftermath.finance/iperps-api/ccxt',
+                    'rest': 'https://aftermath.finance/api/perpetuals/ccxt/ccxt',
                 },
                 'test': {
                     'rest': 'https://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt',
@@ -755,6 +755,43 @@ export default class aftermath extends Exchange {
         return this.safePosition (position);
     }
 
+    parseCreateEditOrderArgs (id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const order = {
+            'symbol': symbol,
+            'type': type as OrderType,
+            'side': side as OrderSide,
+            'amount': amount,
+            'price': price,
+        };
+        if (id !== undefined) {
+            order['id'] = id;
+        }
+        return order;
+    }
+
+    /**
+     * @method
+     * @name aftermath#createOrder
+     * @description create a trade order
+     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_create_orders
+     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Submit/submit_create_orders
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const order = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
+        const orders = await this.createOrders ([ order as any ], params);
+        return orders[0];
+    }
+
     /**
      * @method
      * @name aftermath#createOrders
@@ -786,10 +823,10 @@ export default class aftermath extends Exchange {
         const account = this.safeString (params, 'account');
         params = this.omit (params, 'account');
         const txRequest = {
+            'accountId': account,
             'metadata': {
                 'sender': this.walletAddress,
             },
-            'subaccount': account,
             'orders': ordersRequest,
         };
         const tx = await this.privatePostBuildCreateOrders (this.extend (txRequest, params));
@@ -821,6 +858,22 @@ export default class aftermath extends Exchange {
 
     /**
      * @method
+     * @name aftermath#cancelOrder
+     * @description cancels an open order
+     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_cancel_orders
+     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Submit/submit_cancel_orders
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        const orders = await this.cancelOrders ([ id ], symbol, params);
+        return this.safeDict (orders, 0) as Order;
+    }
+
+    /**
+     * @method
      * @name aftermath#cancelOrders
      * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_cancel_orders
      * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Submit/submit_cancel_orders
@@ -837,10 +890,10 @@ export default class aftermath extends Exchange {
         const account = this.safeString (params, 'account');
         params = this.omit (params, 'account');
         const txRequest = {
+            'accountId': account,
             'metadata': {
                 'sender': this.walletAddress,
             },
-            'subaccount': account,
             'chId': market['id'],
             'orderIds': ids,
         };
@@ -898,30 +951,6 @@ export default class aftermath extends Exchange {
         //         "accountNumber": 357
         //     }
         // ]
-        //
-        return response;
-    }
-
-    async createSubaccount (params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        const account = this.safeString2 (params, 'account', 'primary');
-        params = this.omit (params, [ 'account', 'primary' ]);
-        const txRequest = {
-            'metadata': {
-                'sender': this.walletAddress,
-            },
-            'primary': account,
-        };
-        const tx = await this.privatePostBuildCreateSubaccount (txRequest);
-        const request = this.signTxEd25519 (tx);
-        const response = await this.privatePostSubmitCreateSubaccount (request);
-        //
-        // {
-        //     "id": "0xf93f9bb8bf97eb570410caada92cfa3e66c7ed3a203a164f51d22d41eabe09c0",
-        //     "type": "subaccount",
-        //     "code": "USDC",
-        //     "accountNumber": 101
-        // }
         //
         return response;
     }
@@ -1090,23 +1119,22 @@ export default class aftermath extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subaccount] *subaccount*
+     * @param {Account} [params.account] account id to use, required
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const subaccount = this.safeString (params, 'subaccount');
-        params = this.omit (params, [ 'subaccount' ]);
-        if (subaccount === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw() requires a subaccount parameter in params');
+        const account = this.safeString (params, 'account');
+        params = this.omit (params, [ 'account' ]);
+        if (account === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a account parameter in params');
         }
         const txRequest = {
+            'accountId': account,
             'metadata': {
                 'sender': this.walletAddress,
             },
-            'primary': address,
-            'subaccount': subaccount,
             'amount': amount,
         };
         const tx = await this.privatePostBuildWithdraw (txRequest);
@@ -1122,8 +1150,7 @@ export default class aftermath extends Exchange {
         // }
         //
         return this.extend (this.parseTransaction (response, currency), {
-            'addressFrom': subaccount,
-            'addressTo': address,
+            'addressFrom': account,
             'amount': amount,
         });
     }
