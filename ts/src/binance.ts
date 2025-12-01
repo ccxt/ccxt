@@ -6073,7 +6073,7 @@ export default class binance extends Exchange {
         //         "priceProtect": false
         //     }
         //
-        // createOrder, fetchOrder, fetchOpenOrders, fetchOrders: linear swap conditional order
+        // createOrder, fetchOrder, fetchOpenOrders, fetchOrders, cancelOrderWs, createOrderWs: linear swap conditional order
         //
         //     {
         //         "algoId": 3358,
