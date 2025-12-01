@@ -8240,6 +8240,51 @@ export default class Exchange {
         return optionStructures;
     }
 
+    /**
+     * @method
+     * @description checks whether the market is spot and the requested params refer to margin
+     * @param {object} params
+     * @param {string} methodName unified method name
+     * @param {Market} market
+     * @returns {boolean} true or false
+     */
+    isSpotMargin (params, methodName, market): boolean {
+        // this method should be used in the top of unified methods, before using "this.handleX" methods
+        // because we need to have access to the `params` data before omitting
+        // also, we should not make any "omit" in this method
+        const margin = this.safeBool (params, 'margin'); // support unified param
+        if (margin !== undefined) {
+            return margin;
+        }
+        // check if it's passed as param
+        let marketType = this.safeString (params, 'type');
+        if (marketType === undefined) {
+            // check if specific market was passed
+            marketType = this.safeString (market, 'type');
+            if (marketType === undefined) {
+                // in last case, check exchange-wide default
+                marketType = this.handleOption (methodName, 'type');
+            }
+        }
+        // only for backward compatibility, we support "margin" possiblity as market-type
+        if (marketType === 'margin') {
+            return true;
+        }
+        // check if marginMode is passed
+        if (this.safeString (params, 'marginMode') !== undefined) {
+            // only if this is spot type
+            if (marketType === 'spot') {
+                return true;
+            } else if (marketType === undefined) {
+                if (this.has['spot']) {
+                    // as we already checked and there is no `options.type` set, it means exchange should be `spot` by default
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     parseMarginModes (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModes {
         const marginModeStructures = {};
         if (marketType === undefined) {
