@@ -14,11 +14,17 @@ sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: F402
 
-def test_parse_precision():
+async def test_sleep():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
     })
-    assert exchange.parse_precision('15') == '0.000000000000001'
-    assert exchange.parse_precision('1') == '0.1'
-    assert exchange.parse_precision('0') == '1'
-    assert exchange.parse_precision('-5') == '100000'
+    start = exchange.milliseconds()
+    sleep_amount = 100  # milliseconds
+    await exchange.sleep(sleep_amount)
+    end = exchange.milliseconds()
+    elapsed = end - start
+    # Allow a small margin of error due to execution time
+    margin_of_error = 20
+    max_elapsed = sleep_amount + margin_of_error
+    assert elapsed >= sleep_amount, 'Elapsed time ' + str(elapsed) + 'ms is less than sleep amount ' + str(sleep_amount) + 'ms'
+    assert elapsed <= max_elapsed, 'Elapsed time ' + str(elapsed) + 'ms exceeds sleep amount ' + str(max_elapsed) + 'ms'
