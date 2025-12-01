@@ -3355,7 +3355,7 @@ export default class binance extends binanceRest {
         if (clientOrderId !== undefined) {
             payload['origClientOrderId'] = clientOrderId;
         } else {
-            payload['orderId'] = this.parseToInt (id);
+            payload['orderId'] = this.numberToString (id);
         }
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         const message: Dict = {
