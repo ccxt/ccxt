@@ -94,7 +94,6 @@ class testMainClass {
             throw e;
         }
     }
-    
 
     async initInner (exchangeId, symbolArgv, methodArgv) {
         this.parseCliArgsAndProps ();
