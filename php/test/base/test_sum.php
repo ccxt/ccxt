@@ -7,10 +7,10 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
+
 
 function test_sum() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testSum', exchange.sum (), undefined); // todo: bugs in py
