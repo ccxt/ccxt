@@ -62,7 +62,6 @@ interface Exchange {
     privatePostV2AmmInstructions (params?: {}): Promise<implicitReturnType>;
     privatePostV1WalletsWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostV2UsersLogin (params?: {}): Promise<implicitReturnType>;
-    privatePostV1CommandCommandTypeV1TransferAsset (params?: {}): Promise<implicitReturnType>;
     privatePostV1SimulatePortfolioMargin (params?: {}): Promise<implicitReturnType>;
     privatePostV1WalletsSelfHostedInitiate (params?: {}): Promise<implicitReturnType>;
     privatePostV2MmpConfiguration (params?: {}): Promise<implicitReturnType>;
