@@ -211,7 +211,6 @@ export default class bullish extends Exchange {
                         'v2/amm-instructions': 1,
                         'v1/wallets/withdrawal': 1,
                         'v2/users/login': 1,
-                        'v1/command?commandType=V1TransferAsset': 1,
                         'v1/simulate-portfolio-margin': 1,
                         'v1/wallets/self-hosted/initiate': 1,
                         'v2/mmp-configuration': 1,
@@ -243,7 +242,7 @@ export default class bullish extends Exchange {
                 'defaultNetworks': {
                     'USDC': 'ERC20',
                 },
-                'tradingAccountId': '111795880131063', // todo remove before release
+                'tradingAccountId': '111054475936334', // todo remove before release
             },
             'features': {
                 'default': {
@@ -1565,6 +1564,10 @@ export default class bullish extends Exchange {
                 params = this.omit (params, 'until');
             } else if (until === undefined) {
                 until = this.sum (since, timeDelta);
+                const now = this.milliseconds ();
+                if (until > now) {
+                    until = now;
+                }
             }
             const sinceDate = this.iso8601 (since);
             const untilDate = this.iso8601 (until);
@@ -2348,7 +2351,7 @@ export default class bullish extends Exchange {
     parseAccount (account: Dict): Account {
         return {
             'id': this.safeString (account, 'tradingAccountId'),
-            'type': 'trading',
+            'type': undefined,
             'code': undefined,
             'info': account,
         };
@@ -2628,7 +2631,14 @@ export default class bullish extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
-        let request: Dict = {
+        const maxLimit = 100;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        if (paginate) {
+            params = this.handlePaginationParams ('fetchTransfers', since, params);
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params, maxLimit) as TransferEntry[];
+        }
+        const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
         let currency: Currency = undefined;
@@ -2636,19 +2646,16 @@ export default class bullish extends Exchange {
             currency = this.currency (code);
             request['assetSymbol'] = currency['id'];
         }
-        const now = this.milliseconds ();
-        [ request, params ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
-        let until = this.safeInteger (request, 'createdAtDatetime[lte]');
-        let startTimestamp = since;
-        // current endpoint requires both since and until parameters
-        if (startTimestamp === undefined) {
-            startTimestamp = now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
+        const until = this.safeInteger (params, 'until');
+        if ((since === undefined) && (until === undefined)) {
+            // since and until are mandatory for this endpoint, set until to now if both are undefined
+            const now = this.milliseconds ();
+            params = this.extend (params, { 'until': now });
         }
-        if (until === undefined) {
-            until = now;
+        params = this.handleSinceAndUntil (since, params);
+        if (limit !== undefined) {
+            request['_pageSize'] = this.getClosestLimit (limit);
         }
-        request['createdAtDatetime[gte]'] = this.iso8601 (startTimestamp);
-        request['createdAtDatetime[lte]'] = this.iso8601 (until);
         const response = await this.privateGetV1HistoryTransfer (this.extend (request, params));
         //
         //     [
