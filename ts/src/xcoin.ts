@@ -1506,22 +1506,27 @@ export default class xcoin extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const data = this.safeDict (response, 'data');
-        const details = this.safeList (data, 'details');
-        const isTradingAccount = (details !== undefined);
-        const finalArray = this.safeList (response, 'data', details); // handle "funding" response too
-        for (let i = 0; i < finalArray.length; i++) {
-            const balanceRaw = finalArray[i];
+        let details = [];
+        const dataDict = this.safeDict (response, 'data');
+        // support WS parsing
+        if (dataDict === undefined) {
+            const dataList = this.safeList (response, 'data', []);
+            const firstDict = this.safeDict (dataList, 0, {});
+            details = this.safeList (firstDict, 'details', []);
+        } else {
+            // handle "funding" response too
+            if (dataDict !== undefined) {
+                details = this.safeList (response, 'data', []);
+            } else {
+                details = this.safeList (dataDict, 'details', []);
+            }
+        }
+        for (let i = 0; i < details.length; i++) {
+            const balanceRaw = details[i];
             const code = this.safeCurrencyCode (this.safeString (balanceRaw, 'currency'));
             const account = this.account ();
-            // balances are very complex, it is also borrowable in totalAmount, as opposed to equity (for funding & WS balance)
-            if (isTradingAccount) {
-                account['total'] = this.safeString (balanceRaw, 'equity');
-                account['used'] = this.safeString (balanceRaw, 'frozen');
-            } else {
-                account['total'] = this.safeString (balanceRaw, 'equity');
-                account['used'] = this.safeString (balanceRaw, 'freeze');
-            }
+            account['total'] = this.safeString (balanceRaw, 'equity');
+            account['used'] = this.safeString2 (balanceRaw, 'frozen', 'freeze');
             account['info'] = balanceRaw;
             result[code] = account;
         }

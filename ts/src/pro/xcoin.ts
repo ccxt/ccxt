@@ -939,6 +939,13 @@ export default class xcoin extends xcoinRest {
         //        ]
         //    }
         //
+        // skip message if there is empty details (no balances)
+        const data = this.safeList (message, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        const details = this.safeList (first, 'details', []);
+        if (details.length === 0) {
+            return;
+        }
         const parsed = this.parseWsBalance (message);
         if (this.balance === undefined) {
             this.balance = this.safeBalance ({});
