@@ -3124,7 +3124,7 @@ class binance(ccxt.async_support.binance):
         if clientOrderId is not None:
             payload['origClientOrderId'] = clientOrderId
         else:
-            payload['orderId'] = self.parse_to_int(id)
+            payload['orderId'] = self.number_to_string(id)
         params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         message: dict = {
             'id': messageHash,
@@ -3203,7 +3203,7 @@ class binance(ccxt.async_support.binance):
         if clientOrderId is not None:
             payload['origClientOrderId'] = clientOrderId
         else:
-            payload['orderId'] = self.parse_to_int(id)
+            payload['orderId'] = self.number_to_string(id)
         message: dict = {
             'id': messageHash,
             'method': 'order.status',
