@@ -15,6 +15,19 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "Fetch transfers with symbol, since and limit",
+                "method": "fetchTransfers",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/history/transfer?tradingAccountId=111054475936334&assetSymbol=USDC&_pageSize=5&createdAtDatetime%5Bgte%5D=2025-12-01T09%3A46%3A51.168Z&createdAtDatetime%5Blte%5D=2025-12-01T11%3A03%3A20.421Z",
+                "input": [
+                    "USDC",
+                    1764582411168,
+                    1
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "Fetch funding rate history",
