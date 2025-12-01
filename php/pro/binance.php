@@ -3442,7 +3442,7 @@ class binance extends \ccxt\async\binance {
             if ($clientOrderId !== null) {
                 $payload['origClientOrderId'] = $clientOrderId;
             } else {
-                $payload['orderId'] = $this->parse_to_int($id);
+                $payload['orderId'] = $this->number_to_string($id);
             }
             $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
             $message = array(
@@ -3531,7 +3531,7 @@ class binance extends \ccxt\async\binance {
             if ($clientOrderId !== null) {
                 $payload['origClientOrderId'] = $clientOrderId;
             } else {
-                $payload['orderId'] = $this->parse_to_int($id);
+                $payload['orderId'] = $this->number_to_string($id);
             }
             $message = array(
                 'id' => $messageHash,
