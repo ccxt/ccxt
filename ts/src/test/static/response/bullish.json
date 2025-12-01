@@ -6,6 +6,55 @@
         "tokenExpires": 9999999999999
     },
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "Fetch transfers with symbol, since and limit",
+                "method": "fetchTransfers",
+                "input": [
+                    "USDC",
+                    1764582411168,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "requestId": "915539434854155264",
+                        "toTradingAccountId": "111860726325352",
+                        "fromTradingAccountId": "111054475936334",
+                        "assetSymbol": "USDC",
+                        "quantity": "10.0000",
+                        "status": "CLOSED",
+                        "statusReasonCode": "6002",
+                        "statusReason": "Executed",
+                        "createdAtTimestamp": "1764582411168",
+                        "createdAtDatetime": "2025-12-01T09:46:51.168Z"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "915539434854155264",
+                        "timestamp": 1764582411168,
+                        "datetime": "2025-12-01T09:46:51.168Z",
+                        "currency": "USDC",
+                        "amount": 10,
+                        "fromAccount": "111054475936334",
+                        "toAccount": "111860726325352",
+                        "status": "ok",
+                        "info": {
+                            "requestId": "915539434854155264",
+                            "toTradingAccountId": "111860726325352",
+                            "fromTradingAccountId": "111054475936334",
+                            "assetSymbol": "USDC",
+                            "quantity": "10.0000",
+                            "status": "CLOSED",
+                            "statusReasonCode": "6002",
+                            "statusReason": "Executed",
+                            "createdAtTimestamp": "1764582411168",
+                            "createdAtDatetime": "2025-12-01T09:46:51.168Z"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "Fetch funding rate history",
@@ -833,7 +882,7 @@
                 "parsedResponse": [
                     {
                         "id": "111309424211255",
-                        "type": "trading",
+                        "type": null,
                         "code": null,
                         "info": {
                             "defaultedMarginUSD": "0.0000",
