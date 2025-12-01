@@ -1428,7 +1428,7 @@ export default class binance extends Exchange {
                         'marginMode': true,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
-                        'triggerDirection': false,
+                        'triggerDirection': true,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
@@ -6385,7 +6385,7 @@ export default class binance extends Exchange {
             }
         }
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const trailingDelta = this.safeString (params, 'trailingDelta');
         const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice');
@@ -6453,6 +6453,40 @@ export default class binance extends Exchange {
                 uppercaseType = market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
             } else if (isLimitOrder) {
                 uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
+            }
+        } else if (isTriggerOrder) {
+            stopPrice = triggerPrice;
+            let triggerDirection = undefined;
+            [ triggerDirection, params ] = this.handleTriggerDirectionAndParams (params); // required
+            const isAscending = (triggerDirection === 'ascending');
+            if (side === 'buy') {
+                if (isMarketOrder) {
+                    if (isAscending) {
+                        uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
+                    } else {
+                        uppercaseType = market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
+                    }
+                } else if (isLimitOrder) {
+                    if (isAscending) {
+                        uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+                    } else {
+                        uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
+                    }
+                }
+            } else if (side === 'sell') {
+                if (isMarketOrder) {
+                    if (isAscending) {
+                        uppercaseType = market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
+                    } else {
+                        uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
+                    }
+                } else if (isLimitOrder) {
+                    if (isAscending) {
+                        uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
+                    } else {
+                        uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+                    }
+                }
             }
         }
         if (market['option']) {
