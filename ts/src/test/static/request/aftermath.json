@@ -6,7 +6,7 @@
             {
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
-                "url": "http://testnet.aftermath.finance/iperps-api/ccxt/currencies",
+                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/currencies",
                 "input": []
             }
         ],
@@ -14,7 +14,7 @@
             {
                 "description": "fetchMarkets",
                 "method": "fetchMarkets",
-                "url": "http://testnet.aftermath.finance/iperps-api/ccxt/markets",
+                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/markets",
                 "input": []
             }
         ],
@@ -22,7 +22,7 @@
             {
                 "description": "fetchTicker",
                 "method": "fetchTicker",
-                "url": "http://testnet.aftermath.finance/iperps-api/ccxt/ticker",
+                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/ticker",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -33,7 +33,7 @@
             {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
-                "url": "http://testnet.aftermath.finance/iperps-api/ccxt/orderbook",
+                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/orderbook",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -44,7 +44,7 @@
             {
                 "description": "fetchTrades",
                 "method": "fetchTrades",
-                "url": "http://testnet.aftermath.finance/iperps-api/ccxt/trades",
+                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/trades",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -55,7 +55,7 @@
             {
                 "description": "fetchOHLCV",
                 "method": "fetchOHLCV",
-                "url": "http://testnet.aftermath.finance/iperps-api/ccxt/OHLCV",
+                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/OHLCV",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -66,7 +66,7 @@
             {
                 "description": "fetchBalance",
                 "method": "fetchBalance",
-                "url": "http://testnet.aftermath.finance/iperps-api/ccxt/balance",
+                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/balance",
                 "input": [
                     {
                         "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
@@ -79,7 +79,7 @@
             {
                 "description": "fetchAccounts",
                 "method": "fetchAccounts",
-                "url": "http://testnet.aftermath.finance/iperps-api/ccxt/accounts",
+                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/accounts",
                 "input": [],
                 "output": "{\"address\":\"wallet\"}"
             }
@@ -88,7 +88,7 @@
             {
                 "description": "fetchOpenOrders",
                 "method": "fetchOpenOrders",
-                "url": "http://testnet.aftermath.finance/iperps-api/ccxt/myPendingOrders",
+                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/myPendingOrders",
                 "input": [
                     "BTC/USD:USDC",
                     null,
