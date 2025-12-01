@@ -1399,25 +1399,49 @@ export default class xcoin extends Exchange {
             //        "msg": "success",
             //        "data": {
             //            "accountName": "CCXT_testing",
-            //            "totalEquity": "10.034088464",
-            //            "totalMarginBalance": "8.6731462496",
-            //            "totalAvailableBalance": "8.5408862496",
-            //            "totalEffectiveMargin": "8.6731462496",
-            //            "totalPositionValue": "0.6613",
-            //            "totalIm": "0.13226",
-            //            "totalMm": "0.013226",
-            //            "totalOpenLoss": "0",
-            //            "mmr": "0.00152494",
-            //            "imr": "0.01524937",
-            //            "accountLeverage": "0.07624684",
-            //            "totalUpl": "0",
+            //            "totalEquity": "57.532225839060285117",
+            //            "totalMarginBalance": "57.039614384166099192",
+            //            "totalAvailableBalance": "42.231274540860568109",
+            //            "totalEffectiveMargin": "57.030791152166099192",
+            //            "totalPositionValue": "55.158783056527655416",
+            //            "totalIm": "14.799516611305531083",
+            //            "totalMm": "0.438690861130553108",
+            //            "totalOpenLoss": "0.008823232",
+            //            "mmr": "0.00769218",
+            //            "imr": "0.25950046",
+            //            "accountLeverage": "0.96717548",
+            //            "contractUpl": "-10.22805",
             //            "flexibleEquity": "0.0000",
             //            "flexiblePnl": "0.0000",
             //            "autoSubscribe": false,
             //            "details": [
             //                {
-            //                    "currency": "USDT",
-            //                    "equity": "-0.6613",
+            //                    "currency": "ADA",
+            //                    "equity": "1.9768",
+            //                    "totalBalance": "1.9768",
+            //                    "cashBalance": "1.9768",
+            //                    "savingBalance": "0",
+            //                    "leftPersonalQuota": null,
+            //                    "savingTotalPnl": null,
+            //                    "savingLastPnl": null,
+            //                    "savingHoldDays": null,
+            //                    "savingTotalAPR": "0.000000980000000000",
+            //                    "savingLastAPR": null,
+            //                    "borrow": "0",
+            //                    "frozen": "0",
+            //                    "realLiability": "0",
+            //                    "potentialLiability": "0",
+            //                    "accruedInterest": "0",
+            //                    "upl": "0",
+            //                    "optionUpl": "0",
+            //                    "positionInitialMargin": null,
+            //                    "orderInitialMargin": null,
+            //                    "liabilityInitialMargin": "0",
+            //                    "initialMargin": "0"
+            //                },
+            //                {
+            //                    "currency": "ETH",
+            //                    "equity": "-0.000004804420107405",
             //                    "totalBalance": "0",
             //                    "cashBalance": "0",
             //                    "savingBalance": "0",
@@ -1425,46 +1449,50 @@ export default class xcoin extends Exchange {
             //                    "savingTotalPnl": null,
             //                    "savingLastPnl": null,
             //                    "savingHoldDays": null,
-            //                    "savingTotalAPR": "0.000065640000000000",
+            //                    "savingTotalAPR": "0.000003590000000000",
             //                    "savingLastAPR": null,
-            //                    "borrow": "0.6613",
-            //                    "realLiability": "0.6613",
-            //                    "potentialLiability": "0.6613",
+            //                    "borrow": "0.000004804420107405",
+            //                    "frozen": "0",
+            //                    "realLiability": "0.000004804420107405",
+            //                    "potentialLiability": "0.000004804420107405",
             //                    "accruedInterest": "0",
             //                    "upl": "0",
+            //                    "optionUpl": "0",
             //                    "positionInitialMargin": null,
             //                    "orderInitialMargin": null,
-            //                    "liabilityInitialMargin": "0.13226",
-            //                    "initialMargin": "0.13226"
+            //                    "liabilityInitialMargin": "0.000000960884021481",
+            //                    "initialMargin": "0.000000960884021481"
             //                },
             //                {
-            //                    "currency": "SOL",
-            //                    "equity": "0.0299952",
-            //                    "totalBalance": "0.0299952",
-            //                    "cashBalance": "0.0299952",
+            //                    "currency": "USDT",
+            //                    "equity": "52.999635306646081284",
+            //                    "totalBalance": "63.227685306646081284",
+            //                    "cashBalance": "63.227685306646081284",
             //                    "savingBalance": "0",
             //                    "leftPersonalQuota": null,
             //                    "savingTotalPnl": null,
             //                    "savingLastPnl": null,
             //                    "savingHoldDays": null,
-            //                    "savingTotalAPR": "0.000041160000000000",
+            //                    "savingTotalAPR": "0.003873400000000000",
             //                    "savingLastAPR": null,
             //                    "borrow": "0",
+            //                    "frozen": "0",
             //                    "realLiability": "0",
             //                    "potentialLiability": "0",
             //                    "accruedInterest": "0",
-            //                    "upl": "0",
+            //                    "upl": "-10.22805",
+            //                    "optionUpl": "0",
             //                    "positionInitialMargin": null,
             //                    "orderInitialMargin": null,
             //                    "liabilityInitialMargin": "0",
-            //                    "initialMargin": "0"
-            //                }
+            //                    "initialMargin": "14.7968"
+            //                },
             //            ],
             //            "pid": "1981204053820035072",
             //            "cid": "176118985590600",
             //            "uid": "176118985582700"
             //        },
-            //        "ts": "1762541171766"
+            //        "ts": "1764569227180"
             //    }
             //
         }
@@ -1488,12 +1516,13 @@ export default class xcoin extends Exchange {
             const account = this.account ();
             // balances are very complex, it is also borrowable in totalAmount, as opposed to equity (for funding & WS balance)
             if (isTradingAccount) {
-                account['total'] = this.safeString (balanceRaw, 'totalBalance');
-                account['free'] = this.safeString (balanceRaw, 'equity');
+                account['total'] = this.safeString (balanceRaw, 'equity');
+                account['used'] = this.safeString (balanceRaw, 'frozen');
             } else {
                 account['total'] = this.safeString (balanceRaw, 'equity');
                 account['used'] = this.safeString (balanceRaw, 'freeze');
             }
+            account['info'] = balanceRaw;
             result[code] = account;
         }
         return this.safeBalance (result);
