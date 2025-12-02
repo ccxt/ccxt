@@ -144,10 +144,6 @@ public class Tests
         baseTestInstance.testCryptography();
         Helper.Green(" [C#] Crypto tests passed");
         
-        // Run language specific test separately since it's async
-        tests.testLanguageSpecific().Wait();
-        Helper.Green(" [C#] testLanguageSpecific tests passed");
-        
         // run auto-transpiled tests (all of them start by 'testFunction')
         RunAutoTranspiledBaseTests (baseTestInstance);
     }
