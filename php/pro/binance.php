@@ -698,7 +698,7 @@ class binance extends \ccxt\async\binance {
                 $market = $this->market($symbol);
                 $messageHashes[] = 'orderbook::' . $symbol;
                 $subscriptionHash = $market['lowercaseId'] . '@' . $name;
-                $symbolHash = $subscriptionHash . '@' . $watchOrderBookRate . 'ms';
+                $symbolHash = $subscriptionHash . '@' . (string) $watchOrderBookRate . 'ms';
                 $subParams[] = $symbolHash;
             }
             $messageHashesLength = count($messageHashes);
@@ -3459,23 +3459,27 @@ class binance extends \ccxt\async\binance {
             );
             $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
             $clientOrderId = $this->safe_string_n($params, array( 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ));
+            $shouldUseAlgoOrder = $market['linear'] && $market['swap'] && $isConditional;
             if ($clientOrderId !== null) {
-                $payload['origClientOrderId'] = $clientOrderId;
-            } if ($market['linear'] && $market['swap'] && $isConditional) {
-                $payload['clientAlgoId'] = $clientOrderId;
+                if ($shouldUseAlgoOrder) {
+                    $payload['clientAlgoId'] = $clientOrderId;
+                } else {
+                    $payload['origClientOrderId'] = $clientOrderId;
+                }
             } else {
-                $payload['orderId'] = $this->number_to_string($id);
+                if ($shouldUseAlgoOrder) {
+                    $payload['algoId'] = $this->number_to_string($id);
+                } else {
+                    $payload['orderId'] = $this->number_to_string($id);
+                }
             }
             $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId', 'stop', 'trigger', 'conditional' ));
-            if ($market['linear'] && $market['swap'] && $isConditional) {
-                $payload['algoId'] = $id;
-            }
             $message = array(
                 'id' => $messageHash,
                 'method' => 'order.cancel',
                 'params' => $this->sign_params($this->extend($payload, $params)),
             );
-            if ($market['linear'] && $market['swap'] && $isConditional) {
+            if ($shouldUseAlgoOrder) {
                 $message['method'] = 'algoOrder.cancel';
             }
             $subscription = array(
