@@ -1005,7 +1005,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + 'fetchMyTrades() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+            throw new ArgumentsRequired (this.id + 'fetchMyTrades() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const request: Dict = {
@@ -1477,7 +1477,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const paginate = this.safeBool (params, 'paginate', false);
@@ -1683,7 +1683,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         let market = undefined;
@@ -1814,7 +1814,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const market = this.market (symbol);
@@ -1861,7 +1861,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         if (symbol === undefined) {
@@ -1900,7 +1900,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const request: Dict = {
@@ -2441,7 +2441,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const request: Dict = {
@@ -2514,7 +2514,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const request: Dict = {
@@ -2628,7 +2628,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const maxLimit = 100;
@@ -2786,7 +2786,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBorrowRateHistory', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBorrowRateHistory() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+            throw new ArgumentsRequired (this.id + ' fetchBorrowRateHistory() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const currency = this.currency (code);
