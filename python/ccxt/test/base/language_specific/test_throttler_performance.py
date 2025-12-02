@@ -38,6 +38,7 @@ async def throttle_call(exchange, index, start_time):
 async def test_throttler():
     exchange1 = ccxt.binance({
         'enableRateLimit': True,
+        'rateLimiterAlgorithm': 'rollingWindow',
     })
 
     try:
@@ -69,8 +70,8 @@ async def test_throttler():
     leaky_bucket_time_string = str(round(leaky_bucket_time, 2))
     rolling_window_0_time_string = str(round(rolling_window_0_time, 2))  # uses leakyBucket
 
-    assert rolling_window_time <= 1000, 'Rolling window throttler happen immediately, time was: ' + rolling_window_time_string
-    assert leaky_bucket_time >= 500, 'Leaky bucket throttler should take at least half a second for 20 requests, time was: ' + leaky_bucket_time_string
+    assert rolling_window_time <= 1000, 'Rolling window throttler should happen immediately, but time was: ' + rolling_window_time_string
+    assert leaky_bucket_time >= 500, 'Leaky bucket throttler should take at least half a second for 20 requests, but time was: ' + leaky_bucket_time_string
     assert rolling_window_0_time >= 500, 'With rollingWindowSize === 0, the Leaky bucket throttler should be used and take at least half a second for 20 requests, time was: ' + rolling_window_0_time_string
 
     print('┌───────────────────────────────────────────┬──────────────┬─────────────────┐')
@@ -78,8 +79,20 @@ async def test_throttler():
     print('├───────────────────────────────────────────┼──────────────┼─────────────────┤')
     print('│ Rolling Window                            │ ' + rolling_window_time_string.rjust(11) + '  │ ~3              │')
     print('│ Leaky Bucket                              │ ' + leaky_bucket_time_string.rjust(11) + '  │ ~950            │')
-    print('│ Leaky Bucket (rollingWindowSize === 0)    │          ' + rolling_window_0_time_string.rjust(11) + ' │ ~950            │')
+    print('│ Leaky Bucket (rollingWindowSize === 0)    │ ' + rolling_window_0_time_string.rjust(11) + '  │ ~950            │')
     print('└───────────────────────────────────────────┴──────────────┴─────────────────┘')
 
 def test_throttler_performance():
-    asyncio.run(test_throttler())
+    try:
+        # Check if there's already a running event loop
+        loop = asyncio.get_running_loop()
+        # If we get here, there's already a loop running
+        # Create a task and run it (this will be awaited by the caller)
+        import concurrent.futures
+        # Can't use asyncio.run() in a running loop, so we need to run in thread pool
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            future = pool.submit(asyncio.run, test_throttler())
+            future.result()
+    except RuntimeError:
+        # No event loop is running, safe to use asyncio.run()
+        asyncio.run(test_throttler())
