@@ -860,6 +860,7 @@ public partial class htx : Exchange
                     { "base-symbol-error", typeof(BadSymbol) },
                     { "system-maintenance", typeof(OnMaintenance) },
                     { "base-request-exceed-frequency-limit", typeof(RateLimitExceeded) },
+                    { "rate-too-many-requests", typeof(RateLimitExceeded) },
                     { "invalid symbol", typeof(BadSymbol) },
                     { "symbol trade not open now", typeof(BadSymbol) },
                     { "require-symbol", typeof(BadSymbol) },
