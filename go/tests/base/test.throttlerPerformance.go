@@ -37,6 +37,7 @@ func TestThrottlerPerformanceHelper(exchange *ccxt.Exchange, numRequests interfa
 func TestThrottlerPerformance() {
     exchange1 := ccxt.NewBinance(map[string]interface{} {
         "enableRateLimit": true,
+        "rateLimiterAlgorithm": "rollingWindow",
     })
     
     rollingWindowTime := (<-TestThrottlerPerformanceHelper(&exchange1.Exchange, 100))
