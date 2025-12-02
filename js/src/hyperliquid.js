@@ -103,10 +103,10 @@ export default class hyperliquid extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchStatus': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
@@ -639,7 +639,9 @@ export default class hyperliquid extends Exchange {
                 const data = this.extend(this.safeDict(universe, j, {}), this.safeDict(assetCtxs, j, {}));
                 data['baseId'] = j + offset;
                 data['collateralToken'] = collateralToken;
-                const cachedCurrencies = this.safeDict(this.options, 'c', {});
+                data['hip3'] = true;
+                data['dex'] = dexName;
+                const cachedCurrencies = this.safeDict(this.options, 'cachedCurrenciesById', {});
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
                 if (collateralToken in cachedCurrencies) {
                     const name = this.safeString(data, 'name');
@@ -687,8 +689,6 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         //
-        // reset currency cache not needed anymore
-        this.options['cachedCurrenciesById'] = {};
         return markets;
     }
     /**
@@ -1228,6 +1228,7 @@ export default class hyperliquid extends Exchange {
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', by default fetches both
+     * @param {boolean} [params.hip3] set to true to fetch hip3 markets only
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1237,7 +1238,21 @@ export default class hyperliquid extends Exchange {
         let response = [];
         const type = this.safeString(params, 'type');
         params = this.omit(params, 'type');
-        if (type === 'spot') {
+        let hip3 = false;
+        [hip3, params] = this.handleOptionAndParams(params, 'fetchTickers', 'hip3', false);
+        if (symbols !== undefined) {
+            // infer from first symbol
+            const firstSymbol = this.safeString(symbols, 0);
+            const market = this.market(firstSymbol);
+            if (this.safeBool(this.safeDict(market, 'info'), 'hip3')) {
+                hip3 = true;
+            }
+        }
+        if (hip3) {
+            params = this.omit(params, 'hip3');
+            response = await this.fetchHip3Markets(params);
+        }
+        else if (type === 'spot') {
             response = await this.fetchSpotMarkets(params);
         }
         else if (type === 'swap') {
@@ -1377,6 +1392,9 @@ export default class hyperliquid extends Exchange {
         //         "circulatingSupply": "998949190.03400207", // only in spot
         //     },
         //
+        const name = this.safeString(ticker, 'name');
+        const marketId = this.coinToMarketId(name);
+        market = this.safeMarket(marketId, market);
         const bidAsk = this.safeList(ticker, 'impactPxs');
         return this.safeTicker({
             'symbol': market['symbol'],
@@ -4309,6 +4327,9 @@ export default class hyperliquid extends Exchange {
     }
     coinToMarketId(coin) {
         // handle also hip3 tokens like flx:CRCL
+        if (coin === undefined) {
+            return undefined;
+        }
         if (this.safeDict(this.options['hip3TokensByName'], coin)) {
             const hip3Dict = this.options['hip3TokensByName'][coin];
             const quote = this.safeString(hip3Dict, 'quote', 'USDC');

@@ -7796,6 +7796,7 @@ watches information on multiple trades made in a market
 * [hashkey](/exchanges/hashkey.md#hashkeywatchtrades)
 * [hollaex](/exchanges/hollaex.md#hollaexwatchtrades)
 * [htx](/exchanges/htx.md#htxwatchtrades)
+* [hyperliquid](/exchanges/hyperliquid.md#hyperliquidwatchtrades)
 * [independentreserve](/exchanges/independentreserve.md#independentreservewatchtrades)
 * [kucoin](/exchanges/kucoin.md#kucoinwatchtrades)
 * [kucoinfutures](/exchanges/kucoinfutures.md#kucoinfutureswatchtrades)
