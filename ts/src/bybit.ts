@@ -3948,7 +3948,9 @@ export default class bybit extends Exchange {
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+     * @param {float} [params.stopLossLimitPrice] The limit price for a stoploss order (only when used in OCO with takeProfitPrice)
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+     * @param {float} [params.takeProfitLimitPrice] The limit price for a takeprofit order (only when used in OCO combination with stopLossPrice)
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
@@ -3978,7 +3980,7 @@ export default class bybit extends Exchange {
         if (method === 'privatePostV5PositionTradingStop') {
             response = await this.privatePostV5PositionTradingStop (orderRequest);
         } else {
-            response = await this.privatePostV5OrderCreate (orderRequest); // already extended inside createOrderRequest
+            response = await this.privatePostV5OrderCreate (orderRequest);
         }
         //
         //     {
@@ -4044,7 +4046,8 @@ export default class bybit extends Exchange {
         const isLimit = lowerCaseType === 'limit';
         const isBuy = side === 'buy';
         let defaultMethod = undefined;
-        if (isTrailingOrder || (isStopLossOrder && isTakeProfitOrder)) {
+        const switchToOco = (isStopLossOrder && isTakeProfitOrder);
+        if (isTrailingOrder || switchToOco) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
@@ -4062,35 +4065,49 @@ export default class bybit extends Exchange {
                 throw new InvalidOrder (this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if (isStopLossOrder || isTakeProfitOrder) {
-                const shouldBePartial = amountString !== undefined;
-                const tpslMode = shouldBePartial ? 'Partial' : 'Full';
-                request['tpslMode'] = tpslMode;
+                let tpslModeSl: Str = undefined;
+                let tpslModeTp: Str = undefined;
                 if (isStopLossOrder) {
                     request['stopLoss'] = this.getPrice (symbol, stopLossTriggerPrice);
-                    if (shouldBePartial) {
-                        request['slSize'] = amountString;
-                    }
-                    const stopLossLimitPrice = this.safeString (params, 'stopLossLimitPrice', 'slLimitPrice');
+                    const stopLossLimitPrice = this.safeString2 (params, 'stopLossLimitPrice', 'slLimitPrice');
                     if (stopLossLimitPrice !== undefined) {
+                        tpslModeSl = 'Partial';
                         request['slOrderType'] = 'Limit';
                         request['slLimitPrice'] = stopLossLimitPrice;
+                        request['slSize'] = amountString;
                     } else {
                         request['slOrderType'] = 'Market';
+                        if (amountString !== undefined) {
+                            request['slSize'] = amountString;
+                            tpslModeSl = 'Partial';
+                        } else {
+                            tpslModeSl = 'Full';
+                        }
                     }
                 }
                 if (isTakeProfitOrder) {
                     request['takeProfit'] = this.getPrice (symbol, takeProfitTriggerPrice);
-                    if (shouldBePartial) {
-                        request['tpSize'] = amountString;
-                    }
-                    const takeProfitLimitPrice = this.safeString (params, 'takeProfitLimitPrice', 'tpLimitPrice');
+                    const takeProfitLimitPrice = this.safeString2 (params, 'takeProfitLimitPrice', 'tpLimitPrice');
                     if (takeProfitLimitPrice !== undefined) {
+                        tpslModeTp = 'Partial';
                         request['tpOrderType'] = 'Limit';
                         request['tpLimitPrice'] = takeProfitLimitPrice;
+                        request['tpSize'] = amountString;
                     } else {
                         request['tpOrderType'] = 'Market';
+                        if (amountString !== undefined) {
+                            request['tpSize'] = amountString;
+                            tpslModeTp = 'Partial';
+                        } else {
+                            tpslModeTp = 'Full';
+                        }
                     }
                 }
+                if (tpslModeSl !== tpslModeTp) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination');
+                }
+                request['tpslMode'] = tpslModeSl; // same as tpslModeTp
+                params = this.omit (params, [ 'stopLossLimitPrice', 'takeProfitLimitPrice' ]);
             }
         } else {
             request['side'] = this.capitalize (side);
