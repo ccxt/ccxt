@@ -5,7 +5,105 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV 1d perp",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1d&symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1d",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1h perp",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1h&symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1m perp",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1m&symbol=ETH-USDT-PERP&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1d spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1d&symbol=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    "1d",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1h spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1h&symbol=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1m spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.xcoin.com/api/v1/market/kline?period=1m&symbol=ETH-USDT&limit=2",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
         "createOrders": [
+            {
+                "description": "createOrders spot",
+                "method": "createOrders",
+                "url": "https://api.xcoin.com/api/v2/trade/batchOrder",
+                "input": [
+                    [
+                        {
+                            "symbol": "ETH/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.005,
+                            "price": 2900
+                        },
+                        {
+                            "symbol": "ETH/USDT",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": 0.005,
+                            "price": 3100
+                        }
+                    ]
+                ],
+                "output": "{\"orderReqList\":[{\"symbol\":\"ETH-USDT\",\"side\":\"buy\",\"qty\":\"0.005\",\"orderType\":\"limit\",\"price\":\"2900\"},{\"symbol\":\"ETH-USDT\",\"side\":\"sell\",\"qty\":\"0.005\",\"orderType\":\"limit\",\"price\":\"3100\"}]}"
+            },
             {
                 "description": "createOrders perp",
                 "method": "createOrders",

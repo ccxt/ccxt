@@ -3,7 +3,1438 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "fetchBalance type perp",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "accountName": "CCXT_testing",
+                        "totalEquity": "58.72058072038320096",
+                        "totalMarginBalance": "53.965614849778461717",
+                        "totalAvailableBalance": "24.480642859457064243",
+                        "totalEffectiveMargin": "52.789890881778461717",
+                        "totalPositionValue": "59.835440111606987378",
+                        "totalIm": "28.309248022321397474",
+                        "totalMm": "1.006181602232139746",
+                        "totalOpenLoss": "1.175723968",
+                        "mmr": "0.01906012",
+                        "imr": "0.53626267",
+                        "accountLeverage": "1.13346399",
+                        "contractUpl": "-9.47165",
+                        "flexibleEquity": "0.0000",
+                        "flexiblePnl": "0.0000",
+                        "autoSubscribe": false,
+                        "details": [
+                            {
+                                "currency": "ADA",
+                                "equity": "49.96912",
+                                "totalBalance": "49.96912",
+                                "cashBalance": "49.96912",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000000700000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "20",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            },
+                            {
+                                "currency": "ETH",
+                                "equity": "0.009993595245448471",
+                                "totalBalance": "0.009993595245448471",
+                                "cashBalance": "0.009993595245448471",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000002870000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            },
+                            {
+                                "currency": "USDT",
+                                "equity": "6.939359888393012622",
+                                "totalBalance": "16.411009888393012622",
+                                "cashBalance": "16.411009888393012622",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.019437820000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "11",
+                                "realLiability": "4.060640111606987378",
+                                "potentialLiability": "26.974906778273654044",
+                                "accruedInterest": "0",
+                                "upl": "-9.47165",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "5.394981355654730808",
+                                "initialMargin": "28.309248022321397474"
+                            },
+                            {
+                                "currency": "BTC",
+                                "equity": "0",
+                                "totalBalance": "0",
+                                "cashBalance": "0",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000000120000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            },
+                            {
+                                "currency": "SOL",
+                                "equity": "0.029995180772731199",
+                                "totalBalance": "0.029995180772731199",
+                                "cashBalance": "0.029995180772731199",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000036650000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            }
+                        ],
+                        "pid": "1981204053820035072",
+                        "cid": "176118985590600",
+                        "uid": "176118985582700"
+                    },
+                    "ts": "1764679565959"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "msg": "success",
+                        "data": {
+                            "accountName": "CCXT_testing",
+                            "totalEquity": "58.72058072038320096",
+                            "totalMarginBalance": "53.965614849778461717",
+                            "totalAvailableBalance": "24.480642859457064243",
+                            "totalEffectiveMargin": "52.789890881778461717",
+                            "totalPositionValue": "59.835440111606987378",
+                            "totalIm": "28.309248022321397474",
+                            "totalMm": "1.006181602232139746",
+                            "totalOpenLoss": "1.175723968",
+                            "mmr": "0.01906012",
+                            "imr": "0.53626267",
+                            "accountLeverage": "1.13346399",
+                            "contractUpl": "-9.47165",
+                            "flexibleEquity": "0.0000",
+                            "flexiblePnl": "0.0000",
+                            "autoSubscribe": false,
+                            "details": [
+                                {
+                                    "currency": "ADA",
+                                    "equity": "49.96912",
+                                    "totalBalance": "49.96912",
+                                    "cashBalance": "49.96912",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000000700000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "20",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                },
+                                {
+                                    "currency": "ETH",
+                                    "equity": "0.009993595245448471",
+                                    "totalBalance": "0.009993595245448471",
+                                    "cashBalance": "0.009993595245448471",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000002870000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                },
+                                {
+                                    "currency": "USDT",
+                                    "equity": "6.939359888393012622",
+                                    "totalBalance": "16.411009888393012622",
+                                    "cashBalance": "16.411009888393012622",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.019437820000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "11",
+                                    "realLiability": "4.060640111606987378",
+                                    "potentialLiability": "26.974906778273654044",
+                                    "accruedInterest": "0",
+                                    "upl": "-9.47165",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "5.394981355654730808",
+                                    "initialMargin": "28.309248022321397474"
+                                },
+                                {
+                                    "currency": "BTC",
+                                    "equity": "0",
+                                    "totalBalance": "0",
+                                    "cashBalance": "0",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000000120000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                },
+                                {
+                                    "currency": "SOL",
+                                    "equity": "0.029995180772731199",
+                                    "totalBalance": "0.029995180772731199",
+                                    "cashBalance": "0.029995180772731199",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000036650000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                }
+                            ],
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        "ts": "1764679565959"
+                    },
+                    "timestamp": 1764679565959,
+                    "datetime": "2025-12-02T12:46:05.959Z",
+                    "free": {},
+                    "used": {},
+                    "total": {}
+                }
+            },
+            {
+                "description": "fetchBalance type spot",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "accountName": "CCXT_testing",
+                        "totalEquity": "58.72058072038320096",
+                        "totalMarginBalance": "53.965614849778461717",
+                        "totalAvailableBalance": "24.480642859457064243",
+                        "totalEffectiveMargin": "52.789890881778461717",
+                        "totalPositionValue": "59.835440111606987378",
+                        "totalIm": "28.309248022321397474",
+                        "totalMm": "1.006181602232139746",
+                        "totalOpenLoss": "1.175723968",
+                        "mmr": "0.01906012",
+                        "imr": "0.53626267",
+                        "accountLeverage": "1.13346399",
+                        "contractUpl": "-9.47165",
+                        "flexibleEquity": "0.0000",
+                        "flexiblePnl": "0.0000",
+                        "autoSubscribe": false,
+                        "details": [
+                            {
+                                "currency": "ADA",
+                                "equity": "49.96912",
+                                "totalBalance": "49.96912",
+                                "cashBalance": "49.96912",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000000700000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "20",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            },
+                            {
+                                "currency": "ETH",
+                                "equity": "0.009993595245448471",
+                                "totalBalance": "0.009993595245448471",
+                                "cashBalance": "0.009993595245448471",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000002870000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            },
+                            {
+                                "currency": "USDT",
+                                "equity": "6.939359888393012622",
+                                "totalBalance": "16.411009888393012622",
+                                "cashBalance": "16.411009888393012622",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.019437820000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "11",
+                                "realLiability": "4.060640111606987378",
+                                "potentialLiability": "26.974906778273654044",
+                                "accruedInterest": "0",
+                                "upl": "-9.47165",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "5.394981355654730808",
+                                "initialMargin": "28.309248022321397474"
+                            },
+                            {
+                                "currency": "BTC",
+                                "equity": "0",
+                                "totalBalance": "0",
+                                "cashBalance": "0",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000000120000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            },
+                            {
+                                "currency": "SOL",
+                                "equity": "0.029995180772731199",
+                                "totalBalance": "0.029995180772731199",
+                                "cashBalance": "0.029995180772731199",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000036650000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            }
+                        ],
+                        "pid": "1981204053820035072",
+                        "cid": "176118985590600",
+                        "uid": "176118985582700"
+                    },
+                    "ts": "1764679565589"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "msg": "success",
+                        "data": {
+                            "accountName": "CCXT_testing",
+                            "totalEquity": "58.72058072038320096",
+                            "totalMarginBalance": "53.965614849778461717",
+                            "totalAvailableBalance": "24.480642859457064243",
+                            "totalEffectiveMargin": "52.789890881778461717",
+                            "totalPositionValue": "59.835440111606987378",
+                            "totalIm": "28.309248022321397474",
+                            "totalMm": "1.006181602232139746",
+                            "totalOpenLoss": "1.175723968",
+                            "mmr": "0.01906012",
+                            "imr": "0.53626267",
+                            "accountLeverage": "1.13346399",
+                            "contractUpl": "-9.47165",
+                            "flexibleEquity": "0.0000",
+                            "flexiblePnl": "0.0000",
+                            "autoSubscribe": false,
+                            "details": [
+                                {
+                                    "currency": "ADA",
+                                    "equity": "49.96912",
+                                    "totalBalance": "49.96912",
+                                    "cashBalance": "49.96912",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000000700000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "20",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                },
+                                {
+                                    "currency": "ETH",
+                                    "equity": "0.009993595245448471",
+                                    "totalBalance": "0.009993595245448471",
+                                    "cashBalance": "0.009993595245448471",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000002870000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                },
+                                {
+                                    "currency": "USDT",
+                                    "equity": "6.939359888393012622",
+                                    "totalBalance": "16.411009888393012622",
+                                    "cashBalance": "16.411009888393012622",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.019437820000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "11",
+                                    "realLiability": "4.060640111606987378",
+                                    "potentialLiability": "26.974906778273654044",
+                                    "accruedInterest": "0",
+                                    "upl": "-9.47165",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "5.394981355654730808",
+                                    "initialMargin": "28.309248022321397474"
+                                },
+                                {
+                                    "currency": "BTC",
+                                    "equity": "0",
+                                    "totalBalance": "0",
+                                    "cashBalance": "0",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000000120000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                },
+                                {
+                                    "currency": "SOL",
+                                    "equity": "0.029995180772731199",
+                                    "totalBalance": "0.029995180772731199",
+                                    "cashBalance": "0.029995180772731199",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000036650000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                }
+                            ],
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        "ts": "1764679565589"
+                    },
+                    "timestamp": 1764679565589,
+                    "datetime": "2025-12-02T12:46:05.589Z",
+                    "free": {},
+                    "used": {},
+                    "total": {}
+                }
+            },
+            {
+                "description": "fetchBalance no args",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "accountName": "CCXT_testing",
+                        "totalEquity": "58.72058072038320096",
+                        "totalMarginBalance": "53.965614849778461717",
+                        "totalAvailableBalance": "24.480642859457064243",
+                        "totalEffectiveMargin": "52.789890881778461717",
+                        "totalPositionValue": "59.835440111606987378",
+                        "totalIm": "28.309248022321397474",
+                        "totalMm": "1.006181602232139746",
+                        "totalOpenLoss": "1.175723968",
+                        "mmr": "0.01906012",
+                        "imr": "0.53626267",
+                        "accountLeverage": "1.13346399",
+                        "contractUpl": "-9.47165",
+                        "flexibleEquity": "0.0000",
+                        "flexiblePnl": "0.0000",
+                        "autoSubscribe": false,
+                        "details": [
+                            {
+                                "currency": "ADA",
+                                "equity": "49.96912",
+                                "totalBalance": "49.96912",
+                                "cashBalance": "49.96912",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000000700000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "20",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            },
+                            {
+                                "currency": "ETH",
+                                "equity": "0.009993595245448471",
+                                "totalBalance": "0.009993595245448471",
+                                "cashBalance": "0.009993595245448471",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000002870000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            },
+                            {
+                                "currency": "USDT",
+                                "equity": "6.939359888393012622",
+                                "totalBalance": "16.411009888393012622",
+                                "cashBalance": "16.411009888393012622",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.019437820000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "11",
+                                "realLiability": "4.060640111606987378",
+                                "potentialLiability": "26.974906778273654044",
+                                "accruedInterest": "0",
+                                "upl": "-9.47165",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "5.394981355654730808",
+                                "initialMargin": "28.309248022321397474"
+                            },
+                            {
+                                "currency": "BTC",
+                                "equity": "0",
+                                "totalBalance": "0",
+                                "cashBalance": "0",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000000120000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            },
+                            {
+                                "currency": "SOL",
+                                "equity": "0.029995180772731199",
+                                "totalBalance": "0.029995180772731199",
+                                "cashBalance": "0.029995180772731199",
+                                "savingBalance": "0",
+                                "leftPersonalQuota": null,
+                                "savingTotalPnl": null,
+                                "savingLastPnl": null,
+                                "savingHoldDays": null,
+                                "savingTotalAPR": "0.000036650000000000",
+                                "savingLastAPR": null,
+                                "borrow": "0",
+                                "frozen": "0",
+                                "realLiability": "0",
+                                "potentialLiability": "0",
+                                "accruedInterest": "0",
+                                "upl": "0",
+                                "optionUpl": "0",
+                                "positionInitialMargin": null,
+                                "orderInitialMargin": null,
+                                "liabilityInitialMargin": "0",
+                                "initialMargin": "0"
+                            }
+                        ],
+                        "pid": "1981204053820035072",
+                        "cid": "176118985590600",
+                        "uid": "176118985582700"
+                    },
+                    "ts": "1764679565205"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "msg": "success",
+                        "data": {
+                            "accountName": "CCXT_testing",
+                            "totalEquity": "58.72058072038320096",
+                            "totalMarginBalance": "53.965614849778461717",
+                            "totalAvailableBalance": "24.480642859457064243",
+                            "totalEffectiveMargin": "52.789890881778461717",
+                            "totalPositionValue": "59.835440111606987378",
+                            "totalIm": "28.309248022321397474",
+                            "totalMm": "1.006181602232139746",
+                            "totalOpenLoss": "1.175723968",
+                            "mmr": "0.01906012",
+                            "imr": "0.53626267",
+                            "accountLeverage": "1.13346399",
+                            "contractUpl": "-9.47165",
+                            "flexibleEquity": "0.0000",
+                            "flexiblePnl": "0.0000",
+                            "autoSubscribe": false,
+                            "details": [
+                                {
+                                    "currency": "ADA",
+                                    "equity": "49.96912",
+                                    "totalBalance": "49.96912",
+                                    "cashBalance": "49.96912",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000000700000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "20",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                },
+                                {
+                                    "currency": "ETH",
+                                    "equity": "0.009993595245448471",
+                                    "totalBalance": "0.009993595245448471",
+                                    "cashBalance": "0.009993595245448471",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000002870000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                },
+                                {
+                                    "currency": "USDT",
+                                    "equity": "6.939359888393012622",
+                                    "totalBalance": "16.411009888393012622",
+                                    "cashBalance": "16.411009888393012622",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.019437820000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "11",
+                                    "realLiability": "4.060640111606987378",
+                                    "potentialLiability": "26.974906778273654044",
+                                    "accruedInterest": "0",
+                                    "upl": "-9.47165",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "5.394981355654730808",
+                                    "initialMargin": "28.309248022321397474"
+                                },
+                                {
+                                    "currency": "BTC",
+                                    "equity": "0",
+                                    "totalBalance": "0",
+                                    "cashBalance": "0",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000000120000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                },
+                                {
+                                    "currency": "SOL",
+                                    "equity": "0.029995180772731199",
+                                    "totalBalance": "0.029995180772731199",
+                                    "cashBalance": "0.029995180772731199",
+                                    "savingBalance": "0",
+                                    "leftPersonalQuota": null,
+                                    "savingTotalPnl": null,
+                                    "savingLastPnl": null,
+                                    "savingHoldDays": null,
+                                    "savingTotalAPR": "0.000036650000000000",
+                                    "savingLastAPR": null,
+                                    "borrow": "0",
+                                    "frozen": "0",
+                                    "realLiability": "0",
+                                    "potentialLiability": "0",
+                                    "accruedInterest": "0",
+                                    "upl": "0",
+                                    "optionUpl": "0",
+                                    "positionInitialMargin": null,
+                                    "orderInitialMargin": null,
+                                    "liabilityInitialMargin": "0",
+                                    "initialMargin": "0"
+                                }
+                            ],
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        "ts": "1764679565205"
+                    },
+                    "timestamp": 1764679565205,
+                    "datetime": "2025-12-02T12:46:05.205Z",
+                    "free": {},
+                    "used": {},
+                    "total": {}
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV 1d perp",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1d",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        [
+                            "1d",
+                            "1764547200000",
+                            "1764633597612",
+                            "2989.89",
+                            "2797.61",
+                            "2998.47",
+                            "2717.75",
+                            "188131.3",
+                            "540299982.79031",
+                            "149935",
+                            "-192.28",
+                            "-0.0643"
+                        ],
+                        [
+                            "1d",
+                            "1764633600000",
+                            "1764679223937",
+                            "2798.28",
+                            "2820.41",
+                            "2833.31",
+                            "2781.28",
+                            "24668.136",
+                            "69376668.02746",
+                            "13226",
+                            "22.13",
+                            "0.0079"
+                        ]
+                    ],
+                    "ts": "1764679235068"
+                },
+                "parsedResponse": [
+                    [
+                        1764547200000,
+                        2989.89,
+                        2998.47,
+                        2717.75,
+                        2797.61,
+                        188131.3
+                    ],
+                    [
+                        1764633600000,
+                        2798.28,
+                        2833.31,
+                        2781.28,
+                        2820.41,
+                        24668.136
+                    ]
+                ]
+            },
+            {
+                "description": "fetchOHLCV 1h perp",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        [
+                            "1h",
+                            "1764673200000",
+                            "1764676799741",
+                            "2821.83",
+                            "2824.23",
+                            "2829.39",
+                            "2814.9",
+                            "5395.635",
+                            "15231609.82593",
+                            "1986",
+                            "2.4",
+                            "0.0008"
+                        ],
+                        [
+                            "1h",
+                            "1764676800000",
+                            "1764679223937",
+                            "2824.52",
+                            "2820.41",
+                            "2831.02",
+                            "2815.14",
+                            "2879.522",
+                            "8131921.39014",
+                            "1163",
+                            "-4.11",
+                            "-0.0014"
+                        ]
+                    ],
+                    "ts": "1764679234680"
+                },
+                "parsedResponse": [
+                    [
+                        1764673200000,
+                        2821.83,
+                        2829.39,
+                        2814.9,
+                        2824.23,
+                        5395.635
+                    ],
+                    [
+                        1764676800000,
+                        2824.52,
+                        2831.02,
+                        2815.14,
+                        2820.41,
+                        2879.522
+                    ]
+                ]
+            },
+            {
+                "description": "fetchOHLCV 1m perp",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        [
+                            "1m",
+                            "1764679140000",
+                            "1764679198884",
+                            "2817.31",
+                            "2820.16",
+                            "2820.16",
+                            "2816.02",
+                            "54.147",
+                            "152588.51726",
+                            "16",
+                            "2.85",
+                            "0.001"
+                        ],
+                        [
+                            "1m",
+                            "1764679200000",
+                            "1764679223937",
+                            "2820.62",
+                            "2820.41",
+                            "2821.09",
+                            "2820.06",
+                            "77.458",
+                            "218483.43907",
+                            "26",
+                            "-0.21",
+                            "0"
+                        ]
+                    ],
+                    "ts": "1764679234293"
+                },
+                "parsedResponse": [
+                    [
+                        1764679140000,
+                        2817.31,
+                        2820.16,
+                        2816.02,
+                        2820.16,
+                        54.147
+                    ],
+                    [
+                        1764679200000,
+                        2820.62,
+                        2821.09,
+                        2820.06,
+                        2820.41,
+                        77.458
+                    ]
+                ]
+            },
+            {
+                "description": "fetchOHLCV 1d spot",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT",
+                    "1d",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        [
+                            "1d",
+                            "1764547200000",
+                            "1764633597883",
+                            "2991.13",
+                            "2798.99",
+                            "2999.18",
+                            "2719.12",
+                            "34071.2547",
+                            "95469783.136479",
+                            "62228",
+                            "-192.14",
+                            "-0.0642"
+                        ],
+                        [
+                            "1d",
+                            "1764633600000",
+                            "1764679223922",
+                            "2798.86",
+                            "2822.05",
+                            "2834.15",
+                            "2782.45",
+                            "7446.4721",
+                            "20899600.141775",
+                            "9082",
+                            "23.19",
+                            "0.0082"
+                        ]
+                    ],
+                    "ts": "1764679233886"
+                },
+                "parsedResponse": [
+                    [
+                        1764547200000,
+                        2991.13,
+                        2999.18,
+                        2719.12,
+                        2798.99,
+                        34071.2547
+                    ],
+                    [
+                        1764633600000,
+                        2798.86,
+                        2834.15,
+                        2782.45,
+                        2822.05,
+                        7446.4721
+                    ]
+                ]
+            },
+            {
+                "description": "fetchOHLCV 1h spot",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        [
+                            "1h",
+                            "1764673200000",
+                            "1764676797960",
+                            "2824.3",
+                            "2826.02",
+                            "2831.11",
+                            "2816.01",
+                            "623.7072",
+                            "1761834.754776",
+                            "1028",
+                            "1.72",
+                            "0.0006"
+                        ],
+                        [
+                            "1h",
+                            "1764676800000",
+                            "1764679223922",
+                            "2826.15",
+                            "2822.05",
+                            "2831.53",
+                            "2816.01",
+                            "279.7529",
+                            "790286.755039",
+                            "695",
+                            "-4.1",
+                            "-0.0014"
+                        ]
+                    ],
+                    "ts": "1764679233489"
+                },
+                "parsedResponse": [
+                    [
+                        1764673200000,
+                        2824.3,
+                        2831.11,
+                        2816.01,
+                        2826.02,
+                        623.7072
+                    ],
+                    [
+                        1764676800000,
+                        2826.15,
+                        2831.53,
+                        2816.01,
+                        2822.05,
+                        279.7529
+                    ]
+                ]
+            },
+            {
+                "description": "fetchOHLCV 1m spot",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        [
+                            "1m",
+                            "1764679140000",
+                            "1764679198864",
+                            "2818.63",
+                            "2821.64",
+                            "2821.64",
+                            "2818.63",
+                            "19.0923",
+                            "53840.311278",
+                            "20",
+                            "3.01",
+                            "0.001"
+                        ],
+                        [
+                            "1m",
+                            "1764679200000",
+                            "1764679223922",
+                            "2822.01",
+                            "2822.05",
+                            "2822.79",
+                            "2821.9",
+                            "5.5333",
+                            "15618.910045",
+                            "11",
+                            "0.04",
+                            "0"
+                        ]
+                    ],
+                    "ts": "1764679233006"
+                },
+                "parsedResponse": [
+                    [
+                        1764679140000,
+                        2818.63,
+                        2821.64,
+                        2818.63,
+                        2821.64,
+                        19.0923
+                    ],
+                    [
+                        1764679200000,
+                        2822.01,
+                        2822.79,
+                        2821.9,
+                        2822.05,
+                        5.5333
+                    ]
+                ]
+            }
+        ],
         "createOrders": [
+            {
+                "description": "createOrders spot",
+                "method": "createOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "ETH/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.005,
+                            "price": 2900
+                        },
+                        {
+                            "symbol": "ETH/USDT",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": 0.005,
+                            "price": 3100
+                        }
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "orderId": "1445506745336922112",
+                            "clientOrderId": "1445506745336922112",
+                            "code": "0",
+                            "msg": null,
+                            "ts": "1764677264305"
+                        },
+                        {
+                            "orderId": "1445506745336926208",
+                            "clientOrderId": "1445506745336926208",
+                            "code": "0",
+                            "msg": null,
+                            "ts": "1764677264306"
+                        }
+                    ],
+                    "ts": "1764677264306"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1445506745336922112",
+                        "clientOrderId": "1445506745336922112",
+                        "timestamp": 1764677264305,
+                        "datetime": "2025-12-02T12:07:44.305Z",
+                        "lastTradeTimeStamp": null,
+                        "status": null,
+                        "symbol": null,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "orderId": "1445506745336922112",
+                            "clientOrderId": "1445506745336922112",
+                            "code": "0",
+                            "msg": null,
+                            "ts": "1764677264305"
+                        },
+                        "fees": [],
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "id": "1445506745336926208",
+                        "clientOrderId": "1445506745336926208",
+                        "timestamp": 1764677264306,
+                        "datetime": "2025-12-02T12:07:44.306Z",
+                        "lastTradeTimeStamp": null,
+                        "status": null,
+                        "symbol": null,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "orderId": "1445506745336926208",
+                            "clientOrderId": "1445506745336926208",
+                            "code": "0",
+                            "msg": null,
+                            "ts": "1764677264306"
+                        },
+                        "fees": [],
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
             {
                 "description": "createOrders perp",
                 "method": "createOrders",
@@ -120,228 +1551,6 @@
                         "stopLossPrice": null
                     }
                 ]
-            }
-        ],
-        "fetchCurrencies": [
-            {
-                "description": "fetchCurrencies no args",
-                "method": "fetchCurrencies",
-                "input": [],
-                "httpResponse": {
-                    "code": "0",
-                    "data": [
-                        {
-                            "accountName": "CCXT_testing",
-                            "pid": "1981204053820035072",
-                            "uid": "176118985582700",
-                            "cid": "176118985590600",
-                            "currency": "NEAR",
-                            "name": "NEAR Protocol",
-                            "icon": "https://static.xcoin.com/CURRENCYCHAIN/NEAR.png",
-                            "traderAuth": true,
-                            "depositAuth": true,
-                            "withdrawAuth": true,
-                            "haircut": "",
-                            "currencyPrecision": "8",
-                            "maxLeverage": "",
-                            "chains": [
-                                {
-                                    "chainType": "near",
-                                    "minDep": "0",
-                                    "minWd": "0.602",
-                                    "maxWd": "345185",
-                                    "withdrawFee": "0.018",
-                                    "depositAuth": true,
-                                    "withdrawAuth": true
-                                }
-                            ]
-                        }
-                    ],
-                    "msg": "Success",
-                    "ts": "1763197237440",
-                    "traceId": "eecd522b69da9b880ea5461b09b3f35c"
-                },
-                "parsedResponse": {
-                    "USDT": {
-                        "info": [
-                            {
-                                "chainType": "eth",
-                                "minDep": "0.01",
-                                "minWd": "18",
-                                "maxWd": "800000",
-                                "withdrawFee": "1",
-                                "depositAuth": true,
-                                "withdrawAuth": true
-                            },
-                            {
-                                "chainType": "trx",
-                                "minDep": "0.01",
-                                "minWd": "18",
-                                "maxWd": "8000000",
-                                "withdrawFee": "1",
-                                "depositAuth": true,
-                                "withdrawAuth": true
-                            },
-                            {
-                                "chainType": "sol",
-                                "minDep": "0.000001",
-                                "minWd": "9",
-                                "maxWd": "1000000",
-                                "withdrawFee": "0.6",
-                                "depositAuth": true,
-                                "withdrawAuth": true
-                            },
-                            {
-                                "chainType": "bnb",
-                                "minDep": "0.000000000000000001",
-                                "minWd": "9.5",
-                                "maxWd": "1000000",
-                                "withdrawFee": "0.5",
-                                "depositAuth": true,
-                                "withdrawAuth": true
-                            }
-                        ],
-                        "id": "USDT",
-                        "numericId": null,
-                        "code": "USDT",
-                        "precision": 0.000001,
-                        "type": null,
-                        "name": "Tether",
-                        "active": true,
-                        "deposit": true,
-                        "withdraw": true,
-                        "fee": 0.5,
-                        "fees": {},
-                        "networks": {
-                            "ERC20": {
-                                "id": "eth",
-                                "network": "ERC20",
-                                "active": true,
-                                "deposit": true,
-                                "withdraw": true,
-                                "fee": 1,
-                                "precision": null,
-                                "limits": {
-                                    "withdraw": {
-                                        "min": 18,
-                                        "max": 800000
-                                    },
-                                    "deposit": {
-                                        "min": 0.01,
-                                        "max": null
-                                    }
-                                },
-                                "info": {
-                                    "chainType": "eth",
-                                    "minDep": "0.01",
-                                    "minWd": "18",
-                                    "maxWd": "800000",
-                                    "withdrawFee": "1",
-                                    "depositAuth": true,
-                                    "withdrawAuth": true
-                                }
-                            },
-                            "TRC20": {
-                                "id": "trx",
-                                "network": "TRC20",
-                                "active": true,
-                                "deposit": true,
-                                "withdraw": true,
-                                "fee": 1,
-                                "precision": null,
-                                "limits": {
-                                    "withdraw": {
-                                        "min": 18,
-                                        "max": 8000000
-                                    },
-                                    "deposit": {
-                                        "min": 0.01,
-                                        "max": null
-                                    }
-                                },
-                                "info": {
-                                    "chainType": "trx",
-                                    "minDep": "0.01",
-                                    "minWd": "18",
-                                    "maxWd": "8000000",
-                                    "withdrawFee": "1",
-                                    "depositAuth": true,
-                                    "withdrawAuth": true
-                                }
-                            },
-                            "SOL": {
-                                "id": "sol",
-                                "network": "SOL",
-                                "active": true,
-                                "deposit": true,
-                                "withdraw": true,
-                                "fee": 0.6,
-                                "precision": null,
-                                "limits": {
-                                    "withdraw": {
-                                        "min": 9,
-                                        "max": 1000000
-                                    },
-                                    "deposit": {
-                                        "min": 0.000001,
-                                        "max": null
-                                    }
-                                },
-                                "info": {
-                                    "chainType": "sol",
-                                    "minDep": "0.000001",
-                                    "minWd": "9",
-                                    "maxWd": "1000000",
-                                    "withdrawFee": "0.6",
-                                    "depositAuth": true,
-                                    "withdrawAuth": true
-                                }
-                            },
-                            "BEP20": {
-                                "id": "bnb",
-                                "network": "BEP20",
-                                "active": true,
-                                "deposit": true,
-                                "withdraw": true,
-                                "fee": 0.5,
-                                "precision": null,
-                                "limits": {
-                                    "withdraw": {
-                                        "min": 9.5,
-                                        "max": 1000000
-                                    },
-                                    "deposit": {
-                                        "min": 1e-18,
-                                        "max": null
-                                    }
-                                },
-                                "info": {
-                                    "chainType": "bnb",
-                                    "minDep": "0.000000000000000001",
-                                    "minWd": "9.5",
-                                    "maxWd": "1000000",
-                                    "withdrawFee": "0.5",
-                                    "depositAuth": true,
-                                    "withdrawAuth": true
-                                }
-                            }
-                        },
-                        "limits": {
-                            "amount": {
-                                "min": null,
-                                "max": null
-                            },
-                            "deposit": {
-                                "min": 1e-18,
-                                "max": null
-                            },
-                            "withdraw": {
-                                "min": 9,
-                                "max": 8000000
-                            }
-                        }
-                    }
-                }
             }
         ],
         "fetchFundingRateHistory": [
@@ -4240,1009 +5449,6 @@
                 }
             }
         ],
-        "fetchBalance": [
-            {
-                "description": "fetchBalance type perp",
-                "method": "fetchBalance",
-                "input": [
-                    {
-                        "type": "swap"
-                    }
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "success",
-                    "data": {
-                        "accountName": "CCXT_testing",
-                        "totalEquity": "63.550526241042581953",
-                        "totalMarginBalance": "62.971070483754253292",
-                        "totalAvailableBalance": "55.779370225201474986",
-                        "totalEffectiveMargin": "62.965323763754253292",
-                        "totalPositionValue": "35.929767692763904299",
-                        "totalIm": "7.185953538552778306",
-                        "totalMm": "0.359425353855278085",
-                        "totalOpenLoss": "0.00574672",
-                        "mmr": "0.00570831",
-                        "imr": "0.11412557",
-                        "accountLeverage": "0.57062786",
-                        "totalUpl": "-5.002",
-                        "flexibleEquity": "0.0000",
-                        "flexiblePnl": "0.0000",
-                        "autoSubscribe": false,
-                        "details": [
-                            {
-                                "currency": "ADA",
-                                "equity": "1.9768",
-                                "totalBalance": "1.9768",
-                                "cashBalance": "1.9768",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000001100000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "0"
-                            },
-                            {
-                                "currency": "ETH",
-                                "equity": "-0.000004000029062284",
-                                "totalBalance": "0.005",
-                                "cashBalance": "0.005",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000006040000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0.005004000029062284",
-                                "realLiability": "0.000004000029062284",
-                                "potentialLiability": "0.000004000029062284",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0.000000800005812456",
-                                "initialMargin": "0.000000800005812456"
-                            },
-                            {
-                                "currency": "USDT",
-                                "equity": "58.275884400923199643",
-                                "totalBalance": "63.277884400923199643",
-                                "cashBalance": "63.277884400923199643",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.025412410000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "-5.002",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "7.1834"
-                            },
-                            {
-                                "currency": "BTC",
-                                "equity": "0",
-                                "totalBalance": "0",
-                                "cashBalance": "0",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000000600000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "0"
-                            },
-                            {
-                                "currency": "SOL",
-                                "equity": "0.029995180772731199",
-                                "totalBalance": "0.029995180772731199",
-                                "cashBalance": "0.029995180772731199",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000044600000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "0"
-                            }
-                        ],
-                        "pid": "1981204053820035072",
-                        "cid": "176118985590600",
-                        "uid": "176118985582700"
-                    },
-                    "ts": "1763149263188"
-                },
-                "parsedResponse": {
-                    "info": {
-                        "code": "0",
-                        "msg": "success",
-                        "data": {
-                            "accountName": "CCXT_testing",
-                            "totalEquity": "63.550526241042581953",
-                            "totalMarginBalance": "62.971070483754253292",
-                            "totalAvailableBalance": "55.779370225201474986",
-                            "totalEffectiveMargin": "62.965323763754253292",
-                            "totalPositionValue": "35.929767692763904299",
-                            "totalIm": "7.185953538552778306",
-                            "totalMm": "0.359425353855278085",
-                            "totalOpenLoss": "0.00574672",
-                            "mmr": "0.00570831",
-                            "imr": "0.11412557",
-                            "accountLeverage": "0.57062786",
-                            "totalUpl": "-5.002",
-                            "flexibleEquity": "0.0000",
-                            "flexiblePnl": "0.0000",
-                            "autoSubscribe": false,
-                            "details": [
-                                {
-                                    "currency": "ADA",
-                                    "equity": "1.9768",
-                                    "totalBalance": "1.9768",
-                                    "cashBalance": "1.9768",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000001100000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "0"
-                                },
-                                {
-                                    "currency": "ETH",
-                                    "equity": "-0.000004000029062284",
-                                    "totalBalance": "0.005",
-                                    "cashBalance": "0.005",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000006040000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0.005004000029062284",
-                                    "realLiability": "0.000004000029062284",
-                                    "potentialLiability": "0.000004000029062284",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0.000000800005812456",
-                                    "initialMargin": "0.000000800005812456"
-                                },
-                                {
-                                    "currency": "USDT",
-                                    "equity": "58.275884400923199643",
-                                    "totalBalance": "63.277884400923199643",
-                                    "cashBalance": "63.277884400923199643",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.025412410000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "-5.002",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "7.1834"
-                                },
-                                {
-                                    "currency": "BTC",
-                                    "equity": "0",
-                                    "totalBalance": "0",
-                                    "cashBalance": "0",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000000600000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "0"
-                                },
-                                {
-                                    "currency": "SOL",
-                                    "equity": "0.029995180772731199",
-                                    "totalBalance": "0.029995180772731199",
-                                    "cashBalance": "0.029995180772731199",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000044600000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "0"
-                                }
-                            ],
-                            "pid": "1981204053820035072",
-                            "cid": "176118985590600",
-                            "uid": "176118985582700"
-                        },
-                        "ts": "1763149263188"
-                    },
-                    "timestamp": 1763149263188,
-                    "datetime": "2025-11-14T19:41:03.188Z",
-                    "ADA": {
-                        "free": 1.9768,
-                        "used": 0,
-                        "total": 1.9768
-                    },
-                    "ETH": {
-                        "free": -0.000004000029062284,
-                        "used": 0.005004000029062284,
-                        "total": 0.005
-                    },
-                    "USDT": {
-                        "free": 58.275884400923196,
-                        "used": 5.002,
-                        "total": 63.2778844009232
-                    },
-                    "BTC": {
-                        "free": 0,
-                        "used": 0,
-                        "total": 0
-                    },
-                    "SOL": {
-                        "free": 0.029995180772731198,
-                        "used": 0,
-                        "total": 0.029995180772731198
-                    },
-                    "free": {
-                        "ADA": 1.9768,
-                        "ETH": -0.000004000029062284,
-                        "USDT": 58.275884400923196,
-                        "BTC": 0,
-                        "SOL": 0.029995180772731198
-                    },
-                    "used": {
-                        "ADA": 0,
-                        "ETH": 0.005004000029062284,
-                        "USDT": 5.002,
-                        "BTC": 0,
-                        "SOL": 0
-                    },
-                    "total": {
-                        "ADA": 1.9768,
-                        "ETH": 0.005,
-                        "USDT": 63.2778844009232,
-                        "BTC": 0,
-                        "SOL": 0.029995180772731198
-                    }
-                }
-            },
-            {
-                "description": "fetchBalance type spot",
-                "method": "fetchBalance",
-                "input": [
-                    {
-                        "type": "spot"
-                    }
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "success",
-                    "data": {
-                        "accountName": "CCXT_testing",
-                        "totalEquity": "63.550526241042581953",
-                        "totalMarginBalance": "62.971070483754253292",
-                        "totalAvailableBalance": "55.779370225201474986",
-                        "totalEffectiveMargin": "62.965323763754253292",
-                        "totalPositionValue": "35.929767692763904299",
-                        "totalIm": "7.185953538552778306",
-                        "totalMm": "0.359425353855278085",
-                        "totalOpenLoss": "0.00574672",
-                        "mmr": "0.00570831",
-                        "imr": "0.11412557",
-                        "accountLeverage": "0.57062786",
-                        "totalUpl": "-5.002",
-                        "flexibleEquity": "0.0000",
-                        "flexiblePnl": "0.0000",
-                        "autoSubscribe": false,
-                        "details": [
-                            {
-                                "currency": "ADA",
-                                "equity": "1.9768",
-                                "totalBalance": "1.9768",
-                                "cashBalance": "1.9768",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000001100000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "0"
-                            },
-                            {
-                                "currency": "ETH",
-                                "equity": "-0.000004000029062284",
-                                "totalBalance": "0.005",
-                                "cashBalance": "0.005",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000006040000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0.005004000029062284",
-                                "realLiability": "0.000004000029062284",
-                                "potentialLiability": "0.000004000029062284",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0.000000800005812456",
-                                "initialMargin": "0.000000800005812456"
-                            },
-                            {
-                                "currency": "USDT",
-                                "equity": "58.275884400923199643",
-                                "totalBalance": "63.277884400923199643",
-                                "cashBalance": "63.277884400923199643",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.025412410000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "-5.002",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "7.1834"
-                            },
-                            {
-                                "currency": "BTC",
-                                "equity": "0",
-                                "totalBalance": "0",
-                                "cashBalance": "0",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000000600000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "0"
-                            },
-                            {
-                                "currency": "SOL",
-                                "equity": "0.029995180772731199",
-                                "totalBalance": "0.029995180772731199",
-                                "cashBalance": "0.029995180772731199",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000044600000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "0"
-                            }
-                        ],
-                        "pid": "1981204053820035072",
-                        "cid": "176118985590600",
-                        "uid": "176118985582700"
-                    },
-                    "ts": "1763149262712"
-                },
-                "parsedResponse": {
-                    "info": {
-                        "code": "0",
-                        "msg": "success",
-                        "data": {
-                            "accountName": "CCXT_testing",
-                            "totalEquity": "63.550526241042581953",
-                            "totalMarginBalance": "62.971070483754253292",
-                            "totalAvailableBalance": "55.779370225201474986",
-                            "totalEffectiveMargin": "62.965323763754253292",
-                            "totalPositionValue": "35.929767692763904299",
-                            "totalIm": "7.185953538552778306",
-                            "totalMm": "0.359425353855278085",
-                            "totalOpenLoss": "0.00574672",
-                            "mmr": "0.00570831",
-                            "imr": "0.11412557",
-                            "accountLeverage": "0.57062786",
-                            "totalUpl": "-5.002",
-                            "flexibleEquity": "0.0000",
-                            "flexiblePnl": "0.0000",
-                            "autoSubscribe": false,
-                            "details": [
-                                {
-                                    "currency": "ADA",
-                                    "equity": "1.9768",
-                                    "totalBalance": "1.9768",
-                                    "cashBalance": "1.9768",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000001100000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "0"
-                                },
-                                {
-                                    "currency": "ETH",
-                                    "equity": "-0.000004000029062284",
-                                    "totalBalance": "0.005",
-                                    "cashBalance": "0.005",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000006040000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0.005004000029062284",
-                                    "realLiability": "0.000004000029062284",
-                                    "potentialLiability": "0.000004000029062284",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0.000000800005812456",
-                                    "initialMargin": "0.000000800005812456"
-                                },
-                                {
-                                    "currency": "USDT",
-                                    "equity": "58.275884400923199643",
-                                    "totalBalance": "63.277884400923199643",
-                                    "cashBalance": "63.277884400923199643",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.025412410000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "-5.002",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "7.1834"
-                                },
-                                {
-                                    "currency": "BTC",
-                                    "equity": "0",
-                                    "totalBalance": "0",
-                                    "cashBalance": "0",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000000600000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "0"
-                                },
-                                {
-                                    "currency": "SOL",
-                                    "equity": "0.029995180772731199",
-                                    "totalBalance": "0.029995180772731199",
-                                    "cashBalance": "0.029995180772731199",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000044600000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "0"
-                                }
-                            ],
-                            "pid": "1981204053820035072",
-                            "cid": "176118985590600",
-                            "uid": "176118985582700"
-                        },
-                        "ts": "1763149262712"
-                    },
-                    "timestamp": 1763149262712,
-                    "datetime": "2025-11-14T19:41:02.712Z",
-                    "ADA": {
-                        "free": 1.9768,
-                        "used": 0,
-                        "total": 1.9768
-                    },
-                    "ETH": {
-                        "free": -0.000004000029062284,
-                        "used": 0.005004000029062284,
-                        "total": 0.005
-                    },
-                    "USDT": {
-                        "free": 58.275884400923196,
-                        "used": 5.002,
-                        "total": 63.2778844009232
-                    },
-                    "BTC": {
-                        "free": 0,
-                        "used": 0,
-                        "total": 0
-                    },
-                    "SOL": {
-                        "free": 0.029995180772731198,
-                        "used": 0,
-                        "total": 0.029995180772731198
-                    },
-                    "free": {
-                        "ADA": 1.9768,
-                        "ETH": -0.000004000029062284,
-                        "USDT": 58.275884400923196,
-                        "BTC": 0,
-                        "SOL": 0.029995180772731198
-                    },
-                    "used": {
-                        "ADA": 0,
-                        "ETH": 0.005004000029062284,
-                        "USDT": 5.002,
-                        "BTC": 0,
-                        "SOL": 0
-                    },
-                    "total": {
-                        "ADA": 1.9768,
-                        "ETH": 0.005,
-                        "USDT": 63.2778844009232,
-                        "BTC": 0,
-                        "SOL": 0.029995180772731198
-                    }
-                }
-            },
-            {
-                "description": "fetchBalance no args",
-                "method": "fetchBalance",
-                "input": [],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "success",
-                    "data": {
-                        "accountName": "CCXT_testing",
-                        "totalEquity": "63.551715248195023034",
-                        "totalMarginBalance": "62.972139510183603448",
-                        "totalAvailableBalance": "55.780437091615131511",
-                        "totalEffectiveMargin": "62.966392790183603448",
-                        "totalPositionValue": "35.929778492842372466",
-                        "totalIm": "7.185955698568471937",
-                        "totalMm": "0.359425569856847449",
-                        "totalOpenLoss": "0.00574672",
-                        "mmr": "0.00570821",
-                        "imr": "0.11412367",
-                        "accountLeverage": "0.57061834",
-                        "totalUpl": "-5.002",
-                        "flexibleEquity": "0.0000",
-                        "flexiblePnl": "0.0000",
-                        "autoSubscribe": false,
-                        "details": [
-                            {
-                                "currency": "ADA",
-                                "equity": "1.9768",
-                                "totalBalance": "1.9768",
-                                "cashBalance": "1.9768",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000001100000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "0"
-                            },
-                            {
-                                "currency": "ETH",
-                                "equity": "-0.000004000029062284",
-                                "totalBalance": "0.005",
-                                "cashBalance": "0.005",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000006040000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0.005004000029062284",
-                                "realLiability": "0.000004000029062284",
-                                "potentialLiability": "0.000004000029062284",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0.000000800005812456",
-                                "initialMargin": "0.000000800005812456"
-                            },
-                            {
-                                "currency": "USDT",
-                                "equity": "58.275884400923199643",
-                                "totalBalance": "63.277884400923199643",
-                                "cashBalance": "63.277884400923199643",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.025412410000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "-5.002",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "7.1834"
-                            },
-                            {
-                                "currency": "BTC",
-                                "equity": "0",
-                                "totalBalance": "0",
-                                "cashBalance": "0",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000000600000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "0"
-                            },
-                            {
-                                "currency": "SOL",
-                                "equity": "0.029995180772731199",
-                                "totalBalance": "0.029995180772731199",
-                                "cashBalance": "0.029995180772731199",
-                                "savingBalance": "0",
-                                "leftPersonalQuota": null,
-                                "savingTotalPnl": null,
-                                "savingLastPnl": null,
-                                "savingHoldDays": null,
-                                "savingTotalAPR": "0.000044600000000000",
-                                "savingLastAPR": null,
-                                "borrow": "0",
-                                "realLiability": "0",
-                                "potentialLiability": "0",
-                                "accruedInterest": "0",
-                                "upl": "0",
-                                "positionInitialMargin": null,
-                                "orderInitialMargin": null,
-                                "liabilityInitialMargin": "0",
-                                "initialMargin": "0"
-                            }
-                        ],
-                        "pid": "1981204053820035072",
-                        "cid": "176118985590600",
-                        "uid": "176118985582700"
-                    },
-                    "ts": "1763149262278"
-                },
-                "parsedResponse": {
-                    "info": {
-                        "code": "0",
-                        "msg": "success",
-                        "data": {
-                            "accountName": "CCXT_testing",
-                            "totalEquity": "63.551715248195023034",
-                            "totalMarginBalance": "62.972139510183603448",
-                            "totalAvailableBalance": "55.780437091615131511",
-                            "totalEffectiveMargin": "62.966392790183603448",
-                            "totalPositionValue": "35.929778492842372466",
-                            "totalIm": "7.185955698568471937",
-                            "totalMm": "0.359425569856847449",
-                            "totalOpenLoss": "0.00574672",
-                            "mmr": "0.00570821",
-                            "imr": "0.11412367",
-                            "accountLeverage": "0.57061834",
-                            "totalUpl": "-5.002",
-                            "flexibleEquity": "0.0000",
-                            "flexiblePnl": "0.0000",
-                            "autoSubscribe": false,
-                            "details": [
-                                {
-                                    "currency": "ADA",
-                                    "equity": "1.9768",
-                                    "totalBalance": "1.9768",
-                                    "cashBalance": "1.9768",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000001100000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "0"
-                                },
-                                {
-                                    "currency": "ETH",
-                                    "equity": "-0.000004000029062284",
-                                    "totalBalance": "0.005",
-                                    "cashBalance": "0.005",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000006040000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0.005004000029062284",
-                                    "realLiability": "0.000004000029062284",
-                                    "potentialLiability": "0.000004000029062284",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0.000000800005812456",
-                                    "initialMargin": "0.000000800005812456"
-                                },
-                                {
-                                    "currency": "USDT",
-                                    "equity": "58.275884400923199643",
-                                    "totalBalance": "63.277884400923199643",
-                                    "cashBalance": "63.277884400923199643",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.025412410000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "-5.002",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "7.1834"
-                                },
-                                {
-                                    "currency": "BTC",
-                                    "equity": "0",
-                                    "totalBalance": "0",
-                                    "cashBalance": "0",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000000600000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "0"
-                                },
-                                {
-                                    "currency": "SOL",
-                                    "equity": "0.029995180772731199",
-                                    "totalBalance": "0.029995180772731199",
-                                    "cashBalance": "0.029995180772731199",
-                                    "savingBalance": "0",
-                                    "leftPersonalQuota": null,
-                                    "savingTotalPnl": null,
-                                    "savingLastPnl": null,
-                                    "savingHoldDays": null,
-                                    "savingTotalAPR": "0.000044600000000000",
-                                    "savingLastAPR": null,
-                                    "borrow": "0",
-                                    "realLiability": "0",
-                                    "potentialLiability": "0",
-                                    "accruedInterest": "0",
-                                    "upl": "0",
-                                    "positionInitialMargin": null,
-                                    "orderInitialMargin": null,
-                                    "liabilityInitialMargin": "0",
-                                    "initialMargin": "0"
-                                }
-                            ],
-                            "pid": "1981204053820035072",
-                            "cid": "176118985590600",
-                            "uid": "176118985582700"
-                        },
-                        "ts": "1763149262278"
-                    },
-                    "timestamp": 1763149262278,
-                    "datetime": "2025-11-14T19:41:02.278Z",
-                    "ADA": {
-                        "free": 1.9768,
-                        "used": 0,
-                        "total": 1.9768
-                    },
-                    "ETH": {
-                        "free": -0.000004000029062284,
-                        "used": 0.005004000029062284,
-                        "total": 0.005
-                    },
-                    "USDT": {
-                        "free": 58.275884400923196,
-                        "used": 5.002,
-                        "total": 63.2778844009232
-                    },
-                    "BTC": {
-                        "free": 0,
-                        "used": 0,
-                        "total": 0
-                    },
-                    "SOL": {
-                        "free": 0.029995180772731198,
-                        "used": 0,
-                        "total": 0.029995180772731198
-                    },
-                    "free": {
-                        "ADA": 1.9768,
-                        "ETH": -0.000004000029062284,
-                        "USDT": 58.275884400923196,
-                        "BTC": 0,
-                        "SOL": 0.029995180772731198
-                    },
-                    "used": {
-                        "ADA": 0,
-                        "ETH": 0.005004000029062284,
-                        "USDT": 5.002,
-                        "BTC": 0,
-                        "SOL": 0
-                    },
-                    "total": {
-                        "ADA": 1.9768,
-                        "ETH": 0.005,
-                        "USDT": 63.2778844009232,
-                        "BTC": 0,
-                        "SOL": 0.029995180772731198
-                    }
-                }
-            }
-        ],
         "fetchTrades": [
             {
                 "description": "fetchTrades symbol perp",
@@ -6395,386 +6601,6 @@
                     "datetime": "2025-11-14T19:40:57.224Z",
                     "nonce": 523775756
                 }
-            }
-        ],
-        "fetchOHLCV": [
-            {
-                "description": "fetchOHLCV 1d perp",
-                "method": "fetchOHLCV",
-                "input": [
-                    "ETH/USDT:USDT",
-                    "1d",
-                    null,
-                    2
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "success",
-                    "data": [
-                        [
-                            "1d",
-                            "1763078400000",
-                            "1763149252583",
-                            "3230.15",
-                            "3193.3",
-                            "3255.85",
-                            "3068.16",
-                            "3401620.262",
-                            "10805221426.12918",
-                            "382952",
-                            "-36.85",
-                            "-0.011408138940916057"
-                        ],
-                        [
-                            "1d",
-                            "1762992000000",
-                            "1763078399163",
-                            "3413.44",
-                            "3230.1",
-                            "3564.81",
-                            "3152.56",
-                            "2496417.659",
-                            "8276742025.02679",
-                            "309677",
-                            "-183.34",
-                            "-0.053711212149620324"
-                        ]
-                    ],
-                    "ts": "1763149256735"
-                },
-                "parsedResponse": [
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ],
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ]
-                ]
-            },
-            {
-                "description": "fetchOHLCV 1h perp",
-                "method": "fetchOHLCV",
-                "input": [
-                    "ETH/USDT:USDT",
-                    "1h",
-                    null,
-                    2
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "success",
-                    "data": [
-                        [
-                            "1h",
-                            "1763146800000",
-                            "1763149252583",
-                            "3167.68",
-                            "3193.3",
-                            "3219.59",
-                            "3158.62",
-                            "84997.57",
-                            "271196101.03491",
-                            "10330",
-                            "25.62",
-                            "0.00808793817557329"
-                        ],
-                        [
-                            "1h",
-                            "1763143200000",
-                            "1763146799957",
-                            "3178.55",
-                            "3167.81",
-                            "3207.32",
-                            "3153.45",
-                            "137313.881",
-                            "436536744.39226",
-                            "16563",
-                            "-10.74",
-                            "-0.003378899183590002"
-                        ]
-                    ],
-                    "ts": "1763149256292"
-                },
-                "parsedResponse": [
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ],
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ]
-                ]
-            },
-            {
-                "description": "fetchOHLCV 1m perp",
-                "method": "fetchOHLCV",
-                "input": [
-                    "ETH/USDT:USDT",
-                    "1m",
-                    null,
-                    2
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "success",
-                    "data": [
-                        [
-                            "1m",
-                            "1763149200000",
-                            "1763149252583",
-                            "3195.27",
-                            "3193.3",
-                            "3195.34",
-                            "3192.32",
-                            "1796.384",
-                            "5736919.22527",
-                            "187",
-                            "-1.97",
-                            "-0.000616536317744666"
-                        ],
-                        [
-                            "1m",
-                            "1763149140000",
-                            "1763149198319",
-                            "3195.41",
-                            "3195.25",
-                            "3196.37",
-                            "3192.85",
-                            "1704.045",
-                            "5444112.15795",
-                            "168",
-                            "-0.16",
-                            "-0.00005007182176935"
-                        ]
-                    ],
-                    "ts": "1763149255877"
-                },
-                "parsedResponse": [
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ],
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ]
-                ]
-            },
-            {
-                "description": "fetchOHLCV 1d spot",
-                "method": "fetchOHLCV",
-                "input": [
-                    "ETH/USDT",
-                    "1d",
-                    null,
-                    2
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "success",
-                    "data": [
-                        [
-                            "1d",
-                            "1763078400000",
-                            "1763149252315",
-                            "3231.79",
-                            "3194.48",
-                            "3256.65",
-                            "3070.02",
-                            "1830527.5667",
-                            "5816964489.056734",
-                            "833376",
-                            "-37.31",
-                            "-0.011544685762379363"
-                        ],
-                        [
-                            "1d",
-                            "1762992000000",
-                            "1763078396855",
-                            "3414.77",
-                            "3231.55",
-                            "3565.83",
-                            "3154.82",
-                            "1964680.0194",
-                            "6574206110.590218",
-                            "729543",
-                            "-183.22",
-                            "-0.053655151005777842"
-                        ]
-                    ],
-                    "ts": "1763149255435"
-                },
-                "parsedResponse": [
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ],
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ]
-                ]
-            },
-            {
-                "description": "fetchOHLCV 1h spot",
-                "method": "fetchOHLCV",
-                "input": [
-                    "ETH/USDT",
-                    "1h",
-                    null,
-                    2
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "success",
-                    "data": [
-                        [
-                            "1h",
-                            "1763146800000",
-                            "1763149252315",
-                            "3168.7",
-                            "3194.48",
-                            "3220.72",
-                            "3160.06",
-                            "49408.246",
-                            "157732753.380805",
-                            "24154",
-                            "25.78",
-                            "0.008135828573231925"
-                        ],
-                        [
-                            "1h",
-                            "1763143200000",
-                            "1763146799461",
-                            "3179.65",
-                            "3168.7",
-                            "3208.17",
-                            "3155.08",
-                            "68348.2755",
-                            "217335655.560207",
-                            "35753",
-                            "-10.95",
-                            "-0.003443775258283144"
-                        ]
-                    ],
-                    "ts": "1763149255034"
-                },
-                "parsedResponse": [
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ],
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ]
-                ]
-            },
-            {
-                "description": "fetchOHLCV 1m spot",
-                "method": "fetchOHLCV",
-                "input": [
-                    "ETH/USDT",
-                    "1m",
-                    null,
-                    2
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "msg": "success",
-                    "data": [
-                        [
-                            "1m",
-                            "1763149200000",
-                            "1763149252315",
-                            "3196.58",
-                            "3194.48",
-                            "3196.73",
-                            "3193.78",
-                            "1119.6195",
-                            "3577138.422785",
-                            "431",
-                            "-2.1",
-                            "-0.000656952117575659"
-                        ],
-                        [
-                            "1m",
-                            "1763149140000",
-                            "1763149198021",
-                            "3196.56",
-                            "3196.73",
-                            "3197.41",
-                            "3194.31",
-                            "583.97",
-                            "1866511.905787",
-                            "353",
-                            "0.17",
-                            "0.000053182170833646"
-                        ]
-                    ],
-                    "ts": "1763149254594"
-                },
-                "parsedResponse": [
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ],
-                    [
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    ]
-                ]
             }
         ],
         "fetchFundingRates": [

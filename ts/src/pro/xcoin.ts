@@ -858,7 +858,7 @@ export default class xcoin extends xcoinRest {
         const stored = this.ohlcvs[symbol][unifiedTimeframe];
         for (let i = 0; i < data.length; i++) {
             const candle = data[i];
-            const parsed = this.parseOHLCV (candle, market);
+            const parsed = this.parseWsOHLCV (candle, market);
             const length = stored.length;
             if (length && parsed[0] === stored[length - 1][0]) {
                 // Update the last candle
@@ -873,7 +873,7 @@ export default class xcoin extends xcoinRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseOHLCV (ohlcv: any, market: any = undefined): OHLCV {
+    parseWsOHLCV (ohlcv: any, market: any = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'openTime'),
             this.safeNumber (ohlcv, 'openPrice'),
