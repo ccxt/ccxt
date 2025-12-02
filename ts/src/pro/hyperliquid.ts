@@ -466,7 +466,8 @@ export default class hyperliquid extends hyperliquidRest {
         const parsedTickers = [];
         for (let i = 0; i < spotAssets.length; i++) {
             const assetObject = spotAssets[i];
-            const marketId = this.safeString (assetObject, 'coin');
+            const coin = this.safeString (assetObject, 'coin');
+            const marketId = this.coinToMarketId (coin);
             const market = this.safeMarket (marketId, undefined, undefined, 'spot');
             const symbol = market['symbol'];
             const ticker = this.parseWsTicker (assetObject, market);
@@ -482,10 +483,9 @@ export default class hyperliquid extends hyperliquidRest {
                 this.safeDict (universe, i, {}),
                 this.safeDict (assetCtxs, i, {})
             );
-            const currencyId = this.safeString (data, 'name');
-            const code = this.safeCurrencyCode (currencyId);
-            const id = code + '/USDC:USDC';
-            const market = this.safeMarket (id, undefined, undefined, 'swap');
+            const coin = this.safeString (data, 'name');
+            const marketId = this.coinToMarketId (coin);
+            const market = this.safeMarket (marketId, undefined, undefined, 'swap');
             const symbol = market['symbol'];
             const ticker = this.parseWsTicker (data, market);
             this.tickers[symbol] = ticker;
