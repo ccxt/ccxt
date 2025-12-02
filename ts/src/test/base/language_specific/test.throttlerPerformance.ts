@@ -21,7 +21,7 @@ async function testThrottlerPerformanceHelper (exchange: any, numRequests: numbe
 export default async function testThrottlerPerformance () {
     const exchange1 = new ccxt.binance ({
         'enableRateLimit': true,
-        // rolling window size of 60000.0
+        'rateLimiterAlgorithm': 'rollingWindow',
     });
     
     const rollingWindowTime = await testThrottlerPerformanceHelper (exchange1, 100);
