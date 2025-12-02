@@ -110,9 +110,10 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
-                'fetchTime': False,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
@@ -405,6 +406,45 @@ class hyperliquid(Exchange, ImplicitAPI):
                         return secondMarket
                     return firstMarket
         return super(hyperliquid, self).safe_market(marketId, market, delimiter, marketType)
+
+    async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        """
+        request: dict = {
+            'type': 'exchangeStatus',
+        }
+        response = await self.publicPostInfo(self.extend(request, params))
+        #
+        #     {
+        #         "status": "ok"
+        #     }
+        #
+        status = self.safe_string(response, 'specialStatuses')
+        return {
+            'status': 'ok' if (status is None) else 'maintenance',
+            'updated': self.safe_integer(response, 'time'),
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
+
+    async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
+        request: dict = {
+            'type': 'exchangeStatus',
+        }
+        response = await self.publicPostInfo(self.extend(request, params))
+        #
+        # {specialStatuses: null, time: '1764617438643'}
+        #
+        return self.safe_integer(response, 'time')
 
     async def fetch_currencies(self, params={}) -> Currencies:
         """
