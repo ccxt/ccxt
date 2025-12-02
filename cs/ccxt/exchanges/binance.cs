@@ -11211,7 +11211,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        return this.parsePosition(getValue(response, 0), market);
+        return this.parseOptionPosition(getValue(response, 0), market);
     }
 
     /**
@@ -11275,12 +11275,12 @@ public partial class binance : Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(getValue(response, i), market));
+            ((IList<object>)result).Add(this.parseOptionPosition(getValue(response, i), market));
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
     }
 
-    public override object parsePosition(object position, object market = null)
+    public virtual object parseOptionPosition(object position, object market = null)
     {
         //
         //     {
