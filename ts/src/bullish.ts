@@ -242,7 +242,7 @@ export default class bullish extends Exchange {
                 'defaultNetworks': {
                     'USDC': 'ERC20',
                 },
-                'tradingAccountId': '111054475936334', // todo remove before release
+                'tradingAccountId': undefined,
             },
             'features': {
                 'default': {
@@ -1748,7 +1748,7 @@ export default class bullish extends Exchange {
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'tradingAccountId');
         if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a tradingAccountId parameter. It could be fetched by fetchAccounts()');
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a tradingAccountId parameter in options["tradingAccountId"] or params. It could be fetched by fetchAccounts()');
         }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const market = this.market (symbol);
