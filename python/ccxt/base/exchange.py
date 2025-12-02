@@ -1624,9 +1624,10 @@ class Exchange(object):
 
     @staticmethod
     def is_json_encoded_object(input):
-        return (isinstance(input, str) and
-                (len(input) >= 2) and
-                ((input[0] == '{') or (input[0] == '[')))
+        try:
+            return (isinstance(input, str) and ((input[0] == '{') or (input[0] == '[')))
+        except Exception:
+            return False
 
     @staticmethod
     def encode(string):
