@@ -93,7 +93,8 @@ public partial class hyperliquid : Exchange
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", "emulated" },
                 { "fetchTickers", true },
-                { "fetchTime", false },
+                { "fetchTime", true },
+                { "fetchStatus", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", false },
@@ -409,6 +410,55 @@ public partial class hyperliquid : Exchange
             }
         }
         return base.safeMarket(marketId, market, delimiter, marketType);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
+    public async override Task<object> fetchStatus(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {
+            { "type", "exchangeStatus" },
+        };
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        //
+        //     {
+        //         "status": "ok"
+        //     }
+        //
+        object status = this.safeString(response, "specialStatuses");
+        return new Dictionary<string, object>() {
+            { "status", ((bool) isTrue((isEqual(status, null)))) ? "ok" : "maintenance" },
+            { "updated", this.safeInteger(response, "time") },
+            { "eta", null },
+            { "url", null },
+            { "info", response },
+        };
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public async override Task<object> fetchTime(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {
+            { "type", "exchangeStatus" },
+        };
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        //
+        // { specialStatuses: null, time: '1764617438643' }
+        //
+        return this.safeInteger(response, "time");
     }
 
     /**
