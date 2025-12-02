@@ -3956,15 +3956,12 @@ class bybit extends Exchange {
         $market = $this->market($symbol);
         $parts = $this->is_unified_enabled();
         $enableUnifiedAccount = $parts[1];
-        $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trailingStop');
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
-        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-        $isTrailingAmountOrder = $trailingAmount !== null;
-        $isStopLoss = $stopLossPrice !== null;
-        $isTakeProfit = $takeProfitPrice !== null;
+        $isTrailingOrder = $this->safe_string_2($params, 'trailingAmount', 'trailingStop') !== null;
+        $isStopLossOrder = $this->safe_string($params, 'stopLossPrice') !== null;
+        $isTakeProfitOrder = $this->safe_string($params, 'takeProfitPrice') !== null;
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, $enableUnifiedAccount);
         $defaultMethod = null;
-        if (($isTrailingAmountOrder || $isStopLoss || $isTakeProfit) && !$market['spot']) {
+        if (($isTrailingOrder || $isStopLossOrder || $isTakeProfitOrder) && !$market['spot']) {
             $defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             $defaultMethod = 'privatePostV5OrderCreate';
@@ -4034,31 +4031,31 @@ class bybit extends Exchange {
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activePrice', $this->number_to_string($price));
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trailingStop');
-        $isTrailingAmountOrder = $trailingAmount !== null;
+        $isTrailingOrder = $trailingAmount !== null;
         $isTriggerOrder = $triggerPrice !== null;
-        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
-        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
-        $isStopLoss = $stopLoss !== null;
+        $isStopLossOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitOrder = $takeProfitTriggerPrice !== null;
+        $hasStopLoss = $stopLoss !== null;
         $isTakeProfit = $takeProfit !== null;
         $isMarket = $lowerCaseType === 'market';
         $isLimit = $lowerCaseType === 'limit';
         $isBuy = $side === 'buy';
         $defaultMethod = null;
-        if (($isTrailingAmountOrder || $isStopLossTriggerOrder || $isTakeProfitTriggerOrder) && !$market['spot']) {
+        if (($isTrailingOrder || $isStopLossOrder || $isTakeProfitOrder) && !$market['spot']) {
             $defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             $defaultMethod = 'privatePostV5OrderCreate';
         }
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', $defaultMethod);
-        $isAlternativeEndpoint = $method === 'privatePostV5PositionTradingStop';
+        $endpointIsTradingStop = $method === 'privatePostV5PositionTradingStop';
         $amountString = $this->get_amount($symbol, $amount);
         $priceString = ($price !== null) ? $this->get_price($symbol, $this->number_to_string($price)) : null;
-        if ($isTrailingAmountOrder || $isAlternativeEndpoint) {
-            if ($isStopLoss || $isTakeProfit || $isTriggerOrder || $market['spot']) {
+        if ($isTrailingOrder || $endpointIsTradingStop) {
+            if ($hasStopLoss || $isTakeProfit || $isTriggerOrder || $market['spot']) {
                 throw new InvalidOrder($this->id . ' the API endpoint used only supports contract $trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
-            if ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            if ($isStopLossOrder || $isTakeProfitOrder) {
                 $tpslMode = $this->safe_string($params, 'tpslMode', 'Partial');
                 $isFullTpsl = $tpslMode === 'Full';
                 $isPartialTpsl = $tpslMode === 'Partial';
@@ -4066,7 +4063,7 @@ class bybit extends Exchange {
                     throw new InvalidOrder($this->id . ' tpsl orders with "full" $tpslMode only support "market" type');
                 }
                 $request['tpslMode'] = $tpslMode;
-                if ($isStopLossTriggerOrder) {
+                if ($isStopLossOrder) {
                     $request['stopLoss'] = $this->get_price($symbol, $stopLossTriggerPrice);
                     if ($isPartialTpsl) {
                         $request['slSize'] = $amountString;
@@ -4075,7 +4072,7 @@ class bybit extends Exchange {
                         $request['slOrderType'] = 'Limit';
                         $request['slLimitPrice'] = $priceString;
                     }
-                } elseif ($isTakeProfitTriggerOrder) {
+                } elseif ($isTakeProfitOrder) {
                     $request['takeProfit'] = $this->get_price($symbol, $takeProfitTriggerPrice);
                     if ($isPartialTpsl) {
                         $request['tpSize'] = $amountString;
@@ -4105,7 +4102,7 @@ class bybit extends Exchange {
                 // only works for spot $market
                 if ($triggerPrice !== null) {
                     $request['orderFilter'] = 'StopOrder';
-                } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+                } elseif ($isStopLossOrder || $isTakeProfitOrder) {
                     $request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4167,16 +4164,16 @@ class bybit extends Exchange {
                 }
             }
         } else {
-            if (!$isTrailingAmountOrder && !$isAlternativeEndpoint) {
+            if (!$isTrailingOrder && !$endpointIsTradingStop) {
                 $request['qty'] = $amountString;
             }
         }
-        if ($isTrailingAmountOrder) {
+        if ($isTrailingOrder) {
             if ($trailingTriggerPrice !== null) {
                 $request['activePrice'] = $this->get_price($symbol, $trailingTriggerPrice);
             }
             $request['trailingStop'] = $trailingAmount;
-        } elseif ($isTriggerOrder && !$isAlternativeEndpoint) {
+        } elseif ($isTriggerOrder && !$endpointIsTradingStop) {
             $triggerDirection = $this->safe_string($params, 'triggerDirection');
             $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'triggerDirection' ));
             if ($market['spot']) {
@@ -4191,18 +4188,18 @@ class bybit extends Exchange {
                 $request['triggerDirection'] = $isAsending ? 1 : 2;
             }
             $request['triggerPrice'] = $this->get_price($symbol, $triggerPrice);
-        } elseif (($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) && !$isAlternativeEndpoint) {
+        } elseif (($isStopLossOrder || $isTakeProfitOrder) && !$endpointIsTradingStop) {
             if ($isBuy) {
-                $request['triggerDirection'] = $isStopLossTriggerOrder ? 1 : 2;
+                $request['triggerDirection'] = $isStopLossOrder ? 1 : 2;
             } else {
-                $request['triggerDirection'] = $isStopLossTriggerOrder ? 2 : 1;
+                $request['triggerDirection'] = $isStopLossOrder ? 2 : 1;
             }
-            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+            $triggerPrice = $isStopLossOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
             $request['triggerPrice'] = $this->get_price($symbol, $triggerPrice);
             $request['reduceOnly'] = true;
         }
-        if (($isStopLoss || $isTakeProfit) && !$isAlternativeEndpoint) {
-            if ($isStopLoss) {
+        if (($hasStopLoss || $isTakeProfit) && !$endpointIsTradingStop) {
+            if ($hasStopLoss) {
                 $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                 $request['stopLoss'] = $this->get_price($symbol, $slTriggerPrice);
                 $slLimitPrice = $this->safe_value($stopLoss, 'price');
@@ -4380,12 +4377,12 @@ class bybit extends Exchange {
         $takeProfitTriggerPrice = $this->safe_string($params, 'takeProfitPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
-        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
-        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
-        $isStopLoss = $stopLoss !== null;
-        $isTakeProfit = $takeProfit !== null;
-        if ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+        $isStopLossOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitOrder = $takeProfitTriggerPrice !== null;
+        $hasStopLoss = $stopLoss !== null;
+        $hasTakeProfit = $takeProfit !== null;
+        if ($isStopLossOrder || $isTakeProfitOrder) {
+            $triggerPrice = $isStopLossOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
         }
         if ($triggerPrice !== null) {
             $triggerPriceRequest = ($triggerPrice === '0') ? $triggerPrice : $this->get_price($symbol, $triggerPrice);
@@ -4393,15 +4390,15 @@ class bybit extends Exchange {
             $triggerBy = $this->safe_string($params, 'triggerBy', 'LastPrice');
             $request['triggerBy'] = $triggerBy;
         }
-        if ($isStopLoss || $isTakeProfit) {
-            if ($isStopLoss) {
+        if ($hasStopLoss || $hasTakeProfit) {
+            if ($hasStopLoss) {
                 $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                 $stopLossRequest = ($slTriggerPrice === '0') ? $slTriggerPrice : $this->get_price($symbol, $slTriggerPrice);
                 $request['stopLoss'] = $stopLossRequest;
                 $slTriggerBy = $this->safe_string($params, 'slTriggerBy', 'LastPrice');
                 $request['slTriggerBy'] = $slTriggerBy;
             }
-            if ($isTakeProfit) {
+            if ($hasTakeProfit) {
                 $tpTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
                 $takeProfitRequest = ($tpTriggerPrice === '0') ? $tpTriggerPrice : $this->get_price($symbol, $tpTriggerPrice);
                 $request['takeProfit'] = $takeProfitRequest;
