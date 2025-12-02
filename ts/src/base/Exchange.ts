@@ -5586,7 +5586,7 @@ export default class Exchange {
         return this.safeMarketStructure ({ 'symbol': marketId, 'marketId': marketId });
     }
 
-    marketOrNull (symbol: string): MarketInterface {
+    marketOrNull (symbol: Str = undefined): MarketInterface {
         if (symbol === undefined) {
             return undefined;
         }
