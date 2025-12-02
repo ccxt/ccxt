@@ -77,7 +77,7 @@
                     "sample",
                     "sample",
                     0.001,
-                    0.0,
+                    null,
                     {
                         "takeProfitPrice": 80123,
                         "takeProfitLimitPrice": 80000,
@@ -96,7 +96,7 @@
                     "sample",
                     "sample",
                     0.001,
-                    0.0,
+                    null,
                     {
                         "takeProfitPrice": 80123,
                         "stopLossPrice": 100000
@@ -112,8 +112,8 @@
                     "BTC/USDT:USDT",
                     "sample",
                     "sample",
-                    null,
                     0.0,
+                    null,
                     {
                         "takeProfitPrice": 80123,
                         "stopLossPrice": 100000
@@ -130,7 +130,7 @@
                     "sample",
                     "sample",
                     0.001,
-                    0.0,
+                    null,
                     {
                         "takeProfitPrice": 80123,
                         "takeProfitLimitPrice": 80000,
