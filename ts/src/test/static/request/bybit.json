@@ -37,6 +37,38 @@
         ],
         "createOrder": [
             {
+                "description": "swap limit + stopLossPrice",
+                "method": "createOrder",
+                "url": "https://api.bybit.com/v5/order/create",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    99000,
+                    {
+                        "stopLossPrice": 99235
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"99000\",\"category\":\"linear\",\"qty\":\"0.001\",\"triggerDirection\":1,\"triggerPrice\":\"99235\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "swap limit + takeProfitPrice",
+                "method": "createOrder",
+                "url": "https://api.bybit.com/v5/order/create",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    81234,
+                    {
+                        "takeProfitPrice": 81235
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"81234\",\"category\":\"linear\",\"qty\":\"0.001\",\"triggerDirection\":2,\"triggerPrice\":\"81235\",\"reduceOnly\":true}"
+            },
+            {
                 "description": "protective oco order - limit",
                 "method": "createOrder",
                 "url": "https://api.bybit.com/v5/position/trading-stop",
