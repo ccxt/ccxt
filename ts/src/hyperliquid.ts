@@ -645,7 +645,8 @@ export default class hyperliquid extends Exchange {
                 );
                 data['baseId'] = j + offset;
                 data['collateralToken'] = collateralToken;
-                const cachedCurrencies = this.safeDict (this.options, 'c', {});
+                data['hip3'] = true;
+                const cachedCurrencies = this.safeDict (this.options, 'cachedCurrenciesById', {});
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
                 if (collateralToken in cachedCurrencies) {
                     const name = this.safeString (data, 'name');
