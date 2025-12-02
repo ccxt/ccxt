@@ -1002,12 +1002,8 @@ export default class bullish extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + 'fetchMyTrades() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
-        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const tradingAccountId = await this.loadAccount (params);
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
@@ -1474,12 +1470,8 @@ export default class bullish extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
-        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const tradingAccountId = await this.loadAccount (params);
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate) {
             params = this.handlePaginationParams ('fetchOrders', since, params);
@@ -1680,12 +1672,8 @@ export default class bullish extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
-        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const tradingAccountId = await this.loadAccount (params);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1745,12 +1733,8 @@ export default class bullish extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a tradingAccountId parameter in options["tradingAccountId"] or params. It could be fetched by fetchAccounts()');
-        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const tradingAccountId = await this.loadAccount (params);
         const market = this.market (symbol);
         const request: Dict = {
             'commandType': 'V3CreateOrder',
@@ -1811,12 +1795,8 @@ export default class bullish extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
-        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const tradingAccountId = await this.loadAccount (params);
         const market = this.market (symbol);
         const request: Dict = {
             'commandType': 'V1AmendOrder',
@@ -1858,12 +1838,8 @@ export default class bullish extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
-        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const tradingAccountId = await this.loadAccount (params);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1897,12 +1873,8 @@ export default class bullish extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
-        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const tradingAccountId = await this.loadAccount (params);
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
@@ -2255,6 +2227,27 @@ export default class bullish extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    async loadAccount (params = {}) {
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            const response = await this.privateGetV1AccountsTradingAccounts (params);
+            for (let i = 0; i < response.length; i++) {
+                const account = response[i];
+                const name = this.safeString (account, 'tradingAccountName');
+                if (name === 'Primary Account') {
+                    tradingAccountId = this.safeString (account, 'tradingAccountId');
+                    break;
+                }
+            }
+        }
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
+        }
+        this.options['tradingAccountId'] = tradingAccountId;
+        return tradingAccountId;
+    }
+
     /**
      * @method
      * @name bullish#fetchAccounts
@@ -2438,12 +2431,8 @@ export default class bullish extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
-        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const tradingAccountId = await this.loadAccount (params);
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
@@ -2511,12 +2500,8 @@ export default class bullish extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
-        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const tradingAccountId = await this.loadAccount (params);
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
@@ -2625,12 +2610,8 @@ export default class bullish extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
-        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const tradingAccountId = await this.loadAccount (params);
         const maxLimit = 100;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
@@ -2783,12 +2764,8 @@ export default class bullish extends Exchange {
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
      */
     async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBorrowRateHistory', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBorrowRateHistory() requires a tradingAccountId parameter in options eg: exchange.options["tradingAccountId"] = "myId" or params eg: {"tradingAccountId": "myId"}. It could be fetched by fetchAccounts()');
-        }
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
+        const tradingAccountId = await this.loadAccount (params);
         const currency = this.currency (code);
         let request: Dict = {
             'assetSymbol': currency['id'],
