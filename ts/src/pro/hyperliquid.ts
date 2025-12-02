@@ -319,6 +319,11 @@ export default class hyperliquid extends hyperliquidRest {
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         const market = this.market (symbol);
         symbol = market['symbol'];
+        // try to infer dex from market
+        const dexName = this.safeBool (this.safeDict (market, 'info', {}), 'dex');
+        if (dexName) {
+            params = this.extend (params, { 'dex': dexName });
+        }
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
     }
@@ -330,6 +335,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -344,6 +350,19 @@ export default class hyperliquid extends hyperliquidRest {
                 'user': '0x0000000000000000000000000000000000000000',
             },
         };
+        let defaultDex = this.safeString (params, 'dex');
+        const firstSymbol = this.safeString (symbols, 0);
+        if (firstSymbol !== undefined) {
+            const market = this.market (firstSymbol);
+            const dexName = this.safeString (this.safeDict (market, 'info', {}), 'dex');
+            if (dexName !== undefined) {
+                defaultDex = dexName;
+            }
+        }
+        if (defaultDex !== undefined) {
+            params = this.omit (params, 'dex');
+            request['subscription']['dex'] = defaultDex;
+        }
         const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             return this.filterByArrayTickers (tickers, 'symbol', symbols);

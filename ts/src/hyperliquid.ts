@@ -646,6 +646,7 @@ export default class hyperliquid extends Exchange {
                 data['baseId'] = j + offset;
                 data['collateralToken'] = collateralToken;
                 data['hip3'] = true;
+                data['dex'] = dexName;
                 const cachedCurrencies = this.safeDict (this.options, 'cachedCurrenciesById', {});
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
                 if (collateralToken in cachedCurrencies) {
@@ -1252,6 +1253,14 @@ export default class hyperliquid extends Exchange {
         params = this.omit (params, 'type');
         let hip3 = false;
         [ hip3, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'hip3', false);
+        if (symbols !== undefined) {
+            // infer from first symbol
+            const firstSymbol = this.safeString (symbols, 0);
+            const market = this.market (firstSymbol);
+            if (this.safeBool (this.safeDict (market, 'info'), 'hip3')) {
+                hip3 = true;
+            }
+        }
         if (hip3) {
             params = this.omit (params, 'hip3');
             response = await this.fetchHip3Markets (params);
