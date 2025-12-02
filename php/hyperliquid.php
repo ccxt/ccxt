@@ -95,9 +95,10 @@ class hyperliquid extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
-                'fetchTime' => false,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
@@ -404,6 +405,47 @@ class hyperliquid extends Exchange {
             }
         }
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
+    }
+
+    public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
+         */
+        $request = array(
+            'type' => 'exchangeStatus',
+        );
+        $response = $this->publicPostInfo ($this->extend($request, $params));
+        //
+        //     {
+        //         "status" => "ok"
+        //     }
+        //
+        $status = $this->safe_string($response, 'specialStatuses');
+        return array(
+            'status' => ($status === null) ? 'ok' : 'maintenance',
+            'updated' => $this->safe_integer($response, 'time'),
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
+    }
+
+    public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $request = array(
+            'type' => 'exchangeStatus',
+        );
+        $response = $this->publicPostInfo ($this->extend($request, $params));
+        //
+        // array( specialStatuses => null, time => '1764617438643' )
+        //
+        return $this->safe_integer($response, 'time');
     }
 
     public function fetch_currencies($params = array ()): ?array {
