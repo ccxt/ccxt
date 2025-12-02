@@ -4061,7 +4061,7 @@ export default class bybit extends Exchange {
         }
         // workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
         amount = Precise.stringGt (this.numberToString (amount), '0') ? amount : undefined;
-        const amountString = this.getAmount (symbol, amount);
+        const amountString = (amount !== undefined) ? this.getAmount (symbol, amount) : undefined;
         const priceString = (price !== undefined) ? this.getPrice (symbol, this.numberToString (price)) : undefined;
         if (endpointIsTradingStop) {
             if (hasStopLoss || hasTakeProfit || isTriggerOrder || market['spot']) {
