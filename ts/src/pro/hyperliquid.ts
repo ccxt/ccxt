@@ -341,7 +341,7 @@ export default class hyperliquid extends hyperliquidRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
-        const messageHash = 'tickers';
+        let messageHash = 'tickers';
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
             'method': 'subscribe',
@@ -361,6 +361,8 @@ export default class hyperliquid extends hyperliquidRest {
         }
         if (defaultDex !== undefined) {
             params = this.omit (params, 'dex');
+            messageHash = 'tickers:' + defaultDex;
+            request['subscription']['type'] = 'allMids';
             request['subscription']['dex'] = defaultDex;
         }
         const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
@@ -433,6 +435,19 @@ export default class hyperliquid extends hyperliquidRest {
     }
 
     handleWsTickers (client: Client, message) {
+        // hip3 mids
+        // {
+        //     channel: 'allMids',
+        //     data: {
+        //         dex: 'flx',
+        //         mids: {
+        //         'flx:COIN': '270.075',
+        //         'flx:CRCL': '78.8175',
+        //         'flx:NVDA': '180.64',
+        //         'flx:TSLA': '436.075'
+        //         }
+        //     }
+        // }
         //
         //     {
         //         "channel": "webData2",
@@ -479,6 +494,28 @@ export default class hyperliquid extends hyperliquidRest {
         //         }
         //     }
         //
+        // handle hip3 mids
+        const channel = this.safeString (message, 'channel');
+        if (channel === 'allMids') {
+            const data = this.safeDict (message, 'data', {});
+            const mids = this.safeDict (data, 'mids', {});
+            if (mids !== undefined) {
+                const keys = Object.keys (mids);
+                for (let i = 0; i < keys.length; i++) {
+                    const name = keys[i];
+                    const marketId = this.coinToMarketId (name);
+                    const market = this.safeMarket (marketId, undefined, undefined, 'swap');
+                    const symbol = market['symbol'];
+                    const ticker = this.parseWsTicker ({
+                        'price': this.safeNumber (mids, name),
+                    }, market);
+                    this.tickers[symbol] = ticker;
+                }
+                const messageHash = 'tickers:' + this.safeString (data, 'dex');
+                client.resolve (this.tickers, messageHash);
+                return true;
+            }
+        }
         // spot
         const rawData = this.safeDict (message, 'data', {});
         const spotAssets = this.safeList (rawData, 'spotAssetCtxs', []);
@@ -1137,6 +1174,7 @@ export default class hyperliquid extends hyperliquidRest {
             'orderUpdates': this.handleOrder,
             'userFills': this.handleMyTrades,
             'webData2': this.handleWsTickers,
+            'allMids': this.handleWsTickers,
             'post': this.handleWsPost,
             'subscriptionResponse': this.handleSubscriptionResponse,
         };
