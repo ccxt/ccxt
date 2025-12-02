@@ -696,5 +696,73 @@
                 "max": 1400000
             }
         }
+    },
+    "XLM": {
+        "info": [
+            {
+                "chainType": "xlm",
+                "minDep": "0.0000001",
+                "minWd": "25",
+                "maxWd": "3000000",
+                "withdrawFee": "0.005",
+                "depositAuth": true,
+                "withdrawAuth": true
+            }
+        ],
+        "id": "XLM",
+        "numericId": null,
+        "code": "XLM",
+        "precision": 1e-7,
+        "type": null,
+        "name": "Stellar",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.005,
+        "fees": {},
+        "networks": {
+            "XLM": {
+                "id": "xlm",
+                "network": "XLM",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.005,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 25,
+                        "max": 3000000
+                    },
+                    "deposit": {
+                        "min": 1e-7,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "chainType": "xlm",
+                    "minDep": "0.0000001",
+                    "minWd": "25",
+                    "maxWd": "3000000",
+                    "withdrawFee": "0.005",
+                    "depositAuth": true,
+                    "withdrawAuth": true
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 1e-7,
+                "max": null
+            },
+            "withdraw": {
+                "min": 25,
+                "max": 3000000
+            }
+        }
     }
 }

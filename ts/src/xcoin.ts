@@ -632,10 +632,9 @@ export default class xcoin extends Exchange {
             const expiryStr = this.convertMarketIdExpireDate (expiryRaw);
             const expiryDate = this.convertExpireDate (expiryStr);
             expiry = this.parse8601 (expiryDate);
-            strike = this.safeString (splited, 3);
-            const optionTypeRaw = this.safeString (splited, 4);
-            optionType = (optionTypeRaw === 'C') ? 'call' : 'put';
-            symbol = symbol + ':' + quote + '-' + strike + '-' + expiryStr + '-' + optionTypeRaw;
+            strike = this.safeNumber (item, 'strikePrice');
+            optionType = this.safeString (item, 'optType');
+            symbol = symbol + ':' + quote + '-' + strike + '-' + expiryStr + '-' + optionType;
         }
         const parameters = this.safeDict (item, 'orderParameters', {});
         const contractSize = this.parseNumber ('1'); // 'ctVal' does not seem the right one
