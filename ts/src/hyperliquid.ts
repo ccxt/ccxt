@@ -101,10 +101,10 @@ export default class hyperliquid extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchStatus': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
@@ -4395,6 +4395,9 @@ export default class hyperliquid extends Exchange {
 
     coinToMarketId (coin: Str) {
         // handle also hip3 tokens like flx:CRCL
+        if (coin === undefined) {
+            return undefined;
+        }
         if (this.safeDict (this.options['hip3TokensByName'], coin)) {
             const hip3Dict = this.options['hip3TokensByName'][coin];
             const quote = this.safeString (hip3Dict, 'quote', 'USDC');
