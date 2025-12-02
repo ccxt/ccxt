@@ -4488,7 +4488,7 @@ public partial class Exchange
         });
     }
 
-    public virtual object marketOrNull(object symbol)
+    public virtual object marketOrNull(object symbol = null)
     {
         if (isTrue(isEqual(symbol, null)))
         {
