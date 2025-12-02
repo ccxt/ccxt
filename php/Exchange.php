@@ -6073,7 +6073,7 @@ class Exchange {
         return $this->safe_market_structure(array( 'symbol' => $marketId, 'marketId' => $marketId ));
     }
 
-    public function market_or_null(string $symbol) {
+    public function market_or_null(?string $symbol = null) {
         if ($symbol === null) {
             return null;
         }
