@@ -10135,7 +10135,7 @@ class binance(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_position(response[0], market)
+        return self.parse_option_position(response[0], market)
 
     async def fetch_option_positions(self, symbols: Strings = None, params={}):
         """
@@ -10188,10 +10188,10 @@ class binance(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(response)):
-            result.append(self.parse_position(response[i], market))
+            result.append(self.parse_option_position(response[i], market))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_option_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "entryPrice": "27.70000000",
