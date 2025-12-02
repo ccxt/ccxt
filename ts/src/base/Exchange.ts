@@ -5165,63 +5165,6 @@ export default class Exchange {
         return this.accounts;
     }
 
-    async spawnFetchOrderBookSnapshot (client: Client, message, subscription) {
-        // this method should be triggered when subscription confirmation is arrived in "handleSuscriptionStatus" method
-        // so, `message` argument would be skipped here, the derived class should be calling this method deterministically
-        const wsOptions = this.safeDict (this.options, 'ws', this.options);
-        const obOptions = this.safeDict2 (wsOptions, 'watchOrderBook', 'orderBook', {});
-        const defaultLimit = this.safeInteger (obOptions, 'limit', 1000);
-        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-        const params = this.safeValue (subscription, 'params');
-        const symbol = this.safeString (subscription, 'symbol');
-        if (symbol !== undefined) {
-            if (symbol in this.orderbooks) {
-                delete this.orderbooks[symbol];
-            }
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
-        }
-        const messageHash = this.safeString (subscription, 'messageHash');
-        try {
-            await this.sleep (0); // yield to the event loop
-            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
-            // if the orderbook was dropped while the snapshot was being received
-            if (!(symbol in this.orderbooks) || (this.orderbooks[symbol] === undefined)) {
-                return;
-            }
-            const orderbook = this.orderbooks[symbol];
-            orderbook.reset (snapshot);
-            const collectedMessages = orderbook.cache;
-            for (let i = 0; i < collectedMessages.length; i++) {
-                const rawMessage = collectedMessages[i];
-                this.handleOrderBookIncrementalMessage (client, rawMessage, orderbook);
-            }
-            this.orderbooks[symbol] = orderbook;
-            client.resolve (orderbook, messageHash);
-        } catch (e) {
-            delete client.subscriptions[messageHash];
-            client.reject (e, messageHash);
-        }
-    }
-
-    handleOrderBookIncrementalMessage (client: Client, message, orderbook) {
-        throw new NotSupported (this.id + ' handleOrderBookIncrementalMessage() not implemented yet');
-    }
-
-    checkIfSubscriptionCallbackNeeded (client: Client, message: any, subscriptionId: string) {
-        const keys = Object.keys (client.subscriptions);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const subscriptionDict = this.safeDict (client.subscriptions, key, {});
-            const id = this.safeString (subscriptionDict, 'id');
-            if (id !== undefined && subscriptionId) {
-                const method = this.safeValue (subscriptionDict, 'callback');
-                if (method !== undefined) {
-                    method.call (this, client, message, subscriptionDict);
-                }
-            }
-        }
-    }
-
     buildOHLCVC (trades: Trade[], timeframe: string = '1m', since: number = 0, limit: number = 2147483647): OHLCVC[] {
         // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
         // note, default limit value (2147483647) is max int32 value
