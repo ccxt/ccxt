@@ -621,7 +621,9 @@ class hyperliquid(Exchange, ImplicitAPI):
                 )
                 data['baseId'] = j + offset
                 data['collateralToken'] = collateralToken
-                cachedCurrencies = self.safe_dict(self.options, 'c', {})
+                data['hip3'] = True
+                data['dex'] = dexName
+                cachedCurrencies = self.safe_dict(self.options, 'cachedCurrenciesById', {})
                 # injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
                 if collateralToken in cachedCurrencies:
                     name = self.safe_string(data, 'name')
@@ -666,8 +668,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     ]
         #
         #
-        # reset currency cache not needed anymore
-        self.options['cachedCurrenciesById'] = {}
         return markets
 
     async def fetch_swap_markets(self, params={}) -> List[Market]:
@@ -1192,6 +1192,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap', by default fetches both
+        :param boolean [params.hip3]: set to True to fetch hip3 markets only
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -1200,7 +1201,18 @@ class hyperliquid(Exchange, ImplicitAPI):
         response = []
         type = self.safe_string(params, 'type')
         params = self.omit(params, 'type')
-        if type == 'spot':
+        hip3 = False
+        hip3, params = self.handle_option_and_params(params, 'fetchTickers', 'hip3', False)
+        if symbols is not None:
+            # infer from first symbol
+            firstSymbol = self.safe_string(symbols, 0)
+            market = self.market(firstSymbol)
+            if self.safe_bool(self.safe_dict(market, 'info'), 'hip3'):
+                hip3 = True
+        if hip3:
+            params = self.omit(params, 'hip3')
+            response = await self.fetch_hip3_markets(params)
+        elif type == 'spot':
             response = await self.fetch_spot_markets(params)
         elif type == 'swap':
             response = await self.fetch_swap_markets(params)
@@ -1338,6 +1350,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         "circulatingSupply": "998949190.03400207",  # only in spot
         #     },
         #
+        name = self.safe_string(ticker, 'name')
+        marketId = self.coin_to_market_id(name)
+        market = self.safe_market(marketId, market)
         bidAsk = self.safe_list(ticker, 'impactPxs')
         return self.safe_ticker({
             'symbol': market['symbol'],
@@ -4075,6 +4090,8 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def coin_to_market_id(self, coin: Str):
         # handle also hip3 tokens like flx:CRCL
+        if coin is None:
+            return None
         if self.safe_dict(self.options['hip3TokensByName'], coin):
             hip3Dict = self.options['hip3TokensByName'][coin]
             quote = self.safe_string(hip3Dict, 'quote', 'USDC')
