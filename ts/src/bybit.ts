@@ -4060,6 +4060,8 @@ export default class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
         const amountString = this.getAmount (symbol, amount);
+        // type-fix workaround, bcz for some langs we have to allow 0.0 as price input
+        price = (price <= 0) ? undefined : price;
         const priceString = (price !== undefined) ? this.getPrice (symbol, this.numberToString (price)) : undefined;
         if (endpointIsTradingStop) {
             if (hasStopLoss || hasTakeProfit || isTriggerOrder || market['spot']) {
