@@ -1466,6 +1466,118 @@
         ],
         "createOrder": [
             {
+                "description": "swap limit sell takeProfitPrice",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    99000,
+                    {
+                        "takeProfitPrice": 98000
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "8bec532a-36b1-437e-93f4-1b03bf449456",
+                        "orderLinkId": ""
+                    },
+                    "retExtInfo": {},
+                    "time": "1764711613007"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "8bec532a-36b1-437e-93f4-1b03bf449456",
+                        "orderLinkId": ""
+                    },
+                    "id": "8bec532a-36b1-437e-93f4-1b03bf449456",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "swap limit sell stopLossPrice",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    81000,
+                    {
+                        "stopLossPrice": 82000
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "6775234e-5cea-4ee6-8b0f-899cc91cc457",
+                        "orderLinkId": ""
+                    },
+                    "retExtInfo": {},
+                    "time": "1764711543834"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "6775234e-5cea-4ee6-8b0f-899cc91cc457",
+                        "orderLinkId": ""
+                    },
+                    "id": "6775234e-5cea-4ee6-8b0f-899cc91cc457",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "swap limit + stopLossPrice",
                 "method": "createOrder",
                 "input": [
