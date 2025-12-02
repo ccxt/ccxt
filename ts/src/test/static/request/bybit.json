@@ -471,7 +471,8 @@
                 "output": "{\"symbol\":\"LTCUSDT\",\"stopLoss\":\"3.9\",\"tpslMode\":\"Partial\",\"slSize\":\"1\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode partial",
+                "disabled": true,
+                "description": "[disabled, bcz endpoint changed] Swap market sell with takeProfitPrice(Type2) and tpslMode partial",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
