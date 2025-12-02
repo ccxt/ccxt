@@ -14,7 +14,7 @@ export default class aftermath extends Exchange {
             'version': 'v1',
             'rateLimit': 50, // 1200 requests per minute, 20 request per second
             'certified': false,
-            'pro': false,
+            'pro': true,
             'dex': true,
             'has': {
                 'CORS': undefined,
@@ -27,30 +27,32 @@ export default class aftermath extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
-                'editOrder': 'emulated',
+                'createOrders': true,
+                'editOrder': false,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
-                'fetchDeposits': true,
-                'fetchLedger': true,
+                'fetchDeposits': false,
+                'fetchLedger': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': true,
+                'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': true,
+                'fetchOrder': false,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
+                'fetchPosition': true,
                 'fetchPositions': true,
-                'fetchTicker': 'emulated',
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'fetchTradingLimits': 'emulated',
+                'fetchTradingLimits': false,
                 'fetchTransactions': false,
-                'fetchWithdrawals': true,
-                'reduceMargin': false,
+                'fetchWithdrawals': false,
+                'reduceMargin': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -500,7 +502,7 @@ export default class aftermath extends Exchange {
             request['since'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 50);
         }
         const response = await this.publicPostTrades (this.extend (request, params));
         //
@@ -700,6 +702,21 @@ export default class aftermath extends Exchange {
         // ]
         //
         return this.parseOrders (response);
+    }
+
+    /**
+     * @method
+     * @name aftermath#fetchPosition
+     * @description fetch data on an open position
+     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/iperps_api%3A%3Accxt%3A%3Afetch%3A%3Apositions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountNumber] account number to query positions for, required
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPosition (symbol: string, params = {}) {
+        const positions = await this.fetchPositions ([ symbol ], params);
+        return this.safeDict (positions, 0, {}) as Position;
     }
 
     /**
