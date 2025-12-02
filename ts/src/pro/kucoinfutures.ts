@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import kucoinfuturesRest from '../kucoinfutures.js';
-import { ExchangeError, ArgumentsRequired, NotSupported } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -26,7 +26,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'watchOrders': true,
                 'watchBalance': true,
                 'watchPosition': true,
-                'watchPositions': true,
+                'watchPositions': false,
                 'watchPositionForSymbols': false,
                 'watchTradesForSymbols': true,
                 'watchOrderBookForSymbols': true,
@@ -408,52 +408,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
     }
 
-    /**
-     * @method
-     * @name kucoinfutures#watchPositions
-     * @see https://www.kucoin.com/docs-new/3470093w0
-     * @description watch all open positions
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {int} [since] timestamp in ms of the earliest position to fetch
-     * @param {int} [limit] the maximum number of positions to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-     */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
-        const url = await this.negotiate (true);
-        const client = this.client (url);
-        symbols = this.marketSymbols (symbols);
-        let market = undefined;
-        if (!this.isEmpty (symbols)) {
-            market = this.getMarketFromSymbols (symbols);
-        }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params, 'swap');
-        if (type !== 'swap') {
-            throw new NotSupported (this.id + ' watchPositions() supports only swap markets');
-        }
-        // seed and optionally await the snapshot cache
-        this.setPositionsCache (client, symbols);
-        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && (this.positions === undefined)) {
-            const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
-        }
-        const topic = '/contract/positionAll';
-        const request: Dict = {
-            'privateChannel': true,
-        };
-        // subscribe once; handler will resolve global and per-symbol updates
-        const messageHash = 'swap:positions';
-        const newPositions = await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
-        if (this.newUpdates) {
-            return newPositions;
-        }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
-    }
-
     getCurrentPosition (symbol) {
         if (this.positions === undefined) {
             return undefined;
@@ -473,35 +427,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 this.spawn (this.loadPositionSnapshot, client, messageHash, symbol);
             }
         }
-    }
-
-    setPositionsCache (client: Client, symbols: Strings = undefined) {
-        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
-            const messageHash = 'fetchPositionsSnapshot';
-            if (!(messageHash in client.futures)) {
-                client.future (messageHash);
-                this.spawn (this.loadPositionsSnapshot, client, messageHash);
-            }
-        } else {
-            this.positions = new ArrayCacheBySymbolById ();
-        }
-    }
-
-    async loadPositionsSnapshot (client, messageHash) {
-        const positions = await this.fetchPositions ();
-        this.positions = new ArrayCacheBySymbolById ();
-        const cache = this.positions;
-        for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
-            const contracts = this.safeNumber (position, 'contracts', 0);
-            if (contracts > 0) {
-                cache.append (position);
-            }
-        }
-        const future = client.futures[messageHash];
-        future.resolve (cache);
-        client.resolve (cache, 'swap:positions');
     }
 
     async loadPositionSnapshot (client, messageHash, symbol) {
@@ -627,7 +552,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const position = this.extend (currentPosition, newPosition);
         cache.append (position);
         client.resolve (position, messageHash);
-        client.resolve ([ position ], 'swap:positions');
     }
 
     /**
