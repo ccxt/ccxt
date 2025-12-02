@@ -6,7 +6,7 @@
                 "minDep": "0.000006",
                 "minWd": "0.0002",
                 "maxWd": "10",
-                "withdrawFee": "0.000036",
+                "withdrawFee": "0.000018",
                 "depositAuth": true,
                 "withdrawAuth": true
             }
@@ -20,16 +20,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.000036,
+        "fee": 0.000018,
         "fees": {},
         "networks": {
-            "btc": {
+            "BTC": {
                 "id": "btc",
-                "network": "btc",
+                "network": "BTC",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.000036,
+                "fee": 0.000018,
                 "precision": null,
                 "limits": {
                     "withdraw": {
@@ -46,7 +46,7 @@
                     "minDep": "0.000006",
                     "minWd": "0.0002",
                     "maxWd": "10",
-                    "withdrawFee": "0.000036",
+                    "withdrawFee": "0.000018",
                     "depositAuth": true,
                     "withdrawAuth": true
                 }
@@ -118,9 +118,9 @@
         "fee": 0.5,
         "fees": {},
         "networks": {
-            "eth": {
+            "ERC20": {
                 "id": "eth",
-                "network": "eth",
+                "network": "ERC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -146,9 +146,9 @@
                     "withdrawAuth": true
                 }
             },
-            "trx": {
+            "TRC20": {
                 "id": "trx",
-                "network": "trx",
+                "network": "TRC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -174,9 +174,9 @@
                     "withdrawAuth": true
                 }
             },
-            "sol": {
+            "SOL": {
                 "id": "sol",
-                "network": "sol",
+                "network": "SOL",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -202,9 +202,9 @@
                     "withdrawAuth": true
                 }
             },
-            "bnb": {
+            "BEP20": {
                 "id": "bnb",
-                "network": "bnb",
+                "network": "BEP20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -253,7 +253,7 @@
                 "minDep": "0.0000003",
                 "minWd": "0.004",
                 "maxWd": "500",
-                "withdrawFee": "0.00018",
+                "withdrawFee": "0.00024",
                 "depositAuth": true,
                 "withdrawAuth": true
             },
@@ -271,7 +271,7 @@
                 "minDep": "0.000000000000000001",
                 "minWd": "0.00106",
                 "maxWd": "1010",
-                "withdrawFee": "0.00004",
+                "withdrawFee": "0.00002",
                 "depositAuth": true,
                 "withdrawAuth": true
             },
@@ -294,16 +294,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.00004,
+        "fee": 0.00002,
         "fees": {},
         "networks": {
-            "eth": {
+            "ERC20": {
                 "id": "eth",
-                "network": "eth",
+                "network": "ERC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.00018,
+                "fee": 0.00024,
                 "precision": null,
                 "limits": {
                     "withdraw": {
@@ -320,14 +320,14 @@
                     "minDep": "0.0000003",
                     "minWd": "0.004",
                     "maxWd": "500",
-                    "withdrawFee": "0.00018",
+                    "withdrawFee": "0.00024",
                     "depositAuth": true,
                     "withdrawAuth": true
                 }
             },
-            "base": {
+            "BASE": {
                 "id": "base",
-                "network": "base",
+                "network": "BASE",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -353,13 +353,13 @@
                     "withdrawAuth": true
                 }
             },
-            "arb": {
+            "ARBONE": {
                 "id": "arb",
-                "network": "arb",
+                "network": "ARBONE",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.00004,
+                "fee": 0.00002,
                 "precision": null,
                 "limits": {
                     "withdraw": {
@@ -376,14 +376,14 @@
                     "minDep": "0.000000000000000001",
                     "minWd": "0.00106",
                     "maxWd": "1010",
-                    "withdrawFee": "0.00004",
+                    "withdrawFee": "0.00002",
                     "depositAuth": true,
                     "withdrawAuth": true
                 }
             },
-            "op": {
+            "OPT": {
                 "id": "op",
-                "network": "op",
+                "network": "OPT",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -449,9 +449,9 @@
         "fee": 0.001,
         "fees": {},
         "networks": {
-            "sol": {
+            "SOL": {
                 "id": "sol",
-                "network": "sol",
+                "network": "SOL",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -500,7 +500,7 @@
                 "minDep": "0.000001",
                 "minWd": "0.077",
                 "maxWd": "100000",
-                "withdrawFee": "0.08",
+                "withdrawFee": "0.089",
                 "depositAuth": true,
                 "withdrawAuth": true
             }
@@ -514,16 +514,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.08,
+        "fee": 0.089,
         "fees": {},
         "networks": {
-            "sol": {
+            "SOL": {
                 "id": "sol",
-                "network": "sol",
+                "network": "SOL",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.08,
+                "fee": 0.089,
                 "precision": null,
                 "limits": {
                     "withdraw": {
@@ -540,7 +540,7 @@
                     "minDep": "0.000001",
                     "minWd": "0.077",
                     "maxWd": "100000",
-                    "withdrawFee": "0.08",
+                    "withdrawFee": "0.089",
                     "depositAuth": true,
                     "withdrawAuth": true
                 }
@@ -568,7 +568,7 @@
                 "minDep": "0.000000000000000001",
                 "minWd": "2.27",
                 "maxWd": "1250000",
-                "withdrawFee": "3.49",
+                "withdrawFee": "3.72",
                 "depositAuth": true,
                 "withdrawAuth": true
             }
@@ -582,16 +582,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 3.49,
+        "fee": 3.72,
         "fees": {},
         "networks": {
-            "eth": {
+            "ERC20": {
                 "id": "eth",
-                "network": "eth",
+                "network": "ERC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 3.49,
+                "fee": 3.72,
                 "precision": null,
                 "limits": {
                     "withdraw": {
@@ -608,7 +608,7 @@
                     "minDep": "0.000000000000000001",
                     "minWd": "2.27",
                     "maxWd": "1250000",
-                    "withdrawFee": "3.49",
+                    "withdrawFee": "3.72",
                     "depositAuth": true,
                     "withdrawAuth": true
                 }
