@@ -933,6 +933,7 @@ export default class htx extends Exchange {
                     'base-symbol-error': BadSymbol,
                     'system-maintenance': OnMaintenance,
                     'base-request-exceed-frequency-limit': RateLimitExceeded,
+                    'rate-too-many-requests': RateLimitExceeded,
                     // err-msg
                     'invalid symbol': BadSymbol,
                     'symbol trade not open now': BadSymbol,
@@ -5558,7 +5559,9 @@ export default class htx extends Exchange {
                 params = this.omit(params, ['clientOrderId']);
             }
             if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
-                request['price'] = this.priceToPrecision(symbol, price);
+                if (price !== undefined) {
+                    request['price'] = this.priceToPrecision(symbol, price);
+                }
             }
         }
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only', false);

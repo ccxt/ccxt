@@ -392,6 +392,7 @@ cancel multiple orders
 | symbol | <code>string</code> | No | unified market symbol, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.cancelRestrictions | <code>string</code>, <code>undefined</code> | No | Supported values: ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED. |
+| params.trigger | <code>boolean</code> | No | set to true if you would like to cancel a conditional order |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#binancecancelorderws)
@@ -7795,6 +7796,7 @@ watches information on multiple trades made in a market
 * [hashkey](/exchanges/hashkey.md#hashkeywatchtrades)
 * [hollaex](/exchanges/hollaex.md#hollaexwatchtrades)
 * [htx](/exchanges/htx.md#htxwatchtrades)
+* [hyperliquid](/exchanges/hyperliquid.md#hyperliquidwatchtrades)
 * [independentreserve](/exchanges/independentreserve.md#independentreservewatchtrades)
 * [kucoin](/exchanges/kucoin.md#kucoinwatchtrades)
 * [kucoinfutures](/exchanges/kucoinfutures.md#kucoinfutureswatchtrades)

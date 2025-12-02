@@ -1661,7 +1661,7 @@ abstract class binanceusdm extends \ccxt\binance {
         return $this->request('algoOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiprivate_get_openalgoorders($params = array()) {
-        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function fapiprivate_get_allalgoorders($params = array()) {
         return $this->request('allAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
@@ -3989,7 +3989,7 @@ abstract class binanceusdm extends \ccxt\binance {
         return $this->request('algoOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiPrivateGetOpenAlgoOrders($params = array()) {
-        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function fapiPrivateGetAllAlgoOrders($params = array()) {
         return $this->request('allAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));

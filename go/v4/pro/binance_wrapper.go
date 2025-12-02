@@ -1137,6 +1137,7 @@ func (this *Binance) WatchBalance(params ...interface{}) (ccxt.Balances, error) 
  * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#place-new-order-trade
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-ccxt.Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Algo-ccxt.Order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1221,10 +1222,12 @@ func (this *Binance) EditOrderWs(id string, symbol string, typeVar string, side 
  * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-order-trade
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/ccxt.Cancel-ccxt.Order
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/ccxt.Cancel-ccxt.Order
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/ccxt.Cancel-Algo-ccxt.Order
  * @param {string} id order id
  * @param {string} [symbol] unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string|undefined} [params.cancelRestrictions] Supported values: ONLY_NEW - ccxt.Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - ccxt.Cancel will succeed if order status is PARTIALLY_FILLED.
+ * @param {boolean} [params.trigger] set to true if you would like to cancel a conditional order
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Binance) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions) (ccxt.Order, error) {
@@ -1460,6 +1463,7 @@ func (this *Binance) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions)
  * @see https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update
  * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-ccxt.Order-Update
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-ccxt.Order-Update
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-ccxt.Order-Update
  * @param {string} symbol unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
