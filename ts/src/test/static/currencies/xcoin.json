@@ -628,5 +628,73 @@
                 "max": 1250000
             }
         }
+    },
+    "ADA": {
+        "info": [
+            {
+                "chainType": "ada",
+                "minDep": "0.000001",
+                "minWd": "2",
+                "maxWd": "1400000",
+                "withdrawFee": "0.8",
+                "depositAuth": true,
+                "withdrawAuth": true
+            }
+        ],
+        "id": "ADA",
+        "numericId": null,
+        "code": "ADA",
+        "precision": 0.000001,
+        "type": null,
+        "name": "Cardano",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.8,
+        "fees": {},
+        "networks": {
+            "ADA": {
+                "id": "ada",
+                "network": "ADA",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.8,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 1400000
+                    },
+                    "deposit": {
+                        "min": 0.000001,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "chainType": "ada",
+                    "minDep": "0.000001",
+                    "minWd": "2",
+                    "maxWd": "1400000",
+                    "withdrawFee": "0.8",
+                    "depositAuth": true,
+                    "withdrawAuth": true
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.000001,
+                "max": null
+            },
+            "withdraw": {
+                "min": 2,
+                "max": 1400000
+            }
+        }
     }
 }
