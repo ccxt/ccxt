@@ -372,6 +372,7 @@ class Exchange {
         'btcbox',
         'btcmarkets',
         'btcturk',
+        'bullish',
         'bybit',
         'cex',
         'coinbase',
