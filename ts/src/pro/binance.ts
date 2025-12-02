@@ -3382,23 +3382,27 @@ export default class binance extends binanceRest {
         };
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         const clientOrderId = this.safeStringN (params, [ 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ]);
+        const shouldUseAlgoOrder = market['linear'] && market['swap'] && isConditional;
         if (clientOrderId !== undefined) {
-            payload['origClientOrderId'] = clientOrderId;
-        } if (market['linear'] && market['swap'] && isConditional) {
-            payload['clientAlgoId'] = clientOrderId;
+            if (shouldUseAlgoOrder) {
+                payload['clientAlgoId'] = clientOrderId;
+            } else {
+                payload['origClientOrderId'] = clientOrderId;
+            }
         } else {
-            payload['orderId'] = this.numberToString (id);
+            if (shouldUseAlgoOrder) {
+                payload['algoId'] = this.numberToString (id);
+            } else {
+                payload['orderId'] = this.numberToString (id);
+            }
         }
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId', 'stop', 'trigger', 'conditional' ]);
-        if (market['linear'] && market['swap'] && isConditional) {
-            payload['algoId'] = id;
-        }
         const message: Dict = {
             'id': messageHash,
             'method': 'order.cancel',
             'params': this.signParams (this.extend (payload, params)),
         };
-        if (market['linear'] && market['swap'] && isConditional) {
+        if (shouldUseAlgoOrder) {
             message['method'] = 'algoOrder.cancel';
         }
         const subscription: Dict = {
