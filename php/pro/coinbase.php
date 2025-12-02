@@ -850,7 +850,7 @@ class coinbase extends \ccxt\async\coinbase {
             'type' => $this->safe_string($order, 'order_type'),
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $this->safe_string_2($order, 'side', 'order_side'),
+            'side' => $this->safe_string_lower_2($order, 'side', 'order_side'),
             'price' => $this->safe_string($order, 'limit_price'),
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
