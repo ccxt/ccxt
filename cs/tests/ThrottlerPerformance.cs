@@ -26,6 +26,7 @@ public partial class BaseTest
         {
             var exchange1 = new ccxt.binance(new Dictionary<string, object>() {
                 { "enableRateLimit", true },
+                { "rateLimiterAlgorithm", "rollingWindow" }
             });
             object rollingWindowTime = await testThrottlerPerformanceHelper(exchange1, 100);
             var exchange2 = new ccxt.binance(new Dictionary<string, object>() {
@@ -47,9 +48,9 @@ public partial class BaseTest
             Console.WriteLine("┌───────────────────────────────────────────────────┬──────────────┬─────────────────┐");
             Console.WriteLine("│ Algorithm                                         │ Time (ms)    │ Expected (ms)   │");
             Console.WriteLine("├───────────────────────────────────────────────────┼──────────────┼─────────────────┤");
-            Console.WriteLine(add(add("│ Rolling Window                            │ ", ((string)rollingWindowTimeString).PadLeft(11)), " │ 0-1             │"));
-            Console.WriteLine(add(add("│ Leaky Bucket                              │ ", ((string)leakyBucketTimeString).PadLeft(11)), " │ ~950            │"));
-            Console.WriteLine(add(add("│ Leaky Bucket (rollingWindowSize === 0)    │ ", ((string)rollingWindow0TimeString).PadLeft(11)), " │ ~950            │"));
+            Console.WriteLine(add(add("│ Rolling Window                                    │ ", ((string)rollingWindowTimeString).PadLeft(11)), "  │ 0-1             │"));
+            Console.WriteLine(add(add("│ Leaky Bucket                                      │ ", ((string)leakyBucketTimeString).PadLeft(11)), "  │ ~950            │"));
+            Console.WriteLine(add(add("│ Leaky Bucket (rollingWindowSize === 0)            │ ", ((string)rollingWindow0TimeString).PadLeft(11)), "  │ ~950            │"));
             Console.WriteLine("└───────────────────────────────────────────────────┴──────────────┴─────────────────┘");
         }
 }
