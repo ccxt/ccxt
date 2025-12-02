@@ -549,6 +549,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const tickers = this.indexBy (parsedTickers, 'symbol');
         client.resolve (tickers, 'tickers');
+        return true;
     }
 
     parseWsTicker (rawTicker, market: Market = undefined): Ticker {
