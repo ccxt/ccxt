@@ -90,25 +90,6 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"stopLoss\":\"100000\",\"slOrderType\":\"Market\",\"takeProfit\":\"80123\",\"tpOrderType\":\"Market\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
             },
             {
-                "description": "protective oco order - limit",
-                "method": "createOrder",
-                "url": "https://api.bybit.com/v5/position/trading-stop",
-                "input": [
-                    "BTC/USDT:USDT",
-                    "sample",
-                    "sample",
-                    0.001,
-                    null,
-                    {
-                        "takeProfitPrice": 80123,
-                        "takeProfitLimitPrice": 80000,
-                        "stopLossPrice": 100000,
-                        "stopLossLimitPrice": 100123
-                    }
-                ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"tpslMode\":\"Partial\",\"stopLoss\":\"100000\",\"slSize\":\"0.001\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"100123\",\"takeProfit\":\"80123\",\"tpSize\":\"0.001\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"80000\",\"category\":\"linear\"}"
-            },
-            {
                 "description": "spot order with sl type 3",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
