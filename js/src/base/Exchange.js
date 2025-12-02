@@ -5058,7 +5058,7 @@ export default class Exchange {
         }
         return this.safeMarketStructure({ 'symbol': marketId, 'marketId': marketId });
     }
-    marketOrNull(symbol) {
+    marketOrNull(symbol = undefined) {
         if (symbol === undefined) {
             return undefined;
         }
