@@ -5709,7 +5709,10 @@ public partial class htx : Exchange
             }
             if (isTrue(isTrue(isTrue(isTrue(isEqual(type, "limit")) || isTrue(isEqual(type, "ioc"))) || isTrue(isEqual(type, "fok"))) || isTrue(isEqual(type, "post_only"))))
             {
-                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                if (isTrue(!isEqual(price, null)))
+                {
+                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                }
             }
         }
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);

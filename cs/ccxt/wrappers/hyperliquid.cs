@@ -223,6 +223,12 @@ public partial class hyperliquid
     /// string : 'spot' or 'swap', by default fetches both
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.hip3</term>
+    /// <description>
+    /// boolean : set to true to fetch hip3 markets only
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
