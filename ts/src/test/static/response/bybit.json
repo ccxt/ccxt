@@ -1466,6 +1466,59 @@
         ],
         "createOrder": [
             {
+                "description": "protective oco orders",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "takeProfitLimitPrice": 80000,
+                        "stopLossPrice": 100000,
+                        "stopLossLimitPrice": 100123
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {},
+                    "retExtInfo": {},
+                    "time": "1764704071593"
+                },
+                "parsedResponse": {
+                    "info": {},
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "spot stopLossPrice order",
                 "method": "createOrder",
                 "input": [

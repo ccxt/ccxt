@@ -4000,9 +4000,6 @@ export default class bybit extends Exchange {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase ();
-        if ((price === undefined) && (lowerCaseType === 'limit')) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
-        }
         const request: Dict = {
             'symbol': market['id'],
             // 'side': this.capitalize (side),
@@ -4042,12 +4039,12 @@ export default class bybit extends Exchange {
         const isStopLossOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitOrder = takeProfitTriggerPrice !== undefined;
         const hasStopLoss = stopLoss !== undefined;
-        const isTakeProfit = takeProfit !== undefined;
+        const hasTakeProfit = takeProfit !== undefined;
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
         const isBuy = side === 'buy';
         let defaultMethod = undefined;
-        if ((isTrailingOrder || isStopLossOrder || isTakeProfitOrder) && !market['spot']) {
+        if (isTrailingOrder || (isStopLossOrder && isTakeProfitOrder)) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
@@ -4055,37 +4052,43 @@ export default class bybit extends Exchange {
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod);
         const endpointIsTradingStop = method === 'privatePostV5PositionTradingStop';
+        if ((price === undefined) && (lowerCaseType === 'limit') && !endpointIsTradingStop) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
+        }
         const amountString = this.getAmount (symbol, amount);
         const priceString = (price !== undefined) ? this.getPrice (symbol, this.numberToString (price)) : undefined;
-        if (isTrailingOrder || endpointIsTradingStop) {
-            if (hasStopLoss || isTakeProfit || isTriggerOrder || market['spot']) {
+        if (endpointIsTradingStop) {
+            if (hasStopLoss || hasTakeProfit || isTriggerOrder || market['spot']) {
                 throw new InvalidOrder (this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if (isStopLossOrder || isTakeProfitOrder) {
-                const tpslMode = this.safeString (params, 'tpslMode', 'Partial');
-                const isFullTpsl = tpslMode === 'Full';
-                const isPartialTpsl = tpslMode === 'Partial';
-                if (isLimit && isFullTpsl) {
-                    throw new InvalidOrder (this.id + ' tpsl orders with "full" tpslMode only support "market" type');
-                }
+                const shouldBePartial = amountString !== undefined;
+                const tpslMode = shouldBePartial ? 'Partial' : 'Full';
                 request['tpslMode'] = tpslMode;
                 if (isStopLossOrder) {
                     request['stopLoss'] = this.getPrice (symbol, stopLossTriggerPrice);
-                    if (isPartialTpsl) {
+                    if (shouldBePartial) {
                         request['slSize'] = amountString;
                     }
-                    if (isLimit) {
+                    const stopLossLimitPrice = this.safeString (params, 'stopLossLimitPrice', 'slLimitPrice');
+                    if (stopLossLimitPrice !== undefined) {
                         request['slOrderType'] = 'Limit';
-                        request['slLimitPrice'] = priceString;
+                        request['slLimitPrice'] = stopLossLimitPrice;
+                    } else {
+                        request['slOrderType'] = 'Market';
                     }
-                } else if (isTakeProfitOrder) {
+                }
+                if (isTakeProfitOrder) {
                     request['takeProfit'] = this.getPrice (symbol, takeProfitTriggerPrice);
-                    if (isPartialTpsl) {
+                    if (shouldBePartial) {
                         request['tpSize'] = amountString;
                     }
-                    if (isLimit) {
+                    const takeProfitLimitPrice = this.safeString (params, 'takeProfitLimitPrice', 'tpLimitPrice');
+                    if (takeProfitLimitPrice !== undefined) {
                         request['tpOrderType'] = 'Limit';
-                        request['tpLimitPrice'] = priceString;
+                        request['tpLimitPrice'] = takeProfitLimitPrice;
+                    } else {
+                        request['tpOrderType'] = 'Market';
                     }
                 }
             }
@@ -4204,7 +4207,7 @@ export default class bybit extends Exchange {
             request['triggerPrice'] = this.getPrice (symbol, triggerPrice);
             request['reduceOnly'] = true;
         }
-        if ((hasStopLoss || isTakeProfit) && !endpointIsTradingStop) {
+        if ((hasStopLoss || hasTakeProfit) && !endpointIsTradingStop) {
             if (hasStopLoss) {
                 const slTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.getPrice (symbol, slTriggerPrice);
@@ -4224,7 +4227,7 @@ export default class bybit extends Exchange {
                     throw new InvalidOrder (this.id + ' createOrder(): attached stopLoss is not supported for spot market orders');
                 }
             }
-            if (isTakeProfit) {
+            if (hasTakeProfit) {
                 const tpTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                 request['takeProfit'] = this.getPrice (symbol, tpTriggerPrice);
                 const tpLimitPrice = this.safeValue (takeProfit, 'price');
