@@ -1688,7 +1688,7 @@
                     "BTC/USDT:USDT",
                     "sample",
                     "sample",
-                    null,
+                    0.0,
                     null,
                     {
                         "takeProfitPrice": 80123,
