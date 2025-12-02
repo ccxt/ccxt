@@ -4060,7 +4060,7 @@ public partial class binance : Exchange
             {
                 // rpi limit only supports 1000
                 ((IDictionary<string,object>)request)["limit"] = 1000;
-                response = await ((Task<object>)callDynamically(this, "fapiPublicGetRpiDepth", new object[] { this.extend(request, parameters) }));
+                response = await this.fapiPublicGetRpiDepth(this.extend(request, parameters));
             } else
             {
                 response = await this.fapiPublicGetDepth(this.extend(request, parameters));

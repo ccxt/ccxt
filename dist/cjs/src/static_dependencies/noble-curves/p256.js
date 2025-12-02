@@ -8,7 +8,7 @@ var modular = require('./abstract/modular.js');
 var weierstrass = require('./abstract/weierstrass.js');
 var hashToCurve = require('./abstract/hash-to-curve.js');
 
-// ----------------------------------------------------------------------------
+/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 // NIST secp256r1 aka P256
 // https://www.secg.org/sec2-v2.pdf, https://neuromancer.sk/std/nist/P-256
 // Field over which we'll do calculations; 2n**224n * (2n**32n-1n) + 2n**192n + 2n**96n-1n
