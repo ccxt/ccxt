@@ -12100,11 +12100,11 @@ export default class binance extends Exchange {
     getExceptionsByUrl (url: string, exactOrBroad: string) {
         let marketType = undefined;
         const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
-        if (url.startsWith ('https://api.' + hostname + '/') || url.startsWith ('https://testnet.binance.vision')) {
+        if (url.startsWith ('https://api.' + hostname + '/') || url.startsWith ('https://demo-api') || url.startsWith ('https://testnet.binance.vision')) {
             marketType = 'spot';
-        } else if (url.startsWith ('https://dapi.' + hostname + '/') || url.startsWith ('https://testnet.binancefuture.com/dapi')) {
+        } else if (url.startsWith ('https://dapi.' + hostname + '/') || url.startsWith ('https://demo-dapi') || url.startsWith ('https://testnet.binancefuture.com/dapi')) {
             marketType = 'inverse';
-        } else if (url.startsWith ('https://fapi.' + hostname + '/') || url.startsWith ('https://testnet.binancefuture.com/fapi')) {
+        } else if (url.startsWith ('https://fapi.' + hostname + '/') || url.startsWith ('https://demo-fapi') || url.startsWith ('https://testnet.binancefuture.com/fapi')) {
             marketType = 'linear';
         } else if (url.startsWith ('https://eapi.' + hostname + '/')) {
             marketType = 'option';
