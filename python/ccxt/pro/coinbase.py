@@ -764,7 +764,7 @@ class coinbase(ccxt.async_support.coinbase):
             'type': self.safe_string(order, 'order_type'),
             'timeInForce': None,
             'postOnly': None,
-            'side': self.safe_string_2(order, 'side', 'order_side'),
+            'side': self.safe_string_lower_2(order, 'side', 'order_side'),
             'price': self.safe_string(order, 'limit_price'),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
