@@ -1008,7 +1008,7 @@ export default class binance extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     fetchOptionPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    parsePosition(position: Dict, market?: Market): Position;
+    parseOptionPosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name binance#fetchPositions

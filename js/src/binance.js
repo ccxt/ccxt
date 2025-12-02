@@ -10816,7 +10816,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePosition(response[0], market);
+        return this.parseOptionPosition(response[0], market);
     }
     /**
      * @method
@@ -10873,11 +10873,11 @@ export default class binance extends Exchange {
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            result.push(this.parsePosition(response[i], market));
+            result.push(this.parseOptionPosition(response[i], market));
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
-    parsePosition(position, market = undefined) {
+    parseOptionPosition(position, market = undefined) {
         //
         //     {
         //         "entryPrice": "27.70000000",

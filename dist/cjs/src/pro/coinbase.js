@@ -787,7 +787,7 @@ class coinbase extends coinbase$1["default"] {
             'type': this.safeString(order, 'order_type'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': this.safeString2(order, 'side', 'order_side'),
+            'side': this.safeStringLower2(order, 'side', 'order_side'),
             'price': this.safeString(order, 'limit_price'),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
