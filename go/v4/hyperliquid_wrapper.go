@@ -203,6 +203,7 @@ func (this *Hyperliquid) FetchOrderBook(symbol string, options ...FetchOrderBook
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', by default fetches both
+ * @param {boolean} [params.hip3] set to true to fetch hip3 markets only
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
  */
 func (this *Hyperliquid) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
