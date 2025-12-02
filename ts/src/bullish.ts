@@ -134,7 +134,7 @@ export default class bullish extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/68f0686b-84f0-4da9-a751-f7089af3a9ed',
                 'api': {
                     'public': 'https://api.exchange.bullish.com/trading-api',
                     'private': 'https://api.exchange.bullish.com/trading-api',
