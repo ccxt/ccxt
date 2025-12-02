@@ -2488,7 +2488,8 @@ export default class xcoin extends Exchange {
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
         for (let i = 0; i < orders.length; i++) {
-            if (this.safeNumber2 (orders[i]['params'], 'triggerPrice', 'stopPrice') !== undefined) {
+            const safeParams = this.safeDict (orders[i], 'params', {});
+            if (this.safeNumber2 (safeParams, 'triggerPrice', 'stopPrice') !== undefined) {
                 throw new NotSupported (this.id + ' createOrders() does not support conditional orders');
             }
         }
