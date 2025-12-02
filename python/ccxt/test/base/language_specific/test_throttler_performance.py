@@ -47,7 +47,6 @@ async def test_throttler():
 
     exchange2 = ccxt.binance({
         'enableRateLimit': True,
-        # 'rollingWindowSize': 0.0,
         'rateLimiterAlgorithm': 'leakyBucket',
     })
 
@@ -56,18 +55,31 @@ async def test_throttler():
     finally:
         await exchange2.close()
 
+    exchange3 = ccxt.binance({
+        'enableRateLimit': True,
+        'rollingWindowSize': 0.0,
+    })
+
+    try:
+        rolling_window_0_time = await test_throttler_performance_helper(exchange3, 20)
+    finally:
+        await exchange3.close()
+
     rolling_window_time_string = str(round(rolling_window_time, 2))
     leaky_bucket_time_string = str(round(leaky_bucket_time, 2))
+    rolling_window_0_time_string = str(round(rolling_window_0_time, 2))  # uses leakyBucket
 
     assert rolling_window_time <= 1000, 'Rolling window throttler happen immediately, time was: ' + rolling_window_time_string
     assert leaky_bucket_time >= 500, 'Leaky bucket throttler should take at least half a second for 20 requests, time was: ' + leaky_bucket_time_string
+    assert rolling_window_0_time >= 500, 'With rollingWindowSize === 0, the Leaky bucket throttler should be used and take at least half a second for 20 requests, time was: ' + rolling_window_0_time_string
 
-    print('┌─────────────────┬──────────────┬─────────────────┐')
-    print('│ Algorithm       │ Time (ms)    │ Expected (ms)   │')
-    print('├─────────────────┼──────────────┼─────────────────┤')
-    print('│ Rolling Window  │ ' + rolling_window_time_string.rjust(11) + '  │ ~3              │')
-    print('│ Leaky Bucket    │ ' + leaky_bucket_time_string.rjust(11) + '  │ ~950            │')
-    print('└─────────────────┴──────────────┴─────────────────┘')
+    print('┌───────────────────────────────────────────┬──────────────┬─────────────────┐')
+    print('│ Algorithm                                 │ Time (ms)    │ Expected (ms)   │')
+    print('├───────────────────────────────────────────┼──────────────┼─────────────────┤')
+    print('│ Rolling Window                            │ ' + rolling_window_time_string.rjust(11) + '  │ ~3              │')
+    print('│ Leaky Bucket                              │ ' + leaky_bucket_time_string.rjust(11) + '  │ ~950            │')
+    print('│ Leaky Bucket (rollingWindowSize === 0)    │          ' + rolling_window_0_time_string.rjust(11) + ' │ ~950            │')
+    print('└───────────────────────────────────────────┴──────────────┴─────────────────┘')
 
 def test_throttler_performance():
     asyncio.run(test_throttler())

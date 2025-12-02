@@ -51,35 +51,48 @@ function test_throttler_performance() {
     
     $exchange2 = new \ccxt\async\binance(array(
         'enableRateLimit' => true,
-        // 'rollingWindowSize' => 0.0,
         'rateLimiterAlgorithm' => 'leakyBucket',
+    ));
+
+    $exchange3 = new \ccxt\async\binance(array(
+        'enableRateLimit' => true,
+        'rollingWindowSize' => 0.0,
     ));
     
     $rolling_window_time = 0;
     $leaky_bucket_time = 0;
+    $rolling_window_0_time = 0;
     
     // Test rolling window
     test_throttler_performance_helper($exchange1, 100)->then(
         function ($rolling_window_time) use ($exchange2, $loop) {
             
             // Test leaky bucket
-            return test_throttler_performance_helper($exchange2, 20)->then(
+            test_throttler_performance_helper($exchange2, 20)->then(
                 function ($leaky_bucket_time) use ($rolling_window_time, $loop) {
                     
-                    $rolling_window_time_string = strval($rolling_window_time);
-                    $leaky_bucket_time_string = strval($leaky_bucket_time);
-                    
-                    assert($rolling_window_time <= 1000, 'Rolling window throttler happen immediately, time was: ' . $rolling_window_time_string);
-                    assert($leaky_bucket_time >= 500, 'Leaky bucket throttler should take at least half a second for 20 requests, time was: ' . $leaky_bucket_time_string);
-                    
-                    echo '┌─────────────────┬──────────────┬─────────────────┐' . "\n";
-                    echo '│ Algorithm       │ Time (ms)    │ Expected (ms)   │' . "\n";
-                    echo '├─────────────────┼──────────────┼─────────────────┤' . "\n";
-                    echo '│ Rolling Window  │ ' . str_pad(number_format($rolling_window_time, 2), 11) . '  │ ~3              │' . "\n";
-                    echo '│ Leaky Bucket    │ ' . str_pad(number_format($leaky_bucket_time, 2), 11) . '  │ ~950            │' . "\n";
-                    echo '└─────────────────┴──────────────┴─────────────────┘' . "\n";
-                    
-                    $loop->stop();
+                    return test_throttler_performance_helper($exchange3, 20)->then(
+                        function ($leaky_bucket_time) use ($rolling_window_time, $loop) {
+
+                            $rolling_window_time_string = strval($rolling_window_time);
+                            $leaky_bucket_time_string = strval($leaky_bucket_time);
+                            $rolling_window_0_time_string = strval($rolling_window_0_time);
+                            
+                            assert($rolling_window_time <= 1000, 'Rolling window throttler happen immediately, time was: ' . $rolling_window_time_string);
+                            assert($leaky_bucket_time >= 500, 'Leaky bucket throttler should take at least half a second for 20 requests, time was: ' . $leaky_bucket_time_string);
+                            assert ($rollingWindow0Time >= 500, 'With rollingWindowSize === 0, the Leaky bucket throttler should be used and take at least half a second for 20 requests, time was: ' . $rolling_window_0_time_string); 
+                            
+                            echo '┌─────────────────┬──────────────┬─────────────────┐' . "\n";
+                            echo '│ Algorithm       │ Time (ms)    │ Expected (ms)   │' . "\n";
+                            echo '├─────────────────┼──────────────┼─────────────────┤' . "\n";
+                            echo '│ Rolling Window  │ ' . str_pad(number_format($rolling_window_time, 2), 11) . '  │ ~3              │' . "\n";
+                            echo '│ Leaky Bucket    │ ' . str_pad(number_format($leaky_bucket_time, 2), 11) . '  │ ~950            │' . "\n";
+                            echo '│ Leaky Bucket (rollingWindowSize === 0)    │          ' . str_pad(number_format($rolling_window_0_time_string, 2), 11) . ' │ ~950            │' . "\n";
+                            echo '└─────────────────┴──────────────┴─────────────────┘' . "\n";
+                            
+                            $loop->stop();
+                        }
+                    );
                 }
             );
         }
