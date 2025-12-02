@@ -5463,7 +5463,9 @@ export default class htx extends Exchange {
                 params = this.omit (params, [ 'clientOrderId' ]);
             }
             if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
-                request['price'] = this.priceToPrecision (symbol, price);
+                if (price !== undefined) {
+                    request['price'] = this.priceToPrecision (symbol, price);
+                }
             }
         }
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
