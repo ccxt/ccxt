@@ -383,7 +383,8 @@
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"51\",\"triggerDirection\":2,\"triggerPrice\":\"56\",\"reduceOnly\":true}"
             },
             {
-                "description": "Swap limit sell with stopLossPrice(Type2)",
+                "disabled": true,
+                "description": "[disabled, bcz endpoint changed] Swap limit sell with stopLossPrice(Type2)",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
@@ -399,7 +400,8 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"stopLoss\":\"82000\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"81000\",\"slSize\":\"1\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap limit sell with takeProfitPrice(Type2)",
+                "disabled": true,
+                "description": "[disabled, bcz endpoint changed] Swap limit sell with takeProfitPrice(Type2)",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
@@ -415,7 +417,8 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"takeProfit\":\"98000\",\"tpslMode\":\"Partial\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"99000\",\"tpSize\":\"1\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode full",
+                "disabled": true,
+                "description": "[disabled, bcz endpoint changed] Swap market sell with stopLossPrice(Type2) and tpslMode full",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
@@ -432,7 +435,8 @@
                 "output": "{\"symbol\":\"ETHUSDT\",\"stopLoss\":\"3999\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode full",
+                "disabled": true,
+                "description": "[disabled, bcz endpoint changed] Swap market sell with takeProfitPrice(Type2) and tpslMode full",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
@@ -449,7 +453,8 @@
                 "output": "{\"symbol\":\"ETHUSDT\",\"takeProfit\":\"4000\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode partial",
+                "disabled": true,
+                "description": "[disabled, bcz endpoint changed] Swap market sell with stopLossPrice(Type2) and tpslMode partial",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
