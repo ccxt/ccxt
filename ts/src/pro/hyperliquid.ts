@@ -320,7 +320,7 @@ export default class hyperliquid extends hyperliquidRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         // try to infer dex from market
-        const dexName = this.safeBool (this.safeDict (market, 'info', {}), 'dex');
+        const dexName = this.safeString (this.safeDict (market, 'info', {}), 'dex');
         if (dexName) {
             params = this.extend (params, { 'dex': dexName });
         }
