@@ -1082,7 +1082,7 @@ func  (this *CoinbaseCore) ParseWsOrder(order interface{}, optionalArgs ...inter
         "type": this.SafeString(order, "order_type"),
         "timeInForce": nil,
         "postOnly": nil,
-        "side": this.SafeString2(order, "side", "order_side"),
+        "side": this.SafeStringLower2(order, "side", "order_side"),
         "price": this.SafeString(order, "limit_price"),
         "stopPrice": stopPrice,
         "triggerPrice": stopPrice,
