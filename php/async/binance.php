@@ -10758,7 +10758,7 @@ class binance extends Exchange {
             //         }
             //     )
             //
-            return $this->parse_position($response[0], $market);
+            return $this->parse_option_position($response[0], $market);
         }) ();
     }
 
@@ -10817,13 +10817,13 @@ class binance extends Exchange {
             //
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $result[] = $this->parse_position($response[$i], $market);
+                $result[] = $this->parse_option_position($response[$i], $market);
             }
             return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         }) ();
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_option_position(array $position, ?array $market = null) {
         //
         //     {
         //         "entryPrice" => "27.70000000",
