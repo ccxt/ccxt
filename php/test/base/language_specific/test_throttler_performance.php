@@ -51,7 +51,8 @@ function test_throttler_performance() {
     
     $exchange2 = new \ccxt\async\binance(array(
         'enableRateLimit' => true,
-        'rollingWindowSize' => 0.0,
+        // 'rollingWindowSize' => 0.0,
+        'rateLimiterAlgorithm' => 'leakyBucket',
     ));
     
     $rolling_window_time = 0;

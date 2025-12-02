@@ -28,7 +28,8 @@ export default async function testThrottlerPerformance () {
     
     const exchange2 = new ccxt.binance ({
         'enableRateLimit': true,
-        'rollingWindowSize': 0.0, // Use leaky bucket algorithm
+        // 'rollingWindowSize': 0.0, // Use leaky bucket algorithm
+        'rateLimiterAlgorithm': 'leakyBucket',
     });
     
     const leakyBucketTime = await testThrottlerPerformanceHelper (exchange2, 20);

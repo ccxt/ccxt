@@ -47,7 +47,8 @@ async def test_throttler():
 
     exchange2 = ccxt.binance({
         'enableRateLimit': True,
-        'rollingWindowSize': 0.0,
+        # 'rollingWindowSize': 0.0,
+        'rateLimiterAlgorithm': 'leakyBucket',
     })
 
     try:

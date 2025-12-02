@@ -30,7 +30,8 @@ public partial class BaseTest
             object rollingWindowTime = await testThrottlerPerformanceHelper(exchange1, 100);
             var exchange2 = new ccxt.binance(new Dictionary<string, object>() {
                 { "enableRateLimit", true },
-                { "rollingWindowSize", 0 },
+                // { "rollingWindowSize", 0 },
+                { "rateLimiterAlgorithm", "leakyBucket" }
             });
             object leakyBucketTime = await testThrottlerPerformanceHelper(exchange2, 20);
             object rollingWindowTimeString = ((object)rollingWindowTime).ToString();

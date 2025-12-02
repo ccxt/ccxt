@@ -43,7 +43,8 @@ func TestThrottlerPerformance() {
     PanicOnError(rollingWindowTime)
     exchange2 := ccxt.NewBinance(map[string]interface{} {
         "enableRateLimit": true,
-        "rollingWindowSize": 0,
+        // "rollingWindowSize": 0,
+        "rateLimiterAlgorithm": "leakyBucket",
     })
     
     leakyBucketTime := (<-TestThrottlerPerformanceHelper(&exchange2.Exchange, 20))

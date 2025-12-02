@@ -350,6 +350,7 @@ export default class Exchange {
     throttler: any = undefined;
     enableRateLimit: boolean = undefined;
     rollingWindowSize: number = 0.0;  // set to 0.0 to use leaky bucket rate limiter
+    rateLimiterAlgorithm: string = 'leakyBucket';
 
     httpExceptions: Dictionary<any> = undefined;
 
@@ -3173,7 +3174,8 @@ export default class Exchange {
         if (this.rateLimit > 0) {
             refillRate = 1 / this.rateLimit;
         }
-        const algorithm = (this.rollingWindowSize !== 0.0) ? 'rollingWindow' : 'leakyBucket';
+        const useLeaky = (this.rollingWindowSize === 0.0) || (this.rateLimiterAlgorithm === 'leakyBucket');
+        const algorithm = useLeaky ? 'leakyBucket' : 'rollingWindow';
         const defaultBucket = {
             'delay': 0.001,
             'capacity': 1,
