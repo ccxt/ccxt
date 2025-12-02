@@ -11624,7 +11624,7 @@ func (this *BinanceCore) FetchPosition(symbol interface{}, optionalArgs ...inter
 		//         }
 		//     ]
 		//
-		ch <- this.ParsePosition(GetValue(response, 0), market)
+		ch <- this.ParseOptionPosition(GetValue(response, 0), market)
 		return nil
 
 	}()
@@ -11697,7 +11697,7 @@ func (this *BinanceCore) FetchOptionPositions(optionalArgs ...interface{}) <-cha
 		//
 		var result interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			AppendToArray(&result, this.ParsePosition(GetValue(response, i), market))
+			AppendToArray(&result, this.ParseOptionPosition(GetValue(response, i), market))
 		}
 
 		ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -11706,7 +11706,7 @@ func (this *BinanceCore) FetchOptionPositions(optionalArgs ...interface{}) <-cha
 	}()
 	return ch
 }
-func (this *BinanceCore) ParsePosition(position interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BinanceCore) ParseOptionPosition(position interface{}, optionalArgs ...interface{}) interface{} {
 	//
 	//     {
 	//         "entryPrice": "27.70000000",
