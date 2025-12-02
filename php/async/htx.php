@@ -5527,7 +5527,9 @@ class htx extends Exchange {
                 $params = $this->omit($params, array( 'clientOrderId' ));
             }
             if ($type === 'limit' || $type === 'ioc' || $type === 'fok' || $type === 'post_only') {
-                $request['price'] = $this->price_to_precision($symbol, $price);
+                if ($price !== null) {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                }
             }
         }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
