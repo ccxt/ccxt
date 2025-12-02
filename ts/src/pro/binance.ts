@@ -688,7 +688,7 @@ export default class binance extends binanceRest {
             const market = this.market (symbol);
             messageHashes.push ('orderbook::' + symbol);
             const subscriptionHash = market['lowercaseId'] + '@' + name;
-            const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
+            const symbolHash = subscriptionHash + '@' + watchOrderBookRate.toString () + 'ms';
             subParams.push (symbolHash);
         }
         const messageHashesLength = messageHashes.length;
