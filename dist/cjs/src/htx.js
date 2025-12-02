@@ -932,6 +932,7 @@ class htx extends htx$1["default"] {
                     'base-symbol-error': errors.BadSymbol,
                     'system-maintenance': errors.OnMaintenance,
                     'base-request-exceed-frequency-limit': errors.RateLimitExceeded,
+                    'rate-too-many-requests': errors.RateLimitExceeded,
                     // err-msg
                     'invalid symbol': errors.BadSymbol,
                     'symbol trade not open now': errors.BadSymbol,

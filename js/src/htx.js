@@ -933,6 +933,7 @@ export default class htx extends Exchange {
                     'base-symbol-error': BadSymbol,
                     'system-maintenance': OnMaintenance,
                     'base-request-exceed-frequency-limit': RateLimitExceeded,
+                    'rate-too-many-requests': RateLimitExceeded,
                     // err-msg
                     'invalid symbol': BadSymbol,
                     'symbol trade not open now': BadSymbol,
