@@ -553,7 +553,7 @@ class ImplicitAPI:
     fapiprivate_get_accountconfig = fapiPrivateGetAccountConfig = Entry('accountConfig', 'fapiPrivate', 'GET', {'cost': 5})
     fapiprivate_get_convert_orderstatus = fapiPrivateGetConvertOrderStatus = Entry('convert/orderStatus', 'fapiPrivate', 'GET', {'cost': 5})
     fapiprivate_get_algoorder = fapiPrivateGetAlgoOrder = Entry('algoOrder', 'fapiPrivate', 'GET', {'cost': 1})
-    fapiprivate_get_openalgoorders = fapiPrivateGetOpenAlgoOrders = Entry('openAlgoOrders', 'fapiPrivate', 'GET', {'cost': 1})
+    fapiprivate_get_openalgoorders = fapiPrivateGetOpenAlgoOrders = Entry('openAlgoOrders', 'fapiPrivate', 'GET', {'cost': 1, 'noSymbol': 40})
     fapiprivate_get_allalgoorders = fapiPrivateGetAllAlgoOrders = Entry('allAlgoOrders', 'fapiPrivate', 'GET', {'cost': 5})
     fapiprivate_post_batchorders = fapiPrivatePostBatchOrders = Entry('batchOrders', 'fapiPrivate', 'POST', {'cost': 5})
     fapiprivate_post_positionside_dual = fapiPrivatePostPositionSideDual = Entry('positionSide/dual', 'fapiPrivate', 'POST', {'cost': 1})

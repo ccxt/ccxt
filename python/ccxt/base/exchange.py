@@ -5187,7 +5187,7 @@ class Exchange(object):
             return market
         return self.safe_market_structure({'symbol': marketId, 'marketId': marketId})
 
-    def market_or_null(self, symbol: str):
+    def market_or_null(self, symbol: Str = None):
         if symbol is None:
             return None
         return self.market(symbol)

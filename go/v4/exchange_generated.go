@@ -5046,7 +5046,9 @@ func (this *Exchange) SafeMarket(optionalArgs ...interface{}) interface{} {
 		"marketId": marketId,
 	})
 }
-func (this *Exchange) MarketOrNull(symbol interface{}) interface{} {
+func (this *Exchange) MarketOrNull(optionalArgs ...interface{}) interface{} {
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
 	if IsTrue(IsEqual(symbol, nil)) {
 		return nil
 	}
