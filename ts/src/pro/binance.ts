@@ -3370,13 +3370,15 @@ export default class binance extends binanceRest {
             'symbol': this.marketId (symbol),
             'returnRateLimits': returnRateLimits,
         };
-        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
+        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
+        const clientOrderId = this.safeStringN (params, [ 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
             payload['origClientOrderId'] = clientOrderId;
+        } if (market['linear'] && market['swap'] && isConditional) {
+            payload['clientAlgoId'] = clientOrderId;
         } else {
             payload['orderId'] = this.parseToInt (id);
         }
-        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId', 'stop', 'trigger', 'conditional' ]);
         if (market['linear'] && market['swap'] && isConditional) {
             payload['algoId'] = id;

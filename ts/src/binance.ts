@@ -6405,7 +6405,7 @@ export default class binance extends Exchange {
          */
         const market = this.market (symbol);
         const marketType = this.safeString (params, 'type', market['type']);
-        const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeStringN (params, [ 'clientAlgoId', 'newClientOrderId', 'clientOrderId' ]);
         const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
         const isLimitOrder = initialUppercaseType === 'LIMIT';
@@ -6509,7 +6509,10 @@ export default class binance extends Exchange {
                 }
             }
         }
-        const clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
+        let clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
+        if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+            clientOrderIdRequest = 'clientAlgoId';
+        }
         if (clientOrderId === undefined) {
             const broker = this.safeDict (this.options, 'broker', {});
             const defaultId = (market['contract']) ? 'x-xcKtGhcu' : 'x-TKT5PX2F';
