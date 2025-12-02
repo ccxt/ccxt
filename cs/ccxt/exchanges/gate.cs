@@ -997,7 +997,6 @@ public partial class gate : Exchange
                     { "LOAN_RECORD_NOT_FOUND", typeof(OrderNotFound) },
                     { "NO_MATCHED_LOAN", typeof(ExchangeError) },
                     { "NOT_MERGEABLE", typeof(ExchangeError) },
-                    { "NO_CHANGE", typeof(ExchangeError) },
                     { "REPAY_TOO_MUCH", typeof(ExchangeError) },
                     { "TOO_MANY_CURRENCY_PAIRS", typeof(InvalidOrder) },
                     { "TOO_MANY_ORDERS", typeof(InvalidOrder) },
@@ -1040,6 +1039,7 @@ public partial class gate : Exchange
                     { "AUTO_TRIGGER_PRICE_GREATE_LAST", typeof(InvalidOrder) },
                     { "POSITION_HOLDING", typeof(BadRequest) },
                     { "USER_LOAN_EXCEEDED", typeof(BadRequest) },
+                    { "NO_CHANGE", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
@@ -1560,8 +1560,8 @@ public partial class gate : Exchange
             { "contract", true },
             { "linear", isLinear },
             { "inverse", !isTrue(isLinear) },
-            { "taker", null },
-            { "maker", null },
+            { "taker", this.parseNumber("0.0005") },
+            { "maker", this.parseNumber("0.0002") },
             { "contractSize", this.parseNumber(contractSize) },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
@@ -1684,8 +1684,8 @@ public partial class gate : Exchange
                     { "contract", true },
                     { "linear", true },
                     { "inverse", false },
-                    { "taker", null },
-                    { "maker", null },
+                    { "taker", this.parseNumber("0.0003") },
+                    { "maker", this.parseNumber("0.0003") },
                     { "contractSize", this.parseNumber("1") },
                     { "expiry", expiry },
                     { "expiryDatetime", this.iso8601(expiry) },
@@ -4142,7 +4142,7 @@ public partial class gate : Exchange
         {
             ((IList<object>)fees).Add(new Dictionary<string, object>() {
                 { "cost", pointFee },
-                { "currency", "GatePoint" },
+                { "currency", "GATEPOINT" },
             });
         }
         object takerOrMaker = this.safeString(trade, "role");

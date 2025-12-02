@@ -2416,6 +2416,11 @@ public partial class binancecoinm : binance
         return await this.callAsync ("fapiPublicGetDepth",parameters);
     }
 
+    public async Task<object> fapiPublicGetRpiDepth (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetRpiDepth",parameters);
+    }
+
     public async Task<object> fapiPublicGetTrades (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetTrades",parameters);
@@ -2639,6 +2644,11 @@ public partial class binancecoinm : binance
     public async Task<object> fapiPrivateGetApiTradingStatus (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetApiTradingStatus",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetSymbolAdlRisk (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetSymbolAdlRisk",parameters);
     }
 
     public async Task<object> fapiPrivateGetMultiAssetsMargin (object parameters = null)

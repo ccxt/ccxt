@@ -910,8 +910,8 @@ export default class gate extends gateRest {
             const ohlcv = result[i];
             const subscription = this.safeString (ohlcv, 'n', '');
             const parts = subscription.split ('_');
-            const timeframe = this.safeString (parts, 0);
-            const timeframeId = this.findTimeframe (timeframe);
+            const timeframeId = this.safeString (parts, 0);
+            const timeframe = this.findTimeframe (timeframeId);
             const prefix = timeframe + '_';
             const marketId = subscription.replace (prefix, '');
             const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
@@ -921,7 +921,7 @@ export default class gate extends gateRest {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframeId] = stored;
+                this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
             marketIds[symbol] = timeframe;
@@ -2000,8 +2000,10 @@ export default class gate extends gateRest {
 
     requestId () {
         // their support said that reqid must be an int32, not documented
+        this.lockId ();
         const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
         this.options['reqid'] = reqid;
+        this.unlockId ();
         return reqid;
     }
 

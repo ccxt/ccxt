@@ -5,6 +5,8 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [fetchStatus](#fetchstatus)
+* [fetchTime](#fetchtime)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
 * [fetchHip3Markets](#fetchhip3markets)
@@ -67,6 +69,44 @@
 * [watchOHLCV](#watchohlcv)
 * [unWatchOHLCV](#unwatchohlcv)
 * [watchOrders](#watchorders)
+
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.fetchStatus ([params])
+```
+
+
+<a name="fetchTime" id="fetchtime"></a>
+
+### fetchTime{docsify-ignore}
+fetches the current integer timestamp in milliseconds from the exchange server
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.fetchTime ([params])
+```
+
 
 <a name="fetchCurrencies" id="fetchcurrencies"></a>
 
@@ -217,6 +257,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
 | params.type | <code>string</code> | No | wallet type, ['spot', 'swap'], defaults to swap |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
+| params.dex | <code>string</code> | No | for hip3 markets, the dex name, eg: 'xyz' |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
 
 
@@ -770,6 +811,7 @@ fetch all orders
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.dex | <code>string</code> | No | perp dex name. default is null |
 
 
 ```javascript
@@ -869,6 +911,7 @@ fetch all open positions
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.dex | <code>string</code> | No | perp dex name, eg: XYZ |
 
 
 ```javascript

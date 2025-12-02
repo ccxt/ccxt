@@ -848,6 +848,7 @@ class binance(Exchange, ImplicitAPI):
                         'time': 1,
                         'exchangeInfo': 1,
                         'depth': {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]},
+                        'rpiDepth': 20,
                         'trades': 5,
                         'historicalTrades': 20,
                         'aggTrades': 20,
@@ -901,6 +902,7 @@ class binance(Exchange, ImplicitAPI):
                         'commissionRate': 20,
                         'rateLimit/order': 1,
                         'apiTradingStatus': 1,
+                        'symbolAdlRisk': 1,
                         'multiAssetsMargin': 30,
                         # broker endpoints
                         'apiReferral/ifNewUser': 1,
@@ -3895,14 +3897,16 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book     # spot
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   # swap
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book   # future
-        https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           # option
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book       # spot
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book     # swap
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI  # swap rpi
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book     # future
+        https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                             # option
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.rpi]: *future only* set to True to use the RPI endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -3916,7 +3920,14 @@ class binance(Exchange, ImplicitAPI):
         if market['option']:
             response = await self.eapiPublicGetDepth(self.extend(request, params))
         elif market['linear']:
-            response = await self.fapiPublicGetDepth(self.extend(request, params))
+            rpi = self.safe_value(params, 'rpi', False)
+            params = self.omit(params, 'rpi')
+            if rpi:
+                # rpi limit only supports 1000
+                request['limit'] = 1000
+                response = await self.fapiPublicGetRpiDepth(self.extend(request, params))
+            else:
+                response = await self.fapiPublicGetDepth(self.extend(request, params))
         elif market['inverse']:
             response = await self.dapiPublicGetDepth(self.extend(request, params))
         else:
@@ -10124,7 +10135,7 @@ class binance(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_position(response[0], market)
+        return self.parse_option_position(response[0], market)
 
     async def fetch_option_positions(self, symbols: Strings = None, params={}):
         """
@@ -10177,10 +10188,10 @@ class binance(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(response)):
-            result.append(self.parse_position(response[i], market))
+            result.append(self.parse_option_position(response[i], market))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_option_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "entryPrice": "27.70000000",

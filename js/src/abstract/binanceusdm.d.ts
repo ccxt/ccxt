@@ -482,6 +482,7 @@ interface binance {
     fapiPublicGetTime(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetExchangeInfo(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetDepth(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetRpiDepth(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetTrades(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetHistoricalTrades(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetAggTrades(params?: {}): Promise<implicitReturnType>;
@@ -527,6 +528,7 @@ interface binance {
     fapiPrivateGetCommissionRate(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetRateLimitOrder(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiTradingStatus(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetSymbolAdlRisk(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetMultiAssetsMargin(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiReferralIfNewUser(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiReferralCustomization(params?: {}): Promise<implicitReturnType>;

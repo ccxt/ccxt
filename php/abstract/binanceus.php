@@ -1606,6 +1606,9 @@ abstract class binanceus extends \ccxt\binance {
     public function fapipublic_get_depth($params = array()) {
         return $this->request('depth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "byLimit" => [[50, 2], [100, 5], [500, 10], [1000, 20]]));
     }
+    public function fapipublic_get_rpidepth($params = array()) {
+        return $this->request('rpiDepth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function fapipublic_get_trades($params = array()) {
         return $this->request('trades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1740,6 +1743,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function fapiprivate_get_apitradingstatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_get_symboladlrisk($params = array()) {
+        return $this->request('symbolAdlRisk', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiprivate_get_multiassetsmargin($params = array()) {
         return $this->request('multiAssetsMargin', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 30));
@@ -4084,6 +4090,9 @@ abstract class binanceus extends \ccxt\binance {
     public function fapiPublicGetDepth($params = array()) {
         return $this->request('depth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "byLimit" => [[50, 2], [100, 5], [500, 10], [1000, 20]]));
     }
+    public function fapiPublicGetRpiDepth($params = array()) {
+        return $this->request('rpiDepth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function fapiPublicGetTrades($params = array()) {
         return $this->request('trades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -4218,6 +4227,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function fapiPrivateGetApiTradingStatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateGetSymbolAdlRisk($params = array()) {
+        return $this->request('symbolAdlRisk', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiPrivateGetMultiAssetsMargin($params = array()) {
         return $this->request('multiAssetsMargin', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 30));

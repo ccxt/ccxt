@@ -598,6 +598,7 @@ class binance extends \ccxt\async\binance {
              * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
              *
@@ -656,12 +657,14 @@ class binance extends \ccxt\async\binance {
              * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams-RPI
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams
              *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->rpi] *future only* set to true to use the RPI endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
              */
             Async\await($this->load_markets());
@@ -680,7 +683,14 @@ class binance extends \ccxt\async\binance {
                 }
                 $streamHash .= '::' . implode(',', $symbols);
             }
-            $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
+            $watchOrderBookRate = null;
+            list($watchOrderBookRate, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100');
+            $rpi = null;
+            list($rpi, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'rpi', false);
+            if ($rpi && $type === 'future') {
+                $name = 'rpiDepth';
+                $watchOrderBookRate = '500';
+            }
             $subParams = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
@@ -2382,7 +2392,7 @@ class binance extends \ccxt\async\binance {
         $resolvedMessageHashes = array();
         $rawTickers = array();
         $newTickers = array();
-        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
+        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             $rawTickers = $message;
         } else {
             $rawTickers[] = $message;
@@ -2726,7 +2736,7 @@ class binance extends \ccxt\async\binance {
         //
         $messageHash = $this->safe_string($message, 'id');
         $rawBalance = null;
-        if (gettype($message['result']) === 'array' && array_keys($message['result']) === array_keys(array_keys($message['result']))) {
+        if ((gettype($message['result']) === 'array' && array_keys($message['result']) === array_keys(array_keys($message['result'])))) {
             // account.balance
             $rawBalance = $this->safe_list($message, 'result', array());
         } else {
@@ -3432,7 +3442,7 @@ class binance extends \ccxt\async\binance {
             if ($clientOrderId !== null) {
                 $payload['origClientOrderId'] = $clientOrderId;
             } else {
-                $payload['orderId'] = $this->parse_to_int($id);
+                $payload['orderId'] = $this->number_to_string($id);
             }
             $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
             $message = array(
@@ -3521,7 +3531,7 @@ class binance extends \ccxt\async\binance {
             if ($clientOrderId !== null) {
                 $payload['origClientOrderId'] = $clientOrderId;
             } else {
-                $payload['orderId'] = $this->parse_to_int($id);
+                $payload['orderId'] = $this->number_to_string($id);
             }
             $message = array(
                 'id' => $messageHash,
@@ -4623,7 +4633,7 @@ class binance extends \ccxt\async\binance {
             'externalLockUpdate' => array($this, 'handle_balance'),
         );
         $event = $this->safe_string($message, 'e');
-        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
+        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             $data = $message[0];
             $event = $this->safe_string($data, 'e') . '@arr';
         }

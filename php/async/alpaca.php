@@ -1181,7 +1181,7 @@ class alpaca extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->traderPrivateDeleteV2Orders ($params));
-            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                 return $this->parse_orders($response, null);
             } else {
                 return array(

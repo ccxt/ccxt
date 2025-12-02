@@ -1089,7 +1089,6 @@ export default class gate extends Exchange {
                     'LOAN_RECORD_NOT_FOUND': OrderNotFound,
                     'NO_MATCHED_LOAN': ExchangeError,
                     'NOT_MERGEABLE': ExchangeError,
-                    'NO_CHANGE': ExchangeError,
                     'REPAY_TOO_MUCH': ExchangeError,
                     'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
                     'TOO_MANY_ORDERS': InvalidOrder,
@@ -1132,6 +1131,7 @@ export default class gate extends Exchange {
                     'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder, // {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
                     'POSITION_HOLDING': BadRequest,
                     'USER_LOAN_EXCEEDED': BadRequest, // {"label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded"}
+                    'NO_CHANGE': InvalidOrder, // {"label":"NO_CHANGE","message":"No change is made"}
                 },
                 'broad': {},
             },
@@ -1609,8 +1609,8 @@ export default class gate extends Exchange {
             'contract': true,
             'linear': isLinear,
             'inverse': !isLinear,
-            'taker': undefined,
-            'maker': undefined,
+            'taker': this.parseNumber ('0.0005'), // 0.05% vip0
+            'maker': this.parseNumber ('0.0002'), // 0.02% vip0
             'contractSize': this.parseNumber (contractSize),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -1729,8 +1729,8 @@ export default class gate extends Exchange {
                     'contract': true,
                     'linear': true,
                     'inverse': false,
-                    'taker': undefined,
-                    'maker': undefined,
+                    'taker': this.parseNumber ('0.0003'), // assume 0.03% for maker/taker vip0 btc/eth options
+                    'maker': this.parseNumber ('0.0003'),
                     'contractSize': this.parseNumber ('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
@@ -3940,7 +3940,7 @@ export default class gate extends Exchange {
         if (pointFee !== undefined) {
             fees.push ({
                 'cost': pointFee,
-                'currency': 'GatePoint',
+                'currency': 'GATEPOINT',
             });
         }
         const takerOrMaker = this.safeString (trade, 'role');

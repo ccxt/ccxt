@@ -173,6 +173,9 @@ class kucoin extends Exchange {
                         'margin/config' => 25, // 25SW
                         'announcements' => 20, // 20W
                         'margin/collateralRatio' => 10,
+                        // convert
+                        'convert/symbol' => 5,
+                        'convert/currencies' => 5,
                     ),
                     'post' => array(
                         // ws
@@ -258,6 +261,13 @@ class kucoin extends Exchange {
                         'broker/queryUser' => 3,
                         'broker/queryDetailByUid' => 3,
                         'migrate/user/account/status' => 3,
+                        // convert
+                        'convert/quote' => 20,
+                        'convert/order/detail' => 5,
+                        'convert/order/history' => 5,
+                        'convert/limit/quote' => 20,
+                        'convert/limit/order/detail' => 5,
+                        'convert/limit/orders' => 5,
                         // affiliate
                         'affiliate/inviter/statistics' => 30,
                     ),
@@ -297,6 +307,9 @@ class kucoin extends Exchange {
                         'purchase' => 15, // 15SW
                         'redeem' => 15, // 15SW
                         'lend/purchase/update' => 10, // 10SW
+                        // convert
+                        'convert/order' => 20,
+                        'convert/limit/order' => 20,
                         // ws
                         'bullet-private' => 10, // 10SW
                         'position/update-user-leverage' => 5,
@@ -328,6 +341,8 @@ class kucoin extends Exchange {
                         'hf/margin/orders/{orderId}' => 5, // 5SW
                         'hf/margin/orders/client-order/{clientOid}' => 5, // 5SW
                         'hf/margin/orders' => 10, // 10SW
+                        // convert
+                        'convert/limit/order/cancel' => 5,
                     ),
                 ),
                 'futuresPublic' => array(
@@ -445,6 +460,7 @@ class kucoin extends Exchange {
                 ),
                 'earn' => array(
                     'get' => array(
+                        'otc-loan/discount-rate-configs' => 10,
                         'otc-loan/loan' => 1,
                         'otc-loan/accounts' => 1,
                         'earn/redeem-preview' => 7.5, // 5EW
@@ -454,9 +470,12 @@ class kucoin extends Exchange {
                         'earn/kcs-staking/products' => 7.5, // 5EW
                         'earn/staking/products' => 7.5, // 5EW
                         'earn/eth-staking/products' => 7.5, // 5EW
+                        'struct-earn/dual/products' => 4.5,
+                        'struct-earn/orders' => 7.5,
                     ),
                     'post' => array(
                         'earn/orders' => 7.5, // 5EW
+                        'struct-earn/orders' => 7.5,
                     ),
                     'delete' => array(
                         'earn/orders' => 7.5, // 5EW
@@ -3484,7 +3503,7 @@ class kucoin extends Exchange {
                 }
             }
             $responseData = $this->safe_dict($response, 'data', array());
-            if (gettype($responseData) === 'array' && array_keys($responseData) === array_keys(array_keys($responseData))) {
+            if ((gettype($responseData) === 'array' && array_keys($responseData) === array_keys(array_keys($responseData)))) {
                 $responseData = $this->safe_value($responseData, 0);
             }
             return $this->parse_order($responseData, $market);

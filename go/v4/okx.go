@@ -190,232 +190,266 @@ func (this *OkxCore) Describe() interface{} {
 		"api": map[string]interface{}{
 			"public": map[string]interface{}{
 				"get": map[string]interface{}{
-					"market/books-full":                                      2,
-					"market/tickers":                                         1,
-					"market/ticker":                                          1,
-					"market/index-tickers":                                   1,
-					"market/books":                                           Divide(1, 2),
-					"market/books-lite":                                      Divide(5, 3),
-					"market/candles":                                         Divide(1, 2),
-					"market/history-candles":                                 1,
-					"market/index-candles":                                   1,
-					"market/history-index-candles":                           2,
-					"market/mark-price-candles":                              1,
-					"market/history-mark-price-candles":                      2,
-					"market/trades":                                          Divide(1, 5),
-					"market/history-trades":                                  2,
-					"market/option/instrument-family-trades":                 1,
-					"market/platform-24-volume":                              10,
-					"market/open-oracle":                                     50,
-					"market/exchange-rate":                                   20,
-					"market/index-components":                                1,
-					"public/market-data-history":                             4,
-					"public/economic-calendar":                               50,
-					"market/block-tickers":                                   1,
-					"market/block-ticker":                                    1,
-					"public/block-trades":                                    1,
-					"public/instruments":                                     1,
-					"public/delivery-exercise-history":                       Divide(1, 2),
-					"public/open-interest":                                   1,
-					"public/funding-rate":                                    1,
-					"public/funding-rate-history":                            1,
-					"public/price-limit":                                     1,
-					"public/opt-summary":                                     1,
-					"public/estimated-price":                                 2,
-					"public/discount-rate-interest-free-quota":               10,
-					"public/time":                                            2,
-					"public/mark-price":                                      2,
-					"public/position-tiers":                                  2,
-					"public/interest-rate-loan-quota":                        10,
-					"public/vip-interest-rate-loan-quota":                    10,
-					"public/underlying":                                      1,
-					"public/insurance-fund":                                  2,
-					"public/convert-contract-coin":                           2,
-					"public/option-trades":                                   1,
-					"public/instrument-tick-bands":                           4,
-					"rubik/stat/trading-data/support-coin":                   4,
-					"rubik/stat/taker-volume":                                4,
-					"rubik/stat/margin/loan-ratio":                           4,
-					"rubik/stat/contracts/long-short-account-ratio":          4,
-					"rubik/stat/contracts/long-short-account-ratio-contract": 4,
-					"rubik/stat/contracts/open-interest-volume":              4,
-					"rubik/stat/option/open-interest-volume":                 4,
-					"rubik/stat/option/open-interest-volume-ratio":           4,
-					"rubik/stat/option/open-interest-volume-expiry":          4,
-					"rubik/stat/option/open-interest-volume-strike":          4,
-					"rubik/stat/option/taker-block-volume":                   4,
-					"system/status":                                          50,
-					"sprd/spreads":                                           1,
-					"sprd/books":                                             Divide(1, 2),
-					"sprd/ticker":                                            1,
-					"sprd/public-trades":                                     Divide(1, 5),
-					"market/sprd-ticker":                                     2,
-					"market/sprd-candles":                                    2,
-					"market/sprd-history-candles":                            2,
-					"tradingBot/grid/ai-param":                               1,
-					"tradingBot/grid/min-investment":                         1,
-					"tradingBot/public/rsi-back-testing":                     1,
-					"asset/exchange-list":                                    Divide(5, 3),
-					"finance/staking-defi/eth/apy-history":                   Divide(5, 3),
-					"finance/staking-defi/sol/apy-history":                   Divide(5, 3),
-					"finance/savings/lending-rate-summary":                   Divide(5, 3),
-					"finance/savings/lending-rate-history":                   Divide(5, 3),
-					"finance/fixed-loan/lending-offers":                      Divide(10, 3),
-					"finance/fixed-loan/lending-apy-history":                 Divide(10, 3),
-					"finance/fixed-loan/pending-lending-volume":              Divide(10, 3),
-					"finance/sfp/dcd/products":                               Divide(2, 3),
-					"copytrading/public-lead-traders":                        4,
-					"copytrading/public-weekly-pnl":                          4,
-					"copytrading/public-stats":                               4,
-					"copytrading/public-preference-currency":                 4,
-					"copytrading/public-current-subpositions":                4,
-					"copytrading/public-subpositions-history":                4,
-					"support/announcements-types":                            20,
+					"market/tickers":                             1,
+					"market/ticker":                              1,
+					"market/books":                               Divide(1, 2),
+					"market/books-full":                          2,
+					"market/candles":                             Divide(1, 2),
+					"market/history-candles":                     1,
+					"market/trades":                              Divide(1, 5),
+					"market/history-trades":                      2,
+					"market/option/instrument-family-trades":     1,
+					"market/platform-24-volume":                  10,
+					"market/call-auction-detail":                 1,
+					"market/books-sbe":                           10,
+					"market/block-tickers":                       1,
+					"market/block-ticker":                        1,
+					"market/sprd-ticker":                         1,
+					"market/sprd-candles":                        Divide(1, 2),
+					"market/sprd-history-candles":                1,
+					"market/index-tickers":                       1,
+					"market/index-candles":                       1,
+					"market/history-index-candles":               2,
+					"market/mark-price-candles":                  1,
+					"market/history-mark-price-candles":          1,
+					"market/exchange-rate":                       20,
+					"market/index-components":                    1,
+					"market/open-oracle":                         50,
+					"market/books-lite":                          Divide(5, 3),
+					"public/option-trades":                       1,
+					"public/block-trades":                        1,
+					"public/instruments":                         1,
+					"public/estimated-price":                     2,
+					"public/delivery-exercise-history":           Divide(1, 2),
+					"public/estimated-settlement-info":           2,
+					"public/settlement-history":                  Divide(1, 2),
+					"public/funding-rate":                        2,
+					"public/funding-rate-history":                2,
+					"public/open-interest":                       1,
+					"public/price-limit":                         1,
+					"public/opt-summary":                         1,
+					"public/discount-rate-interest-free-quota":   10,
+					"public/time":                                2,
+					"public/mark-price":                          2,
+					"public/position-tiers":                      2,
+					"public/interest-rate-loan-quota":            10,
+					"public/underlying":                          1,
+					"public/insurance-fund":                      2,
+					"public/convert-contract-coin":               2,
+					"public/instrument-tick-bands":               4,
+					"public/premium-history":                     1,
+					"public/economic-calendar":                   50,
+					"public/market-data-history":                 4,
+					"public/vip-interest-rate-loan-quota":        10,
+					"rubik/stat/trading-data/support-coin":       4,
+					"rubik/stat/contracts/open-interest-history": 2,
+					"rubik/stat/taker-volume":                    4,
+					"rubik/stat/taker-volume-contract":           4,
+					"rubik/stat/margin/loan-ratio":               4,
+					"rubik/stat/contracts/long-short-account-ratio-contract-top-trader": 4,
+					"rubik/stat/contracts/long-short-account-ratio-contract":            4,
+					"rubik/stat/contracts/long-short-account-ratio":                     4,
+					"rubik/stat/contracts/open-interest-volume":                         4,
+					"rubik/stat/option/open-interest-volume":                            4,
+					"rubik/stat/option/open-interest-volume-ratio":                      4,
+					"rubik/stat/option/open-interest-volume-expiry":                     4,
+					"rubik/stat/option/open-interest-volume-strike":                     4,
+					"rubik/stat/option/taker-block-volume":                              4,
+					"system/status":                                                     50,
+					"sprd/spreads":                                                      1,
+					"sprd/books":                                                        1,
+					"sprd/public-trades":                                                1,
+					"sprd/ticker":                                                       1,
+					"tradingBot/grid/ai-param":                                          1,
+					"tradingBot/grid/min-investment":                                    1,
+					"tradingBot/public/rsi-back-testing":                                1,
+					"tradingBot/grid/grid-quantity":                                     4,
+					"asset/exchange-list":                                               Divide(5, 3),
+					"finance/staking-defi/eth/apy-history":                              Divide(5, 3),
+					"finance/staking-defi/sol/apy-history":                              Divide(5, 3),
+					"finance/savings/lending-rate-summary":                              Divide(5, 3),
+					"finance/savings/lending-rate-history":                              Divide(5, 3),
+					"finance/fixed-loan/lending-offers":                                 Divide(10, 3),
+					"finance/fixed-loan/lending-apy-history":                            Divide(10, 3),
+					"finance/fixed-loan/pending-lending-volume":                         Divide(10, 3),
+					"finance/sfp/dcd/products":                                          Divide(2, 3),
+					"copytrading/public-config":                                         4,
+					"copytrading/public-lead-traders":                                   4,
+					"copytrading/public-weekly-pnl":                                     4,
+					"copytrading/public-pnl":                                            4,
+					"copytrading/public-stats":                                          4,
+					"copytrading/public-preference-currency":                            4,
+					"copytrading/public-current-subpositions":                           4,
+					"copytrading/public-subpositions-history":                           4,
+					"copytrading/public-copy-traders":                                   4,
+					"support/announcements":                                             4,
+					"support/announcements-types":                                       20,
+				},
+				"post": map[string]interface{}{
+					"tradingBot/grid/min-investment": 1,
 				},
 			},
 			"private": map[string]interface{}{
 				"get": map[string]interface{}{
-					"rfq/counterparties":                               4,
-					"rfq/maker-instrument-settings":                    4,
-					"rfq/mmp-config":                                   4,
-					"rfq/rfqs":                                         10,
-					"rfq/quotes":                                       10,
-					"rfq/trades":                                       4,
-					"rfq/public-trades":                                4,
-					"sprd/order":                                       Divide(1, 3),
-					"sprd/orders-pending":                              Divide(1, 3),
-					"sprd/orders-history":                              Divide(1, 2),
-					"sprd/orders-history-archive":                      Divide(1, 2),
-					"sprd/trades":                                      Divide(1, 3),
-					"trade/order":                                      Divide(1, 3),
-					"trade/orders-pending":                             Divide(1, 3),
-					"trade/orders-history":                             Divide(1, 2),
-					"trade/orders-history-archive":                     1,
-					"trade/fills":                                      Divide(1, 3),
-					"trade/fills-history":                              2.2,
-					"trade/fills-archive":                              2,
-					"trade/order-algo":                                 1,
-					"trade/orders-algo-pending":                        1,
-					"trade/orders-algo-history":                        1,
-					"trade/easy-convert-currency-list":                 20,
-					"trade/easy-convert-history":                       20,
-					"trade/one-click-repay-currency-list":              20,
-					"trade/one-click-repay-currency-list-v2":           20,
-					"trade/one-click-repay-history":                    20,
-					"trade/one-click-repay-history-v2":                 20,
-					"trade/account-rate-limit":                         1,
-					"asset/currencies":                                 Divide(5, 3),
-					"asset/balances":                                   Divide(5, 3),
-					"asset/non-tradable-assets":                        Divide(5, 3),
-					"asset/asset-valuation":                            10,
-					"asset/transfer-state":                             10,
-					"asset/bills":                                      Divide(5, 3),
-					"asset/deposit-lightning":                          5,
-					"asset/deposit-address":                            Divide(5, 3),
-					"asset/deposit-history":                            Divide(5, 3),
-					"asset/withdrawal-history":                         Divide(5, 3),
-					"asset/deposit-withdraw-status":                    20,
-					"asset/convert/currencies":                         Divide(5, 3),
-					"asset/convert/currency-pair":                      Divide(5, 3),
-					"asset/convert/history":                            Divide(5, 3),
-					"asset/monthly-statement":                          2,
-					"account/instruments":                              1,
-					"account/balance":                                  2,
-					"account/positions":                                2,
-					"account/positions-history":                        100,
-					"account/account-position-risk":                    2,
-					"account/bills":                                    Divide(5, 3),
-					"account/bills-archive":                            Divide(5, 3),
-					"account/bills-history-archive":                    2,
-					"account/config":                                   4,
-					"account/max-size":                                 1,
-					"account/max-avail-size":                           1,
-					"account/leverage-info":                            1,
-					"account/adjust-leverage-info":                     4,
-					"account/max-loan":                                 1,
-					"account/trade-fee":                                4,
-					"account/interest-accrued":                         4,
-					"account/interest-rate":                            4,
-					"account/max-withdrawal":                           1,
-					"account/risk-state":                               2,
-					"account/quick-margin-borrow-repay-history":        4,
-					"account/borrow-repay-history":                     4,
-					"account/vip-interest-accrued":                     4,
-					"account/vip-interest-deducted":                    4,
-					"account/vip-loan-order-list":                      4,
-					"account/vip-loan-order-detail":                    4,
-					"account/interest-limits":                          4,
-					"account/greeks":                                   2,
-					"account/position-tiers":                           2,
-					"account/mmp-config":                               4,
-					"account/fixed-loan/borrowing-limit":               4,
-					"account/fixed-loan/borrowing-quote":               5,
-					"account/fixed-loan/borrowing-orders-list":         5,
-					"account/spot-manual-borrow-repay":                 30,
-					"account/set-auto-repay":                           4,
-					"account/spot-borrow-repay-history":                4,
-					"account/move-positions-history":                   10,
-					"users/subaccount/list":                            10,
-					"account/subaccount/balances":                      Divide(10, 3),
-					"asset/subaccount/balances":                        Divide(10, 3),
-					"account/subaccount/max-withdrawal":                1,
-					"asset/subaccount/bills":                           Divide(5, 3),
-					"asset/subaccount/managed-subaccount-bills":        Divide(5, 3),
-					"users/entrust-subaccount-list":                    10,
-					"account/subaccount/interest-limits":               4,
-					"users/subaccount/apikey":                          10,
-					"tradingBot/grid/orders-algo-pending":              1,
-					"tradingBot/grid/orders-algo-history":              1,
-					"tradingBot/grid/orders-algo-details":              1,
-					"tradingBot/grid/sub-orders":                       1,
-					"tradingBot/grid/positions":                        1,
-					"tradingBot/grid/ai-param":                         1,
-					"tradingBot/signal/signals":                        1,
-					"tradingBot/signal/orders-algo-details":            1,
-					"tradingBot/signal/orders-algo-history":            1,
-					"tradingBot/signal/positions":                      1,
-					"tradingBot/signal/positions-history":              1,
-					"tradingBot/signal/sub-orders":                     1,
-					"tradingBot/signal/event-history":                  1,
-					"tradingBot/recurring/orders-algo-pending":         1,
-					"tradingBot/recurring/orders-algo-history":         1,
-					"tradingBot/recurring/orders-algo-details":         1,
-					"tradingBot/recurring/sub-orders":                  1,
-					"finance/savings/balance":                          Divide(5, 3),
-					"finance/savings/lending-history":                  Divide(5, 3),
-					"finance/staking-defi/offers":                      Divide(10, 3),
-					"finance/staking-defi/orders-active":               Divide(10, 3),
-					"finance/staking-defi/orders-history":              Divide(10, 3),
-					"finance/staking-defi/eth/balance":                 Divide(5, 3),
-					"finance/staking-defi/eth/purchase-redeem-history": Divide(5, 3),
-					"finance/staking-defi/eth/product-info":            3,
-					"finance/staking-defi/sol/balance":                 Divide(5, 3),
-					"finance/staking-defi/sol/purchase-redeem-history": Divide(5, 3),
-					"copytrading/current-subpositions":                 1,
-					"copytrading/subpositions-history":                 1,
-					"copytrading/instruments":                          4,
-					"copytrading/profit-sharing-details":               4,
-					"copytrading/total-profit-sharing":                 4,
-					"copytrading/unrealized-profit-sharing-details":    4,
-					"copytrading/copy-settings":                        4,
-					"copytrading/batch-leverage-info":                  4,
-					"copytrading/current-lead-traders":                 4,
-					"copytrading/lead-traders-history":                 4,
-					"broker/nd/info":                                   10,
-					"broker/nd/subaccount-info":                        10,
-					"broker/nd/subaccount/apikey":                      10,
-					"asset/broker/nd/subaccount-deposit-address":       Divide(5, 3),
-					"asset/broker/nd/subaccount-deposit-history":       4,
-					"asset/broker/nd/subaccount-withdrawal-history":    4,
-					"broker/nd/rebate-daily":                           100,
-					"broker/nd/rebate-per-orders":                      300,
-					"finance/sfp/dcd/order":                            2,
-					"finance/sfp/dcd/orders":                           2,
-					"broker/fd/rebate-per-orders":                      300,
-					"broker/fd/if-rebate":                              5,
-					"affiliate/invitee/detail":                         1,
-					"users/partner/if-rebate":                          1,
-					"support/announcements":                            4,
+					"rfq/counterparties":                                 4,
+					"rfq/maker-instrument-settings":                      4,
+					"rfq/mmp-config":                                     4,
+					"rfq/rfqs":                                           10,
+					"rfq/quotes":                                         10,
+					"rfq/trades":                                         4,
+					"rfq/public-trades":                                  4,
+					"sprd/order":                                         1,
+					"sprd/orders-pending":                                2,
+					"sprd/orders-history":                                1,
+					"sprd/orders-history-archive":                        1,
+					"sprd/trades":                                        1,
+					"trade/order":                                        Divide(1, 3),
+					"trade/orders-pending":                               Divide(1, 3),
+					"trade/orders-history":                               Divide(1, 2),
+					"trade/orders-history-archive":                       1,
+					"trade/fills":                                        Divide(1, 3),
+					"trade/fills-history":                                2,
+					"trade/fills-archive":                                2,
+					"trade/order-algo":                                   1,
+					"trade/orders-algo-pending":                          1,
+					"trade/orders-algo-history":                          1,
+					"trade/easy-convert-currency-list":                   20,
+					"trade/easy-convert-history":                         20,
+					"trade/one-click-repay-currency-list":                20,
+					"trade/one-click-repay-currency-list-v2":             20,
+					"trade/one-click-repay-history":                      20,
+					"trade/one-click-repay-history-v2":                   20,
+					"trade/account-rate-limit":                           1,
+					"asset/currencies":                                   Divide(5, 3),
+					"asset/balances":                                     Divide(5, 3),
+					"asset/non-tradable-assets":                          Divide(5, 3),
+					"asset/asset-valuation":                              10,
+					"asset/transfer-state":                               1,
+					"asset/bills":                                        Divide(5, 3),
+					"asset/bills-history":                                10,
+					"asset/deposit-lightning":                            5,
+					"asset/deposit-address":                              Divide(5, 3),
+					"asset/deposit-history":                              Divide(5, 3),
+					"asset/withdrawal-history":                           Divide(5, 3),
+					"asset/deposit-withdraw-status":                      20,
+					"asset/monthly-statement":                            2,
+					"asset/convert/currencies":                           Divide(5, 3),
+					"asset/convert/currency-pair":                        Divide(5, 3),
+					"asset/convert/history":                              Divide(5, 3),
+					"account/instruments":                                1,
+					"account/balance":                                    2,
+					"account/positions":                                  2,
+					"account/positions-history":                          2,
+					"account/account-position-risk":                      2,
+					"account/bills":                                      2,
+					"account/bills-archive":                              4,
+					"account/bills-history-archive":                      2,
+					"account/config":                                     4,
+					"account/max-size":                                   1,
+					"account/max-avail-size":                             1,
+					"account/leverage-info":                              1,
+					"account/adjust-leverage-info":                       4,
+					"account/max-loan":                                   1,
+					"account/trade-fee":                                  4,
+					"account/interest-accrued":                           4,
+					"account/interest-rate":                              4,
+					"account/max-withdrawal":                             1,
+					"account/risk-state":                                 2,
+					"account/interest-limits":                            4,
+					"account/spot-borrow-repay-history":                  4,
+					"account/greeks":                                     2,
+					"account/position-tiers":                             2,
+					"account/set-account-switch-precheck":                4,
+					"account/collateral-assets":                          4,
+					"account/mmp-config":                                 4,
+					"account/move-positions-history":                     10,
+					"account/precheck-set-delta-neutral":                 20,
+					"account/quick-margin-borrow-repay-history":          4,
+					"account/borrow-repay-history":                       4,
+					"account/vip-interest-accrued":                       4,
+					"account/vip-interest-deducted":                      4,
+					"account/vip-loan-order-list":                        4,
+					"account/vip-loan-order-detail":                      4,
+					"account/fixed-loan/borrowing-limit":                 4,
+					"account/fixed-loan/borrowing-quote":                 5,
+					"account/fixed-loan/borrowing-orders-list":           5,
+					"account/spot-manual-borrow-repay":                   30,
+					"account/set-auto-repay":                             4,
+					"users/subaccount/list":                              10,
+					"account/subaccount/balances":                        Divide(10, 3),
+					"asset/subaccount/balances":                          Divide(10, 3),
+					"account/subaccount/max-withdrawal":                  1,
+					"asset/subaccount/bills":                             Divide(5, 3),
+					"asset/subaccount/managed-subaccount-bills":          Divide(5, 3),
+					"users/entrust-subaccount-list":                      10,
+					"account/subaccount/interest-limits":                 4,
+					"users/subaccount/apikey":                            10,
+					"tradingBot/grid/orders-algo-pending":                1,
+					"tradingBot/grid/orders-algo-history":                1,
+					"tradingBot/grid/orders-algo-details":                1,
+					"tradingBot/grid/sub-orders":                         1,
+					"tradingBot/grid/positions":                          1,
+					"tradingBot/grid/ai-param":                           1,
+					"tradingBot/signal/signals":                          1,
+					"tradingBot/signal/orders-algo-details":              1,
+					"tradingBot/signal/orders-algo-pending":              1,
+					"tradingBot/signal/orders-algo-history":              1,
+					"tradingBot/signal/positions":                        1,
+					"tradingBot/signal/positions-history":                2,
+					"tradingBot/signal/sub-orders":                       1,
+					"tradingBot/signal/event-history":                    1,
+					"tradingBot/recurring/orders-algo-pending":           1,
+					"tradingBot/recurring/orders-algo-history":           1,
+					"tradingBot/recurring/orders-algo-details":           1,
+					"tradingBot/recurring/sub-orders":                    1,
+					"finance/savings/balance":                            Divide(5, 3),
+					"finance/savings/lending-history":                    Divide(5, 3),
+					"finance/staking-defi/offers":                        Divide(10, 3),
+					"finance/staking-defi/orders-active":                 Divide(10, 3),
+					"finance/staking-defi/orders-history":                Divide(10, 3),
+					"finance/staking-defi/eth/product-info":              Divide(10, 3),
+					"finance/staking-defi/eth/balance":                   Divide(5, 3),
+					"finance/staking-defi/eth/purchase-redeem-history":   Divide(5, 3),
+					"finance/staking-defi/sol/product-info":              Divide(10, 3),
+					"finance/staking-defi/sol/balance":                   Divide(5, 3),
+					"finance/staking-defi/sol/purchase-redeem-history":   Divide(5, 3),
+					"finance/flexible-loan/borrow-currencies":            4,
+					"finance/flexible-loan/collateral-assets":            4,
+					"finance/flexible-loan/max-collateral-redeem-amount": 4,
+					"finance/flexible-loan/loan-info":                    4,
+					"finance/flexible-loan/loan-history":                 4,
+					"finance/flexible-loan/interest-accrued":             4,
+					"copytrading/current-subpositions":                   1,
+					"copytrading/subpositions-history":                   1,
+					"copytrading/instruments":                            4,
+					"copytrading/profit-sharing-details":                 4,
+					"copytrading/total-profit-sharing":                   4,
+					"copytrading/unrealized-profit-sharing-details":      4,
+					"copytrading/total-unrealized-profit-sharing":        4,
+					"copytrading/config":                                 4,
+					"copytrading/copy-settings":                          4,
+					"copytrading/current-lead-traders":                   4,
+					"copytrading/batch-leverage-info":                    4,
+					"copytrading/lead-traders-history":                   4,
+					"broker/dma/subaccount-info":                         2,
+					"broker/dma/subaccount-trade-fee":                    10,
+					"broker/dma/subaccount/apikey":                       10,
+					"broker/dma/rebate-per-orders":                       300,
+					"broker/fd/rebate-per-orders":                        300,
+					"broker/fd/if-rebate":                                5,
+					"broker/nd/info":                                     10,
+					"broker/nd/subaccount-info":                          10,
+					"broker/nd/subaccount/apikey":                        10,
+					"asset/broker/nd/subaccount-deposit-address":         Divide(5, 3),
+					"asset/broker/nd/subaccount-deposit-history":         4,
+					"asset/broker/nd/subaccount-withdrawal-history":      4,
+					"broker/nd/rebate-daily":                             100,
+					"broker/nd/rebate-per-orders":                        300,
+					"finance/sfp/dcd/order":                              2,
+					"finance/sfp/dcd/orders":                             2,
+					"affiliate/invitee/detail":                           1,
+					"users/partner/if-rebate":                            1,
+					"support/announcements":                              4,
 				},
 				"post": map[string]interface{}{
 					"rfq/create-rfq":                                    4,
@@ -430,6 +464,7 @@ func (this *OkxCore) Describe() interface{} {
 					"rfq/cancel-quote":                                  0.4,
 					"rfq/cancel-batch-quotes":                           10,
 					"rfq/cancel-all-quotes":                             10,
+					"rfq/cancel-all-after":                              10,
 					"sprd/order":                                        1,
 					"sprd/cancel-order":                                 1,
 					"sprd/mass-cancel":                                  1,
@@ -443,53 +478,64 @@ func (this *OkxCore) Describe() interface{} {
 					"trade/amend-batch-orders":                          Divide(1, 150),
 					"trade/close-position":                              1,
 					"trade/fills-archive":                               172800,
-					"trade/order-algo":                                  1,
-					"trade/cancel-algos":                                1,
-					"trade/amend-algos":                                 1,
 					"trade/cancel-advance-algos":                        1,
 					"trade/easy-convert":                                20,
 					"trade/one-click-repay":                             20,
 					"trade/one-click-repay-v2":                          20,
 					"trade/mass-cancel":                                 4,
 					"trade/cancel-all-after":                            10,
-					"asset/transfer":                                    10,
+					"trade/order-precheck":                              4,
+					"trade/order-algo":                                  1,
+					"trade/cancel-algos":                                1,
+					"trade/amend-algos":                                 1,
+					"asset/transfer":                                    5,
 					"asset/withdrawal":                                  Divide(5, 3),
 					"asset/withdrawal-lightning":                        5,
 					"asset/cancel-withdrawal":                           Divide(5, 3),
 					"asset/convert-dust-assets":                         10,
-					"asset/convert/estimate-quote":                      1,
+					"asset/monthly-statement":                           1296000,
+					"asset/convert/estimate-quote":                      50,
 					"asset/convert/trade":                               1,
-					"asset/monthly-statement":                           1,
+					"account/bills-history-archive":                     72000,
 					"account/set-position-mode":                         4,
 					"account/set-leverage":                              1,
 					"account/position/margin-balance":                   1,
+					"account/set-fee-type":                              4,
 					"account/set-greeks":                                4,
 					"account/set-isolated-mode":                         4,
+					"account/spot-manual-borrow-repay":                  30,
+					"account/set-auto-repay":                            4,
 					"account/quick-margin-borrow-repay":                 4,
 					"account/borrow-repay":                              Divide(5, 3),
 					"account/simulated_margin":                          10,
 					"account/position-builder":                          10,
+					"account/position-builder-graph":                    50,
 					"account/set-riskOffset-type":                       2,
 					"account/activate-option":                           4,
 					"account/set-auto-loan":                             4,
+					"account/account-level-switch-preset":               4,
 					"account/set-account-level":                         4,
+					"account/set-collateral-assets":                     4,
 					"account/mmp-reset":                                 4,
-					"account/mmp-config":                                100,
+					"account/mmp-config":                                50,
 					"account/fixed-loan/borrowing-order":                5,
 					"account/fixed-loan/amend-borrowing-order":          5,
 					"account/fixed-loan/manual-reborrow":                5,
 					"account/fixed-loan/repay-borrowing-order":          5,
-					"account/bills-history-archive":                     72000,
 					"account/move-positions":                            10,
+					"account/set-auto-earn":                             10,
 					"account/set-settle-currency":                       1,
-					"users/subaccount/modify-apikey":                    10,
+					"account/set-trading-config":                        20,
 					"asset/subaccount/transfer":                         10,
-					"users/subaccount/set-transfer-out":                 10,
 					"account/subaccount/set-loan-allocation":            4,
 					"users/subaccount/create-subaccount":                10,
+					"users/subaccount/apikey":                           10,
+					"users/subaccount/modify-apikey":                    10,
 					"users/subaccount/subaccount-apikey":                10,
 					"users/subaccount/delete-apikey":                    10,
+					"users/subaccount/set-transfer-out":                 10,
 					"tradingBot/grid/order-algo":                        1,
+					"tradingBot/grid/amend-algo-basic-param":            1,
 					"tradingBot/grid/amend-order-algo":                  1,
 					"tradingBot/grid/stop-order-algo":                   1,
 					"tradingBot/grid/close-position":                    1,
@@ -514,16 +560,21 @@ func (this *OkxCore) Describe() interface{} {
 					"tradingBot/recurring/stop-order-algo":              1,
 					"finance/savings/purchase-redempt":                  Divide(5, 3),
 					"finance/savings/set-lending-rate":                  Divide(5, 3),
-					"finance/staking-defi/purchase":                     3,
-					"finance/staking-defi/redeem":                       3,
-					"finance/staking-defi/cancel":                       3,
+					"finance/staking-defi/purchase":                     5,
+					"finance/staking-defi/redeem":                       5,
+					"finance/staking-defi/cancel":                       5,
 					"finance/staking-defi/eth/purchase":                 5,
 					"finance/staking-defi/eth/redeem":                   5,
+					"finance/staking-defi/eth/cancel-redeem":            5,
 					"finance/staking-defi/sol/purchase":                 5,
 					"finance/staking-defi/sol/redeem":                   5,
+					"finance/staking-defi/sol/cancel-redeem":            5,
+					"finance/flexible-loan/max-loan":                    4,
+					"finance/flexible-loan/adjust-collateral":           4,
 					"copytrading/algo-order":                            1,
 					"copytrading/close-subposition":                     1,
 					"copytrading/set-instruments":                       4,
+					"copytrading/amend-profit-sharing-ratio":            4,
 					"copytrading/first-copy-settings":                   4,
 					"copytrading/amend-copy-settings":                   4,
 					"copytrading/stop-copy-trading":                     4,
@@ -542,6 +593,8 @@ func (this *OkxCore) Describe() interface{} {
 					"finance/sfp/dcd/quote":                             10,
 					"finance/sfp/dcd/order":                             10,
 					"broker/nd/report-subaccount-ip":                    0.25,
+					"broker/dma/subaccount/apikey":                      Divide(1, 4),
+					"broker/dma/trades":                                 36000,
 					"broker/fd/rebate-per-orders":                       36000,
 				},
 			},
@@ -1259,8 +1312,7 @@ func (this *OkxCore) Describe() interface{} {
 			}),
 		},
 		"commonCurrencies": map[string]interface{}{
-			"AE":  "AET",
-			"WIN": "WINTOKEN",
+			"AE": "AET",
 		},
 	})
 }
@@ -1567,8 +1619,8 @@ func (this *OkxCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes159312 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes159312)
+			retRes164712 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes164712)
 		}
 		var types interface{} = []interface{}{"spot", "future", "swap", "option"}
 		var fetchMarketsOption interface{} = this.SafeDict(this.Options, "fetchMarkets")
@@ -2007,8 +2059,8 @@ func (this *OkxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes19868 := (<-this.LoadMarkets())
-		PanicOnError(retRes19868)
+		retRes20408 := (<-this.LoadMarkets())
+		PanicOnError(retRes20408)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -2159,8 +2211,8 @@ func (this *OkxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes21188 := (<-this.LoadMarkets())
-		PanicOnError(retRes21188)
+		retRes21728 := (<-this.LoadMarkets())
+		PanicOnError(retRes21728)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -2223,8 +2275,8 @@ func (this *OkxCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes21658 := (<-this.LoadMarkets())
-		PanicOnError(retRes21658)
+		retRes22198 := (<-this.LoadMarkets())
+		PanicOnError(retRes22198)
 		symbols = this.MarketSymbols(symbols)
 		var market interface{} = this.GetMarketFromSymbols(symbols)
 		var marketType interface{} = nil
@@ -2298,8 +2350,8 @@ func (this *OkxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22238 := (<-this.LoadMarkets())
-		PanicOnError(retRes22238)
+		retRes22778 := (<-this.LoadMarkets())
+		PanicOnError(retRes22778)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -2349,8 +2401,8 @@ func (this *OkxCore) FetchMarkPrices(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes22578 := (<-this.LoadMarkets())
-		PanicOnError(retRes22578)
+		retRes23118 := (<-this.LoadMarkets())
+		PanicOnError(retRes23118)
 		symbols = this.MarketSymbols(symbols)
 		var market interface{} = this.GetMarketFromSymbols(symbols)
 		var marketType interface{} = nil
@@ -2501,17 +2553,17 @@ func (this *OkxCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes23878 := (<-this.LoadMarkets())
-		PanicOnError(retRes23878)
+		retRes24418 := (<-this.LoadMarkets())
+		PanicOnError(retRes24418)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes239119 := (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
-			PanicOnError(retRes239119)
-			ch <- retRes239119
+			retRes244519 := (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
+			PanicOnError(retRes244519)
+			ch <- retRes244519
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -2641,8 +2693,8 @@ func (this *OkxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes25008 := (<-this.LoadMarkets())
-		PanicOnError(retRes25008)
+		retRes25548 := (<-this.LoadMarkets())
+		PanicOnError(retRes25548)
 		var market interface{} = this.Market(symbol)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
@@ -2650,9 +2702,9 @@ func (this *OkxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes250519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 200))
-			PanicOnError(retRes250519)
-			ch <- retRes250519
+			retRes255919 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 200))
+			PanicOnError(retRes255919)
+			ch <- retRes255919
 			return nil
 		}
 		var priceType interface{} = this.SafeString(params, "price")
@@ -2787,17 +2839,17 @@ func (this *OkxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes26098 := (<-this.LoadMarkets())
-		PanicOnError(retRes26098)
+		retRes26638 := (<-this.LoadMarkets())
+		PanicOnError(retRes26638)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes261319 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-			PanicOnError(retRes261319)
-			ch <- retRes261319
+			retRes266719 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+			PanicOnError(retRes266719)
+			ch <- retRes266719
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -2953,8 +3005,8 @@ func (this *OkxCore) FetchTradingFee(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes27538 := (<-this.LoadMarkets())
-		PanicOnError(retRes27538)
+		retRes28078 := (<-this.LoadMarkets())
+		PanicOnError(retRes28078)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instType": this.ConvertToInstrumentType(GetValue(market, "type")),
@@ -3015,8 +3067,8 @@ func (this *OkxCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes28038 := (<-this.LoadMarkets())
-		PanicOnError(retRes28038)
+		retRes28578 := (<-this.LoadMarkets())
+		PanicOnError(retRes28578)
 		marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		marketType := GetValue(marketTypequeryVariable, 0)
 		query := GetValue(marketTypequeryVariable, 1)
@@ -3159,8 +3211,8 @@ func (this *OkxCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes29308 := (<-this.LoadMarkets())
-		PanicOnError(retRes29308)
+		retRes29848 := (<-this.LoadMarkets())
+		PanicOnError(retRes29848)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot markets only")))
@@ -3170,9 +3222,9 @@ func (this *OkxCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost inter
 			"tgtCcy":                            "quote_ccy",
 		}
 
-		retRes293915 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes293915)
-		ch <- retRes293915
+		retRes299315 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes299315)
+		ch <- retRes299315
 		return nil
 
 	}()
@@ -3197,8 +3249,8 @@ func (this *OkxCore) CreateMarketSellOrderWithCost(symbol interface{}, cost inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes29538 := (<-this.LoadMarkets())
-		PanicOnError(retRes29538)
+		retRes30078 := (<-this.LoadMarkets())
+		PanicOnError(retRes30078)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot markets only")))
@@ -3208,9 +3260,9 @@ func (this *OkxCore) CreateMarketSellOrderWithCost(symbol interface{}, cost inte
 			"tgtCcy":                            "quote_ccy",
 		}
 
-		retRes296215 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes296215)
-		ch <- retRes296215
+		retRes301615 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes301615)
+		ch <- retRes301615
 		return nil
 
 	}()
@@ -3543,8 +3595,8 @@ func (this *OkxCore) CreateOrder(symbol interface{}, typeVar interface{}, side i
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes32918 := (<-this.LoadMarkets())
-		PanicOnError(retRes32918)
+		retRes33458 := (<-this.LoadMarkets())
+		PanicOnError(retRes33458)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		var method interface{} = this.SafeString(this.Options, "createOrder", "privatePostTradeBatchOrders")
@@ -3605,8 +3657,8 @@ func (this *OkxCore) CreateOrders(orders interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes33348 := (<-this.LoadMarkets())
-		PanicOnError(retRes33348)
+		retRes33888 := (<-this.LoadMarkets())
+		PanicOnError(retRes33888)
 		var ordersRequests interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var rawOrder interface{} = GetValue(orders, i)
@@ -3796,8 +3848,8 @@ func (this *OkxCore) EditOrder(id interface{}, symbol interface{}, typeVar inter
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes35018 := (<-this.LoadMarkets())
-		PanicOnError(retRes35018)
+		retRes35558 := (<-this.LoadMarkets())
+		PanicOnError(retRes35558)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 		var isAlgoOrder interface{} = nil
@@ -3878,8 +3930,8 @@ func (this *OkxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
 			return nil
 		}
 
-		retRes35608 := (<-this.LoadMarkets())
-		PanicOnError(retRes35608)
+		retRes36148 := (<-this.LoadMarkets())
+		PanicOnError(retRes36148)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -3946,8 +3998,8 @@ func (this *OkxCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes36148 := (<-this.LoadMarkets())
-		PanicOnError(retRes36148)
+		retRes36688 := (<-this.LoadMarkets())
+		PanicOnError(retRes36688)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = []interface{}{}
 		var options interface{} = this.SafeValue(this.Options, "cancelOrders", map[string]interface{}{})
@@ -4066,8 +4118,8 @@ func (this *OkxCore) CancelOrdersForSymbols(orders interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes37178 := (<-this.LoadMarkets())
-		PanicOnError(retRes37178)
+		retRes37718 := (<-this.LoadMarkets())
+		PanicOnError(retRes37718)
 		var request interface{} = []interface{}{}
 		var options interface{} = this.SafeDict(this.Options, "cancelOrders", map[string]interface{}{})
 		var defaultMethod interface{} = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
@@ -4165,8 +4217,8 @@ func (this *OkxCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes37998 := (<-this.LoadMarkets())
-		PanicOnError(retRes37998)
+		retRes38538 := (<-this.LoadMarkets())
+		PanicOnError(retRes38538)
 		var request interface{} = map[string]interface{}{
 			"timeOut": Ternary(IsTrue((IsGreaterThan(timeout, 0))), this.ParseToInt(Divide(timeout, 1000)), 0),
 		}
@@ -4513,8 +4565,8 @@ func (this *OkxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-c
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes41308 := (<-this.LoadMarkets())
-		PanicOnError(retRes41308)
+		retRes41848 := (<-this.LoadMarkets())
+		PanicOnError(retRes41848)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -4686,17 +4738,17 @@ func (this *OkxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes42838 := (<-this.LoadMarkets())
-		PanicOnError(retRes42838)
+		retRes43378 := (<-this.LoadMarkets())
+		PanicOnError(retRes43378)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes428719 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
-			PanicOnError(retRes428719)
-			ch <- retRes428719
+			retRes434119 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
+			PanicOnError(retRes434119)
+			ch <- retRes434119
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -4869,8 +4921,8 @@ func (this *OkxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes44468 := (<-this.LoadMarkets())
-		PanicOnError(retRes44468)
+		retRes45008 := (<-this.LoadMarkets())
+		PanicOnError(retRes45008)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -5072,17 +5124,17 @@ func (this *OkxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes46348 := (<-this.LoadMarkets())
-		PanicOnError(retRes46348)
+		retRes46888 := (<-this.LoadMarkets())
+		PanicOnError(retRes46888)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes463819 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
-			PanicOnError(retRes463819)
-			ch <- retRes463819
+			retRes469219 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+			PanicOnError(retRes469219)
+			ch <- retRes469219
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -5274,17 +5326,17 @@ func (this *OkxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes48138 := (<-this.LoadMarkets())
-		PanicOnError(retRes48138)
+		retRes48678 := (<-this.LoadMarkets())
+		PanicOnError(retRes48678)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes481719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes481719)
-			ch <- retRes481719
+			retRes487119 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes487119)
+			ch <- retRes487119
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -5372,9 +5424,9 @@ func (this *OkxCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{
 			"ordId": id,
 		}
 
-		retRes489215 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes489215)
-		ch <- retRes489215
+		retRes494615 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes494615)
+		ch <- retRes494615
 		return nil
 
 	}()
@@ -5411,17 +5463,17 @@ func (this *OkxCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{}
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes49128 := (<-this.LoadMarkets())
-		PanicOnError(retRes49128)
+		retRes49668 := (<-this.LoadMarkets())
+		PanicOnError(retRes49668)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes491619 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
-			PanicOnError(retRes491619)
-			ch <- retRes491619
+			retRes497019 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+			PanicOnError(retRes497019)
+			ch <- retRes497019
 			return nil
 		}
 		var options interface{} = this.SafeDict(this.Options, "fetchLedger", map[string]interface{}{})
@@ -5732,8 +5784,8 @@ func (this *OkxCore) FetchDepositAddressesByNetwork(code interface{}, optionalAr
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes52138 := (<-this.LoadMarkets())
-		PanicOnError(retRes52138)
+		retRes52678 := (<-this.LoadMarkets())
+		PanicOnError(retRes52678)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"ccy": GetValue(currency, "id"),
@@ -5791,8 +5843,8 @@ func (this *OkxCore) FetchDepositAddress(code interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes52578 := (<-this.LoadMarkets())
-		PanicOnError(retRes52578)
+		retRes53118 := (<-this.LoadMarkets())
+		PanicOnError(retRes53118)
 		var rawNetwork interface{} = this.SafeString(params, "network") // some networks are like "Dora Vota Mainnet"
 		params = this.Omit(params, "network")
 		code = this.SafeCurrencyCode(code)
@@ -5852,8 +5904,8 @@ func (this *OkxCore) Withdraw(code interface{}, amount interface{}, address inte
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes52958 := (<-this.LoadMarkets())
-		PanicOnError(retRes52958)
+		retRes53498 := (<-this.LoadMarkets())
+		PanicOnError(retRes53498)
 		var currency interface{} = this.Currency(code)
 		if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((IsGreaterThan(GetLength(tag), 0)))) {
 			address = Add(Add(address, ":"), tag)
@@ -5938,17 +5990,17 @@ func (this *OkxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes53588 := (<-this.LoadMarkets())
-		PanicOnError(retRes53588)
+		retRes54128 := (<-this.LoadMarkets())
+		PanicOnError(retRes54128)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes536219 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-			PanicOnError(retRes536219)
-			ch <- retRes536219
+			retRes541619 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+			PanicOnError(retRes541619)
+			ch <- retRes541619
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -6036,8 +6088,8 @@ func (this *OkxCore) FetchDeposit(id interface{}, optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes54378 := (<-this.LoadMarkets())
-		PanicOnError(retRes54378)
+		retRes54918 := (<-this.LoadMarkets())
+		PanicOnError(retRes54918)
 		var request interface{} = map[string]interface{}{
 			"depId": id,
 		}
@@ -6086,17 +6138,17 @@ func (this *OkxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes54668 := (<-this.LoadMarkets())
-		PanicOnError(retRes54668)
+		retRes55208 := (<-this.LoadMarkets())
+		PanicOnError(retRes55208)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes547019 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-			PanicOnError(retRes547019)
-			ch <- retRes547019
+			retRes552419 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+			PanicOnError(retRes552419)
+			ch <- retRes552419
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -6176,8 +6228,8 @@ func (this *OkxCore) FetchWithdrawal(id interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes55378 := (<-this.LoadMarkets())
-		PanicOnError(retRes55378)
+		retRes55918 := (<-this.LoadMarkets())
+		PanicOnError(retRes55918)
 		var request interface{} = map[string]interface{}{
 			"wdId": id,
 		}
@@ -6380,8 +6432,8 @@ func (this *OkxCore) FetchLeverage(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes57268 := (<-this.LoadMarkets())
-		PanicOnError(retRes57268)
+		retRes57808 := (<-this.LoadMarkets())
+		PanicOnError(retRes57808)
 		var marginMode interface{} = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -6470,8 +6522,8 @@ func (this *OkxCore) FetchPosition(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes57988 := (<-this.LoadMarkets())
-		PanicOnError(retRes57988)
+		retRes58528 := (<-this.LoadMarkets())
+		PanicOnError(retRes58528)
 		var market interface{} = this.Market(symbol)
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchPosition", market, params)
 		typeVar := GetValue(typeVarqueryVariable, 0)
@@ -6566,8 +6618,8 @@ func (this *OkxCore) FetchPositions(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes58768 := (<-this.LoadMarkets())
-		PanicOnError(retRes58768)
+		retRes59308 := (<-this.LoadMarkets())
+		PanicOnError(retRes59308)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var marketIds interface{} = []interface{}{}
@@ -6670,9 +6722,9 @@ func (this *OkxCore) FetchPositionsForSymbol(symbol interface{}, optionalArgs ..
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes596715 := (<-this.FetchPositions([]interface{}{symbol}, params))
-		PanicOnError(retRes596715)
-		ch <- retRes596715
+		retRes602115 := (<-this.FetchPositions([]interface{}{symbol}, params))
+		PanicOnError(retRes602115)
+		ch <- retRes602115
 		return nil
 
 	}()
@@ -6869,8 +6921,8 @@ func (this *OkxCore) Transfer(code interface{}, amount interface{}, fromAccount 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes61528 := (<-this.LoadMarkets())
-		PanicOnError(retRes61528)
+		retRes62068 := (<-this.LoadMarkets())
+		PanicOnError(retRes62068)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
 		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -7015,8 +7067,8 @@ func (this *OkxCore) FetchTransfer(id interface{}, optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes62868 := (<-this.LoadMarkets())
-		PanicOnError(retRes62868)
+		retRes63408 := (<-this.LoadMarkets())
+		PanicOnError(retRes63408)
 		var request interface{} = map[string]interface{}{
 			"transId": id,
 		}
@@ -7078,8 +7130,8 @@ func (this *OkxCore) FetchTransfers(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes63298 := (<-this.LoadMarkets())
-		PanicOnError(retRes63298)
+		retRes63838 := (<-this.LoadMarkets())
+		PanicOnError(retRes63838)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{
 			"type": "1",
@@ -7300,9 +7352,9 @@ func (this *OkxCore) FetchFundingInterval(symbol interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes652515 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes652515)
-		ch <- retRes652515
+		retRes657915 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes657915)
+		ch <- retRes657915
 		return nil
 
 	}()
@@ -7326,8 +7378,8 @@ func (this *OkxCore) FetchFundingRate(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes65388 := (<-this.LoadMarkets())
-		PanicOnError(retRes65388)
+		retRes65928 := (<-this.LoadMarkets())
+		PanicOnError(retRes65928)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(ExchangeError(Add(this.Id, " fetchFundingRate() is only valid for swap markets")))
@@ -7383,8 +7435,8 @@ func (this *OkxCore) FetchFundingRates(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes65788 := (<-this.LoadMarkets())
-		PanicOnError(retRes65788)
+		retRes66328 := (<-this.LoadMarkets())
+		PanicOnError(retRes66328)
 		symbols = this.MarketSymbols(symbols, "swap", true)
 		var request interface{} = map[string]interface{}{
 			"instId": "ANY",
@@ -7442,8 +7494,8 @@ func (this *OkxCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes66148 := (<-this.LoadMarkets())
-		PanicOnError(retRes66148)
+		retRes66688 := (<-this.LoadMarkets())
+		PanicOnError(retRes66688)
 		var request interface{} = map[string]interface{}{
 			"type": "8",
 		}
@@ -7556,8 +7608,8 @@ func (this *OkxCore) SetLeverage(leverage interface{}, optionalArgs ...interface
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between 1 and 125")))
 		}
 
-		retRes67828 := (<-this.LoadMarkets())
-		PanicOnError(retRes67828)
+		retRes68368 := (<-this.LoadMarkets())
+		PanicOnError(retRes68368)
 		var market interface{} = this.Market(symbol)
 		var marginMode interface{} = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
@@ -7736,8 +7788,8 @@ func (this *OkxCore) SetMarginMode(marginMode interface{}, optionalArgs ...inter
 			panic(BadRequest(Add(this.Id, " setMarginMode() marginMode must be either cross or isolated")))
 		}
 
-		retRes69138 := (<-this.LoadMarkets())
-		PanicOnError(retRes69138)
+		retRes69678 := (<-this.LoadMarkets())
+		PanicOnError(retRes69678)
 		var market interface{} = this.Market(symbol)
 		var lever interface{} = this.SafeInteger2(params, "lever", "leverage")
 		if IsTrue(IsTrue(IsTrue((IsEqual(lever, nil))) || IsTrue((IsLessThan(lever, 1)))) || IsTrue((IsGreaterThan(lever, 125)))) {
@@ -7790,8 +7842,8 @@ func (this *OkxCore) FetchCrossBorrowRates(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes69528 := (<-this.LoadMarkets())
-		PanicOnError(retRes69528)
+		retRes70068 := (<-this.LoadMarkets())
+		PanicOnError(retRes70068)
 
 		response := (<-this.PrivateGetAccountInterestRate(params))
 		PanicOnError(response)
@@ -7837,8 +7889,8 @@ func (this *OkxCore) FetchCrossBorrowRate(code interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes69848 := (<-this.LoadMarkets())
-		PanicOnError(retRes69848)
+		retRes70388 := (<-this.LoadMarkets())
+		PanicOnError(retRes70388)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"ccy": GetValue(currency, "id"),
@@ -7948,8 +8000,8 @@ func (this *OkxCore) FetchBorrowRateHistories(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes70748 := (<-this.LoadMarkets())
-		PanicOnError(retRes70748)
+		retRes71288 := (<-this.LoadMarkets())
+		PanicOnError(retRes71288)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "before", since)
@@ -8006,8 +8058,8 @@ func (this *OkxCore) FetchBorrowRateHistory(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes71188 := (<-this.LoadMarkets())
-		PanicOnError(retRes71188)
+		retRes71728 := (<-this.LoadMarkets())
+		PanicOnError(retRes71728)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"ccy": GetValue(currency, "id"),
@@ -8051,8 +8103,8 @@ func (this *OkxCore) ModifyMarginHelper(symbol interface{}, amount interface{}, 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes71528 := (<-this.LoadMarkets())
-		PanicOnError(retRes71528)
+		retRes72068 := (<-this.LoadMarkets())
+		PanicOnError(retRes72068)
 		var market interface{} = this.Market(symbol)
 		var posSide interface{} = this.SafeString(params, "posSide", "net")
 		params = this.Omit(params, []interface{}{"posSide"})
@@ -8186,9 +8238,9 @@ func (this *OkxCore) ReduceMargin(symbol interface{}, amount interface{}, option
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes727115 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-		PanicOnError(retRes727115)
-		ch <- retRes727115
+		retRes732515 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+		PanicOnError(retRes732515)
+		ch <- retRes732515
 		return nil
 
 	}()
@@ -8213,9 +8265,9 @@ func (this *OkxCore) AddMargin(symbol interface{}, amount interface{}, optionalA
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes728515 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes728515)
-		ch <- retRes728515
+		retRes733915 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes733915)
+		ch <- retRes733915
 		return nil
 
 	}()
@@ -8240,8 +8292,8 @@ func (this *OkxCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs .
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes72998 := (<-this.LoadMarkets())
-		PanicOnError(retRes72998)
+		retRes73538 := (<-this.LoadMarkets())
+		PanicOnError(retRes73538)
 		var market interface{} = this.Market(symbol)
 		var typeVar interface{} = Ternary(IsTrue(GetValue(market, "spot")), "MARGIN", this.ConvertToInstrumentType(GetValue(market, "type")))
 		var uly interface{} = this.SafeString(GetValue(market, "info"), "uly")
@@ -8372,8 +8424,8 @@ func (this *OkxCore) FetchBorrowInterest(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes74058 := (<-this.LoadMarkets())
-		PanicOnError(retRes74058)
+		retRes74598 := (<-this.LoadMarkets())
+		PanicOnError(retRes74598)
 		var marginMode interface{} = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -8469,8 +8521,8 @@ func (this *OkxCore) BorrowCrossMargin(code interface{}, amount interface{}, opt
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes74848 := (<-this.LoadMarkets())
-		PanicOnError(retRes74848)
+		retRes75388 := (<-this.LoadMarkets())
+		PanicOnError(retRes75388)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"ccy":  GetValue(currency, "id"),
@@ -8524,8 +8576,8 @@ func (this *OkxCore) RepayCrossMargin(code interface{}, amount interface{}, opti
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes75248 := (<-this.LoadMarkets())
-		PanicOnError(retRes75248)
+		retRes75788 := (<-this.LoadMarkets())
+		PanicOnError(retRes75788)
 		var id interface{} = this.SafeString2(params, "id", "ordId")
 		params = this.Omit(params, "id")
 		if IsTrue(IsEqual(id, nil)) {
@@ -8608,8 +8660,8 @@ func (this *OkxCore) FetchOpenInterest(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes75928 := (<-this.LoadMarkets())
-		PanicOnError(retRes75928)
+		retRes76468 := (<-this.LoadMarkets())
+		PanicOnError(retRes76468)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
@@ -8670,8 +8722,8 @@ func (this *OkxCore) FetchOpenInterests(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes76378 := (<-this.LoadMarkets())
-		PanicOnError(retRes76378)
+		retRes76918 := (<-this.LoadMarkets())
+		PanicOnError(retRes76918)
 		symbols = this.MarketSymbols(symbols, nil, true, true)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -8762,8 +8814,8 @@ func (this *OkxCore) FetchOpenInterestHistory(symbol interface{}, optionalArgs .
 			panic(BadRequest(Add(this.Id, " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")))
 		}
 
-		retRes77048 := (<-this.LoadMarkets())
-		PanicOnError(retRes77048)
+		retRes77588 := (<-this.LoadMarkets())
+		PanicOnError(retRes77588)
 		// handle unified currency code or symbol
 		var currencyId interface{} = nil
 		var market interface{} = nil
@@ -8907,8 +8959,8 @@ func (this *OkxCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes78288 := (<-this.LoadMarkets())
-		PanicOnError(retRes78288)
+		retRes78828 := (<-this.LoadMarkets())
+		PanicOnError(retRes78828)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(codes, nil)) {
 			var ids interface{} = this.CurrencyIds(codes)
@@ -9065,8 +9117,8 @@ func (this *OkxCore) FetchSettlementHistory(optionalArgs ...interface{}) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " fetchSettlementHistory() requires a symbol argument")))
 		}
 
-		retRes79628 := (<-this.LoadMarkets())
-		PanicOnError(retRes79628)
+		retRes80168 := (<-this.LoadMarkets())
+		PanicOnError(retRes80168)
 		var market interface{} = this.Market(symbol)
 		var typeVar interface{} = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
@@ -9179,8 +9231,8 @@ func (this *OkxCore) FetchUnderlyingAssets(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes80618 := (<-this.LoadMarkets())
-		PanicOnError(retRes80618)
+		retRes81158 := (<-this.LoadMarkets())
+		PanicOnError(retRes81158)
 		var marketType interface{} = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
@@ -9235,8 +9287,8 @@ func (this *OkxCore) FetchGreeks(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes81008 := (<-this.LoadMarkets())
-		PanicOnError(retRes81008)
+		retRes81548 := (<-this.LoadMarkets())
+		PanicOnError(retRes81548)
 		var market interface{} = this.Market(symbol)
 		var marketId interface{} = GetValue(market, "id")
 		var optionParts interface{} = Split(marketId, "-")
@@ -9315,8 +9367,8 @@ func (this *OkxCore) FetchAllGreeks(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes81628 := (<-this.LoadMarkets())
-		PanicOnError(retRes81628)
+		retRes82168 := (<-this.LoadMarkets())
+		PanicOnError(retRes82168)
 		var request interface{} = map[string]interface{}{}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var symbolsLength interface{} = nil
@@ -9467,8 +9519,8 @@ func (this *OkxCore) ClosePosition(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes82968 := (<-this.LoadMarkets())
-		PanicOnError(retRes82968)
+		retRes83508 := (<-this.LoadMarkets())
+		PanicOnError(retRes83508)
 		var market interface{} = this.Market(symbol)
 		var clientOrderId interface{} = this.SafeString(params, "clientOrderId")
 		var code interface{} = this.SafeString(params, "code")
@@ -9543,8 +9595,8 @@ func (this *OkxCore) FetchOption(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes83558 := (<-this.LoadMarkets())
-		PanicOnError(retRes83558)
+		retRes84098 := (<-this.LoadMarkets())
+		PanicOnError(retRes84098)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -9606,8 +9658,8 @@ func (this *OkxCore) FetchOptionChain(code interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes84038 := (<-this.LoadMarkets())
-		PanicOnError(retRes84038)
+		retRes84578 := (<-this.LoadMarkets())
+		PanicOnError(retRes84578)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"uly":      Add(GetValue(currency, "code"), "-USD"),
@@ -9720,8 +9772,8 @@ func (this *OkxCore) FetchConvertQuote(fromCode interface{}, toCode interface{},
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes84978 := (<-this.LoadMarkets())
-		PanicOnError(retRes84978)
+		retRes85518 := (<-this.LoadMarkets())
+		PanicOnError(retRes85518)
 		var request interface{} = map[string]interface{}{
 			"baseCcy":  ToUpper(fromCode),
 			"quoteCcy": ToUpper(toCode),
@@ -9791,8 +9843,8 @@ func (this *OkxCore) CreateConvertTrade(id interface{}, fromCode interface{}, to
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes85518 := (<-this.LoadMarkets())
-		PanicOnError(retRes85518)
+		retRes86058 := (<-this.LoadMarkets())
+		PanicOnError(retRes86058)
 		var request interface{} = map[string]interface{}{
 			"quoteId":  id,
 			"baseCcy":  fromCode,
@@ -9860,8 +9912,8 @@ func (this *OkxCore) FetchConvertTrade(id interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes86038 := (<-this.LoadMarkets())
-		PanicOnError(retRes86038)
+		retRes86578 := (<-this.LoadMarkets())
+		PanicOnError(retRes86578)
 		var request interface{} = map[string]interface{}{
 			"clTReqId": id,
 		}
@@ -9935,8 +9987,8 @@ func (this *OkxCore) FetchConvertTradeHistory(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes86578 := (<-this.LoadMarkets())
-		PanicOnError(retRes86578)
+		retRes87118 := (<-this.LoadMarkets())
+		PanicOnError(retRes87118)
 		var request interface{} = map[string]interface{}{}
 		requestparamsVariable := this.HandleUntilOption("after", request, params)
 		request = GetValue(requestparamsVariable, 0)
@@ -10071,8 +10123,8 @@ func (this *OkxCore) FetchConvertCurrencies(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes87738 := (<-this.LoadMarkets())
-		PanicOnError(retRes87738)
+		retRes88278 := (<-this.LoadMarkets())
+		PanicOnError(retRes88278)
 
 		response := (<-this.PrivateGetAssetConvertCurrencies(params))
 		PanicOnError(response)
@@ -10202,8 +10254,8 @@ func (this *OkxCore) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes88828 := (<-this.LoadMarkets())
-		PanicOnError(retRes88828)
+		retRes89368 := (<-this.LoadMarkets())
+		PanicOnError(retRes89368)
 		var auto interface{} = this.SafeBool(params, "auto")
 		if IsTrue(IsEqual(typeVar, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a type argument")))
@@ -10332,8 +10384,8 @@ func (this *OkxCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes89898 := (<-this.LoadMarkets())
-		PanicOnError(retRes89898)
+		retRes90438 := (<-this.LoadMarkets())
+		PanicOnError(retRes90438)
 		var marginMode interface{} = this.SafeString(params, "marginMode")
 		var instType interface{} = this.SafeStringUpper(params, "instType")
 		params = this.Omit(params, []interface{}{"until", "marginMode", "instType"})
@@ -10431,8 +10483,8 @@ func (this *OkxCore) FetchLongShortRatioHistory(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes90658 := (<-this.LoadMarkets())
-		PanicOnError(retRes90658)
+		retRes91198 := (<-this.LoadMarkets())
+		PanicOnError(retRes91198)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),

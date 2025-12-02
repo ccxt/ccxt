@@ -764,7 +764,7 @@ class coinbase(ccxt.async_support.coinbase):
             'type': self.safe_string(order, 'order_type'),
             'timeInForce': None,
             'postOnly': None,
-            'side': self.safe_string_2(order, 'side', 'order_side'),
+            'side': self.safe_string_lower_2(order, 'side', 'order_side'),
             'price': self.safe_string(order, 'limit_price'),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
@@ -773,7 +773,7 @@ class coinbase(ccxt.async_support.coinbase):
             'average': self.safe_string(order, 'avg_price'),
             'filled': self.safe_string(order, 'cumulative_quantity'),
             'remaining': self.safe_string(order, 'leaves_quantity'),
-            'status': self.safe_string_lower(order, 'status'),
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
             'fee': {
                 'amount': self.safe_string(order, 'total_fees'),
                 'currency': self.safe_string(market, 'quote'),

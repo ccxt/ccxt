@@ -85,6 +85,8 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
                 'fetchOption': True,
                 'fetchOptionChain': True,
@@ -3615,6 +3617,103 @@ class deribit(Exchange, ImplicitAPI):
             'baseVolume': self.safe_number(chain, 'volume'),
             'quoteVolume': self.safe_number(chain, 'volume_usd'),
         }
+
+    async def fetch_open_interest(self, symbol: str, params={}):
+        """
+        Retrieves the open interest of a symbol
+
+        https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+
+        :param str symbol: unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request: dict = {
+            'instrument_name': market['id'],
+        }
+        response = await self.publicGetGetBookSummaryByInstrument(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": [
+        #             {
+        #                 "high": 93099.5,
+        #                 "low": 81773.0,
+        #                 "last": 87197.0,
+        #                 "instrument_name": "BTC-PERPETUAL",
+        #                 "bid_price": 87083.0,
+        #                 "ask_price": 87149.5,
+        #                 "open_interest": 9978911260,
+        #                 "mark_price": 87102.01,
+        #                 "creation_timestamp": 1763674177068,
+        #                 "price_change": -3.2032,
+        #                 "volume": 7377.18657991,
+        #                 "estimated_delivery_price": 87047.2,
+        #                 "base_currency": "BTC",
+        #                 "quote_currency": "USD",
+        #                 "volume_usd": 661040250.0,
+        #                 "volume_notional": 661040250.0,
+        #                 "current_funding": 1.2966e-4,
+        #                 "funding_8h": -8.1069e-4,
+        #                 "mid_price": 87116.25
+        #             }
+        #         ],
+        #         "usIn": 1763674177068845,
+        #         "usOut": 1763674177068996,
+        #         "usDiff": 151,
+        #         "testnet": True
+        #     }
+        #
+        result = self.safe_list(response, 'result', [])
+        data = self.safe_dict(result, 0, {})
+        return self.parse_open_interest(data, market)
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        #     {
+        #         "high": 93099.5,
+        #         "low": 81773.0,
+        #         "last": 87197.0,
+        #         "instrument_name": "BTC-PERPETUAL",
+        #         "bid_price": 87083.0,
+        #         "ask_price": 87149.5,
+        #         "open_interest": 9978911260,
+        #         "mark_price": 87102.01,
+        #         "creation_timestamp": 1763674177068,
+        #         "price_change": -3.2032,
+        #         "volume": 7377.18657991,
+        #         "estimated_delivery_price": 87047.2,
+        #         "base_currency": "BTC",
+        #         "quote_currency": "USD",
+        #         "volume_usd": 661040250.0,
+        #         "volume_notional": 661040250.0,
+        #         "current_funding": 1.2966e-4,
+        #         "funding_8h": -8.1069e-4,
+        #         "mid_price": 87116.25
+        #     }
+        #
+        timestamp = self.safe_integer(interest, 'creation_timestamp')
+        marketId = self.safe_string(interest, 'instrument_name')
+        market = self.safe_market(marketId, market)
+        openInterest = self.safe_number(interest, 'open_interest')
+        openInterestAmount = None
+        openInterestValue = None
+        if market['option'] or (market['future'] and market['linear']):
+            openInterestAmount = openInterest
+        else:
+            openInterestValue = openInterest
+        return self.safe_open_interest({
+            'symbol': self.safe_symbol(marketId, market),
+            'openInterestAmount': openInterestAmount,
+            'openInterestValue': openInterestValue,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }, market)
 
     def nonce(self):
         return self.milliseconds()

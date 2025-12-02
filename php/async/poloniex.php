@@ -1801,7 +1801,7 @@ class poloniex extends Exchange {
         $symbol = $market['symbol'];
         $resultingTrades = $this->safe_value($order, 'resultingTrades');
         if ($resultingTrades !== null) {
-            if (gettype($resultingTrades) !== 'array' || array_keys($resultingTrades) !== array_keys(array_keys($resultingTrades))) {
+            if ((gettype($resultingTrades) !== 'array' || array_keys($resultingTrades) !== array_keys(array_keys($resultingTrades)))) {
                 $resultingTrades = $this->safe_value($resultingTrades, $this->safe_string($market, 'id', $marketId));
             }
         }
@@ -2517,7 +2517,7 @@ class poloniex extends Exchange {
             'datetime' => null,
         );
         // for swap
-        if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
+        if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
             $ts = $this->safe_integer($response, 'uTime');
             $result['timestamp'] = $ts;
             $result['datetime'] = $this->iso8601($ts);

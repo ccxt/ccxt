@@ -2139,6 +2139,10 @@ func (this *BinanceusCore) FapiPublicGetDepth(args ...interface{}) <-chan interf
 	return this.callEndpointAsync("fapiPublicGetDepth", args...)
 }
 
+func (this *BinanceusCore) FapiPublicGetRpiDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetRpiDepth", args...)
+}
+
 func (this *BinanceusCore) FapiPublicGetTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetTrades", args...)
 }
@@ -2317,6 +2321,10 @@ func (this *BinanceusCore) FapiPrivateGetRateLimitOrder(args ...interface{}) <-c
 
 func (this *BinanceusCore) FapiPrivateGetApiTradingStatus(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetApiTradingStatus", args...)
+}
+
+func (this *BinanceusCore) FapiPrivateGetSymbolAdlRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetSymbolAdlRisk", args...)
 }
 
 func (this *BinanceusCore) FapiPrivateGetMultiAssetsMargin(args ...interface{}) <-chan interface{} {

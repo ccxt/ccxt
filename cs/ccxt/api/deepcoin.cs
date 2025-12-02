@@ -51,6 +51,21 @@ public partial class deepcoin : Exchange
         return await this.callAsync ("publicGetDeepcoinMarketStepMargin",parameters);
     }
 
+    public async Task<object> publicGetDeepcoinTradeFundingRate (object parameters = null)
+    {
+        return await this.callAsync ("publicGetDeepcoinTradeFundingRate",parameters);
+    }
+
+    public async Task<object> publicGetDeepcoinTradeFundRateCurrentFundingRate (object parameters = null)
+    {
+        return await this.callAsync ("publicGetDeepcoinTradeFundRateCurrentFundingRate",parameters);
+    }
+
+    public async Task<object> publicGetDeepcoinTradeFundRateHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicGetDeepcoinTradeFundRateHistory",parameters);
+    }
+
     public async Task<object> privateGetDeepcoinAccountBalances (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinAccountBalances",parameters);
@@ -89,21 +104,6 @@ public partial class deepcoin : Exchange
     public async Task<object> privateGetDeepcoinTradeV2OrdersPending (object parameters = null)
     {
         return await this.callAsync ("privateGetDeepcoinTradeV2OrdersPending",parameters);
-    }
-
-    public async Task<object> privateGetDeepcoinTradeFundingRate (object parameters = null)
-    {
-        return await this.callAsync ("privateGetDeepcoinTradeFundingRate",parameters);
-    }
-
-    public async Task<object> privateGetDeepcoinTradeFundRateCurrentFundingRate (object parameters = null)
-    {
-        return await this.callAsync ("privateGetDeepcoinTradeFundRateCurrentFundingRate",parameters);
-    }
-
-    public async Task<object> privateGetDeepcoinTradeFundRateHistory (object parameters = null)
-    {
-        return await this.callAsync ("privateGetDeepcoinTradeFundRateHistory",parameters);
     }
 
     public async Task<object> privateGetDeepcoinTradeTriggerOrdersPending (object parameters = null)

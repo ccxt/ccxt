@@ -12,7 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-import ccxt  # noqa: F402
+import ccxt.async_support as ccxt  # noqa: F402
 from ccxt.base.precise import Precise  # noqa E402
 
 def precise_equal_str(exchange, result, key, expected):

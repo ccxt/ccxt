@@ -41,7 +41,12 @@ class ascendex extends Exchange {
                 'fetchAccounts' => true,
                 'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -56,6 +61,8 @@ class ascendex extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => 'emulated',
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
@@ -1228,7 +1235,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+        if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             return $this->parse_tickers(array( $data ), $symbols);
         }
         return $this->parse_tickers($data, $symbols);
@@ -2329,7 +2336,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+        if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             $data = $this->safe_list($data, 'data', array());
         }
         return $this->parse_orders($data, $market, $since, $limit);

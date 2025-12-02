@@ -1634,7 +1634,7 @@ class whitebit extends Exchange {
             //         ),
             //     )
             //
-            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                 return $this->parse_trades($response, $market, $since, $limit);
             } else {
                 $results = array();
@@ -2834,7 +2834,7 @@ class whitebit extends Exchange {
             //     ]
             //
             $subAccounts = Async\await($this->v4PrivatePostSubAccountList ($params));
-            if ($subAccounts && gettype($subAccounts) === 'array' && array_keys($subAccounts) === array_keys(array_keys($subAccounts))) {
+            if ($subAccounts && (gettype($subAccounts) === 'array' && array_keys($subAccounts) === array_keys(array_keys($subAccounts)))) {
                 for ($i = 0; $i < count($subAccounts); $i++) {
                     $subAccount = $this->safe_value($subAccounts, $i);
                     $accountId = $this->safe_string($subAccount, 'id');

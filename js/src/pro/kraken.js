@@ -648,8 +648,10 @@ export default class kraken extends krakenRest {
     }
     requestId() {
         // their support said that reqid must be an int32, not documented
+        this.lockId();
         const reqid = this.sum(this.safeInteger(this.options, 'reqid', 0), 1);
         this.options['reqid'] = reqid;
+        this.unlockId();
         return reqid;
     }
     /**
