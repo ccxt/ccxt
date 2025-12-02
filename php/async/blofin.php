@@ -1055,7 +1055,7 @@ class blofin extends Exchange {
 
     public function parse_balance_by_type($response) {
         $data = $this->safe_list($response, 'data');
-        if (($data !== null) && gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if (($data !== null) && (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             return $this->parse_funding_balance($response);
         } else {
             return $this->parse_balance($response);

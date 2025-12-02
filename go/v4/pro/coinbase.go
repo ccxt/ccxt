@@ -1091,7 +1091,7 @@ func  (this *CoinbaseCore) ParseWsOrder(order interface{}, optionalArgs ...inter
         "average": this.SafeString(order, "avg_price"),
         "filled": this.SafeString(order, "cumulative_quantity"),
         "remaining": this.SafeString(order, "leaves_quantity"),
-        "status": this.SafeStringLower(order, "status"),
+        "status": this.ParseOrderStatus(this.SafeString(order, "status")),
         "fee": map[string]interface{} {
             "amount": this.SafeString(order, "total_fees"),
             "currency": this.SafeString(market, "quote"),

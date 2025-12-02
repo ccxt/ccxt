@@ -566,6 +566,7 @@ class binance(ccxt.async_support.binance):
         https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
         https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
         https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
         https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
         https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
 
@@ -621,12 +622,14 @@ class binance(ccxt.async_support.binance):
         https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
         https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
         https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
         https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
         https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
 
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.rpi]: *future only* set to True to use the RPI endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -642,7 +645,13 @@ class binance(ccxt.async_support.binance):
             if symbolsLength > 200:
                 raise BadRequest(self.id + ' watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times')
             streamHash += '::' + ','.join(symbols)
-        watchOrderBookRate = self.safe_string(self.options, 'watchOrderBookRate', '100')
+        watchOrderBookRate = None
+        watchOrderBookRate, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100')
+        rpi = None
+        rpi, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'rpi', False)
+        if rpi and type == 'future':
+            name = 'rpiDepth'
+            watchOrderBookRate = '500'
         subParams = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -3115,7 +3124,7 @@ class binance(ccxt.async_support.binance):
         if clientOrderId is not None:
             payload['origClientOrderId'] = clientOrderId
         else:
-            payload['orderId'] = self.parse_to_int(id)
+            payload['orderId'] = self.number_to_string(id)
         params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         message: dict = {
             'id': messageHash,
@@ -3194,7 +3203,7 @@ class binance(ccxt.async_support.binance):
         if clientOrderId is not None:
             payload['origClientOrderId'] = clientOrderId
         else:
-            payload['orderId'] = self.parse_to_int(id)
+            payload['orderId'] = self.number_to_string(id)
         message: dict = {
             'id': messageHash,
             'method': 'order.status',

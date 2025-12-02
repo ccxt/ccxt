@@ -525,6 +525,7 @@ export default class bitmart extends Exchange {
                 'broad': {
                     'You contract account available balance not enough': InsufficientFunds,
                     'you contract account available balance not enough': InsufficientFunds,
+                    'This trading pair does not support API trading': BadSymbol, // {"message":"This trading pair does not support API trading","code":51008,"trace":"5d3ebd46-4e7a-4505-b37b-74464f398f01","data":{}}
                 },
             },
             'commonCurrencies': {

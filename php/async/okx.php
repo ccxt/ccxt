@@ -6530,7 +6530,7 @@ class okx extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $isArray = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
+        $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->implode_hostname($this->urls['api']['rest']) . $request;
@@ -6544,7 +6544,7 @@ class okx extends Exchange {
             // inject id in implicit $api call
             if ($method === 'POST' && ($path === 'trade/batch-orders' || $path === 'trade/order-algo' || $path === 'trade/order')) {
                 $brokerId = $this->safe_string($this->options, 'brokerId', '6b9ad766b55dBCDE');
-                if (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) {
+                if ((gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)))) {
                     for ($i = 0; $i < count($params); $i++) {
                         $entry = $params[$i];
                         $clientOrderId = $this->safe_string($entry, 'clOrdId');
@@ -7974,7 +7974,7 @@ class okx extends Exchange {
         $openInterestAmount = null;
         $openInterestValue = null;
         $type = $this->safe_string($this->options, 'defaultType');
-        if (gettype($interest) === 'array' && array_keys($interest) === array_keys(array_keys($interest))) {
+        if ((gettype($interest) === 'array' && array_keys($interest) === array_keys(array_keys($interest)))) {
             if ($type === 'option') {
                 $openInterestAmount = $this->safe_number($interest, 1);
                 $baseVolume = $this->safe_number($interest, 2);

@@ -1931,6 +1931,10 @@ func (this *BinanceCore) FapiPublicGetDepth(args ...interface{}) <-chan interfac
 	return this.callEndpointAsync("fapiPublicGetDepth", args...)
 }
 
+func (this *BinanceCore) FapiPublicGetRpiDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetRpiDepth", args...)
+}
+
 func (this *BinanceCore) FapiPublicGetTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPublicGetTrades", args...)
 }

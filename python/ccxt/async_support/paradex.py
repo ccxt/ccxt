@@ -632,6 +632,7 @@ class paradex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param str [params.price]: "last", "mark", "index", default is "last"
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -643,7 +644,10 @@ class paradex(Exchange, ImplicitAPI):
         now = self.milliseconds()
         duration = self.parse_timeframe(timeframe)
         until = self.safe_integer_2(params, 'until', 'till', now)
-        params = self.omit(params, ['until', 'till'])
+        price = self.safe_string(params, 'price')
+        if price is not None:
+            request['price_kind'] = price
+        params = self.omit(params, ['until', 'till', 'price'])
         if since is not None:
             request['start_at'] = since
             if limit is not None:

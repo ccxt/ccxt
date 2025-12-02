@@ -864,7 +864,7 @@ class hashkey extends \ccxt\async\hashkey {
     }
 
     public function handle_message(Client $client, $message) {
-        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
+        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             $message = $this->safe_dict($message, 0, array());
         }
         $topic = $this->safe_string_2($message, 'topic', 'e');

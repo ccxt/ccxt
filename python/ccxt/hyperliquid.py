@@ -229,6 +229,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'defaultType': 'swap',
                 'sandboxMode': False,
                 'defaultSlippage': 0.05,
+                'marketHelperProps': ['hip3TokensByName', 'cachedCurrenciesById'],
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
                 'spotCurrencyMapping': {
                     'UDZ': '2Z',
@@ -416,7 +417,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         if self.check_required_credentials(False):
             self.initialize_client()
         request: dict = {
-            'type': 'meta',
+            # 'type': 'meta',
+            'type': 'spotMeta',
         }
         response = self.publicPostInfo(self.extend(request, params))
         #
@@ -433,18 +435,23 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        meta = self.safe_list(response, 'universe', [])
+        # spotMeta = self.publicPostInfo({'type': 'spotMeta'})
+        tokens = self.safe_list(response, 'tokens', [])
+        # meta = self.safe_list(response, 'universe', [])
+        self.options['cachedCurrenciesById'] = {}  # used to map hip3 markets
         result: dict = {}
-        for i in range(0, len(meta)):
-            data = self.safe_dict(meta, i, {})
-            id = i
+        for i in range(0, len(tokens)):
+            data = self.safe_dict(tokens, i, {})
+            # id = i
+            id = self.safe_string(data, 'index')
             name = self.safe_string(data, 'name')
             code = self.safe_currency_code(name)
+            self.options['cachedCurrenciesById'][id] = name
             result[code] = self.safe_currency_structure({
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': None,
+                'precision': self.parse_precision(self.safe_string(data, 'weiDecimals')),
                 'info': data,
                 'active': None,
                 'deposit': None,
@@ -553,21 +560,38 @@ class hyperliquid(Exchange, ImplicitAPI):
             }
             rawPromises.append(self.publicPostInfo(self.extend(request, params)))
         promises = rawPromises
+        self.options['hip3TokensByName'] = {}
         markets = []
         for i in range(0, len(promises)):
             dexName = fetchDexesList[i]
             offset = perpDexesOffset[dexName]
             response = promises[i]
             meta = self.safe_dict(response, 0, {})
+            collateralToken = self.safe_string(meta, 'collateralToken')
             universe = self.safe_list(meta, 'universe', [])
             assetCtxs = self.safe_list(response, 1, [])
             result = []
+            # helper because some endpoints return just the coin name like: flx:crcl
+            # and we don't have the base/settle information and we can't assume it's USDC for hip3 markets
             for j in range(0, len(universe)):
                 data = self.extend(
                     self.safe_dict(universe, j, {}),
                     self.safe_dict(assetCtxs, j, {})
                 )
                 data['baseId'] = j + offset
+                data['collateralToken'] = collateralToken
+                cachedCurrencies = self.safe_dict(self.options, 'c', {})
+                # injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
+                if collateralToken in cachedCurrencies:
+                    name = self.safe_string(data, 'name')
+                    collateralTokenCode = self.safe_string(cachedCurrencies, collateralToken)
+                    data['collateralTokenName'] = collateralTokenCode
+                    # eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
+                    safeCode = self.safe_currency_code(name)
+                    self.options['hip3TokensByName'][name] = {
+                        'quote': collateralTokenCode,
+                        'code': safeCode.replace(':', '-'),
+                    }
                 result.append(data)
             markets = self.array_concat(markets, self.parse_markets(result))
         #
@@ -601,6 +625,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     ]
         #
         #
+        # reset currency cache not needed anymore
+        self.options['cachedCurrenciesById'] = {}
         return markets
 
     def fetch_swap_markets(self, params={}) -> List[Market]:
@@ -890,16 +916,19 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         "oraclePx": "2367.3",
         #         "premium": "0.00090821",
         #         "prevDayPx": "2381.5"
+        #         "collateralToken": "0" hip3 tokens only
         #     }
         #
-        quoteId = 'USDC'
+        collateralTokenCode = self.safe_string(market, 'collateralTokenName')
+        quoteId = 'USDC' if (collateralTokenCode is None) else collateralTokenCode
+        settleId = 'USDC' if (collateralTokenCode is None) else collateralTokenCode
         baseName = self.safe_string(market, 'name')
         base = self.safe_currency_code(baseName)
+        base = base.replace(':', '-')  # handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         quote = self.safe_currency_code(quoteId)
         baseId = self.safe_string(market, 'baseId')
-        settleId = 'USDC'
         settle = self.safe_currency_code(settleId)
-        symbol = base.replace(':', '-') + '/' + quote
+        symbol = base + '/' + quote
         contract = True
         swap = True
         if contract:
@@ -983,6 +1012,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.type]: wallet type, ['spot', 'swap'], defaults to swap
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
+        :param str [params.dex]: for hip3 markets, the dex name, eg: 'xyz'
         :param str [params.subAccountAddress]: sub account user address
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -4003,6 +4033,12 @@ class hyperliquid(Exchange, ImplicitAPI):
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set')
 
     def coin_to_market_id(self, coin: Str):
+        # handle also hip3 tokens like flx:CRCL
+        if self.safe_dict(self.options['hip3TokensByName'], coin):
+            hip3Dict = self.options['hip3TokensByName'][coin]
+            quote = self.safe_string(hip3Dict, 'quote', 'USDC')
+            code = self.safe_string(hip3Dict, 'code', coin)
+            return code + '/' + quote + ':' + quote
         if coin.find('/') > -1 or coin.find('@') > -1:
             return coin  # spot
         if coin.find(':') > -1:

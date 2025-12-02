@@ -847,6 +847,7 @@ class binance(Exchange, ImplicitAPI):
                         'time': 1,
                         'exchangeInfo': 1,
                         'depth': {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]},
+                        'rpiDepth': 20,
                         'trades': 5,
                         'historicalTrades': 20,
                         'aggTrades': 20,
@@ -3895,14 +3896,16 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book     # spot
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   # swap
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book   # future
-        https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           # option
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book       # spot
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book     # swap
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI  # swap rpi
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book     # future
+        https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                             # option
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.rpi]: *future only* set to True to use the RPI endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
@@ -3916,7 +3919,14 @@ class binance(Exchange, ImplicitAPI):
         if market['option']:
             response = self.eapiPublicGetDepth(self.extend(request, params))
         elif market['linear']:
-            response = self.fapiPublicGetDepth(self.extend(request, params))
+            rpi = self.safe_value(params, 'rpi', False)
+            params = self.omit(params, 'rpi')
+            if rpi:
+                # rpi limit only supports 1000
+                request['limit'] = 1000
+                response = self.fapiPublicGetRpiDepth(self.extend(request, params))
+            else:
+                response = self.fapiPublicGetDepth(self.extend(request, params))
         elif market['inverse']:
             response = self.dapiPublicGetDepth(self.extend(request, params))
         else:

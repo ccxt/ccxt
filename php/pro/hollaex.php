@@ -364,7 +364,7 @@ class hollaex extends \ccxt\async\hollaex {
         }
         $stored = $this->orders;
         $rawOrders = null;
-        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+        if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             $rawOrders = array( $data );
         } else {
             $rawOrders = $data;

@@ -10,7 +10,7 @@ namespace ccxt;
 
 
 function test_decimal_to_precision() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'regirock',
     ));
     // ----------------------------------------------------------------------------

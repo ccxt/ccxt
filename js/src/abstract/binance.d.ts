@@ -482,6 +482,7 @@ interface Exchange {
     fapiPublicGetTime(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetExchangeInfo(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetDepth(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetRpiDepth(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetTrades(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetHistoricalTrades(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetAggTrades(params?: {}): Promise<implicitReturnType>;

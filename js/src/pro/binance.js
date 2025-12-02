@@ -581,6 +581,7 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -636,11 +637,13 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
@@ -651,7 +654,7 @@ export default class binance extends binanceRest {
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
-        const name = 'depth';
+        let name = 'depth';
         let streamHash = 'multipleOrderbook';
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
@@ -660,7 +663,14 @@ export default class binance extends binanceRest {
             }
             streamHash += '::' + symbols.join(',');
         }
-        const watchOrderBookRate = this.safeString(this.options, 'watchOrderBookRate', '100');
+        let watchOrderBookRate = undefined;
+        [watchOrderBookRate, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100');
+        let rpi = undefined;
+        [rpi, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'rpi', false);
+        if (rpi && type === 'future') {
+            name = 'rpiDepth';
+            watchOrderBookRate = '500';
+        }
         const subParams = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -3327,7 +3337,7 @@ export default class binance extends binanceRest {
             payload['origClientOrderId'] = clientOrderId;
         }
         else {
-            payload['orderId'] = this.parseToInt(id);
+            payload['orderId'] = this.numberToString(id);
         }
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         const message = {
@@ -3411,7 +3421,7 @@ export default class binance extends binanceRest {
             payload['origClientOrderId'] = clientOrderId;
         }
         else {
-            payload['orderId'] = this.parseToInt(id);
+            payload['orderId'] = this.numberToString(id);
         }
         const message = {
             'id': messageHash,

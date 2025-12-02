@@ -4095,7 +4095,7 @@ class coinex extends Exchange {
             $market = null;
             if ($symbols !== null) {
                 $symbol = null;
-                if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+                if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
                     $symbolsLength = count($symbols);
                     if ($symbolsLength > 1) {
                         throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');

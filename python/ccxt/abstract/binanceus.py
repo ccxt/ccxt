@@ -535,6 +535,7 @@ class ImplicitAPI:
     fapipublic_get_time = fapiPublicGetTime = Entry('time', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_exchangeinfo = fapiPublicGetExchangeInfo = Entry('exchangeInfo', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_depth = fapiPublicGetDepth = Entry('depth', 'fapiPublic', 'GET', {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]})
+    fapipublic_get_rpidepth = fapiPublicGetRpiDepth = Entry('rpiDepth', 'fapiPublic', 'GET', {'cost': 20})
     fapipublic_get_trades = fapiPublicGetTrades = Entry('trades', 'fapiPublic', 'GET', {'cost': 5})
     fapipublic_get_historicaltrades = fapiPublicGetHistoricalTrades = Entry('historicalTrades', 'fapiPublic', 'GET', {'cost': 20})
     fapipublic_get_aggtrades = fapiPublicGetAggTrades = Entry('aggTrades', 'fapiPublic', 'GET', {'cost': 20})
