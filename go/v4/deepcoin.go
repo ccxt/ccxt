@@ -151,47 +151,47 @@ func (this *DeepcoinCore) Describe() interface{} {
 		"api": map[string]interface{}{
 			"public": map[string]interface{}{
 				"get": map[string]interface{}{
-					"deepcoin/market/books":              1,
-					"deepcoin/market/candles":            1,
-					"deepcoin/market/instruments":        1,
-					"deepcoin/market/tickers":            1,
-					"deepcoin/market/index-candles":      1,
-					"deepcoin/market/trades":             1,
-					"deepcoin/market/mark-price-candles": 1,
-					"deepcoin/market/step-margin":        5,
+					"deepcoin/market/books":                         1,
+					"deepcoin/market/candles":                       1,
+					"deepcoin/market/instruments":                   1,
+					"deepcoin/market/tickers":                       1,
+					"deepcoin/market/index-candles":                 1,
+					"deepcoin/market/trades":                        1,
+					"deepcoin/market/mark-price-candles":            1,
+					"deepcoin/market/step-margin":                   5,
+					"deepcoin/trade/funding-rate":                   5,
+					"deepcoin/trade/fund-rate/current-funding-rate": 5,
+					"deepcoin/trade/fund-rate/history":              5,
 				},
 			},
 			"private": map[string]interface{}{
 				"get": map[string]interface{}{
-					"deepcoin/account/balances":                     5,
-					"deepcoin/account/bills":                        5,
-					"deepcoin/account/positions":                    5,
-					"deepcoin/trade/fills":                          5,
-					"deepcoin/trade/orderByID":                      5,
-					"deepcoin/trade/finishOrderByID":                5,
-					"deepcoin/trade/orders-history":                 5,
-					"deepcoin/trade/v2/orders-pending":              5,
-					"deepcoin/trade/funding-rate":                   5,
-					"deepcoin/trade/fund-rate/current-funding-rate": 5,
-					"deepcoin/trade/fund-rate/history":              5,
-					"deepcoin/trade/trigger-orders-pending":         5,
-					"deepcoin/trade/trigger-orders-history":         5,
-					"deepcoin/copytrading/support-contracts":        5,
-					"deepcoin/copytrading/leader-position":          5,
-					"deepcoin/copytrading/estimate-profit":          5,
-					"deepcoin/copytrading/history-profit":           5,
-					"deepcoin/copytrading/follower-rank":            5,
-					"deepcoin/internal-transfer/support":            5,
-					"deepcoin/internal-transfer/history-order":      5,
-					"deepcoin/rebate/config":                        5,
-					"deepcoin/agents/users":                         5,
-					"deepcoin/agents/users/rebate-list":             5,
-					"deepcoin/agents/users/rebates":                 5,
-					"deepcoin/asset/deposit-list":                   5,
-					"deepcoin/asset/withdraw-list":                  5,
-					"deepcoin/asset/recharge-chain-list":            5,
-					"deepcoin/listenkey/acquire":                    5,
-					"deepcoin/listenkey/extend":                     5,
+					"deepcoin/account/balances":                5,
+					"deepcoin/account/bills":                   5,
+					"deepcoin/account/positions":               5,
+					"deepcoin/trade/fills":                     5,
+					"deepcoin/trade/orderByID":                 5,
+					"deepcoin/trade/finishOrderByID":           5,
+					"deepcoin/trade/orders-history":            5,
+					"deepcoin/trade/v2/orders-pending":         5,
+					"deepcoin/trade/trigger-orders-pending":    5,
+					"deepcoin/trade/trigger-orders-history":    5,
+					"deepcoin/copytrading/support-contracts":   5,
+					"deepcoin/copytrading/leader-position":     5,
+					"deepcoin/copytrading/estimate-profit":     5,
+					"deepcoin/copytrading/history-profit":      5,
+					"deepcoin/copytrading/follower-rank":       5,
+					"deepcoin/internal-transfer/support":       5,
+					"deepcoin/internal-transfer/history-order": 5,
+					"deepcoin/rebate/config":                   5,
+					"deepcoin/agents/users":                    5,
+					"deepcoin/agents/users/rebate-list":        5,
+					"deepcoin/agents/users/rebates":            5,
+					"deepcoin/asset/deposit-list":              5,
+					"deepcoin/asset/withdraw-list":             5,
+					"deepcoin/asset/recharge-chain-list":       5,
+					"deepcoin/listenkey/acquire":               5,
+					"deepcoin/listenkey/extend":                5,
 				},
 				"post": map[string]interface{}{
 					"deepcoin/account/set-leverage":        5,
@@ -3294,7 +3294,7 @@ func (this *DeepcoinCore) FetchFundingRates(optionalArgs ...interface{}) <-chan 
 			"instType": instType,
 		}
 
-		response := (<-this.PrivateGetDeepcoinTradeFundRateCurrentFundingRate(this.Extend(request, params)))
+		response := (<-this.PublicGetDeepcoinTradeFundRateCurrentFundingRate(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -3352,7 +3352,7 @@ func (this *DeepcoinCore) FetchFundingRate(symbol interface{}, optionalArgs ...i
 			"instType": this.GetProductGroupFromMarket(market),
 		}
 
-		response := (<-this.PrivateGetDeepcoinTradeFundRateCurrentFundingRate(this.Extend(request, params)))
+		response := (<-this.PublicGetDeepcoinTradeFundRateCurrentFundingRate(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -3450,7 +3450,7 @@ func (this *DeepcoinCore) FetchFundingRateHistory(optionalArgs ...interface{}) <
 			AddElementToObject(request, "size", limit) // default 20, max 100
 		}
 
-		response := (<-this.PrivateGetDeepcoinTradeFundRateHistory(this.Extend(request, params)))
+		response := (<-this.PublicGetDeepcoinTradeFundRateHistory(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {

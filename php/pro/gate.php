@@ -586,7 +586,7 @@ class gate extends \ccxt\async\gate {
     public function handle_bid_asks($bookSide, $bidAsks) {
         for ($i = 0; $i < count($bidAsks); $i++) {
             $bidAsk = $bidAsks[$i];
-            if (gettype($bidAsk) === 'array' && array_keys($bidAsk) === array_keys(array_keys($bidAsk))) {
+            if ((gettype($bidAsk) === 'array' && array_keys($bidAsk) === array_keys(array_keys($bidAsk)))) {
                 $bookSide->storeArray ($this->parse_bid_ask($bidAsk));
             } else {
                 $price = $this->safe_float($bidAsk, 'p');
@@ -740,7 +740,7 @@ class gate extends \ccxt\async\gate {
         $marketType = ($rawMarketType === 'futures') ? 'contract' : 'spot';
         $result = $this->safe_value($message, 'result');
         $results = array();
-        if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
+        if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
             $results = $this->safe_list($message, 'result', array());
         } else {
             $rawTicker = $this->safe_dict($message, 'result', array());
@@ -865,7 +865,7 @@ class gate extends \ccxt\async\gate {
         // }
         //
         $result = $this->safe_value($message, 'result');
-        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
+        if ((gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result)))) {
             $result = array( $result );
         }
         $parsedTrades = $this->parse_trades($result);
@@ -935,7 +935,7 @@ class gate extends \ccxt\async\gate {
         $rawMarketType = $this->safe_string($channelParts, 0);
         $marketType = ($rawMarketType === 'spot') ? 'spot' : 'contract';
         $result = $this->safe_value($message, 'result');
-        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
+        if ((gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result)))) {
             $result = array( $result );
         }
         $marketIds = array();
@@ -943,8 +943,8 @@ class gate extends \ccxt\async\gate {
             $ohlcv = $result[$i];
             $subscription = $this->safe_string($ohlcv, 'n', '');
             $parts = explode('_', $subscription);
-            $timeframe = $this->safe_string($parts, 0);
-            $timeframeId = $this->find_timeframe($timeframe);
+            $timeframeId = $this->safe_string($parts, 0);
+            $timeframe = $this->find_timeframe($timeframeId);
             $prefix = $timeframe . '_';
             $marketId = str_replace($prefix, '', $subscription);
             $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
@@ -954,7 +954,7 @@ class gate extends \ccxt\async\gate {
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp ($limit);
-                $this->ohlcvs[$symbol][$timeframeId] = $stored;
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             $stored->append ($parsed);
             $marketIds[$symbol] = $timeframe;

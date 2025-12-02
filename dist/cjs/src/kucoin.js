@@ -169,6 +169,9 @@ class kucoin extends kucoin$1["default"] {
                         'margin/config': 25,
                         'announcements': 20,
                         'margin/collateralRatio': 10,
+                        // convert
+                        'convert/symbol': 5,
+                        'convert/currencies': 5,
                     },
                     'post': {
                         // ws
@@ -254,6 +257,13 @@ class kucoin extends kucoin$1["default"] {
                         'broker/queryUser': 3,
                         'broker/queryDetailByUid': 3,
                         'migrate/user/account/status': 3,
+                        // convert
+                        'convert/quote': 20,
+                        'convert/order/detail': 5,
+                        'convert/order/history': 5,
+                        'convert/limit/quote': 20,
+                        'convert/limit/order/detail': 5,
+                        'convert/limit/orders': 5,
                         // affiliate
                         'affiliate/inviter/statistics': 30,
                     },
@@ -293,6 +303,9 @@ class kucoin extends kucoin$1["default"] {
                         'purchase': 15,
                         'redeem': 15,
                         'lend/purchase/update': 10,
+                        // convert
+                        'convert/order': 20,
+                        'convert/limit/order': 20,
                         // ws
                         'bullet-private': 10,
                         'position/update-user-leverage': 5,
@@ -323,7 +336,9 @@ class kucoin extends kucoin$1["default"] {
                         // margin trading
                         'hf/margin/orders/{orderId}': 5,
                         'hf/margin/orders/client-order/{clientOid}': 5,
-                        'hf/margin/orders': 10, // 10SW
+                        'hf/margin/orders': 10,
+                        // convert
+                        'convert/limit/order/cancel': 5,
                     },
                 },
                 'futuresPublic': {
@@ -441,6 +456,7 @@ class kucoin extends kucoin$1["default"] {
                 },
                 'earn': {
                     'get': {
+                        'otc-loan/discount-rate-configs': 10,
                         'otc-loan/loan': 1,
                         'otc-loan/accounts': 1,
                         'earn/redeem-preview': 7.5,
@@ -449,10 +465,13 @@ class kucoin extends kucoin$1["default"] {
                         'earn/promotion/products': 7.5,
                         'earn/kcs-staking/products': 7.5,
                         'earn/staking/products': 7.5,
-                        'earn/eth-staking/products': 7.5, // 5EW
+                        'earn/eth-staking/products': 7.5,
+                        'struct-earn/dual/products': 4.5,
+                        'struct-earn/orders': 7.5,
                     },
                     'post': {
-                        'earn/orders': 7.5, // 5EW
+                        'earn/orders': 7.5,
+                        'struct-earn/orders': 7.5,
                     },
                     'delete': {
                         'earn/orders': 7.5, // 5EW

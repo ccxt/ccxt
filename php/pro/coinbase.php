@@ -77,7 +77,7 @@ class coinbase extends \ccxt\async\coinbase {
             $market = null;
             $messageHash = $name;
             $productIds = array();
-            if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
+            if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
                 $symbols = $this->market_symbols($symbol);
                 $marketIds = $this->market_ids($symbols);
                 $productIds = $marketIds;
@@ -126,7 +126,7 @@ class coinbase extends \ccxt\async\coinbase {
             $watchMessageHash = $name;
             $unWatchMessageHash = 'unsubscribe:' . $name;
             $productIds = array();
-            if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
+            if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
                 $symbols = $this->market_symbols($symbol);
                 $marketIds = $this->market_ids($symbols);
                 $productIds = $marketIds;
@@ -850,7 +850,7 @@ class coinbase extends \ccxt\async\coinbase {
             'type' => $this->safe_string($order, 'order_type'),
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $this->safe_string_2($order, 'side', 'order_side'),
+            'side' => $this->safe_string_lower_2($order, 'side', 'order_side'),
             'price' => $this->safe_string($order, 'limit_price'),
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
@@ -859,7 +859,7 @@ class coinbase extends \ccxt\async\coinbase {
             'average' => $this->safe_string($order, 'avg_price'),
             'filled' => $this->safe_string($order, 'cumulative_quantity'),
             'remaining' => $this->safe_string($order, 'leaves_quantity'),
-            'status' => $this->safe_string_lower($order, 'status'),
+            'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'fee' => array(
                 'amount' => $this->safe_string($order, 'total_fees'),
                 'currency' => $this->safe_string($market, 'quote'),

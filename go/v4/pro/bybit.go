@@ -1130,7 +1130,7 @@ func  (this *BybitCore) WatchOrderBookForSymbols(symbols interface{}, optionalAr
             params = this.CleanParams(params)
             var market interface{} = this.Market(ccxt.GetValue(symbols, 0))
             if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
-                limit = ccxt.Ternary(ccxt.IsTrue((ccxt.GetValue(market, "spot"))), 50, 500)
+                limit = 50
                 if ccxt.IsTrue(ccxt.GetValue(market, "option")) {
                     limit = 100
                 }
@@ -1138,7 +1138,7 @@ func  (this *BybitCore) WatchOrderBookForSymbols(symbols interface{}, optionalAr
                 var limits interface{} = map[string]interface{} {
                     "spot": []interface{}{1, 50, 200, 1000},
                     "option": []interface{}{25, 100},
-                    "default": []interface{}{1, 50, 200, 500, 1000},
+                    "default": []interface{}{1, 50, 200, 1000},
                 }
                 var selectedLimits interface{} = this.SafeList2(limits, ccxt.GetValue(market, "type"), "default")
                 if !ccxt.IsTrue(this.InArray(limit, selectedLimits)) {

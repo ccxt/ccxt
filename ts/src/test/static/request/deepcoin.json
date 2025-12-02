@@ -6,6 +6,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.deepcoin.com/deepcoin/trade/fund-rate/current-funding-rate?instId=BTC-USDT-SWAP&instType=SwapU",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "createMarketBuyOrderWithCost": [
             {
                 "description": "order with cost",

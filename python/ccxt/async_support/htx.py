@@ -949,6 +949,7 @@ class htx(Exchange, ImplicitAPI):
                     'base-symbol-error': BadSymbol,  # {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
                     'system-maintenance': OnMaintenance,  # {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                     'base-request-exceed-frequency-limit': RateLimitExceeded,  # {"status":"error","err-code":"base-request-exceed-frequency-limit","err-msg":"Frequency of requests has exceeded the limit, please try again later","data":null}
+                    'rate-too-many-requests': RateLimitExceeded,  # {"status":"error","err-code":"rate-too-many-requests","err-msg":"exceeded rate limit","data":null}
                     # err-msg
                     'invalid symbol': BadSymbol,  # {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
                     'symbol trade not open now': BadSymbol,  # {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
@@ -5217,7 +5218,8 @@ class htx(Exchange, ImplicitAPI):
                 request['client_order_id'] = clientOrderId
                 params = self.omit(params, ['clientOrderId'])
             if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
-                request['price'] = self.price_to_precision(symbol, price)
+                if price is not None:
+                    request['price'] = self.price_to_precision(symbol, price)
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)
         if not isStopLossTriggerOrder and not isTakeProfitTriggerOrder:
             if reduceOnly:

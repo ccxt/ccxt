@@ -938,6 +938,7 @@ class htx extends Exchange {
                     'base-symbol-error' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null)
                     'system-maintenance' => '\\ccxt\\OnMaintenance', // array("status" => "error", "err-code" => "system-maintenance", "err-msg" => "System is in maintenance!", "data" => null)
                     'base-request-exceed-frequency-limit' => '\\ccxt\\RateLimitExceeded', // array("status":"error","err-code":"base-request-exceed-frequency-limit","err-msg":"Frequency of requests has exceeded the limit, please try again later","data":null)
+                    'rate-too-many-requests' => '\\ccxt\\RateLimitExceeded', // array("status":"error","err-code":"rate-too-many-requests","err-msg":"exceeded rate limit","data":null)
                     // err-msg
                     'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
                     'symbol trade not open now' => '\\ccxt\\BadSymbol', // array("ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now")
@@ -2223,7 +2224,7 @@ class htx extends Exchange {
         $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
-            if ($ticker['bid'] !== null && gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
+            if ($ticker['bid'] !== null && (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid'])))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
             } else {
@@ -2232,7 +2233,7 @@ class htx extends Exchange {
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
-            if ($ticker['ask'] !== null && gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
+            if ($ticker['ask'] !== null && (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask'])))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
             } else {
@@ -3047,7 +3048,7 @@ class htx extends Exchange {
             //     }
             //
             $trades = $this->safe_value($response, 'data');
-            if (gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades))) {
+            if ((gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades)))) {
                 $trades = $this->safe_value($trades, 'trades');
             }
             return $this->parse_trades($trades, $market, $since, $limit);
@@ -4084,7 +4085,7 @@ class htx extends Exchange {
             //         "ts" => 1603703678477
             //     }
             $order = $this->safe_value($response, 'data');
-            if (gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order))) {
+            if ((gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order)))) {
                 $order = $this->safe_value($order, 0);
             }
             return $this->parse_order($order);
@@ -4424,7 +4425,7 @@ class htx extends Exchange {
             //     }
             //
             $orders = $this->safe_value($response, 'data');
-            if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
+            if ((gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders)))) {
                 $orders = $this->safe_value($orders, 'orders', array());
             }
             return $this->parse_orders($orders, $market, $since, $limit);
@@ -4822,7 +4823,7 @@ class htx extends Exchange {
             //     }
             //
             $orders = $this->safe_value($response, 'data');
-            if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
+            if ((gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders)))) {
                 $orders = $this->safe_value($orders, 'orders', array());
             }
             return $this->parse_orders($orders, $market, $since, $limit);
@@ -5526,7 +5527,9 @@ class htx extends Exchange {
                 $params = $this->omit($params, array( 'clientOrderId' ));
             }
             if ($type === 'limit' || $type === 'ioc' || $type === 'fok' || $type === 'post_only') {
-                $request['price'] = $this->price_to_precision($symbol, $price);
+                if ($price !== null) {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                }
             }
         }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);

@@ -392,6 +392,7 @@ cancel multiple orders
 | symbol | <code>string</code> | No | unified market symbol, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.cancelRestrictions | <code>string</code>, <code>undefined</code> | No | Supported values: ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED. |
+| params.trigger | <code>boolean</code> | No | set to true if you would like to cancel a conditional order |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#binancecancelorderws)
@@ -2843,6 +2844,7 @@ fetches historical funding rate prices
 * [modetrade](/exchanges/modetrade.md#modetradefetchfundingratehistory)
 * [okx](/exchanges/okx.md#okxfetchfundingratehistory)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchfundingratehistory)
+* [paradex](/exchanges/paradex.md#paradexfetchfundingratehistory)
 * [phemex](/exchanges/phemex.md#phemexfetchfundingratehistory)
 * [toobit](/exchanges/toobit.md#toobitfetchfundingratehistory)
 * [woo](/exchanges/woo.md#woofetchfundingratehistory)
@@ -3899,6 +3901,7 @@ retrieves the open interest of a contract trading pair
 * [bitmart](/exchanges/bitmart.md#bitmartfetchopeninterest)
 * [bybit](/exchanges/bybit.md#bybitfetchopeninterest)
 * [delta](/exchanges/delta.md#deltafetchopeninterest)
+* [deribit](/exchanges/deribit.md#deribitfetchopeninterest)
 * [gate](/exchanges/gate.md#gatefetchopeninterest)
 * [hibachi](/exchanges/hibachi.md#hibachifetchopeninterest)
 * [hitbtc](/exchanges/hitbtc.md#hitbtcfetchopeninterest)
@@ -5089,6 +5092,7 @@ the latest known information on the availability of the exchange API
 * [foxbit](/exchanges/foxbit.md#foxbitfetchstatus)
 * [hashkey](/exchanges/hashkey.md#hashkeyfetchstatus)
 * [htx](/exchanges/htx.md#htxfetchstatus)
+* [hyperliquid](/exchanges/hyperliquid.md#hyperliquidfetchstatus)
 * [kraken](/exchanges/kraken.md#krakenfetchstatus)
 * [kucoin](/exchanges/kucoin.md#kucoinfetchstatus)
 * [kucoinfutures](/exchanges/kucoinfutures.md#kucoinfuturesfetchstatus)
@@ -5393,6 +5397,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [hashkey](/exchanges/hashkey.md#hashkeyfetchtime)
 * [hibachi](/exchanges/hibachi.md#hibachifetchtime)
 * [htx](/exchanges/htx.md#htxfetchtime)
+* [hyperliquid](/exchanges/hyperliquid.md#hyperliquidfetchtime)
 * [indodax](/exchanges/indodax.md#indodaxfetchtime)
 * [kraken](/exchanges/kraken.md#krakenfetchtime)
 * [kucoin](/exchanges/kucoin.md#kucoinfetchtime)
@@ -7791,6 +7796,7 @@ watches information on multiple trades made in a market
 * [hashkey](/exchanges/hashkey.md#hashkeywatchtrades)
 * [hollaex](/exchanges/hollaex.md#hollaexwatchtrades)
 * [htx](/exchanges/htx.md#htxwatchtrades)
+* [hyperliquid](/exchanges/hyperliquid.md#hyperliquidwatchtrades)
 * [independentreserve](/exchanges/independentreserve.md#independentreservewatchtrades)
 * [kucoin](/exchanges/kucoin.md#kucoinwatchtrades)
 * [kucoinfutures](/exchanges/kucoinfutures.md#kucoinfutureswatchtrades)

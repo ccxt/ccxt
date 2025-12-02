@@ -129,8 +129,10 @@ public partial class htx : ccxt.htx
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return ((object)requestId).ToString();
     }
 

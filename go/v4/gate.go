@@ -1004,7 +1004,6 @@ func (this *GateCore) Describe() interface{} {
 				"LOAN_RECORD_NOT_FOUND":          OrderNotFound,
 				"NO_MATCHED_LOAN":                ExchangeError,
 				"NOT_MERGEABLE":                  ExchangeError,
-				"NO_CHANGE":                      ExchangeError,
 				"REPAY_TOO_MUCH":                 ExchangeError,
 				"TOO_MANY_CURRENCY_PAIRS":        InvalidOrder,
 				"TOO_MANY_ORDERS":                InvalidOrder,
@@ -1047,6 +1046,7 @@ func (this *GateCore) Describe() interface{} {
 				"AUTO_TRIGGER_PRICE_GREATE_LAST": InvalidOrder,
 				"POSITION_HOLDING":               BadRequest,
 				"USER_LOAN_EXCEEDED":             BadRequest,
+				"NO_CHANGE":                      InvalidOrder,
 			},
 			"broad": map[string]interface{}{},
 		},
@@ -4488,7 +4488,7 @@ func (this *GateCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
 	if IsTrue(!IsEqual(pointFee, nil)) {
 		AppendToArray(&fees, map[string]interface{}{
 			"cost":     pointFee,
-			"currency": "GatePoint",
+			"currency": "GATEPOINT",
 		})
 	}
 	var takerOrMaker interface{} = this.SafeString(trade, "role")

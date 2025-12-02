@@ -848,8 +848,8 @@ class gate(ccxt.async_support.gate):
             ohlcv = result[i]
             subscription = self.safe_string(ohlcv, 'n', '')
             parts = subscription.split('_')
-            timeframe = self.safe_string(parts, 0)
-            timeframeId = self.find_timeframe(timeframe)
+            timeframeId = self.safe_string(parts, 0)
+            timeframe = self.find_timeframe(timeframeId)
             prefix = timeframe + '_'
             marketId = subscription.replace(prefix, '')
             symbol = self.safe_symbol(marketId, None, '_', marketType)
@@ -859,7 +859,7 @@ class gate(ccxt.async_support.gate):
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol][timeframeId] = stored
+                self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
             marketIds[symbol] = timeframe
         keys = list(marketIds.keys())

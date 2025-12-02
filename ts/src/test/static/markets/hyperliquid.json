@@ -1105,5 +1105,93 @@
         "tierBased": null,
         "percentage": null,
         "baseName": "xyz:MSFT"
+    },
+    "FLX-CRCL/USDH:USDH": {
+        "id": "120002",
+        "lowercaseId": null,
+        "symbol": "FLX-CRCL/USDH:USDH",
+        "base": "FLX-CRCL",
+        "quote": "USDH",
+        "settle": "USDH",
+        "baseId": "120002",
+        "quoteId": "USDH",
+        "settleId": "USDH",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 3
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "szDecimals": "2",
+            "name": "flx:CRCL",
+            "maxLeverage": "3",
+            "marginTableId": "52",
+            "onlyIsolated": true,
+            "marginMode": "strictIsolated",
+            "growthMode": "enabled",
+            "lastGrowthModeChangeTime": "2025-11-24T21:19:25.980742012",
+            "funding": "0.0000085327",
+            "openInterest": "11918.2",
+            "prevDayPx": "78.082",
+            "dayNtlVlm": "3924686.5640999996",
+            "premium": "-0.0001406919",
+            "oraclePx": "78.185",
+            "markPx": "78.146",
+            "midPx": "78.174",
+            "impactPxs": [
+                "78.138",
+                "78.21"
+            ],
+            "dayBaseVlm": "50982.49",
+            "baseId": 120002,
+            "collateralToken": "360",
+            "hip3": true,
+            "dex": "flx",
+            "collateralTokenName": "USDH"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "flx:CRCL"
     }
 }

@@ -530,6 +530,7 @@ class bitmart extends Exchange {
                 'broad' => array(
                     'You contract account available balance not enough' => '\\ccxt\\InsufficientFunds',
                     'you contract account available balance not enough' => '\\ccxt\\InsufficientFunds',
+                    'This trading pair does not support API trading' => '\\ccxt\\BadSymbol', // array("message":"This trading pair does not support API trading","code":51008,"trace":"5d3ebd46-4e7a-4505-b37b-74464f398f01","data":array())
                 ),
             ),
             'commonCurrencies' => array(
@@ -2093,7 +2094,7 @@ class bitmart extends Exchange {
         //        "v":"146"
         //    }
         //
-        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
+        if ((gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv)))) {
             return array(
                 $this->safe_timestamp($ohlcv, 0),
                 $this->safe_number($ohlcv, 1),

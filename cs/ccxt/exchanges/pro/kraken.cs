@@ -704,8 +704,10 @@ public partial class kraken : ccxt.kraken
     public virtual object requestId()
     {
         // their support said that reqid must be an int32, not documented
+        this.lockId();
         object reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
         ((IDictionary<string,object>)this.options)["reqid"] = reqid;
+        this.unlockId();
         return reqid;
     }
 
@@ -1439,7 +1441,7 @@ public partial class kraken : ccxt.kraken
                 object id = this.safeString(order, "order_id");
                 object parsed = this.parseWsOrder(order);
                 object symbol = this.safeString(order, "symbol");
-                object previousOrders = this.safeValue((stored as ArrayCacheBySymbolById).hashmap, symbol);
+                object previousOrders = this.safeValue((stored as ArrayCache).hashmap, symbol);
                 object previousOrder = this.safeValue(previousOrders, id);
                 object newOrder = parsed;
                 if (isTrue(!isEqual(previousOrder, null)))

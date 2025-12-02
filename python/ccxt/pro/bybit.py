@@ -848,14 +848,14 @@ class bybit(ccxt.async_support.bybit):
         params = self.clean_params(params)
         market = self.market(symbols[0])
         if limit is None:
-            limit = 50 if (market['spot']) else 500
+            limit = 50
             if market['option']:
                 limit = 100
         else:
             limits = {
                 'spot': [1, 50, 200, 1000],
                 'option': [25, 100],
-                'default': [1, 50, 200, 500, 1000],
+                'default': [1, 50, 200, 1000],
             }
             selectedLimits = self.safe_list_2(limits, market['type'], 'default')
             if not self.in_array(limit, selectedLimits):

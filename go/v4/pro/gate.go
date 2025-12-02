@@ -1270,8 +1270,8 @@ func  (this *GateCore) HandleOHLCV(client interface{}, message interface{})  {
         var ohlcv interface{} = ccxt.GetValue(result, i)
         var subscription interface{} = this.SafeString(ohlcv, "n", "")
         var parts interface{} = ccxt.Split(subscription, "_")
-        var timeframe interface{} = this.SafeString(parts, 0)
-        var timeframeId interface{} = this.FindTimeframe(timeframe)
+        var timeframeId interface{} = this.SafeString(parts, 0)
+        var timeframe interface{} = this.FindTimeframe(timeframeId)
         var prefix interface{} = ccxt.Add(timeframe, "_")
         var marketId interface{} = ccxt.Replace(subscription, prefix, "")
         var symbol interface{} = this.SafeSymbol(marketId, nil, "_", marketType)
@@ -1281,7 +1281,7 @@ func  (this *GateCore) HandleOHLCV(client interface{}, message interface{})  {
         if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
             var limit interface{} = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
             stored = ccxt.NewArrayCacheByTimestamp(limit)
-            ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframeId, stored)
+            ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
         }
         stored.(ccxt.Appender).Append(parsed)
         ccxt.AddElementToObject(marketIds, symbol, timeframe)
