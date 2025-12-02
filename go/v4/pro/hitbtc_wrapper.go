@@ -189,13 +189,12 @@ func (this *Hitbtc) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
  * @method
  * @name hitbtc#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://doc.xt.com/#websocket_publicsymbolKline
- * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+ * @see https://api.hitbtc.com/#subscribe-to-candles
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
- * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
- * @param {int} [since] not used by xt watchOHLCV
- * @param {int} [limit] not used by xt watchOHLCV
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {string} [timeframe] the length of time each candle represents
+ * @param {int} [since] not used by hitbtc watchOHLCV
+ * @param {int} [limit] 0 – 1000, default value = 0 (no history returned)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Hitbtc) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {
@@ -443,9 +442,12 @@ func (this *Hitbtc) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions) 
 // missing typed methods from base
 //nolint
 func (this *Hitbtc) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Hitbtc) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrders(ids, options...)}
+func (this *Hitbtc) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...ccxt.CancelOrdersWithClientOrderIdsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
 func (this *Hitbtc) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelAllOrders(options...)}
 func (this *Hitbtc) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]interface{}, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
 func (this *Hitbtc) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrder(id, options...)}
+func (this *Hitbtc) CancelOrderWithClientOrderId(clientOrderId string, options ...ccxt.CancelOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Hitbtc) CancelOrdersForSymbols(orders []ccxt.CancellationRequest, options ...ccxt.CancelOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)}
 func (this *Hitbtc) CreateConvertTrade(id string, fromCode string, toCode string, options ...ccxt.CreateConvertTradeOptions) (ccxt.Conversion, error) {return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)}
 func (this *Hitbtc) CreateDepositAddress(code string, options ...ccxt.CreateDepositAddressOptions) (ccxt.DepositAddress, error) {return this.exchangeTyped.CreateDepositAddress(code, options...)}
@@ -475,6 +477,7 @@ func (this *Hitbtc) EditLimitBuyOrder(id string, symbol string, amount float64, 
 func (this *Hitbtc) EditLimitOrder(id string, symbol string, side string, amount float64, options ...ccxt.EditLimitOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)}
 func (this *Hitbtc) EditLimitSellOrder(id string, symbol string, amount float64, options ...ccxt.EditLimitSellOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)}
 func (this *Hitbtc) EditOrder(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)}
+func (this *Hitbtc) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
 func (this *Hitbtc) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
 func (this *Hitbtc) FetchAccounts(params ...interface{}) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
 func (this *Hitbtc) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
@@ -536,6 +539,7 @@ func (this *Hitbtc) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]c
 func (this *Hitbtc) FetchOption(symbol string, options ...ccxt.FetchOptionOptions) (ccxt.Option, error) {return this.exchangeTyped.FetchOption(symbol, options...)}
 func (this *Hitbtc) FetchOptionChain(code string, options ...ccxt.FetchOptionChainOptions) (ccxt.OptionChain, error) {return this.exchangeTyped.FetchOptionChain(code, options...)}
 func (this *Hitbtc) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.FetchOrder(id, options...)}
+func (this *Hitbtc) FetchOrderWithClientOrderId(clientOrderId string, options ...ccxt.FetchOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Hitbtc) FetchOrderBook(symbol string, options ...ccxt.FetchOrderBookOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.FetchOrderBook(symbol, options...)}
 func (this *Hitbtc) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.OrderBooks, error) {return this.exchangeTyped.FetchOrderBooks(options...)}
 func (this *Hitbtc) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOrders(options...)}

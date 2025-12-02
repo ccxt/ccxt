@@ -419,8 +419,11 @@ export default class bybit extends Exchange {
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
                         // earn
+                        'v5/earn/product': 5,
                         'v5/earn/order': 5,
                         'v5/earn/position': 5,
+                        'v5/earn/yield': 5,
+                        'v5/earn/hourly-yield': 5,
                     },
                     'post': {
                         // spot
@@ -514,6 +517,7 @@ export default class bybit extends Exchange {
                         'v5/account/mmp-reset': 5,
                         'v5/account/borrow': 5,
                         'v5/account/repay': 5,
+                        'v5/account/no-convert-repay': 5,
                         // asset
                         'v5/asset/exchange/quote-apply': 1, // 50/s
                         'v5/asset/exchange/convert-execute': 1, // 50/s
@@ -3939,7 +3943,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
      * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
      * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
-     * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+     * @param {string} [params.tpslMode] *contract only* 'Full' or 'Partial'
      * @param {string} [params.mmp] *option only* market maker protection
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -4061,21 +4065,30 @@ export default class bybit extends Exchange {
                 throw new InvalidOrder (this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                const tpslMode = this.safeString (params, 'tpslMode', 'Partial');
+                const isFullTpsl = tpslMode === 'Full';
+                const isPartialTpsl = tpslMode === 'Partial';
+                if (isLimit && isFullTpsl) {
+                    throw new InvalidOrder (this.id + ' tpsl orders with "full" tpslMode only support "market" type');
+                }
+                request['tpslMode'] = tpslMode;
                 if (isStopLossTriggerOrder) {
                     request['stopLoss'] = this.getPrice (symbol, stopLossTriggerPrice);
+                    if (isPartialTpsl) {
+                        request['slSize'] = amountString;
+                    }
                     if (isLimit) {
-                        request['tpslMode'] = 'Partial';
                         request['slOrderType'] = 'Limit';
                         request['slLimitPrice'] = priceString;
-                        request['slSize'] = amountString;
                     }
                 } else if (isTakeProfitTriggerOrder) {
                     request['takeProfit'] = this.getPrice (symbol, takeProfitTriggerPrice);
+                    if (isPartialTpsl) {
+                        request['tpSize'] = amountString;
+                    }
                     if (isLimit) {
-                        request['tpslMode'] = 'Partial';
                         request['tpOrderType'] = 'Limit';
                         request['tpLimitPrice'] = priceString;
-                        request['tpSize'] = amountString;
                     }
                 }
             }
@@ -4241,7 +4254,7 @@ export default class bybit extends Exchange {
             }
             request['positionIdx'] = (side === 'buy') ? 1 : 2;
         }
-        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged' ]);
+        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged', 'tpslMode' ]);
         return this.extend (request, params);
     }
 
@@ -4342,7 +4355,7 @@ export default class bybit extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
-            'orderId': id,
+            // 'orderId': id,
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
             // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
@@ -4353,6 +4366,12 @@ export default class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
+        const clientOrderId = this.safeString2 (params, 'orderLinkId', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        } else {
+            request['orderLinkId'] = clientOrderId;
+        }
         let category = undefined;
         [ category, params ] = this.getBybitType ('editOrderRequest', market, params);
         request['category'] = category;
@@ -4396,10 +4415,6 @@ export default class bybit extends Exchange {
                 request['tpTriggerBy'] = tpTriggerBy;
             }
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['orderLinkId'] = clientOrderId;
-        }
         params = this.omit (params, [ 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
         return request;
     }
@@ -4418,6 +4433,7 @@ export default class bybit extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] unique client order id
      * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
@@ -4435,6 +4451,7 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
         }
+        const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, params);
         const response = await this.privatePostV5OrderAmend (this.extend (request, params));
         //
@@ -4453,7 +4470,8 @@ export default class bybit extends Exchange {
         return this.safeOrder ({
             'info': response,
             'id': this.safeString (result, 'orderId'),
-        });
+            'clientOrderId': this.safeString (result, 'orderLinkId'),
+        }, market);
     }
 
     /**
@@ -7444,7 +7462,7 @@ export default class bybit extends Exchange {
      * @method
      * @name bybit#borrowCrossMargin
      * @description create a loan to borrow margin
-     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+     * @see https://bybit-exchange.github.io/docs/v5/account/borrow
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7455,33 +7473,30 @@ export default class bybit extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
-            'qty': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostV5SpotCrossMarginTradeLoan (this.extend (request, params));
+        const response = await this.privatePostV5AccountBorrow (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //             "transactId": "14143"
+        //             "coin": "BTC",
+        //             "amount": "0.001"
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1662617848970
+        //         "retExtInfo": {},
+        //         "time": 1763194940073
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const transaction = this.parseMarginLoan (result, currency);
-        return this.extend (transaction, {
-            'symbol': undefined,
-            'amount': amount,
-        });
+        return this.parseMarginLoan (result, currency);
     }
 
     /**
      * @method
      * @name bybit#repayCrossMargin
      * @description repay borrowed margin and interest
-     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+     * @see https://bybit-exchange.github.io/docs/v5/account/no-convert-repay
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7492,24 +7507,23 @@ export default class bybit extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
-            'qty': this.numberToString (amount),
+            'amount': this.numberToString (amount),
         };
-        const response = await this.privatePostV5SpotCrossMarginTradeRepay (this.extend (request, params));
+        const response = await this.privatePostV5AccountNoConvertRepay (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //            "repayId": "12128"
+        //             "resultStatus": "SU"
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1662618298452
+        //         "retExtInfo": {},
+        //         "time": 1763195201119
         //     }
         //
         const result = this.safeDict (response, 'result', {});
         const transaction = this.parseMarginLoan (result, currency);
         return this.extend (transaction, {
-            'symbol': undefined,
             'amount': amount,
         });
     }
@@ -7519,19 +7533,21 @@ export default class bybit extends Exchange {
         // borrowCrossMargin
         //
         //     {
-        //         "transactId": "14143"
+        //         "coin": "BTC",
+        //         "amount": "0.001"
         //     }
         //
         // repayCrossMargin
         //
         //     {
-        //         "repayId": "12128"
+        //         "resultStatus": "SU"
         //     }
         //
+        const currencyId = this.safeString (info, 'coin');
         return {
-            'id': this.safeString2 (info, 'transactId', 'repayId'),
-            'currency': this.safeString (currency, 'code'),
-            'amount': undefined,
+            'id': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeString (info, 'amount'),
             'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,

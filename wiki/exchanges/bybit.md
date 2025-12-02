@@ -527,7 +527,7 @@ create a trade order
 | params.positionIdx | <code>string</code> | No | *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode |
 | params.hedged | <code>bool</code> | No | *contracts only* true for hedged mode, false for one way mode, default is false |
 | params.isLeverage | <code>int</code> | No | *unified spot only* false then spot trading true then margin trading |
-| params.tpslMode | <code>string</code> | No | *contract only* 'full' or 'partial' |
+| params.tpslMode | <code>string</code> | No | *contract only* 'Full' or 'Partial' |
 | params.mmp | <code>string</code> | No | *option only* market maker protection |
 | params.triggerDirection | <code>string</code> | No | *contract only* the direction for trigger orders, 'ascending' or 'descending' |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
@@ -591,6 +591,7 @@ edit a trade order
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | unique client order id |
 | params.triggerPrice | <code>float</code> | No | The price that a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | The price that a stop loss order is triggered at |
 | params.takeProfitPrice | <code>float</code> | No | The price that a take profit order is triggered at |
@@ -1542,7 +1543,7 @@ create a loan to borrow margin
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
 
-**See**: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow  
+**See**: https://bybit-exchange.github.io/docs/v5/account/borrow  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1564,7 +1565,7 @@ repay borrowed margin and interest
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
 
-**See**: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay  
+**See**: https://bybit-exchange.github.io/docs/v5/account/no-convert-repay  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

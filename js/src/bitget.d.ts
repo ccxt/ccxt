@@ -363,6 +363,7 @@ export default class bitget extends Exchange {
      * @name bitget#editOrder
      * @description edit a trade order
      * @see https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+     * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
      * @see https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
      * @see https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -444,9 +445,8 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
      * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-     * @see https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading

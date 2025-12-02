@@ -72,9 +72,9 @@ export default class paradex extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': false,
@@ -632,6 +632,7 @@ export default class paradex extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.price] "last", "mark", "index", default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -644,7 +645,11 @@ export default class paradex extends Exchange {
         const now = this.milliseconds();
         const duration = this.parseTimeframe(timeframe);
         const until = this.safeInteger2(params, 'until', 'till', now);
-        params = this.omit(params, ['until', 'till']);
+        const price = this.safeString(params, 'price');
+        if (price !== undefined) {
+            request['price_kind'] = price;
+        }
+        params = this.omit(params, ['until', 'till', 'price']);
         if (since !== undefined) {
             request['start_at'] = since;
             if (limit !== undefined) {
@@ -2527,6 +2532,76 @@ export default class paradex extends Exchange {
             'underlyingPrice': this.safeNumber(greeks, 'underlying_price'),
             'info': greeks,
         };
+    }
+    /**
+     * @method
+     * @name paradex#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.paradex.trade/api/prod/markets/get-funding-data
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['page_size'] = Math.min(limit, 5000); // api maximum 5000
+        }
+        else {
+            request['page_size'] = 1000; // max is 5000
+        }
+        if (since !== undefined) {
+            request['start_at'] = since;
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['end_at'] = until;
+        }
+        const response = await this.publicGetFundingData(this.extend(request, params));
+        //
+        // {
+        //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+        //     "prev": "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+        //     "results": [
+        //          {
+        //              "market":"BTC-USD-PERP",
+        //              "funding_index":"20511.93608234044552",
+        //              "funding_premium":"-6.04646651485986656",
+        //              "funding_rate":"-0.00006992598926",
+        //              "funding_rate_8h":"",
+        //              "funding_period_hours":0,
+        //              "created_at":1764160327843
+        //          }
+        //     ]
+        // }
+        //
+        const results = this.safeList(response, 'results', []);
+        const rates = [];
+        for (let i = 0; i < results.length; i++) {
+            const rate = results[i];
+            const timestamp = this.safeInteger(rate, 'created_at');
+            const datetime = this.iso8601(timestamp);
+            rates.push({
+                'info': rate,
+                'symbol': market['symbol'],
+                'fundingRate': this.safeNumber(rate, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': datetime,
+            });
+        }
+        const sorted = this.sortBy(rates, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname(this.urls['api'][this.version]) + '/' + this.implodeParams(path, params);

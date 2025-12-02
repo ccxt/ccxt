@@ -1,5 +1,5 @@
 import Exchange from './abstract/kraken.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, Position, OrderRequest } from './base/types.js';
 /**
  * @class kraken
  * @augments Exchange
@@ -196,6 +196,16 @@ export default class kraken extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    /**
+     * @method
+     * @name kraken#createOrders
+     * @description create a list of trade orders
+     * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     findMarketByAltnameOrId(id: any): any;
     getDelistedMarketById(id: any): any;
     parseOrderStatus(status: Str): string;

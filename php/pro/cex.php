@@ -54,8 +54,10 @@ class cex extends \ccxt\async\cex {
     }
 
     public function request_id() {
+        $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
+        $this->unlock_id();
         return (string) $requestId;
     }
 
@@ -210,7 +212,7 @@ class cex extends \ccxt\async\cex {
         //  update $trade
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
-        if (gettype($trade) !== 'array' || array_keys($trade) !== array_keys(array_keys($trade))) {
+        if ((gettype($trade) !== 'array' || array_keys($trade) !== array_keys(array_keys($trade)))) {
             $trade = explode(':', $trade);
         }
         $side = $this->safe_string($trade, 0);

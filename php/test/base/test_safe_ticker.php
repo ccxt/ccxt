@@ -15,7 +15,7 @@ function precise_equal_str($exchange, $result, $key, $expected) {
 
 
 function test_safe_ticker() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
     // CASE 1 - by open

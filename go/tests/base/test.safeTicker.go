@@ -125,5 +125,5 @@ func TestSafeTicker() {
 	Assert(PreciseEqualStr(exchange, result8, "previousClose", "4.9"))
 	Assert(PreciseEqualStr(exchange, result8, "indexPrice", "5.8"))
 	Assert(PreciseEqualStr(exchange, result8, "markPrice", "5.9"))
-	Assert(!IsEqual(GetValue(result8, "info"), nil))
+	Assert(!ccxt.IsEqual(ccxt.GetValue(result8, "info"), nil))
 }

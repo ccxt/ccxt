@@ -123,6 +123,10 @@ func (this *BingxCore) SpotV2PublicGetMarketKline(args ...interface{}) <-chan in
 	return this.callEndpointAsync("spotV2PublicGetMarketKline", args...)
 }
 
+func (this *BingxCore) SpotV2PublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV2PublicGetTickerPrice", args...)
+}
+
 func (this *BingxCore) SpotV3PrivateGetGetAssetTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotV3PrivateGetGetAssetTransfer", args...)
 }
@@ -205,6 +209,10 @@ func (this *BingxCore) SwapV1PrivateGetTradeAssetMode(args ...interface{}) <-cha
 
 func (this *BingxCore) SwapV1PrivateGetUserMarginAssets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("swapV1PrivateGetUserMarginAssets", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTradeAmend(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTradeAmend", args...)
 }
 
 func (this *BingxCore) SwapV1PrivatePostTradeCancelReplace(args ...interface{}) <-chan interface{} {
@@ -635,12 +643,48 @@ func (this *BingxCore) CopyTradingV1PrivateGetSwapTraceCurrentTrack(args ...inte
 	return this.callEndpointAsync("copyTradingV1PrivateGetSwapTraceCurrentTrack", args...)
 }
 
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesTraderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesTraderDetail", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesProfitHistorySummarys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesProfitHistorySummarys", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesProfitDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesProfitDetail", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesTradingPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesTradingPairs", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetSpotTraderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetSpotTraderDetail", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetSpotProfitHistorySummarys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetSpotProfitHistorySummarys", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetSpotProfitDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetSpotProfitDetail", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetSpotHistoryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetSpotHistoryOrder", args...)
+}
+
 func (this *BingxCore) CopyTradingV1PrivatePostSwapTraceCloseTrackOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("copyTradingV1PrivatePostSwapTraceCloseTrackOrder", args...)
 }
 
 func (this *BingxCore) CopyTradingV1PrivatePostSwapTraceSetTPSL(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("copyTradingV1PrivatePostSwapTraceSetTPSL", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivatePostPFuturesSetCommission(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivatePostPFuturesSetCommission", args...)
 }
 
 func (this *BingxCore) CopyTradingV1PrivatePostSpotTraderSellOrder(args ...interface{}) <-chan interface{} {

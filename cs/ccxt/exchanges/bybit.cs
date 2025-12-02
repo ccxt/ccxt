@@ -376,8 +376,11 @@ public partial class bybit : Exchange
                         { "v5/broker/earnings-info", 5 },
                         { "v5/broker/account-info", 5 },
                         { "v5/broker/asset/query-sub-member-deposit-record", 10 },
+                        { "v5/earn/product", 5 },
                         { "v5/earn/order", 5 },
                         { "v5/earn/position", 5 },
+                        { "v5/earn/yield", 5 },
+                        { "v5/earn/hourly-yield", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "spot/v3/private/order", 2.5 },
@@ -462,6 +465,7 @@ public partial class bybit : Exchange
                         { "v5/account/mmp-reset", 5 },
                         { "v5/account/borrow", 5 },
                         { "v5/account/repay", 5 },
+                        { "v5/account/no-convert-repay", 5 },
                         { "v5/asset/exchange/quote-apply", 1 },
                         { "v5/asset/exchange/convert-execute", 1 },
                         { "v5/asset/transfer/inter-transfer", 50 },
@@ -4102,7 +4106,7 @@ public partial class bybit : Exchange
      * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
      * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
      * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
-     * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+     * @param {string} [params.tpslMode] *contract only* 'Full' or 'Partial'
      * @param {string} [params.mmp] *option only* market maker protection
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -4221,25 +4225,37 @@ public partial class bybit : Exchange
             }
             if (isTrue(isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder)))
             {
+                object tpslMode = this.safeString(parameters, "tpslMode", "Partial");
+                object isFullTpsl = isEqual(tpslMode, "Full");
+                object isPartialTpsl = isEqual(tpslMode, "Partial");
+                if (isTrue(isTrue(isLimit) && isTrue(isFullTpsl)))
+                {
+                    throw new InvalidOrder ((string)add(this.id, " tpsl orders with \"full\" tpslMode only support \"market\" type")) ;
+                }
+                ((IDictionary<string,object>)request)["tpslMode"] = tpslMode;
                 if (isTrue(isStopLossTriggerOrder))
                 {
                     ((IDictionary<string,object>)request)["stopLoss"] = this.getPrice(symbol, stopLossTriggerPrice);
+                    if (isTrue(isPartialTpsl))
+                    {
+                        ((IDictionary<string,object>)request)["slSize"] = amountString;
+                    }
                     if (isTrue(isLimit))
                     {
-                        ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
                         ((IDictionary<string,object>)request)["slOrderType"] = "Limit";
                         ((IDictionary<string,object>)request)["slLimitPrice"] = priceString;
-                        ((IDictionary<string,object>)request)["slSize"] = amountString;
                     }
                 } else if (isTrue(isTakeProfitTriggerOrder))
                 {
                     ((IDictionary<string,object>)request)["takeProfit"] = this.getPrice(symbol, takeProfitTriggerPrice);
+                    if (isTrue(isPartialTpsl))
+                    {
+                        ((IDictionary<string,object>)request)["tpSize"] = amountString;
+                    }
                     if (isTrue(isLimit))
                     {
-                        ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
                         ((IDictionary<string,object>)request)["tpOrderType"] = "Limit";
                         ((IDictionary<string,object>)request)["tpLimitPrice"] = priceString;
-                        ((IDictionary<string,object>)request)["tpSize"] = amountString;
                     }
                 }
             }
@@ -4460,7 +4476,7 @@ public partial class bybit : Exchange
             }
             ((IDictionary<string,object>)request)["positionIdx"] = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 2;
         }
-        parameters = this.omit(parameters, new List<object>() {"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"});
+        parameters = this.omit(parameters, new List<object>() {"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged", "tpslMode"});
         return this.extend(request, parameters);
     }
 
@@ -4571,8 +4587,15 @@ public partial class bybit : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "orderId", id },
         };
+        object clientOrderId = this.safeString2(parameters, "orderLinkId", "clientOrderId");
+        if (isTrue(isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["orderId"] = id;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderLinkId"] = clientOrderId;
+        }
         object category = null;
         var categoryparametersVariable = this.getBybitType("editOrderRequest", market, parameters);
         category = ((IList<object>)categoryparametersVariable)[0];
@@ -4625,11 +4648,6 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)request)["tpTriggerBy"] = tpTriggerBy;
             }
         }
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
-        if (isTrue(!isEqual(clientOrderId, null)))
-        {
-            ((IDictionary<string,object>)request)["orderLinkId"] = clientOrderId;
-        }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "stopLossPrice", "takeProfitPrice", "triggerPrice", "clientOrderId", "stopLoss", "takeProfit"});
         return request;
     }
@@ -4648,6 +4666,7 @@ public partial class bybit : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] unique client order id
      * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
@@ -4668,6 +4687,7 @@ public partial class bybit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a symbol argument")) ;
         }
+        object market = this.market(symbol);
         object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = await this.privatePostV5OrderAmend(this.extend(request, parameters));
         //
@@ -4686,7 +4706,8 @@ public partial class bybit : Exchange
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
             { "id", this.safeString(result, "orderId") },
-        });
+            { "clientOrderId", this.safeString(result, "orderLinkId") },
+        }, market);
     }
 
     /**
@@ -7977,7 +7998,7 @@ public partial class bybit : Exchange
      * @method
      * @name bybit#borrowCrossMargin
      * @description create a loan to borrow margin
-     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+     * @see https://bybit-exchange.github.io/docs/v5/account/borrow
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7990,33 +8011,30 @@ public partial class bybit : Exchange
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
-            { "qty", this.currencyToPrecision(code, amount) },
+            { "amount", this.currencyToPrecision(code, amount) },
         };
-        object response = await this.privatePostV5SpotCrossMarginTradeLoan(this.extend(request, parameters));
+        object response = await this.privatePostV5AccountBorrow(this.extend(request, parameters));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //             "transactId": "14143"
+        //             "coin": "BTC",
+        //             "amount": "0.001"
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1662617848970
+        //         "retExtInfo": {},
+        //         "time": 1763194940073
         //     }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object transaction = this.parseMarginLoan(result, currency);
-        return this.extend(transaction, new Dictionary<string, object>() {
-            { "symbol", null },
-            { "amount", amount },
-        });
+        return this.parseMarginLoan(result, currency);
     }
 
     /**
      * @method
      * @name bybit#repayCrossMargin
      * @description repay borrowed margin and interest
-     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+     * @see https://bybit-exchange.github.io/docs/v5/account/no-convert-repay
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8029,24 +8047,23 @@ public partial class bybit : Exchange
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
-            { "qty", this.numberToString(amount) },
+            { "amount", this.numberToString(amount) },
         };
-        object response = await this.privatePostV5SpotCrossMarginTradeRepay(this.extend(request, parameters));
+        object response = await this.privatePostV5AccountNoConvertRepay(this.extend(request, parameters));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //            "repayId": "12128"
+        //             "resultStatus": "SU"
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1662618298452
+        //         "retExtInfo": {},
+        //         "time": 1763195201119
         //     }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object transaction = this.parseMarginLoan(result, currency);
         return this.extend(transaction, new Dictionary<string, object>() {
-            { "symbol", null },
             { "amount", amount },
         });
     }
@@ -8057,19 +8074,21 @@ public partial class bybit : Exchange
         // borrowCrossMargin
         //
         //     {
-        //         "transactId": "14143"
+        //         "coin": "BTC",
+        //         "amount": "0.001"
         //     }
         //
         // repayCrossMargin
         //
         //     {
-        //         "repayId": "12128"
+        //         "resultStatus": "SU"
         //     }
         //
+        object currencyId = this.safeString(info, "coin");
         return new Dictionary<string, object>() {
-            { "id", this.safeString2(info, "transactId", "repayId") },
-            { "currency", this.safeString(currency, "code") },
-            { "amount", null },
+            { "id", null },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "amount", this.safeString(info, "amount") },
             { "symbol", null },
             { "timestamp", null },
             { "datetime", null },

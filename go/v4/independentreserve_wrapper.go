@@ -477,11 +477,20 @@ func (this *Independentreserve) Withdraw(code string, amount float64, address st
 func (this *Independentreserve) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Independentreserve) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrders(ids, options...)
+}
+func (this *Independentreserve) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
 func (this *Independentreserve) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
 func (this *Independentreserve) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Independentreserve) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Independentreserve) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -566,6 +575,9 @@ func (this *Independentreserve) EditLimitSellOrder(id string, symbol string, amo
 }
 func (this *Independentreserve) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
+}
+func (this *Independentreserve) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Independentreserve) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
@@ -728,6 +740,9 @@ func (this *Independentreserve) FetchOption(symbol string, options ...FetchOptio
 }
 func (this *Independentreserve) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
+}
+func (this *Independentreserve) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Independentreserve) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)

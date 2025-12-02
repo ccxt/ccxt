@@ -124,8 +124,10 @@ class kucoin(ccxt.async_support.kucoin):
         return None
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return requestId
 
     async def subscribe(self, url, messageHash, subscriptionHash, params={}, subscription=None):

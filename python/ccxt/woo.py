@@ -219,9 +219,7 @@ class woo(Exchange, ImplicitAPI):
                         'post': {
                             'order': 1,  # 10 requests per 1 second per symbol
                             'order/cancel_all_after': 1,
-                            'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/ltv': 30,
-                            'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#token-withdraw
                             'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
@@ -295,7 +293,6 @@ class woo(Exchange, ImplicitAPI):
                             'spotMargin/maxMargin': 60,  # 10/60s
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
-                            'balances': 1,
                             'positions': 3.33,
                             'buypower': 1,
                             'convert/exchangeInfo': 1,
@@ -2324,7 +2321,7 @@ class woo(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        response = self.v3PrivateGetBalances(params)
+        response = self.v3PrivateGetAssetBalances(params)
         #
         #     {
         #         "success": True,
@@ -2644,13 +2641,13 @@ class woo(Exchange, ImplicitAPI):
         networkizedCode = self.safe_string(transaction, 'token')
         currencyDefined = self.get_currency_from_chaincode(networkizedCode, currency)
         code = currencyDefined['code']
-        movementDirection = self.safe_string_lower_2(transaction, 'token_side', 'tokenSide')
+        movementDirection = self.safe_string_lower_n(transaction, ['token_side', 'tokenSide', 'type'])
         if movementDirection == 'withdraw':
             movementDirection = 'withdrawal'
         fee = self.parse_token_and_fee_temp(transaction, ['fee_token', 'feeToken'], ['fee_amount', 'feeAmount'])
-        addressTo = self.safe_string_2(transaction, 'target_address', 'targetAddress')
+        addressTo = self.safe_string_n(transaction, ['target_address', 'targetAddress', 'addressTo'])
         addressFrom = self.safe_string_2(transaction, 'source_address', 'sourceAddress')
-        timestamp = self.safe_timestamp_2(transaction, 'created_time', 'createdTime')
+        timestamp = self.safe_timestamp_n(transaction, ['created_time', 'createdTime'], self.safe_integer(transaction, 'timestamp'))
         return {
             'info': transaction,
             'id': self.safe_string_n(transaction, ['id', 'withdraw_id', 'withdrawId']),
@@ -2660,7 +2657,7 @@ class woo(Exchange, ImplicitAPI):
             'address': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
-            'tag': self.safe_string(transaction, 'extra'),
+            'tag': self.safe_string_2(transaction, 'extra', 'tag'),
             'tagFrom': None,
             'tagTo': None,
             'type': movementDirection,
@@ -2671,7 +2668,7 @@ class woo(Exchange, ImplicitAPI):
             'comment': None,
             'internal': None,
             'fee': fee,
-            'network': None,
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network')),
         }
 
     def parse_transaction_status(self, status: Str):
@@ -2702,17 +2699,25 @@ class woo(Exchange, ImplicitAPI):
         request: dict = {
             'token': currency['id'],
             'amount': self.parse_to_numeric(amount),
-            'from_application_id': fromAccount,
-            'to_application_id': toAccount,
+            'from': {
+                'applicationId': fromAccount,
+            },
+            'to': {
+                'applicationId': toAccount,
+            },
         }
-        response = self.v1PrivatePostAssetMainSubTransfer(self.extend(request, params))
+        response = self.v3PrivatePostAssetTransfer(self.extend(request, params))
         #
         #     {
         #         "success": True,
         #         "id": 200
         #     }
         #
-        transfer = self.parse_transfer(response, currency)
+        data = self.safe_dict(response, 'data', {})
+        data['timestamp'] = self.safe_integer(response, 'timestamp')
+        data['token'] = currency['id']
+        data['status'] = 'ok'
+        transfer = self.parse_transfer(data, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
@@ -2821,7 +2826,7 @@ class woo(Exchange, ImplicitAPI):
         #        }
         #
         code = self.safe_currency_code(self.safe_string(transfer, 'token'), currency)
-        timestamp = self.safe_timestamp(transfer, 'createdTime')
+        timestamp = self.safe_timestamp_2(transfer, 'createdTime', 'timestamp')
         success = self.safe_bool(transfer, 'success')
         status: Str = None
         if success is not None:
@@ -2854,7 +2859,7 @@ class woo(Exchange, ImplicitAPI):
         """
         make a withdrawal
 
-        https://docs.woox.io/#token-withdraw
+        https://docs.woox.io/#token-withdraw-v3
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2873,17 +2878,32 @@ class woo(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['extra'] = tag
-        specialNetworkId: Str = None
-        specialNetworkId, params = self.get_dedicated_network_id(currency, params)
-        request['token'] = specialNetworkId
-        response = self.v1PrivatePostAssetWithdraw(self.extend(request, params))
+        network = self.safe_string(params, 'network')
+        if network is None:
+            raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter for ' + code)
+        params = self.omit(params, 'network')
+        request['token'] = currency['id']
+        request['network'] = self.network_code_to_id(network)
+        response = self.v3PrivatePostAssetWalletWithdraw(self.extend(request, params))
         #
         #     {
         #         "success": True,
         #         "withdraw_id": "20200119145703654"
         #     }
         #
-        return self.parse_transaction(response, currency)
+        data = self.safe_dict(response, 'data', {})
+        transactionData = self.extend(data, {
+            'id': self.safe_string(data, 'withdrawId'),
+            'timestamp': self.safe_integer(response, 'timestamp'),
+            'currency': code,
+            'amount': amount,
+            'addressTo': address,
+            'tag': tag,
+            'network': network,
+            'type': 'withdrawal',
+            'status': 'pending',
+        })
+        return self.parse_transaction(transactionData, currency)
 
     def repay_margin(self, code: str, amount: float, symbol: Str = None, params={}):
         """

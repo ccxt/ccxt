@@ -7,7 +7,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
+
 
 function test_ohlcv($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
     $format = [1638230400000, $exchange->parse_number('0.123'), $exchange->parse_number('0.125'), $exchange->parse_number('0.121'), $exchange->parse_number('0.122'), $exchange->parse_number('123.456')];

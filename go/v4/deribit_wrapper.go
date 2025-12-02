@@ -1330,13 +1330,50 @@ func (this *Deribit) FetchOptionChain(code string, options ...FetchOptionChainOp
 	return NewOptionChain(res), nil
 }
 
+/**
+ * @method
+ * @name deribit#fetchOpenInterest
+ * @description Retrieves the open interest of a symbol
+ * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ */
+func (this *Deribit) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+
+	opts := FetchOpenInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterest(symbol, params)
+	if IsError(res) {
+		return OpenInterest{}, CreateReturnError(res)
+	}
+	return NewOpenInterest(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Deribit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Deribit) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrders(ids, options...)
+}
+func (this *Deribit) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
 func (this *Deribit) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Deribit) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Deribit) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -1415,6 +1452,9 @@ func (this *Deribit) EditLimitOrder(id string, symbol string, side string, amoun
 }
 func (this *Deribit) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
+}
+func (this *Deribit) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Deribit) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
@@ -1533,14 +1573,14 @@ func (this *Deribit) FetchMarkPrice(symbol string, options ...FetchMarkPriceOpti
 func (this *Deribit) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchMarkPrices(options...)
 }
-func (this *Deribit) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
-}
 func (this *Deribit) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
 }
 func (this *Deribit) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
 	return this.exchangeTyped.FetchOpenInterests(options...)
+}
+func (this *Deribit) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Deribit) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)

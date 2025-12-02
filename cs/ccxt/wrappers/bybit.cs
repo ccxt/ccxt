@@ -449,7 +449,7 @@ public partial class bybit
     /// <item>
     /// <term>params.tpslMode</term>
     /// <description>
-    /// string : *contract only* 'full' or 'partial'
+    /// string : *contract only* 'Full' or 'Partial'
     /// </description>
     /// </item>
     /// <item>
@@ -560,6 +560,12 @@ public partial class bybit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : unique client order id
     /// </description>
     /// </item>
     /// <item>

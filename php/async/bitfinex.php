@@ -55,6 +55,7 @@ class bitfinex extends Exchange {
                 'createTrailingPercentOrder' => false,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
@@ -75,6 +76,7 @@ class bitfinex extends Exchange {
                 'fetchFundingRate' => 'emulated', // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -92,6 +94,8 @@ class bitfinex extends Exchange {
                 'fetchOpenInterests' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
@@ -107,6 +111,7 @@ class bitfinex extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => null,
                 'fetchTransactions' => 'emulated',
+                'fetchVolatilityHistory' => false,
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
@@ -3060,7 +3065,7 @@ class bitfinex extends Exchange {
     public function handle_errors($statusCode, $statusText, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         // ["error", 11010, "ratelimit => error"]
         if ($response !== null) {
-            if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
+            if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
                 $message = $this->safe_string_2($response, 'message', 'error');
                 $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);

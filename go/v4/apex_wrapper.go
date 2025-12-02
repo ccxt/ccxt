@@ -377,6 +377,8 @@ func (this *Apex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
  * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+ * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+ * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
  * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
  * @param {bool} [params.postOnly] true or false
  * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -852,8 +854,17 @@ func (this *Apex) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
 func (this *Apex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Apex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrders(ids, options...)
+}
+func (this *Apex) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
 func (this *Apex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Apex) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Apex) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -938,6 +949,9 @@ func (this *Apex) EditLimitSellOrder(id string, symbol string, amount float64, o
 }
 func (this *Apex) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
+}
+func (this *Apex) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Apex) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
@@ -1091,6 +1105,9 @@ func (this *Apex) FetchOption(symbol string, options ...FetchOptionOptions) (Opt
 }
 func (this *Apex) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
+}
+func (this *Apex) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Apex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
