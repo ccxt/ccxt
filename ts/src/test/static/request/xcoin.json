@@ -297,9 +297,7 @@
                 "input": [
                     [
                         "ETH/USDT:USDT"
-                    ],
-                    null,
-                    2
+                    ]
                 ],
                 "output": null
             },
@@ -307,11 +305,7 @@
                 "description": "fetchPositions no args",
                 "method": "fetchPositions",
                 "url": "https://api.xcoin.com/api/v2/trade/positions",
-                "input": [
-                    null,
-                    null,
-                    2
-                ],
+                "input": [],
                 "output": null
             }
         ],
