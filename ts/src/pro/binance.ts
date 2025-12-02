@@ -3384,7 +3384,7 @@ export default class binance extends binanceRest {
         const clientOrderId = this.safeStringN (params, [ 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
             payload['origClientOrderId'] = clientOrderId;
-        } if (market['linear'] && market['swap'] && isConditional) {
+        } else if (market['linear'] && market['swap'] && isConditional) {
             payload['clientAlgoId'] = clientOrderId;
         } else {
             payload['orderId'] = this.numberToString (id);
