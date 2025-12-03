@@ -19,7 +19,7 @@ export default class grvt extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'grvt',
             'name': 'GRVT',
-            'countries': [ 'https://market-data.grvt.io' ], //
+            'countries': [  ], //
             'rateLimit': 10,
             'certified': false,
             'version': 'v1',
@@ -78,6 +78,8 @@ export default class grvt extends Exchange {
                         'lite/v1/mini': 1,
                         'full/v1/ticker': 1,
                         'lite/v1/ticker': 1,
+                        'full/v1/book': 1,
+                        'lite/v1/book': 1,
                     },
                 },
             },
@@ -285,6 +287,15 @@ export default class grvt extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name grvt#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.grvt.io/market_data_api/#ticker_1
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const request = {
@@ -349,6 +360,58 @@ export default class grvt extends Exchange {
             'average': undefined,
             'previousClose': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.grvt.io/market_data_api/#orderbook-levels
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.loc] crypto location, default: us
+     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const request = {
+            'instrument': this.marketId (symbol),
+        };
+        if (limit !== undefined) {
+            request['depth'] = this.findNearestCeiling ([ 10, 50, 100, 500 ], limit);
+        } else {
+            request['depth'] = 100; // default
+        }
+        const response = await this.privateMarketPostFullV1Book (this.extend (request, params));
+        //
+        //    {
+        //        "result": {
+        //            "event_time": "1764777396650000000",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "bids": [
+        //                {
+        //                    "price": "92336.0",
+        //                    "size": "0.005",
+        //                    "num_orders": "1"
+        //                },
+        //                ...
+        //            ],
+        //            "asks": [
+        //                {
+        //                    "price": "92336.1",
+        //                    "size": "5.711",
+        //                    "num_orders": "37"
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const timestamp = this.parse8601 (this.safeString (result, 'event_time'));
+        const marketId = this.safeString (result, 'instrument');
+        return this.parseOrderBook (result, this.safeSymbol (marketId), timestamp, 'bids', 'asks', 'price', 'size');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
