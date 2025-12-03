@@ -4466,13 +4466,17 @@ export default class binance extends binanceRest {
         //        E: 1757896885229
         //    }
         //
-        const event = this.safeString (message, 'e');
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys (subscriptions);
         const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
-        if (event === 'eventStreamTerminated') {
+        if (accountType !== '') {
             delete client.subscriptions[accountType];
-            client.reject (message, accountType);
+        }
+        // terminate all pending futures on this user-data stream client
+        const messageHashes = Object.keys (client.futures);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            client.reject (message, messageHash);
         }
     }
 
