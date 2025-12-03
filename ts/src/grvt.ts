@@ -46,7 +46,7 @@ export default class grvt extends Exchange {
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e',
                 'api': {
-                    'publicMarket': 'https://market-data.dev.gravitymarkets.io/',
+                    'privateMarket': 'https://market-data.dev.gravitymarkets.io/',
                     'privateEdge': 'https://edge.grvt.io/',
                 },
                 'www': 'https://grvt.io',
@@ -62,7 +62,7 @@ export default class grvt extends Exchange {
                         'auth/api_key/login': 1,
                     },
                 },
-                'publicMarket': {
+                'privateMarket': {
                     'post': {
                         'full/v1/instrument': 1,
                         'full/v1/all_instruments': 1,
@@ -103,6 +103,112 @@ export default class grvt extends Exchange {
             throw new AuthenticationError (this.id + ' signIn() failed: ' + this.json (response));
         }
         return response;
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchMarkets
+     * @description retrieves data on all markets for alpaca
+     * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const response = await this.privateMarketPostFullV1AllInstruments (params);
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "instrument_hash": "0x032201",
+        //                "base": "AAVE",
+        //                "quote": "USDT",
+        //                "kind": "PERPETUAL",
+        //                "venues": [
+        //                    "ORDERBOOK",
+        //                    "RFQ"
+        //                ],
+        //                "settlement_period": "PERPETUAL",
+        //                "base_decimals": "9",
+        //                "quote_decimals": "6",
+        //                "tick_size": "0.01",
+        //                "min_size": "0.1",
+        //                "create_time": "1764303867576216941",
+        //                "max_position_size": "3000.0",
+        //                "funding_interval_hours": "8",
+        //                "adjusted_funding_rate_cap": "0.75",
+        //                "adjusted_funding_rate_floor": "-0.75"
+        //            },
+        //            ...
+        //            }
+        //        ]
+        //    }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseMarkets (result);
+    }
+
+    parseMarket (asset): Market {
+        const marketId = this.safeString (asset, 'instrument');
+        const baseId = this.safeString (asset, 'base');
+        const quoteId = this.safeString (asset, 'quote');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        let type: Str = undefined;
+        const typeRaw = this.safeString (asset, 'kind');
+        if (typeRaw === 'PERPETUAL') {
+            type = 'swap';
+        }
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': xxx,
+            'quoteId': xxx,
+            'settleId': xxx,
+            'type': xxx,
+            'spot': xxx,
+            'margin': xxxx,
+            'swap': xxx,
+            'future': xxx,
+            'option': xxx,
+            'active': xxx,
+            'contract': xxx,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': amount,
+                'price': price,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': minAmount,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': asset,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
