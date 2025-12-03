@@ -144,39 +144,45 @@ export default class grvt extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseMarkets (result);
     }
 
-    parseMarket (asset): Market {
-        const marketId = this.safeString (asset, 'instrument');
-        const baseId = this.safeString (asset, 'base');
-        const quoteId = this.safeString (asset, 'quote');
+    parseMarket (market): Market {
+        const marketId = this.safeString (market, 'instrument');
+        const baseId = this.safeString (market, 'base');
+        const quoteId = this.safeString (market, 'quote');
+        const settleId = quoteId;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote;
         let type: Str = undefined;
-        const typeRaw = this.safeString (asset, 'kind');
+        const typeRaw = this.safeString (market, 'kind');
         if (typeRaw === 'PERPETUAL') {
             type = 'swap';
         }
+        const isSpot = (type === 'spot');
+        const isSwap = (type === 'swap');
+        const isFuture = (type === 'future');
+        const isContract = isSwap || isFuture;
         return {
             'id': marketId,
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': undefined,
-            'baseId': xxx,
-            'quoteId': xxx,
-            'settleId': xxx,
-            'type': xxx,
-            'spot': xxx,
-            'margin': xxxx,
-            'swap': xxx,
-            'future': xxx,
-            'option': xxx,
-            'active': xxx,
-            'contract': xxx,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': isSpot,
+            'margin': false,
+            'swap': isSwap,
+            'future': isFuture,
+            'option': false,
+            'active': undefined, // todo: ask support to add
+            'contract': isContract,
             'linear': undefined,
             'inverse': undefined,
             'contractSize': undefined,
@@ -185,8 +191,8 @@ export default class grvt extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amount,
-                'price': price,
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'tick_size'))),
             },
             'limits': {
                 'leverage': {
@@ -194,7 +200,7 @@ export default class grvt extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': minAmount,
+                    'min': this.safeNumber (market, 'min_size'),
                     'max': undefined,
                 },
                 'price': {
@@ -206,9 +212,9 @@ export default class grvt extends Exchange {
                     'max': undefined,
                 },
             },
-            'created': undefined,
-            'info': asset,
-        };
+            'created': this.safeIntegerProduct (market, 'create_time', 0.000001),
+            'info': market,
+        } as Market;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
