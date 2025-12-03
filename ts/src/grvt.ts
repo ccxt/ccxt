@@ -65,7 +65,17 @@ export default class grvt extends Exchange {
                 'privateMarket': {
                     'post': {
                         'full/v1/instrument': 1,
+                        'lite/v1/instrument': 1,
                         'full/v1/all_instruments': 1,
+                        'lite/v1/all_instruments': 1,
+                        'full/v1/instruments': 1,
+                        'lite/v1/instruments': 1,
+                        'full/v1/currency': 1,
+                        'lite/v1/currency': 1,
+                        'full/v1/margin_rules': 1,
+                        'lite/v1/margin_rules': 1,
+                        'full/v1/mini': 1,
+                        'lite/v1/mini': 1,
                     },
                 },
             },
@@ -140,9 +150,6 @@ export default class grvt extends Exchange {
         //                "adjusted_funding_rate_floor": "-0.75"
         //            },
         //            ...
-        //            }
-        //        ]
-        //    }
         //
         const result = this.safeList (response, 'result', []);
         return this.parseMarkets (result);
@@ -216,6 +223,65 @@ export default class grvt extends Exchange {
             'info': market,
         } as Market;
     }
+
+    /**
+     * @method
+     * @name grvt#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://api-docs.grvt.io/market_data_api/#get-currency-response
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        await this.signIn ();
+        const response = await this.privateMarketPostFullV1Currency (params);
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "id": "4",
+        //                "symbol": "ETH",
+        //                "balance_decimals": "9",
+        //                "quantity_multiplier": "1000000000"
+        //            },
+        //            ..
+        //
+        const responseResult = this.safeList (response, 'result', []);
+        return this.parseCurrencies (responseResult);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode (id);
+        return this.safeCurrencyStructure ({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'balance_decimals'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'type': 'crypto', // only crypto for now
+            'networks': undefined,
+        });
+    }
+
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
