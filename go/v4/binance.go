@@ -11421,7 +11421,7 @@ func (this *BinanceCore) ParsePositionRisk(position interface{}, optionalArgs ..
 	}
 	var positionSide interface{} = this.SafeString(position, "positionSide")
 	var hedged interface{} = !IsEqual(positionSide, "BOTH")
-	return map[string]interface{}{
+	return this.SafePosition(map[string]interface{}{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      symbol,
@@ -11448,7 +11448,7 @@ func (this *BinanceCore) ParsePositionRisk(position interface{}, optionalArgs ..
 		"percentage":                  percentage,
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
-	}
+	})
 }
 func (this *BinanceCore) LoadLeverageBrackets(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
