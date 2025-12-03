@@ -80,6 +80,10 @@ export default class grvt extends Exchange {
                         'lite/v1/ticker': 1,
                         'full/v1/book': 1,
                         'lite/v1/book': 1,
+                        'full/v1/trade': 1,
+                        'lite/v1/trade': 1,
+                        'full/v1/trade_history': 1,
+                        'lite/v1/trade_history': 1,
                     },
                 },
             },
@@ -412,6 +416,100 @@ export default class grvt extends Exchange {
         const timestamp = this.parse8601 (this.safeString (result, 'event_time'));
         const marketId = this.safeString (result, 'instrument');
         return this.parseOrderBook (result, this.safeSymbol (marketId), timestamp, 'bids', 'asks', 'price', 'size');
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-docs.grvt.io/market_data_api/#trade_1
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.loc] crypto location, default: us
+     * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = {
+            'instrument': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        if (since !== undefined) {
+            request['start_time'] = since * 1000000;
+        }
+        const response = await this.privateMarketPostFullV1TradeHistory (this.extend (request, params));
+        //
+        //    {
+        //        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
+        //        "result": [
+        //            {
+        //                "event_time": "1764779531332118705",
+        //                "instrument": "ETH_USDT_Perp",
+        //                "is_taker_buyer": false,
+        //                "size": "23.73",
+        //                "price": "3089.88",
+        //                "mark_price": "3089.360002315",
+        //                "index_price": "3090.443723246",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "trade_id": "64796657-1",
+        //                "venue": "ORDERBOOK",
+        //                "is_rpi": false
+        //            },
+        //            ...
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //
+        //            {
+        //                "event_time": "1764779531332118705",
+        //                "instrument": "ETH_USDT_Perp",
+        //                "is_taker_buyer": false,
+        //                "size": "23.73",
+        //                "price": "3089.88",
+        //                "mark_price": "3089.360002315",
+        //                "index_price": "3090.443723246",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "trade_id": "64796657-1",
+        //                "venue": "ORDERBOOK",
+        //                "is_rpi": false
+        //            }
+        //
+        const marketId = this.safeString (trade, 'instrument');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeIntegerProduct (trade, 'event_time', 0.000001);
+        const isTakerBuyer = this.safeBool (trade, 'is_taker_buyer');
+        let side: Str = undefined;
+        if (isTakerBuyer !== undefined) {
+            side = isTakerBuyer ? 'buy' : 'sell';
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'trade_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'size'),
+            'cost': undefined,
+            'fee': undefined,
+            'order': undefined,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
