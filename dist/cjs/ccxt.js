@@ -2,6 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+require('./_virtual/_commonjsHelpers.js');
+require('./_virtual/index.cjs.js');
 var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
@@ -40,6 +42,7 @@ var btcalpha = require('./src/btcalpha.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btcturk = require('./src/btcturk.js');
+var bullish = require('./src/bullish.js');
 var bybit = require('./src/bybit.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
@@ -56,11 +59,13 @@ var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
 var cryptocom = require('./src/cryptocom.js');
 var cryptomus = require('./src/cryptomus.js');
+var deepcoin = require('./src/deepcoin.js');
 var defx = require('./src/defx.js');
 var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
 var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
+var dydx = require('./src/dydx.js');
 var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
@@ -135,6 +140,7 @@ var bittrade$1 = require('./src/pro/bittrade.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var blofin$1 = require('./src/pro/blofin.js');
+var bullish$1 = require('./src/pro/bullish.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
@@ -146,9 +152,11 @@ var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
+var deepcoin$1 = require('./src/pro/deepcoin.js');
 var defx$1 = require('./src/pro/defx.js');
 var deribit$1 = require('./src/pro/deribit.js');
 var derive$1 = require('./src/pro/derive.js');
+var dydx$1 = require('./src/pro/dydx.js');
 var exmo$1 = require('./src/pro/exmo.js');
 var gate$1 = require('./src/pro/gate.js');
 var gateio$1 = require('./src/pro/gateio.js');
@@ -186,10 +194,9 @@ var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
 var xt$1 = require('./src/pro/xt.js');
 
-// ----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.17';
+const version = '4.5.23';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca["default"],
@@ -226,6 +233,7 @@ const exchanges = {
     'btcbox': btcbox["default"],
     'btcmarkets': btcmarkets["default"],
     'btcturk': btcturk["default"],
+    'bullish': bullish["default"],
     'bybit': bybit["default"],
     'cex': cex["default"],
     'coinbase': coinbase["default"],
@@ -242,11 +250,13 @@ const exchanges = {
     'coinspot': coinspot["default"],
     'cryptocom': cryptocom["default"],
     'cryptomus': cryptomus["default"],
+    'deepcoin': deepcoin["default"],
     'defx': defx["default"],
     'delta': delta["default"],
     'deribit': deribit["default"],
     'derive': derive["default"],
     'digifinex': digifinex["default"],
+    'dydx': dydx["default"],
     'exmo': exmo["default"],
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
@@ -323,6 +333,7 @@ const pro = {
     'bitvavo': bitvavo$1["default"],
     'blockchaincom': blockchaincom$1["default"],
     'blofin': blofin$1["default"],
+    'bullish': bullish$1["default"],
     'bybit': bybit$1["default"],
     'cex': cex$1["default"],
     'coinbase': coinbase$1["default"],
@@ -334,9 +345,11 @@ const pro = {
     'coinex': coinex$1["default"],
     'coinone': coinone$1["default"],
     'cryptocom': cryptocom$1["default"],
+    'deepcoin': deepcoin$1["default"],
     'defx': defx$1["default"],
     'deribit': deribit$1["default"],
     'derive': derive$1["default"],
+    'dydx': dydx$1["default"],
     'exmo': exmo$1["default"],
     'gate': gate$1["default"],
     'gateio': gateio$1["default"],
@@ -459,6 +472,7 @@ exports.btcalpha = btcalpha["default"];
 exports.btcbox = btcbox["default"];
 exports.btcmarkets = btcmarkets["default"];
 exports.btcturk = btcturk["default"];
+exports.bullish = bullish["default"];
 exports.bybit = bybit["default"];
 exports.cex = cex["default"];
 exports.coinbase = coinbase["default"];
@@ -475,11 +489,13 @@ exports.coinsph = coinsph["default"];
 exports.coinspot = coinspot["default"];
 exports.cryptocom = cryptocom["default"];
 exports.cryptomus = cryptomus["default"];
+exports.deepcoin = deepcoin["default"];
 exports.defx = defx["default"];
 exports.delta = delta["default"];
 exports.deribit = deribit["default"];
 exports.derive = derive["default"];
 exports.digifinex = digifinex["default"];
+exports.dydx = dydx["default"];
 exports.exmo = exmo["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];

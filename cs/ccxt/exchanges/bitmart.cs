@@ -476,6 +476,7 @@ public partial class bitmart : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "You contract account available balance not enough", typeof(InsufficientFunds) },
                     { "you contract account available balance not enough", typeof(InsufficientFunds) },
+                    { "This trading pair does not support API trading", typeof(BadSymbol) },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {

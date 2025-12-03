@@ -7,7 +7,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class exmo extends exmo$1["default"] {
     describe() {
@@ -38,8 +38,10 @@ class exmo extends exmo$1["default"] {
         });
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId;
     }
     /**

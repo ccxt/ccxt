@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class htx
@@ -932,6 +932,7 @@ class htx extends htx$1["default"] {
                     'base-symbol-error': errors.BadSymbol,
                     'system-maintenance': errors.OnMaintenance,
                     'base-request-exceed-frequency-limit': errors.RateLimitExceeded,
+                    'rate-too-many-requests': errors.RateLimitExceeded,
                     // err-msg
                     'invalid symbol': errors.BadSymbol,
                     'symbol trade not open now': errors.BadSymbol,
@@ -5557,7 +5558,9 @@ class htx extends htx$1["default"] {
                 params = this.omit(params, ['clientOrderId']);
             }
             if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
-                request['price'] = this.priceToPrecision(symbol, price);
+                if (price !== undefined) {
+                    request['price'] = this.priceToPrecision(symbol, price);
+                }
             }
         }
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only', false);

@@ -8,7 +8,7 @@ var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var errors = require('../base/errors.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class phemex extends phemex$1["default"] {
     describe() {
@@ -74,8 +74,10 @@ class phemex extends phemex$1["default"] {
         return this.fromEn(er, this.safeInteger(market, 'ratioScale'));
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId;
     }
     parseSwapTicker(ticker, market = undefined) {

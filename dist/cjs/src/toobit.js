@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class toobit
@@ -63,7 +63,7 @@ class toobit extends toobit$1["default"] {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/3fc13870-5406-431b-8be0-2aab69c4f225',
+                'logo': 'https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e',
                 'api': {
                     'common': 'https://api.toobit.com',
                     'private': 'https://api.toobit.com',
@@ -2974,6 +2974,7 @@ class toobit extends toobit$1["default"] {
                 body += '&signature=' + signature;
             }
             headers = {
+                'Referrer': 'CCXT',
                 'X-BB-APIKEY': this.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             };

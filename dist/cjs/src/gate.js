@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 /**
  * @class gate
  * @augments Exchange
@@ -1091,7 +1091,6 @@ class gate extends gate$1["default"] {
                     'LOAN_RECORD_NOT_FOUND': errors.OrderNotFound,
                     'NO_MATCHED_LOAN': errors.ExchangeError,
                     'NOT_MERGEABLE': errors.ExchangeError,
-                    'NO_CHANGE': errors.ExchangeError,
                     'REPAY_TOO_MUCH': errors.ExchangeError,
                     'TOO_MANY_CURRENCY_PAIRS': errors.InvalidOrder,
                     'TOO_MANY_ORDERS': errors.InvalidOrder,
@@ -1133,7 +1132,8 @@ class gate extends gate$1["default"] {
                     'AUTO_TRIGGER_PRICE_LESS_LAST': errors.InvalidOrder,
                     'AUTO_TRIGGER_PRICE_GREATE_LAST': errors.InvalidOrder,
                     'POSITION_HOLDING': errors.BadRequest,
-                    'USER_LOAN_EXCEEDED': errors.BadRequest, // {"label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded"}
+                    'USER_LOAN_EXCEEDED': errors.BadRequest,
+                    'NO_CHANGE': errors.InvalidOrder, // {"label":"NO_CHANGE","message":"No change is made"}
                 },
                 'broad': {},
             },
@@ -1606,8 +1606,8 @@ class gate extends gate$1["default"] {
             'contract': true,
             'linear': isLinear,
             'inverse': !isLinear,
-            'taker': undefined,
-            'maker': undefined,
+            'taker': this.parseNumber('0.0005'),
+            'maker': this.parseNumber('0.0002'),
             'contractSize': this.parseNumber(contractSize),
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
@@ -1725,8 +1725,8 @@ class gate extends gate$1["default"] {
                     'contract': true,
                     'linear': true,
                     'inverse': false,
-                    'taker': undefined,
-                    'maker': undefined,
+                    'taker': this.parseNumber('0.0003'),
+                    'maker': this.parseNumber('0.0003'),
                     'contractSize': this.parseNumber('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601(expiry),
@@ -3944,7 +3944,7 @@ class gate extends gate$1["default"] {
         if (pointFee !== undefined) {
             fees.push({
                 'cost': pointFee,
-                'currency': 'GatePoint',
+                'currency': 'GATEPOINT',
             });
         }
         const takerOrMaker = this.safeString(trade, 'role');

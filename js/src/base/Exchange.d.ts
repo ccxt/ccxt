@@ -317,6 +317,7 @@ export default class Exchange {
     packb: typeof functions.packb;
     urlencodeBase64: (payload: string | Uint8Array) => string;
     constructor(userConfig?: ConstructorArgs);
+    uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
     checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
     throttle(cost?: any): any;
@@ -397,6 +398,12 @@ export default class Exchange {
     starknetSign(msgHash: any, pri: any): string;
     getZKContractSignatureObj(seed: any, params?: {}): Promise<any>;
     getZKTransferSignatureObj(seed: any, params?: {}): Promise<any>;
+    loadDydxProtos(): Promise<void>;
+    toDydxLong(numStr: string): object;
+    retrieveDydxCredentials(entropy: string): object;
+    encodeDydxTxForSimulation(message: any, memo: any, sequence: any, publicKey: any): string;
+    encodeDydxTxForSigning(message: any, memo: any, chainId: any, account: any, authenticators: any, fee?: any): [string, Dict];
+    encodeDydxTxRaw(signDoc: Dict, signature: string): string;
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: Dict): void;
     createSafeDictionary(): {};
@@ -404,6 +411,8 @@ export default class Exchange {
     randomBytes(length: number): string;
     randNumber(size: number): number;
     binaryLength(binary: Uint8Array): number;
+    lockId(): any;
+    unlockId(): any;
     describe(): any;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
@@ -696,7 +705,7 @@ export default class Exchange {
     parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
     safeCurrency(currencyId: Str, currency?: Currency): CurrencyInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    marketOrNull(symbol: string): MarketInterface;
+    marketOrNull(symbol?: Str): MarketInterface;
     checkRequiredCredentials(error?: boolean): boolean;
     oath(): string;
     fetchBalance(params?: {}): Promise<Balances>;

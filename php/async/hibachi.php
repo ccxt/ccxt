@@ -849,7 +849,7 @@ class hibachi extends Exchange {
 
     public function create_order_request(float $nonce, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
-        $feeRate = max ($this->safe_number($market, 'taker'), $this->safe_number($market, 'maker'));
+        $feeRate = max ($this->safe_number($market, 'taker', $this->safe_number($this->options, 'defaultTakerFee', 0.00045)), $this->safe_number($market, 'maker', $this->safe_number($this->options, 'defaultMakerFee', 0.00015)));
         $sideInternal = '';
         if ($side === 'sell') {
             $sideInternal = 'ASK';

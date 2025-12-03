@@ -6,7 +6,7 @@ var kucoinfutures$1 = require('../kucoinfutures.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class kucoinfutures extends kucoinfutures$1["default"] {
     describe() {
@@ -143,8 +143,10 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         return undefined;
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId;
     }
     async subscribe(url, messageHash, subscriptionHash, subscription, params = {}) {

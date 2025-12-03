@@ -507,7 +507,7 @@ public partial class Exchange
 
     public virtual object getCacheIndex(object orderbook, object deltas)
     {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1;
     }
 
@@ -2202,6 +2202,7 @@ public partial class Exchange
         this.symbols = sourceExchange.symbols;
         this.ids = sourceExchange.ids;
         this.currencies = sourceExchange.currencies;
+        this.currencies_by_id = sourceExchange.currencies_by_id;
         this.baseCurrencies = sourceExchange.baseCurrencies;
         this.quoteCurrencies = sourceExchange.quoteCurrencies;
         this.codes = sourceExchange.codes;
@@ -2823,7 +2824,7 @@ public partial class Exchange
             }
             if (!isTrue(feesDefined))
             {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 fees = new List<object>() {fee};
             }
             // 'fees' were set, so reparse them
@@ -4149,7 +4150,8 @@ public partial class Exchange
                     {
                         if (isTrue(this.verbose))
                         {
-                            this.log(add(add(add(add(add(add("Request failed with the error: ", ((object)e).ToString()), ", retrying "), ((object)(add(i, 1))).ToString()), " of "), ((object)retries).ToString()), "..."));
+                            object index = add(i, 1);
+                            this.log(add(add(add(add(add(add("Request failed with the error: ", ((object)e).ToString()), ", retrying "), ((object)index).ToString()), " of "), ((object)retries).ToString()), "..."));
                         }
                         if (isTrue(isTrue((!isEqual(retryDelay, null))) && isTrue((!isEqual(retryDelay, 0)))))
                         {
@@ -4427,10 +4429,6 @@ public partial class Exchange
 
     public virtual object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        object result = this.safeMarketStructure(new Dictionary<string, object>() {
-            { "symbol", marketId },
-            { "marketId", marketId },
-        });
         if (isTrue(!isEqual(marketId, null)))
         {
             if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, marketId)))))
@@ -4465,6 +4463,10 @@ public partial class Exchange
             {
                 object parts = ((string)marketId).Split(new [] {((string)delimiter)}, StringSplitOptions.None).ToList<object>();
                 object partsLength = getArrayLength(parts);
+                object result = this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "symbol", marketId },
+                    { "marketId", marketId },
+                });
                 if (isTrue(isEqual(partsLength, 2)))
                 {
                     ((IDictionary<string,object>)result)["baseId"] = this.safeString(parts, 0);
@@ -4472,21 +4474,21 @@ public partial class Exchange
                     ((IDictionary<string,object>)result)["base"] = this.safeCurrencyCode(getValue(result, "baseId"));
                     ((IDictionary<string,object>)result)["quote"] = this.safeCurrencyCode(getValue(result, "quoteId"));
                     ((IDictionary<string,object>)result)["symbol"] = add(add(getValue(result, "base"), "/"), getValue(result, "quote"));
-                    return result;
-                } else
-                {
-                    return result;
                 }
+                return result;
             }
         }
         if (isTrue(!isEqual(market, null)))
         {
             return market;
         }
-        return result;
+        return this.safeMarketStructure(new Dictionary<string, object>() {
+            { "symbol", marketId },
+            { "marketId", marketId },
+        });
     }
 
-    public virtual object marketOrNull(object symbol)
+    public virtual object marketOrNull(object symbol = null)
     {
         if (isTrue(isEqual(symbol, null)))
         {
@@ -8306,7 +8308,7 @@ public partial class Exchange
                         ((IDictionary<string,object>)futures).Remove((string)"fetchPositionsSnapshot");
                     }
                 }
-            } else if (isTrue(isTrue(isEqual(topic, "ticker")) && isTrue((!isEqual(this.tickers, null)))))
+            } else if (isTrue(isTrue((isTrue(isEqual(topic, "ticker")) || isTrue(isEqual(topic, "markPrice")))) && isTrue((!isEqual(this.tickers, null)))))
             {
                 object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))

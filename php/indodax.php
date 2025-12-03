@@ -1449,7 +1449,7 @@ class indodax extends Exchange {
         // or
         // [array( data, ... ), array( ... ), ... ]
         // array("success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":"")
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             return null; // public endpoints may return array()-arrays
         }
         $error = $this->safe_value($response, 'error', '');

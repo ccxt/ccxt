@@ -1,2 +1,2 @@
-declare function baseTestsInit(): void;
+declare function baseTestsInit(): Promise<void>;
 export default baseTestsInit;

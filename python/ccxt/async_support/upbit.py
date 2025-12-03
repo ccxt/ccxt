@@ -26,7 +26,7 @@ class upbit(Exchange, ImplicitAPI):
         return self.deep_extend(super(upbit, self).describe(), {
             'id': 'upbit',
             'name': 'Upbit',
-            'countries': ['KR'],
+            'countries': ['KR', 'ID', 'SG', 'TH'],
             'version': 'v1',
             'rateLimit': 50,
             'pro': True,
@@ -99,7 +99,7 @@ class upbit(Exchange, ImplicitAPI):
                 '1M': 'months',
                 '1y': 'years',
             },
-            'hostname': 'api.upbit.com',
+            'hostname': 'api.upbit.com',  # 'api.upbit.com' for KR, '{countryCode}-api.upbit.com' for ID, SG, TH
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
                 'api': {
@@ -107,7 +107,7 @@ class upbit(Exchange, ImplicitAPI):
                     'private': 'https://{hostname}',
                 },
                 'www': 'https://upbit.com',
-                'doc': 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
+                'doc': ['https://docs.upbit.com/kr', 'https://global-docs.upbit.com'],
                 'fees': 'https://upbit.com/service_center/guide',
             },
             'api': {
@@ -137,7 +137,6 @@ class upbit(Exchange, ImplicitAPI):
                         'ticker/all': 2,
                         'orderbook': 2,
                         'orderbook/instruments': 2,
-                        'orderbook/supported_levels': 2,  # Upbit KR only, deprecatd
                     },
                 },
                 'private': {
@@ -158,11 +157,12 @@ class upbit(Exchange, ImplicitAPI):
                         'deposits/coin_addresses': 0.67,
                         'deposits/coin_address': 0.67,
                         'travel_rule/vasps': 0.67,
-                        'status/wallet': 0.67,  # Upbit KR only
+                        'status/wallet': 0.67,
                         'api_keys': 0.67,  # Upbit KR only
                     },
                     'post': {
                         'orders': 2.5,  # RPS: 8
+                        'orders/test': 2.5,  # RPS: 8
                         'orders/cancel_and_new': 2.5,  # RPS: 8
                         'withdraws/coin': 0.67,
                         'withdraws/krw': 0.67,  # Upbit KR only.
@@ -175,6 +175,7 @@ class upbit(Exchange, ImplicitAPI):
                         'order': 0.67,
                         'orders/open': 40,  # RPS: 0.5
                         'orders/uuids': 0.67,
+                        'withdraws/coin': 0.67,
                     },
                 },
             },
@@ -493,8 +494,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
 
-        https://docs.upbit.com/kr/reference/마켓-코드-조회
-        https://global-docs.upbit.com/reference/listing-market-list
+        https://docs.upbit.com/kr/reference/list-trading-pairs
+        https://global-docs.upbit.com/reference/list-trading-pairs
 
         retrieves data on all markets for upbit
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -589,8 +590,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
 
-        https://docs.upbit.com/kr/reference/전체-계좌-조회
-        https://global-docs.upbit.com/reference/overall-account-inquiry
+        https://docs.upbit.com/kr/reference/get-balance
+        https://global-docs.upbit.com/reference/get-balance
 
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -615,8 +616,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
         """
 
-        https://docs.upbit.com/kr/reference/호가-정보-조회
-        https://global-docs.upbit.com/reference/order-book-list
+        https://docs.upbit.com/kr/reference/list-orderbooks
+        https://global-docs.upbit.com/reference/list-orderbooks
 
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
@@ -685,8 +686,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
 
-        https://docs.upbit.com/kr/reference/호가-정보-조회
-        https://global-docs.upbit.com/reference/order-book-list
+        https://docs.upbit.com/kr/reference/list-orderbooks
+        https://global-docs.upbit.com/reference/list-orderbooks
 
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -756,8 +757,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
-        https://docs.upbit.com/kr/reference/ticker현재가-정보
-        https://global-docs.upbit.com/reference/tickers
+        https://docs.upbit.com/kr/reference/list-tickers
+        https://global-docs.upbit.com/reference/list-tickers
 
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -814,8 +815,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
 
-        https://docs.upbit.com/kr/reference/ticker현재가-정보
-        https://global-docs.upbit.com/reference/tickers
+        https://docs.upbit.com/kr/reference/list-tickers
+        https://global-docs.upbit.com/reference/list-tickers
 
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -896,8 +897,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
 
-        https://docs.upbit.com/kr/reference/최근-체결-내역
-        https://global-docs.upbit.com/reference/today-trades-history
+        https://docs.upbit.com/kr/reference/list-pair-trades
+        https://global-docs.upbit.com/reference/list-pair-trades
 
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -942,7 +943,7 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
 
-        https://docs.upbit.com/kr/reference/주문-가능-정보
+        https://docs.upbit.com/kr/reference/available-order-information
         https://global-docs.upbit.com/reference/available-order-information
 
         fetch the trading fees for a market
@@ -1053,8 +1054,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-        https://docs.upbit.com/kr/reference/분minute-캔들-1
-        https://global-docs.upbit.com/reference/minutes
+        https://docs.upbit.com/kr/reference/list-candles-minutes
+        https://global-docs.upbit.com/reference/list-candles-minutes
 
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1140,8 +1141,10 @@ class upbit(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://docs.upbit.com/kr/reference/주문하기
-        https://global-docs.upbit.com/reference/order
+        https://docs.upbit.com/kr/reference/new-order
+        https://global-docs.upbit.com/reference/new-order
+        https://docs.upbit.com/kr/reference/order-test
+        https://global-docs.upbit.com/reference/order-test
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
@@ -1153,6 +1156,7 @@ class upbit(Exchange, ImplicitAPI):
         :param str [params.ordType]: self field can be used to place a ‘best’ type order
         :param str [params.timeInForce]: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. self field is required when the order type is 'best'.
         :param str [params.selfTradePrevention]: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+        :param boolean [params.test]: If test is True, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is False.
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1162,6 +1166,7 @@ class upbit(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(type == 'market', False, params)
         timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
         selfTradePrevention = self.safe_string_2(params, 'selfTradePrevention', 'smp_type')
+        test = self.safe_bool(params, 'test', False)
         if postOnly and (selfTradePrevention is not None):
             raise ExchangeError(self.id + ' createOrder() does not support post_only and selfTradePrevention simultaneously.')
         orderSide = None
@@ -1215,8 +1220,12 @@ class upbit(Exchange, ImplicitAPI):
                 request['time_in_force'] = timeInForce
         if request['ord_type'] == 'best' and timeInForce is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
-        params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type'])
-        response = await self.privatePostOrders(self.extend(request, params))
+        response = None
+        params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
+        if test:
+            response = await self.privatePostOrdersTest(self.extend(request, params))
+        else:
+            response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
         #         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
@@ -1242,8 +1251,8 @@ class upbit(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://docs.upbit.com/kr/reference/주문-취소
-        https://global-docs.upbit.com/reference/order-cancel
+        https://docs.upbit.com/kr/reference/cancel-order
+        https://global-docs.upbit.com/reference/cancel-order
 
         cancels an open order
         :param str id: order id
@@ -1280,8 +1289,8 @@ class upbit(Exchange, ImplicitAPI):
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
 
-        https://docs.upbit.com/kr/reference/취소-후-재주문
-        https://global-docs.upbit.com/reference/cancel-and-new
+        https://docs.upbit.com/kr/reference/cancel-and-new-order
+        https://global-docs.upbit.com/reference/cancel-and-new-order
 
         canceled existing order and create new order. It's only generated same side and symbol canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
         :param str id: the uuid of the previous order you want to edit.
@@ -1390,8 +1399,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
 
-        https://docs.upbit.com/kr/reference/입금-리스트-조회
-        https://global-docs.upbit.com/reference/deposit-list-inquiry
+        https://docs.upbit.com/kr/reference/list-deposits
+        https://global-docs.upbit.com/reference/list-deposits
 
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1434,8 +1443,8 @@ class upbit(Exchange, ImplicitAPI):
         """
         fetch information on a deposit
 
-        https://docs.upbit.com/kr/reference/개별-입금-조회
-        https://global-docs.upbit.com/reference/individual-deposit-inquiry
+        https://docs.upbit.com/kr/reference/get-deposit
+        https://global-docs.upbit.com/reference/get-deposit
 
         :param str id: the unique id for the deposit
         :param str [code]: unified currency code of the currency deposited
@@ -1472,8 +1481,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
 
-        https://docs.upbit.com/kr/reference/전체-출금-조회
-        https://global-docs.upbit.com/reference/withdrawal-list-inquiry
+        https://docs.upbit.com/kr/reference/list-withdrawals
+        https://global-docs.upbit.com/reference/list-withdrawals
 
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1516,8 +1525,8 @@ class upbit(Exchange, ImplicitAPI):
         """
         fetch data on a currency withdrawal via the withdrawal id
 
-        https://docs.upbit.com/kr/reference/개별-출금-조회
-        https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+        https://docs.upbit.com/kr/reference/get-withdrawal
+        https://global-docs.upbit.com/reference/get-withdrawal
 
         :param str id: the unique id for the withdrawal
         :param str [code]: unified currency code of the currency withdrawn
@@ -1793,8 +1802,8 @@ class upbit(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://docs.upbit.com/kr/reference/대기-주문-조회
-        https://global-docs.upbit.com/reference/open-order
+        https://docs.upbit.com/kr/reference/list-open-orders
+        https://global-docs.upbit.com/reference/list-open-orders
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1840,8 +1849,8 @@ class upbit(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
 
-        https://docs.upbit.com/kr/reference/종료-주문-조회
-        https://global-docs.upbit.com/reference/closed-order
+        https://docs.upbit.com/kr/reference/list-closed-orders
+        https://global-docs.upbit.com/reference/list-closed-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1893,8 +1902,8 @@ class upbit(Exchange, ImplicitAPI):
         """
         fetches information on multiple canceled orders made by the user
 
-        https://docs.upbit.com/kr/reference/종료-주문-조회
-        https://global-docs.upbit.com/reference/closed-order
+        https://docs.upbit.com/kr/reference/list-closed-orders
+        https://global-docs.upbit.com/reference/list-closed-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: timestamp in ms of the earliest order, default is None
@@ -1945,8 +1954,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://docs.upbit.com/kr/reference/개별-주문-조회
-        https://global-docs.upbit.com/reference/individual-order-inquiry
+        https://docs.upbit.com/kr/reference/get-order
+        https://global-docs.upbit.com/reference/get-order
 
         fetches information on an order made by the user
         :param str id: order id
@@ -2007,8 +2016,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
         """
 
-        https://docs.upbit.com/kr/reference/전체-입금-주소-조회
-        https://global-docs.upbit.com/reference/general-deposit-address-inquiry
+        https://docs.upbit.com/kr/reference/list-deposit-addresses
+        https://global-docs.upbit.com/reference/list-deposit-addresses
 
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: list of unified currency codes, default is None
@@ -2064,8 +2073,8 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
 
-        https://docs.upbit.com/kr/reference/개별-입금-주소-조회
-        https://global-docs.upbit.com/reference/individual-deposit-address-inquiry
+        https://docs.upbit.com/kr/reference/get-deposit-address
+        https://global-docs.upbit.com/reference/get-deposit-address
 
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2096,8 +2105,8 @@ class upbit(Exchange, ImplicitAPI):
     async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
 
-        https://docs.upbit.com/kr/reference/입금-주소-생성-요청
-        https://global-docs.upbit.com/reference/deposit-address-generation
+        https://docs.upbit.com/kr/reference/create-deposit-address
+        https://global-docs.upbit.com/reference/create-deposit-address
 
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -2134,8 +2143,8 @@ class upbit(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
 
-        https://docs.upbit.com/kr/reference/디지털자산-출금하기
-        https://global-docs.upbit.com/reference/withdrawal-digital-assets
+        https://docs.upbit.com/kr/reference/withdraw
+        https://global-docs.upbit.com/reference/withdraw
 
         make a withdrawal
         :param str code: unified currency code

@@ -6,7 +6,6 @@ var lbank$1 = require('../lbank.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class lbank extends lbank$1["default"] {
     describe() {
@@ -53,9 +52,11 @@ class lbank extends lbank$1["default"] {
         });
     }
     requestId() {
+        this.lockId();
         const previousValue = this.safeInteger(this.options, 'requestId', 0);
         const newValue = this.sum(previousValue, 1);
         this.options['requestId'] = newValue;
+        this.unlockId();
         return newValue;
     }
     /**

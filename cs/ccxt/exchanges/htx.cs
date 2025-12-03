@@ -860,6 +860,7 @@ public partial class htx : Exchange
                     { "base-symbol-error", typeof(BadSymbol) },
                     { "system-maintenance", typeof(OnMaintenance) },
                     { "base-request-exceed-frequency-limit", typeof(RateLimitExceeded) },
+                    { "rate-too-many-requests", typeof(RateLimitExceeded) },
                     { "invalid symbol", typeof(BadSymbol) },
                     { "symbol trade not open now", typeof(BadSymbol) },
                     { "require-symbol", typeof(BadSymbol) },
@@ -5708,7 +5709,10 @@ public partial class htx : Exchange
             }
             if (isTrue(isTrue(isTrue(isTrue(isEqual(type, "limit")) || isTrue(isEqual(type, "ioc"))) || isTrue(isEqual(type, "fok"))) || isTrue(isEqual(type, "post_only"))))
             {
-                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                if (isTrue(!isEqual(price, null)))
+                {
+                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                }
             }
         }
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);

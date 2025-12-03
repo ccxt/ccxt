@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var errors = require('./base/errors.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class defx
@@ -343,6 +343,7 @@ class defx extends defx$1["default"] {
                 'exact': {
                     '404': errors.BadRequest,
                     'missing_auth_signature': errors.AuthenticationError,
+                    'leverage_higher_than_capped_leverage': errors.BadRequest,
                     'order_rejected': errors.InvalidOrder,
                     'invalid_order_id': errors.InvalidOrder,
                     'filter_lotsize_maxqty': errors.InvalidOrder,

@@ -161,6 +161,7 @@ public partial class mexc : Exchange
                         { "get", new Dictionary<string, object>() {
                             { "ping", 1 },
                             { "time", 1 },
+                            { "defaultSymbols", 1 },
                             { "exchangeInfo", 10 },
                             { "depth", 1 },
                             { "trades", 5 },
@@ -176,14 +177,19 @@ public partial class mexc : Exchange
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
+                            { "kyc/status", 1 },
+                            { "uid", 1 },
                             { "order", 2 },
                             { "openOrders", 3 },
                             { "allOrders", 10 },
                             { "account", 10 },
                             { "myTrades", 10 },
+                            { "strategy/group", 20 },
+                            { "strategy/group/uid", 20 },
                             { "tradeFee", 10 },
                             { "sub-account/list", 1 },
                             { "sub-account/apiKey", 1 },
+                            { "sub-account/asset", 1 },
                             { "capital/config/getall", 10 },
                             { "capital/deposit/hisrec", 1 },
                             { "capital/withdraw/history", 1 },
@@ -229,6 +235,7 @@ public partial class mexc : Exchange
                             { "sub-account/futures", 1 },
                             { "sub-account/margin", 1 },
                             { "batchOrders", 10 },
+                            { "strategy/group", 20 },
                             { "capital/withdraw/apply", 1 },
                             { "capital/withdraw", 1 },
                             { "capital/transfer", 1 },
@@ -2871,11 +2878,10 @@ public partial class mexc : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "spot")))
         {
-            if (isTrue(isEqual(symbol, null)))
+            if (isTrue(!isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument for spot market")) ;
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             var marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
             var marginMode = ((IList<object>) marginModequeryVariable)[0];
             var query = ((IList<object>) marginModequeryVariable)[1];

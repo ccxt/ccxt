@@ -7,7 +7,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class htx extends htx$1["default"] {
     describe() {
@@ -130,8 +130,10 @@ class htx extends htx$1["default"] {
         });
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId.toString();
     }
     /**

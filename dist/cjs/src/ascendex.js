@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class ascendex
@@ -46,7 +46,12 @@ class ascendex extends ascendex$1["default"] {
                 'fetchAccounts': true,
                 'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -61,6 +66,8 @@ class ascendex extends ascendex$1["default"] {
                 'fetchFundingRates': true,
                 'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,

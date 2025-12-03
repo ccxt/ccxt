@@ -62,8 +62,8 @@ class kucoin extends Exchange {
                 'fetchDepositWithdrawFee' => true,
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
-                'fetchFundingRateHistory' => false,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
@@ -164,6 +164,9 @@ class kucoin extends Exchange {
                         'margin/config' => 25, // 25SW
                         'announcements' => 20, // 20W
                         'margin/collateralRatio' => 10,
+                        // convert
+                        'convert/symbol' => 5,
+                        'convert/currencies' => 5,
                     ),
                     'post' => array(
                         // ws
@@ -249,6 +252,13 @@ class kucoin extends Exchange {
                         'broker/queryUser' => 3,
                         'broker/queryDetailByUid' => 3,
                         'migrate/user/account/status' => 3,
+                        // convert
+                        'convert/quote' => 20,
+                        'convert/order/detail' => 5,
+                        'convert/order/history' => 5,
+                        'convert/limit/quote' => 20,
+                        'convert/limit/order/detail' => 5,
+                        'convert/limit/orders' => 5,
                         // affiliate
                         'affiliate/inviter/statistics' => 30,
                     ),
@@ -288,6 +298,9 @@ class kucoin extends Exchange {
                         'purchase' => 15, // 15SW
                         'redeem' => 15, // 15SW
                         'lend/purchase/update' => 10, // 10SW
+                        // convert
+                        'convert/order' => 20,
+                        'convert/limit/order' => 20,
                         // ws
                         'bullet-private' => 10, // 10SW
                         'position/update-user-leverage' => 5,
@@ -319,6 +332,8 @@ class kucoin extends Exchange {
                         'hf/margin/orders/{orderId}' => 5, // 5SW
                         'hf/margin/orders/client-order/{clientOid}' => 5, // 5SW
                         'hf/margin/orders' => 10, // 10SW
+                        // convert
+                        'convert/limit/order/cancel' => 5,
                     ),
                 ),
                 'futuresPublic' => array(
@@ -436,6 +451,7 @@ class kucoin extends Exchange {
                 ),
                 'earn' => array(
                     'get' => array(
+                        'otc-loan/discount-rate-configs' => 10,
                         'otc-loan/loan' => 1,
                         'otc-loan/accounts' => 1,
                         'earn/redeem-preview' => 7.5, // 5EW
@@ -445,9 +461,12 @@ class kucoin extends Exchange {
                         'earn/kcs-staking/products' => 7.5, // 5EW
                         'earn/staking/products' => 7.5, // 5EW
                         'earn/eth-staking/products' => 7.5, // 5EW
+                        'struct-earn/dual/products' => 4.5,
+                        'struct-earn/orders' => 7.5,
                     ),
                     'post' => array(
                         'earn/orders' => 7.5, // 5EW
+                        'struct-earn/orders' => 7.5,
                     ),
                     'delete' => array(
                         'earn/orders' => 7.5, // 5EW
@@ -465,7 +484,7 @@ class kucoin extends Exchange {
                         'market/funding-rate' => 2,
                         'market/funding-rate-history' => 5,
                         'market/cross-config' => 25,
-                        'market/server/status' => 3,
+                        'server/status' => 3,
                     ),
                 ),
             ),
@@ -1126,22 +1145,48 @@ class kucoin extends Exchange {
          * the latest known information on the availability of the exchange API
          *
          * @see https://docs.kucoin.com/#service-$status
+         * @see https://www.kucoin.com/docs-new/rest/ua/get-service-$status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {string} [$params->tradeType] *$uta only* set to SPOT or FUTURES
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
          */
-        $response = $this->publicGetStatus ($params);
-        //
-        //     {
-        //         "code":"200000",
-        //         "data":{
-        //             "status":"open", //open, close, cancelonly
-        //             "msg":"upgrade match engine" //remark for operation
-        //         }
-        //     }
-        //
+        $uta = null;
+        list($uta, $params) = $this->handle_option_and_params($params, 'fetchStatus', 'uta', false);
+        $response = null;
+        if ($uta) {
+            $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+            $defaultTradeType = ($defaultType === 'spot') ? 'SPOT' : 'FUTURES';
+            $tradeType = $this->safe_string_upper($params, 'tradeType', $defaultTradeType);
+            $request = array(
+                'tradeType' => $tradeType,
+            );
+            $response = $this->utaGetServerStatus ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "tradeType" => "SPOT",
+            //             "serverStatus" => "open",
+            //             "msg" => ""
+            //         }
+            //     }
+            //
+        } else {
+            $response = $this->publicGetStatus ($params);
+            //
+            //     {
+            //         "code":"200000",
+            //         "data":{
+            //             "status":"open", //open, close, cancelonly
+            //             "msg":"upgrade match engine" //remark for operation
+            //         }
+            //     }
+            //
+        }
         $data = $this->safe_dict($response, 'data', array());
-        $status = $this->safe_string($data, 'status');
+        $status = $this->safe_string_2($data, 'status', 'serverStatus');
         return array(
             'status' => ($status === 'open') ? 'ok' : 'maintenance',
             'updated' => null,
@@ -1159,10 +1204,16 @@ class kucoin extends Exchange {
          * @see https://docs.kucoin.com/#get-all-tickers
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array[]} an array of objects representing $market data
          */
         $fetchTickersFees = null;
         list($fetchTickersFees, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'fetchTickersFees', true);
+        $uta = null;
+        list($uta, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'uta', false);
+        if ($uta) {
+            return $this->fetch_uta_markets($params);
+        }
         $promises = array();
         $promises[] = $this->publicGetSymbols ($params);
         //
@@ -1339,6 +1390,187 @@ class kucoin extends Exchange {
                     ),
                 ),
                 'created' => null,
+                'info' => $market,
+            );
+        }
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
+        return $result;
+    }
+
+    public function fetch_uta_markets($params = array ()): array {
+        $promises = array();
+        $promises[] = $this->utaGetMarketInstrument ($this->extend($params, array( 'tradeType' => 'SPOT' )));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "tradeType" => "SPOT",
+        //             "list" => array(
+        //                 array(
+        //                     "symbol" => "AVA-USDT",
+        //                     "name" => "AVA-USDT",
+        //                     "baseCurrency" => "AVA",
+        //                     "quoteCurrency" => "USDT",
+        //                     "market" => "USDS",
+        //                     "minBaseOrderSize" => "0.1",
+        //                     "minQuoteOrderSize" => "0.1",
+        //                     "maxBaseOrderSize" => "10000000000",
+        //                     "maxQuoteOrderSize" => "99999999",
+        //                     "baseOrderStep" => "0.01",
+        //                     "quoteOrderStep" => "0.0001",
+        //                     "tickSize" => "0.0001",
+        //                     "feeCurrency" => "USDT",
+        //                     "tradingStatus" => "1",
+        //                     "marginMode" => "2",
+        //                     "priceLimitRatio" => "0.05",
+        //                     "feeCategory" => 1,
+        //                     "makerFeeCoefficient" => "1.00",
+        //                     "takerFeeCoefficient" => "1.00",
+        //                     "st" => false
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $promises[] = $this->utaGetMarketInstrument ($this->extend($params, array( 'tradeType' => 'FUTURES' )));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "tradeType" => "FUTURES",
+        //             "list" => [
+        //                 array(
+        //                     "symbol" => "XBTUSDTM",
+        //                     "baseCurrency" => "XBT",
+        //                     "quoteCurrency" => "USDT",
+        //                     "maxBaseOrderSize" => "1000000",
+        //                     "tickSize" => "0.1",
+        //                     "tradingStatus" => "1",
+        //                     "settlementCurrency" => "USDT",
+        //                     "contractType" => "0",
+        //                     "isInverse" => false,
+        //                     "launchTime" => 1585555200000,
+        //                     "expiryTime" => null,
+        //                     "settlementTime" => null,
+        //                     "maxPrice" => "1000000.0",
+        //                     "lotSize" => "1",
+        //                     "unitSize" => "0.001",
+        //                     "makerFeeRate" => "0.00020",
+        //                     "takerFeeRate" => "0.00060",
+        //                     "settlementFeeRate" => null,
+        //                     "maxLeverage" => 125,
+        //                     "indexSourceExchanges" => ["okex","binance","kucoin","bybit","bitmart","gateio"],
+        //                     "k" => "490.0",
+        //                     "m" => "300.0",
+        //                     "f" => "1.3",
+        //                     "mmrLimit" => "0.3",
+        //                     "mmrLevConstant" => "125.0"
+        //                 ),
+        //             ]
+        //         }
+        //     }
+        //
+        $responses = $promises;
+        $data = $this->safe_dict($responses[0], 'data', array());
+        $contractData = $this->safe_dict($responses[1], 'data', array());
+        $spotData = $this->safe_list($data, 'list', array());
+        $contractSymbolsData = $this->safe_list($contractData, 'list', array());
+        $symbolsData = $this->array_concat($spotData, $contractSymbolsData);
+        $result = array();
+        for ($i = 0; $i < count($symbolsData); $i++) {
+            $market = $symbolsData[$i];
+            $id = $this->safe_string($market, 'symbol');
+            $baseId = $this->safe_string($market, 'baseCurrency');
+            $quoteId = $this->safe_string($market, 'quoteCurrency');
+            $settleId = $this->safe_string($market, 'settlementCurrency');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
+            $hasMargin = $this->safe_string($market, 'marginMode');
+            $isMarginable = ($hasMargin === '1') ? true : false;
+            $symbol = $base . '/' . $quote;
+            if ($settle !== null) {
+                $symbol .= ':' . $settle;
+            }
+            $contractType = $this->safe_string($market, 'contractType');
+            $expiry = $this->safe_integer($market, 'expiryTime');
+            $active = $this->safe_string($market, 'tradingStatus');
+            $type = null;
+            $spot = false;
+            $swap = false;
+            $future = false;
+            $contract = false;
+            $linear = false;
+            $inverse = false;
+            if ($contractType !== null) {
+                $contract = true;
+                if ($quote === $settle) {
+                    $linear = true;
+                } else {
+                    $inverse = true;
+                }
+                if ($contractType === '0') {
+                    $type = 'swap';
+                    $swap = true;
+                } else {
+                    $type = 'future';
+                    $future = true;
+                }
+            } else {
+                $type = 'spot';
+                $spot = true;
+            }
+            $result[] = array(
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'settle' => $settle,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => $settleId,
+                'type' => $type,
+                'spot' => $spot,
+                'margin' => $isMarginable,
+                'swap' => $swap,
+                'future' => $future,
+                'option' => false,
+                'active' => ($active === '1'),
+                'contract' => $contract,
+                'linear' => $linear,
+                'inverse' => $inverse,
+                'taker' => $this->safe_number($market, 'makerFeeRate'),
+                'maker' => $this->safe_number($market, 'takerFeeRate'),
+                'contractSize' => $this->safe_number($market, 'unitSize'),
+                'expiry' => $expiry,
+                'expiryDatetime' => $this->iso8601($expiry),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'lotSize'),
+                    'price' => $this->safe_number($market, 'tickSize'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => $this->safe_integer($market, 'maxLeverage'),
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'minBaseOrderSize'),
+                        'max' => $this->safe_number($market, 'maxBaseOrderSize'),
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => $this->safe_number($market, 'maxPrice'),
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'minQuoteOrderSize'),
+                        'max' => $this->safe_number($market, 'maxQuoteOrderSize'),
+                    ),
+                ),
+                'created' => $this->safe_integer($market, 'launchTime'),
                 'info' => $market,
             );
         }
@@ -1761,17 +1993,35 @@ class kucoin extends Exchange {
         //         "time" => 1634641777363
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "symbol" => "BTC-USDT",
+        //         "name" => "BTC-USDT",
+        //         "bestBidSize" => "0.69207954",
+        //         "bestBidPrice" => "110417.5",
+        //         "bestAskSize" => "0.08836606",
+        //         "bestAskPrice" => "110417.6",
+        //         "lastPrice" => "110417.5",
+        //         "size" => "0.00016",
+        //         "open" => "110105.1",
+        //         "high" => "110838.9",
+        //         "low" => "109705.5",
+        //         "baseVolume" => "1882.10069442",
+        //         "quoteVolume" => "207325626.822922498"
+        //     }
+        //
         $percentage = $this->safe_string($ticker, 'changeRate');
         if ($percentage !== null) {
             $percentage = Precise::string_mul($percentage, '100');
         }
-        $last = $this->safe_string_2($ticker, 'last', 'lastTradedPrice');
+        $last = $this->safe_string_n($ticker, array( 'last', 'lastTradedPrice', 'lastPrice' ));
         $last = $this->safe_string($ticker, 'price', $last);
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
-        $baseVolume = $this->safe_string($ticker, 'vol');
-        $quoteVolume = $this->safe_string($ticker, 'volValue');
+        $baseVolume = $this->safe_string_2($ticker, 'vol', 'baseVolume');
+        $quoteVolume = $this->safe_string_2($ticker, 'volValue', 'quoteVolume');
         $timestamp = $this->safe_integer_n($ticker, array( 'time', 'datetime', 'timePoint' ));
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1779,9 +2029,9 @@ class kucoin extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
-            'bid' => $this->safe_string_2($ticker, 'buy', 'bestBid'),
+            'bid' => $this->safe_string_n($ticker, array( 'buy', 'bestBid', 'bestBidPrice' )),
             'bidVolume' => $this->safe_string($ticker, 'bestBidSize'),
-            'ask' => $this->safe_string_2($ticker, 'sell', 'bestAsk'),
+            'ask' => $this->safe_string_n($ticker, array( 'sell', 'bestAsk', 'bestAskPrice' )),
             'askVolume' => $this->safe_string($ticker, 'bestAskSize'),
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open'),
@@ -1800,48 +2050,103 @@ class kucoin extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
          * @see https://docs.kucoin.com/#get-all-$tickers
+         * @see https://www.kucoin.com/docs-new/rest/ua/get-$ticker
          *
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {string} [$params->tradeType] *$uta only* set to SPOT or FUTURES
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
+        $request = array();
         $symbols = $this->market_symbols($symbols);
-        $response = $this->publicGetMarketAllTickers ($params);
-        //
-        //     {
-        //         "code" => "200000",
-        //         "data" => {
-        //             "time":1602832092060,
-        //             "ticker":array(
-        //                 {
-        //                     "symbol" => "BTC-USDT",   // $symbol
-        //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
-        //                     "buy" => "11328.9",   // bestAsk
-        //                     "sell" => "11329",    // bestBid
-        //                     "changeRate" => "-0.0055",    // 24h change rate
-        //                     "changePrice" => "-63.6", // 24h change price
-        //                     "high" => "11610",    // 24h highest price
-        //                     "low" => "11200", // 24h lowest price
-        //                     "vol" => "2282.70993217", // 24h volume，the aggregated trading volume in BTC
-        //                     "volValue" => "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
-        //                     "last" => "11328.9",  // last price
-        //                     "averagePrice" => "11360.66065903",   // 24h average transaction price yesterday
-        //                     "takerFeeRate" => "0.001",    // Basic Taker Fee
-        //                     "makerFeeRate" => "0.001",    // Basic Maker Fee
-        //                     "takerCoefficient" => "1",    // Taker Fee Coefficient
-        //                     "makerCoefficient" => "1" // Maker Fee Coefficient
-        //                 }
-        //             )
-        //         }
-        //     }
-        //
+        $uta = null;
+        list($uta, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'uta', false);
+        $response = null;
+        if ($uta) {
+            if ($symbols !== null) {
+                $symbol = $this->safe_string($symbols, 0);
+                $market = $this->market($symbol);
+                $type = null;
+                list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+                if ($type === 'spot') {
+                    $request['tradeType'] = 'SPOT';
+                } else {
+                    $request['tradeType'] = 'FUTURES';
+                }
+            } else {
+                $tradeType = $this->safe_string_upper($params, 'tradeType');
+                if ($tradeType === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $tradeType parameter for $uta, either SPOT or FUTURES');
+                }
+                $request['tradeType'] = $tradeType;
+                $params = $this->omit($params, 'tradeType');
+            }
+            $response = $this->utaGetMarketTicker ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "tradeType" => "SPOT",
+            //             "ts" => 1762061290067,
+            //             "list" => array(
+            //                 {
+            //                     "symbol" => "BTC-USDT",
+            //                     "name" => "BTC-USDT",
+            //                     "bestBidSize" => "0.69207954",
+            //                     "bestBidPrice" => "110417.5",
+            //                     "bestAskSize" => "0.08836606",
+            //                     "bestAskPrice" => "110417.6",
+            //                     "lastPrice" => "110417.5",
+            //                     "size" => "0.00016",
+            //                     "open" => "110105.1",
+            //                     "high" => "110838.9",
+            //                     "low" => "109705.5",
+            //                     "baseVolume" => "1882.10069442",
+            //                     "quoteVolume" => "207325626.822922498"
+            //                 }
+            //             )
+            //         }
+            //     }
+            //
+        } else {
+            $response = $this->publicGetMarketAllTickers ($params);
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "time":1602832092060,
+            //             "ticker":array(
+            //                 {
+            //                     "symbol" => "BTC-USDT",   // $symbol
+            //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+            //                     "buy" => "11328.9",   // bestAsk
+            //                     "sell" => "11329",    // bestBid
+            //                     "changeRate" => "-0.0055",    // 24h change rate
+            //                     "changePrice" => "-63.6", // 24h change price
+            //                     "high" => "11610",    // 24h highest price
+            //                     "low" => "11200", // 24h lowest price
+            //                     "vol" => "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+            //                     "volValue" => "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+            //                     "last" => "11328.9",  // last price
+            //                     "averagePrice" => "11360.66065903",   // 24h average transaction price yesterday
+            //                     "takerFeeRate" => "0.001",    // Basic Taker Fee
+            //                     "makerFeeRate" => "0.001",    // Basic Maker Fee
+            //                     "takerCoefficient" => "1",    // Taker Fee Coefficient
+            //                     "makerCoefficient" => "1" // Maker Fee Coefficient
+            //                 }
+            //             )
+            //         }
+            //     }
+            //
+        }
         $data = $this->safe_dict($response, 'data', array());
-        $tickers = $this->safe_list($data, 'ticker', array());
-        $time = $this->safe_integer($data, 'time');
+        $tickers = $this->safe_list_2($data, 'ticker', 'list', array());
+        $time = $this->safe_integer_2($data, 'time', 'ts');
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $tickers[$i]['time'] = $time;
@@ -1876,9 +2181,11 @@ class kucoin extends Exchange {
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
          * @see https://docs.kucoin.com/#get-24hr-stats
+         * @see https://www.kucoin.com/docs-new/rest/ua/get-ticker
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
@@ -1886,32 +2193,76 @@ class kucoin extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetMarketStats ($this->extend($request, $params));
-        //
-        //     {
-        //         "code" => "200000",
-        //         "data" => {
-        //             "time" => 1602832092060,  // time
-        //             "symbol" => "BTC-USDT",   // $symbol
-        //             "buy" => "11328.9",   // bestAsk
-        //             "sell" => "11329",    // bestBid
-        //             "changeRate" => "-0.0055",    // 24h change rate
-        //             "changePrice" => "-63.6", // 24h change price
-        //             "high" => "11610",    // 24h highest price
-        //             "low" => "11200", // 24h lowest price
-        //             "vol" => "2282.70993217", // 24h volume，the aggregated trading volume in BTC
-        //             "volValue" => "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
-        //             "last" => "11328.9",  // last price
-        //             "averagePrice" => "11360.66065903",   // 24h average transaction price yesterday
-        //             "takerFeeRate" => "0.001",    // Basic Taker Fee
-        //             "makerFeeRate" => "0.001",    // Basic Maker Fee
-        //             "takerCoefficient" => "1",    // Taker Fee Coefficient
-        //             "makerCoefficient" => "1" // Maker Fee Coefficient
-        //         }
-        //     }
-        //
-        $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_ticker($data, $market);
+        $uta = null;
+        list($uta, $params) = $this->handle_option_and_params($params, 'fetchTicker', 'uta', false);
+        $response = null;
+        $result = null;
+        if ($uta) {
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
+            if ($type === 'spot') {
+                $request['tradeType'] = 'SPOT';
+            } else {
+                $request['tradeType'] = 'FUTURES';
+            }
+            $response = $this->utaGetMarketTicker ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "tradeType" => "SPOT",
+            //             "ts" => 1762061290067,
+            //             "list" => array(
+            //                 {
+            //                     "symbol" => "BTC-USDT",
+            //                     "name" => "BTC-USDT",
+            //                     "bestBidSize" => "0.69207954",
+            //                     "bestBidPrice" => "110417.5",
+            //                     "bestAskSize" => "0.08836606",
+            //                     "bestAskPrice" => "110417.6",
+            //                     "lastPrice" => "110417.5",
+            //                     "size" => "0.00016",
+            //                     "open" => "110105.1",
+            //                     "high" => "110838.9",
+            //                     "low" => "109705.5",
+            //                     "baseVolume" => "1882.10069442",
+            //                     "quoteVolume" => "207325626.822922498"
+            //                 }
+            //             )
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $resultList = $this->safe_list($data, 'list', array());
+            $result = $this->safe_dict($resultList, 0, array());
+        } else {
+            $response = $this->publicGetMarketStats ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "time" => 1602832092060,  // time
+            //             "symbol" => "BTC-USDT",   // $symbol
+            //             "buy" => "11328.9",   // bestAsk
+            //             "sell" => "11329",    // bestBid
+            //             "changeRate" => "-0.0055",    // 24h change rate
+            //             "changePrice" => "-63.6", // 24h change price
+            //             "high" => "11610",    // 24h highest price
+            //             "low" => "11200", // 24h lowest price
+            //             "vol" => "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+            //             "volValue" => "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+            //             "last" => "11328.9",  // last price
+            //             "averagePrice" => "11360.66065903",   // 24h average transaction price yesterday
+            //             "takerFeeRate" => "0.001",    // Basic Taker Fee
+            //             "makerFeeRate" => "0.001",    // Basic Maker Fee
+            //             "takerCoefficient" => "1",    // Taker Fee Coefficient
+            //             "makerCoefficient" => "1" // Maker Fee Coefficient
+            //         }
+            //     }
+            //
+            $result = $this->safe_dict($response, 'data', array());
+        }
+        return $this->parse_ticker($result, $market);
     }
 
     public function fetch_mark_price(string $symbol, $params = array ()): array {
@@ -1962,12 +2313,14 @@ class kucoin extends Exchange {
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
          * @see https://docs.kucoin.com/#get-klines
+         * @see https://www.kucoin.com/docs-new/rest/ua/get-klines
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -1981,7 +2334,6 @@ class kucoin extends Exchange {
         $marketId = $market['id'];
         $request = array(
             'symbol' => $marketId,
-            'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $endAt = $this->milliseconds(); // required param
@@ -2000,19 +2352,52 @@ class kucoin extends Exchange {
             $request['startAt'] = $this->parse_to_int((int) floor($since / 1000));
         }
         $request['endAt'] = $this->parse_to_int((int) floor($endAt / 1000));
-        $response = $this->publicGetMarketCandles ($this->extend($request, $params));
-        //
-        //     {
-        //         "code":"200000",
-        //         "data":[
-        //             ["1591517700","0.025078","0.025069","0.025084","0.025064","18.9883256","0.4761861079404"],
-        //             ["1591516800","0.025089","0.025079","0.025089","0.02506","99.4716622","2.494143499081"],
-        //             ["1591515900","0.025079","0.02509","0.025091","0.025068","59.83701271","1.50060885172798"],
-        //         ]
-        //     }
-        //
-        $data = $this->safe_list($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        $uta = null;
+        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'uta', false);
+        $response = null;
+        $result = null;
+        if ($uta) {
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
+            if ($type === 'spot') {
+                $request['tradeType'] = 'SPOT';
+            } else {
+                $request['tradeType'] = 'FUTURES';
+            }
+            $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+            $response = $this->utaGetMarketKline ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "tradeType" => "SPOT",
+            //             "symbol" => "BTC-USDT",
+            //             "list" => [
+            //                 ["1762240200","104581.4","104527.1","104620.1","104526.4","5.57665554","583263.661804122"],
+            //                 ["1762240140","104565.6","104581.3","104601.7","104511.3","6.48505114","677973.775916968"],
+            //                 ["1762240080","104621.5","104571.3","104704.7","104571.3","14.51713618","1519468.954060838"]
+            //             ]
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $result = $this->safe_list($data, 'list', array());
+        } else {
+            $request['type'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+            $response = $this->publicGetMarketCandles ($this->extend($request, $params));
+            //
+            //     {
+            //         "code":"200000",
+            //         "data":[
+            //             ["1591517700","0.025078","0.025069","0.025084","0.025064","18.9883256","0.4761861079404"],
+            //             ["1591516800","0.025089","0.025079","0.025089","0.02506","99.4716622","2.494143499081"],
+            //             ["1591515900","0.025079","0.02509","0.025091","0.025068","59.83701271","1.50060885172798"],
+            //         ]
+            //     }
+            //
+            $result = $this->safe_list($response, 'data', array());
+        }
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function create_deposit_address(string $code, $params = array ()): array {
@@ -2163,10 +2548,12 @@ class kucoin extends Exchange {
          *
          * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
          * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
+         * @see https://www.kucoin.com/docs-new/rest/ua/get-$orderbook
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
@@ -2174,8 +2561,42 @@ class kucoin extends Exchange {
         $level = $this->safe_integer($params, 'level', 2);
         $request = array( 'symbol' => $market['id'] );
         $isAuthenticated = $this->check_required_credentials(false);
+        $uta = null;
+        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'uta', false);
         $response = null;
-        if (!$isAuthenticated || $limit !== null) {
+        if ($uta) {
+            if ($limit === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $limit argument for $uta, either 20, 50, 100 or FULL');
+            }
+            $request['limit'] = $limit;
+            $request['symbol'] = $market['id'];
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
+            if ($type === 'spot') {
+                $request['tradeType'] = 'SPOT';
+            } else {
+                $request['tradeType'] = 'FUTURES';
+            }
+            $response = $this->utaGetMarketOrderbook ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "tradeType" => "SPOT",
+            //             "symbol" => "BTC-USDT",
+            //             "sequence" => "23136002402",
+            //             "bids" => [
+            //                 ["104700","10.25940068"],
+            //                 ["104698.9","0.00057076"],
+            //             ],
+            //             "asks" => [
+            //                 ["104700.1","1.4082106"],
+            //                 ["104700.5","0.02866269"],
+            //             ]
+            //         }
+            //     }
+            //
+        } elseif (!$isAuthenticated || $limit !== null) {
             if ($level === 2) {
                 $request['level'] = $level;
                 if ($limit !== null) {
@@ -3014,7 +3435,7 @@ class kucoin extends Exchange {
             }
         }
         $responseData = $this->safe_dict($response, 'data', array());
-        if (gettype($responseData) === 'array' && array_keys($responseData) === array_keys(array_keys($responseData))) {
+        if ((gettype($responseData) === 'array' && array_keys($responseData) === array_keys(array_keys($responseData)))) {
             $responseData = $this->safe_value($responseData, 0);
         }
         return $this->parse_order($responseData, $market);
@@ -3338,11 +3759,13 @@ class kucoin extends Exchange {
          * get the list of most recent $trades for a particular $symbol
          *
          * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories
+         * @see https://www.kucoin.com/docs-new/rest/ua/get-$trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
          */
         $this->load_markets();
@@ -3357,22 +3780,57 @@ class kucoin extends Exchange {
         // if ($limit !== null) {
         //     $request['pageSize'] = $limit;
         // }
-        $response = $this->publicGetMarketHistories ($this->extend($request, $params));
-        //
-        //     {
-        //         "code" => "200000",
-        //         "data" => array(
-        //             {
-        //                 "sequence" => "1548764654235",
-        //                 "side" => "sell",
-        //                 "size":"0.6841354",
-        //                 "price":"0.03202",
-        //                 "time":1548848575203567174
-        //             }
-        //         )
-        //     }
-        //
-        $trades = $this->safe_list($response, 'data', array());
+        $uta = null;
+        list($uta, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'uta', false);
+        $response = null;
+        $trades = null;
+        if ($uta) {
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
+            if ($type === 'spot') {
+                $request['tradeType'] = 'SPOT';
+            } else {
+                $request['tradeType'] = 'FUTURES';
+            }
+            $response = $this->utaGetMarketTrade ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "tradeType" => "SPOT",
+            //             "list" => array(
+            //                 array(
+            //                     "sequence" => "18746044393340932",
+            //                     "tradeId" => "18746044393340932",
+            //                     "price" => "104355.6",
+            //                     "size" => "0.00011886",
+            //                     "side" => "sell",
+            //                     "ts" => 1762242540829000000
+            //                 ),
+            //             )
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $trades = $this->safe_list($data, 'list', array());
+        } else {
+            $response = $this->publicGetMarketHistories ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => array(
+            //             {
+            //                 "sequence" => "1548764654235",
+            //                 "side" => "sell",
+            //                 "size":"0.6841354",
+            //                 "price":"0.03202",
+            //                 "time":1548848575203567174
+            //             }
+            //         )
+            //     }
+            //
+            $trades = $this->safe_list($response, 'data', array());
+        }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -3453,12 +3911,23 @@ class kucoin extends Exchange {
         //         "id":"5c4d389e4c8c60413f78e2e5",
         //     }
         //
+        // uta fetchTrades
+        //
+        //     {
+        //         "sequence" => "18746044393340932",
+        //         "tradeId" => "18746044393340932",
+        //         "price" => "104355.6",
+        //         "size" => "0.00011886",
+        //         "side" => "sell",
+        //         "ts" => 1762242540829000000
+        //     }
+        //
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
         $id = $this->safe_string_2($trade, 'tradeId', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
-        $timestamp = $this->safe_integer($trade, 'time');
+        $timestamp = $this->safe_integer_2($trade, 'time', 'ts');
         if ($timestamp !== null) {
             $timestamp = $this->parse_to_int($timestamp / 1000000);
         } else {
@@ -5091,6 +5560,144 @@ class kucoin extends Exchange {
         return $this->privatePostPositionUpdateUserLeverage ($this->extend($request, $params));
     }
 
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rate
+         *
+         * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->utaGetMarketFundingRate ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "symbol" => ".XBTUSDTMFPI8H",
+        //             "nextFundingRate" => 7.4E-5,
+        //             "fundingTime" => 1762444800000,
+        //             "fundingRateCap" => 0.003,
+        //             "fundingRateFloor" => -0.003
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_funding_rate($data, $market);
+    }
+
+    public function parse_funding_rate($data, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => ".XBTUSDTMFPI8H",
+        //         "nextFundingRate" => 7.4E-5,
+        //         "fundingTime" => 1762444800000,
+        //         "fundingRateCap" => 0.003,
+        //         "fundingRateFloor" => -0.003
+        //     }
+        //
+        $fundingTimestamp = $this->safe_integer($data, 'fundingTime');
+        $marketId = $this->safe_string($data, 'symbol');
+        return array(
+            'info' => $data,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_number($data, 'nextFundingRate'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => null,
+        );
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         *
+         * @see https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] not used by kucuoinfutures
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] end time in ms
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        if ($since === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $since argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, 'until');
+        if ($since !== null) {
+            $request['startAt'] = $since;
+            if ($until === null) {
+                $request['endAt'] = $this->milliseconds();
+            }
+        }
+        if ($until !== null) {
+            $request['endAt'] = $until;
+        }
+        $response = $this->utaGetMarketFundingRateHistory ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "symbol" => "XBTUSDTM",
+        //             "list" => array(
+        //                 array(
+        //                     "fundingRate" => 7.6E-5,
+        //                     "ts" => 1706097600000
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $result = $this->safe_list($data, 'list', array());
+        return $this->parse_funding_rate_histories($result, $market, $since, $limit);
+    }
+
+    public function parse_funding_rate_history($info, ?array $market = null) {
+        //
+        //     {
+        //         "fundingRate" => 7.6E-5,
+        //         "ts" => 1706097600000
+        //     }
+        //
+        $timestamp = $this->safe_integer($info, 'ts');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol(null, $market),
+            'fundingRate' => $this->safe_number($info, 'fundingRate'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -5110,8 +5717,12 @@ class kucoin extends Exchange {
         if ($api === 'earn') {
             $endpoint = '/api/v1/' . $this->implode_params($path, $params);
         }
+        $isUtaPrivate = false;
         if ($api === 'uta') {
             $endpoint = '/api/ua/v1/' . $this->implode_params($path, $params);
+            if ($path === 'market/orderbook') {
+                $isUtaPrivate = true;
+            }
         }
         $query = $this->omit($params, $this->extract_params($path));
         $endpart = '';
@@ -5131,7 +5742,7 @@ class kucoin extends Exchange {
         $isPrivate = ($api === 'private');
         $isBroker = ($api === 'broker');
         $isEarn = ($api === 'earn');
-        if ($isPrivate || $isFuturePrivate || $isBroker || $isEarn) {
+        if ($isPrivate || $isFuturePrivate || $isBroker || $isEarn || $isUtaPrivate) {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();
             $headers = $this->extend(array(

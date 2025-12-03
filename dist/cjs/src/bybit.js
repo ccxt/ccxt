@@ -9,7 +9,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bybit
@@ -419,8 +419,11 @@ class bybit extends bybit$1["default"] {
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
                         // earn
+                        'v5/earn/product': 5,
                         'v5/earn/order': 5,
                         'v5/earn/position': 5,
+                        'v5/earn/yield': 5,
+                        'v5/earn/hourly-yield': 5,
                     },
                     'post': {
                         // spot
@@ -3968,15 +3971,12 @@ class bybit extends bybit$1["default"] {
         const market = this.market(symbol);
         const parts = await this.isUnifiedEnabled();
         const enableUnifiedAccount = parts[1];
-        const trailingAmount = this.safeString2(params, 'trailingAmount', 'trailingStop');
-        const stopLossPrice = this.safeString(params, 'stopLossPrice');
-        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
-        const isTrailingAmountOrder = trailingAmount !== undefined;
-        const isStopLoss = stopLossPrice !== undefined;
-        const isTakeProfit = takeProfitPrice !== undefined;
+        const isTrailingOrder = this.safeString2(params, 'trailingAmount', 'trailingStop') !== undefined;
+        const isStopLossOrder = this.safeString(params, 'stopLossPrice') !== undefined;
+        const isTakeProfitOrder = this.safeString(params, 'takeProfitPrice') !== undefined;
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, enableUnifiedAccount);
         let defaultMethod = undefined;
-        if ((isTrailingAmountOrder || isStopLoss || isTakeProfit) && !market['spot']) {
+        if ((isTrailingOrder || isStopLossOrder || isTakeProfitOrder) && !market['spot']) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         }
         else {
@@ -4047,17 +4047,17 @@ class bybit extends bybit$1["default"] {
         const takeProfit = this.safeValue(params, 'takeProfit');
         const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activePrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'trailingStop');
-        const isTrailingAmountOrder = trailingAmount !== undefined;
+        const isTrailingOrder = trailingAmount !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
-        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
-        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
-        const isStopLoss = stopLoss !== undefined;
+        const isStopLossOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitOrder = takeProfitTriggerPrice !== undefined;
+        const hasStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
         const isBuy = side === 'buy';
         let defaultMethod = undefined;
-        if ((isTrailingAmountOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder) && !market['spot']) {
+        if ((isTrailingOrder || isStopLossOrder || isTakeProfitOrder) && !market['spot']) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         }
         else {
@@ -4065,14 +4065,14 @@ class bybit extends bybit$1["default"] {
         }
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'createOrder', 'method', defaultMethod);
-        const isAlternativeEndpoint = method === 'privatePostV5PositionTradingStop';
+        const endpointIsTradingStop = method === 'privatePostV5PositionTradingStop';
         const amountString = this.getAmount(symbol, amount);
         const priceString = (price !== undefined) ? this.getPrice(symbol, this.numberToString(price)) : undefined;
-        if (isTrailingAmountOrder || isAlternativeEndpoint) {
-            if (isStopLoss || isTakeProfit || isTriggerOrder || market['spot']) {
+        if (isTrailingOrder || endpointIsTradingStop) {
+            if (hasStopLoss || isTakeProfit || isTriggerOrder || market['spot']) {
                 throw new errors.InvalidOrder(this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
-            if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+            if (isStopLossOrder || isTakeProfitOrder) {
                 const tpslMode = this.safeString(params, 'tpslMode', 'Partial');
                 const isFullTpsl = tpslMode === 'Full';
                 const isPartialTpsl = tpslMode === 'Partial';
@@ -4080,7 +4080,7 @@ class bybit extends bybit$1["default"] {
                     throw new errors.InvalidOrder(this.id + ' tpsl orders with "full" tpslMode only support "market" type');
                 }
                 request['tpslMode'] = tpslMode;
-                if (isStopLossTriggerOrder) {
+                if (isStopLossOrder) {
                     request['stopLoss'] = this.getPrice(symbol, stopLossTriggerPrice);
                     if (isPartialTpsl) {
                         request['slSize'] = amountString;
@@ -4090,7 +4090,7 @@ class bybit extends bybit$1["default"] {
                         request['slLimitPrice'] = priceString;
                     }
                 }
-                else if (isTakeProfitTriggerOrder) {
+                else if (isTakeProfitOrder) {
                     request['takeProfit'] = this.getPrice(symbol, takeProfitTriggerPrice);
                     if (isPartialTpsl) {
                         request['tpSize'] = amountString;
@@ -4125,7 +4125,7 @@ class bybit extends bybit$1["default"] {
                 if (triggerPrice !== undefined) {
                     request['orderFilter'] = 'StopOrder';
                 }
-                else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                else if (isStopLossOrder || isTakeProfitOrder) {
                     request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4196,17 +4196,17 @@ class bybit extends bybit$1["default"] {
             }
         }
         else {
-            if (!isTrailingAmountOrder && !isAlternativeEndpoint) {
+            if (!isTrailingOrder && !endpointIsTradingStop) {
                 request['qty'] = amountString;
             }
         }
-        if (isTrailingAmountOrder) {
+        if (isTrailingOrder) {
             if (trailingTriggerPrice !== undefined) {
                 request['activePrice'] = this.getPrice(symbol, trailingTriggerPrice);
             }
             request['trailingStop'] = trailingAmount;
         }
-        else if (isTriggerOrder && !isAlternativeEndpoint) {
+        else if (isTriggerOrder && !endpointIsTradingStop) {
             const triggerDirection = this.safeString(params, 'triggerDirection');
             params = this.omit(params, ['triggerPrice', 'stopPrice', 'triggerDirection']);
             if (market['spot']) {
@@ -4223,19 +4223,19 @@ class bybit extends bybit$1["default"] {
             }
             request['triggerPrice'] = this.getPrice(symbol, triggerPrice);
         }
-        else if ((isStopLossTriggerOrder || isTakeProfitTriggerOrder) && !isAlternativeEndpoint) {
+        else if ((isStopLossOrder || isTakeProfitOrder) && !endpointIsTradingStop) {
             if (isBuy) {
-                request['triggerDirection'] = isStopLossTriggerOrder ? 1 : 2;
+                request['triggerDirection'] = isStopLossOrder ? 1 : 2;
             }
             else {
-                request['triggerDirection'] = isStopLossTriggerOrder ? 2 : 1;
+                request['triggerDirection'] = isStopLossOrder ? 2 : 1;
             }
-            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
             request['triggerPrice'] = this.getPrice(symbol, triggerPrice);
             request['reduceOnly'] = true;
         }
-        if ((isStopLoss || isTakeProfit) && !isAlternativeEndpoint) {
-            if (isStopLoss) {
+        if ((hasStopLoss || isTakeProfit) && !endpointIsTradingStop) {
+            if (hasStopLoss) {
                 const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.getPrice(symbol, slTriggerPrice);
                 const slLimitPrice = this.safeValue(stopLoss, 'price');
@@ -4382,7 +4382,7 @@ class bybit extends bybit$1["default"] {
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
-            'orderId': id,
+            // 'orderId': id,
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
             // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
@@ -4393,6 +4393,13 @@ class bybit extends bybit$1["default"] {
             // Valid for option only.
             // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
+        const clientOrderId = this.safeString2(params, 'orderLinkId', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        }
+        else {
+            request['orderLinkId'] = clientOrderId;
+        }
         let category = undefined;
         [category, params] = this.getBybitType('editOrderRequest', market, params);
         request['category'] = category;
@@ -4407,12 +4414,12 @@ class bybit extends bybit$1["default"] {
         const takeProfitTriggerPrice = this.safeString(params, 'takeProfitPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
-        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
-        const isStopLoss = stopLoss !== undefined;
-        const isTakeProfit = takeProfit !== undefined;
-        if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+        const isStopLossOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitOrder = takeProfitTriggerPrice !== undefined;
+        const hasStopLoss = stopLoss !== undefined;
+        const hasTakeProfit = takeProfit !== undefined;
+        if (isStopLossOrder || isTakeProfitOrder) {
+            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (triggerPrice !== undefined) {
             const triggerPriceRequest = (triggerPrice === '0') ? triggerPrice : this.getPrice(symbol, triggerPrice);
@@ -4420,25 +4427,21 @@ class bybit extends bybit$1["default"] {
             const triggerBy = this.safeString(params, 'triggerBy', 'LastPrice');
             request['triggerBy'] = triggerBy;
         }
-        if (isStopLoss || isTakeProfit) {
-            if (isStopLoss) {
+        if (hasStopLoss || hasTakeProfit) {
+            if (hasStopLoss) {
                 const slTriggerPrice = this.safeString2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 const stopLossRequest = (slTriggerPrice === '0') ? slTriggerPrice : this.getPrice(symbol, slTriggerPrice);
                 request['stopLoss'] = stopLossRequest;
                 const slTriggerBy = this.safeString(params, 'slTriggerBy', 'LastPrice');
                 request['slTriggerBy'] = slTriggerBy;
             }
-            if (isTakeProfit) {
+            if (hasTakeProfit) {
                 const tpTriggerPrice = this.safeString2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                 const takeProfitRequest = (tpTriggerPrice === '0') ? tpTriggerPrice : this.getPrice(symbol, tpTriggerPrice);
                 request['takeProfit'] = takeProfitRequest;
                 const tpTriggerBy = this.safeString(params, 'tpTriggerBy', 'LastPrice');
                 request['tpTriggerBy'] = tpTriggerBy;
             }
-        }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['orderLinkId'] = clientOrderId;
         }
         params = this.omit(params, ['stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit']);
         return request;
@@ -4457,6 +4460,7 @@ class bybit extends bybit$1["default"] {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] unique client order id
      * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
@@ -4474,6 +4478,7 @@ class bybit extends bybit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
         }
+        const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         const response = await this.privatePostV5OrderAmend(this.extend(request, params));
         //
@@ -4492,7 +4497,8 @@ class bybit extends bybit$1["default"] {
         return this.safeOrder({
             'info': response,
             'id': this.safeString(result, 'orderId'),
-        });
+            'clientOrderId': this.safeString(result, 'orderLinkId'),
+        }, market);
     }
     /**
      * @method
@@ -7456,7 +7462,7 @@ class bybit extends bybit$1["default"] {
      * @method
      * @name bybit#borrowCrossMargin
      * @description create a loan to borrow margin
-     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+     * @see https://bybit-exchange.github.io/docs/v5/account/borrow
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7467,32 +7473,29 @@ class bybit extends bybit$1["default"] {
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
-            'qty': this.currencyToPrecision(code, amount),
+            'amount': this.currencyToPrecision(code, amount),
         };
-        const response = await this.privatePostV5SpotCrossMarginTradeLoan(this.extend(request, params));
+        const response = await this.privatePostV5AccountBorrow(this.extend(request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //             "transactId": "14143"
+        //             "coin": "BTC",
+        //             "amount": "0.001"
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1662617848970
+        //         "retExtInfo": {},
+        //         "time": 1763194940073
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        const transaction = this.parseMarginLoan(result, currency);
-        return this.extend(transaction, {
-            'symbol': undefined,
-            'amount': amount,
-        });
+        return this.parseMarginLoan(result, currency);
     }
     /**
      * @method
      * @name bybit#repayCrossMargin
      * @description repay borrowed margin and interest
-     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+     * @see https://bybit-exchange.github.io/docs/v5/account/no-convert-repay
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7503,24 +7506,23 @@ class bybit extends bybit$1["default"] {
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
-            'qty': this.numberToString(amount),
+            'amount': this.numberToString(amount),
         };
-        const response = await this.privatePostV5SpotCrossMarginTradeRepay(this.extend(request, params));
+        const response = await this.privatePostV5AccountNoConvertRepay(this.extend(request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //            "repayId": "12128"
+        //             "resultStatus": "SU"
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1662618298452
+        //         "retExtInfo": {},
+        //         "time": 1763195201119
         //     }
         //
         const result = this.safeDict(response, 'result', {});
         const transaction = this.parseMarginLoan(result, currency);
         return this.extend(transaction, {
-            'symbol': undefined,
             'amount': amount,
         });
     }
@@ -7529,19 +7531,21 @@ class bybit extends bybit$1["default"] {
         // borrowCrossMargin
         //
         //     {
-        //         "transactId": "14143"
+        //         "coin": "BTC",
+        //         "amount": "0.001"
         //     }
         //
         // repayCrossMargin
         //
         //     {
-        //         "repayId": "12128"
+        //         "resultStatus": "SU"
         //     }
         //
+        const currencyId = this.safeString(info, 'coin');
         return {
-            'id': this.safeString2(info, 'transactId', 'repayId'),
-            'currency': this.safeString(currency, 'code'),
-            'amount': undefined,
+            'id': undefined,
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'amount': this.safeString(info, 'amount'),
             'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,

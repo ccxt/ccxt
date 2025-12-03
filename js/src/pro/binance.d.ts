@@ -47,6 +47,19 @@ export default class binance extends binanceRest {
             fetchTradesWs: boolean;
             fetchTradingFeesWs: boolean;
             fetchWithdrawalsWs: boolean;
+            unWatchTicker: boolean;
+            unWatchTickers: boolean;
+            unWatchOHLCV: boolean;
+            unWatchOHLCVForSymbols: boolean;
+            unWatchOrderBook: boolean;
+            unWatchOrderBookForSymbols: boolean;
+            unWatchTrades: boolean;
+            unWatchTradesForSymbols: boolean;
+            unWatchMyTrades: boolean;
+            unWatchOrders: boolean;
+            unWatchPositions: boolean;
+            unWatchMarkPrices: boolean;
+            unWatchMarkPrice: boolean;
         };
         urls: {
             test: {
@@ -227,6 +240,7 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -243,11 +257,13 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
@@ -492,17 +508,6 @@ export default class binance extends binanceRest {
     watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
     /**
      * @method
-     * @name binance#unWatchMarkPrices
-     * @description stops watching the mark price for all markets
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-     */
-    unWatchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
-    /**
-     * @method
      * @name binance#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
@@ -533,6 +538,26 @@ export default class binance extends binanceRest {
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @method
+     * @name binance#unWatchMarkPrices
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    unWatchMarkPrices(symbols?: Strings, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name binance#unWatchMarkPrice
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
+    /**
+     * @method
      * @name binance#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
@@ -558,13 +583,13 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    watchMultiTickerHelper(methodName: any, channelName: string, symbols?: Strings, params?: {}): Promise<any>;
+    watchMultiTickerHelper(methodName: any, channelName: string, symbols?: Strings, params?: {}, isUnsubscribe?: boolean): Promise<any>;
     parseWsTicker(message: any, marketType: any): Ticker;
     handleTickerWs(client: Client, message: any): void;
     handleBidsAsks(client: Client, message: any): void;
     handleTickers(client: Client, message: any): void;
+    handleMarkPrices(client: Client, message: any): void;
     handleTickersAndBidsAsks(client: Client, message: any, methodType: any): void;
-    getMessageHash(channelName: string, symbol: Str, isBidAsk: boolean): string;
     signParams(params?: {}): any;
     /**
      * @name binance#ensureUserDataStreamWsSubscribeSignature
@@ -639,6 +664,7 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#place-new-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Algo-Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -677,10 +703,12 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Algo-Order
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.cancelRestrictions] Supported values: ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED.
+     * @param {boolean} [params.trigger] set to true if you would like to cancel a conditional order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -754,6 +782,7 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update
      * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve

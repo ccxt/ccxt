@@ -235,6 +235,9 @@ public partial class bitget : Exchange
                             { "mix/v1/market/history-mark-candles", 1 },
                             { "mix/v1/market/merge-depth", 1 },
                             { "v2/mix/market/vip-fee-rate", 2 },
+                            { "v2/mix/market/union-interest-rate-history", 4 },
+                            { "v2/mix/market/exchange-rate", 4 },
+                            { "v2/mix/market/discount-rate", 4 },
                             { "v2/mix/market/merge-depth", 1 },
                             { "v2/mix/market/ticker", 1 },
                             { "v2/mix/market/tickers", 1 },
@@ -249,6 +252,7 @@ public partial class bitget : Exchange
                             { "v2/mix/market/symbol-price", 1 },
                             { "v2/mix/market/history-fund-rate", 1 },
                             { "v2/mix/market/current-fund-rate", 1 },
+                            { "v2/mix/market/oi-limit", 2 },
                             { "v2/mix/market/contracts", 1 },
                             { "v2/mix/market/query-position-lever", 2 },
                             { "v2/mix/market/account-long-short", 20 },
@@ -386,6 +390,7 @@ public partial class bitget : Exchange
                             { "v2/spot/trade/place-plan-order", 1 },
                             { "v2/spot/trade/modify-plan-order", 1 },
                             { "v2/spot/trade/cancel-plan-order", 1 },
+                            { "v2/spot/trade/cancel-replace-order", 2 },
                             { "v2/spot/trade/batch-cancel-plan-order", 2 },
                             { "v2/spot/wallet/transfer", 2 },
                             { "v2/spot/wallet/subaccount-transfer", 2 },
@@ -430,17 +435,26 @@ public partial class bitget : Exchange
                             { "v2/mix/account/account", 2 },
                             { "v2/mix/account/accounts", 2 },
                             { "v2/mix/account/sub-account-assets", 200 },
+                            { "v2/mix/account/interest-history", 4 },
+                            { "v2/mix/account/max-open", 1 },
+                            { "v2/mix/account/liq-price", 1 },
                             { "v2/mix/account/open-count", 2 },
                             { "v2/mix/account/bill", 2 },
+                            { "v2/mix/account/transfer-limits", 20 },
+                            { "v2/mix/account/union-config", 20 },
+                            { "v2/mix/account/switch-union-usdt", 20 },
+                            { "v2/mix/account/isolated-symbols", 2 },
                             { "v2/mix/market/query-position-lever", 2 },
                             { "v2/mix/position/single-position", 2 },
                             { "v2/mix/position/all-position", 4 },
+                            { "v2/mix/position/adlRank", 4 },
                             { "v2/mix/position/history-position", 1 },
                             { "v2/mix/order/detail", 2 },
                             { "v2/mix/order/fills", 2 },
                             { "v2/mix/order/fill-history", 2 },
                             { "v2/mix/order/orders-pending", 2 },
                             { "v2/mix/order/orders-history", 2 },
+                            { "v2/mix/order/plan-sub-order", 2 },
                             { "v2/mix/order/orders-plan-pending", 2 },
                             { "v2/mix/order/orders-plan-history", 2 },
                             { "v2/mix/market/position-long-short", 20 },
@@ -488,9 +502,13 @@ public partial class bitget : Exchange
                             { "mix/v1/trace/report/order/currentList", 2 },
                             { "mix/v1/trace/queryTraderTpslRatioConfig", 2 },
                             { "mix/v1/trace/traderUpdateTpslRatioConfig", 2 },
+                            { "v2/mix/account/set-auto-margin", 4 },
                             { "v2/mix/account/set-leverage", 4 },
+                            { "v2/mix/account/set-all-leverage", 4 },
                             { "v2/mix/account/set-margin", 4 },
+                            { "v2/mix/account/set-asset-mode", 10 },
                             { "v2/mix/account/set-margin-mode", 4 },
+                            { "v2/mix/account/union-convert", 20 },
                             { "v2/mix/account/set-position-mode", 4 },
                             { "v2/mix/order/place-order", 2 },
                             { "v2/mix/order/click-backhand", 20 },
@@ -499,7 +517,9 @@ public partial class bitget : Exchange
                             { "v2/mix/order/cancel-order", 2 },
                             { "v2/mix/order/batch-cancel-orders", 2 },
                             { "v2/mix/order/close-positions", 20 },
+                            { "v2/mix/order/cancel-all-orders", 20 },
                             { "v2/mix/order/place-tpsl-order", 2 },
+                            { "v2/mix/order/place-pos-tpsl", 2 },
                             { "v2/mix/order/place-plan-order", 2 },
                             { "v2/mix/order/modify-tpsl-order", 2 },
                             { "v2/mix/order/modify-plan-order", 2 },
@@ -1372,6 +1392,7 @@ public partial class bitget : Exchange
                     { "spot", new Dictionary<string, object>() {
                         { "1m", "1min" },
                         { "5m", "5min" },
+                        { "3m", "3min" },
                         { "15m", "15min" },
                         { "30m", "30min" },
                         { "1h", "1h" },
@@ -1431,6 +1452,7 @@ public partial class bitget : Exchange
                         { "15m", 30 },
                         { "30m", 30 },
                         { "1h", 60 },
+                        { "2h", 120 },
                         { "4h", 240 },
                         { "6h", 360 },
                         { "12h", 720 },
@@ -4397,12 +4419,20 @@ public partial class bitget : Exchange
             if (!isTrue(untilDefined))
             {
                 calculatedEndTime = this.sum(calculatedStartTime, limitMultipliedDuration);
+                if (isTrue(isGreaterThan(calculatedEndTime, now)))
+                {
+                    calculatedEndTime = now;
+                }
                 ((IDictionary<string,object>)request)["endTime"] = calculatedEndTime;
             }
         }
         if (isTrue(untilDefined))
         {
             calculatedEndTime = until;
+            if (isTrue(isGreaterThan(calculatedEndTime, now)))
+            {
+                calculatedEndTime = now;
+            }
             ((IDictionary<string,object>)request)["endTime"] = calculatedEndTime;
             if (!isTrue(sinceDefined))
             {
@@ -5936,6 +5966,7 @@ public partial class bitget : Exchange
      * @name bitget#editOrder
      * @description edit a trade order
      * @see https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+     * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
      * @see https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
      * @see https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -5970,9 +6001,16 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "orderId", id },
-        };
+        object request = new Dictionary<string, object>() {};
+        object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
+            ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderId"] = id;
+        }
         object isMarketOrder = isEqual(type, "market");
         object triggerPrice = this.safeValue2(parameters, "stopPrice", "triggerPrice");
         object isTriggerOrder = !isEqual(triggerPrice, null);
@@ -5990,11 +6028,6 @@ public partial class bitget : Exchange
         if (isTrue(isGreaterThan(this.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder), 1)))
         {
             throw new ExchangeError ((string)add(this.id, " editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
-        }
-        object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        if (isTrue(!isEqual(clientOrderId, null)))
-        {
-            ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "clientOrderId", "trailingTriggerPrice", "trailingPercent"});
         object response = null;
@@ -6053,31 +6086,42 @@ public partial class bitget : Exchange
             }
         } else if (isTrue(getValue(market, "spot")))
         {
-            if (isTrue(isEqual(triggerPrice, null)))
-            {
-                throw new NotSupported ((string)add(this.id, " editOrder() only supports plan/trigger spot orders")) ;
-            }
+            object cost = this.safeString(parameters, "cost");
+            parameters = this.omit(parameters, "cost");
             object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
-            if (isTrue(isTrue(isTrue(editMarketBuyOrderRequiresPrice) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
+            if (isTrue(isTrue(isTrue((isTrue(editMarketBuyOrderRequiresPrice) || isTrue((!isEqual(cost, null))))) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
             {
-                if (isTrue(isEqual(price, null)))
+                if (isTrue(isTrue(isEqual(price, null)) && isTrue(isEqual(cost, null))))
                 {
-                    throw new InvalidOrder ((string)add(this.id, " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the editMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")) ;
+                    throw new InvalidOrder ((string)add(this.id, " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params")) ;
                 } else
                 {
                     object amountString = this.numberToString(amount);
                     object priceString = this.numberToString(price);
-                    object cost = this.parseNumber(Precise.stringMul(amountString, priceString));
-                    ((IDictionary<string,object>)request)["size"] = this.priceToPrecision(symbol, cost);
+                    object finalCost = ((bool) isTrue((isEqual(cost, null)))) ? (Precise.stringMul(amountString, priceString)) : cost;
+                    ((IDictionary<string,object>)request)["size"] = this.priceToPrecision(symbol, finalCost);
                 }
             } else
             {
                 ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
             }
             ((IDictionary<string,object>)request)["orderType"] = type;
-            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
-            ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
-            response = await this.privateSpotPostV2SpotTradeModifyPlanOrder(this.extend(request, parameters));
+            if (isTrue(!isEqual(triggerPrice, null)))
+            {
+                ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+                ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
+            } else
+            {
+                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            }
+            if (isTrue(!isEqual(triggerPrice, null)))
+            {
+                response = await this.privateSpotPostV2SpotTradeModifyPlanOrder(this.extend(request, parameters));
+            } else
+            {
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                response = await this.privateSpotPostV2SpotTradeCancelReplaceOrder(this.extend(request, parameters));
+            }
         } else
         {
             if (isTrue(isTrue((!isTrue(getValue(market, "swap")))) && isTrue((!isTrue(getValue(market, "future"))))))
@@ -6539,9 +6583,8 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
      * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-     * @see https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
@@ -6591,13 +6634,7 @@ public partial class bitget : Exchange
         {
             if (isTrue(!isEqual(marginMode, null)))
             {
-                if (isTrue(isEqual(marginMode, "cross")))
-                {
-                    response = await this.privateMarginPostMarginV1CrossOrderBatchCancelOrder(this.extend(request, parameters));
-                } else
-                {
-                    response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(this.extend(request, parameters));
-                }
+                throw new NotSupported ((string)add(this.id, " cancelAllOrders() does not support margin markets, you can use cancelOrders() instead")) ;
             } else
             {
                 if (isTrue(trigger))
