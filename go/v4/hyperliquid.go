@@ -657,9 +657,9 @@ func (this *HyperliquidCore) FetchHip3Markets(optionalArgs ...interface{}) <-cha
 		var fetchDexesList interface{} = []interface{}{}
 		var options interface{} = this.SafeDict(this.Options, "fetchMarkets", map[string]interface{}{})
 		var hip3 interface{} = this.SafeDict(options, "hip3", map[string]interface{}{})
-		var defaultLimit interface{} = this.SafeInteger(hip3, "limit", 5)
+		var defaultLimit interface{} = this.SafeInteger(hip3, "limit", 10)
 		var dexesLength interface{} = GetArrayLength(fetchDexes)
-		if IsTrue(IsGreaterThanOrEqual(dexesLength, defaultLimit)) {
+		if IsTrue(IsGreaterThan(dexesLength, defaultLimit)) {
 			var defaultDexes interface{} = this.SafeList(hip3, "dex", []interface{}{})
 			if IsTrue(IsEqual(GetArrayLength(defaultDexes), 0)) {
 				panic(ArgumentsRequired(Add(Add(Add(this.Id, " fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options[\"fetchMarkets\"][\"hip3\"][\"dex\"] parameter to fetch markets from those DEXes only. The limit is set to "), ToString(defaultLimit)), " DEXes by default.")))
@@ -5403,8 +5403,9 @@ func (this *HyperliquidCore) CoinToMarketId(coin interface{}) interface{} {
 	if IsTrue(IsEqual(coin, nil)) {
 		return nil
 	}
-	if IsTrue(this.SafeDict(GetValue(this.Options, "hip3TokensByName"), coin)) {
-		var hip3Dict interface{} = GetValue(GetValue(this.Options, "hip3TokensByName"), coin)
+	var hi3TokensByname interface{} = this.SafeDict(this.Options, "hip3TokensByName", map[string]interface{}{})
+	if IsTrue(this.SafeDict(hi3TokensByname, coin)) {
+		var hip3Dict interface{} = this.SafeDict(hi3TokensByname, coin)
 		var quote interface{} = this.SafeString(hip3Dict, "quote", "USDC")
 		var code interface{} = this.SafeString(hip3Dict, "code", coin)
 		return Add(Add(Add(Add(code, "/"), quote), ":"), quote)
