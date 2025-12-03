@@ -9999,7 +9999,7 @@ class binance(Exchange, ImplicitAPI):
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
         positionSide = self.safe_string(position, 'positionSide')
         hedged = positionSide != 'BOTH'
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -10026,7 +10026,7 @@ class binance(Exchange, ImplicitAPI):
             'percentage': percentage,
             'stopLossPrice': None,
             'takeProfitPrice': None,
-        }
+        })
 
     def load_leverage_brackets(self, reload=False, params={}):
         self.load_markets()
