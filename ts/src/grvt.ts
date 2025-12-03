@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import Exchange from './abstract/bitrue.js';
+import Exchange from './abstract/grvt.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
@@ -11,7 +11,7 @@ import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Mar
 //  ---------------------------------------------------------------------------
 
 /**
- * @class bitrue
+ * @class grvt
  * @augments Exchange
  */
 export default class grvt extends Exchange {
@@ -76,6 +76,8 @@ export default class grvt extends Exchange {
                         'lite/v1/margin_rules': 1,
                         'full/v1/mini': 1,
                         'lite/v1/mini': 1,
+                        'full/v1/ticker': 1,
+                        'lite/v1/ticker': 1,
                     },
                 },
             },
