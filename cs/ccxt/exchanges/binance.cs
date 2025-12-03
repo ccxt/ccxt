@@ -11046,7 +11046,7 @@ public partial class binance : Exchange
         }
         object positionSide = this.safeString(position, "positionSide");
         object hedged = !isEqual(positionSide, "BOTH");
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", symbol },
@@ -11073,7 +11073,7 @@ public partial class binance : Exchange
             { "percentage", percentage },
             { "stopLossPrice", null },
             { "takeProfitPrice", null },
-        };
+        });
     }
 
     public async virtual Task<object> loadLeverageBrackets(object reload = null, object parameters = null)
