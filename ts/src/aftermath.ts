@@ -583,6 +583,9 @@ export default class aftermath extends Exchange {
             'account': account,
         };
         params = this.omit (params, 'account');
+        if (account === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires account');
+        }
         const response = await this.privatePostBalance (this.extend (request, params));
         //
         // {
@@ -940,10 +943,10 @@ export default class aftermath extends Exchange {
         return this.parseOrders (response);
     }
 
-    async createAccount (params = {}): Promise<Order[]> {
+    async createAccount (symbol: string, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const settleId = this.safeString (params, 'settleId');
-        params = this.omit (params, [ 'settleId' ]);
+        const market = this.market (symbol);
+        const settleId = market['settleId'];
         const txRequest = {
             'metadata': {
                 'sender': this.walletAddress,
