@@ -46,7 +46,7 @@ export default class grvt extends Exchange {
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e',
                 'api': {
-                    'privateMarket': 'https://market-data.dev.gravitymarkets.io/',
+                    'privateMarket': 'https://market-data.grvt.io/',
                     'privateEdge': 'https://edge.grvt.io/',
                 },
                 'www': 'https://grvt.io',
@@ -126,6 +126,7 @@ export default class grvt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        await this.signIn ();
         const response = await this.privateMarketPostFullV1AllInstruments (params);
         //
         //    {
@@ -165,7 +166,7 @@ export default class grvt extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const settle = this.safeCurrencyCode (settleId);
-        const symbol = base + '/' + quote;
+        const symbol = base + '/' + quote + ':' + settle;
         let type: Str = undefined;
         const typeRaw = this.safeString (market, 'kind');
         if (typeRaw === 'PERPETUAL') {
@@ -284,6 +285,71 @@ export default class grvt extends Exchange {
         });
     }
 
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const request = {
+            'instrument': this.marketId (symbol),
+        };
+        const response = await this.privateMarketPostFullV1Ticker (this.extend (request, params));
+        //
+        //    {
+        //        "result": {
+        //            "event_time": "1764774730025055205",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "mark_price": "92697.300078773",
+        //            "index_price": "92727.818122278",
+        //            "last_price": "92683.0",
+        //            "last_size": "0.001",
+        //            "mid_price": "92682.95",
+        //            "best_bid_price": "92682.9",
+        //            "best_bid_size": "5.332",
+        //            "best_ask_price": "92683.0",
+        //            "best_ask_size": "0.009",
+        //            "funding_rate_8h_curr": "0.0037",
+        //            "funding_rate_8h_avg": "0.0037",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "buy_volume_24h_b": "2893.898",
+        //            "sell_volume_24h_b": "2907.847",
+        //            "buy_volume_24h_q": "266955739.1606",
+        //            "sell_volume_24h_q": "268170211.7109",
+        //            "high_price": "93908.3",
+        //            "low_price": "89900.1",
+        //            "open_price": "90129.2",
+        //            "open_interest": "1523.218935908",
+        //            "long_short_ratio": "1.472543",
+        //            "funding_rate": "0.0037",
+        //            "next_funding_time": "1764777600000000000"
+        //        }
+        //    }
+        //
+        return this.parseTicker (response);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'instrument');
+        return this.safeTicker ({
+            'info': ticker,
+            'symbol': this.safeSymbol (marketId, market),
+            'open': this.safeNumber (ticker, 'open_price'),
+            'high': this.safeNumber (ticker, 'high_price'),
+            'low': this.safeNumber (ticker, 'low_price'),
+            'last': this.safeNumber (ticker, 'last_price'),
+            'bid': this.safeNumber (ticker, 'best_bid_price'),
+            'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
+            'ask': this.safeNumber (ticker, 'best_ask_price'),
+            'askVolume': this.safeNumber (ticker, 'best_ask_size'),
+            'change': undefined,
+            'percentage': undefined,
+            'baseVolume': this.safeNumber (ticker, 'buy_volume_24h_b'),
+            'quoteVolume': this.safeNumber (ticker, 'buy_volume_24h_q'),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'vwap': undefined,
+            'average': undefined,
+            'previousClose': undefined,
+        });
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
