@@ -759,10 +759,8 @@ class Exchange extends \ccxt\Exchange {
         if ($value === null) {
             return $defaultValue;
         }
-        if ((gettype($value) === 'array')) {
-            if ((gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
-                return $value;
-            }
+        if ((gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+            return $value;
         }
         return $defaultValue;
     }
