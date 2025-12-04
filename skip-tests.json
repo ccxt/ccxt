@@ -1282,6 +1282,9 @@
             },
             "watchTrades": {
                 "currency": "not provided"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
