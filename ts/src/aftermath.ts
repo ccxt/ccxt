@@ -782,6 +782,7 @@ export default class aftermath extends Exchange {
             'side': side as OrderSide,
             'amount': amount,
             'price': price,
+            'params': params,
         };
         if (id !== undefined) {
             order['id'] = id;
@@ -801,12 +802,16 @@ export default class aftermath extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {Account} [params.account] account id to use, required
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
+        const account = this.safeString (params, 'account');
+        params = this.omit (params, 'account');
         const order = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
-        const orders = await this.createOrders ([ order as any ], params);
+        const orders = await this.createOrders ([ order as any ], { 'account': account });
         return orders[0];
     }
 
@@ -830,7 +835,13 @@ export default class aftermath extends Exchange {
             const market = this.market (symbol);
             const price = this.safeString (order, 'price');
             const amount = this.safeString (order, 'amount');
+            const orderParams = this.safeDict (order, 'params', {});
+            const reduceOnly = this.safeBool (orderParams, 'reduceOnly');
+            if (reduceOnly !== undefined) {
+                order['reduceOnly'] = reduceOnly;
+            }
             delete order['symbol'];
+            delete order['params'];
             order['chId'] = market['id'];
             if (price !== undefined) {
                 order['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
