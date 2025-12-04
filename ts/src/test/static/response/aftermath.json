@@ -1556,6 +1556,101 @@
                     }
                 }
             }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824",
+                        "type": "capability",
+                        "code": "USDC",
+                        "accountNumber": 12345
+                    },
+                    {
+                        "id": "0x5e83d5ce9012f27369ea4e92b24cbb0e617bd347ead7945a1dcbd88069fcafb3",
+                        "type": "account",
+                        "code": "USDC",
+                        "accountNumber": 12345
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824",
+                        "type": "capability",
+                        "code": "USDC",
+                        "info": {
+                            "id": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824",
+                            "type": "capability",
+                            "code": "USDC",
+                            "accountNumber": 12345
+                        }
+                    },
+                    {
+                        "id": "0x5e83d5ce9012f27369ea4e92b24cbb0e617bd347ead7945a1dcbd88069fcafb3",
+                        "type": "account",
+                        "code": "USDC",
+                        "info": {
+                            "id": "0x5e83d5ce9012f27369ea4e92b24cbb0e617bd347ead7945a1dcbd88069fcafb3",
+                            "type": "account",
+                            "code": "USDC",
+                            "accountNumber": 12345
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [
+                    null,
+                    {
+                        "accountNumber": 12345
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "id": "0x6473476da45d98364ceef21796e53020b930108155555a1c6111e52344193557:141",
+                        "symbol": "BTC/USD:USDC",
+                        "marginMode": "isolated",
+                        "contracts": 0.0,
+                        "contractSize": 0.999877468125,
+                        "notional": 0.0,
+                        "leverage": 0.0,
+                        "collateral": 86.29741500000002,
+                        "initialMargin": 0.0,
+                        "maintenanceMargin": 0.0,
+                        "initialMarginPercentage": 0.025,
+                        "maintenanceMarginPercentage": 0.0125,
+                        "unrealizedPnl": 0.0,
+                        "timestamp": 1764838387056,
+                        "datetime": "2025-12-04 08:53:07.056 UTC"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "0x6473476da45d98364ceef21796e53020b930108155555a1c6111e52344193557:141",
+                        "symbol": "BTC/USD:USDC",
+                        "marginMode": "isolated",
+                        "contracts": 0,
+                        "contractSize": 0.999877468125,
+                        "notional": 0,
+                        "leverage": 0,
+                        "collateral": 86.29741500000002,
+                        "initialMargin": 0,
+                        "maintenanceMargin": 0,
+                        "initialMarginPercentage": 0.025,
+                        "maintenanceMarginPercentage": 0.0125,
+                        "unrealizedPnl": 0,
+                        "timestamp": 1764838387056,
+                        "datetime": "2025-12-04 08:53:07.056 UTC"
+                    }
+                ]
+            }
         ]
     }
 }
