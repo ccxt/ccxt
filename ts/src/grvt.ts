@@ -55,6 +55,7 @@ export default class grvt extends Exchange {
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e',
                 'api': {
+                    'privateTrading': 'https://trades.grvt.io/',
                     'privateMarket': 'https://market-data.grvt.io/',
                     'privateEdge': 'https://edge.grvt.io/',
                 },
@@ -74,35 +75,29 @@ export default class grvt extends Exchange {
                 'privateMarket': {
                     'post': {
                         'full/v1/instrument': 1,
-                        'lite/v1/instrument': 1,
                         'full/v1/all_instruments': 1,
-                        'lite/v1/all_instruments': 1,
                         'full/v1/instruments': 1,
-                        'lite/v1/instruments': 1,
                         'full/v1/currency': 1,
-                        'lite/v1/currency': 1,
                         'full/v1/margin_rules': 1,
-                        'lite/v1/margin_rules': 1,
                         'full/v1/mini': 1,
-                        'lite/v1/mini': 1,
                         'full/v1/ticker': 1,
-                        'lite/v1/ticker': 1,
                         'full/v1/book': 1,
-                        'lite/v1/book': 1,
                         'full/v1/trade': 1,
-                        'lite/v1/trade': 1,
                         'full/v1/trade_history': 1,
-                        'lite/v1/trade_history': 1,
                         'full/v1/kline': 1,
-                        'lite/v1/kline': 1,
                         'full/v1/funding': 1,
-                        'lite/v1/funding': 1,
+                    },
+                },
+                'privateTrading': {
+                    'post': {
+                        'full/v1/create_order': 1,
+                        'full/v1/account_summary': 1,
                     },
                 },
             },
             // exchange-specific options
             'options': {
-               
+                'subAccountId': '', // needs to be set manually by user
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -676,6 +671,81 @@ export default class grvt extends Exchange {
             'timestamp': ts,
             'datetime': this.iso8601 (ts),
         };
+    }
+
+    getSubAccountId () {
+        const subAccountId = this.safeString (this.options, 'subAccountId');
+        if ((subAccountId === undefined) || (subAccountId.length === 0)) {
+            throw new ArgumentsRequired (this.id + ' you should set .options["subAccountId"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
+        }
+        return subAccountId;
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchBalance
+     * @description query for account info
+     * @see https://api-docs.grvt.io/trading_api/#sub-account-summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const request = {
+            'sub_account_id': this.getSubAccountId (),
+        };
+        const response = await this.privateTradingPostFullV1AccountSummary (this.extend (request, params));
+        //
+        //    {
+        //        "result": {
+        //            "event_time": "1764863116142428457",
+        //            "sub_account_id": "2147050003876484",
+        //            "margin_type": "SIMPLE_CROSS_MARGIN",
+        //            "settle_currency": "USDT",
+        //            "unrealized_pnl": "0.0",
+        //            "total_equity": "15.0",
+        //            "initial_margin": "0.0",
+        //            "maintenance_margin": "0.0",
+        //            "available_balance": "15.0",
+        //            "spot_balances": [
+        //                {
+        //                    "currency": "USDT",
+        //                    "balance": "15.0",
+        //                    "index_price": "1.000289735"
+        //                }
+        //            ],
+        //            "positions": [],
+        //            "settle_index_price": "1.000289735",
+        //            "derisk_margin": "0.0",
+        //            "derisk_to_maintenance_margin_ratio": "1.0",
+        //            "total_cross_equity": "15.0",
+        //            "cross_unrealized_pnl": "0.0"
+        //        }
+        //    }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseBalance (result);
+    }
+
+    parseBalance (response): Balances {
+        const timestamp = this.safeIntegerProduct (response, 'event_time', 0.000001);
+        const result: Dict = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const spotBalances = this.safeList (response, 'spot_balances', []);
+        const availableBalance = this.safeString (response, 'available_balance');
+        for (let i = 0; i < spotBalances.length; i++) {
+            const balance = spotBalances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = availableBalance; // todo: revise after API team clarification
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
