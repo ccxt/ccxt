@@ -237,6 +237,21 @@ export default class hyperliquid extends Exchange {
                     'USDT0': 'USDT',
                     'XAUT0': 'XAUT',
                     'UXPL': 'XPL',
+                    'UNIT': 'BTC',
+                    'TZERO': 'USDT',
+                    'USPXS': 'SPX',
+                    'UUENA': 'ENA',
+                    'UENA': 'ENA',
+                    'PUMP': 'PUMP-26',
+                    'WMNT': 'MNT',
+                    'MON': 'MONPRO',
+                    'UMON': 'MON',
+                    'UMEGA': 'MEGA',
+                    'UMOG': 'MOG',
+                    'UPHL': 'PHL',
+                    'USPYX': 'SPX',
+                    'UWLD': 'WLD',
+                    // also check these: 'USH', 'WASH', 'WHYPI', 'W'
                 },
                 'fetchMarkets': {
                     'types': [ 'spot', 'swap', 'hip3' ], // 'spot', 'swap', 'hip3'
