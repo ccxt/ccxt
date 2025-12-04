@@ -53,6 +53,7 @@ export default class aftermath extends Exchange {
                 'fetchTransactions': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': true,
+                'setLeverage': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -104,15 +105,14 @@ export default class aftermath extends Exchange {
                         'build/cancelOrders': 1,
                         'build/createAccount': 1,
                         'build/createOrders': 1,
-                        'build/createSubaccount': 1,
                         'build/deallocate': 1,
                         'build/deposit': 1,
+                        'build/setLeverage': 1,
                         'build/withdraw': 1,
                         'submit/allocate': 1,
                         'submit/cancelOrders': 1,
                         'submit/createAccount': 1,
                         'submit/createOrders': 1,
-                        'submit/createSubaccount': 1,
                         'submit/deallocate': 1,
                         'submit/deposit': 1,
                         'submit/withdraw': 1,
@@ -489,6 +489,7 @@ export default class aftermath extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -498,9 +499,6 @@ export default class aftermath extends Exchange {
         const request = {
             'chId': chId,
         };
-        if (since !== undefined) {
-            request['since'] = since;
-        }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 50);
         }
@@ -1198,6 +1196,45 @@ export default class aftermath extends Exchange {
             'fee': undefined,
             'network': undefined,
         };
+    }
+
+    /**
+     * @method
+     * @name aftermath#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_set_leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {Account} [params.account] account id to use, required
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const account = this.safeString2 (params, 'account', 'accountId');
+        params = this.omit (params, [ 'account', 'accountId' ]);
+        const txRequest = {
+            'accountId': account,
+            'chId': market['id'],
+            'leverage': leverage,
+            'metadata': {
+                'sender': this.walletAddress,
+            },
+        };
+        const response = await this.privatePostBuildSetLeverage (txRequest);
+        //
+        //     {
+        //         'response': {
+        //             'type': 'default'
+        //         },
+        //         'status': 'ok'
+        //     }
+        //
+        return response;
     }
 
     /**
