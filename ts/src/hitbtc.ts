@@ -3423,8 +3423,9 @@ export default class hitbtc extends Exchange {
         //         "positions": null
         //     }
         //
+        const parsedAmount = this.parseNumber (amount);
         return this.extend (this.parseMarginModification (response, market), {
-            'amount': this.parseNumber (amount),
+            'amount': parsedAmount,
             'type': type,
         });
     }

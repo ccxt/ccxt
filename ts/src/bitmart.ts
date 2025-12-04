@@ -4505,8 +4505,9 @@ export default class bitmart extends Exchange {
         if (limit === undefined) {
             limit = 10;
         }
+        const pageNumber = this.safeInteger (params, 'page', 1);
         const request: Dict = {
-            'page': this.safeInteger (params, 'page', 1), // default is 1, max is 1000
+            'page': pageNumber, // default is 1, max is 1000
             'limit': limit, // default is 10, max is 100
         };
         let currency = undefined;
