@@ -2966,7 +2966,7 @@ export default class oxfun extends Exchange {
             return undefined;
         }
         if (code !== 200) {
-            const responseCode = this.safeString (response, 'code', undefined);
+            const responseCode = this.safeString (response, 'code');
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);

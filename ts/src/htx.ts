@@ -3346,7 +3346,7 @@ export default class htx extends Exchange {
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeValue (account, 'info');
-            const subtype = this.safeString (info, 'subtype', undefined);
+            const subtype = this.safeString (info, 'subtype');
             const typeFromAccount = this.safeString (account, 'type');
             if (type === 'margin') {
                 if (subtype === marketId) {

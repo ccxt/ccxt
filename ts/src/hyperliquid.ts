@@ -1849,7 +1849,7 @@ export default class hyperliquid extends Exchange {
                 ordersToBeParsed.push (order);
             }
         }
-        return this.parseOrders (ordersToBeParsed, undefined);
+        return this.parseOrders (ordersToBeParsed);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: string, price: Str = undefined, params = {}) {

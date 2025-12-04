@@ -1611,7 +1611,7 @@ export default class bitfinex extends Exchange {
             // '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
             // '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         };
-        return this.safeValue (flagValues, flags, undefined);
+        return this.safeValue (flagValues, flags);
     }
 
     parseTimeInForce (orderType) {

@@ -1231,7 +1231,7 @@ export default class apex extends Exchange {
             'IMMEDIATE_OR_CANCEL': 'IMMEDIATE_OR_CANCEL',
             'POST_ONLY': 'POST_ONLY',
         };
-        return this.safeString (timeInForces, timeInForce, undefined);
+        return this.safeString (timeInForces, timeInForce);
     }
 
     parseOrderStatus (status: Str) {
@@ -1470,7 +1470,9 @@ export default class apex extends Exchange {
             }
         }
         const tokenId = this.safeString (currency, 'tokenId', '');
-        const amountNumber = this.parseToInt (amount * (Math.pow (10, this.safeNumber (currency, 'decimals', 0))));
+        const decimalsNum = this.safeNumber (currency, 'decimals', 0);
+        const mathPowResult = (Math.pow (10, decimalsNum));
+        const amountNumber = this.parseToInt (amount * mathPowResult);
         const timestampSeconds = this.parseToInt (this.milliseconds () / 1000);
         let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
