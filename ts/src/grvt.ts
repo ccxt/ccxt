@@ -95,6 +95,8 @@ export default class grvt extends Exchange {
                         'full/v1/account_history': 1,
                         'full/v1/aggregated_account_summary': 1,
                         'full/v1/funding_account_summary': 1,
+                        'full/v1/deposit_history': 1,
+                        'full/v1/transfer': 1,
                     },
                 },
             },
@@ -753,6 +755,192 @@ export default class grvt extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://api-docs.grvt.io/trading_api/#transfer
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        let request: Dict = {};
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
+        }
+        const currency: Currency = this.currency (code);
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        const response = await this.privateTradingPostFullV1DepositHistory (this.extend (request, params));
+        //
+        // {
+        //     "result": [{
+        //         "l_1_hash": "0x10000101000203040506",
+        //         "l_2_hash": "0x10000101000203040506",
+        //         "to_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //         "currency": "USDT",
+        //         "num_tokens": "1500.0",
+        //         "initiated_time": "1697788800000000000",
+        //         "confirmed_time": "1697788800000000000",
+        //         "from_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
+        //     }],
+        //     "next": "Qw0918="
+        // }
+        //
+        const result = this.safeList (response, 'result', []);
+        return this.parseTransactions (result, currency, since, limit);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // fetchDeposits
+        //
+        //    {
+        //         "l_1_hash": "0x10000101000203040506",
+        //         "l_2_hash": "0x10000101000203040506",
+        //         "to_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //         "currency": "USDT",
+        //         "num_tokens": "1500.0",
+        //         "initiated_time": "1697788800000000000",
+        //         "confirmed_time": "1697788800000000000",
+        //         "from_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
+        //     }
+        //
+        const timestamp = this.safeIntegerProduct (transaction, 'time', 0.001);
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'type': undefined,
+            'currency': code,
+            'network': undefined,
+            'amount': this.safeNumber (transaction, 'num_tokens'),
+            'status': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'addressFrom': this.safeString (transaction, 'from_address'),
+            'addressTo': this.safeString (transaction, 'to_account_id'),
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        } as Transaction;
+    }
+
+    /**
+     * @method
+     * @name grvt#createOrder
+     * @description create a trade order
+     * @see https://api-docs.grvt.io/trading_api/#create-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
+     * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
+     * @param {bool} [params.postOnly] true or false
+     * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let orderType = type.toUpperCase ();
+        const orderSide = side.toUpperCase ();
+        const orderSize = this.amountToPrecision (symbol, amount);
+        let orderPrice = '0';
+        if (price !== undefined) {
+            orderPrice = this.priceToPrecision (symbol, price);
+        }
+        const fees = this.safeDict (this.fees, 'swap', {});
+        const taker = this.safeString (fees, 'taker', '0.0005');
+        const maker = this.safeString (fees, 'maker', '0.0002');
+        const limitFee = this.decimalToPrecision (Precise.stringAdd (Precise.stringMul (Precise.stringMul (orderPrice, orderSize), taker), this.numberToString (market['precision']['price'])), TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const timeNow = this.milliseconds ();
+        let triggerPrice = this.safeString (params, 'triggerPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if (stopLossPrice !== undefined) {
+            orderType = (orderType === 'MARKET') ? 'STOP_MARKET' : 'STOP_LIMIT';
+            triggerPrice = stopLossPrice;
+        } else if (takeProfitPrice !== undefined) {
+            orderType = (orderType === 'MARKET') ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
+            triggerPrice = takeProfitPrice;
+        }
+        const isMarket = orderType === 'MARKET';
+        if (isMarket && (price === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for market orders');
+        }
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, undefined, params);
+        if (timeInForce === undefined) {
+            timeInForce = 'GOOD_TIL_CANCEL';
+        }
+        if (!isMarket) {
+            if (postOnly) {
+                timeInForce = 'POST_ONLY';
+            } else if (timeInForce === 'ioc') {
+                timeInForce = 'IMMEDIATE_OR_CANCEL';
+            }
+        }
+        params = this.omit (params, 'timeInForce');
+        params = this.omit (params, 'postOnly');
+        let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]); 
+        params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
+        const orderToSign = {
+            'accountId': accountId,
+            'slotId': clientOrderId,
+            'nonce': clientOrderId,
+            'pairId': market['quoteId'],
+            'size': orderSize,
+            'price': orderPrice,
+            'direction': orderSide,
+            'makerFeeRate': maker,
+            'takerFeeRate': taker,
+        };
+        if (triggerPrice !== undefined) {
+            orderToSign['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': orderSide,
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
+            'size': orderSize,
+            'price': orderPrice,
+            'limitFee': limitFee,
+            'expiration': Math.floor (timeNow / 1000 + 30 * 24 * 60 * 60),
+            'timeInForce': timeInForce,
+            'clientId': clientOrderId,
+            'brokerId': this.safeString (this.options, 'brokerId', '6956'),
+        };
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        const accountId = await this.getAccountId ();
+        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
