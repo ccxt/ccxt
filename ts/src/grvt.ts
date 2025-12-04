@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -33,15 +33,24 @@ export default class grvt extends Exchange {
                 'option': false,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1H',
-                '2h': '2H',
-                '4h': '4H',
-                '1d': '1D',
-                '1w': '1W',
+                '1m': 'CI_1_M',
+                '3m': 'CI_3_M',
+                '5m': 'CI_5_M',
+                '15m': 'CI_15_M',
+                '30m': 'CI_30_M',
+                '1h': 'CI_1_H',
+                '2h': 'CI_2_H',
+                '4h': 'CI_4_H',
+                '6h': 'CI_6_H',
+                '8h': 'CI_8_H',
+                '12h': 'CI_12_H',
+                '1d': 'CI_1_D',
+                '3d': 'CI_3_D',
+                '5d': 'CI_5_D',
+                '1w': 'CI_1_W',
+                '2w': 'CI_2_W',
+                '3w': 'CI_3_W',
+                '4w': 'CI_4_W',
             },
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e',
@@ -86,6 +95,8 @@ export default class grvt extends Exchange {
                         'lite/v1/trade_history': 1,
                         'full/v1/kline': 1,
                         'lite/v1/kline': 1,
+                        'full/v1/funding': 1,
+                        'lite/v1/funding': 1,
                     },
                 },
             },
@@ -599,6 +610,7 @@ export default class grvt extends Exchange {
             this.safeNumber (ohlcv, 'volume'),
         ];
     }
+
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
