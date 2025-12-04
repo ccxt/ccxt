@@ -92,12 +92,15 @@ export default class grvt extends Exchange {
                     'post': {
                         'full/v1/create_order': 1,
                         'full/v1/account_summary': 1,
+                        'full/v1/account_history': 1,
+                        'full/v1/aggregated_account_summary': 1,
+                        'full/v1/funding_account_summary': 1,
                     },
                 },
             },
             // exchange-specific options
             'options': {
-                'subAccountId': '', // needs to be set manually by user
+                'subAccountId': undefined, // needs to be set manually by user
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -673,9 +676,13 @@ export default class grvt extends Exchange {
         };
     }
 
-    getSubAccountId () {
-        const subAccountId = this.safeString (this.options, 'subAccountId');
-        if ((subAccountId === undefined) || (subAccountId.length === 0)) {
+    getSubAccountId (methodName, params) {
+        let subAccountId = undefined;
+        [ subAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subAccountId');
+        if (subAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a subAccountId parameter or a .options["subAccountId"] to be set');
+        }
+        if (subAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' you should set .options["subAccountId"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
         }
         return subAccountId;
@@ -692,7 +699,7 @@ export default class grvt extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const request = {
-            'sub_account_id': this.getSubAccountId (),
+            'sub_account_id': this.getSubAccountId ('fetchBalance', params),
         };
         const response = await this.privateTradingPostFullV1AccountSummary (this.extend (request, params));
         //
