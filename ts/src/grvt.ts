@@ -611,6 +611,72 @@ export default class grvt extends Exchange {
         ];
     }
 
+    /**
+     * @method
+     * @name grvt#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://api-docs.grvt.io/market_data_api/#funding-rate
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+        }
+        const market = this.market (symbol);
+        let request: Dict = {
+            'instrument': market['id'],
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        const response = await this.privateMarketPostFullV1Funding (this.extend (request, params));
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "instrument": "BTC_USDT_Perp",
+        //                "funding_rate": "-0.0034",
+        //                "funding_time": "1760494260000000000",
+        //                "mark_price": "112721.159060304",
+        //                "funding_rate_8_h_avg": "-0.0038",
+        //                "funding_interval_hours": "0"
+        //            },
+        //            ...
+        //        ],
+        //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
+        //    }
+        //
+        const result = this.safeList (response, 'result', []);
+        return this.parseFundingRateHistories (result, market);
+    }
+
+    parseFundingRateHistory (rawItem: Dict, market: Market = undefined) {
+        const marketId = this.safeString (rawItem, 'instrument');
+        const ts = this.safeIntegerProduct (rawItem, 'funding_time', 0.000001);
+        return {
+            'info': rawItem,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (rawItem, 'funding_rate'),
+            'timestamp': ts,
+            'datetime': this.iso8601 (ts),
+        };
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
