@@ -388,6 +388,7 @@ class coincatch(Exchange, ImplicitAPI):
                     'ChilizChain': 'ChilizChain',  # todo check
                     'StellarLumens': 'XLM',  # todo check
                     'CronosChain': 'CRO',  # todo check
+                    'Optimism': 'Optimism',
                 },
             },
             'features': {
@@ -1345,7 +1346,7 @@ class coincatch(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'ts')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://coincatch.github.io/github.io/en/spot/#get-candle-data
@@ -2242,6 +2243,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.hedged]: *swap markets only* must be set to True if position mode is hedged(default False)
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :param float [params.triggerPrice]: the price that the order is to be triggered
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
@@ -2420,6 +2422,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.hedged]: must be set to True if position mode is hedged(default False)
         :param bool [params.postOnly]: *non-trigger orders only* if True, the order will only be posted to the order book and not executed immediately
         :param bool [params.reduceOnly]: True or False whether the order is reduce only
         :param str [params.timeInForce]: *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2471,7 +2474,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.hedged]: default False
+        :param bool [params.hedged]: must be set to True if position mode is hedged(default False)
         :param bool [params.postOnly]: *non-trigger orders only* if True, the order will only be posted to the order book and not executed immediately
         :param bool [params.reduceOnly]: True or False whether the order is reduce only
         :param str [params.timeInForce]: *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2507,24 +2510,31 @@ class coincatch(Exchange, ImplicitAPI):
                 request['price'] = self.price_to_precision(symbol, price)
         if (endpointType != 'tpsl'):
             request['orderType'] = type
-            hedged: Bool = False
-            hedged, params = self.handle_option_and_params(params, methodName, 'hedged', hedged)
-            # hedged and non-hedged orders have different side values and reduceOnly handling
-            reduceOnly: Bool = False
-            reduceOnly, params = self.handle_param_bool(params, 'reduceOnly', reduceOnly)
-            if hedged:
-                if reduceOnly:
-                    if side == 'buy':
-                        side = 'close_short'
-                    elif side == 'sell':
-                        side = 'close_long'
+            sideIsExchangeSpecific = False
+            hedged = False
+            if (side == 'buy_single') or (side == 'sell_single') or (side == 'open_long') or (side == 'open_short') or (side == 'close_long') or (side == 'close_short'):
+                sideIsExchangeSpecific = True
+                if (side != 'buy_single') and (side != 'sell_single'):
+                    hedged = True
+            if not sideIsExchangeSpecific:
+                hedged, params = self.handle_option_and_params(params, methodName, 'hedged', hedged)
+                # hedged and non-hedged orders have different side values and reduceOnly handling
+                reduceOnly = self.safe_bool(params, 'reduceOnly')
+                if hedged:
+                    if (reduceOnly is not None) and reduceOnly:
+                        if side == 'buy':
+                            side = 'close_short'
+                        elif side == 'sell':
+                            side = 'close_long'
+                    else:
+                        if side == 'buy':
+                            side = 'open_long'
+                        elif side == 'sell':
+                            side = 'open_short'
                 else:
-                    if side == 'buy':
-                        side = 'open_long'
-                    elif side == 'sell':
-                        side = 'open_short'
-            else:
-                side = side.lower() + '_single'
+                    side = side.lower() + '_single'
+            if hedged:
+                params = self.omit(params, 'reduceOnly')
             request['side'] = side
         return self.extend(request, params)
 
@@ -4623,7 +4633,7 @@ class coincatch(Exchange, ImplicitAPI):
         params['methodName'] = 'addMargin'
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
-    def fetch_position(self, symbol: str, params={}):
+    def fetch_position(self, symbol: str, params={}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -4644,7 +4654,7 @@ class coincatch(Exchange, ImplicitAPI):
                 position = positions[i]
                 if position['side'] == side:
                     return position
-        return positions[0]
+        return self.safe_dict(positions, 0, {})
 
     def fetch_positions_for_symbol(self, symbol: str, params={}) -> List[Position]:
         """

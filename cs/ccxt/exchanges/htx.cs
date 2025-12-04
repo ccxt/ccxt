@@ -860,6 +860,7 @@ public partial class htx : Exchange
                     { "base-symbol-error", typeof(BadSymbol) },
                     { "system-maintenance", typeof(OnMaintenance) },
                     { "base-request-exceed-frequency-limit", typeof(RateLimitExceeded) },
+                    { "rate-too-many-requests", typeof(RateLimitExceeded) },
                     { "invalid symbol", typeof(BadSymbol) },
                     { "symbol trade not open now", typeof(BadSymbol) },
                     { "require-symbol", typeof(BadSymbol) },
@@ -2738,7 +2739,18 @@ public partial class htx : Exchange
                 { "currency", feeCurrency },
             };
         }
-        object id = this.safeStringN(trade, new List<object>() {"trade_id", "trade-id", "id"});
+        // htx's multi-market trade-id is a bit complex to parse accordingly.
+        // - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
+        // - otherwise the least priority is given to the `id` key
+        object id = null;
+        object safeId = this.safeString(trade, "id");
+        if (isTrue(isTrue(!isEqual(safeId, null)) && isTrue(isGreaterThanOrEqual(getIndexOf(safeId, "-"), 0))))
+        {
+            id = safeId;
+        } else
+        {
+            id = this.safeStringN(trade, new List<object>() {"trade_id", "trade-id", "id"});
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
@@ -5697,7 +5709,10 @@ public partial class htx : Exchange
             }
             if (isTrue(isTrue(isTrue(isTrue(isEqual(type, "limit")) || isTrue(isEqual(type, "ioc"))) || isTrue(isEqual(type, "fok"))) || isTrue(isEqual(type, "post_only"))))
             {
-                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                if (isTrue(!isEqual(price, null)))
+                {
+                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                }
             }
         }
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
@@ -6268,7 +6283,7 @@ public partial class htx : Exchange
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -7073,6 +7088,7 @@ public partial class htx : Exchange
             { "repealed", "failed" },
             { "wallet-transfer", "pending" },
             { "pre-transfer", "pending" },
+            { "verifying", "pending" },
         };
         return this.safeString(statuses, status, status);
     }

@@ -45,6 +45,13 @@ class testMainClass:
         self.ext = get_ext()
 
     async def init(self, exchange_id, symbol_argv, method_argv):
+        try:
+            await self.init_inner(exchange_id, symbol_argv, method_argv)
+        except Exception as e:
+            dump('[TEST_FAILURE]')  # tell run-tests.js this is failure
+            raise e
+
+    async def init_inner(self, exchange_id, symbol_argv, method_argv):
         self.parse_cli_args_and_props()
         if self.request_tests and self.response_tests:
             await self.run_static_request_tests(exchange_id, symbol_argv)
@@ -75,6 +82,7 @@ class testMainClass:
         }
         exchange = init_exchange(exchange_id, exchange_args, self.ws_tests)
         if exchange.alias:
+            dump(self.add_padding('[INFO] skipping alias', 25))
             exit_script(0)
         await self.import_files(exchange)
         assert len(list(self.test_files.keys())) > 0, 'Test files were not loaded'  # ensure test files are found & filled
@@ -331,6 +339,7 @@ class testMainClass:
                     # If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if is_public and is_auth_error:
                         if self.info:
+                            # todo - turn into warning
                             dump('[INFO]', 'Authentication problem for public method', exception_message(e), exchange.id, method_name, args_stringified)
                         return True
                     else:
@@ -1188,7 +1197,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1225,6 +1234,20 @@ class testMainClass:
         # inverse swap
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
         assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
+        # linear swap conditional order
+        swap_algo_order_request = None
+        try:
+            await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, {
+                'triggerPrice': 101000,
+            })
+            check_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            algo_order_id_defined = (check_order_request['algoOrderId'] is not None)
+            assert algo_order_id_defined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined'
+            client_algo_id_swap = swap_algo_order_request['clientAlgoId']
+            swap_algo_id_string = str(swap_id)
+            assert client_algo_id_swap.startswith(swap_algo_id_string), 'binance - swap clientOrderId: ' + client_algo_id_swap + ' does not start with swapId' + swap_algo_id_string
+        except Exception as e:
+            swap_algo_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         create_orders_request = None
         try:
             orders = [{
@@ -1734,6 +1757,22 @@ class testMainClass:
             request = json_parse(exchange.last_request_body)
         broker_id = request['order_tag']
         assert broker_id == id, 'modetrade - id: ' + id + ' different from  broker_id: ' + broker_id
+        if not is_sync():
+            await close(exchange)
+        return True
+
+    async def test_backpack(self):
+        exchange = self.init_offline_exchange('backpack')
+        exchange.apiKey = 'Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo='
+        exchange.secret = 'sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU='
+        req_headers = None
+        id = '1400'
+        try:
+            await exchange.create_order('ETH/USDC', 'limit', 'buy', 1, 5000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers
+        assert req_headers['X-Broker-Id'] == id, 'backpack - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True

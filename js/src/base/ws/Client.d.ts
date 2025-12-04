@@ -26,8 +26,10 @@ export default class Client {
     ping: any;
     subscriptions: Dictionary<any>;
     throttle: any;
+    cookies: Dictionary<any>;
     decompressBinary: boolean;
     constructor(url: string, onMessageCallback: Function | undefined, onErrorCallback: Function | undefined, onCloseCallback: Function | undefined, onConnectedCallback: Function | undefined, config?: {});
+    reusableFuture(messageHash: string): any;
     future(messageHash: string): any;
     resolve(result: any, messageHash: Str): any;
     reject(result: any, messageHash?: Str): any;

@@ -325,6 +325,9 @@ class coinsph extends Exchange {
             'features' => array(
                 'spot' => array(
                     'sandbox' => false,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => false,
                         'triggerPrice' => true,
@@ -521,7 +524,7 @@ class coinsph extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         $response = $this->privateGetOpenapiWalletV1ConfigGetall ($params);
         //
@@ -1023,7 +1026,7 @@ class coinsph extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -2148,7 +2151,7 @@ class coinsph extends Exchange {
         $keys = is_array($query) ? array_keys($query) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if (gettype($query[$key]) === 'array' && array_keys($query[$key]) === array_keys(array_keys($query[$key]))) {
+            if ((gettype($query[$key]) === 'array' && array_keys($query[$key]) === array_keys(array_keys($query[$key])))) {
                 if ($i !== 0) {
                     $encodedArrayParams .= '&';
                 }

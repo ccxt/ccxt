@@ -300,6 +300,7 @@ class gemini extends Exchange {
                         'quote' => 'USD',
                     ),
                 ),
+                'brokenPairs' => array( 'efilusd', 'maticrlusd', 'maticusdc', 'eurusdc', 'maticgusd', 'maticusd', 'efilfil', 'eurusd' ),
             ),
             'features' => array(
                 'default' => array(
@@ -391,7 +392,7 @@ class gemini extends Exchange {
              */
             $data = Async\await($this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>'));
             if ($data === null) {
-                return null;
+                return array();
             }
             //
             //    {
@@ -646,10 +647,10 @@ class gemini extends Exchange {
             //
             $result = array();
             $options = $this->safe_dict($this->options, 'fetchMarketsFromAPI', array());
-            $bugSymbol = 'efilfil'; // we skip this inexistent test symbol, which bugs other functions
+            $brokenPairs = $this->safe_list($this->options, 'brokenPairs', array());
             $marketIds = array();
             for ($i = 0; $i < count($marketIdsRaw); $i++) {
-                if ($marketIdsRaw[$i] !== $bugSymbol) {
+                if (!$this->in_array($marketIdsRaw[$i], $brokenPairs)) {
                     $marketIds[] = $marketIdsRaw[$i];
                 }
             }
@@ -685,14 +686,16 @@ class gemini extends Exchange {
                     $indexedTradingPairs = $this->index_by($tradingPairs, 0);
                     for ($i = 0; $i < count($marketIds); $i++) {
                         $marketId = $marketIds[$i];
-                        $tradingPair = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
-                        if ($tradingPair !== null) {
-                            $result[] = $this->parse_market($tradingPair);
+                        $pairInfo = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
+                        if ($pairInfo !== null && !$this->in_array($marketId, $brokenPairs)) {
+                            $result[] = $this->parse_market($pairInfo);
                         }
                     }
                 } else {
                     for ($i = 0; $i < count($marketIds); $i++) {
-                        $result[] = $this->parse_market($marketIds[$i]);
+                        if (!$this->in_array($marketIds[$i], $brokenPairs)) {
+                            $result[] = $this->parse_market($marketIds[$i]);
+                        }
                     }
                 }
             }
@@ -746,7 +749,7 @@ class gemini extends Exchange {
         $linear = null;
         $inverse = null;
         $isString = (gettype($response) === 'string');
-        $isArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
+        $isArray = ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))));
         if (!$isString && !$isArray) {
             $marketId = $this->safe_string_lower($response, 'symbol');
             $amountPrecision = $this->safe_number($response, 'tick_size'); // right, exchange has an imperfect naming and this turns out to be an amount-precision
@@ -1094,7 +1097,9 @@ class gemini extends Exchange {
             //         ),
             //     )
             //
-            return $this->parse_tickers($response, $symbols);
+            $result = $this->parse_tickers($response, $symbols);
+            $brokenPairs = $this->safe_list($this->options, 'brokenPairs', array());
+            return $this->remove_keys_from_dict($result, $brokenPairs);
         }) ();
     }
 
@@ -1494,7 +1499,7 @@ class gemini extends Exchange {
             //          "is_hidden":false,
             //          "was_forced":false,
             //          "executed_amount":"0",
-            //          "client_order_id":"1650398445709",
+            //          "client_order_id":"1650398445701",
             //          "options":array(),
             //          "price":"2000.00",
             //          "original_amount":"0.01",
@@ -2045,7 +2050,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market

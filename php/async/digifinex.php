@@ -537,7 +537,7 @@ class digifinex extends Exchange {
                 $networks = array();
                 for ($j = 0; $j < count($networkEntries); $j++) {
                     $networkEntry = $networkEntries[$j];
-                    $networkId = $this->safe_string($networkEntry, 'chain');
+                    $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
                     $networkCode = $this->network_id_to_code($networkId);
                     $networks[$networkCode] = array(
                         'id' => $networkId,
@@ -1552,7 +1552,7 @@ class digifinex extends Exchange {
         }
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -2040,7 +2040,7 @@ class digifinex extends Exchange {
         return $result;
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -3583,7 +3583,7 @@ class digifinex extends Exchange {
             $marketType = null;
             if ($symbols !== null) {
                 $symbol = null;
-                if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+                if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
                     $symbolsLength = count($symbols);
                     if ($symbolsLength > 1) {
                         throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');

@@ -76,7 +76,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "challenge";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -776,7 +776,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             object messageHash = "orders";
             object symbol = this.safeSymbol(marketId);
             object orderId = this.safeString(order, "order_id");
-            object previousOrders = this.safeValue((orders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+            object previousOrders = this.safeValue((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             object previousOrder = this.safeValue(previousOrders, orderId);
             object reason = this.safeString(message, "reason");
             if (isTrue(isTrue((isEqual(previousOrder, null))) || isTrue((isEqual(reason, "edited_by_user")))))

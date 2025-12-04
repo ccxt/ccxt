@@ -67,9 +67,9 @@ class kucoin(ccxt.async_support.kucoin):
     async def negotiate(self, privateChannel, params={}):
         connectId = 'private' if privateChannel else 'public'
         urls = self.safe_value(self.options, 'urls', {})
-        spawaned = self.safe_value(urls, connectId)
-        if spawaned is not None:
-            return await spawaned
+        future = self.safe_value(urls, connectId)
+        if future is not None:
+            return await future
         # we store an awaitable to the url
         # so that multiple calls don't asynchronously
         # fetch different urls and overwrite each other
@@ -124,8 +124,10 @@ class kucoin(ccxt.async_support.kucoin):
         return None
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return requestId
 
     async def subscribe(self, url, messageHash, subscriptionHash, params={}, subscription=None):
@@ -428,7 +430,7 @@ class kucoin(ccxt.async_support.kucoin):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -453,7 +455,7 @@ class kucoin(ccxt.async_support.kucoin):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> List[list]:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> List[list]:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

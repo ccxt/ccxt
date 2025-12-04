@@ -281,7 +281,12 @@ class oxfun(Exchange, ImplicitAPI):
                         'leverage': False,
                         'marketBuyByCost': True,
                         'marketBuyRequiresPrice': False,
-                        'selfTradePrevention': True,  # todo
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': True,
+                            'EXPIRE_TAKER': True,
+                            'EXPIRE_BOTH': True,
+                            'NONE': True,
+                        },
                         'iceberg': True,  # todo
                     },
                     'createOrders': {
@@ -870,7 +875,7 @@ class oxfun(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2216,7 +2221,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param float [params.limitPrice]: Limit price for the STOP_LIMIT order
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param str [params.timeInForce]: GTC(default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE(reprices order to the best maker only price if the specified price were to lead to a taker trade)
-        :param str [params.selfTradePreventionMode]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+        :param str [params.selfTradePrevention]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
         :param str [params.displayQuantity]: for an iceberg order, pass both quantity and displayQuantity fields in the order request
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2401,7 +2406,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param float [params.limitPrice]: Limit price for the STOP_LIMIT order
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param str [params.timeInForce]: GTC(default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE(reprices order to the best maker only price if the specified price were to lead to a taker trade)
-        :param str [params.selfTradePreventionMode]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+        :param str [params.selfTradePrevention]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
         :param str [params.displayQuantity]: for an iceberg order, pass both quantity and displayQuantity fields in the order request
         """
         market = self.market(symbol)
@@ -2436,6 +2441,10 @@ class oxfun(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if postOnly and (timeInForce != 'MAKER_ONLY_REPRICE'):
             request['timeInForce'] = 'MAKER_ONLY'
+        selfTradePrevention = None
+        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
+        if selfTradePrevention is not None:
+            request['selfTradePreventionMode'] = selfTradePrevention.upper()
         return self.extend(request, params)
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):

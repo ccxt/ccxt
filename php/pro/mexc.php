@@ -121,7 +121,7 @@ class mexc extends \ccxt\async\mexc {
         //         "symbol" => "BTC_USDT",
         //         "data" => array(
         //             "symbol" => "BTC_USDT",
-        //             "lastPrice" => 76376.2,
+        //             "lastPrice" => 76376.1,
         //             "riseFallRate" => -0.0006,
         //             "fairPrice" => 76374.4,
         //             "indexPrice" => 76385.8,
@@ -568,7 +568,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -900,6 +900,7 @@ class mexc extends \ccxt\async\mexc {
         }
         $storedOrderBook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
+        $shouldReturn = false;
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
@@ -917,6 +918,11 @@ class mexc extends \ccxt\async\mexc {
         } catch (Exception $e) {
             unset($client->subscriptions[$messageHash]);
             $client->reject ($e, $messageHash);
+            // return;
+            $shouldReturn = true;
+        }
+        if ($shouldReturn) {
+            return; // go requirement
         }
         $client->resolve ($storedOrderBook, $messageHash);
     }
@@ -930,7 +936,7 @@ class mexc extends \ccxt\async\mexc {
         //
         for ($i = 0; $i < count($bidasks); $i++) {
             $bidask = $bidasks[$i];
-            if (gettype($bidask) === 'array' && array_keys($bidask) === array_keys(array_keys($bidask))) {
+            if ((gettype($bidask) === 'array' && array_keys($bidask) === array_keys(array_keys($bidask)))) {
                 $bookside->storeArray ($bidask);
             } else {
                 $price = $this->safe_float_2($bidask, 'p', 'price');
@@ -1031,12 +1037,14 @@ class mexc extends \ccxt\async\mexc {
         //     {
         //         "symbol" => "BTC_USDT",
         //         "data" => array(
-        //             "p" => 27307.3,
-        //             "v" => 5,
-        //             "T" => 2,
-        //             "O" => 3,
-        //             "M" => 1,
-        //             "t" => 1680055941870
+        //            {
+        //                "p" => 114350.4,
+        //                "v" => 4,
+        //                "T" => 2,
+        //                "O" => 3,
+        //                "M" => 2,
+        //                "t" => 1760368563597
+        //            }
         //         ),
         //         "channel" => "push.deal",
         //         "ts" => 1680055941870
@@ -1052,8 +1060,11 @@ class mexc extends \ccxt\async\mexc {
             $stored = new ArrayCache ($limit);
             $this->trades[$symbol] = $stored;
         }
-        $d = $this->safe_dict_n($message, array( 'd', 'data', 'publicAggreDeals' ));
+        $d = $this->safe_dict_n($message, array( 'd', 'publicAggreDeals' ));
         $trades = $this->safe_list_2($d, 'deals', 'dealsList', array( $d ));
+        if ($d === null) {
+            $trades = $this->safe_list($message, 'data', array());
+        }
         for ($j = 0; $j < count($trades); $j++) {
             $parsedTrade = null;
             if ($market['spot']) {
@@ -1552,18 +1563,21 @@ class mexc extends \ccxt\async\mexc {
     public function handle_balance(Client $client, $message) {
         //
         // spot
+        //
         //    {
-        //        "c" => "spot@private.account.v3.api",
-        //        "d" => array(
-        //            "a" => "USDT",
-        //            "c" => 1678185928428,
-        //            "f" => "302.185113007893322435",
-        //            "fd" => "-4.990689704",
-        //            "l" => "4.990689704",
-        //            "ld" => "4.990689704",
-        //            "o" => "ENTRUST_PLACE"
-        //        ),
-        //        "t" => 1678185928435
+        //        $channel => "spot@private.account.v3.api.pb",
+        //        createTime => "1758134605364",
+        //        sendTime => "1758134605373",
+        //        privateAccount => {
+        //          vcoinName => "USDT",
+        //          coinId => "128f589271cb4951b03e71e6323eb7be",
+        //          balanceAmount => "0.006016465074677006",
+        //          balanceAmountChange => "-4.4022",
+        //          frozenAmount => "4.4022",
+        //          frozenAmountChange => "4.4022",
+        //          $type => "ENTRUST_PLACE",
+        //          time => "1758134605364",
+        //       }
         //    }
         //
         //
@@ -1581,27 +1595,23 @@ class mexc extends \ccxt\async\mexc {
         //         "ts" => 1680059188190
         //     }
         //
-        $c = $this->safe_string($message, 'c'); // do not add 'channel' here, this is especially for spot
-        $type = ($c === null) ? 'swap' : 'spot';
+        $channel = $this->safe_string($message, 'channel');
+        $type = ($channel === 'spot@private.account.v3.api.pb') ? 'spot' : 'swap';
         $messageHash = 'balance:' . $type;
-        $data = $this->safe_dict_n($message, array( 'd', 'data', 'privateAccount' ));
-        $futuresTimestamp = $this->safe_integer($message, 'ts');
-        $timestamp = $this->safe_integer_2($data, 'c', 'time', $futuresTimestamp);
+        $data = $this->safe_dict_n($message, array( 'data', 'privateAccount' ));
+        $futuresTimestamp = $this->safe_integer_2($message, 'ts', 'createTime');
+        $timestamp = $this->safe_integer_2($data, 'time', $futuresTimestamp);
         if (!(is_array($this->balance) && array_key_exists($type, $this->balance))) {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $data;
         $this->balance[$type]['timestamp'] = $timestamp;
         $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
-        $currencyId = $this->safe_string_n($data, array( 'a', 'currency', 'vcoinName' ));
+        $currencyId = $this->safe_string_n($data, array( 'currency', 'vcoinName' ));
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
-        $balanceAmount = $this->safe_string($data, 'balanceAmount');
-        if ($balanceAmount !== null) {
-            $account['free'] = $balanceAmount;
-        }
-        $account['total'] = $this->safe_string_n($data, array( 'f', 'availableBalance' ));
-        $account['used'] = $this->safe_string_n($data, array( 'l', 'frozenBalance', 'frozenAmount' ));
+        $account['free'] = $this->safe_string_2($data, 'balanceAmount', 'availableBalance');
+        $account['used'] = $this->safe_string_n($data, array( 'frozenBalance', 'frozenAmount' ));
         $this->balance[$type][$code] = $account;
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $client->resolve ($this->balance[$type], $messageHash);
@@ -1741,7 +1751,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market

@@ -8,7 +8,6 @@ namespace ccxt;
 
 // -----------------------------------------------------------------------------
 use \ccxt\Precise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_market($exchange, $skipped_properties, $method, $market) {
     $format = array(
@@ -189,10 +188,10 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert_greater($exchange, $skipped_properties, $method, $market, 'expiry', '0');
         if ($option) {
             // strike should be defined
-            assert($market['strike'] !== null, '"strike" must be defined when "option" is true' . $log_text);
+            assert(((is_array($skipped_properties) && array_key_exists('strike', $skipped_properties)) || $market['strike'] !== null), '"strike" must be defined when "option" is true' . $log_text);
             assert_greater($exchange, $skipped_properties, $method, $market, 'strike', '0');
             // optionType should be defined
-            assert($market['optionType'] !== null, '"optionType" must be defined when "option" is true' . $log_text);
+            assert(((is_array($skipped_properties) && array_key_exists('optionType', $skipped_properties)) || $market['optionType'] !== null), '"optionType" must be defined when "option" is true' . $log_text);
             assert_in_array($exchange, $skipped_properties, $method, $market, 'optionType', ['put', 'call']);
         } else {
             // if not option, then strike and optionType should be undefined

@@ -21,6 +21,7 @@ var FunctionsMap = map[string]interface{}{
 	"removeRepeatedElementsFromArray": TestRemoveRepeatedElementsFromArray,
 	"safeMethods":                     TestSafeMethods,
 	"safeTicker":                      TestSafeTicker,
+	"sleep":                           TestSleep,
 	"sort":                            TestSort,
 	"sortBy":                          TestSortBy,
 	"sum":                             TestSum,
@@ -84,4 +85,24 @@ var FunctionsMap = map[string]interface{}{
 	"fetchWithdrawals":                TestFetchWithdrawals,
 	"loadMarkets":                     TestLoadMarkets,
 	"signIn":                          TestSignIn,
+}
+
+var WsFunctionsMap = map[string]interface{}{
+	"unWatchPositions":            TestUnWatchPositions,
+	"watchBalance":                TestWatchBalance,
+	"watchBidsAsks":               TestWatchBidsAsks,
+	"watchLiquidations":           TestWatchLiquidations,
+	"watchLiquidationsForSymbols": TestWatchLiquidationsForSymbols,
+	"watchMyTrades":               TestWatchMyTrades,
+	"watchOHLCV":                  TestWatchOHLCV,
+	"watchOHLCVForSymbols":        TestWatchOHLCVForSymbols,
+	"watchOrderBook":              TestWatchOrderBook,
+	"watchOrderBookForSymbols":    TestWatchOrderBookForSymbols,
+	"watchOrders":                 TestWatchOrders,
+	"watchPosition":               TestWatchPosition,
+	"watchPositions":              TestWatchPositions,
+	"watchTicker":                 TestWatchTicker,
+	"watchTickers":                TestWatchTickers,
+	"watchTrades":                 TestWatchTrades,
+	"watchTradesForSymbols":       TestWatchTradesForSymbols,
 }

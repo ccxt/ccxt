@@ -41,6 +41,7 @@ class bitbns(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createStopOrder': True,
                 'createTriggerOrder': True,
+                'fechCurrencies': False,
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,

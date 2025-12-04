@@ -67,12 +67,15 @@ class bitfinex extends \ccxt\async\bitfinex {
             );
             $result = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, array( 'checksum' => false )));
             $checksum = $this->safe_bool($this->options, 'checksum', true);
-            if ($checksum && !$client->subscriptions[$messageHash]['checksum'] && ($channel === 'book')) {
-                $client->subscriptions[$messageHash]['checksum'] = true;
-                Async\await($client->send (array(
-                    'event' => 'conf',
-                    'flags' => 131072,
-                )));
+            if ($checksum && ($channel === 'book')) {
+                $sub = $client->subscriptions[$messageHash];
+                if ($sub && !$sub['checksum']) {
+                    $client->subscriptions[$messageHash]['checksum'] = true;
+                    Async\await($client->send (array(
+                        'event' => 'conf',
+                        'flags' => 131072,
+                    )));
+                }
             }
             return $result;
         }) ();
@@ -115,7 +118,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -148,7 +151,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()) {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -234,7 +237,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $data = $this->safe_value($message, 1, array());
         $ohlcvs = null;
         $first = $this->safe_value($data, 0);
-        if (gettype($first) === 'array' && array_keys($first) === array_keys(array_keys($first))) {
+        if ((gettype($first) === 'array' && array_keys($first) === array_keys(array_keys($first)))) {
             // snapshot
             $ohlcvs = $data;
         } else {
@@ -1019,7 +1022,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $url = $this->urls['api']['ws']['private'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $nonce = $this->milliseconds();
@@ -1283,7 +1286,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //        }
         //    }
         //
-        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
+        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             if ($message[1] === 'hb') {
                 return; // skip heartbeats within $subscription channels for now
             }

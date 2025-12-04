@@ -832,6 +832,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Modify-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order"/>  <br/>
@@ -1020,7 +1021,7 @@ public partial class bitget
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
@@ -1032,9 +1033,8 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders"/>  <br/>
-    /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders"/>  <br/>
-    /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order"/>  <br/>
-    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1580,6 +1580,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/get-all-position"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/Get-History-Position"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1614,7 +1615,13 @@ public partial class bitget
     /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
+    /// string : either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -1730,12 +1737,44 @@ public partial class bitget
     /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols.</returns>
     public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
+    /// <summary>
+    /// fetch the funding rate interval for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.productType</term>
+    /// <description>
+    /// string : 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRates> FetchFundingIntervals(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingIntervals(symbols, parameters);
         return new FundingRates(res);
     }
     /// <summary>

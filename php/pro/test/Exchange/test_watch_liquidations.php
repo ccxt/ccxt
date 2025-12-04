@@ -11,4 +11,41 @@ use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_liquidation.php';
 
-
+function test_watch_liquidations($exchange, $skipped_properties, $symbol) {
+    // log (symbol.green, 'watching trades...')
+    return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
+        $method = 'watchLiquidations';
+        // we have to skip some exchanges here due to the frequency of trading
+        $skipped_exchanges = [];
+        if ($exchange->in_array($exchange->id, $skipped_exchanges)) {
+            var_dump($exchange->id, $method . '() test skipped');
+            return false;
+        }
+        if (!$exchange->has[$method]) {
+            var_dump($exchange->id, 'does not support', $method . '() method');
+            return false;
+        }
+        $response = null;
+        $now = round(microtime(true) * 1000);
+        $ends = $now + 10000;
+        while ($now < $ends) {
+            try {
+                $response = Async\await($exchange->$method($symbol));
+                $now = round(microtime(true) * 1000);
+                $is_array = gettype($response) === 'array' && array_is_list($response);
+                assert($is_array, 'response must be an array');
+                var_dump($exchange->iso8601($now), $exchange->id, $symbol, $method, count(is_array($response) ? array_values($response) : array()), 'liquidations');
+                // log.noLocate (asTable (response))
+                for ($i = 0; $i < count($response); $i++) {
+                    test_liquidation($exchange, $skipped_properties, $method, $response[$i], $symbol);
+                }
+            } catch(\Throwable $e) {
+                if (!($e instanceof NetworkError)) {
+                    throw $e;
+                }
+                $now = round(microtime(true) * 1000);
+            }
+        }
+        return $response;
+    }) ();
+}

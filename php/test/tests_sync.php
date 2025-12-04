@@ -55,6 +55,15 @@ class testMainClass {
     }
 
     public function init($exchange_id, $symbol_argv, $method_argv) {
+        try {
+            $this->init_inner($exchange_id, $symbol_argv, $method_argv);
+        } catch(\Throwable $e) {
+            dump('[TEST_FAILURE]'); // tell run-tests.js this is failure
+            throw $e;
+        }
+    }
+
+    public function init_inner($exchange_id, $symbol_argv, $method_argv) {
         $this->parse_cli_args_and_props();
         if ($this->request_tests && $this->response_tests) {
             $this->run_static_request_tests($exchange_id, $symbol_argv);
@@ -89,6 +98,7 @@ class testMainClass {
         );
         $exchange = init_exchange($exchange_id, $exchange_args, $this->ws_tests);
         if ($exchange->alias) {
+            dump($this->add_padding('[INFO] skipping alias', 25));
             exit_script(0);
         }
         $this->import_files($exchange);
@@ -401,6 +411,7 @@ class testMainClass {
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if ($is_public && $is_auth_error) {
                         if ($this->info) {
+                            // todo - turn into warning
                             dump('[INFO]', 'Authentication problem for public method', exception_message($e), $exchange->id, $method_name, $args_stringified);
                         }
                         return true;
@@ -1443,7 +1454,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1484,6 +1495,21 @@ class testMainClass {
         // inverse swap
         $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
         assert(str_starts_with($client_order_id_inverse, $inverse_swap_id), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
+        // linear swap conditional order
+        $swap_algo_order_request = null;
+        try {
+            $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, array(
+                'triggerPrice' => 101000,
+            ));
+            $check_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            $algo_order_id_defined = ($check_order_request['algoOrderId'] !== null);
+            assert($algo_order_id_defined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
+            $client_algo_id_swap = $swap_algo_order_request['clientAlgoId'];
+            $swap_algo_id_string = ((string) $swap_id);
+            assert(str_starts_with($client_algo_id_swap, $swap_algo_id_string), 'binance - swap clientOrderId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_algo_id_string);
+        } catch(\Throwable $e) {
+            $swap_algo_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+        }
         $create_orders_request = null;
         try {
             $orders = [array(
@@ -2077,6 +2103,25 @@ class testMainClass {
         }
         $broker_id = $request['order_tag'];
         assert($broker_id === $id, 'modetrade - id: ' . $id . ' different from  broker_id: ' . $broker_id);
+        if (!is_sync()) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_backpack() {
+        $exchange = $this->init_offline_exchange('backpack');
+        $exchange->apiKey = 'Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=';
+        $exchange->secret = 'sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=';
+        $req_headers = null;
+        $id = '1400';
+        try {
+            $exchange->create_order('ETH/USDC', 'limit', 'buy', 1, 5000);
+        } catch(\Throwable $e) {
+            // we expect an error here, we're only interested in the headers
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['X-Broker-Id'] === $id, 'backpack - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
             close($exchange);
         }

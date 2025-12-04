@@ -51,6 +51,7 @@ class indodax extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => 'emulated',
                 'fetchDepositAddresses' => true,
@@ -363,7 +364,7 @@ class indodax extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
-            $id = $this->safe_string($market, 'ticker_id');
+            $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'traded_currency');
             $quoteId = $this->safe_string($market, 'base_currency');
             $base = $this->safe_currency_code($baseId);
@@ -505,7 +506,7 @@ class indodax extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'pair' => $market['base'] . $market['quote'],
+            'pair' => $market['id'],
         );
         $orderbook = $this->publicGetApiDepthPair ($this->extend($request, $params));
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'buy', 'sell');
@@ -566,7 +567,7 @@ class indodax extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'pair' => $market['base'] . $market['quote'],
+            'pair' => $market['id'],
         );
         $response = $this->publicGetApiTickerPair ($this->extend($request, $params));
         //
@@ -589,11 +590,11 @@ class indodax extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
          * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
          *
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
@@ -616,7 +617,17 @@ class indodax extends Exchange {
         //
         $response = $this->publicGetApiTickerAll ($params);
         $tickers = $this->safe_dict($response, 'tickers', array());
-        return $this->parse_tickers($tickers, $symbols);
+        $keys = is_array($tickers) ? array_keys($tickers) : array();
+        $parsedTickers = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $rawTicker = $tickers[$key];
+            $marketId = str_replace('_', '', $key);
+            $market = $this->safe_market($marketId);
+            $parsed = $this->parse_ticker($rawTicker, $market);
+            $parsedTickers[$marketId] = $parsed;
+        }
+        return $this->filter_by_array($parsedTickers, 'symbol', $symbols);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -653,7 +664,7 @@ class indodax extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'pair' => $market['base'] . $market['quote'],
+            'pair' => $market['id'],
         );
         $response = $this->publicGetApiTradesPair ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -680,7 +691,7 @@ class indodax extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -700,7 +711,7 @@ class indodax extends Exchange {
         $request = array(
             'to' => $until,
             'tf' => $selectedTimeframe,
-            'symbol' => $market['base'] . $market['quote'],
+            'symbol' => $market['id'],
         );
         if ($limit === null) {
             $limit = 1000;
@@ -1438,7 +1449,7 @@ class indodax extends Exchange {
         // or
         // [array( data, ... ), array( ... ), ... ]
         // array("success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":"")
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             return null; // public endpoints may return array()-arrays
         }
         $error = $this->safe_value($response, 'error', '');

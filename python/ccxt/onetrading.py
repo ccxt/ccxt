@@ -494,34 +494,79 @@ class onetrading(Exchange, ImplicitAPI):
         return self.parse_markets(response)
 
     def parse_market(self, market: dict) -> Market:
-        baseAsset = self.safe_value(market, 'base', {})
-        quoteAsset = self.safe_value(market, 'quote', {})
+        #
+        #   {
+        #      "base":{
+        #         "code":"BTC",
+        #         "precision":"5"
+        #      },
+        #      "quote":{
+        #         "code":"USDC",
+        #         "precision":"2"
+        #      },
+        #      "amount_precision":"5",
+        #      "market_precision":"2",
+        #      "min_size":"10.0",
+        #      "min_price":"1000",
+        #      "max_price":"10000000",
+        #      "id":"BTC_USDC",
+        #      "type":"SPOT",
+        #      "state":"ACTIVE"
+        #   }
+        #
+        #
+        #  {
+        #      "base": {
+        #          "code": "BTC",
+        #          "precision": 5
+        #      },
+        #      "quote": {
+        #          "code": "EUR",
+        #          "precision": 2
+        #      },
+        #      "amount_precision": 5,
+        #      "market_precision": 2,
+        #      "min_size": "10.0",
+        #      "min_price": "1000",
+        #      "max_price": "10000000",
+        #      "id": "BTC_EUR_P",
+        #      "type": "PERP",
+        #      "state": "ACTIVE"
+        #  }
+        #
+        baseAsset = self.safe_dict(market, 'base', {})
+        quoteAsset = self.safe_dict(market, 'quote', {})
         baseId = self.safe_string(baseAsset, 'code')
         quoteId = self.safe_string(quoteAsset, 'code')
-        id = baseId + '_' + quoteId
+        id = self.safe_string(market, 'id')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         state = self.safe_string(market, 'state')
+        type = self.safe_string(market, 'type')
+        isPerp = type == 'PERP'
+        symbol = base + '/' + quote
+        if isPerp:
+            symbol = symbol + ':' + quote
         return {
             'id': id,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': None,
+            'settle': quote if isPerp else None,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': None,
-            'type': 'spot',
-            'spot': True,
+            'settleId': quoteId if isPerp else None,
+            'type': 'swap' if isPerp else 'spot',
+            'spot': not isPerp,
             'margin': False,
-            'swap': False,
+            'swap': isPerp,
             'future': False,
             'option': False,
             'active': (state == 'ACTIVE'),
-            'contract': False,
-            'linear': None,
-            'inverse': None,
-            'contractSize': None,
+            'contract': isPerp,
+            'linear': True if isPerp else None,
+            'inverse': False if isPerp else None,
+            'contractSize': self.parse_number('1') if isPerp else None,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
@@ -560,6 +605,7 @@ class onetrading(Exchange, ImplicitAPI):
         https://docs.onetrading.com/#fees
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: fetchPrivateTradingFees or fetchPublicTradingFees
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         method = self.safe_string(params, 'method')
@@ -578,39 +624,68 @@ class onetrading(Exchange, ImplicitAPI):
         self.load_markets()
         response = self.publicGetFees(params)
         #
-        #     [
-        #         {
-        #             "fee_group_id":"default",
-        #             "display_text":"The standard fee plan.",
-        #             "fee_tiers":[
-        #                 {"volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"},
-        #                 {"volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"},
-        #                 {"volume":"250.0","fee_group_id":"default","maker_fee":"0.09","taker_fee":"0.13"},
-        #                 {"volume":"1000.0","fee_group_id":"default","maker_fee":"0.075","taker_fee":"0.1"},
-        #                 {"volume":"5000.0","fee_group_id":"default","maker_fee":"0.06","taker_fee":"0.09"},
-        #                 {"volume":"10000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.075"},
-        #                 {"volume":"20000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.065"}
-        #             ],
-        #             "fee_discount_rate":"25.0",
-        #             "minimum_price_value":"0.12"
-        #         }
-        #     ]
+        # [
+        #     {
+        #         'fee_group_id': 'SPOT',
+        #         'display_text': 'The fee plan for spot trading.',
+        #         'volume_currency': 'EUR',
+        #         'fee_tiers': [
+        #             {
+        #                 'volume': '0',
+        #                 'fee_group_id': 'SPOT',
+        #                 'maker_fee': '0.1000',
+        #                 'taker_fee': '0.2000',
+        #             },
+        #             {
+        #                 'volume': '10000',
+        #                 'fee_group_id': 'SPOT',
+        #                 'maker_fee': '0.0400',
+        #                 'taker_fee': '0.0800',
+        #             },
+        #         ],
+        #     },
+        #     {
+        #         'fee_group_id': 'FUTURES',
+        #         'display_text': 'The fee plan for futures trading.',
+        #         'volume_currency': 'EUR',
+        #         'fee_tiers': [
+        #             {
+        #                 'volume': '0',
+        #                 'fee_group_id': 'FUTURES',
+        #                 'maker_fee': '0.1000',
+        #                 'taker_fee': '0.2000',
+        #             },
+        #             {
+        #                 'volume': '10000',
+        #                 'fee_group_id': 'FUTURES',
+        #                 'maker_fee': '0.0400',
+        #                 'taker_fee': '0.0800',
+        #             },
+        #         ],
+        #     },
+        # ]
         #
-        first = self.safe_value(response, 0, {})
-        feeTiers = self.safe_value(first, 'fee_tiers')
-        tiers = self.parse_fee_tiers(feeTiers)
-        firstTier = self.safe_value(feeTiers, 0, {})
+        spotFees = self.safe_dict(response, 0, {})
+        futuresFees = self.safe_dict(response, 1, {})
+        spotFeeTiers = self.safe_list(spotFees, 'fee_tiers', [])
+        futuresFeeTiers = self.safe_list(futuresFees, 'fee_tiers', [])
+        spotTiers = self.parse_fee_tiers(spotFeeTiers)
+        futuresTiers = self.parse_fee_tiers(futuresFeeTiers)
+        firstSpotTier = self.safe_dict(spotTiers, 0, {})
+        firstFuturesTier = self.safe_dict(futuresTiers, 0, {})
         result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
+            market = self.market(symbol)
+            tierObject = firstSpotTier if (market['spot']) else firstFuturesTier
             result[symbol] = {
-                'info': first,
+                'info': spotFees,
                 'symbol': symbol,
-                'maker': self.safe_number(firstTier, 'maker_fee'),
-                'taker': self.safe_number(firstTier, 'taker_fee'),
+                'maker': self.safe_number(tierObject, 'maker_fee'),
+                'taker': self.safe_number(tierObject, 'taker_fee'),
                 'percentage': True,
                 'tierBased': True,
-                'tiers': tiers,
+                'tiers': spotTiers,
             }
         return result
 
@@ -618,36 +693,55 @@ class onetrading(Exchange, ImplicitAPI):
         self.load_markets()
         response = self.privateGetAccountFees(params)
         #
-        #     {
-        #         "account_id": "ed524d00-820a-11e9-8f1e-69602df16d85",
-        #         "running_trading_volume": "0.0",
-        #         "fee_group_id": "default",
-        #         "collect_fees_in_best": False,
-        #         "fee_discount_rate": "25.0",
-        #         "minimum_price_value": "0.12",
-        #         "fee_tiers": [
-        #             {"volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1"},
-        #             {"volume": "100.0", "fee_group_id": "default", "maker_fee": "0.09", "taker_fee": "0.1"},
-        #             {"volume": "250.0", "fee_group_id": "default", "maker_fee": "0.08", "taker_fee": "0.1"},
-        #             {"volume": "1000.0", "fee_group_id": "default", "maker_fee": "0.07", "taker_fee": "0.09"},
-        #             {"volume": "5000.0", "fee_group_id": "default", "maker_fee": "0.06", "taker_fee": "0.08"},
-        #             {"volume": "10000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.07"},
-        #             {"volume": "20000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.06"},
-        #             {"volume": "50000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.05"}
-        #         ],
-        #         "active_fee_tier": {"volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1"}
-        #     }
+        # {
+        #    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
+        #    "running_volumes":[
+        #       {
+        #          "fee_group_id":"SPOT",
+        #          "volume":"0",
+        #          "currency":"EUR"
+        #       },
+        #       {
+        #          "fee_group_id":"FUTURES",
+        #          "volume":"0",
+        #          "currency":"EUR"
+        #       }
+        #    ],
+        #    "active_fee_tiers":[
+        #       {
+        #          "fee_group_id":"SPOT",
+        #          "volume":"0",
+        #          "maker_fee":"0.1000",
+        #          "taker_fee":"0.2000"
+        #       },
+        #       {
+        #          "fee_group_id":"FUTURES",
+        #          "volume":"0",
+        #          "maker_fee":"0.1000",
+        #          "taker_fee":"0.2000"
+        #       }
+        #    ]
+        # }
         #
-        activeFeeTier = self.safe_value(response, 'active_fee_tier', {})
-        makerFee = self.safe_string(activeFeeTier, 'maker_fee')
-        takerFee = self.safe_string(activeFeeTier, 'taker_fee')
-        makerFee = Precise.string_div(makerFee, '100')
-        takerFee = Precise.string_div(takerFee, '100')
-        feeTiers = self.safe_value(response, 'fee_tiers')
+        activeFeeTier = self.safe_list(response, 'active_fee_tiers')
+        spotFees = self.safe_dict(activeFeeTier, 0, {})
+        futuresFees = self.safe_dict(activeFeeTier, 1, {})
+        spotMakerFee = self.safe_string(spotFees, 'maker_fee')
+        spotTakerFee = self.safe_string(spotFees, 'taker_fee')
+        spotMakerFee = Precise.string_div(spotMakerFee, '100')
+        spotTakerFee = Precise.string_div(spotTakerFee, '100')
+        # feeTiers = self.safe_value(response, 'fee_tiers')
+        futuresMakerFee = self.safe_string(futuresFees, 'maker_fee')
+        futuresTakerFee = self.safe_string(futuresFees, 'taker_fee')
+        futuresMakerFee = Precise.string_div(futuresMakerFee, '100')
+        futuresTakerFee = Precise.string_div(futuresTakerFee, '100')
         result: dict = {}
-        tiers = self.parse_fee_tiers(feeTiers)
+        # tiers = self.parse_fee_tiers(feeTiers)
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
+            market = self.market(symbol)
+            makerFee = spotMakerFee if (market['spot']) else futuresMakerFee
+            takerFee = spotTakerFee if (market['spot']) else futuresTakerFee
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -655,7 +749,7 @@ class onetrading(Exchange, ImplicitAPI):
                 'taker': self.parse_number(takerFee),
                 'percentage': True,
                 'tierBased': True,
-                'tiers': tiers,
+                'tiers': None,
             }
         return result
 
@@ -929,7 +1023,7 @@ class onetrading(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeField),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1356,7 +1450,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return [self.safe_order({'info': response})]
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -1377,7 +1471,8 @@ class onetrading(Exchange, ImplicitAPI):
         #         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         #     ]
         #
-        return response
+        order = self.safe_order({'info': response})
+        return [order]
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

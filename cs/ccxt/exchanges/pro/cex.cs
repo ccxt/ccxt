@@ -46,8 +46,10 @@ public partial class cex : ccxt.cex
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return ((object)requestId).ToString();
     }
 
@@ -789,7 +791,7 @@ public partial class cex : ccxt.cex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object storedOrders = this.orders;
-        object ordersBySymbol = this.safeValue((storedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+        object ordersBySymbol = this.safeValue((storedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
         object order = this.safeValue(ordersBySymbol, orderId);
         if (isTrue(isEqual(order, null)))
         {
@@ -1111,6 +1113,7 @@ public partial class cex : ccxt.cex
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(add(this.id, " watchOrderBook() skipped a message"), messageHash);
+            return;
         }
         object timestamp = this.safeInteger(data, "time");
         object asks = this.safeValue(data, "asks", new List<object>() {});
@@ -1641,7 +1644,7 @@ public partial class cex : ccxt.cex
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future("authenticated");
+        var future = client.reusableFuture("authenticated");
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -1657,7 +1660,7 @@ public partial class cex : ccxt.cex
                     { "timestamp", nonce },
                 } },
             };
-            await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+            this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         }
         return await (future as Exchange.Future);
     }

@@ -61,12 +61,15 @@ class bitfinex extends bitfinex$1["default"] {
         };
         const result = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, { 'checksum': false });
         const checksum = this.safeBool(this.options, 'checksum', true);
-        if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
-            client.subscriptions[messageHash]['checksum'] = true;
-            await client.send({
-                'event': 'conf',
-                'flags': 131072,
-            });
+        if (checksum && (channel === 'book')) {
+            const sub = client.subscriptions[messageHash];
+            if (sub && !sub['checksum']) {
+                client.subscriptions[messageHash]['checksum'] = true;
+                await client.send({
+                    'event': 'conf',
+                    'flags': 131072,
+                });
+            }
         }
         return result;
     }
@@ -991,7 +994,7 @@ class bitfinex extends bitfinex$1["default"] {
         const url = this.urls['api']['ws']['private'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const nonce = this.milliseconds();

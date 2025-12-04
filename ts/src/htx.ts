@@ -932,6 +932,7 @@ export default class htx extends Exchange {
                     'base-symbol-error': BadSymbol, // {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
                     'system-maintenance': OnMaintenance, // {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                     'base-request-exceed-frequency-limit': RateLimitExceeded, // {"status":"error","err-code":"base-request-exceed-frequency-limit","err-msg":"Frequency of requests has exceeded the limit, please try again later","data":null}
+                    'rate-too-many-requests': RateLimitExceeded, // {"status":"error","err-code":"rate-too-many-requests","err-msg":"exceeded rate limit","data":null}
                     // err-msg
                     'invalid symbol': BadSymbol, // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
                     'symbol trade not open now': BadSymbol, // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
@@ -2777,7 +2778,16 @@ export default class htx extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        const id = this.safeStringN (trade, [ 'trade_id', 'trade-id', 'id' ]);
+        // htx's multi-market trade-id is a bit complex to parse accordingly.
+        // - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
+        // - otherwise the least priority is given to the `id` key
+        let id: Str = undefined;
+        const safeId = this.safeString (trade, 'id');
+        if (safeId !== undefined && safeId.indexOf ('-') >= 0) {
+            id = safeId;
+        } else {
+            id = this.safeStringN (trade, [ 'trade_id', 'trade-id', 'id' ]);
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -3132,7 +3142,7 @@ export default class htx extends Exchange {
      * @param {string} [params.useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
@@ -5453,7 +5463,9 @@ export default class htx extends Exchange {
                 params = this.omit (params, [ 'clientOrderId' ]);
             }
             if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
-                request['price'] = this.priceToPrecision (symbol, price);
+                if (price !== undefined) {
+                    request['price'] = this.priceToPrecision (symbol, price);
+                }
             }
         }
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
@@ -5934,7 +5946,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -6086,7 +6098,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data');
-        return this.parseCancelOrders (data);
+        return this.parseCancelOrders (data) as Order[];
     }
 
     parseCancelOrders (orders) {
@@ -6657,6 +6669,7 @@ export default class htx extends Exchange {
             'repealed': 'failed',
             'wallet-transfer': 'pending',
             'pre-transfer': 'pending',
+            'verifying': 'pending',
         };
         return this.safeString (statuses, status, status);
     }

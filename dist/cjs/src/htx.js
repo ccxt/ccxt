@@ -932,6 +932,7 @@ class htx extends htx$1["default"] {
                     'base-symbol-error': errors.BadSymbol,
                     'system-maintenance': errors.OnMaintenance,
                     'base-request-exceed-frequency-limit': errors.RateLimitExceeded,
+                    'rate-too-many-requests': errors.RateLimitExceeded,
                     // err-msg
                     'invalid symbol': errors.BadSymbol,
                     'symbol trade not open now': errors.BadSymbol,
@@ -2796,7 +2797,17 @@ class htx extends htx$1["default"] {
                 'currency': feeCurrency,
             };
         }
-        const id = this.safeStringN(trade, ['trade_id', 'trade-id', 'id']);
+        // htx's multi-market trade-id is a bit complex to parse accordingly.
+        // - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
+        // - otherwise the least priority is given to the `id` key
+        let id = undefined;
+        const safeId = this.safeString(trade, 'id');
+        if (safeId !== undefined && safeId.indexOf('-') >= 0) {
+            id = safeId;
+        }
+        else {
+            id = this.safeStringN(trade, ['trade_id', 'trade-id', 'id']);
+        }
         return this.safeTrade({
             'id': id,
             'info': trade,
@@ -5547,7 +5558,9 @@ class htx extends htx$1["default"] {
                 params = this.omit(params, ['clientOrderId']);
             }
             if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
-                request['price'] = this.priceToPrecision(symbol, price);
+                if (price !== undefined) {
+                    request['price'] = this.priceToPrecision(symbol, price);
+                }
             }
         }
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only', false);
@@ -6820,6 +6833,7 @@ class htx extends htx$1["default"] {
             'repealed': 'failed',
             'wallet-transfer': 'pending',
             'pre-transfer': 'pending',
+            'verifying': 'pending',
         };
         return this.safeString(statuses, status, status);
     }

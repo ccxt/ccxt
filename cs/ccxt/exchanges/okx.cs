@@ -12,7 +12,7 @@ public partial class okx : Exchange
             { "name", "OKX" },
             { "countries", new List<object>() {"CN", "US"} },
             { "version", "v5" },
-            { "rateLimit", multiply(100, 1.03) },
+            { "rateLimit", multiply(100, 1.1) },
             { "pro", true },
             { "certified", true },
             { "has", new Dictionary<string, object>() {
@@ -173,7 +173,7 @@ public partial class okx : Exchange
                 { "doc", "https://www.okx.com/docs-v5/en/" },
                 { "fees", "https://www.okx.com/pages/products/fees.html" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.okx.com/join/CCXT2023" },
+                    { "url", "https://www.okx.com/join/CCXTCOM" },
                     { "discount", 0.2 },
                 } },
                 { "test", new Dictionary<string, object>() {
@@ -183,54 +183,65 @@ public partial class okx : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "market/books-full", 2 },
                         { "market/tickers", 1 },
                         { "market/ticker", 1 },
-                        { "market/index-tickers", 1 },
                         { "market/books", divide(1, 2) },
-                        { "market/books-lite", divide(5, 3) },
+                        { "market/books-full", 2 },
                         { "market/candles", divide(1, 2) },
                         { "market/history-candles", 1 },
-                        { "market/index-candles", 1 },
-                        { "market/history-index-candles", 2 },
-                        { "market/mark-price-candles", 1 },
-                        { "market/history-mark-price-candles", 2 },
                         { "market/trades", divide(1, 5) },
                         { "market/history-trades", 2 },
                         { "market/option/instrument-family-trades", 1 },
                         { "market/platform-24-volume", 10 },
-                        { "market/open-oracle", 50 },
-                        { "market/exchange-rate", 20 },
-                        { "market/index-components", 1 },
-                        { "public/market-data-history", 4 },
-                        { "public/economic-calendar", 50 },
+                        { "market/call-auction-detail", 1 },
+                        { "market/books-sbe", 10 },
                         { "market/block-tickers", 1 },
                         { "market/block-ticker", 1 },
+                        { "market/sprd-ticker", 1 },
+                        { "market/sprd-candles", divide(1, 2) },
+                        { "market/sprd-history-candles", 1 },
+                        { "market/index-tickers", 1 },
+                        { "market/index-candles", 1 },
+                        { "market/history-index-candles", 2 },
+                        { "market/mark-price-candles", 1 },
+                        { "market/history-mark-price-candles", 1 },
+                        { "market/exchange-rate", 20 },
+                        { "market/index-components", 1 },
+                        { "market/open-oracle", 50 },
+                        { "market/books-lite", divide(5, 3) },
+                        { "public/option-trades", 1 },
                         { "public/block-trades", 1 },
                         { "public/instruments", 1 },
+                        { "public/estimated-price", 2 },
                         { "public/delivery-exercise-history", divide(1, 2) },
+                        { "public/estimated-settlement-info", 2 },
+                        { "public/settlement-history", divide(1, 2) },
+                        { "public/funding-rate", 2 },
+                        { "public/funding-rate-history", 2 },
                         { "public/open-interest", 1 },
-                        { "public/funding-rate", 1 },
-                        { "public/funding-rate-history", 1 },
                         { "public/price-limit", 1 },
                         { "public/opt-summary", 1 },
-                        { "public/estimated-price", 2 },
                         { "public/discount-rate-interest-free-quota", 10 },
                         { "public/time", 2 },
                         { "public/mark-price", 2 },
                         { "public/position-tiers", 2 },
                         { "public/interest-rate-loan-quota", 10 },
-                        { "public/vip-interest-rate-loan-quota", 10 },
                         { "public/underlying", 1 },
                         { "public/insurance-fund", 2 },
                         { "public/convert-contract-coin", 2 },
-                        { "public/option-trades", 1 },
                         { "public/instrument-tick-bands", 4 },
+                        { "public/premium-history", 1 },
+                        { "public/economic-calendar", 50 },
+                        { "public/market-data-history", 4 },
+                        { "public/vip-interest-rate-loan-quota", 10 },
                         { "rubik/stat/trading-data/support-coin", 4 },
+                        { "rubik/stat/contracts/open-interest-history", 2 },
                         { "rubik/stat/taker-volume", 4 },
+                        { "rubik/stat/taker-volume-contract", 4 },
                         { "rubik/stat/margin/loan-ratio", 4 },
-                        { "rubik/stat/contracts/long-short-account-ratio", 4 },
+                        { "rubik/stat/contracts/long-short-account-ratio-contract-top-trader", 4 },
                         { "rubik/stat/contracts/long-short-account-ratio-contract", 4 },
+                        { "rubik/stat/contracts/long-short-account-ratio", 4 },
                         { "rubik/stat/contracts/open-interest-volume", 4 },
                         { "rubik/stat/option/open-interest-volume", 4 },
                         { "rubik/stat/option/open-interest-volume-ratio", 4 },
@@ -239,15 +250,13 @@ public partial class okx : Exchange
                         { "rubik/stat/option/taker-block-volume", 4 },
                         { "system/status", 50 },
                         { "sprd/spreads", 1 },
-                        { "sprd/books", divide(1, 2) },
+                        { "sprd/books", 1 },
+                        { "sprd/public-trades", 1 },
                         { "sprd/ticker", 1 },
-                        { "sprd/public-trades", divide(1, 5) },
-                        { "market/sprd-ticker", 2 },
-                        { "market/sprd-candles", 2 },
-                        { "market/sprd-history-candles", 2 },
                         { "tradingBot/grid/ai-param", 1 },
                         { "tradingBot/grid/min-investment", 1 },
                         { "tradingBot/public/rsi-back-testing", 1 },
+                        { "tradingBot/grid/grid-quantity", 4 },
                         { "asset/exchange-list", divide(5, 3) },
                         { "finance/staking-defi/eth/apy-history", divide(5, 3) },
                         { "finance/staking-defi/sol/apy-history", divide(5, 3) },
@@ -257,13 +266,20 @@ public partial class okx : Exchange
                         { "finance/fixed-loan/lending-apy-history", divide(10, 3) },
                         { "finance/fixed-loan/pending-lending-volume", divide(10, 3) },
                         { "finance/sfp/dcd/products", divide(2, 3) },
+                        { "copytrading/public-config", 4 },
                         { "copytrading/public-lead-traders", 4 },
                         { "copytrading/public-weekly-pnl", 4 },
+                        { "copytrading/public-pnl", 4 },
                         { "copytrading/public-stats", 4 },
                         { "copytrading/public-preference-currency", 4 },
                         { "copytrading/public-current-subpositions", 4 },
                         { "copytrading/public-subpositions-history", 4 },
+                        { "copytrading/public-copy-traders", 4 },
+                        { "support/announcements", 4 },
                         { "support/announcements-types", 20 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "tradingBot/grid/min-investment", 1 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -275,17 +291,17 @@ public partial class okx : Exchange
                         { "rfq/quotes", 10 },
                         { "rfq/trades", 4 },
                         { "rfq/public-trades", 4 },
-                        { "sprd/order", divide(1, 3) },
-                        { "sprd/orders-pending", divide(1, 3) },
-                        { "sprd/orders-history", divide(1, 2) },
-                        { "sprd/orders-history-archive", divide(1, 2) },
-                        { "sprd/trades", divide(1, 3) },
+                        { "sprd/order", 1 },
+                        { "sprd/orders-pending", 2 },
+                        { "sprd/orders-history", 1 },
+                        { "sprd/orders-history-archive", 1 },
+                        { "sprd/trades", 1 },
                         { "trade/order", divide(1, 3) },
                         { "trade/orders-pending", divide(1, 3) },
                         { "trade/orders-history", divide(1, 2) },
                         { "trade/orders-history-archive", 1 },
                         { "trade/fills", divide(1, 3) },
-                        { "trade/fills-history", 2.2 },
+                        { "trade/fills-history", 2 },
                         { "trade/fills-archive", 2 },
                         { "trade/order-algo", 1 },
                         { "trade/orders-algo-pending", 1 },
@@ -301,24 +317,25 @@ public partial class okx : Exchange
                         { "asset/balances", divide(5, 3) },
                         { "asset/non-tradable-assets", divide(5, 3) },
                         { "asset/asset-valuation", 10 },
-                        { "asset/transfer-state", 10 },
+                        { "asset/transfer-state", 1 },
                         { "asset/bills", divide(5, 3) },
+                        { "asset/bills-history", 10 },
                         { "asset/deposit-lightning", 5 },
                         { "asset/deposit-address", divide(5, 3) },
                         { "asset/deposit-history", divide(5, 3) },
                         { "asset/withdrawal-history", divide(5, 3) },
                         { "asset/deposit-withdraw-status", 20 },
+                        { "asset/monthly-statement", 2 },
                         { "asset/convert/currencies", divide(5, 3) },
                         { "asset/convert/currency-pair", divide(5, 3) },
                         { "asset/convert/history", divide(5, 3) },
-                        { "asset/monthly-statement", 2 },
                         { "account/instruments", 1 },
                         { "account/balance", 2 },
                         { "account/positions", 2 },
-                        { "account/positions-history", 100 },
+                        { "account/positions-history", 2 },
                         { "account/account-position-risk", 2 },
-                        { "account/bills", divide(5, 3) },
-                        { "account/bills-archive", divide(5, 3) },
+                        { "account/bills", 2 },
+                        { "account/bills-archive", 4 },
                         { "account/bills-history-archive", 2 },
                         { "account/config", 4 },
                         { "account/max-size", 1 },
@@ -331,23 +348,26 @@ public partial class okx : Exchange
                         { "account/interest-rate", 4 },
                         { "account/max-withdrawal", 1 },
                         { "account/risk-state", 2 },
+                        { "account/interest-limits", 4 },
+                        { "account/spot-borrow-repay-history", 4 },
+                        { "account/greeks", 2 },
+                        { "account/position-tiers", 2 },
+                        { "account/set-account-switch-precheck", 4 },
+                        { "account/collateral-assets", 4 },
+                        { "account/mmp-config", 4 },
+                        { "account/move-positions-history", 10 },
+                        { "account/precheck-set-delta-neutral", 20 },
                         { "account/quick-margin-borrow-repay-history", 4 },
                         { "account/borrow-repay-history", 4 },
                         { "account/vip-interest-accrued", 4 },
                         { "account/vip-interest-deducted", 4 },
                         { "account/vip-loan-order-list", 4 },
                         { "account/vip-loan-order-detail", 4 },
-                        { "account/interest-limits", 4 },
-                        { "account/greeks", 2 },
-                        { "account/position-tiers", 2 },
-                        { "account/mmp-config", 4 },
                         { "account/fixed-loan/borrowing-limit", 4 },
                         { "account/fixed-loan/borrowing-quote", 5 },
                         { "account/fixed-loan/borrowing-orders-list", 5 },
                         { "account/spot-manual-borrow-repay", 30 },
                         { "account/set-auto-repay", 4 },
-                        { "account/spot-borrow-repay-history", 4 },
-                        { "account/move-positions-history", 10 },
                         { "users/subaccount/list", 10 },
                         { "account/subaccount/balances", divide(10, 3) },
                         { "asset/subaccount/balances", divide(10, 3) },
@@ -365,9 +385,10 @@ public partial class okx : Exchange
                         { "tradingBot/grid/ai-param", 1 },
                         { "tradingBot/signal/signals", 1 },
                         { "tradingBot/signal/orders-algo-details", 1 },
+                        { "tradingBot/signal/orders-algo-pending", 1 },
                         { "tradingBot/signal/orders-algo-history", 1 },
                         { "tradingBot/signal/positions", 1 },
-                        { "tradingBot/signal/positions-history", 1 },
+                        { "tradingBot/signal/positions-history", 2 },
                         { "tradingBot/signal/sub-orders", 1 },
                         { "tradingBot/signal/event-history", 1 },
                         { "tradingBot/recurring/orders-algo-pending", 1 },
@@ -379,21 +400,36 @@ public partial class okx : Exchange
                         { "finance/staking-defi/offers", divide(10, 3) },
                         { "finance/staking-defi/orders-active", divide(10, 3) },
                         { "finance/staking-defi/orders-history", divide(10, 3) },
+                        { "finance/staking-defi/eth/product-info", divide(10, 3) },
                         { "finance/staking-defi/eth/balance", divide(5, 3) },
                         { "finance/staking-defi/eth/purchase-redeem-history", divide(5, 3) },
-                        { "finance/staking-defi/eth/product-info", 3 },
+                        { "finance/staking-defi/sol/product-info", divide(10, 3) },
                         { "finance/staking-defi/sol/balance", divide(5, 3) },
                         { "finance/staking-defi/sol/purchase-redeem-history", divide(5, 3) },
+                        { "finance/flexible-loan/borrow-currencies", 4 },
+                        { "finance/flexible-loan/collateral-assets", 4 },
+                        { "finance/flexible-loan/max-collateral-redeem-amount", 4 },
+                        { "finance/flexible-loan/loan-info", 4 },
+                        { "finance/flexible-loan/loan-history", 4 },
+                        { "finance/flexible-loan/interest-accrued", 4 },
                         { "copytrading/current-subpositions", 1 },
                         { "copytrading/subpositions-history", 1 },
                         { "copytrading/instruments", 4 },
                         { "copytrading/profit-sharing-details", 4 },
                         { "copytrading/total-profit-sharing", 4 },
                         { "copytrading/unrealized-profit-sharing-details", 4 },
+                        { "copytrading/total-unrealized-profit-sharing", 4 },
+                        { "copytrading/config", 4 },
                         { "copytrading/copy-settings", 4 },
-                        { "copytrading/batch-leverage-info", 4 },
                         { "copytrading/current-lead-traders", 4 },
+                        { "copytrading/batch-leverage-info", 4 },
                         { "copytrading/lead-traders-history", 4 },
+                        { "broker/dma/subaccount-info", 2 },
+                        { "broker/dma/subaccount-trade-fee", 10 },
+                        { "broker/dma/subaccount/apikey", 10 },
+                        { "broker/dma/rebate-per-orders", 300 },
+                        { "broker/fd/rebate-per-orders", 300 },
+                        { "broker/fd/if-rebate", 5 },
                         { "broker/nd/info", 10 },
                         { "broker/nd/subaccount-info", 10 },
                         { "broker/nd/subaccount/apikey", 10 },
@@ -404,8 +440,6 @@ public partial class okx : Exchange
                         { "broker/nd/rebate-per-orders", 300 },
                         { "finance/sfp/dcd/order", 2 },
                         { "finance/sfp/dcd/orders", 2 },
-                        { "broker/fd/rebate-per-orders", 300 },
-                        { "broker/fd/if-rebate", 5 },
                         { "affiliate/invitee/detail", 1 },
                         { "users/partner/if-rebate", 1 },
                         { "support/announcements", 4 },
@@ -423,6 +457,7 @@ public partial class okx : Exchange
                         { "rfq/cancel-quote", 0.4 },
                         { "rfq/cancel-batch-quotes", 10 },
                         { "rfq/cancel-all-quotes", 10 },
+                        { "rfq/cancel-all-after", 10 },
                         { "sprd/order", 1 },
                         { "sprd/cancel-order", 1 },
                         { "sprd/mass-cancel", 1 },
@@ -436,52 +471,64 @@ public partial class okx : Exchange
                         { "trade/amend-batch-orders", divide(1, 150) },
                         { "trade/close-position", 1 },
                         { "trade/fills-archive", 172800 },
-                        { "trade/order-algo", 1 },
-                        { "trade/cancel-algos", 1 },
-                        { "trade/amend-algos", 1 },
                         { "trade/cancel-advance-algos", 1 },
                         { "trade/easy-convert", 20 },
                         { "trade/one-click-repay", 20 },
                         { "trade/one-click-repay-v2", 20 },
                         { "trade/mass-cancel", 4 },
                         { "trade/cancel-all-after", 10 },
-                        { "asset/transfer", 10 },
+                        { "trade/order-precheck", 4 },
+                        { "trade/order-algo", 1 },
+                        { "trade/cancel-algos", 1 },
+                        { "trade/amend-algos", 1 },
+                        { "asset/transfer", 5 },
                         { "asset/withdrawal", divide(5, 3) },
                         { "asset/withdrawal-lightning", 5 },
                         { "asset/cancel-withdrawal", divide(5, 3) },
                         { "asset/convert-dust-assets", 10 },
-                        { "asset/convert/estimate-quote", 1 },
+                        { "asset/monthly-statement", 1296000 },
+                        { "asset/convert/estimate-quote", 50 },
                         { "asset/convert/trade", 1 },
-                        { "asset/monthly-statement", 1 },
+                        { "account/bills-history-archive", 72000 },
                         { "account/set-position-mode", 4 },
                         { "account/set-leverage", 1 },
                         { "account/position/margin-balance", 1 },
+                        { "account/set-fee-type", 4 },
                         { "account/set-greeks", 4 },
                         { "account/set-isolated-mode", 4 },
+                        { "account/spot-manual-borrow-repay", 30 },
+                        { "account/set-auto-repay", 4 },
                         { "account/quick-margin-borrow-repay", 4 },
                         { "account/borrow-repay", divide(5, 3) },
                         { "account/simulated_margin", 10 },
                         { "account/position-builder", 10 },
+                        { "account/position-builder-graph", 50 },
                         { "account/set-riskOffset-type", 2 },
                         { "account/activate-option", 4 },
                         { "account/set-auto-loan", 4 },
+                        { "account/account-level-switch-preset", 4 },
                         { "account/set-account-level", 4 },
+                        { "account/set-collateral-assets", 4 },
                         { "account/mmp-reset", 4 },
-                        { "account/mmp-config", 100 },
+                        { "account/mmp-config", 50 },
                         { "account/fixed-loan/borrowing-order", 5 },
                         { "account/fixed-loan/amend-borrowing-order", 5 },
                         { "account/fixed-loan/manual-reborrow", 5 },
                         { "account/fixed-loan/repay-borrowing-order", 5 },
-                        { "account/bills-history-archive", 72000 },
                         { "account/move-positions", 10 },
-                        { "users/subaccount/modify-apikey", 10 },
+                        { "account/set-auto-earn", 10 },
+                        { "account/set-settle-currency", 1 },
+                        { "account/set-trading-config", 20 },
                         { "asset/subaccount/transfer", 10 },
-                        { "users/subaccount/set-transfer-out", 10 },
                         { "account/subaccount/set-loan-allocation", 4 },
                         { "users/subaccount/create-subaccount", 10 },
+                        { "users/subaccount/apikey", 10 },
+                        { "users/subaccount/modify-apikey", 10 },
                         { "users/subaccount/subaccount-apikey", 10 },
                         { "users/subaccount/delete-apikey", 10 },
+                        { "users/subaccount/set-transfer-out", 10 },
                         { "tradingBot/grid/order-algo", 1 },
+                        { "tradingBot/grid/amend-algo-basic-param", 1 },
                         { "tradingBot/grid/amend-order-algo", 1 },
                         { "tradingBot/grid/stop-order-algo", 1 },
                         { "tradingBot/grid/close-position", 1 },
@@ -506,16 +553,21 @@ public partial class okx : Exchange
                         { "tradingBot/recurring/stop-order-algo", 1 },
                         { "finance/savings/purchase-redempt", divide(5, 3) },
                         { "finance/savings/set-lending-rate", divide(5, 3) },
-                        { "finance/staking-defi/purchase", 3 },
-                        { "finance/staking-defi/redeem", 3 },
-                        { "finance/staking-defi/cancel", 3 },
+                        { "finance/staking-defi/purchase", 5 },
+                        { "finance/staking-defi/redeem", 5 },
+                        { "finance/staking-defi/cancel", 5 },
                         { "finance/staking-defi/eth/purchase", 5 },
                         { "finance/staking-defi/eth/redeem", 5 },
+                        { "finance/staking-defi/eth/cancel-redeem", 5 },
                         { "finance/staking-defi/sol/purchase", 5 },
                         { "finance/staking-defi/sol/redeem", 5 },
+                        { "finance/staking-defi/sol/cancel-redeem", 5 },
+                        { "finance/flexible-loan/max-loan", 4 },
+                        { "finance/flexible-loan/adjust-collateral", 4 },
                         { "copytrading/algo-order", 1 },
                         { "copytrading/close-subposition", 1 },
                         { "copytrading/set-instruments", 4 },
+                        { "copytrading/amend-profit-sharing-ratio", 4 },
                         { "copytrading/first-copy-settings", 4 },
                         { "copytrading/amend-copy-settings", 4 },
                         { "copytrading/stop-copy-trading", 4 },
@@ -534,6 +586,8 @@ public partial class okx : Exchange
                         { "finance/sfp/dcd/quote", 10 },
                         { "finance/sfp/dcd/order", 10 },
                         { "broker/nd/report-subaccount-ip", 0.25 },
+                        { "broker/dma/subaccount/apikey", divide(1, 4) },
+                        { "broker/dma/trades", 36000 },
                         { "broker/fd/rebate-per-orders", 36000 },
                     } },
                 } },
@@ -646,6 +700,7 @@ public partial class okx : Exchange
                     { "51031", typeof(InvalidOrder) },
                     { "51046", typeof(InvalidOrder) },
                     { "51047", typeof(InvalidOrder) },
+                    { "51051", typeof(InvalidOrder) },
                     { "51072", typeof(InvalidOrder) },
                     { "51073", typeof(InvalidOrder) },
                     { "51074", typeof(InvalidOrder) },
@@ -783,6 +838,9 @@ public partial class okx : Exchange
                     { "54008", typeof(InvalidOrder) },
                     { "54009", typeof(InvalidOrder) },
                     { "54011", typeof(InvalidOrder) },
+                    { "54072", typeof(ExchangeError) },
+                    { "54073", typeof(BadRequest) },
+                    { "54074", typeof(ExchangeError) },
                     { "55100", typeof(InvalidOrder) },
                     { "55101", typeof(InvalidOrder) },
                     { "55102", typeof(InvalidOrder) },
@@ -885,6 +943,9 @@ public partial class okx : Exchange
                     { "59519", typeof(ExchangeError) },
                     { "59642", typeof(BadRequest) },
                     { "59643", typeof(ExchangeError) },
+                    { "59683", typeof(ExchangeError) },
+                    { "59684", typeof(BadRequest) },
+                    { "59686", typeof(BadRequest) },
                     { "60001", typeof(AuthenticationError) },
                     { "60002", typeof(AuthenticationError) },
                     { "60003", typeof(AuthenticationError) },
@@ -1189,11 +1250,15 @@ public partial class okx : Exchange
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 300 },
-                        { "historical", 100 },
+                        { "mark", 100 },
+                        { "index", 100 },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                 } },
                 { "swap", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
@@ -1212,9 +1277,35 @@ public partial class okx : Exchange
                     } },
                 } },
             } },
+            { "currencies", new Dictionary<string, object>() {
+                { "USD", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "USD" },
+                    { "code", "USD" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "EUR", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "EUR" },
+                    { "code", "EUR" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "AED", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "AED" },
+                    { "code", "AED" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "GBP", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "GBP" },
+                    { "code", "GBP" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "AUD", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "AUD" },
+                    { "code", "AUD" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "AE", "AET" },
-                { "WIN", "WINTOKEN" },
             } },
         });
     }
@@ -1423,14 +1514,33 @@ public partial class okx : Exchange
         //         "data": [
         //             {
         //                 "acctLv": "2",
+        //                 "acctStpMode": "cancel_maker",
         //                 "autoLoan": false,
         //                 "ctIsoMode": "automatic",
+        //                 "enableSpotBorrow": false,
         //                 "greeksType": "PA",
+        //                 "feeType": "0",
+        //                 "ip": "",
+        //                 "type": "0",
+        //                 "kycLv": "3",
+        //                 "label": "v5 test",
         //                 "level": "Lv1",
         //                 "levelTmp": "",
+        //                 "liquidationGear": "-1",
+        //                 "mainUid": "44705892343619584",
         //                 "mgnIsoMode": "automatic",
+        //                 "opAuth": "1",
+        //                 "perm": "read_only,withdraw,trade",
         //                 "posMode": "long_short_mode",
-        //                 "uid": "88018754289672195"
+        //                 "roleType": "0",
+        //                 "spotBorrowAutoRepay": false,
+        //                 "spotOffsetType": "",
+        //                 "spotRoleType": "0",
+        //                 "spotTraderInsts": [],
+        //                 "traderInsts": [],
+        //                 "uid": "44705892343619584",
+        //                 "settleCcy": "USDT",
+        //                 "settleCcyList": ["USD", "USDC", "USDG"],
         //             }
         //         ],
         //         "msg": ""
@@ -1549,6 +1659,12 @@ public partial class okx : Exchange
         //         "uly": "BTC-USD"
         //     }
         //
+        // for swap "preopen" markets, only `instId` and `instType` are present
+        //
+        //         instId: "ETH-USD_UM-SWAP",
+        //         instType: "SWAP",
+        //         state: "preopen",
+        //
         object id = this.safeString(market, "instId");
         object type = this.safeStringLower(market, "instType");
         if (isTrue(isEqual(type, "futures")))
@@ -1571,9 +1687,21 @@ public partial class okx : Exchange
             baseId = this.safeString(parts, 0);
             quoteId = this.safeString(parts, 1);
         }
+        if (isTrue(isTrue((isTrue((isEqual(baseId, ""))) || isTrue((isEqual(quoteId, ""))))) && isTrue(spot)))
+        {
+            object instId = this.safeString(market, "instId", "");
+            object parts = ((string)instId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            baseId = this.safeString(parts, 0);
+            quoteId = this.safeString(parts, 1);
+        }
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
+        // handle preopen empty markets
+        if (isTrue(isTrue(isEqual(bs, "")) || isTrue(isEqual(quote, ""))))
+        {
+            symbol = id;
+        }
         object expiry = null;
         object strikePrice = null;
         object optionType = null;
@@ -1608,6 +1736,7 @@ public partial class okx : Exchange
         object maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object maxSpotCost = this.safeNumber(market, "maxMktSz");
+        object status = this.safeString(market, "state");
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1623,7 +1752,7 @@ public partial class okx : Exchange
             { "swap", swap },
             { "future", future },
             { "option", option },
-            { "active", true },
+            { "active", isEqual(status, "live") },
             { "contract", contract },
             { "linear", ((bool) isTrue(contract)) ? (isEqual(quoteId, settleId)) : null },
             { "inverse", ((bool) isTrue(contract)) ? (isEqual(baseId, settleId)) : null },
@@ -1741,7 +1870,7 @@ public partial class okx : Exchange
         object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(!isTrue(this.checkRequiredCredentials(false)) || isTrue(isSandboxMode)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         //
         // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
@@ -2436,17 +2565,19 @@ public partial class okx : Exchange
         {
             return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 200);
         }
-        object price = this.safeString(parameters, "price");
+        object priceType = this.safeString(parameters, "price");
+        object isMarkOrIndex = this.inArray(priceType, new List<object>() {"mark", "index"});
         parameters = this.omit(parameters, "price");
         object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object timezone = this.safeString(options, "timezone", "UTC");
         object limitIsUndefined = (isEqual(limit, null));
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100; // default 100, max 100
+            limit = 100; // default 100, max 300
         } else
         {
-            limit = mathMin(limit, 300); // max 100
+            object maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
+            limit = mathMin(limit, maxLimit);
         }
         object duration = this.parseTimeframe(timeframe);
         object bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2469,8 +2600,8 @@ public partial class okx : Exchange
             if (isTrue(isLessThan(since, historyBorder)))
             {
                 defaultType = "HistoryCandles";
-                object maxLimit = ((bool) isTrue((!isEqual(price, null)))) ? 100 : 300;
-                limit = mathMin(limit, maxLimit); // max 300 for historical endpoint
+                object maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300;
+                limit = mathMin(limit, maxLimit);
             }
             object startTime = mathMax(subtract(since, 1), 0);
             ((IDictionary<string,object>)request)["before"] = startTime;
@@ -2487,7 +2618,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "type");
         object isHistoryCandles = (isEqual(type, "HistoryCandles"));
         object response = null;
-        if (isTrue(isEqual(price, "mark")))
+        if (isTrue(isEqual(priceType, "mark")))
         {
             if (isTrue(isHistoryCandles))
             {
@@ -2496,7 +2627,7 @@ public partial class okx : Exchange
             {
                 response = await this.publicGetMarketMarkPriceCandles(this.extend(request, parameters));
             }
-        } else if (isTrue(isEqual(price, "index")))
+        } else if (isTrue(isEqual(priceType, "index")))
         {
             ((IDictionary<string,object>)request)["instId"] = getValue(getValue(market, "info"), "instFamily"); // okx index candles require instFamily instead of instId
             if (isTrue(isHistoryCandles))
@@ -3119,6 +3250,7 @@ public partial class okx : Exchange
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
         } else if (isTrue(isTrue(stopLossDefined) || isTrue(takeProfitDefined)))
         {
+            object attachAlgoOrd = new Dictionary<string, object>() {};
             if (isTrue(stopLossDefined))
             {
                 object stopLossTriggerPrice = this.safeValueN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "slTriggerPx"});
@@ -3127,7 +3259,8 @@ public partial class okx : Exchange
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")) ;
                 }
                 object slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                ((IDictionary<string,object>)request)["slTriggerPx"] = slTriggerPx;
+                object slOrder = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)slOrder)["slTriggerPx"] = slTriggerPx;
                 object stopLossLimitPrice = this.safeValueN(stopLoss, new List<object>() {"price", "stopLossPrice", "slOrdPx"});
                 object stopLossOrderType = this.safeString(stopLoss, "type");
                 if (isTrue(!isEqual(stopLossOrderType, null)))
@@ -3144,18 +3277,18 @@ public partial class okx : Exchange
                             throw new InvalidOrder ((string)add(this.id, " createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order")) ;
                         } else
                         {
-                            ((IDictionary<string,object>)request)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice);
+                            ((IDictionary<string,object>)slOrder)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice);
                         }
                     } else if (isTrue(isEqual(stopLossOrderType, "market")))
                     {
-                        ((IDictionary<string,object>)request)["slOrdPx"] = "-1";
+                        ((IDictionary<string,object>)slOrder)["slOrdPx"] = "-1";
                     }
                 } else if (isTrue(!isEqual(stopLossLimitPrice, null)))
                 {
-                    ((IDictionary<string,object>)request)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice); // limit sl order
+                    ((IDictionary<string,object>)slOrder)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice); // limit sl order
                 } else
                 {
-                    ((IDictionary<string,object>)request)["slOrdPx"] = "-1"; // market sl order
+                    ((IDictionary<string,object>)slOrder)["slOrdPx"] = "-1"; // market sl order
                 }
                 object stopLossTriggerPriceType = this.safeString2(stopLoss, "triggerPriceType", "slTriggerPxType", "last");
                 if (isTrue(!isEqual(stopLossTriggerPriceType, null)))
@@ -3164,8 +3297,9 @@ public partial class okx : Exchange
                     {
                         throw new InvalidOrder ((string)add(this.id, " createOrder() stop loss trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
                     }
-                    ((IDictionary<string,object>)request)["slTriggerPxType"] = stopLossTriggerPriceType;
+                    ((IDictionary<string,object>)slOrder)["slTriggerPxType"] = stopLossTriggerPriceType;
                 }
+                attachAlgoOrd = this.extend(attachAlgoOrd, slOrder);
             }
             if (isTrue(takeProfitDefined))
             {
@@ -3174,7 +3308,8 @@ public partial class okx : Exchange
                 {
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")) ;
                 }
-                ((IDictionary<string,object>)request)["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                object tpOrder = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)tpOrder)["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 object takeProfitLimitPrice = this.safeValueN(takeProfit, new List<object>() {"price", "takeProfitPrice", "tpOrdPx"});
                 object takeProfitOrderType = this.safeString2(takeProfit, "type", "tpOrdKind");
                 if (isTrue(!isEqual(takeProfitOrderType, null)))
@@ -3191,20 +3326,20 @@ public partial class okx : Exchange
                             throw new InvalidOrder ((string)add(this.id, " createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order")) ;
                         } else
                         {
-                            ((IDictionary<string,object>)request)["tpOrdKind"] = takeProfitOrderType;
-                            ((IDictionary<string,object>)request)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice);
+                            ((IDictionary<string,object>)tpOrder)["tpOrdKind"] = takeProfitOrderType;
+                            ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice);
                         }
                     } else if (isTrue(isEqual(takeProfitOrderType, "market")))
                     {
-                        ((IDictionary<string,object>)request)["tpOrdPx"] = "-1";
+                        ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = "-1";
                     }
                 } else if (isTrue(!isEqual(takeProfitLimitPrice, null)))
                 {
-                    ((IDictionary<string,object>)request)["tpOrdKind"] = "limit";
-                    ((IDictionary<string,object>)request)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
+                    ((IDictionary<string,object>)tpOrder)["tpOrdKind"] = "limit";
+                    ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
                 } else
                 {
-                    ((IDictionary<string,object>)request)["tpOrdPx"] = "-1"; // market tp order
+                    ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = "-1"; // market tp order
                 }
                 object takeProfitTriggerPriceType = this.safeString2(takeProfit, "triggerPriceType", "tpTriggerPxType", "last");
                 if (isTrue(!isEqual(takeProfitTriggerPriceType, null)))
@@ -3213,10 +3348,19 @@ public partial class okx : Exchange
                     {
                         throw new InvalidOrder ((string)add(this.id, " createOrder() take profit trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
                     }
-                    ((IDictionary<string,object>)request)["tpTriggerPxType"] = takeProfitTriggerPriceType;
+                    ((IDictionary<string,object>)tpOrder)["tpTriggerPxType"] = takeProfitTriggerPriceType;
                 }
+                attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
             }
-        } else if (isTrue(trigger))
+            object attachOrdKeys = new List<object>(((IDictionary<string,object>)attachAlgoOrd).Keys);
+            object attachOrdLen = getArrayLength(attachOrdKeys);
+            if (isTrue(isGreaterThan(attachOrdLen, 0)))
+            {
+                ((IDictionary<string,object>)request)["attachAlgoOrds"] = new List<object>() {attachAlgoOrd};
+            }
+        }
+        // algo order details
+        if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["ordType"] = "trigger";
             ((IDictionary<string,object>)request)["triggerPx"] = this.priceToPrecision(symbol, triggerPrice);
@@ -3676,7 +3820,7 @@ public partial class okx : Exchange
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         parameters ??= new Dictionary<string, object>();
@@ -3731,10 +3875,19 @@ public partial class okx : Exchange
         {
             for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
             {
-                ((IList<object>)request).Add(new Dictionary<string, object>() {
-                    { "instId", getValue(market, "id") },
-                    { "clOrdId", getValue(clientOrderIds, i) },
-                });
+                if (isTrue(isTrue(trailing) || isTrue(trigger)))
+                {
+                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                        { "instId", getValue(market, "id") },
+                        { "algoClOrdId", getValue(clientOrderIds, i) },
+                    });
+                } else
+                {
+                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                        { "instId", getValue(market, "id") },
+                        { "clOrdId", getValue(clientOrderIds, i) },
+                    });
+                }
             }
         }
         object response = null;
@@ -3818,7 +3971,13 @@ public partial class okx : Exchange
                 idKey = "algoId";
             } else if (isTrue(!isEqual(clientOrderId, null)))
             {
-                idKey = "clOrdId";
+                if (isTrue(isStopOrTrailing))
+                {
+                    idKey = "algoClOrdId";
+                } else
+                {
+                    idKey = "clOrdId";
+                }
             }
             object requestItem = new Dictionary<string, object>() {
                 { "instId", getValue(market, "id") },

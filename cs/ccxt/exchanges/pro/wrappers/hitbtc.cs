@@ -143,19 +143,30 @@ public partial class hitbtc
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#websocket_publicsymbolKline"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_market_websocket_v2symbolKline"/>  <br/>
+    /// See <see href="https://api.hitbtc.com/#subscribe-to-candles"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>timeframe</term>
+    /// <description>
+    /// string : the length of time each candle represents
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : not used by xt watchOHLCV
+    /// int : not used by hitbtc watchOHLCV
     /// </description>
     /// </item>
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : not used by xt watchOHLCV
+    /// int : 0 – 1000, default value = 0 (no history returned)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -311,10 +322,10 @@ public partial class hitbtc
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersWs(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetch all unfilled currently open orders

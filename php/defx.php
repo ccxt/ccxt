@@ -338,6 +338,7 @@ class defx extends Exchange {
                 'exact' => array(
                     '404' => '\\ccxt\\BadRequest', // array("errorCode":404,"errorMessage":"Not Found")
                     'missing_auth_signature' => '\\ccxt\\AuthenticationError', // array("msg":"Missing auth signature","code":"missing_auth_signature")
+                    'leverage_higher_than_capped_leverage' => '\\ccxt\\BadRequest', // array("errorCode":"leverage_higher_than_capped_leverage","errorMessage":"Leverage higher than capped leverage","errorData":array("cappedLeverage":"25"))
                     'order_rejected' => '\\ccxt\\InvalidOrder', // array("success":false,"err":array("msg":"Order has already been rejected","code":"order_rejected"))
                     'invalid_order_id' => '\\ccxt\\InvalidOrder', // array("success":false,"err":array("msg":"Invalid order id","code":"invalid_order_id"))
                     'filter_lotsize_maxqty' => '\\ccxt\\InvalidOrder', // array("errorCode":"filter_lotsize_maxqty","errorMessage":"LOT_SIZE filter failed, quantity more than maxQty","errorData":array("maxQty":"5000.00"))
@@ -833,7 +834,7 @@ class defx extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see https://api-docs.defx.com/#54b71951-1472-4670-b5af-4c2dc41e73d0
@@ -1178,7 +1179,8 @@ class defx extends Exchange {
         //
         $markPrice = $this->safe_number($contract, 'markPrice');
         $indexPrice = $this->safe_number($contract, 'indexPrice');
-        $fundingRate = $this->safe_number($contract, 'payoutFundingRate');
+        $fundingRateRaw = $this->safe_string($contract, 'payoutFundingRate');
+        $fundingRate = Precise::string_div($fundingRateRaw, '100');
         $fundingTime = $this->safe_integer($contract, 'nextFundingPayout');
         return array(
             'info' => $contract,
@@ -1189,7 +1191,7 @@ class defx extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'fundingRate' => $fundingRate,
+            'fundingRate' => $this->parse_number($fundingRate),
             'fundingTimestamp' => $fundingTime,
             'fundingDatetime' => $this->iso8601($fundingTime),
             'nextFundingRate' => null,

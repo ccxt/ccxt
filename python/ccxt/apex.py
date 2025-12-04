@@ -41,6 +41,7 @@ class apex(Exchange, ImplicitAPI):
                 'addMargin': False,
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelAllOrdersAfter': False,
                 'cancelOrder': True,
@@ -59,10 +60,14 @@ class apex(Exchange, ImplicitAPI):
                 'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchAccounts': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledAndClosedOrders': False,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrders': False,
@@ -78,6 +83,7 @@ class apex(Exchange, ImplicitAPI):
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -96,6 +102,8 @@ class apex(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -113,6 +121,7 @@ class apex(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchTransfer': True,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
@@ -784,7 +793,7 @@ class apex(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -807,9 +816,9 @@ class apex(Exchange, ImplicitAPI):
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
         request['limit'] = limit  # max 200, default 200
-        request, params = self.handle_until_option('end', request, params)
+        request, params = self.handle_until_option('end', request, params, 0.001)
         if since is not None:
-            request['start'] = since
+            request['start'] = int(math.floor(since / 1000))
         response = self.publicGetV3Klines(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         OHLCVs = self.safe_list(data, market['id2'], [])
@@ -1212,14 +1221,14 @@ class apex(Exchange, ImplicitAPI):
 
     def parse_order_type(self, type: Str):
         types: dict = {
-            'LIMIT': 'LIMIT',
-            'MARKET': 'MARKET',
-            'STOP_LIMIT': 'STOP_LIMIT',
-            'STOP_MARKET': 'STOP_MARKET',
-            'TAKE_PROFIT_LIMIT': 'TAKE_PROFIT_LIMIT',
-            'TAKE_PROFIT_MARKET': 'TAKE_PROFIT_MARKET',
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP_LIMIT': 'limit',
+            'STOP_MARKET': 'market',
+            'TAKE_PROFIT_LIMIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
         }
-        return self.safe_string_upper(types, type, type)
+        return self.safe_string(types, type, type)
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         if market is None and marketId is not None:
@@ -1275,6 +1284,8 @@ class apex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
+        :param float [params.stopLossPrice]: The price a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: The price a take profit order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "POST_ONLY"
         :param bool [params.postOnly]: True or False
         :param bool [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
@@ -1290,11 +1301,19 @@ class apex(Exchange, ImplicitAPI):
         if price is not None:
             orderPrice = self.price_to_precision(symbol, price)
         fees = self.safe_dict(self.fees, 'swap', {})
-        taker = self.safe_number(fees, 'taker', 0.0005)
-        maker = self.safe_number(fees, 'maker', 0.0002)
-        limitFee = self.decimal_to_precision(Precise.string_add(Precise.string_mul(Precise.string_mul(orderPrice, orderSize), str(taker)), str(market['precision']['price'])), TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
+        taker = self.safe_string(fees, 'taker', '0.0005')
+        maker = self.safe_string(fees, 'maker', '0.0002')
+        limitFee = self.decimal_to_precision(Precise.string_add(Precise.string_mul(Precise.string_mul(orderPrice, orderSize), taker), self.number_to_string(market['precision']['price'])), TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
         timeNow = self.milliseconds()
-        # triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string(params, 'triggerPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        if stopLossPrice is not None:
+            orderType = 'STOP_MARKET' if (orderType == 'MARKET') else 'STOP_LIMIT'
+            triggerPrice = stopLossPrice
+        elif takeProfitPrice is not None:
+            orderType = 'TAKE_PROFIT_MARKET' if (orderType == 'MARKET') else 'TAKE_PROFIT_LIMIT'
+            triggerPrice = takeProfitPrice
         isMarket = orderType == 'MARKET'
         if isMarket and (price is None):
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for market orders')
@@ -1313,7 +1332,7 @@ class apex(Exchange, ImplicitAPI):
         accountId = self.get_account_id()
         if clientOrderId is None:
             clientOrderId = self.generate_random_client_id_omni(accountId)
-        params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])
+        params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
         orderToSign = {
             'accountId': accountId,
             'slotId': clientOrderId,
@@ -1322,9 +1341,11 @@ class apex(Exchange, ImplicitAPI):
             'size': orderSize,
             'price': orderPrice,
             'direction': orderSide,
-            'makerFeeRate': str(maker),
-            'takerFeeRate': str(taker),
+            'makerFeeRate': maker,
+            'takerFeeRate': taker,
         }
+        if triggerPrice is not None:
+            orderToSign['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         signature = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
         request: dict = {
             'symbol': market['id'],
@@ -1338,6 +1359,8 @@ class apex(Exchange, ImplicitAPI):
             'clientId': clientOrderId,
             'brokerId': self.safe_string(self.options, 'brokerId', '6956'),
         }
+        if triggerPrice is not None:
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['signature'] = signature
         response = self.privatePostV3Order(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})

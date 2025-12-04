@@ -169,6 +169,7 @@ class mexc extends Exchange {
                         'get' => array(
                             'ping' => 1,
                             'time' => 1,
+                            'defaultSymbols' => 1,
                             'exchangeInfo' => 10,
                             'depth' => 1,
                             'trades' => 5,
@@ -184,14 +185,19 @@ class mexc extends Exchange {
                     ),
                     'private' => array(
                         'get' => array(
+                            'kyc/status' => 1,
+                            'uid' => 1,
                             'order' => 2,
                             'openOrders' => 3,
                             'allOrders' => 10,
                             'account' => 10,
                             'myTrades' => 10,
+                            'strategy/group' => 20,
+                            'strategy/group/uid' => 20,
                             'tradeFee' => 10,
                             'sub-account/list' => 1,
                             'sub-account/apiKey' => 1,
+                            'sub-account/asset' => 1,
                             'capital/config/getall' => 10,
                             'capital/deposit/hisrec' => 1,
                             'capital/withdraw/history' => 1,
@@ -227,6 +233,7 @@ class mexc extends Exchange {
                             'mxDeduct/enable' => 1,
                             'userDataStream' => 1,
                             'selfSymbols' => 1,
+                            'asset/internal/transfer/record' => 10,
                         ),
                         'post' => array(
                             'order' => 1,
@@ -236,6 +243,7 @@ class mexc extends Exchange {
                             'sub-account/futures' => 1,
                             'sub-account/margin' => 1,
                             'batchOrders' => 10,
+                            'strategy/group' => 20,
                             'capital/withdraw/apply' => 1,
                             'capital/withdraw' => 1,
                             'capital/transfer' => 1,
@@ -758,6 +766,9 @@ class mexc extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                 ),
                 'forDerivs' => array(
                     'extends' => 'default',
@@ -922,6 +933,7 @@ class mexc extends Exchange {
                     '30029' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum order limit
                     '30032' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum position
                     '30041' => '\\ccxt\\InvalidOrder', // current order type can not place order
+                    '30087' => '\\ccxt\\InvalidOrder', // array("msg":"Order price exceeds allowed range","code":30087)
                     '60005' => '\\ccxt\\ExchangeError', // your account is abnormal
                     '700001' => '\\ccxt\\AuthenticationError', // array("code":700002,"msg":"Signature for this request is not valid.") // same message for expired API keys
                     '700002' => '\\ccxt\\AuthenticationError', // Signature for this request is not valid // or the API secret is incorrect
@@ -1049,7 +1061,7 @@ class mexc extends Exchange {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         $response = $this->spotPrivateGetCapitalConfigGetall ($params);
         //
@@ -1741,7 +1753,7 @@ class mexc extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-$data
@@ -2983,10 +2995,9 @@ class mexc extends Exchange {
         }
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         if ($marketType === 'spot') {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
+            if ($symbol !== null) {
+                $request['symbol'] = $market['id'];
             }
-            $request['symbol'] = $market['id'];
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
             $response = null;
             if ($marginMode !== null) {
@@ -3218,7 +3229,7 @@ class mexc extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          *
@@ -3559,7 +3570,8 @@ class mexc extends Exchange {
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null, // TODO => this might be 'updateTime' if $order-status is filled, otherwise cancellation time. needs to be checked
+            'lastTradeTimestamp' => null,
+            'lastUpdateTimestamp' => $this->safe_integer($order, 'updateTime'),
             'status' => $this->parse_order_status($this->safe_string_2($order, 'status', 'state')),
             'symbol' => $market['symbol'],
             'type' => $this->parse_order_type($typeRaw),
@@ -5260,7 +5272,7 @@ class mexc extends Exchange {
             $request = array(
                 'transact_id' => $id,
             );
-            $response = $this->spot2PrivateGetAssetInternalTransferInfo ($this->extend($request, $query));
+            $response = $this->spotPrivateGetAssetInternalTransferRecord ($this->extend($request, $query));
             //
             //     {
             //         "code" => "200",
@@ -5288,59 +5300,81 @@ class mexc extends Exchange {
          *
          * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
+         * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} $code unified $currency $code of the $currency transferred
          *
-         * @param {string} $code unified $currency $code of the $currency transferred
+         * @param $code
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of  transfers structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->fromAccountType] 'SPOT' for spot wallet, 'FUTURES' for contract wallet
+         * @param {string} [$params->toAccountType] 'SPOT' for spot wallet, 'FUTURES' for contract wallet
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
          */
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfers', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTransfers', null, $params);
         $this->load_markets();
         $request = array();
         $currency = null;
-        $resultList = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
         }
+        $fromAccountType = null;
+        list($fromAccountType, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'fromAccountType');
+        $accountTypes = array(
+            'spot' => 'SPOT',
+            'swap' => 'FUTURES',
+            'futures' => 'FUTURES',
+            'future' => 'FUTURES',
+            'margin' => 'SPOT',
+        );
+        if ($fromAccountType !== null) {
+            $request['fromAccountType'] = $this->safe_string($accountTypes, $fromAccountType, $fromAccountType);
+        } else {
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $fromAccountType parameter, one of "SPOT", "FUTURES"');
+        }
+        $toAccountType = null;
+        list($toAccountType, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'toAccountType');
+        if ($toAccountType !== null) {
+            $request['toAccountType'] = $this->safe_string($accountTypes, $toAccountType, $toAccountType);
+        } else {
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $toAccountType parameter, one of "SPOT", "FUTURES"');
+        }
+        $resultList = array();
         if ($marketType === 'spot') {
             if ($since !== null) {
-                $request['start_time'] = $since;
+                $request['startTime'] = $since;
             }
             if ($limit !== null) {
-                if ($limit > 50) {
+                if ($limit > 100) {
                     throw new ExchangeError('This exchange supports a maximum $limit of 50');
                 }
-                $request['page-size'] = $limit;
+                $request['size'] = $limit;
             }
-            $response = $this->spot2PrivateGetAssetInternalTransferRecord ($this->extend($request, $query));
+            $response = $this->spotPrivateGetCapitalTransfer ($this->extend($request, $params));
             //
-            //     {
-            //         "code" => "200",
-            //         "data" => {
-            //             "total_page" => "1",
-            //             "total_size" => "5",
-            //             "result_list" => [array(
-            //                     "currency" => "USDT",
-            //                     "amount" => "1",
-            //                     "transact_id" => "954877a2ef54499db9b28a7cf9ebcf41",
-            //                     "from" => "MAIN",
-            //                     "to" => "CONTRACT",
-            //                     "transact_state" => "SUCCESS"
-            //                 ),
-            //                 ...
-            //             ]
+            //
+            // {
+            //     "rows" => array(
+            //         {
+            //         "tranId" => "cdf0d2a618b5458c965baefe6b1d0859",
+            //         "clientTranId" => null,
+            //         "asset" => "USDT",
+            //         "amount" => "1",
+            //         "fromAccountType" => "FUTURES",
+            //         "toAccountType" => "SPOT",
+            //         "symbol" => null,
+            //         "status" => "SUCCESS",
+            //         "timestamp" => 1759328309000
             //         }
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            $resultList = $this->safe_value($data, 'result_list', array());
+            //     ),
+            //     "total" => 1
+            // }
+            $resultList = $this->safe_list($response, 'rows', array());
         } elseif ($marketType === 'swap') {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = $this->contractPrivateGetAccountTransferRecord ($this->extend($request, $query));
+            $response = $this->contractPrivateGetAccountTransferRecord ($this->extend($request, $params));
             $data = $this->safe_value($response, 'data');
             $resultList = $this->safe_value($data, 'resultList');
             //
@@ -5390,10 +5424,10 @@ class mexc extends Exchange {
         $accounts = array(
             'spot' => 'SPOT',
             'swap' => 'FUTURES',
-            'margin' => 'ISOLATED_MARGIN',
+            'future' => 'FUTURES',
         );
-        $fromId = $this->safe_string($accounts, $fromAccount);
-        $toId = $this->safe_string($accounts, $toAccount);
+        $fromId = $this->safe_string($accounts, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accounts, $toAccount, $toAccount);
         if ($fromId === null) {
             $keys = is_array($accounts) ? array_keys($accounts) : array();
             throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
@@ -5456,6 +5490,17 @@ class mexc extends Exchange {
         //         "createTime" => "1648849076000",
         //         "updateTime" => "1648849076000"
         //     }
+        //         {
+        //         "tranId" => "cdf0d2a618b5458c965baefe6b1d0859",
+        //         "clientTranId" => null,
+        //         "asset" => "USDT",
+        //         "amount" => "1",
+        //         "fromAccountType" => "FUTURES",
+        //         "toAccountType" => "SPOT",
+        //         "symbol" => null,
+        //         "status" => "SUCCESS",
+        //         "timestamp" => 1759328309000
+        //         }
         //
         // $transfer
         //
@@ -5463,14 +5508,19 @@ class mexc extends Exchange {
         //         "tranId" => "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
-        $currencyId = $this->safe_string($transfer, 'currency');
+        $currencyId = $this->safe_string_2($transfer, 'currency', 'asset');
         $id = $this->safe_string_n($transfer, array( 'transact_id', 'txid', 'tranId' ));
-        $timestamp = $this->safe_integer($transfer, 'createTime');
+        $timestamp = $this->safe_integer_2($transfer, 'createTime', 'timestamp');
         $datetime = ($timestamp !== null) ? $this->iso8601($timestamp) : null;
         $direction = $this->safe_string($transfer, 'type');
         $accountFrom = null;
         $accountTo = null;
-        if ($direction !== null) {
+        $fromAccountType = $this->safe_string($transfer, 'fromAccountType');
+        $toAccountType = $this->safe_string($transfer, 'toAccountType');
+        if (($fromAccountType !== null) && ($toAccountType !== null)) {
+            $accountFrom = $fromAccountType;
+            $accountTo = $toAccountType;
+        } elseif ($direction !== null) {
             $accountFrom = ($direction === 'IN') ? 'MAIN' : 'CONTRACT';
             $accountTo = ($direction === 'IN') ? 'CONTRACT' : 'MAIN';
         } else {
@@ -5486,12 +5536,14 @@ class mexc extends Exchange {
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $this->parse_account_id($accountFrom),
             'toAccount' => $this->parse_account_id($accountTo),
-            'status' => $this->parse_transfer_status($this->safe_string_2($transfer, 'transact_state', 'state')),
+            'status' => $this->parse_transfer_status($this->safe_string_n($transfer, array( 'transact_state', 'state', 'status' ))),
         );
     }
 
     public function parse_account_id($status) {
         $statuses = array(
+            'SPOT' => 'spot',
+            'FUTURES' => 'swap',
             'MAIN' => 'spot',
             'CONTRACT' => 'swap',
         );

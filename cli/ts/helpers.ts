@@ -98,7 +98,6 @@ function injectMissingUndefined (fn, args) {
         }
         args = newArgsArray;
     }
-    console.log(args)
     return args;
 }
 
@@ -522,6 +521,8 @@ async function loadSettingsAndCreateExchange (
         }
         if (cliOptions.sandbox || cliOptions.testnet) {
             exchange.setSandboxMode (true);
+        } else if (cliOptions.demo) {
+            exchange.enableDemoTrading (true);
         }
     } catch (e) {
         log.red (e);
