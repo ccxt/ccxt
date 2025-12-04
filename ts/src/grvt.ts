@@ -84,6 +84,8 @@ export default class grvt extends Exchange {
                         'lite/v1/trade': 1,
                         'full/v1/trade_history': 1,
                         'lite/v1/trade_history': 1,
+                        'full/v1/kline': 1,
+                        'lite/v1/kline': 1,
                     },
                 },
             },
@@ -510,6 +512,92 @@ export default class grvt extends Exchange {
             'fee': undefined,
             'order': undefined,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.grvt.io/market_data_api/#candlestick_1
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {string} [params.priceType] last, mark, index (default is 'last')
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        const maxLimit = 1000;
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+        }
+        const market = this.market (symbol);
+        let request = {
+            'instrument': market['id'],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        if (since !== undefined) {
+            request['start_time'] = since * 1000000;
+        }
+        const priceTypeMap = {
+            'last': 1,
+            'mark': 2,
+            'index': 3,
+        };
+        const selectedPriceType = this.safeString (params, 'priceType', 'last');
+        request['type'] = this.safeInteger (priceTypeMap, selectedPriceType, 1);
+        const response = await this.privateMarketPostFullV1TradeHistory (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "time": "1753464720000000",
+        //            "duration": "60000000",
+        //            "open": "116051.35",
+        //            "high": "116060.27",
+        //            "low": "116051.35",
+        //            "close": "116060.27",
+        //            "volume": "0.0257",
+        //            "quoteVolume": "2982.6724054"
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "time": "1753464720000000",
+        //            "duration": "60000000",
+        //            "open": "116051.35",
+        //            "high": "116060.27",
+        //            "low": "116051.35",
+        //            "close": "116060.27",
+        //            "volume": "0.0257",
+        //            "quoteVolume": "2982.6724054"
+        //        }
+        //
+        return [
+            this.safeIntegerProduct (ohlcv, 'time', 0.001),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
