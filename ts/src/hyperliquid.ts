@@ -526,11 +526,12 @@ export default class hyperliquid extends Exchange {
                     const parts = name.split ('U');
                     let nameWithoutU = '';
                     for (let j = 0; j < parts.length; j++) {
-                        nameWithoutU == nameWithoutU + parts[j];
+                        nameWithoutU = nameWithoutU + parts[j];
                     }
                     const baseCode = this.safeCurrencyCode (nameWithoutU);
                     this.options['spotCurrencyMapping'][code] = baseCode;
                 }
+            }
         }
         return result;
     }
