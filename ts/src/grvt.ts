@@ -1048,60 +1048,6 @@ export default class grvt extends Exchange {
 
     /**
      * @method
-     * @name grvt#transfer
-     * @description transfer currency internally between wallets on the same account
-     * @see https://api-docs.grvt.io/trading_api/#transfer_1
-     * @param {string} code unified currency codeåå
-     * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-     */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadAccounts ();
-        const currency = this.currency (code);
-        const defaultFromAccountId = this.safeString (this.options, 'AuthAccountId');
-        const request: Dict = {
-            'from_account_id': this.safeString (params, 'from_account_id', defaultFromAccountId),
-            'from_sub_account_id': this.safeString (params, 'from_sub_account_id'),
-            'to_account_id': this.safeString (params, 'to_account_id', defaultFromAccountId),
-            'to_sub_account_id': this.safeString (params, 'to_sub_account_id'),
-            'currency': currency['id'],
-            'num_tokens': this.currencyToPrecision (code, amount),
-            'transfer_type': 'STANDARD',
-            'signature': {
-                'signer': 'xxxxxxxxxxxxxxxxx',
-                'r': 'xxxxxxxxxxxxxxxxx',
-                's': 'xxxxxxxxxxxxxxxxx',
-                'v': 28,
-                'expiration': 'xxxxxxxxxxxxxxxxx',
-                'nonce': this.nonce (),
-                'chain_id': '325',
-            },
-            'transfer_metadata': {
-                'provider': 'xxxxxxxxxxxxxxxxx',
-                'direction': 'WITHDRAWAL',
-                'provider_tx_id': 'xxxxxxxxxxxxxxxxx',
-                'chainid': '42161',
-                'endpoint': '0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0',
-            },
-        };
-        const response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
-        //
-        // {
-        //     "result": {
-        //         "ack": "true",
-        //         "tx_id": "1028403"
-        //     }
-        // }
-        //
-        const result = this.safeDict (response, 'result', {});
-        return this.parseTransfer (result, currency);
-    }
-
-    /**
-     * @method
      * @name grvt#fetchTransfers
      * @description fetch a history of internal transfers made on an account
      * @see https://api-docs.grvt.io/trading_api/#transfer-history
@@ -1187,6 +1133,67 @@ export default class grvt extends Exchange {
         return [ matchedResults, nonMatchedResults ];
     }
 
+    /**
+     * @method
+     * @name grvt#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://api-docs.grvt.io/trading_api/#transfer_1
+     * @param {string} code unified currency codeåå
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        await this.loadAccounts ();
+        const currency = this.currency (code);
+        const defaultFromAccountId = this.safeString (this.options, 'AuthAccountId');
+        const request: Dict = {
+            'from_account_id': this.safeString (params, 'from_account_id', defaultFromAccountId),
+            'from_sub_account_id': this.safeString (params, 'from_sub_account_id'),
+            'to_account_id': this.safeString (params, 'to_account_id', defaultFromAccountId),
+            'to_sub_account_id': this.safeString (params, 'to_sub_account_id'),
+            'currency': currency['id'],
+            'num_tokens': this.currencyToPrecision (code, amount),
+            'transfer_type': 'STANDARD',
+            'transfer_metadata': {
+                'provider': 'xxxxxxxxxxxxxxxxx',
+                'direction': 'xxxxxxxxxxxxxxxxx',
+                'provider_tx_id': 'xxxxxxxxxxxxxxxxx',
+                'chainid': 'xxxxxxxxxxxxxxxxx',
+                'endpoint': 'xxxxxxxxxxxxxxxxx',
+            },
+        };
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        if (networkId === undefined) {
+            throw new BadRequest (this.id + ' withdraw() requires a network parameter');
+        }
+        const signature = {
+            'signer': 'xxxxxxxxxxxxxxxxx',
+            'r': 'xxxxxxxxxxxxxxxxx',
+            's': 'xxxxxxxxxxxxxxxxx',
+            'v': 28,
+            'expiration': 'xxxxxxxxxxxxxxxxx',
+            'nonce': this.nonce (),
+            'chain_id': '325',
+        };
+        request['signature'] = signature;
+        const response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "ack": "true",
+        //         "tx_id": "1028403"
+        //     }
+        // }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseTransfer (result, currency);
+    }
+
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
@@ -1236,11 +1243,64 @@ export default class grvt extends Exchange {
         };
     }
 
-    parseTransferStatus (status: Str): string {
-        const statuses: Dict = {
-            'CONFIRMED': 'ok',
+    async loadAggregatedAccountSummary () {
+        if (this.safeString (this.options, 'userMainAccountId') !== undefined) {
+            return;
+        }
+        const response = await this.privateTradingPostFullV1AggregatedAccountSummary ();
+        const result = this.safeDict (response, 'result', {});
+        const mainAccountId = this.safeString (result, 'main_account_id');
+        this.options['userMainAccountId'] = mainAccountId;
+    }
+
+    /**
+     * @method
+     * @name grvt#withdraw
+     * @description make a withdrawal
+     * @see https://api-docs.grvt.io/trading_api/#withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.network the network to withdraw on (mandatory)
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        this.checkAddress (address);
+        await Promise.all ([ this.loadMarkets (), this.loadAggregatedAccountSummary () ]);
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+            'num_tokens': this.currencyToPrecision (code, amount),
+            'to_eth_address': address,
+            'from_account_id': this.safeString (this.options, 'userMainAccountId'),
         };
-        return this.safeString (statuses, status, status);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        if (networkId === undefined) {
+            throw new BadRequest (this.id + ' withdraw() requires a network parameter');
+        }
+        const signature = {
+            "signer": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            "r": "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
+            "s": "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
+            "v": 28,
+            "expiration": "1697788800000000000",
+            "nonce": 1234567890,
+            "chain_id": "325"
+        };
+        request['signature'] = signature;
+        const response = await this.privateTradingPostFullV1Withdrawal (this.extend (request, query));
+        //
+        // {
+        //     "result": {
+        //         "ack": "true"
+        //     }
+        // }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseTransaction (result, currency);
     }
 
     /**
