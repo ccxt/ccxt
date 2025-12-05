@@ -521,11 +521,14 @@ export default class hyperliquid extends Exchange {
             // add in wrapped map
             const fullName = this.safeString (data, 'fullName');
             if (fullName !== undefined) {
-                const isWrapped = fullName.startsWith ('Unit ');
+                const isWrapped = fullName.startsWith ('Unit ') && name.startsWith ('U');
                 if (isWrapped) {
-                    const parts = code.split ('U');
-                    const withoutU = parts.join ('');
-                    const baseCode = this.safeCurrencyCode (withoutU);
+                    const parts = name.split ('U');
+                    let nameWithoutU = '';
+                    for (let j = 0; j < parts.length; j++) {
+                        nameWithoutU == nameWithoutU + parts[j];
+                    }
+                    const baseCode = this.safeCurrencyCode (nameWithoutU);
                     this.options['spotCurrencyMapping'][code] = baseCode;
                 }
         }
