@@ -1241,6 +1241,27 @@ export default class aftermath extends Exchange {
         const tx = await this.privatePostBuildSetLeverage (txRequest);
         const request = this.signTxEd25519 (tx);
         const response = await this.privatePostSubmitSetLeverage (request);
+        //
+        // {
+        //     "id": "0xyydsxxxxxxxxyydsxxxxxxx:141",
+        //     "symbol": "BTC/USD:USDC",
+        //     "marginMode": "isolated",
+        //     "side": "long",
+        //     "contracts": 0.001,
+        //     "contractSize": 88506.195911625,
+        //     "entryPrice": 90999.0,
+        //     "notional": 88.50907726931732,
+        //     "marginRatio": 1.0000000000041465,
+        //     "leverage": 0.9999999999958537,
+        //     "collateral": 91.00196251238035,
+        //     "initialMargin": 2.212726931732933,
+        //     "maintenanceMargin": 1.1063634658664665,
+        //     "initialMarginPercentage": 0.025,
+        //     "maintenanceMarginPercentage": 0.0125,
+        //     "unrealizedPnl": -2.492804088375008,
+        //     "liquidationPrice": -3.71625538227e-7
+        // }
+        //
         return response;
     }
 

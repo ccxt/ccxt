@@ -106,7 +106,7 @@
                 "method": "fetchPosition",
                 "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/positions",
                 "input": [
-                    null,
+                    "BTC/USD:USDC",
                     {
                         "accountNumber": 12345
                     }
@@ -202,12 +202,10 @@
                 "input": [
                     "USDC",
                     1,
-                    null,
-                    {
-                        "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
-                    }
+                    "",
+                    "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
                 ],
-                "output": "{\"metadata\":{\"sender\":\"wallet\"},\"accountId\":{\"account\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\"},\"amount\":1}"
+                "output": "{\"metadata\":{\"sender\":\"wallet\"},\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"amount\":1}"
             }
         ],
         "withdraw": [
@@ -218,8 +216,8 @@
                 "input": [
                     "USDC",
                     1,
-                    null,
-                    null,
+                    "",
+                    "",
                     {
                         "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
                     }
@@ -245,9 +243,12 @@
                 "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/build/setLeverage",
                 "input": [
                     1,
-                    "BTC/USD:USDC"
+                    "BTC/USD:USDC",
+                    {
+                        "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
+                    }
                 ],
-                "output": "{\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\",\"leverage\":1,\"metadata\":{\"sender\":\"wallet\"}}"
+                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\",\"leverage\":1,\"metadata\":{\"sender\":\"wallet\"}}"
             }
         ]
     }
