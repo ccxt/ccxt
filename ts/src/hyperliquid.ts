@@ -227,6 +227,10 @@ export default class hyperliquid extends Exchange {
                 // below will be filled automatically
                 'spotCurrencyMapping': {
                     'UDZ': '2Z',
+                    'UFART': 'FARTCOIN',
+                    'UUUSPX': 'SPX',
+                    'USDT0': 'USDT',
+                    'XAUT0': 'XAUT',
                 },
                 'fetchMarkets': {
                     'types': [ 'spot', 'swap', 'hip3' ], // 'spot', 'swap', 'hip3'
