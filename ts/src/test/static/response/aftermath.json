@@ -1602,6 +1602,72 @@
                 ]
             }
         ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    null,
+                    {
+                        "accountNumber": 12345
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "id": "340280688285674499949440358974059529368",
+                        "datetime": "2025-12-05 01:47:31.447 UTC",
+                        "timestamp": 1764899251447,
+                        "status": "open",
+                        "symbol": "BTC/USD:USDC",
+                        "type": "limit",
+                        "side": "buy",
+                        "price": 90999.0,
+                        "amount": 0.001,
+                        "filled": 0.0,
+                        "remaining": 0.001,
+                        "cost": 0.0,
+                        "trades": [],
+                        "fee": {}
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "340280688285674499949440358974059529368",
+                        "datetime": "2025-12-05 01:47:31.447 UTC",
+                        "timestamp": 1764899251447,
+                        "status": "open",
+                        "symbol": "BTC/USD:USDC",
+                        "type": "limit",
+                        "side": "buy",
+                        "price": 90999,
+                        "amount": 0.001,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {},
+                        "fees": [
+                            {
+                                "cost": null
+                            }
+                        ],
+                        "clientOrderId": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "average": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "fetchPositions",

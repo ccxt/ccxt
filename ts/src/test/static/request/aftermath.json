@@ -129,7 +129,7 @@
                         "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
                     }
                 ],
-                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"metadata\":{\"sender\":\"wallet\"},\"orders\":[{\"type\":\"limit\",\"side\":\"buy\",\"amount\":0.00001,\"price\":86666,\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\"}]}"
+                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"metadata\":{\"sender\":\"wallet\"},\"orders\":[{\"type\":\"limit\",\"side\":\"buy\",\"amount\":0.00001,\"price\":86666,\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\"}],\"deallocateFreeCollateral\":false}"
             },
             {
                 "description": "createOrder - reduce only",
@@ -146,7 +146,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"metadata\":{\"sender\":\"wallet\"},\"orders\":[{\"type\":\"limit\",\"side\":\"buy\",\"amount\":0.00001,\"price\":86666,\"reduceOnly\":true,\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\"}]}"
+                "output": "{\"accountId\":\"0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824\",\"metadata\":{\"sender\":\"wallet\"},\"orders\":[{\"type\":\"limit\",\"side\":\"buy\",\"amount\":0.00001,\"price\":86666,\"reduceOnly\":true,\"chId\":\"0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc\"}],\"deallocateFreeCollateral\":false}"
             }
         ],
         "cancelOrder": [

@@ -857,6 +857,7 @@ export default class aftermath extends Exchange {
                 'sender': this.walletAddress,
             },
             'orders': ordersRequest,
+            'deallocateFreeCollateral': false,
         };
         const tx = await this.privatePostBuildCreateOrders (this.extend (txRequest, params));
         const request = this.signTxEd25519 (tx);
