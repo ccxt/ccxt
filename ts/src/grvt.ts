@@ -968,7 +968,28 @@ export default class grvt extends Exchange {
         //    }
         //
         const rows = this.safeList (response, 'result', []);
-        return this.parseTransfers (rows, currency, since, limit);
+        const transfers = this.parseTransfers (rows, currency, since, limit);
+        const filteredResults = this.filterTransfersByType (transfers, 'internal', false);
+        return filteredResults[1];
+    }
+
+    filterTransfersByType (transfers: any, transferType: string, onlyMainAccount = true): any {
+        const matchedResults = [];
+        const nonMatchedResults = [];
+        for (let i = 0; i < transfers.length; i++) {
+            const transfer = transfers[i];
+            if ((onlyMainAccount && transfer['fromAccount'] === '0' && transfer['toAccount'] === '0') || (!onlyMainAccount && (transfer['fromAccount'] !== '0' || transfer['toAccount'] !== '0'))) {
+                const metadata = this.safeString (transfer['info'], 'transfer_metadata');
+                const parsedMetadata = this.parseJson (metadata);
+                const direction = this.safeString (parsedMetadata, 'direction');
+                if (direction === transferType) {
+                    matchedResults.push (transfer);
+                } else {
+                    nonMatchedResults.push (transfer);
+                }
+            }
+        }
+        return [ matchedResults, nonMatchedResults ];
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -1004,15 +1025,18 @@ export default class grvt extends Exchange {
         //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
         //            }
         //
+        const currencyId = this.safeString (transfer, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeIntegerProduct (transfer, 'event_time', 0.000001);
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'tx_id'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
             'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': this.safeString (transfer, 'from_account_id'),
-            'toAccount': this.safeString (transfer, 'to_account_id'),
+            'fromAccount': this.safeString (transfer, 'from_sub_account_id'),
+            'toAccount': this.safeString (transfer, 'to_sub_account_id'),
             'status': undefined,
         };
     }
