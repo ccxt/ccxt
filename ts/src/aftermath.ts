@@ -115,6 +115,7 @@ export default class aftermath extends Exchange {
                         'submit/createOrders': 1,
                         'submit/deallocate': 1,
                         'submit/deposit': 1,
+                        'submit/setLeverage': 1,
                         'submit/withdraw': 1,
                     },
                 },
@@ -1237,15 +1238,9 @@ export default class aftermath extends Exchange {
                 'sender': this.walletAddress,
             },
         };
-        const response = await this.privatePostBuildSetLeverage (txRequest);
-        //
-        //     {
-        //         'response': {
-        //             'type': 'default'
-        //         },
-        //         'status': 'ok'
-        //     }
-        //
+        const tx = await this.privatePostBuildSetLeverage (txRequest);
+        const request = this.signTxEd25519 (tx);
+        const response = await this.privatePostSubmitSetLeverage (request);
         return response;
     }
 
