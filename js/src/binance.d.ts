@@ -950,34 +950,7 @@ export default class binance extends Exchange {
         hedged: boolean;
         percentage: any;
     };
-    parsePositionRisk(position: any, market?: Market): {
-        info: any;
-        id: any;
-        symbol: string;
-        contracts: number;
-        contractSize: any;
-        unrealizedPnl: number;
-        leverage: number;
-        liquidationPrice: number;
-        collateral: number;
-        notional: number;
-        markPrice: number;
-        entryPrice: number;
-        timestamp: number;
-        initialMargin: number;
-        initialMarginPercentage: number;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: number;
-        marginRatio: any;
-        datetime: string;
-        marginMode: string;
-        marginType: string;
-        side: any;
-        hedged: boolean;
-        percentage: any;
-        stopLossPrice: any;
-        takeProfitPrice: any;
-    };
+    parsePositionRisk(position: any, market?: Market): Position;
     loadLeverageBrackets(reload?: boolean, params?: {}): Promise<any>;
     /**
      * @method

@@ -10499,7 +10499,7 @@ class binance extends Exchange {
         }
         $positionSide = $this->safe_string($position, 'positionSide');
         $hedged = $positionSide !== 'BOTH';
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -10526,7 +10526,7 @@ class binance extends Exchange {
             'percentage' => $percentage,
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
-        );
+        ));
     }
 
     public function load_leverage_brackets($reload = false, $params = array ()) {

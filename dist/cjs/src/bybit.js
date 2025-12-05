@@ -9,7 +9,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bybit
@@ -249,6 +249,11 @@ class bybit extends bybit$1["default"] {
                         // crypto loan
                         'v5/crypto-loan/collateral-data': 5,
                         'v5/crypto-loan/loanable-data': 5,
+                        // crypto loan (new)
+                        'v5/crypto-loan-common/loanable-data': 5,
+                        'v5/crypto-loan-common/collateral-data': 5,
+                        'v5/crypto-loan-fixed/supply-order-quote': 5,
+                        'v5/crypto-loan-fixed/borrow-order-quote': 5,
                         // institutional lending
                         'v5/ins-loan/product-infos': 5,
                         'v5/ins-loan/ensure-tokens-convert': 5,
@@ -403,6 +408,19 @@ class bybit extends bybit$1["default"] {
                         'v5/crypto-loan/borrow-history': 5,
                         'v5/crypto-loan/max-collateral-amount': 5,
                         'v5/crypto-loan/adjustment-history': 5,
+                        // crypto loan (new)
+                        'v5/crypto-loan-common/max-collateral-amount': 10,
+                        'v5/crypto-loan-common/adjustment-history': 10,
+                        'v5/crypto-loan-common/position': 10,
+                        'v5/crypto-loan-flexible/ongoing-coin': 10,
+                        'v5/crypto-loan-flexible/borrow-history': 10,
+                        'v5/crypto-loan-flexible/repayment-history': 10,
+                        'v5/crypto-loan-fixed/borrow-contract-info': 10,
+                        'v5/crypto-loan-fixed/supply-contract-info': 10,
+                        'v5/crypto-loan-fixed/borrow-order-info': 10,
+                        'v5/crypto-loan-fixed/renew-info': 10,
+                        'v5/crypto-loan-fixed/supply-order-info': 10,
+                        'v5/crypto-loan-fixed/repayment-history': 10,
                         // institutional lending
                         'v5/ins-loan/product-infos': 5,
                         'v5/ins-loan/ensure-tokens-convert': 5,
@@ -548,6 +566,18 @@ class bybit extends bybit$1["default"] {
                         'v5/crypto-loan/borrow': 5,
                         'v5/crypto-loan/repay': 5,
                         'v5/crypto-loan/adjust-ltv': 5,
+                        // crypto loan (new)
+                        'v5/crypto-loan-common/adjust-ltv': 50,
+                        'v5/crypto-loan-flexible/borrow': 50,
+                        'v5/crypto-loan-flexible/repay': 50,
+                        'v5/crypto-loan-flexible/repay-collateral': 50,
+                        'v5/crypto-loan-fixed/borrow': 50,
+                        'v5/crypto-loan-fixed/renew': 50,
+                        'v5/crypto-loan-fixed/supply': 50,
+                        'v5/crypto-loan-fixed/borrow-order-cancel': 50,
+                        'v5/crypto-loan-fixed/supply-order-cancel': 50,
+                        'v5/crypto-loan-fixed/fully-repay': 50,
+                        'v5/crypto-loan-fixed/repay-collateral': 50,
                         // institutional lending
                         'v5/ins-loan/association-uid': 5,
                         // c2c lending

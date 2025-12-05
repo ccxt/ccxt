@@ -616,9 +616,9 @@ public partial class hyperliquid : Exchange
         object fetchDexesList = new List<object>() {};
         object options = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
         object hip3 = this.safeDict(options, "hip3", new Dictionary<string, object>() {});
-        object defaultLimit = this.safeInteger(hip3, "limit", 5);
+        object defaultLimit = this.safeInteger(hip3, "limit", 10);
         object dexesLength = getArrayLength(fetchDexes);
-        if (isTrue(isGreaterThanOrEqual(dexesLength, defaultLimit)))
+        if (isTrue(isGreaterThan(dexesLength, defaultLimit)))
         {
             object defaultDexes = this.safeList(hip3, "dex", new List<object>() {});
             if (isTrue(isEqual(getArrayLength(defaultDexes), 0)))
@@ -4830,9 +4830,10 @@ public partial class hyperliquid : Exchange
         {
             return null;
         }
-        if (isTrue(this.safeDict(getValue(this.options, "hip3TokensByName"), coin)))
+        object hi3TokensByname = this.safeDict(this.options, "hip3TokensByName", new Dictionary<string, object>() {});
+        if (isTrue(this.safeDict(hi3TokensByname, coin)))
         {
-            object hip3Dict = getValue(getValue(this.options, "hip3TokensByName"), coin);
+            object hip3Dict = this.safeDict(hi3TokensByname, coin);
             object quote = this.safeString(hip3Dict, "quote", "USDC");
             object code = this.safeString(hip3Dict, "code", coin);
             return add(add(add(add(code, "/"), quote), ":"), quote);

@@ -1,3 +1,21 @@
+<a id="v4.5.24"></a>
+# [v4.5.24](https://github.com/ccxt/ccxt/releases/tag/v4.5.24) - 2025-12-03
+
+## What's Changed
+* feat(bybit): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27440](https://github.com/ccxt/ccxt/pull/27440)
+* test(skip): some exchanges by [@ttodua](https://github.com/ttodua) in [#27439](https://github.com/ccxt/ccxt/pull/27439)
+* fix(deepcoin): resize logo by [@carlosmiei](https://github.com/carlosmiei) in [#27442](https://github.com/ccxt/ccxt/pull/27442)
+* refactor(binance): safePosition by [@ttodua](https://github.com/ttodua) in [#27427](https://github.com/ccxt/ccxt/pull/27427)
+* refactor(ts): import type by [@ttodua](https://github.com/ttodua) in [#27255](https://github.com/ccxt/ccxt/pull/27255)
+* perf(python): no extra checks by [@ttodua](https://github.com/ttodua) in [#27378](https://github.com/ccxt/ccxt/pull/27378)
+* fix(hyperliquid): protect against non available hip3 markets by [@carlosmiei](https://github.com/carlosmiei) in [#27444](https://github.com/ccxt/ccxt/pull/27444)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.23...v4.5.24
+
+[Changes][v4.5.24]
+
+
 <a id="v4.5.23"></a>
 # [v4.5.23](https://github.com/ccxt/ccxt/releases/tag/v4.5.23) - 2025-12-02
 
@@ -11956,6 +11974,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.24]: https://github.com/ccxt/ccxt/compare/v4.5.23...v4.5.24
 [v4.5.23]: https://github.com/ccxt/ccxt/compare/v4.5.22...v4.5.23
 [v4.5.22]: https://github.com/ccxt/ccxt/compare/v4.5.21...v4.5.22
 [v4.5.21]: https://github.com/ccxt/ccxt/compare/v4.5.20...v4.5.21

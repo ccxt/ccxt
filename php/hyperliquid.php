@@ -590,9 +590,9 @@ class hyperliquid extends Exchange {
         $fetchDexesList = array();
         $options = $this->safe_dict($this->options, 'fetchMarkets', array());
         $hip3 = $this->safe_dict($options, 'hip3', array());
-        $defaultLimit = $this->safe_integer($hip3, 'limit', 5);
+        $defaultLimit = $this->safe_integer($hip3, 'limit', 10);
         $dexesLength = count($fetchDexes);
-        if ($dexesLength >= $defaultLimit) { // first element is null
+        if ($dexesLength > $defaultLimit) { // first element is null
             $defaultDexes = $this->safe_list($hip3, 'dex', array());
             if (strlen($defaultDexes) === 0) {
                 throw new ArgumentsRequired($this->id . ' fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options["fetchMarkets"]["hip3"]["dex"] parameter to fetch $markets from those DEXes only. The limit is set to ' . (string) $defaultLimit . ' DEXes by default.');
@@ -4350,8 +4350,9 @@ class hyperliquid extends Exchange {
         if ($coin === null) {
             return null;
         }
-        if ($this->safe_dict($this->options['hip3TokensByName'], $coin)) {
-            $hip3Dict = $this->options['hip3TokensByName'][$coin];
+        $hi3TokensByname = $this->safe_dict($this->options, 'hip3TokensByName', array());
+        if ($this->safe_dict($hi3TokensByname, $coin)) {
+            $hip3Dict = $this->safe_dict($hi3TokensByname, $coin);
             $quote = $this->safe_string($hip3Dict, 'quote', 'USDC');
             $code = $this->safe_string($hip3Dict, 'code', $coin);
             return $code . '/' . $quote . ':' . $quote;

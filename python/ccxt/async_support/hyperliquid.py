@@ -580,9 +580,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         fetchDexesList = []
         options = self.safe_dict(self.options, 'fetchMarkets', {})
         hip3 = self.safe_dict(options, 'hip3', {})
-        defaultLimit = self.safe_integer(hip3, 'limit', 5)
+        defaultLimit = self.safe_integer(hip3, 'limit', 10)
         dexesLength = len(fetchDexes)
-        if dexesLength >= defaultLimit:  # first element is null
+        if dexesLength > defaultLimit:  # first element is null
             defaultDexes = self.safe_list(hip3, 'dex', [])
             if len(defaultDexes) == 0:
                 raise ArgumentsRequired(self.id + ' fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options["fetchMarkets"]["hip3"]["dex"] parameter to fetch markets from those DEXes only. The limit is set to ' + str(defaultLimit) + ' DEXes by default.')
@@ -4092,8 +4092,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         # handle also hip3 tokens like flx:CRCL
         if coin is None:
             return None
-        if self.safe_dict(self.options['hip3TokensByName'], coin):
-            hip3Dict = self.options['hip3TokensByName'][coin]
+        hi3TokensByname = self.safe_dict(self.options, 'hip3TokensByName', {})
+        if self.safe_dict(hi3TokensByname, coin):
+            hip3Dict = self.safe_dict(hi3TokensByname, coin)
             quote = self.safe_string(hip3Dict, 'quote', 'USDC')
             code = self.safe_string(hip3Dict, 'code', coin)
             return code + '/' + quote + ':' + quote

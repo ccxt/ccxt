@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.23';
+$version = '4.5.24';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.23';
+    const VERSION = '4.5.24';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2830,10 +2830,8 @@ class Exchange {
         if ($value === null) {
             return $defaultValue;
         }
-        if ((gettype($value) === 'array')) {
-            if ((gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
-                return $value;
-            }
+        if ((gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+            return $value;
         }
         return $defaultValue;
     }

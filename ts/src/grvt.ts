@@ -97,6 +97,7 @@ export default class grvt extends Exchange {
                         'full/v1/funding_account_summary': 1,
                         'full/v1/deposit_history': 1,
                         'full/v1/transfer': 1,
+                        'full/v1/transfer_history': 1,
                     },
                 },
             },
@@ -682,10 +683,7 @@ export default class grvt extends Exchange {
         let subAccountId = undefined;
         [ subAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subAccountId');
         if (subAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a subAccountId parameter or a .options["subAccountId"] to be set');
-        }
-        if (subAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' you should set .options["subAccountId"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
+            throw new ArgumentsRequired (this.id + ' you should set params["subAccountId"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
         }
         return subAccountId;
     }
@@ -781,10 +779,14 @@ export default class grvt extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
         }
         const currency: Currency = this.currency (code);
+        request['currency'] = [ 'USDT', 'USDC' ];
         if (since !== undefined) {
-            request['start_time'] = since;
+            request['start_time'] = this.numberToString (since * 1000000);
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
+        if ('end_time' in request) {
+            request['end_time'] = this.numberToString (request['end_time']);
+        }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
@@ -903,26 +905,123 @@ export default class grvt extends Exchange {
         return this.parseTransfer (result, currency);
     }
 
+    /**
+     * @method
+     * @name grvt#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api-docs.grvt.io/trading_api/#transfer-history
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] whether to paginate the results (default false)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
+        }
+        await this.loadMarkets ();
+        let request: Dict = {};
+        const currency = this.currency (code);
+        const maxLimit = 1000;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, params, maxLimit);
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
+        if ('end_time' in request) {
+            request['end_time'] = this.numberToString (request['end_time']);
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        const response = await this.privateTradingPostFullV1TransferHistory (this.extend (request, params));
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "tx_id": "65119836",
+        //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id": "0",
+        //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id": "0",
+        //                "currency": "USDT",
+        //                "num_tokens": "4.998",
+        //                "signature": {
+        //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v": "27",
+        //                    "expiration": "1767455807929000000",
+        //                    "nonce": "45905",
+        //                    "chain_id": "0"
+        //                },
+        //                "event_time": "1764863808817370541",
+        //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+        //            },
+        //            ...
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        const rows = this.safeList (response, 'result', []);
+        return this.parseTransfers (rows, currency, since, limit);
+    }
+
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
-        const currencyCode = this.safeCurrencyCode (undefined, currency);
+        //
+        // transfer
+        //
+        //     {
+        //         "ack": "true",
+        //         "tx_id": "1028403"
+        //     }
+        //
+        // fetchTransfers
+        //
+        //            {
+        //                "tx_id": "65119836",
+        //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id": "0",
+        //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id": "0",
+        //                "currency": "USDT",
+        //                "num_tokens": "4.998",
+        //                "signature": {
+        //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v": "27",
+        //                    "expiration": "1767455807929000000",
+        //                    "nonce": "45905",
+        //                    "chain_id": "0"
+        //                },
+        //                "event_time": "1764863808817370541",
+        //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+        //            }
+        //
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'tx_id'),
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': currencyCode,
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
+            'currency': undefined,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'from_account_id'),
+            'toAccount': this.safeString (transfer, 'to_account_id'),
             'status': undefined,
         };
     }
 
-    parseTransferStatus (status: Str): Str {
-        if (status === '0') {
-            return 'ok';
-        }
-        return 'failed';
+    parseTransferStatus (status: Str): string {
+        const statuses: Dict = {
+            'CONFIRMED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     /**

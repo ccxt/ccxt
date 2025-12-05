@@ -11,7 +11,7 @@ var rsa = require('./base/functions/rsa.js');
 var crypto = require('./base/functions/crypto.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class binance
@@ -10680,7 +10680,7 @@ class binance extends binance$1["default"] {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -10707,7 +10707,7 @@ class binance extends binance$1["default"] {
             'percentage': percentage,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
-        };
+        });
     }
     async loadLeverageBrackets(reload = false, params = {}) {
         await this.loadMarkets();

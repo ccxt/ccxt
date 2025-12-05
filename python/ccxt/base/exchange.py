@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.23'
+__version__ = '4.5.24'
 
 # -----------------------------------------------------------------------------
 
@@ -2550,9 +2550,8 @@ class Exchange(object):
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if value is None:
             return defaultValue
-        if (isinstance(value, dict)):
-            if not isinstance(value, list):
-                return value
+        if isinstance(value, dict):
+            return value
         return defaultValue
 
     def safe_dict(self, dictionary, key: IndexType, defaultValue: dict = None):
