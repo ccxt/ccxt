@@ -579,7 +579,7 @@
                 "url": "https://contract.mexc.com/api/v1/contract/kline/ETH_USDT?interval=Min1&end=1764930000&start=1764810000",
                 "input": [
                     "ETH/USDT:USDT",
-                    null,
+                    "1m",
                     null,
                     null,
                     {
@@ -594,7 +594,7 @@
                 "url": "https://contract.mexc.com/api/v1/contract/kline/ETH_USDT?interval=Min1&end=1764930000&start=1764929820",
                 "input": [
                     "ETH/USDT:USDT",
-                    null,
+                    "1m",
                     null,
                     3,
                     {
@@ -609,7 +609,7 @@
                 "url": "https://api.mexc.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=1764929820001&limit=3&endTime=1764930000001",
                 "input": [
                     "ETH/USDT",
-                    null,
+                    "1m",
                     null,
                     3,
                     {
@@ -624,7 +624,7 @@
                 "url": "https://api.mexc.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=1764900000001&endTime=1764930000001",
                 "input": [
                     "ETH/USDT",
-                    null,
+                    "1m",
                     null,
                     null,
                     {
