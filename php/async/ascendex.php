@@ -1263,7 +1263,7 @@ class ascendex extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
-            if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+            if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
                 return $this->parse_tickers(array( $data ), $symbols);
             }
             return $this->parse_tickers($data, $symbols);
@@ -2380,7 +2380,7 @@ class ascendex extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
-            if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+            if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
                 $data = $this->safe_list($data, 'data', array());
             }
             return $this->parse_orders($data, $market, $since, $limit);

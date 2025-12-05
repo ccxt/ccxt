@@ -2151,7 +2151,7 @@ class coinsph extends Exchange {
         $keys = is_array($query) ? array_keys($query) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if (gettype($query[$key]) === 'array' && array_keys($query[$key]) === array_keys(array_keys($query[$key]))) {
+            if ((gettype($query[$key]) === 'array' && array_keys($query[$key]) === array_keys(array_keys($query[$key])))) {
                 if ($i !== 0) {
                     $encodedArrayParams .= '&';
                 }

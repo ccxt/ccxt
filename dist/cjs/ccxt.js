@@ -42,6 +42,7 @@ var btcalpha = require('./src/btcalpha.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btcturk = require('./src/btcturk.js');
+var bullish = require('./src/bullish.js');
 var bybit = require('./src/bybit.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
@@ -139,6 +140,7 @@ var bittrade$1 = require('./src/pro/bittrade.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var blofin$1 = require('./src/pro/blofin.js');
+var bullish$1 = require('./src/pro/bullish.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
@@ -194,7 +196,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.21';
+const version = '4.5.24';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca["default"],
@@ -231,6 +233,7 @@ const exchanges = {
     'btcbox': btcbox["default"],
     'btcmarkets': btcmarkets["default"],
     'btcturk': btcturk["default"],
+    'bullish': bullish["default"],
     'bybit': bybit["default"],
     'cex': cex["default"],
     'coinbase': coinbase["default"],
@@ -330,6 +333,7 @@ const pro = {
     'bitvavo': bitvavo$1["default"],
     'blockchaincom': blockchaincom$1["default"],
     'blofin': blofin$1["default"],
+    'bullish': bullish$1["default"],
     'bybit': bybit$1["default"],
     'cex': cex$1["default"],
     'coinbase': coinbase$1["default"],
@@ -468,6 +472,7 @@ exports.btcalpha = btcalpha["default"];
 exports.btcbox = btcbox["default"];
 exports.btcmarkets = btcmarkets["default"];
 exports.btcturk = btcturk["default"];
+exports.bullish = bullish["default"];
 exports.bybit = bybit["default"];
 exports.cex = cex["default"];
 exports.coinbase = coinbase["default"];

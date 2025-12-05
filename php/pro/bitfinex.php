@@ -237,7 +237,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $data = $this->safe_value($message, 1, array());
         $ohlcvs = null;
         $first = $this->safe_value($data, 0);
-        if (gettype($first) === 'array' && array_keys($first) === array_keys(array_keys($first))) {
+        if ((gettype($first) === 'array' && array_keys($first) === array_keys(array_keys($first)))) {
             // snapshot
             $ohlcvs = $data;
         } else {
@@ -1286,7 +1286,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //        }
         //    }
         //
-        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
+        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             if ($message[1] === 'hb') {
                 return; // skip heartbeats within $subscription channels for now
             }

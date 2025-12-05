@@ -1472,15 +1472,25 @@ class xt extends \ccxt\async\xt {
         //         $id => '1763045665228ticker@eth_usdt',
         //         code => 0,
         //         msg => 'SUCCESS',
-        //         $method => 'unsubscribe'
+        //         method => 'unsubscribe'
         //     }
         //
-        $method = $this->safe_string_lower($message, 'method');
-        if ($method === 'unsubscribe') {
-            $id = $this->safe_string($message, 'id');
-            $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-            $subscription = $this->safe_value($subscriptionsById, $id, array());
-            $this->handle_un_subscription($client, $subscription);
+        //     {
+        //         code => 0,
+        //         msg => 'success',
+        //         $id => '1764032903806ticker@btc_usdt',
+        //         sessionId => '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
+        //     }
+        //
+        $id = $this->safe_string($message, 'id');
+        $subscriptionsById = $this->index_by($client->subscriptions, 'id');
+        $unsubscribe = false;
+        if ($id !== null) {
+            $subscription = $this->safe_dict($subscriptionsById, $id, array());
+            $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
+            if ($unsubscribe) {
+                $this->handle_un_subscription($client, $subscription);
+            }
         }
         return $message;
     }

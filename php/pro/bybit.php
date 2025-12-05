@@ -916,7 +916,7 @@ class bybit extends \ccxt\async\bybit {
             $params = $this->clean_params($params);
             $market = $this->market($symbols[0]);
             if ($limit === null) {
-                $limit = ($market['spot']) ? 50 : 500;
+                $limit = 50;
                 if ($market['option']) {
                     $limit = 100;
                 }
@@ -924,7 +924,7 @@ class bybit extends \ccxt\async\bybit {
                 $limits = array(
                     'spot' => array( 1, 50, 200, 1000 ),
                     'option' => array( 25, 100 ),
-                    'default' => array( 1, 50, 200, 500, 1000 ),
+                    'default' => array( 1, 50, 200, 1000 ),
                 );
                 $selectedLimits = $this->safe_list_2($limits, $market['type'], 'default');
                 if (!$this->in_array($limit, $selectedLimits)) {
@@ -1486,7 +1486,7 @@ class bybit extends \ccxt\async\bybit {
         $spot = $topic === 'ticketInfo';
         $executionFast = $topic === 'execution.fast';
         $data = $this->safe_value($message, 'data', array());
-        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+        if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             $data = $this->safe_value($data, 'result', array());
         }
         if ($this->myTrades === null) {
@@ -1774,7 +1774,7 @@ class bybit extends \ccxt\async\bybit {
         //         )
         //     }
         //
-        if (gettype($message['data']) === 'array' && array_keys($message['data']) === array_keys(array_keys($message['data']))) {
+        if ((gettype($message['data']) === 'array' && array_keys($message['data']) === array_keys(array_keys($message['data'])))) {
             $rawLiquidations = $this->safe_list($message, 'data', array());
             for ($i = 0; $i < count($rawLiquidations); $i++) {
                 $rawLiquidation = $rawLiquidations[$i];

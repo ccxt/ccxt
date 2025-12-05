@@ -30,6 +30,7 @@ interface Exchange {
     spotV1PrivatePostOcoCancel(params?: {}): Promise<implicitReturnType>;
     spotV2PublicGetMarketDepth(params?: {}): Promise<implicitReturnType>;
     spotV2PublicGetMarketKline(params?: {}): Promise<implicitReturnType>;
+    spotV2PublicGetTickerPrice(params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetGetAssetTransfer(params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetAssetTransfer(params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetCapitalDepositHisrec(params?: {}): Promise<implicitReturnType>;

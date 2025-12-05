@@ -181,7 +181,7 @@ export default class bingx extends Exchange {
                                 'market/depth': 1,
                                 'market/kline': 1,
                                 'ticker/24hr': 1,
-                                'ticker/price': 1,
+                                'ticker/price': 1, // deprecated, still can be used
                                 'ticker/bookTicker': 1,
                             },
                         },
@@ -215,6 +215,7 @@ export default class bingx extends Exchange {
                             'get': {
                                 'market/depth': 1,
                                 'market/kline': 1,
+                                'ticker/price': 1,
                             },
                         },
                     },
@@ -5427,7 +5428,7 @@ export default class bingx extends Exchange {
             '3': 'rejected',
             '4': 'pending',
             '5': 'rejected',
-            '6': 'ok',
+            '6': 'pending',
         };
         return this.safeString (statuses, status, status);
     }

@@ -1150,7 +1150,7 @@ class alpaca extends Exchange {
          */
         $this->load_markets();
         $response = $this->traderPrivateDeleteV2Orders ($params);
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             return $this->parse_orders($response, null);
         } else {
             return array(

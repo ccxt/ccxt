@@ -133,7 +133,7 @@ class deepcoin extends Exchange {
                 '1y' => '1Y',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/671bd35c-770e-4935-9070-f8fb114f79c4',
+                'logo' => 'https://github.com/user-attachments/assets/ddf3e178-c3b6-409d-8f9f-af8b7cf80454',
                 'api' => array(
                     'public' => 'https://api.deepcoin.com',
                     'private' => 'https://api.deepcoin.com',
@@ -156,6 +156,9 @@ class deepcoin extends Exchange {
                         'deepcoin/market/trades' => 1,
                         'deepcoin/market/mark-price-candles' => 1,
                         'deepcoin/market/step-margin' => 5,
+                        'deepcoin/trade/funding-rate' => 5,
+                        'deepcoin/trade/fund-rate/current-funding-rate' => 5,
+                        'deepcoin/trade/fund-rate/history' => 5,
                     ),
                 ),
                 'private' => array(
@@ -168,9 +171,6 @@ class deepcoin extends Exchange {
                         'deepcoin/trade/finishOrderByID' => 5,
                         'deepcoin/trade/orders-history' => 5,
                         'deepcoin/trade/v2/orders-pending' => 5,
-                        'deepcoin/trade/funding-rate' => 5,
-                        'deepcoin/trade/fund-rate/current-funding-rate' => 5,
-                        'deepcoin/trade/fund-rate/history' => 5,
                         'deepcoin/trade/trigger-orders-pending' => 5,
                         'deepcoin/trade/trigger-orders-history' => 5,
                         'deepcoin/copytrading/support-contracts' => 5,
@@ -2668,7 +2668,7 @@ class deepcoin extends Exchange {
         $request = array(
             'instType' => $instType,
         );
-        $response = $this->privateGetDeepcoinTradeFundRateCurrentFundingRate ($this->extend($request, $params));
+        $response = $this->publicGetDeepcoinTradeFundRateCurrentFundingRate ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -2711,7 +2711,7 @@ class deepcoin extends Exchange {
             'instId' => $market['id'],
             'instType' => $this->get_product_group_from_market($market),
         );
-        $response = $this->privateGetDeepcoinTradeFundRateCurrentFundingRate ($this->extend($request, $params));
+        $response = $this->publicGetDeepcoinTradeFundRateCurrentFundingRate ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -2787,7 +2787,7 @@ class deepcoin extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // default 20, max 100
         }
-        $response = $this->privateGetDeepcoinTradeFundRateHistory ($this->extend($request, $params));
+        $response = $this->publicGetDeepcoinTradeFundRateHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",

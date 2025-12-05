@@ -1091,7 +1091,6 @@ class gate extends gate$1["default"] {
                     'LOAN_RECORD_NOT_FOUND': errors.OrderNotFound,
                     'NO_MATCHED_LOAN': errors.ExchangeError,
                     'NOT_MERGEABLE': errors.ExchangeError,
-                    'NO_CHANGE': errors.ExchangeError,
                     'REPAY_TOO_MUCH': errors.ExchangeError,
                     'TOO_MANY_CURRENCY_PAIRS': errors.InvalidOrder,
                     'TOO_MANY_ORDERS': errors.InvalidOrder,
@@ -1133,7 +1132,8 @@ class gate extends gate$1["default"] {
                     'AUTO_TRIGGER_PRICE_LESS_LAST': errors.InvalidOrder,
                     'AUTO_TRIGGER_PRICE_GREATE_LAST': errors.InvalidOrder,
                     'POSITION_HOLDING': errors.BadRequest,
-                    'USER_LOAN_EXCEEDED': errors.BadRequest, // {"label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded"}
+                    'USER_LOAN_EXCEEDED': errors.BadRequest,
+                    'NO_CHANGE': errors.InvalidOrder, // {"label":"NO_CHANGE","message":"No change is made"}
                 },
                 'broad': {},
             },
@@ -3944,7 +3944,7 @@ class gate extends gate$1["default"] {
         if (pointFee !== undefined) {
             fees.push({
                 'cost': pointFee,
-                'currency': 'GatePoint',
+                'currency': 'GATEPOINT',
             });
         }
         const takerOrMaker = this.safeString(trade, 'role');

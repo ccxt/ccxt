@@ -519,7 +519,7 @@ class bingx extends \ccxt\async\bingx {
         $symbol = $market['symbol'];
         $messageHash = 'trade::' . $symbol;
         $trades = null;
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             $trades = $this->parse_trades($data, $market);
         } else {
             $trades = array( $this->parse_trade($data, $market) );

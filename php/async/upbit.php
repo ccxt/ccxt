@@ -505,8 +505,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/마켓-코드-조회
-             * @see https://global-docs.upbit.com/reference/listing-market-list
+             * @see https://docs.upbit.com/kr/reference/list-trading-pairs
+             * @see https://global-docs.upbit.com/reference/list-trading-pairs
              *
              * retrieves data on all markets for upbit
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -607,8 +607,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/전체-계좌-조회
-             * @see https://global-docs.upbit.com/reference/overall-account-inquiry
+             * @see https://docs.upbit.com/kr/reference/get-balance
+             * @see https://global-docs.upbit.com/reference/get-balance
              *
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -636,8 +636,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/호가-정보-조회
-             * @see https://global-docs.upbit.com/reference/order-book-list
+             * @see https://docs.upbit.com/kr/reference/list-orderbooks
+             * @see https://global-docs.upbit.com/reference/list-orderbooks
              *
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
              * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
@@ -712,8 +712,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/호가-정보-조회
-             * @see https://global-docs.upbit.com/reference/order-book-list
+             * @see https://docs.upbit.com/kr/reference/list-$orderbooks
+             * @see https://global-docs.upbit.com/reference/list-$orderbooks
              *
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
@@ -787,8 +787,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
-             * @see https://global-docs.upbit.com/reference/tickers
+             * @see https://docs.upbit.com/kr/reference/list-tickers
+             * @see https://global-docs.upbit.com/reference/list-tickers
              *
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
@@ -850,8 +850,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
-             * @see https://global-docs.upbit.com/reference/tickers
+             * @see https://docs.upbit.com/kr/reference/list-$tickers
+             * @see https://global-docs.upbit.com/reference/list-$tickers
              *
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
@@ -939,8 +939,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/최근-체결-내역
-             * @see https://global-docs.upbit.com/reference/today-trades-history
+             * @see https://docs.upbit.com/kr/reference/list-pair-trades
+             * @see https://global-docs.upbit.com/reference/list-pair-trades
              *
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -989,7 +989,7 @@ class upbit extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/주문-가능-정보
+             * @see https://docs.upbit.com/kr/reference/available-order-information
              * @see https://global-docs.upbit.com/reference/available-order-information
              *
              * fetch the trading fees for a $market
@@ -1108,8 +1108,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/분minute-캔들-1
-             * @see https://global-docs.upbit.com/reference/minutes
+             * @see https://docs.upbit.com/kr/reference/list-candles-minutes
+             * @see https://global-docs.upbit.com/reference/list-candles-minutes
              *
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -1205,8 +1205,10 @@ class upbit extends Exchange {
             /**
              * create a trade order
              *
-             * @see https://docs.upbit.com/kr/reference/주문하기
-             * @see https://global-docs.upbit.com/reference/order
+             * @see https://docs.upbit.com/kr/reference/new-order
+             * @see https://global-docs.upbit.com/reference/new-order
+             * @see https://docs.upbit.com/kr/reference/order-$test
+             * @see https://global-docs.upbit.com/reference/order-$test
              *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type supports 'market' and 'limit'. if $params->ordType is set to best, a best-$type order will be created regardless of the value of $type->
@@ -1218,6 +1220,7 @@ class upbit extends Exchange {
              * @param {string} [$params->ordType] this field can be used to place a ‘best’ $type order
              * @param {string} [$params->timeInForce] 'IOC' or 'FOK' for limit or best $type orders, 'PO' for limit orders. this field is required when the order $type is 'best'.
              * @param {string} [$params->selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' array(@link https://global-docs.upbit.com/docs/smp)
+             * @param {boolean} [$params->test] If $test is true, testOrder will be executed. It allows you to validate the $request without creating an actual order. Default is false.
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1227,6 +1230,7 @@ class upbit extends Exchange {
             $postOnly = $this->is_post_only($type === 'market', false, $params);
             $timeInForce = $this->safe_string_lower_2($params, 'timeInForce', 'time_in_force');
             $selfTradePrevention = $this->safe_string_2($params, 'selfTradePrevention', 'smp_type');
+            $test = $this->safe_bool($params, 'test', false);
             if ($postOnly && ($selfTradePrevention !== null)) {
                 throw new ExchangeError($this->id . ' createOrder() does not support post_only and $selfTradePrevention simultaneously.');
             }
@@ -1295,8 +1299,13 @@ class upbit extends Exchange {
             if ($request['ord_type'] === 'best' && $timeInForce === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $timeInForce parameter for best $type orders');
             }
-            $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type' ));
-            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
+            $response = null;
+            $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
+            if ($test) {
+                $response = Async\await($this->privatePostOrdersTest ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
+            }
             //
             //     {
             //         "uuid" => "cdd92199-2897-4e14-9448-f923320408ad",
@@ -1325,8 +1334,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/주문-취소
-             * @see https://global-docs.upbit.com/reference/order-cancel
+             * @see https://docs.upbit.com/kr/reference/cancel-order
+             * @see https://global-docs.upbit.com/reference/cancel-order
              *
              * cancels an open order
              * @param {string} $id order $id
@@ -1366,8 +1375,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/취소-후-재주문
-             * @see https://global-docs.upbit.com/reference/cancel-and-new
+             * @see https://docs.upbit.com/kr/reference/cancel-and-new-order
+             * @see https://global-docs.upbit.com/reference/cancel-and-new-order
              *
              * canceled existing order and create new order. It's only generated same $side and $symbol canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
              * @param {string} $id the uuid of the previous order you want to edit.
@@ -1495,8 +1504,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/입금-리스트-조회
-             * @see https://global-docs.upbit.com/reference/deposit-list-inquiry
+             * @see https://docs.upbit.com/kr/reference/list-deposits
+             * @see https://global-docs.upbit.com/reference/list-deposits
              *
              * fetch all deposits made to an account
              * @param {string} $code unified $currency $code
@@ -1544,8 +1553,8 @@ class upbit extends Exchange {
             /**
              * fetch information on a deposit
              *
-             * @see https://docs.upbit.com/kr/reference/개별-입금-조회
-             * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
+             * @see https://docs.upbit.com/kr/reference/get-deposit
+             * @see https://global-docs.upbit.com/reference/get-deposit
              *
              * @param {string} $id the unique $id for the deposit
              * @param {string} [$code] unified $currency $code of the $currency deposited
@@ -1586,8 +1595,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/전체-출금-조회
-             * @see https://global-docs.upbit.com/reference/withdrawal-list-inquiry
+             * @see https://docs.upbit.com/kr/reference/list-withdrawals
+             * @see https://global-docs.upbit.com/reference/list-withdrawals
              *
              * fetch all withdrawals made from an account
              * @param {string} $code unified $currency $code
@@ -1635,8 +1644,8 @@ class upbit extends Exchange {
             /**
              * fetch data on a $currency withdrawal via the withdrawal $id
              *
-             * @see https://docs.upbit.com/kr/reference/개별-출금-조회
-             * @see https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+             * @see https://docs.upbit.com/kr/reference/get-withdrawal
+             * @see https://global-docs.upbit.com/reference/get-withdrawal
              *
              * @param {string} $id the unique $id for the withdrawal
              * @param {string} [$code] unified $currency $code of the $currency withdrawn
@@ -1929,8 +1938,8 @@ class upbit extends Exchange {
             /**
              * fetch all unfilled currently open orders
              *
-             * @see https://docs.upbit.com/kr/reference/대기-주문-조회
-             * @see https://global-docs.upbit.com/reference/open-order
+             * @see https://docs.upbit.com/kr/reference/list-open-orders
+             * @see https://global-docs.upbit.com/reference/list-open-orders
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -1981,8 +1990,8 @@ class upbit extends Exchange {
             /**
              * fetches information on multiple closed orders made by the user
              *
-             * @see https://docs.upbit.com/kr/reference/종료-주문-조회
-             * @see https://global-docs.upbit.com/reference/closed-order
+             * @see https://docs.upbit.com/kr/reference/list-closed-orders
+             * @see https://global-docs.upbit.com/reference/list-closed-orders
              *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2040,8 +2049,8 @@ class upbit extends Exchange {
             /**
              * fetches information on multiple canceled orders made by the user
              *
-             * @see https://docs.upbit.com/kr/reference/종료-주문-조회
-             * @see https://global-docs.upbit.com/reference/closed-order
+             * @see https://docs.upbit.com/kr/reference/list-closed-orders
+             * @see https://global-docs.upbit.com/reference/list-closed-orders
              *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
@@ -2098,8 +2107,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/개별-주문-조회
-             * @see https://global-docs.upbit.com/reference/individual-order-inquiry
+             * @see https://docs.upbit.com/kr/reference/get-order
+             * @see https://global-docs.upbit.com/reference/get-order
              *
              * fetches information on an order made by the user
              * @param {string} $id order $id
@@ -2163,8 +2172,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/전체-입금-주소-조회
-             * @see https://global-docs.upbit.com/reference/general-deposit-address-inquiry
+             * @see https://docs.upbit.com/kr/reference/list-deposit-addresses
+             * @see https://global-docs.upbit.com/reference/list-deposit-addresses
              *
              * fetch deposit addresses for multiple currencies and chain types
              * @param {string[]|null} $codes list of unified currency $codes, default is null
@@ -2224,8 +2233,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/개별-입금-주소-조회
-             * @see https://global-docs.upbit.com/reference/individual-deposit-address-inquiry
+             * @see https://docs.upbit.com/kr/reference/get-deposit-address
+             * @see https://global-docs.upbit.com/reference/get-deposit-address
              *
              * fetch the deposit address for a $currency associated with this account
              * @param {string} $code unified $currency $code
@@ -2260,8 +2269,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/입금-주소-생성-요청
-             * @see https://global-docs.upbit.com/reference/deposit-address-generation
+             * @see https://docs.upbit.com/kr/reference/create-deposit-address
+             * @see https://global-docs.upbit.com/reference/create-deposit-address
              *
              * create a $currency deposit address
              * @param {string} $code unified $currency $code of the $currency for the deposit address
@@ -2302,8 +2311,8 @@ class upbit extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              *
-             * @see https://docs.upbit.com/kr/reference/디지털자산-출금하기
-             * @see https://global-docs.upbit.com/reference/withdrawal-digital-assets
+             * @see https://docs.upbit.com/kr/reference/withdraw
+             * @see https://global-docs.upbit.com/reference/withdraw
              *
              * make a withdrawal
              * @param {string} $code unified $currency $code

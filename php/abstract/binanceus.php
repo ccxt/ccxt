@@ -1606,6 +1606,9 @@ abstract class binanceus extends \ccxt\binance {
     public function fapipublic_get_depth($params = array()) {
         return $this->request('depth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "byLimit" => [[50, 2], [100, 5], [500, 10], [1000, 20]]));
     }
+    public function fapipublic_get_rpidepth($params = array()) {
+        return $this->request('rpiDepth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function fapipublic_get_trades($params = array()) {
         return $this->request('trades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1814,7 +1817,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('algoOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiprivate_get_openalgoorders($params = array()) {
-        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function fapiprivate_get_allalgoorders($params = array()) {
         return $this->request('allAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
@@ -4087,6 +4090,9 @@ abstract class binanceus extends \ccxt\binance {
     public function fapiPublicGetDepth($params = array()) {
         return $this->request('depth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "byLimit" => [[50, 2], [100, 5], [500, 10], [1000, 20]]));
     }
+    public function fapiPublicGetRpiDepth($params = array()) {
+        return $this->request('rpiDepth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function fapiPublicGetTrades($params = array()) {
         return $this->request('trades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -4295,7 +4301,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('algoOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiPrivateGetOpenAlgoOrders($params = array()) {
-        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function fapiPrivateGetAllAlgoOrders($params = array()) {
         return $this->request('allAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));

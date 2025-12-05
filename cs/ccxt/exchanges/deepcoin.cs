@@ -129,7 +129,7 @@ public partial class deepcoin : Exchange
                 { "1y", "1Y" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/671bd35c-770e-4935-9070-f8fb114f79c4" },
+                { "logo", "https://github.com/user-attachments/assets/ddf3e178-c3b6-409d-8f9f-af8b7cf80454" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.deepcoin.com" },
                     { "private", "https://api.deepcoin.com" },
@@ -152,6 +152,9 @@ public partial class deepcoin : Exchange
                         { "deepcoin/market/trades", 1 },
                         { "deepcoin/market/mark-price-candles", 1 },
                         { "deepcoin/market/step-margin", 5 },
+                        { "deepcoin/trade/funding-rate", 5 },
+                        { "deepcoin/trade/fund-rate/current-funding-rate", 5 },
+                        { "deepcoin/trade/fund-rate/history", 5 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -164,9 +167,6 @@ public partial class deepcoin : Exchange
                         { "deepcoin/trade/finishOrderByID", 5 },
                         { "deepcoin/trade/orders-history", 5 },
                         { "deepcoin/trade/v2/orders-pending", 5 },
-                        { "deepcoin/trade/funding-rate", 5 },
-                        { "deepcoin/trade/fund-rate/current-funding-rate", 5 },
-                        { "deepcoin/trade/fund-rate/history", 5 },
                         { "deepcoin/trade/trigger-orders-pending", 5 },
                         { "deepcoin/trade/trigger-orders-history", 5 },
                         { "deepcoin/copytrading/support-contracts", 5 },
@@ -2943,7 +2943,7 @@ public partial class deepcoin : Exchange
         object request = new Dictionary<string, object>() {
             { "instType", instType },
         };
-        object response = await this.privateGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters));
+        object response = await this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",
@@ -2989,7 +2989,7 @@ public partial class deepcoin : Exchange
             { "instId", getValue(market, "id") },
             { "instType", this.getProductGroupFromMarket(market) },
         };
-        object response = await this.privateGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters));
+        object response = await this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",
@@ -3070,7 +3070,7 @@ public partial class deepcoin : Exchange
         {
             ((IDictionary<string,object>)request)["size"] = limit; // default 20, max 100
         }
-        object response = await this.privateGetDeepcoinTradeFundRateHistory(this.extend(request, parameters));
+        object response = await this.publicGetDeepcoinTradeFundRateHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",
