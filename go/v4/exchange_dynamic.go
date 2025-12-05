@@ -17,6 +17,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		apexItf := NewApexCore()
 		apexItf.Init(exchangeArgs)
 		return apexItf, true
+	case "arkham":
+		arkhamItf := NewArkhamCore()
+		arkhamItf.Init(exchangeArgs)
+		return arkhamItf, true
 	case "ascendex":
 		ascendexItf := NewAscendexCore()
 		ascendexItf.Init(exchangeArgs)
@@ -205,6 +209,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		cryptomusItf := NewCryptomusCore()
 		cryptomusItf.Init(exchangeArgs)
 		return cryptomusItf, true
+	case "deepcoin":
+		deepcoinItf := NewDeepcoinCore()
+		deepcoinItf.Init(exchangeArgs)
+		return deepcoinItf, true
 	case "defx":
 		defxItf := NewDefxCore()
 		defxItf.Init(exchangeArgs)
@@ -225,6 +233,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		digifinexItf := NewDigifinexCore()
 		digifinexItf.Init(exchangeArgs)
 		return digifinexItf, true
+	case "dydx":
+		dydxItf := NewDydxCore()
+		dydxItf.Init(exchangeArgs)
+		return dydxItf, true
 	case "exmo":
 		exmoItf := NewExmoCore()
 		exmoItf.Init(exchangeArgs)
@@ -341,10 +353,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		oceanexItf := NewOceanexCore()
 		oceanexItf.Init(exchangeArgs)
 		return oceanexItf, true
-	case "okcoin":
-		okcoinItf := NewOkcoinCore()
-		okcoinItf.Init(exchangeArgs)
-		return okcoinItf, true
 	case "okx":
 		okxItf := NewOkxCore()
 		okxItf.Init(exchangeArgs)

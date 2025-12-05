@@ -141,8 +141,10 @@ class htx(ccxt.async_support.htx):
         })
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return str(requestId)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -318,7 +320,7 @@ class htx(ccxt.async_support.htx):
         client.resolve(tradesCache, ch)
         return message
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -344,7 +346,7 @@ class htx(ccxt.async_support.htx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -417,20 +419,21 @@ class htx(ccxt.async_support.htx):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        allowedLimits = [20, 150]
+        allowedLimits = [5, 20, 150, 400]
         # 2) 5-level/20-level incremental MBP is a tick by tick feed,
         # which means whenever there is an order book change at that level, it pushes an update
         # 150-levels/400-level incremental MBP feed is based on the gap
         # between two snapshots at 100ms interval.
         options = self.safe_dict(self.options, 'watchOrderBook', {})
-        depth = self.safe_integer(options, 'depth', 150)
-        if not self.in_array(depth, allowedLimits):
-            raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 20 and 150 only')
+        if limit is None:
+            limit = self.safe_integer(options, 'depth', 150)
+        if not self.in_array(limit, allowedLimits):
+            raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only')
         messageHash = None
         if market['spot']:
-            messageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(depth)
+            messageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(limit)
         else:
-            messageHash = 'market.' + market['id'] + '.depth.size_' + self.number_to_string(depth) + '.high_freq'
+            messageHash = 'market.' + market['id'] + '.depth.size_' + self.number_to_string(limit) + '.high_freq'
         url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
         method = self.handle_order_book_subscription
         if not market['spot']:
@@ -886,23 +889,39 @@ class htx(ccxt.async_support.htx):
         #
         # spot
         #
+        #     for new order creation
+        #
         #     {
         #         "action":"push",
         #         "ch":"orders#btcusdt",  # or "orders#*" for global subscriptions
         #         "data": {
+        #             "orderStatus": "submitted",
+        #             "eventType": "creation",
+        #             "totalTradeAmount": 0  # for "submitted" order status
+        #             "orderCreateTime": 1645116048355,  # only when `submitted` status
         #             "orderSource": "spot-web",
-        #             "orderCreateTime": 1645116048355,
         #             "accountId": 44234548,
         #             "orderPrice": "100",
         #             "orderSize": "0.05",
         #             "symbol": "ethusdt",
         #             "type": "buy-limit",
         #             "orderId": "478861479986886",
-        #             "eventType": "creation",
         #             "clientOrderId": '',
-        #             "orderStatus": "submitted"
         #         }
         #     }
+        #
+        #     for filled order, additional fields are present:
+        #
+        #             "orderStatus": "filled",
+        #             "eventType": "trade",
+        #             "totalTradeAmount": "5.9892649859",
+        #             "tradePrice": "0.676669",
+        #             "tradeVolume": "8.8511",
+        #             "tradeTime": 1760427775894,
+        #             "aggressor": False,
+        #             "execAmt": "8.8511",
+        #             "tradeId": 100599712781,
+        #             "remainAmt": "0",
         #
         # spot wrapped trade
         #
@@ -1014,6 +1033,9 @@ class htx(ccxt.async_support.htx):
                     'symbol': market['symbol'],
                     'filled': self.parse_number(filled),
                     'remaining': self.parse_number(remaining),
+                    'price': self.safe_number(data, 'orderPrice'),
+                    'amount': self.safe_number(data, 'orderSize'),
+                    'info': data,
                 }
                 parsedOrder = order
             else:

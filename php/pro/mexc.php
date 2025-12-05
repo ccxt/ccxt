@@ -121,7 +121,7 @@ class mexc extends \ccxt\async\mexc {
         //         "symbol" => "BTC_USDT",
         //         "data" => array(
         //             "symbol" => "BTC_USDT",
-        //             "lastPrice" => 76376.2,
+        //             "lastPrice" => 76376.1,
         //             "riseFallRate" => -0.0006,
         //             "fairPrice" => 76374.4,
         //             "indexPrice" => 76385.8,
@@ -568,7 +568,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -936,7 +936,7 @@ class mexc extends \ccxt\async\mexc {
         //
         for ($i = 0; $i < count($bidasks); $i++) {
             $bidask = $bidasks[$i];
-            if (gettype($bidask) === 'array' && array_keys($bidask) === array_keys(array_keys($bidask))) {
+            if ((gettype($bidask) === 'array' && array_keys($bidask) === array_keys(array_keys($bidask)))) {
                 $bookside->storeArray ($bidask);
             } else {
                 $price = $this->safe_float_2($bidask, 'p', 'price');
@@ -1037,12 +1037,14 @@ class mexc extends \ccxt\async\mexc {
         //     {
         //         "symbol" => "BTC_USDT",
         //         "data" => array(
-        //             "p" => 27307.3,
-        //             "v" => 5,
-        //             "T" => 2,
-        //             "O" => 3,
-        //             "M" => 1,
-        //             "t" => 1680055941870
+        //            {
+        //                "p" => 114350.4,
+        //                "v" => 4,
+        //                "T" => 2,
+        //                "O" => 3,
+        //                "M" => 2,
+        //                "t" => 1760368563597
+        //            }
         //         ),
         //         "channel" => "push.deal",
         //         "ts" => 1680055941870
@@ -1058,8 +1060,11 @@ class mexc extends \ccxt\async\mexc {
             $stored = new ArrayCache ($limit);
             $this->trades[$symbol] = $stored;
         }
-        $d = $this->safe_dict_n($message, array( 'd', 'data', 'publicAggreDeals' ));
+        $d = $this->safe_dict_n($message, array( 'd', 'publicAggreDeals' ));
         $trades = $this->safe_list_2($d, 'deals', 'dealsList', array( $d ));
+        if ($d === null) {
+            $trades = $this->safe_list($message, 'data', array());
+        }
         for ($j = 0; $j < count($trades); $j++) {
             $parsedTrade = null;
             if ($market['spot']) {
@@ -1746,7 +1751,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market

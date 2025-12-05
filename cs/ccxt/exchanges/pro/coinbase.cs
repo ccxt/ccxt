@@ -862,8 +862,9 @@ public partial class coinbase : ccxt.coinbase
         object id = this.safeString(order, "order_id");
         object clientOrderId = this.safeString(order, "client_order_id");
         object marketId = this.safeString(order, "product_id");
-        object datetime = this.safeString(order, "time");
+        object datetime = this.safeString2(order, "time", "creation_time");
         market = this.safeMarket(marketId, market);
+        object stopPrice = this.safeString(order, "stop_price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", this.safeString(market, "symbol") },
@@ -875,12 +876,12 @@ public partial class coinbase : ccxt.coinbase
             { "type", this.safeString(order, "order_type") },
             { "timeInForce", null },
             { "postOnly", null },
-            { "side", this.safeString(order, "side") },
-            { "price", null },
-            { "stopPrice", null },
-            { "triggerPrice", null },
-            { "amount", null },
-            { "cost", null },
+            { "side", this.safeString2(order, "side", "order_side") },
+            { "price", this.safeString(order, "limit_price") },
+            { "stopPrice", stopPrice },
+            { "triggerPrice", stopPrice },
+            { "amount", this.safeString(order, "cumulative_quantity") },
+            { "cost", this.omitZero(this.safeString(order, "filled_value")) },
             { "average", this.safeString(order, "avg_price") },
             { "filled", this.safeString(order, "cumulative_quantity") },
             { "remaining", this.safeString(order, "leaves_quantity") },

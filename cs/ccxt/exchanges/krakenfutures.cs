@@ -1313,7 +1313,7 @@ public partial class krakenfutures : Exchange
      * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1902,6 +1902,22 @@ public partial class krakenfutures : Exchange
         //        }
         //    }
         //
+        //   {
+        //     uid: '85805e01-9eed-4395-8360-ed1a228237c9',
+        //     accountUid: '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //     tradeable: 'PF_LTCUSD',
+        //     direction: 'Buy',
+        //     quantity: '0',
+        //     filled: '0.1',
+        //     timestamp: '1707258274849',
+        //     limitPrice: '69.2200000000',
+        //     orderType: 'IoC',
+        //     clientId: '',
+        //     reduceOnly: false,
+        //     lastUpdateTimestamp: '1707258274849',
+        //     status: 'closed'
+        //   }
+        //
         object orderEvents = this.safeValue(order, "orderEvents", new List<object>() {});
         object errorStatus = this.safeString(order, "status");
         object orderEventsLength = getArrayLength(orderEvents);
@@ -2049,20 +2065,26 @@ public partial class krakenfutures : Exchange
         {
             timeInForce = "ioc";
         }
+        object symbol = this.safeString(market, "symbol");
+        if (isTrue(inOp(details, "tradeable")))
+        {
+            symbol = this.safeSymbol(this.safeString(details, "tradeable"), market);
+        }
+        object ts = this.safeInteger(details, "timestamp", timestamp);
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
             { "clientOrderId", this.safeStringN(details, new List<object>() {"clientOrderId", "clientId", "cliOrdId"}) },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", ts },
+            { "datetime", this.iso8601(ts) },
             { "lastTradeTimestamp", null },
-            { "lastUpdateTimestamp", lastUpdateTimestamp },
-            { "symbol", this.safeString(market, "symbol") },
+            { "lastUpdateTimestamp", this.safeInteger(details, "lastUpdateTimestamp", lastUpdateTimestamp) },
+            { "symbol", symbol },
             { "type", this.parseOrderType(type) },
             { "timeInForce", timeInForce },
             { "postOnly", isEqual(type, "post") },
             { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
-            { "side", this.safeString(details, "side") },
+            { "side", this.safeStringLower2(details, "side", "direction") },
             { "price", price },
             { "triggerPrice", this.safeString(details, "triggerPrice") },
             { "amount", amount },
@@ -2396,59 +2418,73 @@ public partial class krakenfutures : Exchange
     public override object parseFundingRate(object ticker, object market = null)
     {
         //
-        // {"ask": 26.283,
-        //  "askSize": 4.6,
-        //  "bid": 26.201,
-        //  "bidSize": 190,
-        //  "fundingRate": -0.000944642727438883,
-        //  "fundingRatePrediction": -0.000872671532340275,
-        //  "indexPrice": 26.253,
-        //  "last": 26.3,
-        //  "lastSize": 0.1,
-        //  "lastTime": "2023-06-11T18:55:28.958Z",
-        //  "markPrice": 26.239,
-        //  "open24h": 26.3,
-        //  "openInterest": 641.1,
-        //  "pair": "COMP:USD",
-        //  "postOnly": False,
-        //  "suspended": False,
-        //  "symbol": "pf_compusd",
-        //  "tag": "perpetual",
-        //  "vol24h": 0.1,
-        //  "volumeQuote": 2.63}
+        //     {
+        //         "symbol": "PF_ENJUSD",
+        //         "last": 0.0433,
+        //         "lastTime": "2025-10-22T11:02:25.599Z",
+        //         "tag": "perpetual",
+        //         "pair": "ENJ:USD",
+        //         "markPrice": 0.0434,
+        //         "bid": 0.0433,
+        //         "bidSize": 4609,
+        //         "ask": 0.0435,
+        //         "askSize": 4609,
+        //         "vol24h": 1696,
+        //         "volumeQuote": 73.5216,
+        //         "openInterest": 72513.00000000000,
+        //         "open24h": 0.0435,
+        //         "high24h": 0.0435,
+        //         "low24h": 0.0433,
+        //         "lastSize": 1272,
+        //         "fundingRate": -0.000000756414717067,
+        //         "fundingRatePrediction": 0.000000195218676,
+        //         "suspended": false,
+        //         "indexPrice": 0.043392,
+        //         "postOnly": false,
+        //         "change24h": -0.46
+        //     }
         //
-        object fundingRateMultiplier = "8"; // https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.symbol(marketId);
         object timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
-        object indexPrice = this.safeNumber(ticker, "indexPrice");
         object markPriceString = this.safeString(ticker, "markPrice");
-        object markPrice = this.parseNumber(markPriceString);
         object fundingRateString = this.safeString(ticker, "fundingRate");
-        object fundingRateResult = Precise.stringDiv(Precise.stringMul(fundingRateString, fundingRateMultiplier), markPriceString);
-        object fundingRate = this.parseNumber(fundingRateResult);
+        object fundingRateResult = Precise.stringDiv(fundingRateString, markPriceString);
         object nextFundingRateString = this.safeString(ticker, "fundingRatePrediction");
-        object nextFundingRateResult = Precise.stringDiv(Precise.stringMul(nextFundingRateString, fundingRateMultiplier), markPriceString);
-        object nextFundingRate = this.parseNumber(nextFundingRateResult);
+        object nextFundingRateResult = Precise.stringDiv(nextFundingRateString, markPriceString);
+        if (isTrue(isGreaterThan(fundingRateResult, "0.25")))
+        {
+            fundingRateResult = "0.25";
+        } else if (isTrue(isGreaterThan(fundingRateResult, "-0.25")))
+        {
+            fundingRateResult = "-0.25";
+        }
+        if (isTrue(isGreaterThan(nextFundingRateResult, "0.25")))
+        {
+            nextFundingRateResult = "0.25";
+        } else if (isTrue(isGreaterThan(nextFundingRateResult, "-0.25")))
+        {
+            nextFundingRateResult = "-0.25";
+        }
         return new Dictionary<string, object>() {
             { "info", ticker },
             { "symbol", symbol },
-            { "markPrice", markPrice },
-            { "indexPrice", indexPrice },
+            { "markPrice", this.parseNumber(markPriceString) },
+            { "indexPrice", this.safeNumber(ticker, "indexPrice") },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "fundingRate", fundingRate },
+            { "fundingRate", this.parseNumber(fundingRateResult) },
             { "fundingTimestamp", null },
             { "fundingDatetime", null },
-            { "nextFundingRate", nextFundingRate },
+            { "nextFundingRate", this.parseNumber(nextFundingRateResult) },
             { "nextFundingTimestamp", null },
             { "nextFundingDatetime", null },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
+            { "interval", "1h" },
         };
     }
 

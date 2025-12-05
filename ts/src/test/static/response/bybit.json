@@ -2,6 +2,71 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "editOrder": [
+            {
+                "description": "edit order using clientOrderId",
+                "method": "editOrder",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.22,
+                    73,
+                    {
+                        "clientOrderId": "bybit1"
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "2088690093937486080",
+                        "orderLinkId": "bybit1"
+                    },
+                    "retExtInfo": {},
+                    "time": "1763738830446"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "retCode": "0",
+                        "retMsg": "OK",
+                        "result": {
+                            "orderId": "2088690093937486080",
+                            "orderLinkId": "bybit1"
+                        },
+                        "retExtInfo": {},
+                        "time": "1763738830446"
+                    },
+                    "id": "2088690093937486080",
+                    "clientOrderId": "bybit1",
+                    "fees": [],
+                    "timestamp": null,
+                    "datetime": null,
+                    "symbol": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null
+                }
+            }
+        ],
         "createMarketBuyOrderWithCost": [
             {
                 "description": "order with cost, using a decimal amount",
@@ -4697,6 +4762,68 @@
                             "predictedDeliveryPrice": "0",
                             "change24h": "0"
                         }
+                    }
+                }
+            }
+        ],
+        "borrowCrossMargin": [
+            {
+                "description": "borrow cross margin BTC",
+                "method": "borrowCrossMargin",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "success",
+                    "result": {
+                        "coin": "BTC",
+                        "amount": "0.001"
+                    },
+                    "retExtInfo": {},
+                    "time": "1763194940073"
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "currency": "BTC",
+                    "amount": "0.001",
+                    "symbol": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "coin": "BTC",
+                        "amount": "0.001"
+                    }
+                }
+            }
+        ],
+        "repayCrossMargin": [
+            {
+                "description": "repay cross margin BTC",
+                "method": "repayCrossMargin",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "success",
+                    "result": {
+                        "resultStatus": "SU"
+                    },
+                    "retExtInfo": {},
+                    "time": "1763195201119"
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "currency": "BTC",
+                    "amount": 0.001,
+                    "symbol": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "resultStatus": "SU"
                     }
                 }
             }

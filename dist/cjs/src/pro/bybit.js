@@ -167,8 +167,10 @@ class bybit extends bybit$1["default"] {
         });
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId;
     }
     async getUrlByMarketType(symbol = undefined, isPrivate = false, method = undefined, params = {}) {
@@ -863,7 +865,7 @@ class bybit extends bybit$1["default"] {
         params = this.cleanParams(params);
         const market = this.market(symbols[0]);
         if (limit === undefined) {
-            limit = (market['spot']) ? 50 : 500;
+            limit = 50;
             if (market['option']) {
                 limit = 100;
             }
@@ -872,7 +874,7 @@ class bybit extends bybit$1["default"] {
             const limits = {
                 'spot': [1, 50, 200, 1000],
                 'option': [25, 100],
-                'default': [1, 50, 200, 500, 1000],
+                'default': [1, 50, 200, 1000],
             };
             const selectedLimits = this.safeList2(limits, market['type'], 'default');
             if (!this.inArray(limit, selectedLimits)) {

@@ -1197,7 +1197,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -2424,7 +2424,7 @@ class bitstamp extends Exchange {
                 for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];
                     $value = $this->safe_value($error, $key);
-                    if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+                    if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                         $errors = $this->array_concat($errors, $value);
                     } else {
                         $errors[] = $value;

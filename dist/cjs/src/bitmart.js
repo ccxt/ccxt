@@ -526,6 +526,7 @@ class bitmart extends bitmart$1["default"] {
                 'broad': {
                     'You contract account available balance not enough': errors.InsufficientFunds,
                     'you contract account available balance not enough': errors.InsufficientFunds,
+                    'This trading pair does not support API trading': errors.BadSymbol, // {"message":"This trading pair does not support API trading","code":51008,"trace":"5d3ebd46-4e7a-4505-b37b-74464f398f01","data":{}}
                 },
             },
             'commonCurrencies': {
@@ -1013,7 +1014,7 @@ class bitmart extends bitmart$1["default"] {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': this.safeStringLower2(market, 'status', 'trade_status') === 'trading',
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -1130,7 +1131,7 @@ class bitmart extends bitmart$1["default"] {
                 'swap': isSwap,
                 'future': isFutures,
                 'option': false,
-                'active': true,
+                'active': this.safeStringLower(market, 'status') === 'trading',
                 'contract': true,
                 'linear': true,
                 'inverse': false,
@@ -4753,12 +4754,15 @@ class bitmart extends bitmart$1["default"] {
         //         "code": 1000,
         //         "message": "Ok",
         //         "data": {
-        //             "timestamp": 1695184410697,
         //             "symbol": "BTCUSDT",
-        //             "rate_value": "-0.00002614",
-        //             "expected_rate": "-0.00002"
+        //             "expected_rate": "-0.0000238",
+        //             "rate_value": "0.000009601106",
+        //             "funding_time": 1761292800000,
+        //             "funding_upper_limit": "0.0375",
+        //             "funding_lower_limit": "-0.0375",
+        //             "timestamp": 1761291544336
         //         },
-        //         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        //         "trace": "64b7a589-e1e-4ac2-86b1-41058757421"
         //     }
         //
         const data = this.safeDict(response, 'data', {});
@@ -4826,14 +4830,18 @@ class bitmart extends bitmart$1["default"] {
     parseFundingRate(contract, market = undefined) {
         //
         //     {
-        //         "timestamp": 1695184410697,
         //         "symbol": "BTCUSDT",
-        //         "rate_value": "-0.00002614",
-        //         "expected_rate": "-0.00002"
+        //         "expected_rate": "-0.0000238",
+        //         "rate_value": "0.000009601106",
+        //         "funding_time": 1761292800000,
+        //         "funding_upper_limit": "0.0375",
+        //         "funding_lower_limit": "-0.0375",
+        //         "timestamp": 1761291544336
         //     }
         //
         const marketId = this.safeString(contract, 'symbol');
         const timestamp = this.safeInteger(contract, 'timestamp');
+        const fundingTimestamp = this.safeInteger(contract, 'funding_time');
         return {
             'info': contract,
             'symbol': this.safeSymbol(marketId, market),
@@ -4844,8 +4852,8 @@ class bitmart extends bitmart$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'fundingRate': this.safeNumber(contract, 'expected_rate'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,

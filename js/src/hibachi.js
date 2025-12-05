@@ -830,7 +830,7 @@ export default class hibachi extends Exchange {
     }
     createOrderRequest(nonce, symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
-        const feeRate = Math.max(this.safeNumber(market, 'taker'), this.safeNumber(market, 'maker'));
+        const feeRate = Math.max(this.safeNumber(market, 'taker', this.safeNumber(this.options, 'defaultTakerFee', 0.00045)), this.safeNumber(market, 'maker', this.safeNumber(this.options, 'defaultMakerFee', 0.00015)));
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -1249,12 +1249,12 @@ export default class hibachi extends Exchange {
         }
         else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-            const hash = this.hash(this.encode(message), sha256, 'hex');
+            const hash = this.hash(message, sha256, 'hex');
             const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
             const r = signature['r'];
             const s = signature['s'];
-            const v = signature['v'];
-            return r.padStart(64, '0') + s.padStart(64, '0') + this.intToBase16(v).padStart(2, '0');
+            const v = this.intToBase16(signature['v']);
+            return r.padStart(64, '0') + s.padStart(64, '0') + v.padStart(2, '0');
         }
     }
     /**

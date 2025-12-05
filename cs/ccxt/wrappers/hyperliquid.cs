@@ -28,6 +28,27 @@ public partial class hyperliquid
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
+    /// retrieves data on all hip3 markets for hyperliquid
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
+    public async Task<List<MarketInterface>> FetchHip3Markets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchHip3Markets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    /// <summary>
     /// retrieves data on all swap markets for hyperliquid
     /// </summary>
     /// <remarks>
@@ -96,6 +117,12 @@ public partial class hyperliquid
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : for hip3 markets, the dex name, eg: 'xyz'
     /// </description>
     /// </item>
     /// <item>
@@ -472,10 +499,10 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// build the request payload for cancelling multiple orders
@@ -758,6 +785,12 @@ public partial class hyperliquid
     /// string : sub account user address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : perp dex name. default is null
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -920,6 +953,12 @@ public partial class hyperliquid
     /// string : sub account user address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : perp dex name. default is null
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1063,6 +1102,12 @@ public partial class hyperliquid
     /// <term>params.subAccountAddress</term>
     /// <description>
     /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : perp dex name, eg: XYZ
     /// </description>
     /// </item>
     /// </list>

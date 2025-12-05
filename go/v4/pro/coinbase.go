@@ -1011,7 +1011,7 @@ func  (this *CoinbaseCore) HandleOrder(client interface{}, message interface{}) 
     //                        "product_id": "BTC-USD",
     //                        "creation_time": "2022-12-07T19:42:18.719312Z",
     //                        "order_side": "BUY",
-    //                        "order_type": "ccxt.Limit"
+    //                        "order_type": "Limit"
     //                    },
     //                ]
     //            }
@@ -1060,7 +1060,7 @@ func  (this *CoinbaseCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     //        "product_id": "BTC-USD",
     //        "creation_time": "2022-12-07T19:42:18.719312Z",
     //        "order_side": "BUY",
-    //        "order_type": "ccxt.Limit"
+    //        "order_type": "Limit"
     //    }
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1068,8 +1068,9 @@ func  (this *CoinbaseCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     var id interface{} = this.SafeString(order, "order_id")
     var clientOrderId interface{} = this.SafeString(order, "client_order_id")
     var marketId interface{} = this.SafeString(order, "product_id")
-    var datetime interface{} = this.SafeString(order, "time")
+    var datetime interface{} = this.SafeString2(order, "time", "creation_time")
     market = this.SafeMarket(marketId, market)
+    var stopPrice interface{} = this.SafeString(order, "stop_price")
     return this.SafeOrder(map[string]interface{} {
         "info": order,
         "symbol": this.SafeString(market, "symbol"),
@@ -1081,16 +1082,16 @@ func  (this *CoinbaseCore) ParseWsOrder(order interface{}, optionalArgs ...inter
         "type": this.SafeString(order, "order_type"),
         "timeInForce": nil,
         "postOnly": nil,
-        "side": this.SafeString(order, "side"),
-        "price": nil,
-        "stopPrice": nil,
-        "triggerPrice": nil,
-        "amount": nil,
-        "cost": nil,
+        "side": this.SafeString2(order, "side", "order_side"),
+        "price": this.SafeString(order, "limit_price"),
+        "stopPrice": stopPrice,
+        "triggerPrice": stopPrice,
+        "amount": this.SafeString(order, "cumulative_quantity"),
+        "cost": this.OmitZero(this.SafeString(order, "filled_value")),
         "average": this.SafeString(order, "avg_price"),
         "filled": this.SafeString(order, "cumulative_quantity"),
         "remaining": this.SafeString(order, "leaves_quantity"),
-        "status": this.SafeStringLower(order, "status"),
+        "status": this.ParseOrderStatus(this.SafeString(order, "status")),
         "fee": map[string]interface{} {
             "amount": this.SafeString(order, "total_fees"),
             "currency": this.SafeString(market, "quote"),

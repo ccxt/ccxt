@@ -193,6 +193,7 @@ export default class phemex extends Exchange {
                         'accounts/accountPositions': 1,
                         'g-accounts/accountPositions': 1,
                         'g-accounts/positions': 25,
+                        'g-accounts/risk-unit': 1,
                         'api-data/futures/funding-fees': 5,
                         'api-data/g-futures/funding-fees': 5,
                         'api-data/futures/orders': 5,
@@ -3391,12 +3392,14 @@ export default class phemex extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         const request = {};
         if (limit !== undefined) {
             limit = Math.min(200, limit);
             request['limit'] = limit;
         }
-        const isUSDTSettled = (symbol === undefined) || (this.safeString(market, 'settle') === 'USDT');
+        const isUSDTSettled = (type !== 'spot') && ((symbol === undefined) || (this.safeString(market, 'settle') === 'USDT'));
         if (isUSDTSettled) {
             request['currency'] = 'USDT';
             request['offset'] = 0;
@@ -3404,7 +3407,7 @@ export default class phemex extends Exchange {
                 request['limit'] = 200;
             }
         }
-        else {
+        else if (symbol !== undefined) {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
@@ -3414,7 +3417,8 @@ export default class phemex extends Exchange {
         if (isUSDTSettled) {
             response = await this.privateGetExchangeOrderV2TradingList(this.extend(request, params));
         }
-        else if (market['swap']) {
+        else if (type === 'swap') {
+            request['tradeType'] = 'Trade';
             response = await this.privateGetExchangeOrderTrade(this.extend(request, params));
         }
         else {

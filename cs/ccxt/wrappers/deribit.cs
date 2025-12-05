@@ -1086,4 +1086,24 @@ public partial class deribit
         var res = await this.fetchOptionChain(code, parameters);
         return new OptionChain(res);
     }
+    /// <summary>
+    /// Retrieves the open interest of a symbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.deribit.com/?shell#public-get_book_summary_by_instrument"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterest(symbol, parameters);
+        return new OpenInterest(res);
+    }
 }

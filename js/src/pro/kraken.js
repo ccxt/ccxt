@@ -589,7 +589,7 @@ export default class kraken extends krakenRest {
         }
         client.resolve(stored, messageHash);
     }
-    handleOHLCV(client, message, subscription) {
+    handleOHLCV(client, message) {
         //
         //     {
         //         "channel": "ohlc",
@@ -614,7 +614,11 @@ export default class kraken extends krakenRest {
         //
         const data = this.safeList(message, 'data', []);
         const first = data[0];
-        const symbol = this.safeString(first, 'symbol');
+        const marketId = this.safeString(first, 'symbol');
+        const symbol = this.safeSymbol(marketId);
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
         const interval = this.safeInteger(first, 'interval');
         const timeframe = this.findTimeframe(interval);
         const messageHash = this.getMessageHash('ohlcv', undefined, symbol);
@@ -644,8 +648,10 @@ export default class kraken extends krakenRest {
     }
     requestId() {
         // their support said that reqid must be an int32, not documented
+        this.lockId();
         const reqid = this.sum(this.safeInteger(this.options, 'reqid', 0), 1);
         this.options['reqid'] = reqid;
+        this.unlockId();
         return reqid;
     }
     /**
@@ -1240,8 +1246,7 @@ export default class kraken extends krakenRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['snap_orders'] = true;
-        return await this.watchPrivate('orders', symbol, since, limit, params);
+        return await this.watchPrivate('orders', symbol, since, limit, this.extend(params, { 'snap_orders': true }));
     }
     handleOrders(client, message, subscription = undefined) {
         //
@@ -1301,7 +1306,9 @@ export default class kraken extends krakenRest {
                     }
                 }
                 stored.append(newOrder);
-                symbols[symbol] = true;
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
             const name = 'orders';
             client.resolve(this.orders, name);

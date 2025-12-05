@@ -321,7 +321,7 @@ public partial class xt : Exchange
                             { "user/account/api-key", 1 },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "user/account/{apikeyId}", 1 },
+                            { "user/account/{apiKeyId}", 1 },
                         } },
                     } },
                 } },
@@ -3644,7 +3644,7 @@ public partial class xt : Exchange
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

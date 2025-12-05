@@ -1018,8 +1018,8 @@ public partial class gate : ccxt.gate
             object ohlcv = getValue(result, i);
             object subscription = this.safeString(ohlcv, "n", "");
             object parts = ((string)subscription).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object timeframe = this.safeString(parts, 0);
-            object timeframeId = this.findTimeframe(timeframe);
+            object timeframeId = this.safeString(parts, 0);
+            object timeframe = this.findTimeframe(timeframeId);
             object prefix = add(timeframe, "_");
             object marketId = ((string)subscription).Replace((string)prefix, (string)"");
             object symbol = this.safeSymbol(marketId, null, "_", marketType);
@@ -1030,7 +1030,7 @@ public partial class gate : ccxt.gate
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframeId] = stored;
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
             callDynamically(stored, "append", new object[] {parsed});
             ((IDictionary<string,object>)marketIds)[(string)symbol] = timeframe;
@@ -2248,8 +2248,10 @@ public partial class gate : ccxt.gate
     public virtual object requestId()
     {
         // their support said that reqid must be an int32, not documented
+        this.lockId();
         object reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
         ((IDictionary<string,object>)this.options)["reqid"] = reqid;
+        this.unlockId();
         return reqid;
     }
 

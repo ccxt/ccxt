@@ -21,7 +21,7 @@ func (this *ToobitCore) Describe() interface{} {
 		"version":   "v1",
 		"rateLimit": 20,
 		"certified": false,
-		"pro":       false,
+		"pro":       true,
 		"has": map[string]interface{}{
 			"CORS":                    nil,
 			"spot":                    true,
@@ -61,7 +61,7 @@ func (this *ToobitCore) Describe() interface{} {
 			"withdraw":                true,
 		},
 		"urls": map[string]interface{}{
-			"logo": "https://github.com/user-attachments/assets/3fc13870-5406-431b-8be0-2aab69c4f225",
+			"logo": "https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e",
 			"api": map[string]interface{}{
 				"common":  "https://api.toobit.com",
 				"private": "https://api.toobit.com",
@@ -3390,6 +3390,7 @@ func (this *ToobitCore) Sign(path interface{}, optionalArgs ...interface{}) inte
 			body = Add(body, Add("&signature=", signature))
 		}
 		headers = map[string]interface{}{
+			"Referrer":     "CCXT",
 			"X-BB-APIKEY":  this.ApiKey,
 			"Content-Type": "application/x-www-form-urlencoded",
 		}

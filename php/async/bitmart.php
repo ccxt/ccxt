@@ -530,6 +530,7 @@ class bitmart extends Exchange {
                 'broad' => array(
                     'You contract account available balance not enough' => '\\ccxt\\InsufficientFunds',
                     'you contract account available balance not enough' => '\\ccxt\\InsufficientFunds',
+                    'This trading pair does not support API trading' => '\\ccxt\\BadSymbol', // array("message":"This trading pair does not support API trading","code":51008,"trace":"5d3ebd46-4e7a-4505-b37b-74464f398f01","data":array())
                 ),
             ),
             'commonCurrencies' => array(
@@ -1024,7 +1025,7 @@ class bitmart extends Exchange {
                     'swap' => false,
                     'future' => false,
                     'option' => false,
-                    'active' => true,
+                    'active' => $this->safe_string_lower_2($market, 'status', 'trade_status') === 'trading',
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,
@@ -1144,7 +1145,7 @@ class bitmart extends Exchange {
                     'swap' => $isSwap,
                     'future' => $isFutures,
                     'option' => false,
-                    'active' => true,
+                    'active' => $this->safe_string_lower($market, 'status') === 'trading',
                     'contract' => true,
                     'linear' => true,
                     'inverse' => false,
@@ -2093,7 +2094,7 @@ class bitmart extends Exchange {
         //        "v":"146"
         //    }
         //
-        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
+        if ((gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv)))) {
             return array(
                 $this->safe_timestamp($ohlcv, 0),
                 $this->safe_number($ohlcv, 1),
@@ -2114,7 +2115,7 @@ class bitmart extends Exchange {
         }
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -4833,12 +4834,15 @@ class bitmart extends Exchange {
             //         "code" => 1000,
             //         "message" => "Ok",
             //         "data" => array(
-            //             "timestamp" => 1695184410697,
             //             "symbol" => "BTCUSDT",
-            //             "rate_value" => "-0.00002614",
-            //             "expected_rate" => "-0.00002"
+            //             "expected_rate" => "-0.0000238",
+            //             "rate_value" => "0.000009601106",
+            //             "funding_time" => 1761292800000,
+            //             "funding_upper_limit" => "0.0375",
+            //             "funding_lower_limit" => "-0.0375",
+            //             "timestamp" => 1761291544336
             //         ),
-            //         "trace" => "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+            //         "trace" => "64b7a589-e1e-4ac2-86b1-41058757421"
             //     }
             //
             $data = $this->safe_dict($response, 'data', array());
@@ -4911,14 +4915,18 @@ class bitmart extends Exchange {
     public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //     {
-        //         "timestamp" => 1695184410697,
         //         "symbol" => "BTCUSDT",
-        //         "rate_value" => "-0.00002614",
-        //         "expected_rate" => "-0.00002"
+        //         "expected_rate" => "-0.0000238",
+        //         "rate_value" => "0.000009601106",
+        //         "funding_time" => 1761292800000,
+        //         "funding_upper_limit" => "0.0375",
+        //         "funding_lower_limit" => "-0.0375",
+        //         "timestamp" => 1761291544336
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
         $timestamp = $this->safe_integer($contract, 'timestamp');
+        $fundingTimestamp = $this->safe_integer($contract, 'funding_time');
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market),
@@ -4929,8 +4937,8 @@ class bitmart extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $this->safe_number($contract, 'expected_rate'),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,

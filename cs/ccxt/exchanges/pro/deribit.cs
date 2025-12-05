@@ -1158,7 +1158,8 @@ public partial class deribit : ccxt.deribit
         {
             this.checkRequiredCredentials();
             object requestId = this.requestId();
-            object signature = this.hmac(this.encode(add(add(add(timeString, "\n"), nonce), "\n")), this.encode(this.secret), sha256);
+            object lineBreak = "\n"; // eslint-disable-line quotes
+            object signature = this.hmac(this.encode(add(add(add(timeString, lineBreak), nonce), lineBreak)), this.encode(this.secret), sha256);
             object request = new Dictionary<string, object>() {
                 { "jsonrpc", "2.0" },
                 { "id", requestId },

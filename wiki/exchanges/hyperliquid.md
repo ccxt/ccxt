@@ -7,6 +7,7 @@
 
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
+* [fetchHip3Markets](#fetchhip3markets)
 * [fetchSwapMarkets](#fetchswapmarkets)
 * [calculatePricePrecision](#calculatepriceprecision)
 * [fetchSpotMarkets](#fetchspotmarkets)
@@ -111,6 +112,30 @@ hyperliquid.fetchMarkets ([params])
 ```
 
 
+<a name="fetchHip3Markets" id="fetchhip3markets"></a>
+
+### fetchHip3Markets{docsify-ignore}
+retrieves data on all hip3 markets for hyperliquid
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**
+
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.fetchHip3Markets ([params])
+```
+
+
 <a name="fetchSwapMarkets" id="fetchswapmarkets"></a>
 
 ### fetchSwapMarkets{docsify-ignore}
@@ -192,6 +217,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
 | params.type | <code>string</code> | No | wallet type, ['spot', 'swap'], defaults to swap |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
+| params.dex | <code>string</code> | No | for hip3 markets, the dex name, eg: 'xyz' |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
 
 
@@ -651,6 +677,7 @@ fetch all unfilled currently open orders
 | params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
 | params.method | <code>string</code> | No | 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders' |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.dex | <code>string</code> | No | perp dex name. default is null |
 
 
 ```javascript
@@ -744,6 +771,7 @@ fetch all orders
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.dex | <code>string</code> | No | perp dex name. default is null |
 
 
 ```javascript
@@ -843,6 +871,7 @@ fetch all open positions
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.dex | <code>string</code> | No | perp dex name, eg: XYZ |
 
 
 ```javascript

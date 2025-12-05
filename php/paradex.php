@@ -62,9 +62,9 @@ class paradex extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => false,
-                'fetchFundingRateHistory' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchGreeks' => true,
                 'fetchIndexOHLCV' => false,
@@ -616,9 +616,9 @@ class paradex extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          *
          * @see https://docs.api.testnet.paradex.trade/#ohlcv-for-a-$symbol
          *
@@ -628,6 +628,7 @@ class paradex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {string} [$params->price] "last", "mark", "index", default is "last"
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -639,7 +640,11 @@ class paradex extends Exchange {
         $now = $this->milliseconds();
         $duration = $this->parse_timeframe($timeframe);
         $until = $this->safe_integer_2($params, 'until', 'till', $now);
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $price = $this->safe_string($params, 'price');
+        if ($price !== null) {
+            $request['price_kind'] = $price;
+        }
+        $params = $this->omit($params, array( 'until', 'till', 'price' ));
         if ($since !== null) {
             $request['start_at'] = $since;
             if ($limit !== null) {
@@ -2563,6 +2568,76 @@ class paradex extends Exchange {
             'underlyingPrice' => $this->safe_number($greeks, 'underlying_price'),
             'info' => $greeks,
         );
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding $rate prices
+         *
+         * @see https://docs.paradex.trade/api/prod/markets/get-funding-data
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding $rate history for
+         * @param {int} [$since] $timestamp in ms of the earliest funding $rate to fetch
+         * @param {int} [$limit] the maximum amount of funding $rate structures
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] $timestamp in ms of the latest funding $rate to fetch
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-$rate-history-structure funding $rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['page_size'] = min ($limit, 5000); // api maximum 5000
+        } else {
+            $request['page_size'] = 1000; // max is 5000
+        }
+        if ($since !== null) {
+            $request['start_at'] = $since;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['end_at'] = $until;
+        }
+        $response = $this->publicGetFundingData ($this->extend($request, $params));
+        //
+        // {
+        //     "next" => "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+        //     "prev" => "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+        //     "results" => array(
+        //          {
+        //              "market":"BTC-USD-PERP",
+        //              "funding_index":"20511.93608234044552",
+        //              "funding_premium":"-6.04646651485986656",
+        //              "funding_rate":"-0.00006992598926",
+        //              "funding_rate_8h":"",
+        //              "funding_period_hours":0,
+        //              "created_at":1764160327843
+        //          }
+        //     )
+        // }
+        //
+        $results = $this->safe_list($response, 'results', array());
+        $rates = array();
+        for ($i = 0; $i < count($results); $i++) {
+            $rate = $results[$i];
+            $timestamp = $this->safe_integer($rate, 'created_at');
+            $datetime = $this->iso8601($timestamp);
+            $rates[] = array(
+                'info' => $rate,
+                'symbol' => $market['symbol'],
+                'fundingRate' => $this->safe_number($rate, 'funding_rate'),
+                'timestamp' => $timestamp,
+                'datetime' => $datetime,
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

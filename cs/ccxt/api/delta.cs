@@ -76,6 +76,16 @@ public partial class delta : Exchange
         return await this.callAsync ("privateGetOrders",parameters);
     }
 
+    public async Task<object> privateGetOrdersOrderId (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOrdersOrderId",parameters);
+    }
+
+    public async Task<object> privateGetOrdersClientOrderIdClientOid (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOrdersClientOrderIdClientOid",parameters);
+    }
+
     public async Task<object> privateGetProductsProductIdOrdersLeverage (object parameters = null)
     {
         return await this.callAsync ("privateGetProductsProductIdOrdersLeverage",parameters);
@@ -141,14 +151,14 @@ public partial class delta : Exchange
         return await this.callAsync ("privateGetProfile",parameters);
     }
 
+    public async Task<object> privateGetHeartbeat (object parameters = null)
+    {
+        return await this.callAsync ("privateGetHeartbeat",parameters);
+    }
+
     public async Task<object> privateGetDepositsAddress (object parameters = null)
     {
         return await this.callAsync ("privateGetDepositsAddress",parameters);
-    }
-
-    public async Task<object> privateGetOrdersLeverage (object parameters = null)
-    {
-        return await this.callAsync ("privateGetOrdersLeverage",parameters);
     }
 
     public async Task<object> privatePostOrders (object parameters = null)
@@ -184,6 +194,16 @@ public partial class delta : Exchange
     public async Task<object> privatePostWalletsSubAccountBalanceTransfer (object parameters = null)
     {
         return await this.callAsync ("privatePostWalletsSubAccountBalanceTransfer",parameters);
+    }
+
+    public async Task<object> privatePostHeartbeatCreate (object parameters = null)
+    {
+        return await this.callAsync ("privatePostHeartbeatCreate",parameters);
+    }
+
+    public async Task<object> privatePostHeartbeat (object parameters = null)
+    {
+        return await this.callAsync ("privatePostHeartbeat",parameters);
     }
 
     public async Task<object> privatePostOrdersCancelAfter (object parameters = null)

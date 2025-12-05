@@ -2,6 +2,7 @@ package ccxt
 
 import (
 	// "errors"
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -208,21 +209,108 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 		}
 	}
 
-	// Handle slices
-	switch list := obj.(type) {
+	switch v := obj.(type) {
+	// handle slices
 	case []interface{}:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
 	case []string:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
 	case []int:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
 	case []int32:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
 	case []int64:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
 	case []float64:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
+	// handle map[strings]
+	case map[string]map[string]interface{}:
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
+	case map[string]*ArrayCacheByTimestamp:
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
+	case map[string]*ArrayCache:
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
+	case map[string]*ArrayCacheBySymbolBySide:
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
+	// handle cache types
+	case *ArrayCache:
+		if len(keys) > 0 && keys[0] != nil {
+			keyStr := fmt.Sprintf("%v", keys[0])
+			switch keyStr {
+			case "Hashmap", "hashmap":
+				return v.Hashmap
+			case "Data", "data":
+				return v.Data
+			}
+		}
+	case *ArrayCacheByTimestamp:
+		if len(keys) > 0 && keys[0] != nil {
+			keyStr := fmt.Sprintf("%v", keys[0])
+			switch keyStr {
+			case "Hashmap", "hashmap":
+				return v.Hashmap
+			case "Data", "data":
+				return v.Data
+			}
+		}
+	case *ArrayCacheBySymbolById:
+		if len(keys) > 0 && keys[0] != nil {
+			keyStr := fmt.Sprintf("%v", keys[0])
+			switch keyStr {
+			case "Hashmap", "hashmap":
+				return v.Hashmap
+			case "Data", "data":
+				return v.Data
+			}
+		}
+	case *ArrayCacheBySymbolBySide:
+		if len(keys) > 0 && keys[0] != nil {
+			keyStr := fmt.Sprintf("%v", keys[0])
+			switch keyStr {
+			case "Hashmap", "hashmap":
+				return v.Hashmap
+			case "Data", "data":
+				return v.Data
+			}
+		}
 	default:
+		// Handle orderbook interfaces
 		if ob, ok := obj.(OrderBookInterface); ok { // TODO: should takes keys and not keys[0]
 			return ob.GetValue(keys[0].(string), defVal)
 		}
@@ -234,8 +322,8 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 				return obs.GetData()[keys[0].(int)]
 			}
 		}
-		return defVal
 	}
+	return defVal
 }
 
 // SafeStringN retrieves a string value from a nested structure
@@ -261,6 +349,8 @@ func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) 
 		return strconv.FormatFloat(float64(v), 'f', -1, 32)
 	case float64:
 		return strconv.FormatFloat(v, 'f', -1, 64)
+	case json.Number:
+		return string(v)
 	default:
 		return defaultValue
 	}
@@ -300,6 +390,10 @@ func SafeFloatN(obj interface{}, keys []interface{}, defaultValue interface{}) f
 		return float64(v)
 	case int64:
 		return float64(v)
+	case json.Number:
+		if f, err := v.Float64(); err == nil {
+			return f
+		}
 	case string:
 		if f, err := strconv.ParseFloat(v, 64); err == nil {
 			return f
@@ -327,6 +421,13 @@ func SafeIntegerN(obj interface{}, keys []interface{}, defaultValue interface{})
 		return int64(v)
 	case float32:
 		return int64(v)
+	case json.Number:
+		if i, err := v.Int64(); err == nil {
+			return i
+		}
+		if f, err := v.Float64(); err == nil {
+			return int64(f)
+		}
 	case string:
 		if i, err := strconv.ParseInt(v, 10, 64); err == nil {
 			return i
@@ -387,6 +488,19 @@ func SafeTimestampN(obj interface{}, keys []interface{}, defaultValue interface{
 	if result == nil {
 		return nil
 	}
+
+	if jsonNum, ok := result.(json.Number); ok {
+		if strings.Contains(string(jsonNum), ".") {
+			if f, err := jsonNum.Float64(); err == nil {
+				return int64(f * 1000)
+			}
+		} else {
+			if i, err := jsonNum.Int64(); err == nil {
+				return i * 1000
+			}
+		}
+	}
+
 	if resultStr, ok := result.(string); ok && strings.Contains(resultStr, ".") {
 		if f, err := strconv.ParseFloat(resultStr, 64); err == nil {
 			return int64(f * 1000)
@@ -416,8 +530,24 @@ func SafeIntegerProductN(obj interface{}, keys []interface{}, multiplier interfa
 	if result == nil {
 		return defaultValue
 	}
+
+	var resultFloat float64
+	var err error
+
+	if jsonNum, ok := result.(json.Number); ok {
+		resultFloat, err = jsonNum.Float64()
+		if err != nil {
+			return defaultValue
+		}
+	} else {
+		resultFloat, err = strconv.ParseFloat(fmt.Sprintf("%v", result), 64)
+		if err != nil {
+			return defaultValue
+		}
+	}
+
 	multiplierFloat, _ := strconv.ParseFloat(fmt.Sprintf("%v", multiplier), 64)
-	resultFloat, _ := strconv.ParseFloat(fmt.Sprintf("%v", result), 64)
+
 	return int64(resultFloat * multiplierFloat)
 }
 

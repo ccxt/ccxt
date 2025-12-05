@@ -1,0 +1,457 @@
+{
+    "exchange": "deepcoin",
+    "skipKeys": [
+        "OrderSysID",
+        "ordId"
+    ],
+    "outputType": "json",
+    "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.deepcoin.com/deepcoin/trade/fund-rate/current-funding-rate?instId=BTC-USDT-SWAP&instType=SwapU",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.deepcoin.com/deepcoin/trade/order",
+                "input": [
+                    "LTC/USDT",
+                    15,
+                    {
+                        "clientOrderId": "myorder2"
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"clOrdId\":\"myorder2\",\"sz\":\"15\",\"tgtCcy\":\"quote_ccy\",\"tdMode\":\"cash\"}"
+            }
+        ],
+        "createTriggerOrder": [
+            {
+                "description": "create trigger order",
+                "method": "createTriggerOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/trigger-order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    20,
+                    null,
+                    0.01
+                ],
+                "output": "{\"instId\":\"DOGE-USDT-SWAP\",\"productGroup\":\"Swap\",\"sz\":\"20\",\"side\":\"buy\",\"orderType\":\"market\",\"triggerPrice\":0.01,\"isCrossMargin\":1,\"tdMode\":\"cross\",\"posSide\":\"long\",\"mrgPosition\":\"merge\"}"
+            }
+        ],
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "create limit order with tpsl",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "url": "https://api.deepcoin.com/deepcoin/trade/order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    20,
+                    0.1,
+                    1,
+                    0.01
+                ],
+                "output": "{\"instId\":\"DOGE-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"slTriggerPx\":\"0.01\",\"tpTriggerPx\":\"1\",\"px\":\"0.1\",\"sz\":\"20\",\"tdMode\":\"cross\",\"mrgPosition\":\"merge\",\"posSide\":\"long\"}"
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit order takeProfit and stopLoss prices",
+                "method": "editOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/replace-order-sltp",
+                "input": [
+                    1001112132350609,
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    null,
+                    null,
+                    {
+                        "takeProfitPrice": 1.2,
+                        "stopLossPrice": 0.02
+                    }
+                ],
+                "output": "{\"OrderSysID\":1001112132350609,\"slTriggerPx\":\"0.02\",\"tpTriggerPx\":\"1.2\"}"
+            },
+            {
+                "description": "edit order amount and price",
+                "method": "editOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/replace-order",
+                "input": [
+                    1001111677169084,
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    25,
+                    0.02
+                ],
+                "output": "{\"OrderSysID\":1001111677169084,\"price\":\"0.02\",\"volume\":\"25\"}"
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders for market",
+                "method": "fetchClosedOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/orders-history?instId=ETH-USDT&instType=SPOT&limit=1&state=filled",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetch canceled orders for market",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/orders-history?instId=ETH-USDT&instType=SPOT&limit=1&state=canceled",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.deepcoin.com/deepcoin/trade/fund-rate/history?instId=ETH-USDT-SWAP&size=1",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.deepcoin.com/deepcoin/trade/fills?instType=SPOT&instId=ETH-USDT&limit=1",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositionsForSymbol": [
+            {
+                "description": "Fetch position for symbol",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.deepcoin.com/deepcoin/account/positions?instType=SPOT&instId=ETH-USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel trigger order",
+                "method": "cancelOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/cancel-trigger-order",
+                "input": [
+                    1001112135133243,
+                    "DOGE/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"instId\":\"DOGE-USDT-SWAP\",\"ordId\":1001112135133243}"
+            },
+            {
+                "description": "Cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/cancel-order",
+                "input": [
+                    "1001441400627435",
+                    "ETH/USDT"
+                ],
+                "output": "{\"instId\":\"ETH-USDT\",\"ordId\":\"1001441400627435\"}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open tpsl orders for DOGE/USDT:USDT market",
+                "method": "fetchOpenOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/trigger-orders-pending?instId=DOGE-USDT-SWAP&limit=1&instType=SWAP",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    1,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/v2/orders-pending?instId=ETH-USDT&index=1",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "fetch canceled and closed tpsl orders for DOGE/USDT:USDT market",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/trigger-orders-history?instId=DOGE-USDT-SWAP&instType=SWAP&limit=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    1,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch canceled and closed orders for market",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/orders-history?instId=ETH-USDT&instType=SPOT&limit=1",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch canceled and closed orders for market",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/orders-history?instId=ETH-USDT&instType=SPOT&limit=1",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch canceled and closed orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.deepcoin.com/deepcoin/trade/orders-history?instId=ETH-USDT&instType=SPOT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrder": [
+            {
+                "description": "Fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/orderByID?instId=ETH-USDT&ordId=1001441400627435",
+                "input": [
+                    1001441400627435,
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchClosedOrder": [
+            {
+                "description": "Fetch closed order",
+                "method": "fetchClosedOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/finishOrderByID?instId=ETH-USDT&ordId=1001441398400348",
+                "input": [
+                    1001441398400348,
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Create spot order",
+                "method": "createOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.005,
+                    3900
+                ],
+                "output": "{\"instId\":\"ETH-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"px\":\"3900\",\"sz\":\"0.005\",\"tgtCcy\":\"base_ccy\",\"tdMode\":\"cash\"}"
+            },
+            {
+                "description": "Create spot order",
+                "method": "createOrder",
+                "url": "https://api.deepcoin.com/deepcoin/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0.01
+                ],
+                "output": "{\"instId\":\"ETH-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"0.01\",\"tgtCcy\":\"base_ccy\",\"tdMode\":\"cash\"}"
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "Fetch ledger",
+                "method": "fetchLedger",
+                "url": "https://api.deepcoin.com/deepcoin/account/bills?instType=SPOT&ccy=USDT&limit=1",
+                "input": [
+                    "USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.deepcoin.com/deepcoin/asset/recharge-chain-list?currency_id=USDT&lang=en",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchDepositAddresses": [
+            {
+                "description": "Fetch deposit addresses",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.deepcoin.com/deepcoin/asset/recharge-chain-list?currency_id=USDT&lang=en",
+                "input": [ [ "USDT" ] ],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.deepcoin.com/deepcoin/asset/deposit-list",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance for spot\n",
+                "method": "fetchBalance",
+                "url": "https://api.deepcoin.com/deepcoin/account/balances?instType=SWAP",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch balance for spot\n",
+                "method": "fetchBalance",
+                "url": "https://api.deepcoin.com/deepcoin/account/balances?instType=SPOT",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades for swap",
+                "method": "fetchTrades",
+                "url": "https://api.deepcoin.com/deepcoin/market/trades?instId=ETH-USDT-SWAP&limit=1&productGroup=SwapU",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch trades for spot",
+                "method": "fetchTrades",
+                "url": "https://api.deepcoin.com/deepcoin/market/trades?instId=ETH-USDT&limit=1&productGroup=Spot",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers for spot",
+                "method": "fetchTickers",
+                "url": "https://api.deepcoin.com/deepcoin/market/tickers?instType=SPOT",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch candles for spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.deepcoin.com/deepcoin/market/candles?instId=ETH-USDT&bar=1m&limit=1",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    null,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch candles for swap",
+                "method": "fetchOHLCV",
+                "url": "https://api.deepcoin.com/deepcoin/market/candles?instId=ETH-USDT-SWAP&bar=1m&limit=1",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book for swap",
+                "method": "fetchOrderBook",
+                "url": "https://api.deepcoin.com/deepcoin/market/books?instId=ETH-USDT-SWAP&sz=1",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.deepcoin.com/deepcoin/market/books?instId=ETH-USDT&sz=1",
+                "input": [
+                    "ETH/USDT",
+                    1
+                ],
+                "output": null
+            }
+        ]
+    }
+}

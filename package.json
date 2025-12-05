@@ -1,13 +1,19 @@
 {
   "name": "ccxt",
-  "version": "4.5.10",
+  "version": "4.5.22",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./js/ccxt.js",
-      "require": "./dist/ccxt.cjs"
+      "import": {
+        "types": "./js/ccxt.d.ts",
+        "default": "./js/ccxt.js"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./dist/ccxt.cjs"
+      }
     }
   },
   "engines": {
@@ -42,7 +48,6 @@
     "check-rest-php-syntax": "php -f php/test/custom/syntax.php",
     "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
     "check-ws-php-syntax": "php -f php/pro/test/custom/syntax.php",
-    "cleanup-old-tags": "tsx ./build/cleanup-old-tags.ts",
     "cleanup-old-tags": "tsx ./build/cleanup-old-tags.ts",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
     "cli.go": "go run -C go ./cli/main.go",
@@ -180,7 +185,10 @@
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "transpileCsSingle": "tsx build/csharpTranspiler.ts",
     "transpileGO": "npm run transpileGORest && npm run transpileGOWs",
+    "transpileGO": "npm run transpileGORest && npm run transpileGOWs",
     "transpileGORest": "tsx build/goTranspiler.ts && tsx build/goTranspiler.ts --ws",
+    "transpileGORest": "tsx build/goTranspiler.ts",
+    "transpileGOWs": "tsx build/goTranspiler.ts --ws",
     "transpileGOWs": "tsx build/goTranspiler.ts --ws",
     "transpileRest": "tsx build/transpile.ts",
     "transpileWs": "tsx build/transpileWS.ts",

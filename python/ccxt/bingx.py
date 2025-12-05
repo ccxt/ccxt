@@ -45,6 +45,9 @@ class bingx(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': True,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
@@ -65,9 +68,18 @@ class bingx(Exchange, ImplicitAPI):
                 'createTrailingPercentOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
@@ -78,6 +90,9 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchGreeks': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': True,
                 'fetchLiquidations': False,
                 'fetchMarginAdjustmentHistory': False,
@@ -91,6 +106,8 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -105,8 +122,11 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'sandbox': True,
                 'setLeverage': True,
                 'setMargin': True,
@@ -174,7 +194,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/depth': 1,
                                 'market/kline': 1,
                                 'ticker/24hr': 1,
-                                'ticker/price': 1,
+                                'ticker/price': 1,  # deprecated, still can be used
                                 'ticker/bookTicker': 1,
                             },
                         },
@@ -186,6 +206,9 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/myTrades': 2,
                                 'user/commissionRate': 5,
                                 'account/balance': 2,
+                                'oco/orderList': 5,
+                                'oco/openOrderList': 5,
+                                'oco/historyOrderList': 5,
                             },
                             'post': {
                                 'trade/order': 2,
@@ -195,6 +218,8 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/cancelOrders': 5,
                                 'trade/cancelOpenOrders': 5,
                                 'trade/cancelAllAfter': 5,
+                                'oco/order': 5,
+                                'oco/cancel': 5,
                             },
                         },
                     },
@@ -203,6 +228,7 @@ class bingx(Exchange, ImplicitAPI):
                             'get': {
                                 'market/depth': 1,
                                 'market/kline': 1,
+                                'ticker/price': 1,
                             },
                         },
                     },
@@ -228,6 +254,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/historicalTrades': 1,
                                 'market/markPriceKlines': 1,
                                 'trade/multiAssetsRules': 1,
+                                'tradingRules': 1,
                             },
                         },
                         'private': {
@@ -245,6 +272,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'user/marginAssets': 5,
                             },
                             'post': {
+                                'trade/amend': 2,
                                 'trade/cancelReplace': 2,
                                 'positionSide/dual': 5,
                                 'trade/batchCancelReplace': 5,
@@ -253,6 +281,8 @@ class bingx(Exchange, ImplicitAPI):
                                 'twap/order': 5,
                                 'twap/cancelOrder': 5,
                                 'trade/assetMode': 5,
+                                'trade/reverse': 5,
+                                'trade/autoAddMargin': 5,
                             },
                         },
                     },
@@ -311,6 +341,11 @@ class bingx(Exchange, ImplicitAPI):
                         'public': {
                             'get': {
                                 'quote/klines': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                'user/balance': 2,
                             },
                         },
                     },
@@ -453,10 +488,19 @@ class bingx(Exchange, ImplicitAPI):
                         'private': {
                             'get': {
                                 'swap/trace/currentTrack': 2,
+                                'PFutures/traderDetail': 2,
+                                'PFutures/profitHistorySummarys': 2,
+                                'PFutures/profitDetail': 2,
+                                'PFutures/tradingPairs': 2,
+                                'spot/traderDetail': 2,
+                                'spot/profitHistorySummarys': 2,
+                                'spot/profitDetail': 2,
+                                'spot/historyOrder': 2,
                             },
                             'post': {
                                 'swap/trace/closeTrackOrder': 2,
                                 'swap/trace/setTPSL': 2,
+                                'PFutures/setCommission': 2,
                                 'spot/trader/sellOrder': 10,
                             },
                         },
@@ -487,6 +531,22 @@ class bingx(Exchange, ImplicitAPI):
                                 'get': {
                                     'transfer/supportCoins': 5,
                                 },
+                            },
+                        },
+                    },
+                },
+                'agent': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'account/inviteAccountList': 5,
+                                'reward/commissionDataList': 5,
+                                'account/inviteRelationCheck': 5,
+                                'asset/depositDetailList': 5,
+                                'reward/third/commissionDataList': 5,
+                                'asset/partnerData': 5,
+                                'commissionDataList/referralCode': 5,
+                                'account/superiorCheck': 5,
                             },
                         },
                     },
@@ -1074,7 +1134,7 @@ class bingx(Exchange, ImplicitAPI):
         swapMarkets = self.array_concat(linearSwapMarkets, inverseSwapMarkets)
         return self.array_concat(spotMarkets, swapMarkets)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2136,7 +2196,7 @@ class bingx(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
 
         https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
-        https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
+        https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20account%20data
         https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
         https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
 
@@ -2228,27 +2288,26 @@ class bingx(Exchange, ImplicitAPI):
                 #     }
                 #
             else:
-                response = self.swapV2PrivateGetUserBalance(marketTypeQuery)
+                response = self.swapV3PrivateGetUserBalance(marketTypeQuery)
                 #
                 #     {
                 #         "code": 0,
                 #         "msg": "",
-                #         "data": {
-                #             "balance": {
-                #                 "userId": "1177064765068660742",
+                #         "data": [
+                #             {
+                #                 "userId": "116***295",
                 #                 "asset": "USDT",
-                #                 "balance": "51.5198",
-                #                 "equity": "50.5349",
-                #                 "unrealizedProfit": "-0.9849",
-                #                 "realisedProfit": "-0.2134",
-                #                 "availableMargin": "49.1428",
-                #                 "usedMargin": "1.3922",
+                #                 "balance": "194.8212",
+                #                 "equity": "196.7431",
+                #                 "unrealizedProfit": "1.9219",
+                #                 "realisedProfit": "-109.2504",
+                #                 "availableMargin": "193.7609",
+                #                 "usedMargin": "1.0602",
                 #                 "freezedMargin": "0.0000",
                 #                 "shortUid": "12851936"
                 #             }
-                #         }
+                #         ]
                 #     }
-                #
         return self.parse_balance(response)
 
     def parse_balance(self, response) -> Balances:
@@ -2314,41 +2373,41 @@ class bingx(Exchange, ImplicitAPI):
         #     {
         #         "code": 0,
         #         "msg": "",
-        #         "data": {
-        #             "balance": {
-        #                 "userId": "1177064765068660742",
+        #         "data": [
+        #             {
+        #                 "userId": "116***295",
         #                 "asset": "USDT",
-        #                 "balance": "51.5198",
-        #                 "equity": "50.5349",
-        #                 "unrealizedProfit": "-0.9849",
-        #                 "realisedProfit": "-0.2134",
-        #                 "availableMargin": "49.1428",
-        #                 "usedMargin": "1.3922",
+        #                 "balance": "194.8212",
+        #                 "equity": "196.7431",
+        #                 "unrealizedProfit": "1.9219",
+        #                 "realisedProfit": "-109.2504",
+        #                 "availableMargin": "193.7609",
+        #                 "usedMargin": "1.0602",
         #                 "freezedMargin": "0.0000",
         #                 "shortUid": "12851936"
         #             }
-        #         }
+        #         ]
         #     }
         #
         result: dict = {'info': response}
-        standardAndInverseBalances = self.safe_list(response, 'data')
-        firstStandardOrInverse = self.safe_dict(standardAndInverseBalances, 0)
-        isStandardOrInverse = firstStandardOrInverse is not None
+        contractBalances = self.safe_list(response, 'data')
+        firstContractBalances = self.safe_dict(contractBalances, 0)
+        isContract = firstContractBalances is not None
         spotData = self.safe_dict(response, 'data', {})
         spotBalances = self.safe_list_2(spotData, 'balances', 'assets', [])
-        firstSpot = self.safe_dict(spotBalances, 0)
-        isSpot = firstSpot is not None
-        if isStandardOrInverse:
-            for i in range(0, len(standardAndInverseBalances)):
-                balance = standardAndInverseBalances[i]
+        if isContract:
+            for i in range(0, len(contractBalances)):
+                balance = contractBalances[i]
                 currencyId = self.safe_string(balance, 'asset')
+                if currencyId is None:  # linear v3 returns empty asset
+                    break
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string_2(balance, 'availableMargin', 'availableBalance')
                 account['used'] = self.safe_string(balance, 'usedMargin')
                 account['total'] = self.safe_string(balance, 'maxWithdrawAmount')
                 result[code] = account
-        elif isSpot:
+        else:
             for i in range(0, len(spotBalances)):
                 balance = spotBalances[i]
                 currencyId = self.safe_string(balance, 'asset')
@@ -2356,16 +2415,6 @@ class bingx(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
-                result[code] = account
-        else:
-            linearSwapData = self.safe_dict(response, 'data', {})
-            linearSwapBalance = self.safe_dict(linearSwapData, 'balance')
-            if linearSwapBalance:
-                currencyId = self.safe_string(linearSwapBalance, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(linearSwapBalance, 'availableMargin')
-                account['used'] = self.safe_string(linearSwapBalance, 'usedMargin')
                 result[code] = account
         return self.safe_balance(result)
 
@@ -5144,7 +5193,7 @@ class bingx(Exchange, ImplicitAPI):
             '3': 'rejected',
             '4': 'pending',
             '5': 'rejected',
-            '6': 'ok',
+            '6': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
@@ -5605,14 +5654,24 @@ class bingx(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str [tag]:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.walletType]: 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
+        :param int [params.walletType]: 1 fund(funding) account, 2 standard account, 3 perpetual account, 15 spot account
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        walletType = self.safe_integer(params, 'walletType', 1)
+        defaultWalletType = 15  # spot
+        walletType = None
+        walletType, params = self.handle_option_and_params_2(params, 'withdraw', 'type', 'walletType', defaultWalletType)
+        walletTypes = {
+            'funding': 1,
+            'fund': 1,
+            'standard': 2,
+            'perpetual': 3,
+            'spot': 15,
+        }
+        walletType = self.safe_integer(walletTypes, walletType, defaultWalletType)
         request: dict = {
             'coin': currency['id'],
             'address': address,

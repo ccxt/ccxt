@@ -559,7 +559,7 @@ class kraken(ccxt.async_support.kraken):
             stored.append(parsed[i])
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv(self, client: Client, message, subscription):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         "channel": "ohlc",
@@ -584,7 +584,10 @@ class kraken(ccxt.async_support.kraken):
         #
         data = self.safe_list(message, 'data', [])
         first = data[0]
-        symbol = self.safe_string(first, 'symbol')
+        marketId = self.safe_string(first, 'symbol')
+        symbol = self.safe_symbol(marketId)
+        if not (symbol in self.ohlcvs):
+            self.ohlcvs[symbol] = {}
         interval = self.safe_integer(first, 'interval')
         timeframe = self.find_timeframe(interval)
         messageHash = self.get_message_hash('ohlcv', None, symbol)
@@ -612,8 +615,10 @@ class kraken(ccxt.async_support.kraken):
 
     def request_id(self):
         # their support said that reqid must be an int32, not documented
+        self.lock_id()
         reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
         self.options['reqid'] = reqid
+        self.unlock_id()
         return reqid
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -736,7 +741,7 @@ class kraken(ccxt.async_support.kraken):
         orderbook = await self.watch_multi_helper('orderbook', 'book', symbols, {'limit': limit}, self.extend(requiredParams, params))
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1173,8 +1178,7 @@ class kraken(ccxt.async_support.kraken):
         :param dict [params]: maximum number of orderic to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['snap_orders'] = True
-        return await self.watch_private('orders', symbol, since, limit, params)
+        return await self.watch_private('orders', symbol, since, limit, self.extend(params, {'snap_orders': True}))
 
     def handle_orders(self, client: Client, message, subscription=None):
         #
@@ -1230,7 +1234,8 @@ class kraken(ccxt.async_support.kraken):
                     if first['id'] in symbolsByOrderId:
                         del symbolsByOrderId[first['id']]
                 stored.append(newOrder)
-                symbols[symbol] = True
+                if symbol is not None:
+                    symbols[symbol] = True
             name = 'orders'
             client.resolve(self.orders, name)
             keys = list(symbols.keys())

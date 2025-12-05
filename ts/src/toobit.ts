@@ -22,7 +22,7 @@ export default class toobit extends Exchange {
             'version': 'v1',
             'rateLimit': 20, // 50 requests per second
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -62,7 +62,7 @@ export default class toobit extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/3fc13870-5406-431b-8be0-2aab69c4f225',
+                'logo': 'https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e',
                 'api': {
                     'common': 'https://api.toobit.com',
                     'private': 'https://api.toobit.com',
@@ -3004,6 +3004,7 @@ export default class toobit extends Exchange {
                 body += '&signature=' + signature;
             }
             headers = {
+                'Referrer': 'CCXT',
                 'X-BB-APIKEY': this.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
