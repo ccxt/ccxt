@@ -1799,7 +1799,7 @@ export default class mexc extends Exchange {
             start = until - (usedLimit * duration);
         }
         if (market['spot']) {
-            if (since !== undefined) {
+            if (start !== undefined) {
                 request['startTime'] = start;
                 if (until === undefined) {
                     // we have to calculate it assuming we can get at most 2000 entries per request
