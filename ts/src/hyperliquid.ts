@@ -523,7 +523,8 @@ export default class hyperliquid extends Exchange {
             if (fullName !== undefined) {
                 const isWrapped = fullName.startsWith ('Unit ');
                 if (isWrapped) {
-                    const withoutU = code.replace ('U', '');
+                    const parts = code.split ('U');
+                    const withoutU = parts.join ('');
                     const baseCode = this.safeCurrencyCode (withoutU);
                     this.options['spotCurrencyMapping'][code] = baseCode;
                 }
