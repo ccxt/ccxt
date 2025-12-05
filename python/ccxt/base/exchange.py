@@ -193,6 +193,8 @@ class Exchange(object):
     codes = None
     timeframes = {}
     tokenBucket = None
+    rollingWindowSize = 0.0  # set to 0.0 to use leaky bucket rate limiter
+    rateLimiterAlgorithm = 'leakyBucket'
 
     fees = {
         'trading': {
@@ -3213,8 +3215,10 @@ class Exchange(object):
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': self.safe_integer(self.options, 'maxRequestsQueue', 1000),
             'refillRate': refillRate,
+            'algorithm': self.rateLimiterAlgorithm,
+            'windowSize': self.rollingWindowSize,
+            'maxWeight': self.rollingWindowSize / self.rateLimit,   # ms_of_window / ms_of_rate_limit
         }
         existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
         self.tokenBucket = self.extend(defaultBucket, existingBucket)
