@@ -1225,9 +1225,11 @@ export default class hyperliquid extends Exchange {
         if (symbols !== undefined) {
             // infer from first symbol
             const firstSymbol = this.safeString (symbols, 0);
-            const market = this.market (firstSymbol);
-            if (this.safeBool (this.safeDict (market, 'info'), 'hip3')) {
-                hip3 = true;
+            if (firstSymbol !== undefined) {
+                const market = this.market (firstSymbol);
+                if (this.safeBool (this.safeDict (market, 'info'), 'hip3')) {
+                    hip3 = true;
+                }
             }
         }
         if (hip3) {
