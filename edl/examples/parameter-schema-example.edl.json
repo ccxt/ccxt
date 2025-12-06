@@ -1,0 +1,250 @@
+{
+  "exchange": {
+    "id": "example_exchange",
+    "name": "Example Exchange",
+    "rateLimit": 1000
+  },
+  "urls": {
+    "api": "https://api.example.com",
+    "www": "https://example.com",
+    "doc": ["https://docs.example.com"]
+  },
+  "has": {
+    "fetchTicker": true,
+    "fetchOrderBook": true,
+    "createOrder": true
+  },
+  "auth": {
+    "type": "hmac",
+    "algorithm": "sha256"
+  },
+  "api": {
+    "public": {
+      "get": {
+        "ticker": {
+          "params": {
+            "symbol": {
+              "type": "string",
+              "required": true,
+              "description": "Trading pair symbol in format BASE/QUOTE",
+              "validate": "value.includes('/')",
+              "location": "path"
+            },
+            "interval": {
+              "type": "string",
+              "required": false,
+              "default": "1d",
+              "enum": ["1m", "5m", "15m", "1h", "4h", "1d"],
+              "description": "Timeframe interval for ticker data",
+              "location": "query"
+            }
+          }
+        },
+        "orderbook": {
+          "params": {
+            "symbol": {
+              "type": "string",
+              "required": true,
+              "description": "Trading pair symbol",
+              "location": "query"
+            },
+            "limit": {
+              "type": "int",
+              "required": false,
+              "default": 100,
+              "enum": [10, 20, 50, 100, 500],
+              "description": "Depth of the order book",
+              "validate": "value > 0 && value <= 500",
+              "location": "query"
+            }
+          }
+        }
+      }
+    },
+    "private": {
+      "post": {
+        "order": {
+          "params": {
+            "symbol": {
+              "type": "string",
+              "required": true,
+              "description": "Trading pair symbol",
+              "transform": "value.replace('/', '_')",
+              "location": "body"
+            },
+            "side": {
+              "type": "string",
+              "required": true,
+              "enum": ["buy", "sell"],
+              "description": "Order side",
+              "location": "body"
+            },
+            "type": {
+              "type": "string",
+              "required": true,
+              "enum": ["market", "limit", "stop_limit"],
+              "description": "Order type",
+              "location": "body",
+              "alias": "orderType"
+            },
+            "amount": {
+              "type": "number",
+              "required": true,
+              "description": "Order amount in base currency",
+              "validate": "value > 0",
+              "transform": "toString()",
+              "location": "body",
+              "alias": ["quantity", "qty"]
+            },
+            "price": {
+              "type": "number",
+              "required_if": "type == 'limit' || type == 'stop_limit'",
+              "description": "Limit price (required for limit and stop_limit orders)",
+              "validate": "value > 0",
+              "transform": "toString()",
+              "dependencies": ["type"],
+              "location": "body"
+            },
+            "stopPrice": {
+              "type": "number",
+              "required_if": "type == 'stop_limit'",
+              "description": "Stop trigger price (required for stop_limit orders)",
+              "validate": "value > 0",
+              "transform": "toString()",
+              "dependencies": ["type"],
+              "location": "body",
+              "alias": "stop_price"
+            },
+            "timeInForce": {
+              "type": "string",
+              "required": false,
+              "enum": ["GTC", "IOC", "FOK", "PO"],
+              "default": "GTC",
+              "description": "Time in force policy",
+              "location": "body",
+              "alias": "tif"
+            },
+            "clientOrderId": {
+              "type": "string",
+              "required": false,
+              "description": "Client-specified order ID",
+              "validate": "value.length <= 36",
+              "location": "body",
+              "alias": ["client_order_id", "clOrdId"]
+            },
+            "postOnly": {
+              "type": "bool",
+              "required": false,
+              "default": false,
+              "description": "Post-only flag (maker-only orders)",
+              "required_if": "timeInForce == 'PO'",
+              "dependencies": ["timeInForce"],
+              "location": "body",
+              "alias": "post_only"
+            },
+            "reduceOnly": {
+              "type": "bool",
+              "required": false,
+              "default": false,
+              "description": "Reduce-only flag (only reduce position)",
+              "location": "body",
+              "alias": "reduce_only"
+            }
+          }
+        },
+        "order/cancel": {
+          "params": {
+            "orderId": {
+              "type": "string",
+              "required_if": "!clientOrderId",
+              "description": "Exchange order ID",
+              "dependencies": ["clientOrderId"],
+              "location": "body",
+              "alias": ["order_id", "id"]
+            },
+            "clientOrderId": {
+              "type": "string",
+              "required_if": "!orderId",
+              "description": "Client order ID",
+              "dependencies": ["orderId"],
+              "location": "body",
+              "alias": ["client_order_id", "clOrdId"]
+            },
+            "symbol": {
+              "type": "string",
+              "required": false,
+              "description": "Trading pair symbol (required by some exchanges)",
+              "location": "body"
+            }
+          }
+        }
+      },
+      "get": {
+        "orders": {
+          "params": {
+            "symbol": {
+              "type": "string",
+              "required": false,
+              "description": "Filter by trading pair",
+              "location": "query"
+            },
+            "status": {
+              "type": "string",
+              "required": false,
+              "enum": ["open", "closed", "canceled", "all"],
+              "default": "open",
+              "description": "Order status filter",
+              "location": "query"
+            },
+            "limit": {
+              "type": "int",
+              "required": false,
+              "default": 100,
+              "description": "Maximum number of orders to return",
+              "validate": "value > 0 && value <= 1000",
+              "location": "query"
+            },
+            "startTime": {
+              "type": "timestamp_ms",
+              "required": false,
+              "description": "Filter orders created after this time",
+              "dependencies": ["endTime"],
+              "location": "query",
+              "alias": ["start_time", "from"]
+            },
+            "endTime": {
+              "type": "timestamp_ms",
+              "required": false,
+              "description": "Filter orders created before this time",
+              "validate": "!startTime || value > startTime",
+              "dependencies": ["startTime"],
+              "location": "query",
+              "alias": ["end_time", "to"]
+            }
+          }
+        },
+        "balance": {
+          "params": {
+            "currency": {
+              "type": "string",
+              "required": false,
+              "description": "Filter by specific currency",
+              "transform": "uppercase",
+              "location": "query",
+              "alias": ["asset", "coin"]
+            },
+            "type": {
+              "type": "string",
+              "required": false,
+              "enum": ["spot", "margin", "futures"],
+              "default": "spot",
+              "description": "Account type",
+              "location": "query",
+              "alias": "accountType"
+            }
+          }
+        }
+      }
+    }
+  }
+}

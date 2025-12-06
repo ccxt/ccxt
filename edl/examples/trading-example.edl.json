@@ -1,0 +1,217 @@
+{
+  "exchange": {
+    "id": "example_exchange",
+    "name": "Example Exchange",
+    "countries": ["US"],
+    "rateLimit": 1000
+  },
+  "urls": {
+    "api": "https://api.example.com",
+    "www": "https://example.com",
+    "doc": ["https://docs.example.com/api"]
+  },
+  "has": {
+    "createOrder": true,
+    "cancelOrder": true,
+    "editOrder": true
+  },
+  "auth": {
+    "type": "hmac",
+    "algorithm": "sha256",
+    "encoding": "hex"
+  },
+  "api": {
+    "private": {
+      "post": {
+        "order": {
+          "params": {
+            "symbol": {
+              "type": "string",
+              "required": true
+            },
+            "side": {
+              "type": "string",
+              "required": true
+            },
+            "type": {
+              "type": "string",
+              "required": true
+            },
+            "amount": {
+              "type": "number",
+              "required": true
+            },
+            "price": {
+              "type": "number",
+              "required": false
+            }
+          }
+        }
+      },
+      "delete": {
+        "order": {
+          "params": {
+            "orderId": {
+              "type": "string",
+              "required": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "trading": {
+    "supportedOrderTypes": [
+      "market",
+      "limit",
+      "stopLimit",
+      "trailingStop",
+      "iceberg",
+      "oco"
+    ],
+    "defaultOrderType": "limit",
+    "endpoints": {
+      "createOrder": {
+        "endpoint": "order",
+        "method": "POST",
+        "params": {
+          "symbol": "symbol",
+          "side": "side",
+          "type": "type",
+          "quantity": "amount",
+          "price": "price",
+          "stopPrice": "stopPrice",
+          "timeInForce": "timeInForce",
+          "clientOrderId": "newClientOrderId"
+        }
+      },
+      "cancelOrder": {
+        "endpoint": "order",
+        "method": "DELETE",
+        "params": {
+          "orderId": "orderId"
+        }
+      },
+      "editOrder": {
+        "endpoint": "order",
+        "method": "PUT",
+        "params": {
+          "orderId": "orderId",
+          "quantity": "amount",
+          "price": "price"
+        }
+      }
+    },
+    "orderTypes": [
+      {
+        "name": "market",
+        "requiredParams": ["symbol", "side", "amount"],
+        "optionalParams": ["clientOrderId"],
+        "description": "Market order - executes immediately at the best available price"
+      },
+      {
+        "name": "limit",
+        "requiredParams": ["symbol", "side", "amount", "price"],
+        "optionalParams": ["timeInForce", "postOnly", "clientOrderId"],
+        "description": "Limit order - executes at a specific price or better"
+      },
+      {
+        "name": "stopLimit",
+        "requiredParams": ["symbol", "side", "amount", "price", "stopPrice"],
+        "optionalParams": ["timeInForce", "clientOrderId"],
+        "description": "Stop-limit order - becomes a limit order when stop price is reached"
+      },
+      {
+        "name": "trailingStop",
+        "requiredParams": ["symbol", "side", "amount", "trailingDelta"],
+        "optionalParams": ["clientOrderId"],
+        "description": "Trailing stop order - stop price trails the market price by a delta"
+      },
+      {
+        "name": "iceberg",
+        "requiredParams": ["symbol", "side", "amount", "price"],
+        "optionalParams": ["timeInForce", "clientOrderId"],
+        "description": "Iceberg order - large order split into smaller visible portions"
+      },
+      {
+        "name": "oco",
+        "requiredParams": ["symbol", "side", "amount", "price"],
+        "optionalParams": ["clientOrderId"],
+        "description": "One-Cancels-Other - two orders where execution of one cancels the other"
+      }
+    ],
+    "orderParameters": {
+      "symbol": {
+        "type": "string",
+        "required": true,
+        "description": "Trading pair symbol (e.g., BTC/USDT)"
+      },
+      "side": {
+        "type": "string",
+        "required": true,
+        "enum": ["buy", "sell"],
+        "description": "Order side: buy or sell"
+      },
+      "type": {
+        "type": "string",
+        "required": true,
+        "enum": ["market", "limit", "stopLimit", "trailingStop", "iceberg", "oco"],
+        "description": "Order type"
+      },
+      "amount": {
+        "type": "number",
+        "required": true,
+        "description": "Order amount in base currency"
+      },
+      "price": {
+        "type": "number",
+        "required": false,
+        "requiredIf": "type === 'limit' || type === 'stopLimit' || type === 'iceberg' || type === 'oco'",
+        "description": "Order price in quote currency"
+      },
+      "stopPrice": {
+        "type": "number",
+        "required": false,
+        "requiredIf": "type === 'stopLimit'",
+        "description": "Stop price that triggers the order"
+      },
+      "trailingDelta": {
+        "type": "number",
+        "required": false,
+        "requiredIf": "type === 'trailingStop'",
+        "description": "Trailing delta in price units or percentage"
+      },
+      "timeInForce": {
+        "type": "string",
+        "required": false,
+        "enum": ["GTC", "IOC", "FOK", "GTD", "PO"],
+        "description": "Time in force: GTC (Good Till Cancel), IOC (Immediate or Cancel), FOK (Fill or Kill), GTD (Good Till Date), PO (Post Only)"
+      },
+      "postOnly": {
+        "type": "boolean",
+        "required": false,
+        "description": "If true, order will only be placed if it would be a maker order"
+      },
+      "reduceOnly": {
+        "type": "boolean",
+        "required": false,
+        "description": "If true, order will only reduce an existing position"
+      },
+      "closePosition": {
+        "type": "boolean",
+        "required": false,
+        "description": "If true, will close the entire position"
+      },
+      "clientOrderId": {
+        "type": "string",
+        "required": false,
+        "description": "Custom order ID for tracking"
+      },
+      "leverage": {
+        "type": "number",
+        "required": false,
+        "description": "Leverage multiplier (e.g., 1, 5, 10, 100)"
+      }
+    }
+  }
+}
