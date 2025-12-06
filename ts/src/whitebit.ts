@@ -3967,7 +3967,7 @@ export default class whitebit extends Exchange {
             const nonce = this.nonce ().toString ();
             const secret = this.encode (this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
-            body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
+            body = this.json (this.extend ({ 'request': request, 'nonce': nonce, 'nonceWindow': true }, params));
             const payload = this.stringToBase64 (body);
             const signature = this.hmac (this.encode (payload), secret, sha512);
             headers = {
