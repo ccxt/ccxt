@@ -1466,6 +1466,438 @@
         ],
         "createOrder": [
             {
+                "description": "swap limit sell takeProfitPrice",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    99000,
+                    {
+                        "takeProfitPrice": 98000
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "8bec532a-36b1-437e-93f4-1b03bf449456",
+                        "orderLinkId": ""
+                    },
+                    "retExtInfo": {},
+                    "time": "1764711613007"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "8bec532a-36b1-437e-93f4-1b03bf449456",
+                        "orderLinkId": ""
+                    },
+                    "id": "8bec532a-36b1-437e-93f4-1b03bf449456",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "swap limit sell stopLossPrice",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    81000,
+                    {
+                        "stopLossPrice": 82000
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "6775234e-5cea-4ee6-8b0f-899cc91cc457",
+                        "orderLinkId": ""
+                    },
+                    "retExtInfo": {},
+                    "time": "1764711543834"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "6775234e-5cea-4ee6-8b0f-899cc91cc457",
+                        "orderLinkId": ""
+                    },
+                    "id": "6775234e-5cea-4ee6-8b0f-899cc91cc457",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "swap limit + stopLossPrice",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    81234,
+                    {
+                        "stopLossPrice": 99235
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "368953a2-1bd8-4512-bd2f-396d08a8a69c",
+                        "orderLinkId": ""
+                    },
+                    "retExtInfo": {},
+                    "time": "1764707587867"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "368953a2-1bd8-4512-bd2f-396d08a8a69c",
+                        "orderLinkId": ""
+                    },
+                    "id": "368953a2-1bd8-4512-bd2f-396d08a8a69c",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "swap limit + takeProfitPrice",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    81234,
+                    {
+                        "takeProfitPrice": 81235
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "e1aa1808-3d9a-40fa-ab1e-d5c3d5233599",
+                        "orderLinkId": ""
+                    },
+                    "retExtInfo": {},
+                    "time": "1764707555054"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "e1aa1808-3d9a-40fa-ab1e-d5c3d5233599",
+                        "orderLinkId": ""
+                    },
+                    "id": "e1aa1808-3d9a-40fa-ab1e-d5c3d5233599",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "protective oco order - limit",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "takeProfitLimitPrice": 80000,
+                        "stopLossPrice": 100000,
+                        "stopLossLimitPrice": 100123
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {},
+                    "retExtInfo": {},
+                    "time": "1764705610523"
+                },
+                "parsedResponse": {
+                    "info": {},
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "protective oco order - market with amount",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "stopLossPrice": 100000
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {},
+                    "retExtInfo": {},
+                    "time": "1764705435514"
+                },
+                "parsedResponse": {
+                    "info": {},
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "protective oco order - market without amount",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.0,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "stopLossPrice": 100000
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {},
+                    "retExtInfo": {},
+                    "time": "1764705413056"
+                },
+                "parsedResponse": {
+                    "info": {},
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "protective oco order - limit",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "takeProfitLimitPrice": 80000,
+                        "stopLossPrice": 100000,
+                        "stopLossLimitPrice": 100123
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {},
+                    "retExtInfo": {},
+                    "time": "1764704071593"
+                },
+                "parsedResponse": {
+                    "info": {},
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "spot stopLossPrice order",
                 "method": "createOrder",
                 "input": [
