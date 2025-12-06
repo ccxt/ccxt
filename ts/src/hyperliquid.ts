@@ -3204,6 +3204,30 @@ export default class hyperliquid extends Exchange {
         return this.safeDict (positions, 0, {}) as Position;
     }
 
+    getDexFromSymbols (methodName: string, symbols: Strings = undefined) {
+        if (symbols === undefined) {
+            return undefined;
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            return undefined;
+        }
+        let dexName = undefined;
+        for (let i = 0; i < symbolsLength; i++) {
+            if (dexName === undefined) {
+                const market = this.market (symbols[i]);
+                dexName = this.getDexFromHip3Symbol (market);
+            } else {
+                const market = this.market (symbols[i]);
+                const currentDexName = this.getDexFromHip3Symbol (market);
+                if (currentDexName !== dexName) {
+                    throw new NotSupported (this.id + ' ' + methodName + ' only supports fetching positions for one DEX at a time for HIP3 markets');
+                }
+            }
+        }
+        return dexName;
+    }
+
     /**
      * @method
      * @name hyperliquid#fetchPositions
@@ -3225,12 +3249,9 @@ export default class hyperliquid extends Exchange {
             'type': 'clearinghouseState',
             'user': userAddress,
         };
-        if (symbols !== undefined) {
-            const market = this.market (symbols[0]);
-            const dexName = this.getDexFromHip3Symbol (market);
-            if (dexName !== undefined) {
-                request['dex'] = dexName;
-            }
+        const dexName = this.getDexFromSymbols ('fetchPositions', symbols);
+        if (dexName !== undefined) {
+            request['dex'] = dexName;
         }
         const response = await this.publicPostInfo (this.extend (request, params));
         //
