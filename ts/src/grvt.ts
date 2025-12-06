@@ -1,0 +1,1457 @@
+
+//  ---------------------------------------------------------------------------
+
+import Exchange from './abstract/grvt.js';
+import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+
+//  ---------------------------------------------------------------------------
+
+/**
+ * @class grvt
+ * @augments Exchange
+ */
+export default class grvt extends Exchange {
+    describe (): any {
+        return this.deepExtend (super.describe (), {
+            'id': 'grvt',
+            'name': 'GRVT',
+            'countries': [  ], //
+            'rateLimit': 10,
+            'certified': false,
+            'version': 'v1',
+            'pro': false,
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+            },
+            'timeframes': {
+                '1m': 'CI_1_M',
+                '3m': 'CI_3_M',
+                '5m': 'CI_5_M',
+                '15m': 'CI_15_M',
+                '30m': 'CI_30_M',
+                '1h': 'CI_1_H',
+                '2h': 'CI_2_H',
+                '4h': 'CI_4_H',
+                '6h': 'CI_6_H',
+                '8h': 'CI_8_H',
+                '12h': 'CI_12_H',
+                '1d': 'CI_1_D',
+                '3d': 'CI_3_D',
+                '5d': 'CI_5_D',
+                '1w': 'CI_1_W',
+                '2w': 'CI_2_W',
+                '3w': 'CI_3_W',
+                '4w': 'CI_4_W',
+            },
+            'urls': {
+                'logo': 'https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e',
+                'api': {
+                    'privateTrading': 'https://trades.grvt.io/',
+                    'privateMarket': 'https://market-data.grvt.io/',
+                    'privateEdge': 'https://edge.grvt.io/',
+                },
+                'www': 'https://grvt.io',
+                'referral': '----------------------------------------------------',
+                'doc': [
+                    'https://api-docs.grvt.io/',
+                ],
+                'fees': '',
+            },
+            'api': {
+                'privateEdge': {
+                    'post': {
+                        'auth/api_key/login': 1,
+                    },
+                },
+                'privateMarket': {
+                    'post': {
+                        'full/v1/instrument': 1,
+                        'full/v1/all_instruments': 1,
+                        'full/v1/instruments': 1,
+                        'full/v1/currency': 1,
+                        'full/v1/margin_rules': 1,
+                        'full/v1/mini': 1,
+                        'full/v1/ticker': 1,
+                        'full/v1/book': 1,
+                        'full/v1/trade': 1,
+                        'full/v1/trade_history': 1,
+                        'full/v1/kline': 1,
+                        'full/v1/funding': 1,
+                    },
+                },
+                'privateTrading': {
+                    'post': {
+                        'full/v1/create_order': 1,
+                        'full/v1/account_summary': 1,
+                        'full/v1/account_history': 1,
+                        'full/v1/aggregated_account_summary': 1,
+                        'full/v1/funding_account_summary': 1,
+                        'full/v1/transfer': 1,
+                        'full/v1/deposit_history': 1,
+                        'full/v1/transfer_history': 1,
+                        'full/v1/withdrawal_history': 1,
+                    },
+                },
+            },
+            // exchange-specific options
+            'options': {
+                'subAccountId': undefined, // needs to be set manually by user
+                'chainIds': {
+                    // https://api.rhino.fi/bridge/configs
+                    '42161': 'ARBONE',
+                    '43114': 'AVAXC',
+                    '8453': 'BASE',
+                    '56': 'BSC',
+                    '1': 'ETH',
+                    '10': 'OP',
+                    '900': 'SOL',
+                    '728126428': 'TRX',
+                    '324': 'ZKSYNCERA',
+                },
+            },
+            'precisionMode': TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    
+                },
+                'broad': {
+                    
+                },
+            },
+        });
+    }
+
+    /**
+     * @method
+     * @name grvt#signIn
+     * @description sign in, must be called prior to using other authenticated methods
+     * @see https://api-docs.grvt.io/#authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns response from exchange
+     */
+    async signIn (params = {}): Promise<{}> {
+        const request = {
+            'api_key': this.apiKey,
+        };
+        const response = await this.privateEdgePostAuthApiKeyLogin (this.extend (request, params));
+        const status = this.safeString (response, 'status');
+        if (status !== 'success') {
+            throw new AuthenticationError (this.id + ' signIn() failed: ' + this.json (response));
+        }
+        return response;
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchMarkets
+     * @description retrieves data on all markets for alpaca
+     * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        await this.signIn ();
+        const response = await this.privateMarketPostFullV1AllInstruments (params);
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "instrument_hash": "0x032201",
+        //                "base": "AAVE",
+        //                "quote": "USDT",
+        //                "kind": "PERPETUAL",
+        //                "venues": [
+        //                    "ORDERBOOK",
+        //                    "RFQ"
+        //                ],
+        //                "settlement_period": "PERPETUAL",
+        //                "base_decimals": "9",
+        //                "quote_decimals": "6",
+        //                "tick_size": "0.01",
+        //                "min_size": "0.1",
+        //                "create_time": "1764303867576216941",
+        //                "max_position_size": "3000.0",
+        //                "funding_interval_hours": "8",
+        //                "adjusted_funding_rate_cap": "0.75",
+        //                "adjusted_funding_rate_floor": "-0.75"
+        //            },
+        //            ...
+        //
+        const result = this.safeList (response, 'result', []);
+        return this.parseMarkets (result);
+    }
+
+    parseMarket (market): Market {
+        const marketId = this.safeString (market, 'instrument');
+        const baseId = this.safeString (market, 'base');
+        const quoteId = this.safeString (market, 'quote');
+        const settleId = quoteId;
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        const symbol = base + '/' + quote + ':' + settle;
+        let type: Str = undefined;
+        const typeRaw = this.safeString (market, 'kind');
+        if (typeRaw === 'PERPETUAL') {
+            type = 'swap';
+        }
+        const isSpot = (type === 'spot');
+        const isSwap = (type === 'swap');
+        const isFuture = (type === 'future');
+        const isContract = isSwap || isFuture;
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': isSpot,
+            'margin': false,
+            'swap': isSwap,
+            'future': isFuture,
+            'option': false,
+            'active': undefined, // todo: ask support to add
+            'contract': isContract,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'tick_size'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'min_size'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': this.safeIntegerProduct (market, 'create_time', 0.000001),
+            'info': market,
+        } as Market;
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://api-docs.grvt.io/market_data_api/#get-currency-response
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        await this.signIn ();
+        const response = await this.privateMarketPostFullV1Currency (params);
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "id": "4",
+        //                "symbol": "ETH",
+        //                "balance_decimals": "9",
+        //                "quantity_multiplier": "1000000000"
+        //            },
+        //            ..
+        //
+        const responseResult = this.safeList (response, 'result', []);
+        return this.parseCurrencies (responseResult);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode (id);
+        return this.safeCurrencyStructure ({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'balance_decimals'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'type': 'crypto', // only crypto for now
+            'networks': undefined,
+        });
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.grvt.io/market_data_api/#ticker_1
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const request = {
+            'instrument': this.marketId (symbol),
+        };
+        const response = await this.privateMarketPostFullV1Ticker (this.extend (request, params));
+        //
+        //    {
+        //        "result": {
+        //            "event_time": "1764774730025055205",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "mark_price": "92697.300078773",
+        //            "index_price": "92727.818122278",
+        //            "last_price": "92683.0",
+        //            "last_size": "0.001",
+        //            "mid_price": "92682.95",
+        //            "best_bid_price": "92682.9",
+        //            "best_bid_size": "5.332",
+        //            "best_ask_price": "92683.0",
+        //            "best_ask_size": "0.009",
+        //            "funding_rate_8h_curr": "0.0037",
+        //            "funding_rate_8h_avg": "0.0037",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "buy_volume_24h_b": "2893.898",
+        //            "sell_volume_24h_b": "2907.847",
+        //            "buy_volume_24h_q": "266955739.1606",
+        //            "sell_volume_24h_q": "268170211.7109",
+        //            "high_price": "93908.3",
+        //            "low_price": "89900.1",
+        //            "open_price": "90129.2",
+        //            "open_interest": "1523.218935908",
+        //            "long_short_ratio": "1.472543",
+        //            "funding_rate": "0.0037",
+        //            "next_funding_time": "1764777600000000000"
+        //        }
+        //    }
+        //
+        return this.parseTicker (response);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'instrument');
+        return this.safeTicker ({
+            'info': ticker,
+            'symbol': this.safeSymbol (marketId, market),
+            'open': this.safeNumber (ticker, 'open_price'),
+            'high': this.safeNumber (ticker, 'high_price'),
+            'low': this.safeNumber (ticker, 'low_price'),
+            'last': this.safeNumber (ticker, 'last_price'),
+            'bid': this.safeNumber (ticker, 'best_bid_price'),
+            'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
+            'ask': this.safeNumber (ticker, 'best_ask_price'),
+            'askVolume': this.safeNumber (ticker, 'best_ask_size'),
+            'change': undefined,
+            'percentage': undefined,
+            'baseVolume': this.safeNumber (ticker, 'buy_volume_24h_b'),
+            'quoteVolume': this.safeNumber (ticker, 'buy_volume_24h_q'),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'vwap': undefined,
+            'average': undefined,
+            'previousClose': undefined,
+        });
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.grvt.io/market_data_api/#orderbook-levels
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.loc] crypto location, default: us
+     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const request = {
+            'instrument': this.marketId (symbol),
+        };
+        if (limit !== undefined) {
+            request['depth'] = this.findNearestCeiling ([ 10, 50, 100, 500 ], limit);
+        } else {
+            request['depth'] = 100; // default
+        }
+        const response = await this.privateMarketPostFullV1Book (this.extend (request, params));
+        //
+        //    {
+        //        "result": {
+        //            "event_time": "1764777396650000000",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "bids": [
+        //                {
+        //                    "price": "92336.0",
+        //                    "size": "0.005",
+        //                    "num_orders": "1"
+        //                },
+        //                ...
+        //            ],
+        //            "asks": [
+        //                {
+        //                    "price": "92336.1",
+        //                    "size": "5.711",
+        //                    "num_orders": "37"
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const timestamp = this.parse8601 (this.safeString (result, 'event_time'));
+        const marketId = this.safeString (result, 'instrument');
+        return this.parseOrderBook (result, this.safeSymbol (marketId), timestamp, 'bids', 'asks', 'price', 'size');
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-docs.grvt.io/market_data_api/#trade_1
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.loc] crypto location, default: us
+     * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = {
+            'instrument': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        if (since !== undefined) {
+            request['start_time'] = since * 1000000;
+        }
+        const response = await this.privateMarketPostFullV1TradeHistory (this.extend (request, params));
+        //
+        //    {
+        //        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
+        //        "result": [
+        //            {
+        //                "event_time": "1764779531332118705",
+        //                "instrument": "ETH_USDT_Perp",
+        //                "is_taker_buyer": false,
+        //                "size": "23.73",
+        //                "price": "3089.88",
+        //                "mark_price": "3089.360002315",
+        //                "index_price": "3090.443723246",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "trade_id": "64796657-1",
+        //                "venue": "ORDERBOOK",
+        //                "is_rpi": false
+        //            },
+        //            ...
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //
+        //            {
+        //                "event_time": "1764779531332118705",
+        //                "instrument": "ETH_USDT_Perp",
+        //                "is_taker_buyer": false,
+        //                "size": "23.73",
+        //                "price": "3089.88",
+        //                "mark_price": "3089.360002315",
+        //                "index_price": "3090.443723246",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "trade_id": "64796657-1",
+        //                "venue": "ORDERBOOK",
+        //                "is_rpi": false
+        //            }
+        //
+        const marketId = this.safeString (trade, 'instrument');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeIntegerProduct (trade, 'event_time', 0.000001);
+        const isTakerBuyer = this.safeBool (trade, 'is_taker_buyer');
+        let side: Str = undefined;
+        if (isTakerBuyer !== undefined) {
+            side = isTakerBuyer ? 'buy' : 'sell';
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'trade_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'size'),
+            'cost': undefined,
+            'fee': undefined,
+            'order': undefined,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.grvt.io/market_data_api/#candlestick_1
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {string} [params.priceType] last, mark, index (default is 'last')
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        const maxLimit = 1000;
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+        }
+        const market = this.market (symbol);
+        let request = {
+            'instrument': market['id'],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        if (since !== undefined) {
+            request['start_time'] = since * 1000000;
+        }
+        const priceTypeMap = {
+            'last': 1,
+            'mark': 2,
+            'index': 3,
+        };
+        const selectedPriceType = this.safeString (params, 'priceType', 'last');
+        request['type'] = this.safeInteger (priceTypeMap, selectedPriceType, 1);
+        const response = await this.privateMarketPostFullV1TradeHistory (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "time": "1753464720000000",
+        //            "duration": "60000000",
+        //            "open": "116051.35",
+        //            "high": "116060.27",
+        //            "low": "116051.35",
+        //            "close": "116060.27",
+        //            "volume": "0.0257",
+        //            "quoteVolume": "2982.6724054"
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "time": "1753464720000000",
+        //            "duration": "60000000",
+        //            "open": "116051.35",
+        //            "high": "116060.27",
+        //            "low": "116051.35",
+        //            "close": "116060.27",
+        //            "volume": "0.0257",
+        //            "quoteVolume": "2982.6724054"
+        //        }
+        //
+        return [
+            this.safeIntegerProduct (ohlcv, 'time', 0.001),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://api-docs.grvt.io/market_data_api/#funding-rate
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+        }
+        const market = this.market (symbol);
+        let request: Dict = {
+            'instrument': market['id'],
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        const response = await this.privateMarketPostFullV1Funding (this.extend (request, params));
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "instrument": "BTC_USDT_Perp",
+        //                "funding_rate": "-0.0034",
+        //                "funding_time": "1760494260000000000",
+        //                "mark_price": "112721.159060304",
+        //                "funding_rate_8_h_avg": "-0.0038",
+        //                "funding_interval_hours": "0"
+        //            },
+        //            ...
+        //        ],
+        //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
+        //    }
+        //
+        const result = this.safeList (response, 'result', []);
+        return this.parseFundingRateHistories (result, market);
+    }
+
+    parseFundingRateHistory (rawItem: Dict, market: Market = undefined) {
+        const marketId = this.safeString (rawItem, 'instrument');
+        const ts = this.safeIntegerProduct (rawItem, 'funding_time', 0.000001);
+        return {
+            'info': rawItem,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (rawItem, 'funding_rate'),
+            'timestamp': ts,
+            'datetime': this.iso8601 (ts),
+        };
+    }
+
+    getSubAccountId (methodName, params) {
+        let subAccountId = undefined;
+        [ subAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subAccountId');
+        if (subAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' you should set params["subAccountId"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
+        }
+        return subAccountId;
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchBalance
+     * @description query for account info
+     * @see https://api-docs.grvt.io/trading_api/#sub-account-summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const request = {
+            'sub_account_id': this.getSubAccountId ('fetchBalance', params),
+        };
+        const response = await this.privateTradingPostFullV1AccountSummary (this.extend (request, params));
+        //
+        //    {
+        //        "result": {
+        //            "event_time": "1764863116142428457",
+        //            "sub_account_id": "2147050003876484",
+        //            "margin_type": "SIMPLE_CROSS_MARGIN",
+        //            "settle_currency": "USDT",
+        //            "unrealized_pnl": "0.0",
+        //            "total_equity": "15.0",
+        //            "initial_margin": "0.0",
+        //            "maintenance_margin": "0.0",
+        //            "available_balance": "15.0",
+        //            "spot_balances": [
+        //                {
+        //                    "currency": "USDT",
+        //                    "balance": "15.0",
+        //                    "index_price": "1.000289735"
+        //                }
+        //            ],
+        //            "positions": [],
+        //            "settle_index_price": "1.000289735",
+        //            "derisk_margin": "0.0",
+        //            "derisk_to_maintenance_margin_ratio": "1.0",
+        //            "total_cross_equity": "15.0",
+        //            "cross_unrealized_pnl": "0.0"
+        //        }
+        //    }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseBalance (result);
+    }
+
+    parseBalance (response): Balances {
+        const timestamp = this.safeIntegerProduct (response, 'event_time', 0.000001);
+        const result: Dict = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const spotBalances = this.safeList (response, 'spot_balances', []);
+        const availableBalance = this.safeString (response, 'available_balance');
+        for (let i = 0; i < spotBalances.length; i++) {
+            const balance = spotBalances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = availableBalance; // todo: revise after API team clarification
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    // async fetchMainAccountId (params = {}) {
+    //     let mainAccountId =
+    //     const response = await this.privateTradingPostFullV1AggregatedAccountSummary (params);
+
+    // }
+
+    /**
+     * @method
+     * @name grvt#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://api-docs.grvt.io/trading_api/#transfer
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        let request: Dict = {};
+        let currency = undefined;
+        if (code === undefined) {
+            request['currency'] = null;
+        } else {
+            currency = this.currency (code);
+            request['currency'] = [ currency['code'] ];
+        }
+        if (since !== undefined) {
+            request['start_time'] = this.numberToString (since * 1000000);
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
+        if ('end_time' in request) {
+            request['end_time'] = this.numberToString (request['end_time']);
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
+        if (useTransfersEndpoint) {
+            const transfers = await this.internalFetchTransfers (this.extend (request, params), currency, since, limit);
+            const filteredResults = this.filterTransfersByType (transfers, 'deposit', true);
+            const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
+            return this.parseTransactions (transactions, currency, since, limit);
+        } else {
+            const response = await this.privateTradingPostFullV1DepositHistory (this.extend (request, params));
+            //
+            // {
+            //     "result": [{
+            //         "l_1_hash": "0x10000101000203040506",
+            //         "l_2_hash": "0x10000101000203040506",
+            //         "to_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "currency": "USDT",
+            //         "num_tokens": "1500.0",
+            //         "initiated_time": "1697788800000000000",
+            //         "confirmed_time": "1697788800000000000",
+            //         "from_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
+            //     }],
+            //     "next": "Qw0918="
+            // }
+            //
+            const result = this.safeList (response, 'result', []);
+            return this.parseTransactions (result, currency, since, limit);
+        }
+    }
+
+    /**
+     * @method
+     * @name grvrt#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        let request: Dict = {};
+        let currency = undefined;
+        if (code === undefined) {
+            request['currency'] = null;
+        } else {
+            currency = this.currency (code);
+            request['currency'] = [ currency['code'] ];
+        }
+        if (since !== undefined) {
+            request['start_time'] = this.numberToString (since * 1000000);
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
+        if ('end_time' in request) {
+            request['end_time'] = this.numberToString (request['end_time']);
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
+        if (useTransfersEndpoint) {
+            const transfers = await this.internalFetchTransfers (this.extend (request, params), currency, since, limit);
+            const filteredResults = this.filterTransfersByType (transfers, 'withdrawal', true);
+            const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
+            return this.parseTransactions (transactions, currency, since, limit);
+        } else {
+            const response = await this.privateTradingPostFullV1WithdrawalHistory (this.extend (request, params));
+            //
+            // {
+            //     "result": [{
+            //         "tx_id": "1028403",
+            //         "from_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "to_eth_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "currency": "USDT",
+            //         "num_tokens": "1500.0",
+            //         "signature": {
+            //             "signer": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //             "r": "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
+            //             "s": "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
+            //             "v": 28,
+            //             "expiration": "1697788800000000000",
+            //             "nonce": 1234567890,
+            //             "chain_id": "325"
+            //         },
+            //         "event_time": "1697788800000000000",
+            //         "l_1_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+            //         "l_2_hash": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+            //     }],
+            //     "next": "Qw0918="
+            // }
+            //
+            const result = this.safeList (response, 'result', []);
+            return this.parseTransactions (result, currency, since, limit);
+        }
+    }
+
+    async internalFetchTransfers (req, currency: any = undefined, since: Int = undefined, limit: Int = undefined) {
+        const response = await this.privateTradingPostFullV1TransferHistory (req);
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "tx_id": "65119836",
+        //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id": "0",
+        //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id": "0",
+        //                "currency": "USDT",
+        //                "num_tokens": "4.998",
+        //                "signature": {
+        //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v": "27",
+        //                    "expiration": "1767455807929000000",
+        //                    "nonce": "45905",
+        //                    "chain_id": "0"
+        //                },
+        //                "event_time": "1764863808817370541",
+        //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+        //            },
+        //            ...
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        const rows = this.safeList (response, 'result', []);
+        const transfers = this.parseTransfers (rows, currency, since, limit);
+        return transfers;
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // fetchDeposits
+        //
+        //    {
+        //         "l_1_hash": "0x10000101000203040506",
+        //         "l_2_hash": "0x10000101000203040506",
+        //         "to_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //         "currency": "USDT",
+        //         "num_tokens": "1500.0",
+        //         "initiated_time": "1697788800000000000",
+        //         "confirmed_time": "1697788800000000000",
+        //         "from_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "tx_id": "1028403",
+        //         "from_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //         "to_eth_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //         "currency": "USDT",
+        //         "num_tokens": "1500.0",
+        //         "signature": {
+        //             "signer": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //             "r": "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
+        //             "s": "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
+        //             "v": 28,
+        //             "expiration": "1697788800000000000",
+        //             "nonce": 1234567890,
+        //             "chain_id": "325"
+        //         },
+        //         "event_time": "1697788800000000000",
+        //         "l_1_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        //         "l_2_hash": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+        //     }
+        //
+        // fetchTransfers
+        //
+        //           {
+        //                "tx_id": "65119836",
+        //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id": "0",
+        //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id": "0",
+        //                "currency": "USDT",
+        //                "num_tokens": "4.998",
+        //                "signature": {
+        //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v": "27",
+        //                    "expiration": "1767455807929000000",
+        //                    "nonce": "45905",
+        //                    "chain_id": "0"
+        //                },
+        //                "event_time": "1764863808817370541",
+        //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+        //            },
+        //
+        let direction: Str = undefined;
+        let txId: Str = undefined;
+        let networkCode : Str = undefined;
+        let addressFrom = this.safeString (transaction, 'from_account_id');
+        let addressTo = this.safeString (transaction, 'to_account_id');
+        if ('transfer_metadata' in transaction) {
+            const metaData = this.omitZero (this.safeString (transaction, 'transfer_metadata'));
+            if (metaData !== undefined) {
+                const parsedMeta = this.parseJson (metaData);
+                direction = this.safeStringLower (parsedMeta, 'direction');
+                txId = this.safeString (parsedMeta, 'provider_tx_id');
+                const chainId = this.safeString (parsedMeta, 'chainid');
+                const chainIds = this.safeDict (this.options, 'chainIds', {});
+                networkCode = this.safeString (chainIds, chainId, chainId);
+                if (direction === 'withdrawal') {
+                    addressTo = this.safeString (parsedMeta, 'endpoint');
+                } else if (direction === 'deposit') {
+                    addressFrom = this.safeString (parsedMeta, 'endpoint');
+                }
+            }
+        }
+        const timestamp = this.safeIntegerProduct2 (transaction, 'event_time', 'initiated_time', 0.000001);
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': txId,
+            'type': direction,
+            'currency': code,
+            'network': networkCode,
+            'amount': this.safeNumber (transaction, 'num_tokens'),
+            'status': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        } as Transaction;
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api-docs.grvt.io/trading_api/#transfer-history
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] whether to paginate the results (default false)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
+        }
+        await this.loadMarkets ();
+        let request: Dict = {};
+        const currency = this.currency (code);
+        const maxLimit = 1000;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, params, maxLimit);
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
+        if ('end_time' in request) {
+            request['end_time'] = this.numberToString (request['end_time']);
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        const response = await this.privateTradingPostFullV1TransferHistory (this.extend (request, params));
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "tx_id": "65119836",
+        //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id": "0",
+        //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id": "0",
+        //                "currency": "USDT",
+        //                "num_tokens": "4.998",
+        //                "signature": {
+        //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v": "27",
+        //                    "expiration": "1767455807929000000",
+        //                    "nonce": "45905",
+        //                    "chain_id": "0"
+        //                },
+        //                "event_time": "1764863808817370541",
+        //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+        //            },
+        //            ...
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        const rows = this.safeList (response, 'result', []);
+        const transfers = this.parseTransfers (rows, currency, since, limit);
+        const filteredResults = this.filterTransfersByType (transfers, 'internal', false);
+        return filteredResults[1];
+    }
+
+    filterTransfersByType (transfers: any, transferType: string, onlyMainAccount = true): any {
+        const matchedResults = [];
+        const nonMatchedResults = [];
+        for (let i = 0; i < transfers.length; i++) {
+            const transfer = transfers[i];
+            if ((onlyMainAccount && transfer['fromAccount'] === '0' && transfer['toAccount'] === '0') || (!onlyMainAccount && (transfer['fromAccount'] !== '0' || transfer['toAccount'] !== '0'))) {
+                const metadata = this.safeString (transfer['info'], 'transfer_metadata');
+                const parsedMetadata = this.parseJson (metadata);
+                const direction = this.safeString (parsedMetadata, 'direction');
+                if (direction === transferType) {
+                    matchedResults.push (transfer);
+                } else {
+                    nonMatchedResults.push (transfer);
+                }
+            }
+        }
+        return [ matchedResults, nonMatchedResults ];
+    }
+
+    /**
+     * @method
+     * @name grvt#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://api-docs.grvt.io/trading_api/#transfer_1
+     * @param {string} code unified currency codeåå
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        await this.loadAccounts ();
+        const currency = this.currency (code);
+        const defaultFromAccountId = this.safeString (this.options, 'AuthAccountId');
+        const request: Dict = {
+            'from_account_id': this.safeString (params, 'from_account_id', defaultFromAccountId),
+            'from_sub_account_id': this.safeString (params, 'from_sub_account_id'),
+            'to_account_id': this.safeString (params, 'to_account_id', defaultFromAccountId),
+            'to_sub_account_id': this.safeString (params, 'to_sub_account_id'),
+            'currency': currency['id'],
+            'num_tokens': this.currencyToPrecision (code, amount),
+            'transfer_type': 'STANDARD',
+            'transfer_metadata': {
+                'provider': 'xxxxxxxxxxxxxxxxx',
+                'direction': 'xxxxxxxxxxxxxxxxx',
+                'provider_tx_id': 'xxxxxxxxxxxxxxxxx',
+                'chainid': 'xxxxxxxxxxxxxxxxx',
+                'endpoint': 'xxxxxxxxxxxxxxxxx',
+            },
+        };
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        if (networkId === undefined) {
+            throw new BadRequest (this.id + ' withdraw() requires a network parameter');
+        }
+        const signature = {
+            'signer': 'xxxxxxxxxxxxxxxxx',
+            'r': 'xxxxxxxxxxxxxxxxx',
+            's': 'xxxxxxxxxxxxxxxxx',
+            'v': 28,
+            'expiration': 'xxxxxxxxxxxxxxxxx',
+            'nonce': this.nonce (),
+            'chain_id': '325',
+        };
+        request['signature'] = signature;
+        const response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "ack": "true",
+        //         "tx_id": "1028403"
+        //     }
+        // }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseTransfer (result, currency);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        //
+        // transfer
+        //
+        //     {
+        //         "ack": "true",
+        //         "tx_id": "1028403"
+        //     }
+        //
+        // fetchTransfers
+        //
+        //            {
+        //                "tx_id": "65119836",
+        //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id": "0",
+        //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id": "0",
+        //                "currency": "USDT",
+        //                "num_tokens": "4.998",
+        //                "signature": {
+        //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v": "27",
+        //                    "expiration": "1767455807929000000",
+        //                    "nonce": "45905",
+        //                    "chain_id": "0"
+        //                },
+        //                "event_time": "1764863808817370541",
+        //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+        //            }
+        //
+        const currencyId = this.safeString (transfer, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeIntegerProduct (transfer, 'event_time', 0.000001);
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'tx_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'from_sub_account_id'),
+            'toAccount': this.safeString (transfer, 'to_sub_account_id'),
+            'status': undefined,
+        };
+    }
+
+    async loadAggregatedAccountSummary () {
+        if (this.safeString (this.options, 'userMainAccountId') !== undefined) {
+            return;
+        }
+        const response = await this.privateTradingPostFullV1AggregatedAccountSummary ();
+        const result = this.safeDict (response, 'result', {});
+        const mainAccountId = this.safeString (result, 'main_account_id');
+        this.options['userMainAccountId'] = mainAccountId;
+    }
+
+    /**
+     * @method
+     * @name grvt#withdraw
+     * @description make a withdrawal
+     * @see https://api-docs.grvt.io/trading_api/#withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.network the network to withdraw on (mandatory)
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        this.checkAddress (address);
+        await Promise.all ([ this.loadMarkets (), this.loadAggregatedAccountSummary () ]);
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+            'num_tokens': this.currencyToPrecision (code, amount),
+            'to_eth_address': address,
+            'from_account_id': this.safeString (this.options, 'userMainAccountId'),
+        };
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        if (networkId === undefined) {
+            throw new BadRequest (this.id + ' withdraw() requires a network parameter');
+        }
+        const signature = {
+            "signer": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            "r": "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
+            "s": "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
+            "v": 28,
+            "expiration": "1697788800000000000",
+            "nonce": 1234567890,
+            "chain_id": "325"
+        };
+        request['signature'] = signature;
+        const response = await this.privateTradingPostFullV1Withdrawal (this.extend (request, query));
+        //
+        // {
+        //     "result": {
+        //         "ack": "true"
+        //     }
+        // }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseTransaction (result, currency);
+    }
+
+    /**
+     * @method
+     * @name grvt#createOrder
+     * @description create a trade order
+     * @see https://api-docs.grvt.io/trading_api/#create-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
+     * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
+     * @param {bool} [params.postOnly] true or false
+     * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let orderType = type.toUpperCase ();
+        const orderSide = side.toUpperCase ();
+        const orderSize = this.amountToPrecision (symbol, amount);
+        let orderPrice = '0';
+        if (price !== undefined) {
+            orderPrice = this.priceToPrecision (symbol, price);
+        }
+        const fees = this.safeDict (this.fees, 'swap', {});
+        const taker = this.safeString (fees, 'taker', '0.0005');
+        const maker = this.safeString (fees, 'maker', '0.0002');
+        const limitFee = this.decimalToPrecision (Precise.stringAdd (Precise.stringMul (Precise.stringMul (orderPrice, orderSize), taker), this.numberToString (market['precision']['price'])), TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const timeNow = this.milliseconds ();
+        let triggerPrice = this.safeString (params, 'triggerPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if (stopLossPrice !== undefined) {
+            orderType = (orderType === 'MARKET') ? 'STOP_MARKET' : 'STOP_LIMIT';
+            triggerPrice = stopLossPrice;
+        } else if (takeProfitPrice !== undefined) {
+            orderType = (orderType === 'MARKET') ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
+            triggerPrice = takeProfitPrice;
+        }
+        const isMarket = orderType === 'MARKET';
+        if (isMarket && (price === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for market orders');
+        }
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, undefined, params);
+        if (timeInForce === undefined) {
+            timeInForce = 'GOOD_TIL_CANCEL';
+        }
+        if (!isMarket) {
+            if (postOnly) {
+                timeInForce = 'POST_ONLY';
+            } else if (timeInForce === 'ioc') {
+                timeInForce = 'IMMEDIATE_OR_CANCEL';
+            }
+        }
+        params = this.omit (params, 'timeInForce');
+        params = this.omit (params, 'postOnly');
+        let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]); 
+        params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
+        const orderToSign = {
+            'accountId': accountId,
+            'slotId': clientOrderId,
+            'nonce': clientOrderId,
+            'pairId': market['quoteId'],
+            'size': orderSize,
+            'price': orderPrice,
+            'direction': orderSide,
+            'makerFeeRate': maker,
+            'takerFeeRate': taker,
+        };
+        if (triggerPrice !== undefined) {
+            orderToSign['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': orderSide,
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
+            'size': orderSize,
+            'price': orderPrice,
+            'limitFee': limitFee,
+            'expiration': Math.floor (timeNow / 1000 + 30 * 24 * 60 * 60),
+            'timeInForce': timeInForce,
+            'clientId': clientOrderId,
+            'brokerId': this.safeString (this.options, 'brokerId', '6956'),
+        };
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        const accountId = await this.getAccountId ();
+        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const query = this.omit (params, this.extractParams (path));
+        path = this.implodeParams (path, params);
+        let url = this.urls['api'][api] + path;
+        let queryString = '';
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                queryString = this.urlencode (query);
+                url += '?' + queryString;
+            }
+        }
+        const isPrivate = api.startsWith ('private');
+        if (isPrivate) {
+            this.checkRequiredCredentials ();
+            if (method === 'POST') {
+                body = this.json (params);
+            }
+            if (queryString !== '') {
+                path = path + '?' + queryString;
+            }
+            headers = {
+                'Content-Type': 'application/json',
+            };
+            if (path === 'auth/api_key/login') {
+                headers['Cookie'] = 'rm=true;';
+            } else {
+                const accountId = this.safeString (this.options, 'AuthAccountId');
+                const cookieValue = this.safeString (this.options, 'AuthCookieValue');
+                headers['Cookie'] = cookieValue;
+                headers['X-Grvt-Account-Id'] = accountId;
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (url.endsWith ('auth/api_key/login')) {
+            const accountId = this.safeString (headers, 'X-Grvt-Account-Id');
+            this.options['AuthAccountId'] = accountId;
+            const cookie = this.safeString2 (headers, 'Set-Cookie', 'set-cookie');
+            if (cookie !== undefined) {
+                const cookieValue = cookie.split (';')[0];
+                this.options['AuthCookieValue'] = cookieValue;
+            }
+            if (this.options['AuthCookieValue'] === undefined || this.options['AuthAccountId'] === undefined) {
+                throw new AuthenticationError (this.id + ' signIn() failed to receive auth-cookie or account-id');
+            }
+            // todo: add expire
+        }
+        return undefined;
+    }
+}
