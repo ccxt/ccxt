@@ -224,19 +224,13 @@ export default class hyperliquid extends Exchange {
                 'defaultSlippage': 0.05,
                 'marketHelperProps': [ 'hip3TokensByName', 'cachedCurrenciesById' ],
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                // below will be filled automatically
                 'spotCurrencyMapping': {
                     'UDZ': '2Z',
-                    'UBONK': 'BONK',
-                    'UBTC': 'BTC',
-                    'UETH': 'ETH',
                     'UFART': 'FARTCOIN',
-                    'HPENGU': 'PENGU',
-                    'UPUMP': 'PUMP',
-                    'USOL': 'SOL',
                     'UUUSPX': 'SPX',
                     'USDT0': 'USDT',
                     'XAUT0': 'XAUT',
-                    'UXPL': 'XPL',
                 },
                 'fetchMarkets': {
                     'types': [ 'spot', 'swap', 'hip3' ], // 'spot', 'swap', 'hip3'
@@ -524,6 +518,20 @@ export default class hyperliquid extends Exchange {
                     },
                 },
             });
+            // add in wrapped map
+            const fullName = this.safeString (data, 'fullName');
+            if (fullName !== undefined) {
+                const isWrapped = fullName.startsWith ('Unit ') && name.startsWith ('U');
+                if (isWrapped) {
+                    const parts = name.split ('U');
+                    let nameWithoutU = '';
+                    for (let j = 0; j < parts.length; j++) {
+                        nameWithoutU = nameWithoutU + parts[j];
+                    }
+                    const baseCode = this.safeCurrencyCode (nameWithoutU);
+                    this.options['spotCurrencyMapping'][code] = baseCode;
+                }
+            }
         }
         return result;
     }
