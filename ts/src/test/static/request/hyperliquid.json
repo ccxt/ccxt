@@ -1094,7 +1094,7 @@
                 "input": [
                     []
                 ],
-                "output": "{\"type\":\"clearinghouseState\",\"user\":\"0x193bD350ec838B1e22d6F302Da5343b920aA1c2B\"}"
+                "output": "{\"type\":\"clearinghouseState\",\"user\":\"wallet\"}"
             },
             {
                 "description": "fetch hip3 positions",
