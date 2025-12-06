@@ -916,6 +916,10 @@ export default class htx extends Exchange {
                     'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder, // limit order price error
                     'order-limitorder-price-max-error': InvalidOrder, // limit order price error
+                    'order-limitorder-price-buy-min-error': InvalidOrder, // {"status":"error","err-code":"order-limitorder-price-buy-min-error","err-msg":"The price cannot be lower than 0.0006 USDT","data":null}
+                    'order-limitorder-price-buy-max-error': InvalidOrder, // limit order price error
+                    'order-limitorder-price-sell-min-error': InvalidOrder, // limit order price error
+                    'order-limitorder-price-sell-max-error': InvalidOrder, // limit order price error
                     'order-stop-order-hit-trigger': InvalidOrder, // {"status":"error","err-code":"order-stop-order-hit-trigger","err-msg":"Orders that are triggered immediately are not supported.","data":null}
                     'order-value-min-error': InvalidOrder, // {"status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than: 1 USDT","data":null}
                     'order-invalid-price': InvalidOrder, // {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
@@ -7442,7 +7446,7 @@ export default class htx extends Exchange {
         }
         if ('status' in response) {
             //
-            //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             const status = this.safeString (response, 'status');
