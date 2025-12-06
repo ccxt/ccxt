@@ -574,6 +574,66 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "fetchOHLCV with until param for swap",
+                "method": "fetchOHLCV",
+                "url": "https://contract.mexc.com/api/v1/contract/kline/ETH_USDT?interval=Min1&end=1764930000&start=1764810000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "until": 1764930000001
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV with limit and until param for swap",
+                "method": "fetchOHLCV",
+                "url": "https://contract.mexc.com/api/v1/contract/kline/ETH_USDT?interval=Min1&end=1764930000&start=1764929820",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    3,
+                    {
+                        "until": 1764930000001
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV with limit and until param for spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=1764929820001&limit=3&endTime=1764930000002",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    null,
+                    3,
+                    {
+                        "until": 1764930000001
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV with until param for spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=1764900000001&endTime=1764930000002",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "until": 1764930000001
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch OHLCV - spot",
                 "method": "fetchOHLCV",
                 "url": "https://api.mexc.com/api/v3/klines?symbol=LTCUSDT&interval=1m",
