@@ -8,7 +8,6 @@ export default class hyperliquid extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
     market(symbol: string): MarketInterface;
-    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     /**
      * @method
      * @name hyperliquid#fetchStatus
@@ -483,6 +482,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    getDexFromSymbols(methodName: string, symbols?: Strings): any;
     /**
      * @method
      * @name hyperliquid#fetchPositions
