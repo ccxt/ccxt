@@ -232,6 +232,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'defaultSlippage': 0.05,
                 'marketHelperProps': ['hip3TokensByName', 'cachedCurrenciesById'],
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                # below will be filled automatically
                 'spotCurrencyMapping': {
                     'UDZ': '2Z',
                     'UBONK': 'BONK',
@@ -487,6 +488,17 @@ class hyperliquid(Exchange, ImplicitAPI):
                     },
                 },
             })
+            # add in wrapped map
+            fullName = self.safe_string(data, 'fullName')
+            if fullName is not None and name is not None:
+                isWrapped = fullName.startswith('Unit ') and name.startswith('U')
+                if isWrapped:
+                    parts = name.split('U')
+                    nameWithoutU = ''
+                    for j in range(0, len(parts)):
+                        nameWithoutU = nameWithoutU + parts[j]
+                    baseCode = self.safe_currency_code(nameWithoutU)
+                    self.options['spotCurrencyMapping'][code] = baseCode
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:
