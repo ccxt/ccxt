@@ -490,6 +490,23 @@ public partial class hyperliquid : Exchange
                     } },
                 } },
             });
+            // add in wrapped map
+            object fullName = this.safeString(data, "fullName");
+            if (isTrue(isTrue(!isEqual(fullName, null)) && isTrue(!isEqual(name, null))))
+            {
+                object isWrapped = isTrue(((string)fullName).StartsWith(((string)"Unit "))) && isTrue(((string)name).StartsWith(((string)"U")));
+                if (isTrue(isWrapped))
+                {
+                    object parts = ((string)name).Split(new [] {((string)"U")}, StringSplitOptions.None).ToList<object>();
+                    object nameWithoutU = "";
+                    for (object j = 0; isLessThan(j, getArrayLength(parts)); postFixIncrement(ref j))
+                    {
+                        nameWithoutU = add(nameWithoutU, getValue(parts, j));
+                    }
+                    object baseCode = this.safeCurrencyCode(nameWithoutU);
+                    ((IDictionary<string,object>)getValue(this.options, "spotCurrencyMapping"))[(string)code] = baseCode;
+                }
+            }
         }
         return result;
     }
