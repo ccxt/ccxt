@@ -527,7 +527,7 @@ export default class hyperliquid extends Exchange {
             });
             // add in wrapped map
             const fullName = this.safeString (data, 'fullName');
-            if (fullName !== undefined) {
+            if (fullName !== undefined && name !== undefined) {
                 const isWrapped = fullName.startsWith ('Unit ') && name.startsWith ('U');
                 if (isWrapped) {
                     const parts = name.split ('U');
