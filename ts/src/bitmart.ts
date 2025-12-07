@@ -524,7 +524,6 @@ export default class bitmart extends Exchange {
                 },
                 'broad': {
                     'You contract account available balance not enough': InsufficientFunds,
-                    'you contract account available balance not enough': InsufficientFunds,
                     'This trading pair does not support API trading': BadSymbol, // {"message":"This trading pair does not support API trading","code":51008,"trace":"5d3ebd46-4e7a-4505-b37b-74464f398f01","data":{}}
                 },
             },
@@ -5636,7 +5635,7 @@ export default class bitmart extends Exchange {
         //
         //     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         //
-        const message = this.safeStringLower (response, 'message');
+        const message = this.safeString (response, 'message');
         const isErrorMessage = (message !== undefined) && (message !== 'ok') && (message !== 'success');
         const errorCode = this.safeString (response, 'code');
         const isErrorCode = (errorCode !== undefined) && (errorCode !== '1000');
