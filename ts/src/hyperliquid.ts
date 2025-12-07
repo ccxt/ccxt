@@ -2841,7 +2841,10 @@ export default class hyperliquid extends Exchange {
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrder', params);
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const request: Dict = {
             'type': 'orderStatus',
