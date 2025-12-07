@@ -223,6 +223,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'defaultSlippage': 0.05,
                 'marketHelperProps': ['hip3TokensByName', 'cachedCurrenciesById'],
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                // below will be filled automatically
                 'spotCurrencyMapping': {
                     'UDZ': '2Z',
                     'UBONK': 'BONK',
@@ -487,6 +488,20 @@ class hyperliquid extends hyperliquid$1["default"] {
                     },
                 },
             });
+            // add in wrapped map
+            const fullName = this.safeString(data, 'fullName');
+            if (fullName !== undefined && name !== undefined) {
+                const isWrapped = fullName.startsWith('Unit ') && name.startsWith('U');
+                if (isWrapped) {
+                    const parts = name.split('U');
+                    let nameWithoutU = '';
+                    for (let j = 0; j < parts.length; j++) {
+                        nameWithoutU = nameWithoutU + parts[j];
+                    }
+                    const baseCode = this.safeCurrencyCode(nameWithoutU);
+                    this.options['spotCurrencyMapping'][code] = baseCode;
+                }
+            }
         }
         return result;
     }
