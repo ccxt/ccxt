@@ -227,6 +227,7 @@ class hyperliquid extends Exchange {
                 'defaultSlippage' => 0.05,
                 'marketHelperProps' => array( 'hip3TokensByName', 'cachedCurrenciesById' ),
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
+                // below will be filled automatically
                 'spotCurrencyMapping' => array(
                     'UDZ' => '2Z',
                     'UBONK' => 'BONK',
@@ -497,6 +498,20 @@ class hyperliquid extends Exchange {
                         ),
                     ),
                 ));
+                // add in wrapped map
+                $fullName = $this->safe_string($data, 'fullName');
+                if ($fullName !== null && $name !== null) {
+                    $isWrapped = str_starts_with($fullName, 'Unit ') && str_starts_with($name, 'U');
+                    if ($isWrapped) {
+                        $parts = explode('U', $name);
+                        $nameWithoutU = '';
+                        for ($j = 0; $j < count($parts); $j++) {
+                            $nameWithoutU = $nameWithoutU . $parts[$j];
+                        }
+                        $baseCode = $this->safe_currency_code($nameWithoutU);
+                        $this->options['spotCurrencyMapping'][$code] = $baseCode;
+                    }
+                }
             }
             return $result;
         }) ();
