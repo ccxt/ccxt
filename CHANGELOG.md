@@ -1,3 +1,22 @@
+<a id="v4.5.25"></a>
+# [v4.5.25](https://github.com/ccxt/ccxt/releases/tag/v4.5.25) - 2025-12-07
+
+## What's Changed
+* build(deps): bump next from 15.4.7 to 15.4.8 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#27446](https://github.com/ccxt/ccxt/pull/27446)
+* feat(FAQ): amount precision error explanation by [@Dan-krm](https://github.com/Dan-krm) in [#27448](https://github.com/ccxt/ccxt/pull/27448)
+* fix(mexc): c# restore decompress binary var by [@carlosmiei](https://github.com/carlosmiei) in [#27454](https://github.com/ccxt/ccxt/pull/27454)
+* feat(mexc): fetchOHLCV since and until calculation updated by [@yzh-pelle](https://github.com/yzh-pelle) in [#27457](https://github.com/ccxt/ccxt/pull/27457)
+* htx errors mapping by [@ndubel](https://github.com/ndubel) in [#27459](https://github.com/ccxt/ccxt/pull/27459)
+* bitmart handleErrors fix by [@ndubel](https://github.com/ndubel) in [#27462](https://github.com/ccxt/ccxt/pull/27462)
+* fix(hyperliquid): ucoin/usdc removal from markets and fetchPositions fix by [@carlosmiei](https://github.com/carlosmiei) in [#27458](https://github.com/ccxt/ccxt/pull/27458)
+* fix(hyperliquid): automatic mapping by [@ttodua](https://github.com/ttodua) in [#27455](https://github.com/ccxt/ccxt/pull/27455)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.24...v4.5.25
+
+[Changes][v4.5.25]
+
+
 <a id="v4.5.24"></a>
 # [v4.5.24](https://github.com/ccxt/ccxt/releases/tag/v4.5.24) - 2025-12-03
 
@@ -11974,6 +11993,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.25]: https://github.com/ccxt/ccxt/compare/v4.5.24...v4.5.25
 [v4.5.24]: https://github.com/ccxt/ccxt/compare/v4.5.23...v4.5.24
 [v4.5.23]: https://github.com/ccxt/ccxt/compare/v4.5.22...v4.5.23
 [v4.5.22]: https://github.com/ccxt/ccxt/compare/v4.5.21...v4.5.22
