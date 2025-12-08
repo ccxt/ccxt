@@ -5743,7 +5743,8 @@ class bitmart extends Exchange {
         //     array("errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null)
         //
         $message = $this->safe_string($response, 'message');
-        $isErrorMessage = ($message !== null) && ($message !== 'ok') && ($message !== 'success');
+        $messageLower = strtolower($message);
+        $isErrorMessage = ($message !== null) && ($messageLower !== 'ok') && ($messageLower !== 'success');
         $errorCode = $this->safe_string($response, 'code');
         $isErrorCode = ($errorCode !== null) && ($errorCode !== '1000');
         if ($isErrorCode || $isErrorMessage) {
