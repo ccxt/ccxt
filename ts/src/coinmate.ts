@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinmate.js';
-import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositAddress, Currencies, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -32,14 +32,17 @@ export default class coinmate extends Exchange {
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createOrderWithTakeProfitAndStopLossWs': false,
-                'createPostOnlyOrder': false,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
+                'createTriggerOrder': false,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -49,6 +52,9 @@ export default class coinmate extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
@@ -61,6 +67,7 @@ export default class coinmate extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverages': false,
                 'fetchLeverageTiers': false,
@@ -77,6 +84,7 @@ export default class coinmate extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': false,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
@@ -97,6 +105,7 @@ export default class coinmate extends Exchange {
                 'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
@@ -140,13 +149,12 @@ export default class coinmate extends Exchange {
                         'products',
                         'transactions',
                         'tradingPairs',
+                        'system/time',
                     ],
                 },
                 'private': {
                     'post': [
                         'balances',
-                        'bitcoinCashWithdrawal',
-                        'bitcoinCashDepositAddresses',
                         'bitcoinDepositAddresses',
                         'bitcoinWithdrawal',
                         'bitcoinWithdrawalFees',
@@ -155,8 +163,7 @@ export default class coinmate extends Exchange {
                         'cancelOrder',
                         'cancelOrderWithInfo',
                         'createVoucher',
-                        'dashDepositAddresses',
-                        'dashWithdrawal',
+                        // removed DASH/BCH endpoints (deprecated per latest API docs)
                         'ethereumWithdrawal',
                         'ethereumDepositAddresses',
                         'litecoinWithdrawal',
@@ -181,8 +188,6 @@ export default class coinmate extends Exchange {
                         'transfer',
                         'transferHistory',
                         'unconfirmedBitcoinDeposits',
-                        'unconfirmedBitcoinCashDeposits',
-                        'unconfirmedDashDeposits',
                         'unconfirmedEthereumDeposits',
                         'unconfirmedLitecoinDeposits',
                         'unconfirmedRippleDeposits',
@@ -190,12 +195,16 @@ export default class coinmate extends Exchange {
                         'withdrawVirtualCurrency',
                         'virtualCurrencyDepositAddresses',
                         'unconfirmedVirtualCurrencyDeposits',
+                        'currencies',
                         'adaWithdrawal',
                         'adaDepositAddresses',
                         'unconfirmedAdaDeposits',
                         'solWithdrawal',
                         'solDepositAddresses',
                         'unconfirmedSolDeposits',
+                        // new endpoints per 2025-06-16 and Lightning (bankWireWithdrawal removed per request)
+                        'lightningDeposit',
+                        'lightningWithdraw',
                     ],
                 },
             },
@@ -231,17 +240,15 @@ export default class coinmate extends Exchange {
             },
             'options': {
                 'withdraw': {
-                    'fillResponsefromRequest': true,
+                    'fillResponseFromRequest': true,
                     'methods': {
                         'BTC': 'privatePostBitcoinWithdrawal',
                         'LTC': 'privatePostLitecoinWithdrawal',
-                        'BCH': 'privatePostBitcoinCashWithdrawal',
                         'ETH': 'privatePostEthereumWithdrawal',
                         'XRP': 'privatePostRippleWithdrawal',
-                        'DASH': 'privatePostDashWithdrawal',
-                        'DAI': 'privatePostDaiWithdrawal',
                         'ADA': 'privatePostAdaWithdrawal',
                         'SOL': 'privatePostSolWithdrawal',
+                        'USDT': 'privatePostWithdrawVirtualCurrency',
                     },
                 },
             },
@@ -250,11 +257,11 @@ export default class coinmate extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true, // todo implement
+                        'triggerPrice': false, // Disabled 2025-02-27
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false, // todo
-                        'takeProfitPrice': false, // todo
+                        'stopLossPrice': false, // Disabled by exchange 2025-02-27
+                        'takeProfitPrice': false, // Disabled by exchange 2025-02-27
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -263,9 +270,9 @@ export default class coinmate extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true, // todo implement
+                        'trailing': false, // Disabled - stop orders not supported 2025-02-27
                         'leverage': false,
-                        'marketBuyByCost': false,
+                        'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
                         'iceberg': true, // todo
@@ -289,7 +296,7 @@ export default class coinmate extends Exchange {
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
-                        'symbolRequired': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -323,6 +330,8 @@ export default class coinmate extends Exchange {
                     'max allowed precision': InvalidOrder, // {"error":true,"errorMessage":"USDT_EUR - max allowed precision is 4 decimal places","data":null}
                     'TOO MANY REQUESTS': RateLimitExceeded,
                     'Access denied.': AuthenticationError, // {"error":true,"errorMessage":"Access denied.","data":null}
+                    'stop': NotSupported, // Stop orders disabled 2025-02-27
+                    'Not implemented': NotSupported, // Stop loss orders disabled
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -467,7 +476,7 @@ export default class coinmate extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'currencyPair': market['id'],
-            'groupByPriceLimit': 'False',
+            'groupByPriceLimit': false,
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const orderbook = response['data'];
@@ -555,6 +564,139 @@ export default class coinmate extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
+    /**
+     * @method
+     * @name coinmate#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    async fetchTime (params = {}): Promise<Int> {
+        const response = await this.publicGetSystemTime (params);
+        //
+        //     {
+        //         "serverTime": 1499827319559
+        //     }
+        //
+        return this.safeInteger (response, 'serverTime');
+    }
+
+    /**
+     * @method
+     * @name coinmate#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://coinmate.docs.apiary.io/#reference/transaction-history/get-transaction-history/post
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'limit': 1000,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['timestampFrom'] = since;
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privatePostTransactionHistory (this.extend (request, params));
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": [
+        //             {
+        //                 "timestamp": 1505823601032,
+        //                 "transactionId": 1394384,
+        //                 "transactionType": "DEPOSIT",
+        //                 "price": null,
+        //                 "priceCurrency": null,
+        //                 "amount": 1000.00,
+        //                 "amountCurrency": "CZK",
+        //                 "fee": 0,
+        //                 "feeCurrency": "CZK",
+        //                 "description": "BANK_WIRE: 1000.00, CZK",
+        //                 "status": "OK",
+        //                 "orderId": null
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseLedger (data, currency, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        //     {
+        //         "timestamp": 1505823601032,
+        //         "transactionId": 1394384,
+        //         "transactionType": "DEPOSIT", // DEPOSIT, WITHDRAWAL, BUY, SELL, etc.
+        //         "price": 24243.86,
+        //         "priceCurrency": "CZK",
+        //         "amount": 0.02055184,
+        //         "amountCurrency": "BTC",
+        //         "fee": 1.74,
+        //         "feeCurrency": "CZK",
+        //         "description": "Kč 499.99",
+        //         "status": "OK",
+        //         "orderId": 3690273
+        //     }
+        //
+        const type = this.safeStringLower (item, 'transactionType');
+        const amount = this.safeNumber (item, 'amount');
+        const timestamp = this.safeInteger (item, 'timestamp');
+        const currencyId = this.safeString (item, 'amountCurrency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const feeCurrencyId = this.safeString (item, 'feeCurrency');
+        const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+        // Map transaction types to CCXT ledger types
+        let direction = undefined;
+        let ledgerType = type;
+        if (type === 'deposit') {
+            direction = 'in';
+        } else if (type === 'withdrawal') {
+            direction = 'out';
+        } else if (type === 'buy') {
+            ledgerType = 'trade';
+            direction = 'in';  // Receiving the base currency
+        } else if (type === 'sell') {
+            ledgerType = 'trade';
+            direction = 'out'; // Giving away the base currency
+        } else if (type === 'instant_buy' || type === 'quick_buy') {
+            ledgerType = 'trade';
+            direction = 'in';
+        } else if (type === 'instant_sell' || type === 'quick_sell') {
+            ledgerType = 'trade';
+            direction = 'out';
+        }
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'transactionId'),
+            'timestamp': timestamp,
+            'type': ledgerType,
+            'currency': code,
+            'amount': Math.abs (amount),
+            'direction': direction,
+            'referenceId': this.safeString (item, 'orderId'),
+            'status': this.parseTransactionStatus (this.safeString (item, 'status')),
+            'fee': {
+                'cost': this.safeNumber (item, 'fee'),
+                'currency': feeCurrency,
+            },
+        }, currency);
+    }
+
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
@@ -582,12 +724,12 @@ export default class coinmate extends Exchange {
             'ask': this.safeNumber (ticker, 'ask'),
             'vwap': undefined,
             'askVolume': undefined,
-            'open': undefined,
+            'open': this.safeNumber (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': this.safeNumber (ticker, 'change'),
             'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'amount'),
             'quoteVolume': undefined,
@@ -626,6 +768,24 @@ export default class coinmate extends Exchange {
         return this.parseTransactions (items, undefined, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinmate#fetchTransfer
+     * @description fetch a specific transfer (deposit/withdrawal) by transaction id
+     * @see https://coinmate.docs.apiary.io/#reference/transfers/get-transfer/post
+     * @param {string} id transaction id returned by the exchange
+     * @param {string} [code] not used by coinmate, but required for base class compatibility
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Transaction} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        const request: Dict = { 'transactionId': id };
+        const response = await this.privatePostTransfer (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseTransfer (data);
+    }
+
     parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'COMPLETED': 'ok',
@@ -635,8 +795,43 @@ export default class coinmate extends Exchange {
             'OK': 'ok',
             'NEW': 'pending',
             'CANCELED': 'canceled',
+            'PENDING': 'pending',
+            'VERIFIED': 'ok',
+            'BEFORE_SEND': 'pending',
+            'ERROR': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        // transfer payload from /transfer
+        // {
+        //   "id": 10061,
+        //   "fee": 0,
+        //   "transferType": "DEPOSIT",
+        //   "timestamp": 1541785057888,
+        //   "transferStatus": "COMPLETED",
+        //   "amount": 100,
+        //   "amountCurrency": "CZK",
+        //   "walletType": "BANK_WIRE",
+        //   "txid": null,
+        //   "destination": null,
+        //   "destinationTag": null
+        // }
+        const timestamp = this.safeInteger (transfer, 'timestamp');
+        const currencyId = this.safeString (transfer, 'amountCurrency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransactionStatus (this.safeString (transfer, 'transferStatus')),
+        } as TransferEntry;
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -680,7 +875,7 @@ export default class coinmate extends Exchange {
         //         "id": 2132583,
         //     }
         //
-        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const timestamp = this.safeInteger2 (transaction, 'timestamp', 'createdTimestamp');
         const currencyId = this.safeString (transaction, 'amountCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
         return {
@@ -740,14 +935,75 @@ export default class coinmate extends Exchange {
             const allowedCurrencies = Object.keys (methods);
             throw new ExchangeError (this.id + ' withdraw() only allows withdrawing the following currencies: ' + allowedCurrencies.join (', '));
         }
-        const request: Dict = {
-            'amount': this.currencyToPrecision (code, amount),
-            'address': address,
-        };
-        if (tag !== undefined) {
-            request['destinationTag'] = tag;
+        let request: Dict = {};
+        let response = undefined;
+        if (method === 'privatePostWithdrawVirtualCurrency') {
+            request = {
+                'currencyName': code,
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostWithdrawVirtualCurrency (this.extend (request, params));
+        } else if (method === 'privatePostBitcoinWithdrawal') {
+            request = {
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostBitcoinWithdrawal (this.extend (request, params));
+        } else if (method === 'privatePostLitecoinWithdrawal') {
+            request = {
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostLitecoinWithdrawal (this.extend (request, params));
+        } else if (method === 'privatePostEthereumWithdrawal') {
+            request = {
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostEthereumWithdrawal (this.extend (request, params));
+        } else if (method === 'privatePostRippleWithdrawal') {
+            request = {
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostRippleWithdrawal (this.extend (request, params));
+        } else if (method === 'privatePostAdaWithdrawal') {
+            request = {
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostAdaWithdrawal (this.extend (request, params));
+        } else if (method === 'privatePostSolWithdrawal') {
+            request = {
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostSolWithdrawal (this.extend (request, params));
+        } else {
+            throw new ExchangeError (this.id + ' withdraw() unknown method: ' + method);
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "error": false,
@@ -769,6 +1025,94 @@ export default class coinmate extends Exchange {
             transaction['status'] = 'pending';
         }
         return transaction;
+    }
+
+    /**
+     * @method
+     * @name coinmate#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://coinmate.docs.apiary.io/#reference/bitcoin-withdrawal-and-deposit/get-bitcoin-deposit-addresses/post
+     * @see https://coinmate.docs.apiary.io/#reference/litecoin-withdrawal-and-deposit/get-litecoin-deposit-addresses/post
+     * @see https://coinmate.docs.apiary.io/#reference/ethereum-withdrawal-and-deposit/get-ethereum-deposit-addresses/post
+     * @see https://coinmate.docs.apiary.io/#reference/ripple-withdrawal-and-deposit/get-ripple-deposit-addresses/post
+     * @see https://coinmate.docs.apiary.io/#reference/cardano-withdrawal-and-deposit/get-cardano-deposit-addresses/post
+     * @see https://coinmate.docs.apiary.io/#reference/solana-withdrawal-and-deposit/get-solana-deposit-addresses/post
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        await this.loadMarkets ();
+        // Prefer virtual currency endpoint per docs (supports XRP tag in a single string)
+        let response = undefined;
+        try {
+            response = await this.privatePostVirtualCurrencyDepositAddresses (this.extend ({ 'currencyName': code }, params));
+        } catch (e) {
+            // fallback to legacy per-coin endpoints if present
+            if (code === 'BTC') {
+                response = await this.privatePostBitcoinDepositAddresses (this.extend ({}, params));
+            } else if (code === 'LTC') {
+                response = await this.privatePostLitecoinDepositAddresses (this.extend ({}, params));
+            } else if (code === 'ETH') {
+                response = await this.privatePostEthereumDepositAddresses (this.extend ({}, params));
+            } else if (code === 'XRP') {
+                response = await this.privatePostRippleDepositAddresses (this.extend ({}, params));
+            } else if (code === 'ADA') {
+                response = await this.privatePostAdaDepositAddresses (this.extend ({}, params));
+            } else if (code === 'SOL') {
+                response = await this.privatePostSolDepositAddresses (this.extend ({}, params));
+            } else {
+                const allowedCurrencies = [ 'BTC', 'LTC', 'ETH', 'XRP', 'ADA', 'SOL' ];
+                throw new ExchangeError (this.id + ' fetchDepositAddress() only supports the following currencies: ' + allowedCurrencies.join (', '));
+            }
+        }
+        //
+        // Bitcoin/Litecoin/Ethereum etc.
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": [
+        //             "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+        //         ]
+        //     }
+        //
+        // XRP
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": {
+        //             "address": "rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH",
+        //             "destinationTag": "123456789"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        let address = undefined;
+        let tag = undefined;
+        if (Array.isArray (data)) {
+            const first = this.safeString (data, 0);
+            // may be "address / tag" for XRP
+            if (first && first.indexOf (' / ') >= 0) {
+                const parts = first.split (' / ');
+                address = this.safeString (parts, 0);
+                tag = this.safeString (parts, 1);
+            } else {
+                address = first;
+            }
+        } else {
+            address = this.safeString (data, 'address');
+            tag = this.safeString (data, 'destinationTag');
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': undefined,
+            'info': response,
+        };
     }
 
     /**
@@ -835,16 +1179,22 @@ export default class coinmate extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const side = this.safeStringLower2 (trade, 'type', 'tradeType');
-        const type = this.safeStringLower (trade, 'orderType');
+        // normalize order type: INSTANT / QUICK are market orders
+        let type = this.safeStringLower (trade, 'orderType');
+        if (type === 'instant' || type === 'quick') {
+            type = 'market';
+        }
         const orderId = this.safeString (trade, 'orderId');
         const id = this.safeString (trade, 'transactionId');
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'createdTimestamp');
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'fee');
+        const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+        const feeCurrency = this.safeCurrencyCode (feeCurrencyId, market ? this.currency (market['quote']) : undefined);
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': feeCurrency,
             };
         }
         let takerOrMaker = this.safeString (trade, 'feeType');
@@ -945,6 +1295,73 @@ export default class coinmate extends Exchange {
 
     /**
      * @method
+     * @name coinmate#fetchCurrencies
+     * @description fetches all available currencies and networks from exchange
+     * @see https://coinmate.docs.apiary.io/#reference/currencies/get-currencies/post
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this.privatePostCurrencies (params);
+        const data = this.safeList (response, 'data', []);
+        const result: Dict = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const precision = this.safeInteger (entry, 'precision');
+            const networks = this.safeList (entry, 'networks', []);
+            let depositEnabled = this.safeBool (entry, 'depositEnabled');
+            let withdrawEnabled = this.safeBool (entry, 'withdrawEnabled');
+            const limits: Dict = { 'withdraw': { 'min': undefined, 'max': undefined }};
+            const networkMap: Dict = {};
+            for (let j = 0; j < networks.length; j++) {
+                const net = networks[j];
+                const networkId = this.safeString (net, 'network');
+                const deposit = this.safeDict (net, 'deposit', {});
+                const withdraw = this.safeDict (net, 'withdraw', {});
+                depositEnabled = depositEnabled || this.safeBool (deposit, 'enabled');
+                withdrawEnabled = withdrawEnabled || this.safeBool (withdraw, 'enabled');
+                const minWithdraw = this.safeNumber (withdraw, 'minAmount');
+                const maxWithdraw = this.safeNumber (withdraw, 'max24hLimit');
+                if (minWithdraw !== undefined) {
+                    limits['withdraw']['min'] = (limits['withdraw']['min'] === undefined) ? minWithdraw : Math.min (limits['withdraw']['min'], minWithdraw);
+                }
+                if (maxWithdraw !== undefined) {
+                    limits['withdraw']['max'] = (limits['withdraw']['max'] === undefined) ? maxWithdraw : Math.max (limits['withdraw']['max'], maxWithdraw);
+                }
+                networkMap[networkId] = {
+                    'id': networkId,
+                    'network': networkId,
+                    'active': this.safeBool (withdraw, 'enabled') || this.safeBool (deposit, 'enabled'),
+                    'deposit': this.safeBool (deposit, 'enabled'),
+                    'withdraw': this.safeBool (withdraw, 'enabled'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': { 'min': minWithdraw, 'max': maxWithdraw },
+                    },
+                    'info': net,
+                };
+            }
+            result[code] = {
+                'id': currencyId,
+                'code': code,
+                'name': this.safeString (entry, 'currencyName'),
+                'active': depositEnabled || withdrawEnabled,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'precision': precision,
+                'networks': networkMap,
+                'limits': limits,
+                'info': entry,
+            };
+        }
+        return result as Currencies;
+    }
+
+    /**
+     * @method
      * @name coinmate#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://coinmate.docs.apiary.io/#reference/order/get-open-orders/post
@@ -955,9 +1372,16 @@ export default class coinmate extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        const response = await this.privatePostOpenOrders (this.extend ({}, params));
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
+        const response = await this.privatePostOpenOrders (this.extend (request, params));
         const extension: Dict = { 'status': 'open' };
-        return this.parseOrders (response['data'], undefined, since, limit, extension);
+        return this.parseOrders (response['data'], market, since, limit, extension);
     }
 
     /**
@@ -1002,6 +1426,10 @@ export default class coinmate extends Exchange {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
+            'INSTANT': 'market',
+            'QUICK': 'market',
+            // historical orders may include LIMIT_STOP; normalize to limit with trigger
+            'LIMIT_STOP': 'limit',
         };
         return this.safeString (types, type, type);
     }
@@ -1062,12 +1490,18 @@ export default class coinmate extends Exchange {
         const priceString = this.safeString (order, 'price');
         const amountString = this.safeString (order, 'originalAmount');
         const remainingString = this.safeString2 (order, 'remainingAmount', 'amount');
+        const cumulativeString = this.safeString (order, 'cumulativeAmount');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
         const averageString = this.safeString (order, 'avgPrice');
         const marketId = this.safeString (order, 'currencyPair');
         const symbol = this.safeSymbol (marketId, market, '_');
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const trailingUpdatedTimestamp = this.safeInteger (order, 'trailingUpdatedTimestamp');
+        const originalStopPrice = this.safeNumber (order, 'originalStopPrice');
+        const marketPriceAtLastUpdate = this.safeNumber (order, 'marketPriceAtLastUpdate');
+        const marketPriceAtOrderCreation = this.safeNumber (order, 'marketPriceAtOrderCreation');
+        const associatedTrades = this.safeList (order, 'trades');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1086,10 +1520,15 @@ export default class coinmate extends Exchange {
             'average': averageString,
             'filled': undefined,
             'remaining': remainingString,
+            'cumulative': cumulativeString,
             'status': status,
-            'trades': undefined,
+            'trades': associatedTrades,
             'info': order,
             'fee': undefined,
+            'trailingUpdatedTimestamp': trailingUpdatedTimestamp,
+            'originalStopPrice': originalStopPrice,
+            'marketPriceAtLastUpdate': marketPriceAtLastUpdate,
+            'marketPriceAtOrderCreation': marketPriceAtOrderCreation,
         }, market);
     }
 
@@ -1107,6 +1546,11 @@ export default class coinmate extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the price to trigger a stop order, in units of the quote currency (DISABLED)
+     * @param {float} [params.stopPrice] alias for triggerPrice (DISABLED)
+     * @param {bool} [params.postOnly] if true, the order will only be placed if it does not immediately execute (limit orders only)
+     * @param {bool} [params.immediateOrCancel] if true, execute immediately and cancel any remaining unfilled portion (limit orders only)
+     * @param {bool} [params.hidden] if true, the order will be hidden from the order book (limit orders only)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1116,19 +1560,56 @@ export default class coinmate extends Exchange {
         const request: Dict = {
             'currencyPair': market['id'],
         };
+        // Stop orders disabled by exchange per docs (2025-02-27)
+        const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPrice' ]);
+        if (triggerPrice !== undefined) {
+            throw new NotSupported (this.id + ' createOrder() stop orders are disabled by exchange');
+        }
         if (type === 'market') {
             if (side === 'buy') {
-                request['total'] = this.amountToPrecision (symbol, amount); // amount in fiat
+                // total is cost in quote currency
+                request['total'] = this.costToPrecision (symbol, amount);
             } else {
-                request['amount'] = this.amountToPrecision (symbol, amount); // amount in fiat
+                // amount is base currency amount
+                request['amount'] = this.amountToPrecision (symbol, amount);
             }
             method += 'Instant';
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount); // amount in crypto
             request['price'] = this.priceToPrecision (symbol, price);
             method += this.capitalize (type);
+            // Handle time-in-force options for limit orders
+            const postOnly = this.safeBool (params, 'postOnly');
+            const immediateOrCancel = this.safeBool (params, 'immediateOrCancel');
+            const hidden = this.safeBool (params, 'hidden');
+            // stop orders disabled; ensure stopPrice isn't silently accepted anywhere
+            const stopPrice = this.safeValue (params, 'stopPrice');
+            if (stopPrice !== undefined) {
+                throw new NotSupported (this.id + ' createOrder() stop orders are disabled by exchange');
+            }
+            if (postOnly !== undefined) {
+                request['postOnly'] = postOnly ? 1 : 0;
+            }
+            if (immediateOrCancel !== undefined) {
+                request['immediateOrCancel'] = immediateOrCancel ? 1 : 0;
+            }
+            if (hidden !== undefined) {
+                request['hidden'] = hidden ? 1 : 0;
+            }
         }
-        const response = await this[method] (this.extend (request, params));
+        const omittedParams = this.omit (params, [ 'postOnly', 'immediateOrCancel', 'hidden' ]);
+        let response = undefined;
+        if (method === 'privatePostBuyInstant') {
+            response = await this.privatePostBuyInstant (this.extend (request, omittedParams));
+        } else if (method === 'privatePostBuyLimit') {
+            response = await this.privatePostBuyLimit (this.extend (request, omittedParams));
+        } else if (method === 'privatePostSellInstant') {
+            response = await this.privatePostSellInstant (this.extend (request, omittedParams));
+        } else if (method === 'privatePostSellLimit') {
+            response = await this.privatePostSellLimit (this.extend (request, omittedParams));
+        } else {
+            throw new ExchangeError (this.id + ' createOrder() unknown method: ' + method);
+        }
         const id = this.safeString (response, 'data');
         return this.safeOrder ({
             'info': response,
@@ -1149,14 +1630,23 @@ export default class coinmate extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const request: Dict = {
-            'orderId': id,
-        };
+        const request: Dict = {};
         let market = undefined;
         if (symbol) {
             market = this.market (symbol);
         }
-        const response = await this.privatePostOrderById (this.extend (request, params));
+        const byClient = this.safeBool (params, 'byClientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId', id);
+        let response = undefined;
+        if (byClient) {
+            request['clientOrderId'] = clientOrderId;
+            response = await this.privatePostOrder (this.extend (request, this.omit (params, [ 'byClientOrderId', 'clientOrderId' ])));
+            const list = this.safeList (response, 'data', []);
+            const first = this.safeDict (list, 0, {});
+            return this.parseOrder (first, market);
+        }
+        request['orderId'] = id;
+        response = await this.privatePostOrderById (this.extend (request, params));
         const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
@@ -1175,18 +1665,129 @@ export default class coinmate extends Exchange {
         //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         const request: Dict = { 'orderId': id };
         const response = await this.privatePostCancelOrderWithInfo (this.extend (request, params));
-        //
-        //    {
-        //        "error": false,
-        //        "errorMessage": null,
-        //        "data": {
-        //          "success": true,
-        //          "remainingAmount": 0.1
-        //        }
-        //    }
-        //
         const data = this.safeDict (response, 'data');
-        return this.parseOrder (data);
+        const remainingString = this.safeString (data, 'remainingAmount');
+        const isCanceled = this.safeBool (data, 'success');
+        const status = isCanceled ? 'canceled' : undefined;
+        return this.safeOrder ({
+            'info': response,
+            'id': id,
+            'status': status,
+            'remaining': remainingString,
+        });
+    }
+
+    /**
+     * @method
+     * @name coinmate#cancelAllOrders
+     * @description cancel all open orders, optionally for a specific market
+     * @see https://coinmate.docs.apiary.io/#reference/order/cancel-all-open-orders/post
+     * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
+        const response = await this.privatePostCancelAllOpenOrders (this.extend (request, params));
+        // response.data is a mapping of orderId -> remainingAmount
+        const mapping = this.safeDict (response, 'data', {});
+        const keys = Object.keys (mapping);
+        const result = [];
+        for (let i = 0; i < keys.length; i++) {
+            const orderId = keys[i];
+            const remainingString = this.safeString (mapping, orderId);
+            result.push (this.safeOrder ({
+                'id': orderId,
+                'status': 'canceled',
+                'remaining': remainingString,
+                'info': response,
+            }, market));
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name coinmate#editOrder
+     * @description edit a trade order by replacing it with new params
+     * @see https://coinmate.docs.apiary.io/#reference/order/replace-by-buy-limit-order/post
+     * @see https://coinmate.docs.apiary.io/#reference/order/replace-by-sell-limit-order/post
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.postOnly] if true, the order will only be placed if it does not immediately execute (limit orders only)
+     * @param {bool} [params.immediateOrCancel] if true, execute immediately and cancel any remaining unfilled portion (limit orders only)
+     * @param {bool} [params.hidden] if true, the order will be hidden from the order book (limit orders only)
+     * @returns {Order} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let method = 'privatePostReplaceBy' + this.capitalize (side);
+        const request: Dict = {
+            'orderId': id,
+            'currencyPair': market['id'],
+        };
+        if (type === 'market') {
+            if (side === 'buy') {
+                request['total'] = this.costToPrecision (symbol, amount);
+            } else {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            }
+            method += 'Instant';
+        } else {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
+            method += this.capitalize (type);
+            // Handle time-in-force options for limit orders
+            const postOnly = this.safeBool (params, 'postOnly');
+            const immediateOrCancel = this.safeBool (params, 'immediateOrCancel');
+            const hidden = this.safeBool (params, 'hidden');
+            // stop orders disabled; ensure stopPrice isn't silently accepted anywhere
+            const stopPrice = this.safeValue (params, 'stopPrice');
+            if (stopPrice !== undefined) {
+                throw new NotSupported (this.id + ' editOrder() stop orders are disabled by exchange');
+            }
+            if (postOnly !== undefined) {
+                request['postOnly'] = postOnly ? 1 : 0;
+            }
+            if (immediateOrCancel !== undefined) {
+                request['immediateOrCancel'] = immediateOrCancel ? 1 : 0;
+            }
+            if (hidden !== undefined) {
+                request['hidden'] = hidden ? 1 : 0;
+            }
+        }
+        const omittedParams = this.omit (params, [ 'postOnly', 'immediateOrCancel', 'hidden' ]);
+        let response = undefined;
+        if (method === 'privatePostReplaceByBuyInstant') {
+            response = await this.privatePostReplaceByBuyInstant (this.extend (request, omittedParams));
+        } else if (method === 'privatePostReplaceByBuyLimit') {
+            response = await this.privatePostReplaceByBuyLimit (this.extend (request, omittedParams));
+        } else if (method === 'privatePostReplaceBySellInstant') {
+            response = await this.privatePostReplaceBySellInstant (this.extend (request, omittedParams));
+        } else if (method === 'privatePostReplaceBySellLimit') {
+            response = await this.privatePostReplaceBySellLimit (this.extend (request, omittedParams));
+        } else {
+            throw new ExchangeError (this.id + ' editOrder() unknown method: ' + method);
+        }
+        // replaceBy* returns an object with createdOrderId and cancel info
+        const data = this.safeDict (response, 'data', {});
+        const newOrderId = this.safeString (data, 'createdOrderId');
+        return this.safeOrder ({
+            'info': response,
+            'id': newOrderId,
+        }, market);
     }
 
     nonce () {
@@ -1195,6 +1796,7 @@ export default class coinmate extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + path;
+        headers = {};
         if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
@@ -1210,10 +1812,9 @@ export default class coinmate extends Exchange {
                 'publicKey': this.apiKey,
                 'signature': signature.toUpperCase (),
             }, params));
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+            headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
+        headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -1226,7 +1827,8 @@ export default class coinmate extends Exchange {
         //     {"error":true,"errorMessage":"Access denied.","data":null}
         //
         const errorMessage = this.safeString (response, 'errorMessage');
-        if (errorMessage !== undefined) {
+        const errorFlag = this.safeBool (response, 'error');
+        if (errorMessage !== undefined || (errorFlag === true)) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
