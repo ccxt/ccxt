@@ -3780,9 +3780,7 @@
                 "input": [
                     [
                         "ETH/USDT:USDT"
-                    ],
-                    null,
-                    2
+                    ]
                 ],
                 "httpResponse": {
                     "code": "0",
@@ -3819,11 +3817,7 @@
             {
                 "description": "fetchPositions no args",
                 "method": "fetchPositions",
-                "input": [
-                    null,
-                    null,
-                    2
-                ],
+                "input": [],
                 "httpResponse": {
                     "code": "0",
                     "msg": "success",
