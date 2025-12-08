@@ -518,8 +518,7 @@ export default class xcoin extends Exchange {
                     '70101': InvalidNonce, // accessTimestamp has expired
                     '70102': PermissionDenied, // WS trading is only supported with account-level API keys
                 },
-                'broad': {
-                },
+                'broad': {},
             },
         });
     }
