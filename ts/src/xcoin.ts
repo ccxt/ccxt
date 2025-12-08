@@ -3382,25 +3382,45 @@ export default class xcoin extends Exchange {
         }
         const response = await this.privateGetV2HistoryTrades (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
-        //             "activity_type": "FILL",
-        //             "transaction_time": "2022-12-28T12:19:29.579352Z",
-        //             "type": "fill",
-        //             "price": "67.31",
-        //             "qty": "0.07",
-        //             "side": "sell",
-        //             "symbol": "LTC/USD",
-        //             "leaves_qty": "0",
-        //             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
-        //             "cum_qty": "0.07",
-        //             "order_status": "filled",
-        //             "swap_rate": "1"
-        //         },
-        //     ]
+        //    {
+        //        "code": "0",
+        //        "msg": "success",
+        //        "data": [
+        //            {
+        //                "accountName": "CCXT_testing",
+        //                "id": "4503599628065617",
+        //                "orderId": "1445105348162420736",
+        //                "clientOrderId": "1445105348162420736",
+        //                "businessType": "spot",
+        //                "symbol": "ADA-USDT",
+        //                "pnl": "0",
+        //                "orderType": "limit",
+        //                "side": "sell",
+        //                "fillPrice": "0.45",
+        //                "tradeId": "4503599628065617",
+        //                "role": "maker",
+        //                "fillQty": "1",
+        //                "fillTime": "1764798660738",
+        //                "lever": "0",
+        //                "feeCurrency": "ADA",
+        //                "fee": "0.00005",
+        //                "eventId": "2",
+        //                "quoteId": "",
+        //                "quoteSetId": "",
+        //                "indexPrice": "0",
+        //                "markPrice": "0",
+        //                "forwardPrice": "0",
+        //                "markIv": "0",
+        //                "riskReducing": false,
+        //                "iv": "0",
+        //                "pid": "1981204053820035072",
+        //                "cid": "176118985590600",
+        //                "uid": "176118985582700"
+        //            },
+        //            ...
         //
-        return this.parseTrades (response, market, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
