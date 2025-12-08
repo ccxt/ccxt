@@ -4,6 +4,7 @@
  */
 
 import ccxt from '../js/ccxt.js';
+import cow from '../ts/src/cow.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -47,7 +48,7 @@ let exchange: any;
 let testOrderId: string | undefined;
 
 async function initExchange() {
-    exchange = new ccxt.cow({
+    exchange = new cow({
         walletAddress: config.walletAddress,
         privateKey: config.privateKey,
         options: {
