@@ -9,76 +9,76 @@ package ccxt
 
 // Public API methods
 
-func (this *PionexCore) PublicGetApiV1CommonSymbols (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PublicGetApiV1CommonSymbols(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1CommonSymbols", args...)
 }
 
-func (this *PionexCore) PublicGetApiV1CommonTimestamp (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PublicGetApiV1CommonTimestamp(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1CommonTimestamp", args...)
 }
 
-func (this *PionexCore) PublicGetApiV1MarketDepth (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PublicGetApiV1MarketDepth(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1MarketDepth", args...)
 }
 
-func (this *PionexCore) PublicGetApiV1MarketTrades (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PublicGetApiV1MarketTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1MarketTrades", args...)
 }
 
-func (this *PionexCore) PublicGetApiV1MarketKlines (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PublicGetApiV1MarketKlines(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1MarketKlines", args...)
 }
 
-func (this *PionexCore) PublicGetApiV1MarketTickers (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PublicGetApiV1MarketTickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1MarketTickers", args...)
 }
 
-func (this *PionexCore) PublicGetApiV1MarketBookTickers (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PublicGetApiV1MarketBookTickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetApiV1MarketBookTickers", args...)
 }
 
 // Private API methods
 
-func (this *PionexCore) PrivateGetApiV1AccountBalances (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PrivateGetApiV1AccountBalances(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1AccountBalances", args...)
 }
 
-func (this *PionexCore) PrivateGetApiV1TradeOrder (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PrivateGetApiV1TradeOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1TradeOrder", args...)
 }
 
-func (this *PionexCore) PrivateGetApiV1TradeOrderByClientOrderId (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PrivateGetApiV1TradeOrderByClientOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1TradeOrderByClientOrderId", args...)
 }
 
-func (this *PionexCore) PrivateGetApiV1TradeOpenOrders (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PrivateGetApiV1TradeOpenOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1TradeOpenOrders", args...)
 }
 
-func (this *PionexCore) PrivateGetApiV1TradeAllOrders (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PrivateGetApiV1TradeAllOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1TradeAllOrders", args...)
 }
 
-func (this *PionexCore) PrivateGetApiV1TradeFills (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PrivateGetApiV1TradeFills(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1TradeFills", args...)
 }
 
-func (this *PionexCore) PrivateGetApiV1TradeFillsByOrderId (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PrivateGetApiV1TradeFillsByOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiV1TradeFillsByOrderId", args...)
 }
 
-func (this *PionexCore) PrivatePostApiV1TradeOrder (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PrivatePostApiV1TradeOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostApiV1TradeOrder", args...)
 }
 
-func (this *PionexCore) PrivatePostApiV1TradeMassOrder (args ...interface{}) <-chan interface{} {
+func (this *PionexCore) PrivatePostApiV1TradeMassOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostApiV1TradeMassOrder", args...)
 }
 
-func (this *PionexCore) PrivatePostApiV1TradeCancelOrder (args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostApiV1TradeCancelOrder", args...)
+func (this *PionexCore) PrivateDeleteApiV1TradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1TradeOrder", args...)
 }
 
-func (this *PionexCore) PrivatePostApiV1TradeCancelAllOrders (args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostApiV1TradeCancelAllOrders", args...)
+func (this *PionexCore) PrivateDeleteApiV1TradeAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1TradeAllOrders", args...)
 }
