@@ -518,6 +518,8 @@ export default class xcoin extends Exchange {
                     '70101': InvalidNonce, // accessTimestamp has expired
                     '70102': PermissionDenied, // WS trading is only supported with account-level API keys
                 },
+                'broad': {
+                },
             },
         });
     }
@@ -2854,7 +2856,7 @@ export default class xcoin extends Exchange {
         }
         return this.safeOrder ({
             'id': this.safeString2 (order, 'orderId', 'complexOId'),
-            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'clientOrderId': this.safeString2 (order, 'clientOrderId', 'complexClOrdId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimeStamp': this.safeInteger (order, 'updateTime'),

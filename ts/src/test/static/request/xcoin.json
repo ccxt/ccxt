@@ -435,6 +435,40 @@
         ],
         "createOrder": [
             {
+                "description": "createOrder perp buy limit with triggerPrice & triggerDirection asc",
+                "method": "createOrder",
+                "url": "https://api.xcoin.com/api/v2/trade/orderComplex",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    "0.005",
+                    4934,
+                    {
+                        "triggerPrice": 4434,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"qty\":\"0.005\",\"complexType\":\"trigger\",\"triggerOrder\":{\"triggerPriceType\":\"last_price\",\"triggerDirection\":\"rising\",\"triggerPrice\":\"4434\",\"triggerOrderType\":\"limit\",\"triggerOrderPrice\":\"4934\"}}"
+            },
+            {
+                "description": "createOrder perp buy limit with triggerPrice & triggerDirection desc",
+                "method": "createOrder",
+                "url": "https://api.xcoin.com/api/v2/trade/orderComplex",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    "0.005",
+                    1234,
+                    {
+                        "triggerPrice": 1434,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"qty\":\"0.005\",\"complexType\":\"trigger\",\"triggerOrder\":{\"triggerPriceType\":\"last_price\",\"triggerDirection\":\"falling\",\"triggerPrice\":\"1434\",\"triggerOrderType\":\"limit\",\"triggerOrderPrice\":\"1234\"}}"
+            },
+            {
                 "description": "createOrder perp sell market",
                 "method": "createOrder",
                 "url": "https://api.xcoin.com/api/v2/trade/order",

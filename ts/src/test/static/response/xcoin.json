@@ -4648,6 +4648,124 @@
         ],
         "createOrder": [
             {
+                "description": "createOrder perp buy limit with triggerPrice & triggerDirection asc",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    "0.005",
+                    4934,
+                    {
+                        "triggerPrice": 4434,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "accountName": "CCXT_testing",
+                        "complexOId": "1447659209197031424",
+                        "complexClOrdId": "1447659209197031424"
+                    },
+                    "ts": "1765190451703"
+                },
+                "parsedResponse": {
+                    "id": "1447659209197031424",
+                    "clientOrderId": "1447659209197031424",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimeStamp": null,
+                    "status": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "accountName": "CCXT_testing",
+                        "complexOId": "1447659209197031424",
+                        "complexClOrdId": "1447659209197031424"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "createOrder perp buy limit with triggerPrice & triggerDirection desc",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    "0.005",
+                    1234,
+                    {
+                        "triggerPrice": 1434,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "accountName": "CCXT_testing",
+                        "complexOId": "1447659207589376000",
+                        "complexClOrdId": "1447659207589376000"
+                    },
+                    "ts": "1765190451316"
+                },
+                "parsedResponse": {
+                    "id": "1447659207589376000",
+                    "clientOrderId": "1447659207589376000",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimeStamp": null,
+                    "status": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "accountName": "CCXT_testing",
+                        "complexOId": "1447659207589376000",
+                        "complexClOrdId": "1447659207589376000"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
                 "description": "createOrder perp sell market",
                 "method": "createOrder",
                 "input": [
