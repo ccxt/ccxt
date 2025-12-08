@@ -1,3 +1,15 @@
+<a id="v4.5.26"></a>
+# [v4.5.26](https://github.com/ccxt/ccxt/releases/tag/v4.5.26) - 2025-12-08
+
+## What's Changed
+* fix(bitmart): error handling by [@carlosmiei](https://github.com/carlosmiei) in [#27464](https://github.com/ccxt/ccxt/pull/27464)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.25...v4.5.26
+
+[Changes][v4.5.26]
+
+
 <a id="v4.5.25"></a>
 # [v4.5.25](https://github.com/ccxt/ccxt/releases/tag/v4.5.25) - 2025-12-07
 
@@ -11993,6 +12005,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.26]: https://github.com/ccxt/ccxt/compare/v4.5.25...v4.5.26
 [v4.5.25]: https://github.com/ccxt/ccxt/compare/v4.5.24...v4.5.25
 [v4.5.24]: https://github.com/ccxt/ccxt/compare/v4.5.23...v4.5.24
 [v4.5.23]: https://github.com/ccxt/ccxt/compare/v4.5.22...v4.5.23
