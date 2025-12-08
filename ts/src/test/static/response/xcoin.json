@@ -3,6 +3,821 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades symbol perp",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599627843994",
+                            "orderId": "1440030276499664896",
+                            "clientOrderId": "1440030276499664896",
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "sell",
+                            "fillPrice": "3206.02",
+                            "tradeId": "4503599627843994",
+                            "role": "taker",
+                            "fillQty": "0.005",
+                            "fillTime": "1763371572401",
+                            "lever": "3",
+                            "feeCurrency": "USDT",
+                            "fee": "-0.002564816",
+                            "eventId": "1",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": null,
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599627843993",
+                            "orderId": "1440028982439383040",
+                            "clientOrderId": "1440028982439383040",
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "sell",
+                            "fillPrice": "3206.41",
+                            "tradeId": "4503599627843993",
+                            "role": "taker",
+                            "fillQty": "0.005",
+                            "fillTime": "1763371263859",
+                            "lever": "3",
+                            "feeCurrency": "USDT",
+                            "fee": "-0.002565128",
+                            "eventId": "1",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": null,
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        }
+                    ],
+                    "ts": "1765186596465"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599627843993",
+                            "orderId": "1440028982439383040",
+                            "clientOrderId": "1440028982439383040",
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "sell",
+                            "fillPrice": "3206.41",
+                            "tradeId": "4503599627843993",
+                            "role": "taker",
+                            "fillQty": "0.005",
+                            "fillTime": "1763371263859",
+                            "lever": "3",
+                            "feeCurrency": "USDT",
+                            "fee": "-0.002565128",
+                            "eventId": "1",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": null,
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        "id": "4503599627843993",
+                        "order": "1440028982439383040",
+                        "timestamp": 1763371263859,
+                        "datetime": "2025-11-17T09:21:03.859Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "sell",
+                        "price": 3206.41,
+                        "amount": 0.005,
+                        "cost": 16.03205,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.002565128
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.002565128
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599627843994",
+                            "orderId": "1440030276499664896",
+                            "clientOrderId": "1440030276499664896",
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "sell",
+                            "fillPrice": "3206.02",
+                            "tradeId": "4503599627843994",
+                            "role": "taker",
+                            "fillQty": "0.005",
+                            "fillTime": "1763371572401",
+                            "lever": "3",
+                            "feeCurrency": "USDT",
+                            "fee": "-0.002564816",
+                            "eventId": "1",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": null,
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        "id": "4503599627843994",
+                        "order": "1440030276499664896",
+                        "timestamp": 1763371572401,
+                        "datetime": "2025-11-17T09:26:12.401Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "sell",
+                        "price": 3206.02,
+                        "amount": 0.005,
+                        "cost": 16.0301,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.002564816
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.002564816
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "fetchMyTrades symbol spot",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599627989748",
+                            "orderId": "1445506745336922112",
+                            "clientOrderId": "1445506745336922112",
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "buy",
+                            "fillPrice": "2830.57",
+                            "tradeId": "4503599627989748",
+                            "role": "taker",
+                            "fillQty": "0.005",
+                            "fillTime": "1764677264306",
+                            "lever": "0",
+                            "feeCurrency": "ETH",
+                            "fee": "-0.0000008",
+                            "eventId": "1",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": "0",
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599627989375",
+                            "orderId": "1445499507645980672",
+                            "clientOrderId": "1445499507645980672",
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "buy",
+                            "fillPrice": "2825.04",
+                            "tradeId": "4503599627989375",
+                            "role": "taker",
+                            "fillQty": "0.005",
+                            "fillTime": "1764675538716",
+                            "lever": "0",
+                            "feeCurrency": "ETH",
+                            "fee": "-0.0000008",
+                            "eventId": "1",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": "0",
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        }
+                    ],
+                    "ts": "1765186596081"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599627989375",
+                            "orderId": "1445499507645980672",
+                            "clientOrderId": "1445499507645980672",
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "buy",
+                            "fillPrice": "2825.04",
+                            "tradeId": "4503599627989375",
+                            "role": "taker",
+                            "fillQty": "0.005",
+                            "fillTime": "1764675538716",
+                            "lever": "0",
+                            "feeCurrency": "ETH",
+                            "fee": "-0.0000008",
+                            "eventId": "1",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": "0",
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        "id": "4503599627989375",
+                        "order": "1445499507645980672",
+                        "timestamp": 1764675538716,
+                        "datetime": "2025-12-02T11:38:58.716Z",
+                        "symbol": "ETH/USDT",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 2825.04,
+                        "amount": 0.005,
+                        "cost": 14.1252,
+                        "fee": {
+                            "currency": "ETH",
+                            "cost": 8e-7
+                        },
+                        "fees": [
+                            {
+                                "currency": "ETH",
+                                "cost": 8e-7
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599627989748",
+                            "orderId": "1445506745336922112",
+                            "clientOrderId": "1445506745336922112",
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "buy",
+                            "fillPrice": "2830.57",
+                            "tradeId": "4503599627989748",
+                            "role": "taker",
+                            "fillQty": "0.005",
+                            "fillTime": "1764677264306",
+                            "lever": "0",
+                            "feeCurrency": "ETH",
+                            "fee": "-0.0000008",
+                            "eventId": "1",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": "0",
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        "id": "4503599627989748",
+                        "order": "1445506745336922112",
+                        "timestamp": 1764677264306,
+                        "datetime": "2025-12-02T12:07:44.306Z",
+                        "symbol": "ETH/USDT",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 2830.57,
+                        "amount": 0.005,
+                        "cost": 14.15285,
+                        "fee": {
+                            "currency": "ETH",
+                            "cost": 8e-7
+                        },
+                        "fees": [
+                            {
+                                "currency": "ETH",
+                                "cost": 8e-7
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "fetchMyTrades no args",
+                "method": "fetchMyTrades",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599628065617",
+                            "orderId": "1445105348162420736",
+                            "clientOrderId": "1445105348162420736",
+                            "businessType": "spot",
+                            "symbol": "ADA-USDT",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "sell",
+                            "fillPrice": "0.45",
+                            "tradeId": "4503599628065617",
+                            "role": "maker",
+                            "fillQty": "1",
+                            "fillTime": "1764798660738",
+                            "lever": "0",
+                            "feeCurrency": "ADA",
+                            "fee": "0.00005",
+                            "eventId": "2",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": "0",
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599628065501",
+                            "orderId": "1445105348162420736",
+                            "clientOrderId": "1445105348162420736",
+                            "businessType": "spot",
+                            "symbol": "ADA-USDT",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "sell",
+                            "fillPrice": "0.45",
+                            "tradeId": "4503599628065501",
+                            "role": "maker",
+                            "fillQty": "19",
+                            "fillTime": "1764798300812",
+                            "lever": "0",
+                            "feeCurrency": "ADA",
+                            "fee": "0.00095",
+                            "eventId": "1",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": "0",
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        }
+                    ],
+                    "ts": "1765186595711"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599628065501",
+                            "orderId": "1445105348162420736",
+                            "clientOrderId": "1445105348162420736",
+                            "businessType": "spot",
+                            "symbol": "ADA-USDT",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "sell",
+                            "fillPrice": "0.45",
+                            "tradeId": "4503599628065501",
+                            "role": "maker",
+                            "fillQty": "19",
+                            "fillTime": "1764798300812",
+                            "lever": "0",
+                            "feeCurrency": "ADA",
+                            "fee": "0.00095",
+                            "eventId": "1",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": "0",
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        "id": "4503599628065501",
+                        "order": "1445105348162420736",
+                        "timestamp": 1764798300812,
+                        "datetime": "2025-12-03T21:45:00.812Z",
+                        "symbol": "ADA/USDT",
+                        "type": null,
+                        "takerOrMaker": "maker",
+                        "side": "sell",
+                        "price": 0.45,
+                        "amount": 19,
+                        "cost": 8.55,
+                        "fee": {
+                            "currency": "ADA",
+                            "cost": 0.00095
+                        },
+                        "fees": [
+                            {
+                                "currency": "ADA",
+                                "cost": 0.00095
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "accountName": "CCXT_testing",
+                            "id": "4503599628065617",
+                            "orderId": "1445105348162420736",
+                            "clientOrderId": "1445105348162420736",
+                            "businessType": "spot",
+                            "symbol": "ADA-USDT",
+                            "pnl": "0",
+                            "orderType": "limit",
+                            "side": "sell",
+                            "fillPrice": "0.45",
+                            "tradeId": "4503599628065617",
+                            "role": "maker",
+                            "fillQty": "1",
+                            "fillTime": "1764798660738",
+                            "lever": "0",
+                            "feeCurrency": "ADA",
+                            "fee": "0.00005",
+                            "eventId": "2",
+                            "quoteId": "",
+                            "quoteSetId": "",
+                            "indexPrice": "0",
+                            "markPrice": "0",
+                            "forwardPrice": "0",
+                            "markIv": "0",
+                            "riskReducing": false,
+                            "iv": "0",
+                            "pid": "1981204053820035072",
+                            "cid": "176118985590600",
+                            "uid": "176118985582700"
+                        },
+                        "id": "4503599628065617",
+                        "order": "1445105348162420736",
+                        "timestamp": 1764798660738,
+                        "datetime": "2025-12-03T21:51:00.738Z",
+                        "symbol": "ADA/USDT",
+                        "type": null,
+                        "takerOrMaker": "maker",
+                        "side": "sell",
+                        "price": 0.45,
+                        "amount": 1,
+                        "cost": 0.45,
+                        "fee": {
+                            "currency": "ADA",
+                            "cost": 0.00005
+                        },
+                        "fees": [
+                            {
+                                "currency": "ADA",
+                                "cost": 0.00005
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies no args",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "accountName": "CCXT_testing",
+                            "pid": "1981204053820035072",
+                            "uid": "176118985582700",
+                            "cid": "176118985590600",
+                            "currency": "USDT",
+                            "name": "Tether",
+                            "icon": "https://static.xcoin.com/1932369458811244544",
+                            "traderAuth": true,
+                            "depositAuth": true,
+                            "withdrawAuth": true,
+                            "haircut": "",
+                            "currencyPrecision": "6",
+                            "maxLeverage": "",
+                            "chains": [
+                                {
+                                    "chainType": "eth",
+                                    "minDep": "0.01",
+                                    "minWd": "18",
+                                    "maxWd": "800000",
+                                    "withdrawFee": "1",
+                                    "depositAuth": true,
+                                    "withdrawAuth": true
+                                },
+                                {
+                                    "chainType": "trx",
+                                    "minDep": "0.01",
+                                    "minWd": "18",
+                                    "maxWd": "1000000",
+                                    "withdrawFee": "1",
+                                    "depositAuth": true,
+                                    "withdrawAuth": true
+                                },
+                                {
+                                    "chainType": "sol",
+                                    "minDep": "0.000001",
+                                    "minWd": "9",
+                                    "maxWd": "1000000",
+                                    "withdrawFee": "0.6",
+                                    "depositAuth": true,
+                                    "withdrawAuth": true
+                                },
+                                {
+                                    "chainType": "bnb",
+                                    "minDep": "0.000000000000000001",
+                                    "minWd": "9.5",
+                                    "maxWd": "1000000",
+                                    "withdrawFee": "0.5",
+                                    "depositAuth": true,
+                                    "withdrawAuth": true
+                                }
+                            ]
+                        }
+                    ],
+                    "msg": "Success",
+                    "ts": "1765186595246",
+                    "traceId": "e3135edebdaed637f92e3a858d94b28e"
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": [
+                            {
+                                "chainType": "eth",
+                                "minDep": "0.01",
+                                "minWd": "18",
+                                "maxWd": "800000",
+                                "withdrawFee": "1",
+                                "depositAuth": true,
+                                "withdrawAuth": true
+                            },
+                            {
+                                "chainType": "trx",
+                                "minDep": "0.01",
+                                "minWd": "18",
+                                "maxWd": "1000000",
+                                "withdrawFee": "1",
+                                "depositAuth": true,
+                                "withdrawAuth": true
+                            },
+                            {
+                                "chainType": "sol",
+                                "minDep": "0.000001",
+                                "minWd": "9",
+                                "maxWd": "1000000",
+                                "withdrawFee": "0.6",
+                                "depositAuth": true,
+                                "withdrawAuth": true
+                            },
+                            {
+                                "chainType": "bnb",
+                                "minDep": "0.000000000000000001",
+                                "minWd": "9.5",
+                                "maxWd": "1000000",
+                                "withdrawFee": "0.5",
+                                "depositAuth": true,
+                                "withdrawAuth": true
+                            }
+                        ],
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": null,
+                        "name": "Tether",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.5,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "id": "eth",
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 18,
+                                        "max": 800000
+                                    },
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chainType": "eth",
+                                    "minDep": "0.01",
+                                    "minWd": "18",
+                                    "maxWd": "800000",
+                                    "withdrawFee": "1",
+                                    "depositAuth": true,
+                                    "withdrawAuth": true
+                                }
+                            },
+                            "TRC20": {
+                                "id": "trx",
+                                "network": "TRC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 18,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chainType": "trx",
+                                    "minDep": "0.01",
+                                    "minWd": "18",
+                                    "maxWd": "1000000",
+                                    "withdrawFee": "1",
+                                    "depositAuth": true,
+                                    "withdrawAuth": true
+                                }
+                            },
+                            "SOL": {
+                                "id": "sol",
+                                "network": "SOL",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.6,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 9,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 0.000001,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chainType": "sol",
+                                    "minDep": "0.000001",
+                                    "minWd": "9",
+                                    "maxWd": "1000000",
+                                    "withdrawFee": "0.6",
+                                    "depositAuth": true,
+                                    "withdrawAuth": true
+                                }
+                            },
+                            "BEP20": {
+                                "id": "bnb",
+                                "network": "BEP20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.5,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 9.5,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 1e-18,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chainType": "bnb",
+                                    "minDep": "0.000000000000000001",
+                                    "minWd": "9.5",
+                                    "maxWd": "1000000",
+                                    "withdrawFee": "0.5",
+                                    "depositAuth": true,
+                                    "withdrawAuth": true
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 1e-18,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 9,
+                                "max": 1000000
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetchBalance type perp",
