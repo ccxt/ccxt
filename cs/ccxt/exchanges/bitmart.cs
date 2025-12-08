@@ -5888,7 +5888,8 @@ public partial class bitmart : Exchange
         //     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         //
         object message = this.safeString(response, "message");
-        object isErrorMessage = isTrue(isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, "ok")))) && isTrue((!isEqual(message, "success")));
+        object messageLower = ((string)message).ToLower();
+        object isErrorMessage = isTrue(isTrue((!isEqual(message, null))) && isTrue((!isEqual(messageLower, "ok")))) && isTrue((!isEqual(messageLower, "success")));
         object errorCode = this.safeString(response, "code");
         object isErrorCode = isTrue((!isEqual(errorCode, null))) && isTrue((!isEqual(errorCode, "1000")));
         if (isTrue(isTrue(isErrorCode) || isTrue(isErrorMessage)))
