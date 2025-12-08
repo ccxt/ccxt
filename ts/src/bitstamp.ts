@@ -1259,8 +1259,9 @@ export default class bitstamp extends Exchange {
     }
 
     parseBalance (response): Balances {
+        const finalResponse = response; // java req
         const result: Dict = {
-            'info': response,
+            'info': finalResponse,
             'timestamp': undefined,
             'datetime': undefined,
         };

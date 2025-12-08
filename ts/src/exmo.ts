@@ -1154,7 +1154,8 @@ export default class exmo extends Exchange {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
-            ids = this.ids.join (',');
+            const allIds = this.ids;
+            ids = allIds.join (',');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
                 const numIds = this.ids.length;

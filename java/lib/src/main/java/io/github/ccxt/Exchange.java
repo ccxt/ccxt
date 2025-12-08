@@ -537,12 +537,24 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return Crypto.Hash(payload, algo, null);
     }
 
+    public Object hash(Object payload, Object algo, Object output) {
+        return Crypto.Hash(payload, algo, output);
+    }
+
     public String rsa(Object payload, Object publicKey, Object algo) {
         return Crypto.Rsa(payload, publicKey, algo);
     }
 
     public Object eddsa(Object payload, Object secret, Object algo) {
         return Crypto.Eddsa(payload, secret, algo);
+    }
+
+    public String jwt(Object data, Object secret, Object hash, boolean isRsa, Object options2) {
+        return Crypto.Jwt(data, secret, hash, isRsa, (Map<String, Object>)options2);
+    }
+
+        public String jwt(Object data, Object secret, Object hash) {
+        return Crypto.Jwt(data, secret, hash, false, new HashMap<String, Object> ());
     }
 
     // public Object md5() {
@@ -560,6 +572,15 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     // =======================
     // Encode
     // =======================
+
+    public Object binaryConcat(Object... parts) {
+        return Encode.binaryConcat(parts);
+    }
+
+    public static byte[] base64ToBinary(Object s) {
+        return Encode.base64ToBinary(s);
+    }
+
     public void Print(Object s) {
         System.out.println(s);
     }
@@ -578,6 +599,10 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
 
     public String encodeURIComponent(Object s) {
         return Encode.encodeURIComponent(s);
+    }
+
+    public String urlencodeNested(Object parameters) {
+        return Encode.urlencodeNested(parameters);
     }
 
     // public String base64ToString(Object b64) {
@@ -877,6 +902,10 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return SafeMethods.safeTimestamp2(obj, key1, key2, defaultValue);
     }
 
+    public Object safeTimestampN(Object obj, List<Object> keys, Object... defaultValue) {
+        return SafeMethods.safeTimestampN(obj, keys, defaultValue);
+    }
+
     // SafeNumber / SafeNumberN
     // (If your SafeMethods.SafeNumber(...) doesn't exist, point this to SafeFloat(...) instead.)
     // public Double safeNumber(Object obj, Object key, Object... defaultValue) {
@@ -946,6 +975,10 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return Time.seconds();
     }
 
+    public long microseconds() {
+        return Time.microseconds();
+    }
+
     public String iso8601(Object timestamp) {
         return Time.Iso8601(timestamp);
     }
@@ -968,6 +1001,14 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
 
     public String yyyymmdd(Object timestamp, Object infix) {
         return Time.yyyymmdd(timestamp, infix);
+    }
+
+    public String ymdhms(Object ts) {
+        return Time.ymdhms(ts);
+    }
+
+    public String ymdhms(Object ts, Object infix) {
+        return Time.ymdhms(ts, infix);
     }
     // public Long nonce() {
     //     return Time.nonce();
@@ -1665,6 +1706,14 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         }
     }
 
+    public String fixStringifiedJsonMembers(Object content) {
+        String str = (String)content;
+        str = str.replace("\\", "");
+        str = str.replace("\"{", "{");
+        str = str.replace("}\"", "\"}");
+        return str;
+    }
+
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
@@ -1703,7 +1752,7 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{
@@ -1734,8 +1783,10 @@ public Object describe()
                 put( "cancelAllOrders", null );
                 put( "cancelAllOrdersWs", null );
                 put( "cancelOrder", true );
+                put( "cancelOrderWithClientOrderId", null );
                 put( "cancelOrderWs", null );
                 put( "cancelOrders", null );
+                put( "cancelOrdersWithClientOrderId", null );
                 put( "cancelOrdersWs", null );
                 put( "closeAllPositions", null );
                 put( "closePosition", null );
@@ -1785,6 +1836,7 @@ public Object describe()
                 put( "createTriggerOrderWs", null );
                 put( "deposit", null );
                 put( "editOrder", "emulated" );
+                put( "editOrderWithClientOrderId", null );
                 put( "editOrders", null );
                 put( "editOrderWs", null );
                 put( "fetchAccounts", null );
@@ -1863,6 +1915,7 @@ public Object describe()
                 put( "fetchOption", null );
                 put( "fetchOptionChain", null );
                 put( "fetchOrder", null );
+                put( "fetchOrderWithClientOrderId", null );
                 put( "fetchOrderBook", true );
                 put( "fetchOrderBooks", null );
                 put( "fetchOrderBookWs", null );
@@ -2210,7 +2263,7 @@ public Object describe()
 
     public Object getCacheIndex(Object orderbook, Object deltas)
     {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return Helpers.opNeg(1);
     }
 
@@ -2890,6 +2943,29 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " unWatchTicker() is not supported yet")) ;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> unWatchMarkPrice(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " unWatchMarkPrice() is not supported yet")) ;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> unWatchMarkPrices(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " unWatchMarkPrices() is not supported yet")) ;
         });
 
     }
@@ -3589,7 +3665,7 @@ public Object describe()
             put( "delay", 0.001 );
             put( "capacity", 1 );
             put( "cost", 1 );
-            put( "maxCapacity", 1000 );
+            put( "maxCapacity", Exchange.this.safeInteger(Exchange.this.options, "maxRequestsQueue", 1000) );
             put( "refillRate", finalRefillRate );
         }};
         Object existingBucket = ((Helpers.isTrue((Helpers.isEqual(this.tokenBucket, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.tokenBucket;
@@ -3715,7 +3791,7 @@ public Object describe()
         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
         * @param {string} [symbol] unified symbol
         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
-        * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names),
+        * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
         * @param {object} [defaultValue] return default value if no result found
         * @returns {object} returns feature value
         */
@@ -3746,6 +3822,10 @@ public Object describe()
         if (Helpers.isTrue(Helpers.isEqual(this.features, null)))
         {
             return defaultValue;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(marketType, null)))
+        {
+            return defaultValue;  // marketType is required
         }
         // if marketType (e.g. 'option') does not exist in features
         if (!Helpers.isTrue((Helpers.inOp(this.features, marketType))))
@@ -3780,7 +3860,7 @@ public Object describe()
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (Helpers.isTrue(Helpers.isEqual(methodName, null)))
         {
-            return methodsContainer;
+            return ((Helpers.isTrue((!Helpers.isEqual(defaultValue, null))))) ? defaultValue : methodsContainer;
         }
         if (!Helpers.isTrue((Helpers.inOp(methodsContainer, methodName))))
         {
@@ -3794,7 +3874,7 @@ public Object describe()
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (Helpers.isTrue(Helpers.isEqual(paramName, null)))
         {
-            return methodDict;
+            return ((Helpers.isTrue((!Helpers.isEqual(defaultValue, null))))) ? defaultValue : methodDict;
         }
         Object splited = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)paramName).split((String)"."))); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         Object parentKey = Helpers.GetValue(splited, 0);
@@ -4285,6 +4365,7 @@ public Object describe()
         this.symbols = sourceExchange.symbols;
         this.ids = sourceExchange.ids;
         this.currencies = sourceExchange.currencies;
+        this.currencies_by_id = sourceExchange.currencies_by_id;
         this.baseCurrencies = sourceExchange.baseCurrencies;
         this.quoteCurrencies = sourceExchange.quoteCurrencies;
         this.codes = sourceExchange.codes;
@@ -4935,7 +5016,7 @@ public Object describe()
             }
             if (!Helpers.isTrue(feesDefined))
             {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 fees = new java.util.ArrayList<Object>(java.util.Arrays.asList(fee));
             }
             // 'fees' were set, so reparse them
@@ -6399,7 +6480,8 @@ public Object describe()
                         {
                             if (Helpers.isTrue(this.verbose))
                             {
-                                this.log(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Request failed with the error: ", String.valueOf(e)), ", retrying "), String.valueOf((Helpers.add(i, 1)))), " of "), String.valueOf(retries)), "..."));
+                                Object index = Helpers.add(i, 1);
+                                this.log(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Request failed with the error: ", String.valueOf(e)), ", retrying "), String.valueOf(index)), " of "), String.valueOf(retries)), "..."));
                             }
                             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(retryDelay, null))) && Helpers.isTrue((!Helpers.isEqual(retryDelay, 0)))))
                             {
@@ -6491,7 +6573,7 @@ public Object describe()
             {
                 continue;
             }
-            Object openingTime = Helpers.multiply((Math.floor(Double.parseDouble((Helpers.divide(ts, ms)).toString()))), ms); // shift to the edge of m/h/d (but not M)
+            Object openingTime = Helpers.multiply((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(ts, ms))))), ms); // shift to the edge of m/h/d (but not M)
             if (Helpers.isTrue(Helpers.isLessThan(openingTime, since)))
             {
                 continue;
@@ -6576,6 +6658,21 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.cancelOrder(id, symbol)).join();
             return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> editOrderWithClientOrderId(Object clientOrderId, Object symbol, Object type, Object side, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object amount = Helpers.getArg(optionalArgs, 0, null);
+            Object price = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            return (this.editOrder("", symbol, type, side, amount, price, this.extend(new java.util.HashMap<String, Object>() {{
+                put( "clientOrderId", clientOrderId );
+            }}, parameters))).join();
         });
 
     }
@@ -6814,10 +6911,6 @@ public Object describe()
         Object market = Helpers.getArg(optionalArgs, 1, null);
         Object delimiter = Helpers.getArg(optionalArgs, 2, null);
         Object marketType = Helpers.getArg(optionalArgs, 3, null);
-        Object result = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
-            put( "symbol", marketId );
-            put( "marketId", marketId );
-        }});
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
@@ -6852,6 +6945,11 @@ public Object describe()
             {
                 Object parts = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)marketId).split((String)delimiter)));
                 Object partsLength = Helpers.getArrayLength(parts);
+                final Object finalMarketId = marketId;
+                Object result = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                    put( "symbol", finalMarketId );
+                    put( "marketId", finalMarketId );
+                }});
                 if (Helpers.isTrue(Helpers.isEqual(partsLength, 2)))
                 {
                     Helpers.addElementToObject(result, "baseId", this.safeString(parts, 0));
@@ -6859,18 +6957,19 @@ public Object describe()
                     Helpers.addElementToObject(result, "base", this.safeCurrencyCode(Helpers.GetValue(result, "baseId")));
                     Helpers.addElementToObject(result, "quote", this.safeCurrencyCode(Helpers.GetValue(result, "quoteId")));
                     Helpers.addElementToObject(result, "symbol", Helpers.add(Helpers.add(Helpers.GetValue(result, "base"), "/"), Helpers.GetValue(result, "quote")));
-                    return result;
-                } else
-                {
-                    return result;
                 }
+                return result;
             }
         }
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
         {
             return market;
         }
-        return result;
+        final Object finalMarketId = marketId;
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+            put( "symbol", finalMarketId );
+            put( "marketId", finalMarketId );
+        }});
     }
 
     public Object marketOrNull(Object symbol)
@@ -7529,6 +7628,30 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name fetchOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderWithClientOrderId(Object clientOrderId, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "clientOrderId", clientOrderId );
+            }});
+            return (this.fetchOrder("", symbol, extendedParams)).join();
         });
 
     }
@@ -8301,6 +8424,30 @@ public Object describe()
 
     }
 
+    /**
+     * @method
+     * @name cancelOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> cancelOrderWithClientOrderId(Object clientOrderId, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "clientOrderId", clientOrderId );
+            }});
+            return (this.cancelOrder("", symbol, extendedParams)).join();
+        });
+
+    }
+
     public java.util.concurrent.CompletableFuture<Object> cancelOrderWs(Object id, Object... optionalArgs)
     {
 
@@ -8309,6 +8456,42 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " cancelOrderWs() is not supported yet")) ;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name cancelOrdersWithClientOrderIds
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string[]} clientOrderIds client order Ids
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> cancelOrdersWithClientOrderIds(Object clientOrderIds, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "clientOrderIds", clientOrderIds );
+            }});
+            return (this.cancelOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList()), symbol, extendedParams)).join();
         });
 
     }
@@ -10713,7 +10896,7 @@ public Object describe()
             Object until = this.safeInteger2(parameters, "until", "till"); // do not omit it here
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
-                Object requiredCalls = Math.ceil(Double.parseDouble(Helpers.divide((Helpers.subtract(until, since)), step).toString()));
+                Object requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(until, since)), step))));
                 if (Helpers.isTrue(Helpers.isGreaterThan(requiredCalls, maxCalls)))
                 {
                     throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is "), String.valueOf(maxCalls)), " required calls is "), String.valueOf(requiredCalls))) ;
@@ -11453,7 +11636,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture withdrawWs(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdrawWs(Object code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11477,7 +11660,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture createOrdersWs(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrdersWs(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11488,7 +11671,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture fetchOrdersByStatusWs(Object status, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrdersByStatusWs(Object status, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11630,7 +11813,7 @@ public Object describe()
                         ((java.util.Map<String,Object>)futures).remove((String)"fetchPositionsSnapshot");
                     }
                 }
-            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(topic, "ticker")) && Helpers.isTrue((!Helpers.isEqual(this.tickers, null)))))
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(topic, "ticker")) || Helpers.isTrue(Helpers.isEqual(topic, "markPrice")))) && Helpers.isTrue((!Helpers.isEqual(this.tickers, null)))))
             {
                 Object tickerSymbols = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)this.tickers).keySet());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickerSymbols)); i++)

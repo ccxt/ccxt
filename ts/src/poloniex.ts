@@ -925,6 +925,7 @@ export default class poloniex extends Exchange {
         if (alias !== undefined) {
             type = 'future';
         }
+        const marketType = (type === 'future') ? 'future' : 'swap';
         return {
             'id': id,
             'symbol': symbol,
@@ -934,7 +935,7 @@ export default class poloniex extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': (type === 'future') ? 'future' : 'swap',
+            'type': marketType,
             'spot': false,
             'margin': false,
             'swap': type === 'swap',

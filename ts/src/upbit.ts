@@ -634,8 +634,9 @@ export default class upbit extends Exchange {
     async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBooks> {
         await this.loadMarkets ();
         let ids = undefined;
+        const allIds = this.ids;
         if (symbols === undefined) {
-            ids = this.ids.join (',');
+            ids = allIds.join (',');
         } else {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
@@ -782,7 +783,8 @@ export default class upbit extends Exchange {
         symbols = this.marketSymbols (symbols);
         let ids = undefined;
         if (symbols === undefined) {
-            ids = this.ids.join (',');
+            const allIds = this.ids;
+            ids = allIds.join (',');
         } else {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
@@ -1868,6 +1870,7 @@ export default class upbit extends Exchange {
                 'cost': feeCost,
             };
         }
+        const parsedType = type; // java req;
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1876,7 +1879,7 @@ export default class upbit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
-            'type': type,
+            'type': parsedType,
             'timeInForce': this.safeStringUpper (order, 'time_in_force'),
             'postOnly': undefined,
             'side': side,
@@ -2198,9 +2201,10 @@ export default class upbit extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
         }
+        const networkId = this.networkCodeToId (networkCode, currency['code']);
         const response = await this.privateGetDepositsCoinAddress (this.extend ({
             'currency': currency['id'],
-            'net_type': this.networkCodeToId (networkCode, currency['code']),
+            'net_type': networkId,
         }, params));
         //
         //    {

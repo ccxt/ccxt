@@ -680,6 +680,7 @@ export default class bitfinex extends Exchange {
             if (spot && this.inArray (id, marginIds)) {
                 margin = true;
             }
+            const type = spot ? 'spot' : 'swap';
             result.push ({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -689,7 +690,7 @@ export default class bitfinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': spot ? 'spot' : 'swap',
+                'type': type,
                 'spot': spot,
                 'margin': margin,
                 'swap': swap,

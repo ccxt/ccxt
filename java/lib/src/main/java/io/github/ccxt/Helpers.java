@@ -471,6 +471,11 @@ public class Helpers {
         return (String) value;
     }
 
+    public static String toString(Object value) {
+        if (value == null) return null;
+        return (String) value;
+    }
+
 
     // This function is the salient bit here
     public Object newException(Object exception, Object message) {
