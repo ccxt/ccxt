@@ -5347,7 +5347,8 @@ class bitmart(Exchange, ImplicitAPI):
         #     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         #
         message = self.safe_string(response, 'message')
-        isErrorMessage = (message is not None) and (message != 'ok') and (message != 'success')
+        messageLower = message.lower()
+        isErrorMessage = (message is not None) and (messageLower != 'ok') and (messageLower != 'success')
         errorCode = self.safe_string(response, 'code')
         isErrorCode = (errorCode is not None) and (errorCode != '1000')
         if isErrorCode or isErrorMessage:
