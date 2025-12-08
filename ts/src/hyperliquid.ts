@@ -1892,10 +1892,11 @@ export default class hyperliquid extends Exchange {
             } else {
                 triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
             }
+            const tpSlType = (isTp) ? 'tp' : 'sl';
             orderType['trigger'] = {
                 'isMarket': isMarket,
                 'triggerPx': triggerPrice,
-                'tpsl': (isTp) ? 'tp' : 'sl',
+                'tpsl': tpSlType,
             };
         } else {
             orderType['limit'] = {
@@ -2138,9 +2139,10 @@ export default class hyperliquid extends Exchange {
         } else {
             cancelAction['type'] = 'cancel';
             for (let i = 0; i < ids.length; i++) {
+                const o = this.parseToNumeric (ids[i]);
                 cancelReq.push ({
                     'a': baseId,
-                    'o': this.parseToNumeric (ids[i]),
+                    'o': o,
                 });
             }
         }
@@ -2349,10 +2351,11 @@ export default class hyperliquid extends Exchange {
                 } else {
                     triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
                 }
+                const tpSlType = (isTp) ? 'tp' : 'sl';
                 orderType['trigger'] = {
                     'isMarket': isMarket,
                     'triggerPx': triggerPrice,
-                    'tpsl': (isTp) ? 'tp' : 'sl',
+                    'tpsl': tpSlType,
                 };
             } else {
                 orderType['limit'] = {
@@ -2920,8 +2923,9 @@ export default class hyperliquid extends Exchange {
         //
         const error = this.safeString (order, 'error');
         if (error !== undefined) {
+            const finalOrder = order; // java req
             return this.safeOrder ({
-                'info': order,
+                'info': finalOrder,
                 'status': 'rejected',
             });
         }
@@ -2954,6 +2958,7 @@ export default class hyperliquid extends Exchange {
         if (tif !== undefined) {
             postOnly = (tif === 'ALO');
         }
+        const triggerPx = this.safeBool (entry, 'isTrigger') ? this.safeNumber (entry, 'triggerPx') : undefined;
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (entry, 'oid'),
@@ -2969,7 +2974,7 @@ export default class hyperliquid extends Exchange {
             'reduceOnly': this.safeBool (entry, 'reduceOnly'),
             'side': side,
             'price': this.safeString (entry, 'limitPx'),
-            'triggerPrice': this.safeBool (entry, 'isTrigger') ? this.safeNumber (entry, 'triggerPx') : undefined,
+            'triggerPrice': triggerPx,
             'amount': totalAmount,
             'cost': undefined,
             'average': this.safeString (entry, 'avgPx'),

@@ -588,6 +588,18 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return Encode.base64ToBinary(s);
     }
 
+    public String urlencodeBase64(Object s) {
+        return Encode.urlencodeBase64(s);
+    }
+
+    public static String binaryToBase16(Object buff2) {
+        return Encode.binaryToBase16(buff2);
+    }
+
+    public static byte[] base58ToBinary(Object pt) {
+        return Encode.Base58ToBinary(pt);
+    }
+
     public void Print(Object s) {
         System.out.println(s);
     }
@@ -1749,6 +1761,53 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return sb.toString();
     }
 
+    public Object ethEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public Object packb(Object data) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public int binaryLength(Object binary) {
+        if (binary instanceof byte[]) {
+            return ((byte[]) binary).length;
+
+        } else if (binary instanceof String) {
+            return ((String) binary).length();
+
+        } else {
+            throw new IllegalArgumentException(
+                "unsupported binary: " + binary.getClass()
+            );
+        }
+    }
+
+    public Object ethAbiEncode(Object types2, Object args2)
+    {
+        throw new RuntimeException("not implemented");
+    }
+
+    public Object starknetEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2, Object address)
+    {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public Object starknetSign(Object msgHash, Object privateKey)
+    {
+        throw new RuntimeException("Not implemented");
+    }
+
+    // public Object starknetEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2, Object address)
+    // {
+    //     throw new RuntimeException("Not implemented");
+    // }
+
+    public Object retrieveStarkAccount(Object signature, Object accountClassHash, Object accountProxyClassHash)
+    {
+        throw new RuntimeException("Not implemented");
+    }
+
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
@@ -1787,7 +1846,7 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{
