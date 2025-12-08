@@ -18,6 +18,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.util.concurrent.ExecutionException;
+import java.security.SecureRandom;
 
 import io.github.ccxt.base.Crypto;
 import io.github.ccxt.base.Encode;
@@ -105,6 +106,8 @@ public class Exchange {
     public String uid;
     public String accountId;
     public int minFundingAddressLength = 1;
+
+    private static final SecureRandom secureRandom = new SecureRandom();
 
     // User agents map
     public Map<String, Object> userAgents = new HashMap<>() {
@@ -553,8 +556,12 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return Crypto.Jwt(data, secret, hash, isRsa, (Map<String, Object>)options2);
     }
 
-        public String jwt(Object data, Object secret, Object hash) {
+    public String jwt(Object data, Object secret, Object hash) {
         return Crypto.Jwt(data, secret, hash, false, new HashMap<String, Object> ());
+    }
+
+    public static Map<String, Object> ecdsa(Object request, Object secret, Object curve, Object hash) {
+        return Crypto.Ecdsa(request, secret, curve, hash);
     }
 
     // public Object md5() {
@@ -624,6 +631,14 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
 
     public String rawencode(Object parameters, Object sort) {
         return Encode.rawencode(parameters, sort);
+    }
+
+    public String intToBase16(Object number) {
+        return Encode.intToBase16(number);
+    }
+
+    public Object base16ToBinary(Object str2) {
+        return Encode.base16ToBinary(str2);
     }
 
     // =======================
@@ -1714,6 +1729,26 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return str;
     }
 
+    public String randomBytes(int length) {
+
+        if (length <= 0) {
+            throw new IllegalArgumentException("length must be greater than 0");
+        }
+
+        byte[] x = new byte[length];
+        secureRandom.nextBytes(x);
+
+        return bytesToHex(x);
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
@@ -1752,7 +1787,7 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{

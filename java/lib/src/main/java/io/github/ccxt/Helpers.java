@@ -813,4 +813,36 @@ public class Helpers {
         throw new RuntimeException("Failed to throw dynamic exception: " + exClass.getName() + " :: " + msg, reflectError);
     }
 }
+
+    public static String padEnd(Object input, Object length2, Object padStr) {
+        int length = toInt(length2);
+        String str = toString(input);
+        String pad = toString(padStr);
+
+        if (pad.isEmpty()) {
+            throw new IllegalArgumentException("padStr must not be empty");
+        }
+
+        while (str.length() < length) {
+            str += pad;
+        }
+
+        return str.substring(0, length);
+    }
+
+    public static String padStart(Object input, Object length2, Object padStr) {
+        int length = toInt(length2);
+        String str = toString(input);
+        String pad = toString(padStr);
+
+        if (pad.isEmpty()) {
+            throw new IllegalArgumentException("padStr must not be empty");
+        }
+
+        while (str.length() < length) {
+            str = pad + str;
+        }
+
+        return str.substring(str.length() - length);
+    }
 }
