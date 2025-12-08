@@ -152,8 +152,8 @@ public partial class mexc
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-data"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/market-data-endpoints#klinecandlestick-data"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/market-endpoints#get-candlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

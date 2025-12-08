@@ -25,30 +25,43 @@ public partial class Exchange
 
     public virtual void onClose(WebSocketClient client, object error = null)
     {
-        // var client = (WebSocketClient)client2;
         if (client.error)
         {
             // what do we do here?
         }
         else
         {
-            var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
-            if (urlClient != null)
-            {
-                // this.clients.Remove(client.url);
-                this.clients.TryRemove(client.url, out _);
-            }
+            this.CleanupClients(client, error);
         }
     }
 
     public virtual void onError(WebSocketClient client, object error = null)
     {
+        this.CleanupClients(client, error);
+    }
+
+    public void CleanupClients(WebSocketClient client, object error = null)
+    {
         // var client = (WebSocketClient)client2;
         var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
-        if (urlClient != null && urlClient.error)
+        if (urlClient != null) //  && urlClient.error
         {
+            rejectFutures(urlClient, error);
             // this.clients.Remove(client.url);
             this.clients.TryRemove(client.url, out _);
+        }
+    }
+
+    void rejectFutures(WebSocketClient urlClient, object error)
+    {
+        foreach (var KeyValue in urlClient.subscriptions)
+        {
+            urlClient.subscriptions.Remove(KeyValue.Key);
+            Future existingFuture = null;
+            if (urlClient.futures.TryGetValue(KeyValue.Key, out existingFuture))
+            {
+                existingFuture.reject(error);
+            }
         }
     }
 
@@ -134,10 +147,12 @@ public partial class Exchange
         return this.clients.GetOrAdd(url, (url) =>
         {
             object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() { });
-            var wsOptions = this.safeValue(ws, "options", ws);
+            var wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() { });
             wsOptions = this.deepExtend(this.streaming, wsOptions);
-            var keepAlive = ((Int64)this.safeInteger(wsOptions, "keepAlive", 30000));
-            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive);
+            var keepAliveValue = this.safeInteger(wsOptions, "keepAlive", 30000) ?? 30000;
+            var keepAlive = keepAliveValue;
+            var decompressBinary = this.safeBool(this.options, "decompressBinary", true) as bool? ?? true;
+            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, decompressBinary);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
@@ -149,12 +164,14 @@ public partial class Exchange
                     client.webSocket.Options.SetRequestHeader(key, headers[key].ToString());
                 }
             }
+
             var wsCookies = this.safeDict(ws, "cookies", new Dictionary<string, object>() { }) as Dictionary<string, object>;
             if (wsCookies != null && wsCookies.Count > 0)
             {
                 var cookieString = string.Join("; ", wsCookies.Select(kvp => $"{kvp.Key}={kvp.Value}"));
                 client.webSocket.Options.SetRequestHeader("Cookie", cookieString);
             }
+
             return client;
         });
     }
@@ -165,15 +182,22 @@ public partial class Exchange
         var messageHash = messageHash2.ToString();
         var subscribeHash = subscribeHash2?.ToString();
         var client = this.client(url);
+        var backoffDelay = 0;
 
-        var future = (client.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => client.future(messageHash));
-        if (subscribeHash == null)
+        Future existingFuture = null;
+        if (subscribeHash == null && (client.futures as ConcurrentDictionary<string, Future>).TryGetValue(messageHash, out existingFuture))
         {
-            return await future;
+            return await existingFuture;
         }
-        var connected = client.connect(0);
-
-        if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true))
+        var future = client.future(messageHash);
+        object clientSubscription = null;
+        bool clientSubscriptionExists = (client.subscriptions as ConcurrentDictionary<string, object>).TryGetValue(subscribeHash, out clientSubscription);
+        if (!clientSubscriptionExists)
+        {
+            (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true);
+        }
+        var connected = client.connect(backoffDelay);
+        if (!clientSubscriptionExists)
         {
             await connected;
             if (message != null)
