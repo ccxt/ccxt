@@ -42,6 +42,7 @@ Exchange::$exchanges = array(
     'bitvavo',
     'blockchaincom',
     'blofin',
+    'bullish',
     'bybit',
     'cex',
     'coinbase',

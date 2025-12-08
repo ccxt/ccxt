@@ -4060,7 +4060,7 @@ public partial class binance : Exchange
             {
                 // rpi limit only supports 1000
                 ((IDictionary<string,object>)request)["limit"] = 1000;
-                response = await ((Task<object>)callDynamically(this, "fapiPublicGetRpiDepth", new object[] { this.extend(request, parameters) }));
+                response = await this.fapiPublicGetRpiDepth(this.extend(request, parameters));
             } else
             {
                 response = await this.fapiPublicGetDepth(this.extend(request, parameters));
@@ -11046,7 +11046,7 @@ public partial class binance : Exchange
         }
         object positionSide = this.safeString(position, "positionSide");
         object hedged = !isEqual(positionSide, "BOTH");
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", symbol },
@@ -11073,7 +11073,7 @@ public partial class binance : Exchange
             { "percentage", percentage },
             { "stopLossPrice", null },
             { "takeProfitPrice", null },
-        };
+        });
     }
 
     public async virtual Task<object> loadLeverageBrackets(object reload = null, object parameters = null)

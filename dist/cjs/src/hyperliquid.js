@@ -223,6 +223,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'defaultSlippage': 0.05,
                 'marketHelperProps': ['hip3TokensByName', 'cachedCurrenciesById'],
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                // below will be filled automatically
                 'spotCurrencyMapping': {
                     'UDZ': '2Z',
                     'UBONK': 'BONK',
@@ -363,51 +364,20 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (this.markets === undefined) {
             throw new errors.ExchangeError(this.id + ' markets not loaded');
         }
-        if (symbol in this.markets) {
-            const market = this.markets[symbol];
-            if (market['spot']) {
-                const baseName = this.safeString(market, 'baseName');
-                const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
-                if (baseName in spotCurrencyMapping) {
-                    const unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
-                    const quote = this.safeString(market, 'quote');
-                    const newSymbol = this.safeCurrencyCode(unifiedBaseName) + '/' + quote;
-                    if (newSymbol in this.markets) {
-                        return this.markets[newSymbol];
-                    }
+        if ((symbol !== undefined) && !(symbol in this.markets)) {
+            const symbolParts = symbol.split('/');
+            const baseName = this.safeString(symbolParts, 0);
+            const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
+            if (baseName in spotCurrencyMapping) {
+                const unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
+                const quote = this.safeString(symbolParts, 1);
+                const newSymbol = this.safeCurrencyCode(unifiedBaseName) + '/' + quote;
+                if (newSymbol in this.markets) {
+                    return this.markets[newSymbol];
                 }
             }
         }
-        const res = super.market(symbol);
-        return res;
-    }
-    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        if (marketId !== undefined) {
-            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
-                const markets = this.markets_by_id[marketId];
-                const numMarkets = markets.length;
-                if (numMarkets === 1) {
-                    return markets[0];
-                }
-                else {
-                    if (numMarkets > 2) {
-                        throw new errors.ExchangeError(this.id + ' safeMarket() found more than two markets with the same market id ' + marketId);
-                    }
-                    const firstMarket = markets[0];
-                    const secondMarket = markets[1];
-                    if (this.safeString(firstMarket, 'type') !== this.safeString(secondMarket, 'type')) {
-                        throw new errors.ExchangeError(this.id + ' safeMarket() found two different market types with the same market id ' + marketId);
-                    }
-                    const baseCurrency = this.safeString(firstMarket, 'base');
-                    const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
-                    if (baseCurrency in spotCurrencyMapping) {
-                        return secondMarket;
-                    }
-                    return firstMarket;
-                }
-            }
-        }
-        return super.safeMarket(marketId, market, delimiter, marketType);
+        return super.market(symbol);
     }
     /**
      * @method
@@ -518,6 +488,20 @@ class hyperliquid extends hyperliquid$1["default"] {
                     },
                 },
             });
+            // add in wrapped map
+            const fullName = this.safeString(data, 'fullName');
+            if (fullName !== undefined && name !== undefined) {
+                const isWrapped = fullName.startsWith('Unit ') && name.startsWith('U');
+                if (isWrapped) {
+                    const parts = name.split('U');
+                    let nameWithoutU = '';
+                    for (let j = 0; j < parts.length; j++) {
+                        nameWithoutU = nameWithoutU + parts[j];
+                    }
+                    const baseCode = this.safeCurrencyCode(nameWithoutU);
+                    this.options['spotCurrencyMapping'][code] = baseCode;
+                }
+            }
         }
         return result;
     }
@@ -594,9 +578,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         let fetchDexesList = [];
         const options = this.safeDict(this.options, 'fetchMarkets', {});
         const hip3 = this.safeDict(options, 'hip3', {});
-        const defaultLimit = this.safeInteger(hip3, 'limit', 5);
+        const defaultLimit = this.safeInteger(hip3, 'limit', 10);
         const dexesLength = fetchDexes.length;
-        if (dexesLength >= defaultLimit) { // first element is null
+        if (dexesLength > defaultLimit) { // first element is null
             const defaultDexes = this.safeList(hip3, 'dex', []);
             if (defaultDexes.length === 0) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options["fetchMarkets"]["hip3"]["dex"] parameter to fetch markets from those DEXes only. The limit is set to ' + defaultLimit.toString() + ' DEXes by default.');
@@ -951,18 +935,18 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'info': this.extend(extraData, market),
             };
             markets.push(this.safeMarketStructure(entry));
-            // backward support
-            const base = this.safeCurrencyCode(baseName);
-            const quote = this.safeCurrencyCode(quoteId);
-            const newEntry = this.extend({}, entry);
-            const symbol = base + '/' + quote;
-            if (symbol !== mappedSymbol) {
-                newEntry['symbol'] = symbol;
-                newEntry['base'] = base;
-                newEntry['quote'] = quote;
-                newEntry['baseName'] = baseName;
-                markets.push(this.safeMarketStructure(newEntry));
-            }
+            // // backward support
+            // const base = this.safeCurrencyCode (baseName);
+            // const quote = this.safeCurrencyCode (quoteId);
+            // const newEntry = this.extend ({}, entry);
+            // const symbol = base + '/' + quote;
+            // if (symbol !== mappedSymbol) {
+            //     newEntry['symbol'] = symbol;
+            //     newEntry['base'] = base;
+            //     newEntry['quote'] = quote;
+            //     newEntry['baseName'] = baseName;
+            //     markets.push (this.safeMarketStructure (newEntry));
+            // }
         }
         return markets;
     }
@@ -1242,9 +1226,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (symbols !== undefined) {
             // infer from first symbol
             const firstSymbol = this.safeString(symbols, 0);
-            const market = this.market(firstSymbol);
-            if (this.safeBool(this.safeDict(market, 'info'), 'hip3')) {
-                hip3 = true;
+            if (firstSymbol !== undefined) {
+                const market = this.market(firstSymbol);
+                if (this.safeBool(this.safeDict(market, 'info'), 'hip3')) {
+                    hip3 = true;
+                }
             }
         }
         if (hip3) {
@@ -1513,7 +1499,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchTrades', params);
         await this.loadMarkets();
-        const market = this.safeMarket(symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
         const request = {
             'user': userAddress,
         };
@@ -2826,7 +2815,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchOrder', params);
         await this.loadMarkets();
-        const market = this.safeMarket(symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
         const clientOrderId = this.safeString(params, 'clientOrderId');
         const request = {
             'type': 'orderStatus',
@@ -3076,7 +3068,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchMyTrades', params);
         await this.loadMarkets();
-        const market = this.safeMarket(symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
         const request = {
             'user': userAddress,
         };
@@ -3187,6 +3182,30 @@ class hyperliquid extends hyperliquid$1["default"] {
         const positions = await this.fetchPositions([symbol], params);
         return this.safeDict(positions, 0, {});
     }
+    getDexFromSymbols(methodName, symbols = undefined) {
+        if (symbols === undefined) {
+            return undefined;
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            return undefined;
+        }
+        let dexName = undefined;
+        for (let i = 0; i < symbolsLength; i++) {
+            if (dexName === undefined) {
+                const market = this.market(symbols[i]);
+                dexName = this.getDexFromHip3Symbol(market);
+            }
+            else {
+                const market = this.market(symbols[i]);
+                const currentDexName = this.getDexFromHip3Symbol(market);
+                if (currentDexName !== dexName) {
+                    throw new errors.NotSupported(this.id + ' ' + methodName + ' only supports fetching positions for one DEX at a time for HIP3 markets');
+                }
+            }
+        }
+        return dexName;
+    }
     /**
      * @method
      * @name hyperliquid#fetchPositions
@@ -3208,12 +3227,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             'type': 'clearinghouseState',
             'user': userAddress,
         };
-        if (symbols !== undefined) {
-            const market = this.market(symbols[0]);
-            const dexName = this.getDexFromHip3Symbol(market);
-            if (dexName !== undefined) {
-                request['dex'] = dexName;
-            }
+        const dexName = this.getDexFromSymbols('fetchPositions', symbols);
+        if (dexName !== undefined) {
+            request['dex'] = dexName;
         }
         const response = await this.publicPostInfo(this.extend(request, params));
         //
@@ -4329,8 +4345,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (coin === undefined) {
             return undefined;
         }
-        if (this.safeDict(this.options['hip3TokensByName'], coin)) {
-            const hip3Dict = this.options['hip3TokensByName'][coin];
+        const hi3TokensByname = this.safeDict(this.options, 'hip3TokensByName', {});
+        if (this.safeDict(hi3TokensByname, coin)) {
+            const hip3Dict = this.safeDict(hi3TokensByname, coin);
             const quote = this.safeString(hip3Dict, 'quote', 'USDC');
             const code = this.safeString(hip3Dict, 'code', coin);
             return code + '/' + quote + ':' + quote;

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.22'
+__version__ = '4.5.26'
 
 # -----------------------------------------------------------------------------
 
@@ -1624,9 +1624,10 @@ class Exchange(object):
 
     @staticmethod
     def is_json_encoded_object(input):
-        return (isinstance(input, str) and
-                (len(input) >= 2) and
-                ((input[0] == '{') or (input[0] == '[')))
+        try:
+            return (isinstance(input, str) and ((input[0] == '{') or (input[0] == '[')))
+        except Exception:
+            return False
 
     @staticmethod
     def encode(string):
@@ -2549,9 +2550,8 @@ class Exchange(object):
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if value is None:
             return defaultValue
-        if (isinstance(value, dict)):
-            if not isinstance(value, list):
-                return value
+        if isinstance(value, dict):
+            return value
         return defaultValue
 
     def safe_dict(self, dictionary, key: IndexType, defaultValue: dict = None):
@@ -5187,7 +5187,7 @@ class Exchange(object):
             return market
         return self.safe_market_structure({'symbol': marketId, 'marketId': marketId})
 
-    def market_or_null(self, symbol: str):
+    def market_or_null(self, symbol: Str = None):
         if symbol is None:
             return None
         return self.market(symbol)

@@ -218,6 +218,7 @@ class hyperliquid extends Exchange {
                 'defaultSlippage' => 0.05,
                 'marketHelperProps' => array( 'hip3TokensByName', 'cachedCurrenciesById' ),
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
+                // below will be filled automatically
                 'spotCurrencyMapping' => array(
                     'UDZ' => '2Z',
                     'UBONK' => 'BONK',
@@ -360,51 +361,20 @@ class hyperliquid extends Exchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-            $market = $this->markets[$symbol];
-            if ($market['spot']) {
-                $baseName = $this->safe_string($market, 'baseName');
-                $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
-                if (is_array($spotCurrencyMapping) && array_key_exists($baseName, $spotCurrencyMapping)) {
-                    $unifiedBaseName = $this->safe_string($spotCurrencyMapping, $baseName);
-                    $quote = $this->safe_string($market, 'quote');
-                    $newSymbol = $this->safe_currency_code($unifiedBaseName) . '/' . $quote;
-                    if (is_array($this->markets) && array_key_exists($newSymbol, $this->markets)) {
-                        return $this->markets[$newSymbol];
-                    }
+        if (($symbol !== null) && !(is_array($this->markets) && array_key_exists($symbol, $this->markets))) {
+            $symbolParts = explode('/', $symbol);
+            $baseName = $this->safe_string($symbolParts, 0);
+            $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+            if (is_array($spotCurrencyMapping) && array_key_exists($baseName, $spotCurrencyMapping)) {
+                $unifiedBaseName = $this->safe_string($spotCurrencyMapping, $baseName);
+                $quote = $this->safe_string($symbolParts, 1);
+                $newSymbol = $this->safe_currency_code($unifiedBaseName) . '/' . $quote;
+                if (is_array($this->markets) && array_key_exists($newSymbol, $this->markets)) {
+                    return $this->markets[$newSymbol];
                 }
             }
         }
-        $res = parent::market($symbol);
-        return $res;
-    }
-
-    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
-        if ($marketId !== null) {
-            if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-                $markets = $this->markets_by_id[$marketId];
-                $numMarkets = count($markets);
-                if ($numMarkets === 1) {
-                    return $markets[0];
-                } else {
-                    if ($numMarkets > 2) {
-                        throw new ExchangeError($this->id . ' safeMarket() found more than two $markets with the same $market id ' . $marketId);
-                    }
-                    $firstMarket = $markets[0];
-                    $secondMarket = $markets[1];
-                    if ($this->safe_string($firstMarket, 'type') !== $this->safe_string($secondMarket, 'type')) {
-                        throw new ExchangeError($this->id . ' safeMarket() found two different $market types with the same $market id ' . $marketId);
-                    }
-                    $baseCurrency = $this->safe_string($firstMarket, 'base');
-                    $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
-                    if (is_array($spotCurrencyMapping) && array_key_exists($baseCurrency, $spotCurrencyMapping)) {
-                        return $secondMarket;
-                    }
-                    return $firstMarket;
-                }
-            }
-        }
-        return parent::safe_market($marketId, $market, $delimiter, $marketType);
+        return parent::market($symbol);
     }
 
     public function fetch_status($params = array ()) {
@@ -514,6 +484,20 @@ class hyperliquid extends Exchange {
                     ),
                 ),
             ));
+            // add in wrapped map
+            $fullName = $this->safe_string($data, 'fullName');
+            if ($fullName !== null && $name !== null) {
+                $isWrapped = str_starts_with($fullName, 'Unit ') && str_starts_with($name, 'U');
+                if ($isWrapped) {
+                    $parts = explode('U', $name);
+                    $nameWithoutU = '';
+                    for ($j = 0; $j < count($parts); $j++) {
+                        $nameWithoutU = $nameWithoutU . $parts[$j];
+                    }
+                    $baseCode = $this->safe_currency_code($nameWithoutU);
+                    $this->options['spotCurrencyMapping'][$code] = $baseCode;
+                }
+            }
         }
         return $result;
     }
@@ -590,9 +574,9 @@ class hyperliquid extends Exchange {
         $fetchDexesList = array();
         $options = $this->safe_dict($this->options, 'fetchMarkets', array());
         $hip3 = $this->safe_dict($options, 'hip3', array());
-        $defaultLimit = $this->safe_integer($hip3, 'limit', 5);
+        $defaultLimit = $this->safe_integer($hip3, 'limit', 10);
         $dexesLength = count($fetchDexes);
-        if ($dexesLength >= $defaultLimit) { // first element is null
+        if ($dexesLength > $defaultLimit) { // first element is null
             $defaultDexes = $this->safe_list($hip3, 'dex', array());
             if (strlen($defaultDexes) === 0) {
                 throw new ArgumentsRequired($this->id . ' fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options["fetchMarkets"]["hip3"]["dex"] parameter to fetch $markets from those DEXes only. The limit is set to ' . (string) $defaultLimit . ' DEXes by default.');
@@ -950,18 +934,18 @@ class hyperliquid extends Exchange {
                 'info' => $this->extend($extraData, $market),
             );
             $markets[] = $this->safe_market_structure($entry);
-            // backward support
-            $base = $this->safe_currency_code($baseName);
-            $quote = $this->safe_currency_code($quoteId);
-            $newEntry = $this->extend(array(), $entry);
-            $symbol = $base . '/' . $quote;
-            if ($symbol !== $mappedSymbol) {
-                $newEntry['symbol'] = $symbol;
-                $newEntry['base'] = $base;
-                $newEntry['quote'] = $quote;
-                $newEntry['baseName'] = $baseName;
-                $markets[] = $this->safe_market_structure($newEntry);
-            }
+            // // backward support
+            // $base = $this->safe_currency_code($baseName);
+            // $quote = $this->safe_currency_code($quoteId);
+            // $newEntry = $this->extend(array(), $entry);
+            // $symbol = $base . '/' . $quote;
+            // if ($symbol !== $mappedSymbol) {
+            //     $newEntry['symbol'] = $symbol;
+            //     $newEntry['base'] = $base;
+            //     $newEntry['quote'] = $quote;
+            //     $newEntry['baseName'] = $baseName;
+            //     $markets[] = $this->safe_market_structure($newEntry);
+            // }
         }
         return $markets;
     }
@@ -1244,9 +1228,11 @@ class hyperliquid extends Exchange {
         if ($symbols !== null) {
             // infer from first $symbol
             $firstSymbol = $this->safe_string($symbols, 0);
-            $market = $this->market($firstSymbol);
-            if ($this->safe_bool($this->safe_dict($market, 'info'), 'hip3')) {
-                $hip3 = true;
+            if ($firstSymbol !== null) {
+                $market = $this->market($firstSymbol);
+                if ($this->safe_bool($this->safe_dict($market, 'info'), 'hip3')) {
+                    $hip3 = true;
+                }
             }
         }
         if ($hip3) {
@@ -1520,7 +1506,10 @@ class hyperliquid extends Exchange {
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('fetchTrades', $params);
         $this->load_markets();
-        $market = $this->safe_market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $request = array(
             'user' => $userAddress,
         );
@@ -2842,7 +2831,10 @@ class hyperliquid extends Exchange {
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('fetchOrder', $params);
         $this->load_markets();
-        $market = $this->safe_market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $request = array(
             'type' => 'orderStatus',
@@ -3094,7 +3086,10 @@ class hyperliquid extends Exchange {
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('fetchMyTrades', $params);
         $this->load_markets();
-        $market = $this->safe_market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $request = array(
             'user' => $userAddress,
         );
@@ -3207,13 +3202,37 @@ class hyperliquid extends Exchange {
         return $this->safe_dict($positions, 0, array());
     }
 
+    public function get_dex_from_symbols(string $methodName, ?array $symbols = null) {
+        if ($symbols === null) {
+            return null;
+        }
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            return null;
+        }
+        $dexName = null;
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            if ($dexName === null) {
+                $market = $this->market($symbols[$i]);
+                $dexName = $this->get_dex_from_hip3_symbol($market);
+            } else {
+                $market = $this->market($symbols[$i]);
+                $currentDexName = $this->get_dex_from_hip3_symbol($market);
+                if ($currentDexName !== $dexName) {
+                    throw new NotSupported($this->id . ' ' . $methodName . ' only supports fetching positions for one DEX at a time for HIP3 markets');
+                }
+            }
+        }
+        return $dexName;
+    }
+
     public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
          *
-         * @param {string[]} [$symbols] list of unified $market $symbols
+         * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @param {string} [$params->subAccountAddress] sub account user address
@@ -3228,12 +3247,9 @@ class hyperliquid extends Exchange {
             'type' => 'clearinghouseState',
             'user' => $userAddress,
         );
-        if ($symbols !== null) {
-            $market = $this->market($symbols[0]);
-            $dexName = $this->get_dex_from_hip3_symbol($market);
-            if ($dexName !== null) {
-                $request['dex'] = $dexName;
-            }
+        $dexName = $this->get_dex_from_symbols('fetchPositions', $symbols);
+        if ($dexName !== null) {
+            $request['dex'] = $dexName;
         }
         $response = $this->publicPostInfo ($this->extend($request, $params));
         //
@@ -4350,8 +4366,9 @@ class hyperliquid extends Exchange {
         if ($coin === null) {
             return null;
         }
-        if ($this->safe_dict($this->options['hip3TokensByName'], $coin)) {
-            $hip3Dict = $this->options['hip3TokensByName'][$coin];
+        $hi3TokensByname = $this->safe_dict($this->options, 'hip3TokensByName', array());
+        if ($this->safe_dict($hi3TokensByname, $coin)) {
+            $hip3Dict = $this->safe_dict($hi3TokensByname, $coin);
             $quote = $this->safe_string($hip3Dict, 'quote', 'USDC');
             $code = $this->safe_string($hip3Dict, 'code', $coin);
             return $code . '/' . $quote . ':' . $quote;
