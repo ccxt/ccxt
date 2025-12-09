@@ -90,6 +90,8 @@ export default class grvt extends Exchange {
                 },
                 'privateTrading': {
                     'post': {
+                        'full/v1/cancel_on_disconnect': 1,
+                        'full/v1/order_history': 1,
                         'full/v1/fill_history': 1,
                         'full/v1/positions': 1,
                         'full/v1/funding_payment_history': 1,
@@ -1463,6 +1465,14 @@ export default class grvt extends Exchange {
         let request = {
             'sub_account_id': this.getSubAccountId (params),
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['base'] = [];
+            request['base'].push (market['baseId']);
+            request['quote'] = [];
+            request['quote'].push (market['quoteId']);
+        }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
@@ -1521,6 +1531,20 @@ export default class grvt extends Exchange {
         const request = {
             'sub_account_id': this.getSubAccountId (params),
         };
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            request['base'] = [];
+            request['quote'] = [];
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                if (market['contract'] !== true) {
+                    throw new BadRequest (this.id + ' fetchPositions() supports contract markets only');
+                }
+                request['base'].push (market['baseId']);
+                request['quote'].push (market['quoteId']);
+            }
+        }
         const response = await this.privateTradingPostFullV1Positions (this.extend (request, params));
         //
         //    {
@@ -1608,7 +1632,10 @@ export default class grvt extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['instrument'] = market['id'];
+            request['base'] = [];
+            request['base'].push (market['baseId']);
+            request['quote'] = [];
+            request['quote'].push (market['quoteId']);
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
