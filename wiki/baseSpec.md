@@ -5411,6 +5411,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchtime)
 * [coincatch](/exchanges/coincatch.md#fetchtime)
 * [coinex](/exchanges/coinex.md#fetchtime)
+* [coinmate](/exchanges/coinmate.md#fetchtime)
 * [coinsph](/exchanges/coinsph.md#fetchtime)
 * [defx](/exchanges/defx.md#fetchtime)
 * [delta](/exchanges/delta.md#fetchtime)
