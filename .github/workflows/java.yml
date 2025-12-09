@@ -45,7 +45,7 @@ jobs:
     - name: Determine modified files
       run: ./utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
-      run: npm run pre-transpile-cs
+      run: npm run pre-transpile-java
     - name: Transpile to Java
       if: env.important_modified == 'true'
       run: npm run transpileJava
