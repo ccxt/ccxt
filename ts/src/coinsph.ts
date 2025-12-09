@@ -1253,7 +1253,7 @@ export default class coinsph extends Exchange {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
-        const isBuyer = this.safeBool2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeBool2 (trade, 'isBuyer', 'isBuyerMaker');
         let side = undefined;
         if (isBuyer !== undefined) {
             side = (isBuyer === true) ? 'buy' : 'sell';
