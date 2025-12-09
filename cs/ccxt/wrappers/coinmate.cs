@@ -7,6 +7,26 @@ namespace ccxt;
 public partial class coinmate
 {
     /// <summary>
+    /// fetches the current integer timestamp in milliseconds from the bingx server
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/system/get-server-time/get"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the bingx server.</returns>
+    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTime(parameters);
+        return (Int64)res;
+    }
+    /// <summary>
     /// retrieves data on all markets for coinmate
     /// </summary>
     /// <remarks>
