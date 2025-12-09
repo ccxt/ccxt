@@ -92,6 +92,7 @@ export default class grvt extends Exchange {
                     'post': {
                         'full/v1/fill_history': 1,
                         'full/v1/positions': 1,
+                        'full/v1/funding_payment_history': 1,
                         'full/v1/create_order': 1,
                         'full/v1/account_summary': 1,
                         'full/v1/account_history': 1,
@@ -106,7 +107,7 @@ export default class grvt extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'subAccountId': undefined, // needs to be set manually by user
+                'sub_account_id': undefined, // needs to be set manually by user
                 'chainIds': {
                     // https://api.rhino.fi/bridge/configs
                     '42161': 'ARBONE',
@@ -733,11 +734,11 @@ export default class grvt extends Exchange {
         };
     }
 
-    getSubAccountId (methodName, params) {
+    getSubAccountId (params) {
         let subAccountId = undefined;
-        [ subAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subAccountId');
+        [ subAccountId, params ] = this.handleOptionAndParams (params, undefined, 'sub_account_id');
         if (subAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' you should set params["subAccountId"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
+            throw new ArgumentsRequired (this.id + ' you should set params["sub_account_id"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
         }
         return subAccountId;
     }
@@ -753,7 +754,7 @@ export default class grvt extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const request = {
-            'sub_account_id': this.getSubAccountId ('fetchBalance', params),
+            'sub_account_id': this.getSubAccountId (params),
         };
         const response = await this.privateTradingPostFullV1AccountSummary (this.extend (request, params));
         //
@@ -1460,7 +1461,7 @@ export default class grvt extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'sub_account_id': this.getSubAccountId ('fetchBalance', params),
+            'sub_account_id': this.getSubAccountId (params),
         };
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
@@ -1518,7 +1519,7 @@ export default class grvt extends Exchange {
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const request = {
-            'sub_account_id': this.getSubAccountId ('fetchPositions', params),
+            'sub_account_id': this.getSubAccountId (params),
         };
         const response = await this.privateTradingPostFullV1Positions (this.extend (request, params));
         //
@@ -1585,6 +1586,71 @@ export default class grvt extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://api-docs.grvt.io/trading_api/#funding-payment-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'sub_account_id': this.getSubAccountId (params),
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        if (since !== undefined) {
+            request['start_time'] = since * 1000000;
+        }
+        const response = await this.privateTradingPostFullV1FundingPaymentHistory (this.extend (request, params));
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "event_time": "1765267200004987902",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "currency": "USDT",
+        //                "amount": "-0.004522",
+        //                "tx_id": "66625184"
+        //            },
+        //            ..
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        const result = this.safeList (response, 'result', []);
+        return this.parseIncomes (result, market, since, limit);
+    }
+
+    parseIncome (income, market: Market = undefined) {
+        const marketId = this.safeString (income, 'instrument');
+        const currencyId = this.safeString (income, 'currency');
+        const timestamp = this.safeIntegerProduct (income, 'event_time', 0.000001);
+        return {
+            'info': income,
+            'symbol': this.safeSymbol (marketId, market),
+            'code': this.safeCurrencyCode (currencyId),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (income, 'tx_id'),
+            'amount': this.safeNumber (income, 'amount'),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
