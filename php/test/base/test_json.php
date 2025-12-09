@@ -10,7 +10,7 @@ namespace ccxt;
 
 
 function test_json() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'regirock',
     ));
     // Test: object

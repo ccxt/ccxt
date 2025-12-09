@@ -64,7 +64,7 @@
                 "method": "fetchCurrencies",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [],
-                "output": "{\"type\":\"meta\"}"
+                "output": "{\"type\":\"spotMeta\"}"
             }
         ],
         "fetchTickers": [
@@ -894,6 +894,20 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "open order using a non usdc hip3 market",
+                "method": "fetchOpenOrders",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "dex": "flx"
+                    }
+                ],
+                "output": "{\"type\":\"frontendOpenOrders\",\"user\":\"wallet\",\"dex\":\"flx\"}"
+            },
+            {
                 "description": "fetch hip3 open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.hyperliquid.xyz/info",
@@ -1073,6 +1087,27 @@
             }
         ],
         "fetchPositions": [
+            {
+                "description": "fetch positions empty array",
+                "method": "fetchPositions",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    []
+                ],
+                "output": "{\"type\":\"clearinghouseState\",\"user\":\"wallet\"}"
+            },
+            {
+                "description": "fetch hip3 positions",
+                "method": "fetchPositions",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    null,
+                    {
+                        "dex": "flx"
+                    }
+                ],
+                "output": "{\"type\":\"clearinghouseState\",\"user\":\"wallet\",\"dex\":\"flx\"}"
+            },
             {
                 "description": "fetchPositions",
                 "method": "fetchPositions",

@@ -844,6 +844,10 @@ public partial class htx : Exchange
                     { "order-marketorder-amount-min-error", typeof(InvalidOrder) },
                     { "order-limitorder-price-min-error", typeof(InvalidOrder) },
                     { "order-limitorder-price-max-error", typeof(InvalidOrder) },
+                    { "order-limitorder-price-buy-min-error", typeof(InvalidOrder) },
+                    { "order-limitorder-price-buy-max-error", typeof(InvalidOrder) },
+                    { "order-limitorder-price-sell-min-error", typeof(InvalidOrder) },
+                    { "order-limitorder-price-sell-max-error", typeof(InvalidOrder) },
                     { "order-stop-order-hit-trigger", typeof(InvalidOrder) },
                     { "order-value-min-error", typeof(InvalidOrder) },
                     { "order-invalid-price", typeof(InvalidOrder) },
@@ -860,6 +864,7 @@ public partial class htx : Exchange
                     { "base-symbol-error", typeof(BadSymbol) },
                     { "system-maintenance", typeof(OnMaintenance) },
                     { "base-request-exceed-frequency-limit", typeof(RateLimitExceeded) },
+                    { "rate-too-many-requests", typeof(RateLimitExceeded) },
                     { "invalid symbol", typeof(BadSymbol) },
                     { "symbol trade not open now", typeof(BadSymbol) },
                     { "require-symbol", typeof(BadSymbol) },
@@ -5708,7 +5713,10 @@ public partial class htx : Exchange
             }
             if (isTrue(isTrue(isTrue(isTrue(isEqual(type, "limit")) || isTrue(isEqual(type, "ioc"))) || isTrue(isEqual(type, "fok"))) || isTrue(isEqual(type, "post_only"))))
             {
-                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                if (isTrue(!isEqual(price, null)))
+                {
+                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                }
             }
         }
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
@@ -7965,7 +7973,7 @@ public partial class htx : Exchange
         if (isTrue(inOp(response, "status")))
         {
             //
-            //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             object status = this.safeString(response, "status");

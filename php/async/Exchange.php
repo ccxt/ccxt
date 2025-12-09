@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.22';
+$version = '4.5.26';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.22';
+    const VERSION = '4.5.26';
 
     public $browser;
     public $marketsLoading = null;
@@ -759,10 +759,8 @@ class Exchange extends \ccxt\Exchange {
         if ($value === null) {
             return $defaultValue;
         }
-        if ((gettype($value) === 'array')) {
-            if ((gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
-                return $value;
-            }
+        if ((gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+            return $value;
         }
         return $defaultValue;
     }
@@ -4039,7 +4037,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->safe_market_structure(array( 'symbol' => $marketId, 'marketId' => $marketId ));
     }
 
-    public function market_or_null(string $symbol) {
+    public function market_or_null(?string $symbol = null) {
         if ($symbol === null) {
             return null;
         }

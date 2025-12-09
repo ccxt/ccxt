@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 use \ccxt\Precise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 include_once PATH_TO_CCXT . '/test/exchange/base/test_order.php';
 
 // ----------------------------------------------------------------------------

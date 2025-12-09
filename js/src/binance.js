@@ -905,8 +905,9 @@ export default class binance extends Exchange {
                         'symbolConfig': 5,
                         'accountConfig': 5,
                         'convert/orderStatus': 5,
+                        // conditional orders
                         'algoOrder': 1,
-                        'openAlgoOrders': 1,
+                        'openAlgoOrders': { 'cost': 1, 'noSymbol': 40 },
                         'allAlgoOrders': 5,
                     },
                     'post': {
@@ -926,6 +927,7 @@ export default class binance extends Exchange {
                         'feeBurn': 1,
                         'convert/getQuote': 200,
                         'convert/acceptQuote': 20,
+                        // conditional orders
                         'algoOrder': 1,
                     },
                     'put': {
@@ -938,6 +940,7 @@ export default class binance extends Exchange {
                         'order': 1,
                         'allOpenOrders': 1,
                         'listenKey': 1,
+                        // conditional orders
                         'algoOrder': 1,
                         'algoOpenOrders': 1,
                     },
@@ -4001,7 +4004,7 @@ export default class binance extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.rpi] *swap only* set to true to use the RPI endpoint
+     * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -4021,6 +4024,8 @@ export default class binance extends Exchange {
             const rpi = this.safeValue(params, 'rpi', false);
             params = this.omit(params, 'rpi');
             if (rpi) {
+                // rpi limit only supports 1000
+                request['limit'] = 1000;
                 response = await this.fapiPublicGetRpiDepth(this.extend(request, params));
             }
             else {
@@ -5647,7 +5652,10 @@ export default class binance extends Exchange {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'ACCEPTED': 'open',
+            'TRIGGERING': 'open',
             'FILLED': 'closed',
+            'TRIGGERED': 'closed',
+            'FINISHED': 'closed',
             'CANCELED': 'canceled',
             'CANCELLED': 'canceled',
             'PENDING_CANCEL': 'canceling',
@@ -6140,12 +6148,52 @@ export default class binance extends Exchange {
         //         "priceProtect": false
         //     }
         //
+        // createOrder, fetchOrder, fetchOpenOrders, fetchOrders, cancelOrderWs, createOrderWs: linear swap conditional order
+        //
+        //     {
+        //         "algoId": 3358,
+        //         "clientAlgoId": "yT58zmV3DSzMBQxc5tAJXU",
+        //         "algoType": "CONDITIONAL",
+        //         "orderType": "STOP",
+        //         "symbol": "BTCUSDT",
+        //         "side": "BUY",
+        //         "positionSide": "BOTH",
+        //         "timeInForce": "GTC",
+        //         "quantity": "0.002",
+        //         "algoStatus": "NEW",
+        //         "triggerPrice": "100000.00",
+        //         "price": "102000.00",
+        //         "icebergQuantity": null,
+        //         "selfTradePreventionMode": "EXPIRE_MAKER",
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceMatch": "NONE",
+        //         "closePosition": false,
+        //         "priceProtect": false,
+        //         "reduceOnly": false,
+        //         "createTime": 1763458576201,
+        //         "updateTime": 1763458576201,
+        //         "triggerTime": 0,
+        //         "goodTillDate": 0
+        //     }
+        //
+        // cancelOrder: linear swap conditional
+        //
+        //     {
+        //         "algoId": 3358,
+        //         "clientAlgoId": "yT58zmV3DSzMBQxc5tAJXU",
+        //         "code": "200",
+        //         "msg": "success"
+        //     }
+        //
         const code = this.safeString(order, 'code');
         if (code !== undefined) {
             // cancelOrders/createOrders might have a partial success
-            return this.safeOrder({ 'info': order, 'status': 'rejected' }, market);
+            const msg = this.safeString(order, 'msg');
+            if ((code !== '200') && !((msg === 'success') || (msg === 'The operation of cancel all open order is done.'))) {
+                return this.safeOrder({ 'info': order, 'status': 'rejected' }, market);
+            }
         }
-        const status = this.parseOrderStatus(this.safeString2(order, 'status', 'strategyStatus'));
+        const status = this.parseOrderStatus(this.safeStringN(order, ['status', 'strategyStatus', 'algoStatus']));
         const marketId = this.safeString(order, 'symbol');
         const isContract = ('positionSide' in order) || ('cumQuote' in order);
         const marketType = isContract ? 'contract' : 'spot';
@@ -6185,7 +6233,7 @@ export default class binance extends Exchange {
         if (type === 'limit_maker') {
             type = 'limit';
         }
-        const stopPriceString = this.safeString(order, 'stopPrice');
+        const stopPriceString = this.safeString2(order, 'stopPrice', 'triggerPrice');
         const triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         const feeCost = this.safeNumber(order, 'fee');
         let fee = undefined;
@@ -6198,8 +6246,8 @@ export default class binance extends Exchange {
         }
         return this.safeOrder({
             'info': order,
-            'id': this.safeString2(order, 'strategyId', 'orderId'),
-            'clientOrderId': this.safeString2(order, 'clientOrderId', 'newClientStrategyId'),
+            'id': this.safeStringN(order, ['strategyId', 'orderId', 'algoId']),
+            'clientOrderId': this.safeStringN(order, ['clientOrderId', 'newClientStrategyId', 'clientAlgoId']),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -6320,6 +6368,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
      * @param {string} side 'buy' or 'sell'
@@ -6388,7 +6437,13 @@ export default class binance extends Exchange {
                 }
             }
             else {
-                response = await this.fapiPrivatePostOrder(request);
+                if (isConditional) {
+                    request['algoType'] = 'CONDITIONAL';
+                    response = await this.fapiPrivatePostAlgoOrder(request);
+                }
+                else {
+                    response = await this.fapiPrivatePostOrder(request);
+                }
             }
         }
         else if (market['inverse']) {
@@ -6438,7 +6493,7 @@ export default class binance extends Exchange {
          */
         const market = this.market(symbol);
         const marketType = this.safeString(params, 'type', market['type']);
-        const clientOrderId = this.safeString2(params, 'newClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeStringN(params, ['clientAlgoId', 'newClientOrderId', 'clientOrderId']);
         const initialUppercaseType = type.toUpperCase();
         const isMarketOrder = initialUppercaseType === 'MARKET';
         const isLimitOrder = initialUppercaseType === 'LIMIT';
@@ -6552,7 +6607,10 @@ export default class binance extends Exchange {
                 }
             }
         }
-        const clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
+        let clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
+        if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+            clientOrderIdRequest = 'clientAlgoId';
+        }
         if (clientOrderId === undefined) {
             const broker = this.safeDict(this.options, 'broker', {});
             const defaultId = (market['contract']) ? 'x-xcKtGhcu' : 'x-TKT5PX2F';
@@ -6730,7 +6788,12 @@ export default class binance extends Exchange {
                 }
             }
             if (stopPrice !== undefined) {
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                if (market['linear'] && market['swap'] && !isPortfolioMargin) {
+                    request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
+                }
+                else {
+                    request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                }
             }
         }
         if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined) && (this.safeString(request, 'timeInForce') === undefined)) {
@@ -6842,11 +6905,13 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
+     * @param {boolean} [params.trigger] set to true if you would like to fetch a trigger or conditional order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -6864,19 +6929,26 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderId = this.safeString2(params, 'origClientOrderId', 'clientOrderId');
+        const isConditional = this.safeBoolN(params, ['stop', 'trigger', 'conditional']);
+        const clientOrderId = this.safeStringN(params, ['origClientOrderId', 'clientOrderId', 'clientAlgoId']);
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
+            }
+            else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+                request['clientAlgoId'] = clientOrderId;
             }
             else {
                 request['origClientOrderId'] = clientOrderId;
             }
         }
+        else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+            request['algoId'] = id;
+        }
         else {
             request['orderId'] = id;
         }
-        params = this.omit(params, ['type', 'clientOrderId', 'origClientOrderId']);
+        params = this.omit(params, ['type', 'clientOrderId', 'origClientOrderId', 'stop', 'trigger', 'conditional', 'clientAlgoId']);
         let response = undefined;
         if (market['option']) {
             response = await this.eapiPrivateGetOrder(this.extend(request, params));
@@ -6886,7 +6958,12 @@ export default class binance extends Exchange {
                 response = await this.papiGetUmOrder(this.extend(request, params));
             }
             else {
-                response = await this.fapiPrivateGetOrder(this.extend(request, params));
+                if (isConditional) {
+                    response = await this.fapiPrivateGetAlgoOrder(this.extend(request, params));
+                }
+                else {
+                    response = await this.fapiPrivateGetOrder(this.extend(request, params));
+                }
             }
         }
         else if (market['inverse']) {
@@ -6926,6 +7003,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -6980,7 +7058,12 @@ export default class binance extends Exchange {
                 }
             }
             else {
-                response = await this.fapiPrivateGetAllOrders(this.extend(request, params));
+                if (isConditional) {
+                    response = await this.fapiPrivateGetAllAlgoOrders(this.extend(request, params));
+                }
+                else {
+                    response = await this.fapiPrivateGetAllOrders(this.extend(request, params));
+                }
             }
         }
         else if (market['inverse']) {
@@ -7205,6 +7288,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -7262,7 +7346,12 @@ export default class binance extends Exchange {
                 }
             }
             else {
-                response = await this.fapiPrivateGetOpenOrders(this.extend(request, params));
+                if (isConditional) {
+                    response = await this.fapiPrivateGetOpenAlgoOrders(this.extend(request, params));
+                }
+                else {
+                    response = await this.fapiPrivateGetOpenOrders(this.extend(request, params));
+                }
             }
         }
         else if (this.isInverse(type, subType)) {
@@ -7622,6 +7711,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7645,10 +7735,13 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderId = this.safeStringN(params, ['origClientOrderId', 'clientOrderId', 'newClientStrategyId']);
+        const clientOrderId = this.safeStringN(params, ['origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'clientAlgoId']);
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
+            }
+            else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+                request['clientAlgoId'] = clientOrderId;
             }
             else {
                 if (isPortfolioMargin && isConditional) {
@@ -7663,11 +7756,14 @@ export default class binance extends Exchange {
             if (isPortfolioMargin && isConditional) {
                 request['strategyId'] = id;
             }
+            else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+                request['algoId'] = id;
+            }
             else {
                 request['orderId'] = id;
             }
         }
-        params = this.omit(params, ['type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional']);
+        params = this.omit(params, ['type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional', 'clientAlgoId']);
         let response = undefined;
         if (market['option']) {
             response = await this.eapiPrivateDeleteOrder(this.extend(request, params));
@@ -7682,7 +7778,12 @@ export default class binance extends Exchange {
                 }
             }
             else {
-                response = await this.fapiPrivateDeleteOrder(this.extend(request, params));
+                if (isConditional) {
+                    response = await this.fapiPrivateDeleteAlgoOrder(this.extend(request, params));
+                }
+                else {
+                    response = await this.fapiPrivateDeleteOrder(this.extend(request, params));
+                }
             }
         }
         else if (market['inverse']) {
@@ -7728,6 +7829,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
@@ -7783,13 +7885,24 @@ export default class binance extends Exchange {
                 }
             }
             else {
-                response = await this.fapiPrivateDeleteAllOpenOrders(this.extend(request, params));
-                //
-                //    {
-                //        "code": 200,
-                //        "msg": "The operation of cancel all open order is done."
-                //    }
-                //
+                if (isConditional) {
+                    response = await this.fapiPrivateDeleteAlgoOpenOrders(this.extend(request, params));
+                    //
+                    //     {
+                    //         "code": 200,
+                    //         "msg": "The operation of cancel all open order is done."
+                    //     }
+                    //
+                }
+                else {
+                    response = await this.fapiPrivateDeleteAllOpenOrders(this.extend(request, params));
+                    //
+                    //    {
+                    //        "code": 200,
+                    //        "msg": "The operation of cancel all open order is done."
+                    //    }
+                    //
+                }
             }
         }
         else if (market['inverse']) {
@@ -10568,7 +10681,7 @@ export default class binance extends Exchange {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -10595,7 +10708,7 @@ export default class binance extends Exchange {
             'percentage': percentage,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
-        };
+        });
     }
     async loadLeverageBrackets(reload = false, params = {}) {
         await this.loadMarkets();
@@ -10814,7 +10927,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePosition(response[0], market);
+        return this.parseOptionPosition(response[0], market);
     }
     /**
      * @method
@@ -10871,11 +10984,11 @@ export default class binance extends Exchange {
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            result.push(this.parsePosition(response[i], market));
+            result.push(this.parseOptionPosition(response[i], market));
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
-    parsePosition(position, market = undefined) {
+    parseOptionPosition(position, market = undefined) {
         //
         //     {
         //         "entryPrice": "27.70000000",
@@ -12210,13 +12323,13 @@ export default class binance extends Exchange {
     getExceptionsByUrl(url, exactOrBroad) {
         let marketType = undefined;
         const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
-        if (url.startsWith('https://api.' + hostname + '/') || url.startsWith('https://testnet.binance.vision')) {
+        if (url.startsWith('https://api.' + hostname + '/') || url.startsWith('https://demo-api') || url.startsWith('https://testnet.binance.vision')) {
             marketType = 'spot';
         }
-        else if (url.startsWith('https://dapi.' + hostname + '/') || url.startsWith('https://testnet.binancefuture.com/dapi')) {
+        else if (url.startsWith('https://dapi.' + hostname + '/') || url.startsWith('https://demo-dapi') || url.startsWith('https://testnet.binancefuture.com/dapi')) {
             marketType = 'inverse';
         }
-        else if (url.startsWith('https://fapi.' + hostname + '/') || url.startsWith('https://testnet.binancefuture.com/fapi')) {
+        else if (url.startsWith('https://fapi.' + hostname + '/') || url.startsWith('https://demo-fapi') || url.startsWith('https://testnet.binancefuture.com/fapi')) {
             marketType = 'linear';
         }
         else if (url.startsWith('https://eapi.' + hostname + '/')) {

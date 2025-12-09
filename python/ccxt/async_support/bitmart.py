@@ -542,7 +542,7 @@ class bitmart(Exchange, ImplicitAPI):
                 },
                 'broad': {
                     'You contract account available balance not enough': InsufficientFunds,
-                    'you contract account available balance not enough': InsufficientFunds,
+                    'This trading pair does not support API trading': BadSymbol,  # {"message":"This trading pair does not support API trading","code":51008,"trace":"5d3ebd46-4e7a-4505-b37b-74464f398f01","data":{}}
                 },
             },
             'commonCurrencies': {
@@ -5346,8 +5346,9 @@ class bitmart(Exchange, ImplicitAPI):
         #
         #     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         #
-        message = self.safe_string_lower(response, 'message')
-        isErrorMessage = (message is not None) and (message != 'ok') and (message != 'success')
+        message = self.safe_string(response, 'message')
+        messageLower = message.lower()
+        isErrorMessage = (message is not None) and (messageLower != 'ok') and (messageLower != 'success')
         errorCode = self.safe_string(response, 'code')
         isErrorCode = (errorCode is not None) and (errorCode != '1000')
         if isErrorCode or isErrorMessage:

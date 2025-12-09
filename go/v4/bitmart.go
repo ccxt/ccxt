@@ -482,7 +482,7 @@ func (this *BitmartCore) Describe() interface{} {
 			},
 			"broad": map[string]interface{}{
 				"You contract account available balance not enough": InsufficientFunds,
-				"you contract account available balance not enough": InsufficientFunds,
+				"This trading pair does not support API trading":    BadSymbol,
 			},
 		},
 		"commonCurrencies": map[string]interface{}{
@@ -6490,8 +6490,9 @@ func (this *BitmartCore) HandleErrors(code interface{}, reason interface{}, url 
 	//
 	//     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
 	//
-	var message interface{} = this.SafeStringLower(response, "message")
-	var isErrorMessage interface{} = IsTrue(IsTrue((!IsEqual(message, nil))) && IsTrue((!IsEqual(message, "ok")))) && IsTrue((!IsEqual(message, "success")))
+	var message interface{} = this.SafeString(response, "message")
+	var messageLower interface{} = ToLower(message)
+	var isErrorMessage interface{} = IsTrue(IsTrue((!IsEqual(message, nil))) && IsTrue((!IsEqual(messageLower, "ok")))) && IsTrue((!IsEqual(messageLower, "success")))
 	var errorCode interface{} = this.SafeString(response, "code")
 	var isErrorCode interface{} = IsTrue((!IsEqual(errorCode, nil))) && IsTrue((!IsEqual(errorCode, "1000")))
 	if IsTrue(IsTrue(isErrorCode) || IsTrue(isErrorMessage)) {

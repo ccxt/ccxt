@@ -33,48 +33,6 @@ public partial class upbit : ccxt.upbit
         });
     }
 
-    public async virtual Task<object> watchPublic(object symbol, object channel, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object marketId = getValue(market, "id");
-        object url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
-            { "hostname", this.hostname },
-        });
-        var client = this.client(url);
-        object subscriptionsKey = "upbitPublicSubscriptions";
-        if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionsKey))))
-        {
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = new Dictionary<string, object>() {};
-        }
-        object subscriptions = getValue(((WebSocketClient)client).subscriptions, subscriptionsKey);
-        object messageHash = channel;
-        object request = new Dictionary<string, object>() {
-            { "type", channel },
-        };
-        if (isTrue(!isEqual(symbol, null)))
-        {
-            messageHash = add(add(channel, ":"), symbol);
-            ((IDictionary<string,object>)request)["codes"] = new List<object>() {marketId};
-        }
-        if (!isTrue((inOp(subscriptions, messageHash))))
-        {
-            ((IDictionary<string,object>)subscriptions)[(string)messageHash] = request;
-        }
-        object finalMessage = new List<object>() {new Dictionary<string, object>() {
-    { "ticket", this.uuid() },
-}};
-        object channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(channelKeys)); postFixIncrement(ref i))
-        {
-            object key = getValue(channelKeys, i);
-            ((IList<object>)finalMessage).Add(getValue(subscriptions, key));
-        }
-        return await this.watch(url, messageHash, finalMessage, messageHash);
-    }
-
     public async virtual Task<object> watchPublicMultiple(object symbols, object channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -88,18 +46,38 @@ public partial class upbit : ccxt.upbit
         object url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
-        object messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        var client = this.client(url);
+        object subscriptionsKey = "upbitPublicSubscriptions";
+        if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionsKey))))
         {
-            ((IList<object>)messageHashes).Add(add(add(channel, ":"), getValue(marketIds, i)));
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = new Dictionary<string, object>() {};
         }
-        object request = new List<object>() {new Dictionary<string, object>() {
+        object subscriptions = getValue(((WebSocketClient)client).subscriptions, subscriptionsKey);
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object symbol = getValue(symbols, i);
+            object messageHash = add(add(channel, ":"), symbol);
+            ((IList<object>)messageHashes).Add(messageHash);
+            if (!isTrue((inOp(subscriptions, messageHash))))
+            {
+                ((IDictionary<string,object>)subscriptions)[(string)messageHash] = new Dictionary<string, object>() {
+                    { "type", channel },
+                    { "codes", new List<object>() {marketId} },
+                };
+            }
+        }
+        object finalMessage = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
-}, new Dictionary<string, object>() {
-    { "type", channel },
-    { "codes", marketIds },
 }};
-        return await this.watchMultiple(url, messageHashes, request, messageHashes);
+        object channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(channelKeys)); postFixIncrement(ref i))
+        {
+            object key = getValue(channelKeys, i);
+            ((IList<object>)finalMessage).Add(getValue(subscriptions, key));
+        }
+        return await this.watchMultiple(url, messageHashes, finalMessage, messageHashes);
     }
 
     /**
@@ -114,7 +92,7 @@ public partial class upbit : ccxt.upbit
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchPublic(symbol, "ticker");
+        return await this.watchPublicMultiple(new List<object>() {symbol}, "ticker");
     }
 
     /**
@@ -170,34 +148,7 @@ public partial class upbit : ccxt.upbit
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, null, false, true, true);
-        object channel = "trade";
-        object messageHashes = new List<object>() {};
-        object url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
-            { "hostname", this.hostname },
-        });
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-            {
-                object market = this.market(getValue(symbols, i));
-                object marketId = getValue(market, "id");
-                object symbol = getValue(market, "symbol");
-                ((IDictionary<string,object>)this.options)[(string)channel] = this.safeValue(this.options, channel, new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)getValue(this.options, channel))[(string)symbol] = true;
-                ((IList<object>)messageHashes).Add(add(add(channel, ":"), marketId));
-            }
-        }
-        object optionSymbols = new List<object>(((IDictionary<string,object>)getValue(this.options, channel)).Keys);
-        object marketIds = this.marketIds(optionSymbols);
-        object request = new List<object>() {new Dictionary<string, object>() {
-    { "ticket", this.uuid() },
-}, new Dictionary<string, object>() {
-    { "type", channel },
-    { "codes", marketIds },
-}};
-        object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        object trades = await this.watchPublicMultiple(symbols, "trade");
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(trades, 0);
@@ -220,7 +171,7 @@ public partial class upbit : ccxt.upbit
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orderbook = await this.watchPublic(symbol, "orderbook");
+        object orderbook = await this.watchPublicMultiple(new List<object>() {symbol}, "orderbook");
         return (orderbook as IOrderBook).limit();
     }
 
@@ -246,7 +197,7 @@ public partial class upbit : ccxt.upbit
             throw new NotSupported ((string)add(add(add(this.id, " watchOHLCV does not support"), timeframe), " candle.")) ;
         }
         object timeFrameOHLCV = add("candle.", timeframe);
-        return await this.watchPublic(symbol, timeFrameOHLCV);
+        return await this.watchPublicMultiple(new List<object>() {symbol}, timeFrameOHLCV);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -287,11 +238,10 @@ public partial class upbit : ccxt.upbit
         //   "acc_trade_price_24h": 2.5955306323568927,
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
-        object marketId = this.safeString(message, "code");
-        object messageHash = add("ticker:", marketId);
         object ticker = this.parseTicker(message);
         object symbol = getValue(ticker, "symbol");
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        object messageHash = add("ticker:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
     }
 
@@ -349,7 +299,7 @@ public partial class upbit : ccxt.upbit
         object datetime = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
-        object messageHash = add("orderbook:", marketId);
+        object messageHash = add("orderbook:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -379,8 +329,7 @@ public partial class upbit : ccxt.upbit
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         callDynamically(stored, "append", new object[] {trade});
-        object marketId = this.safeString(message, "code");
-        object messageHash = add("trade:", marketId);
+        object messageHash = add("trade:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
@@ -401,7 +350,8 @@ public partial class upbit : ccxt.upbit
         //     stream_type: 'REALTIME'
         //   }
         object marketId = this.safeString(message, "code");
-        object messageHash = add("candle.1s:", marketId);
+        object symbol = this.safeSymbol(marketId, null);
+        object messageHash = add("candle.1s:", symbol);
         object ohlcv = this.parseOHLCV(message);
         callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcv, messageHash});
     }

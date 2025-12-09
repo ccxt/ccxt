@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.22'
+__version__ = '4.5.26'
 
 # -----------------------------------------------------------------------------
 
@@ -98,6 +98,7 @@ from ccxt.async_support.btcalpha import btcalpha                                
 from ccxt.async_support.btcbox import btcbox                                    # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
+from ccxt.async_support.bullish import bullish                                  # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
@@ -208,6 +209,7 @@ exchanges = [
     'btcbox',
     'btcmarkets',
     'btcturk',
+    'bullish',
     'bybit',
     'cex',
     'coinbase',

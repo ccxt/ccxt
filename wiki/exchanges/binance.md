@@ -302,7 +302,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.rpi | <code>boolean</code> | No | *swap only* set to true to use the RPI endpoint |
+| params.rpi | <code>boolean</code> | No | *future only* set to true to use the RPI endpoint |
 
 
 ```javascript
@@ -712,6 +712,7 @@ create a trade order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
 
 
 | Param | Type | Required | Description |
@@ -828,6 +829,7 @@ fetches information on an order made by the user
 - https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order
 
 
 | Param | Type | Required | Description |
@@ -837,6 +839,7 @@ fetches information on an order made by the user
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for spot margin trading |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch an order in a portfolio margin account |
+| params.trigger | <code>boolean</code> | No | set to true if you would like to fetch a trigger or conditional order |
 
 
 ```javascript
@@ -863,6 +866,7 @@ fetches information on multiple orders made by the user
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
 
 
 | Param | Type | Required | Description |
@@ -902,6 +906,7 @@ fetch all unfilled currently open orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
 
 
 | Param | Type | Required | Description |
@@ -1084,6 +1089,7 @@ cancels an open order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
 
 
 | Param | Type | Required | Description |
@@ -1120,6 +1126,7 @@ cancel all open orders in a market
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
 - https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders
 
 
 | Param | Type | Required | Description |
@@ -2853,6 +2860,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 - https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
 
@@ -2883,6 +2891,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 - https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
 
@@ -2892,6 +2901,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.rpi | <code>boolean</code> | No | *future only* set to true to use the RPI endpoint |
 
 
 ```javascript
@@ -3600,6 +3610,7 @@ create a trade order
 - https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#place-new-order-trade
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Algo-Order
 
 
 | Param | Type | Required | Description |
@@ -3663,6 +3674,7 @@ cancel multiple orders
 - https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-order-trade
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Algo-Order
 
 
 | Param | Type | Required | Description |
@@ -3671,6 +3683,7 @@ cancel multiple orders
 | symbol | <code>string</code> | No | unified market symbol, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.cancelRestrictions | <code>string</code>, <code>undefined</code> | No | Supported values: ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED. |
+| params.trigger | <code>boolean</code> | No | set to true if you would like to cancel a conditional order |
 
 
 ```javascript
@@ -3812,6 +3825,7 @@ watches information on multiple orders made by the user
 - https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update
 - https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update
 
 
 | Param | Type | Required | Description |

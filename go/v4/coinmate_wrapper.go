@@ -28,6 +28,22 @@ func NewCoinmateFromCore(core *CoinmateCore) *Coinmate {
 
 /**
  * @method
+ * @name coinmate#fetchTime
+ * @description fetches the current integer timestamp in milliseconds from the bingx server
+ * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int} the current integer timestamp in milliseconds from the bingx server
+ */
+func (this *Coinmate) FetchTime(params ...interface{}) (int64, error) {
+	res := <-this.Core.FetchTime(params...)
+	if IsError(res) {
+		return -1, CreateReturnError(res)
+	}
+	return (res).(int64), nil
+}
+
+/**
+ * @method
  * @name coinmate#fetchMarkets
  * @description retrieves data on all markets for coinmate
  * @see https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get
@@ -864,9 +880,6 @@ func (this *Coinmate) FetchPremiumIndexOHLCV(symbol string, options ...FetchPrem
 }
 func (this *Coinmate) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Coinmate) FetchTime(params ...interface{}) (int64, error) {
-	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Coinmate) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)

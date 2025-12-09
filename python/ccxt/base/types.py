@@ -502,6 +502,13 @@ class FundingRate(TypedDict):
     info: Dict[str, Any]
     interval: Str
 
+class FundingRateHistory(TypedDict):
+    symbol: Str
+    timestamp: Int
+    fundingRate: Num
+    datetime: Str
+    info: Dict[str, Any]
+
 class OpenInterest(TypedDict):
     symbol: Str
     openInterestAmount: Num
