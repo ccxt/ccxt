@@ -123,7 +123,7 @@ public class Exchange {
     public String twofa;
     public String privateKey;
     public String walletAddress;
-    public String token;
+    public Object token;
     public String login;
     public Object proxy;
     public String agent;
@@ -1991,7 +1991,7 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{
@@ -2396,12 +2396,9 @@ public Object describe()
         {
             return defaultValue;
         }
-        if (Helpers.isTrue(((value instanceof java.util.Map))))
+        if (Helpers.isTrue(Helpers.isTrue(((value instanceof java.util.Map))) && !Helpers.isTrue(((value instanceof java.util.List) || (value.getClass().isArray())))))
         {
-            if (!Helpers.isTrue(((value instanceof java.util.List) || (value.getClass().isArray()))))
-            {
-                return value;
-            }
+            return value;
         }
         return defaultValue;
     }
@@ -7211,8 +7208,9 @@ public Object describe()
         }});
     }
 
-    public Object marketOrNull(Object symbol)
+    public Object marketOrNull(Object... optionalArgs)
     {
+        Object symbol = Helpers.getArg(optionalArgs, 0, null);
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
             return null;
