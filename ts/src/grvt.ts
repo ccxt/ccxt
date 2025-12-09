@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -90,6 +90,8 @@ export default class grvt extends Exchange {
                 },
                 'privateTrading': {
                     'post': {
+                        'full/v1/fill_history': 1,
+                        'full/v1/positions': 1,
                         'full/v1/create_order': 1,
                         'full/v1/account_summary': 1,
                         'full/v1/account_history': 1,
@@ -502,25 +504,65 @@ export default class grvt extends Exchange {
         //            {
         //                "event_time": "1764779531332118705",
         //                "instrument": "ETH_USDT_Perp",
-        //                "is_taker_buyer": false,
         //                "size": "23.73",
         //                "price": "3089.88",
+        //                "is_rpi": false,
         //                "mark_price": "3089.360002315",
         //                "index_price": "3090.443723246",
         //                "interest_rate": "0.0",
         //                "forward_price": "0.0",
         //                "trade_id": "64796657-1",
         //                "venue": "ORDERBOOK",
+        //                "is_taker_buyer": false
+        //            }
+        //
+        // fetchMyTrades
+        //
+        //            {
+        //                "event_time": "1764945709702747558",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "size": "0.001",
+        //                "price": "90000.0",
         //                "is_rpi": false
+        //                "mark_price": "90050.164063298",
+        //                "index_price": "90089.803654938",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "trade_id": "65424692-2",
+        //                "venue": "ORDERBOOK",
+        //                "is_buyer": true,
+        //                "is_taker": false,
+        //                "broker": "UNSPECIFIED",
+        //                "realized_pnl": "0.0",
+        //                "fee": "-0.00009",
+        //                "fee_rate": "0.0",
+        //                "order_id": "0x01010105034cddc7000000006621285c",
+        //                "client_order_id": "1375879248",
+        //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "sub_account_id": "2147050003876484",
         //            }
         //
         const marketId = this.safeString (trade, 'instrument');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerProduct (trade, 'event_time', 0.000001);
+        let takerOrMaker = undefined;
         const isTakerBuyer = this.safeBool (trade, 'is_taker_buyer');
         let side: Str = undefined;
         if (isTakerBuyer !== undefined) {
             side = isTakerBuyer ? 'buy' : 'sell';
+            takerOrMaker = 'taker';
+        } else {
+            takerOrMaker = this.safeBool (trade, 'is_taker') ? 'taker' : 'maker';
+            side = this.safeBool (trade, 'is_buyer') ? 'buy' : 'sell';
+        }
+        let fee = undefined;
+        const feeString = this.safeString (trade, 'fee');
+        if (feeString !== undefined) {
+            fee = {
+                'cost': this.parseNumber (feeString),
+                'currency': market['quote'],
+                'rate': this.safeNumber (trade, 'fee_rate'),
+            };
         }
         return this.safeTrade ({
             'info': trade,
@@ -528,14 +570,13 @@ export default class grvt extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'size'),
             'cost': undefined,
-            'fee': undefined,
-            'order': undefined,
+            'fee': fee,
+            'order': this.safeString (trade, 'order_id'),
         }, market);
     }
 
@@ -1401,6 +1442,149 @@ export default class grvt extends Exchange {
         const response = await this.privateTradingPostFullV1CreateOrder (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api-docs.grvt.io/trading_api/#fill-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.page_token] page_token - used for paging
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'sub_account_id': this.getSubAccountId ('fetchBalance', params),
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        if (since !== undefined) {
+            request['start_time'] = since * 1000000;
+        }
+        const response = await this.privateTradingPostFullV1FillHistory (this.extend (request, params));
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "event_time": "1764945709702747558",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "is_buyer": true,
+        //                "is_taker": false,
+        //                "size": "0.001",
+        //                "price": "90000.0",
+        //                "mark_price": "90050.164063298",
+        //                "index_price": "90089.803654938",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "realized_pnl": "0.0",
+        //                "fee": "-0.00009",
+        //                "fee_rate": "0.0",
+        //                "trade_id": "65424692-2",
+        //                "order_id": "0x01010105034cddc7000000006621285c",
+        //                "venue": "ORDERBOOK",
+        //                "client_order_id": "1375879248",
+        //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "broker": "UNSPECIFIED",
+        //                "is_rpi": false
+        //            },
+        //            ...
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        const result = this.safeList (response, 'result', []);
+        return this.parseTrades (result, undefined, since, limit);
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-docs.grvt.io/trading_api/#positions-request
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.standard] whether to fetch standard contract positions
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const request = {
+            'sub_account_id': this.getSubAccountId ('fetchPositions', params),
+        };
+        const response = await this.privateTradingPostFullV1Positions (this.extend (request, params));
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "event_time": "1765258069092857642",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "size": "0.001",
+        //                "notional": "89.8169",
+        //                "entry_price": "90000.0",
+        //                "exit_price": "0.0",
+        //                "mark_price": "89816.900008979",
+        //                "unrealized_pnl": "-0.183099",
+        //                "realized_pnl": "0.0",
+        //                "total_pnl": "-0.183099",
+        //                "roi": "-0.2034",
+        //                "quote_index_price": "1.00017885",
+        //                "est_liquidation_price": "77951.450008979",
+        //                "leverage": "28.0",
+        //                "cumulative_fee": "-0.00009",
+        //                "cumulative_realized_funding_payment": "0.033862"
+        //            }
+        //        ]
+        //    }
+        //
+        const result = this.safeList (response, 'result', []);
+        return this.parsePositions (result, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        const marketId = this.safeString (position, 'instrument');
+        const timestamp = this.safeIntegerProduct (position, 'event_time', 0.000001);
+        const sizeRaw = this.safeString (position, 'size');
+        const isLong = (Precise.stringGe (sizeRaw, '0'));
+        const side = isLong ? 'long' : 'short';
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeSymbol (marketId, market),
+            'notional': this.parseNumber (Precise.stringAbs (this.safeString (position, 'notional'))),
+            'marginMode': undefined,
+            'liquidationPrice': this.safeNumber (position, 'est_liquidation_price'),
+            'entryPrice': this.safeNumber (position, 'entry_price'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
+            'realizedPnl': this.safeNumber (position, 'realized_pnl'),
+            'percentage': undefined,
+            'contracts': this.parseNumber (Precise.stringAbs (sizeRaw)),
+            'markPrice': this.safeNumber (position, 'mark_price'),
+            'lastPrice': undefined,
+            'side': side,
+            'hedged': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': this.safeInteger (position, 'lastUpdateTime'),
+            'maintenanceMargin': this.safeNumber (position, 'maintenanceMargin'),
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': this.safeNumber (position, 'initialMargin'),
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber (position, 'leverage'),
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
