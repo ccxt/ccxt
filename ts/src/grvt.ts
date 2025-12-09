@@ -1680,6 +1680,247 @@ export default class grvt extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name grvt#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://api-docs.grvt.io/trading_api/#order-history
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let request = {
+            'sub_account_id': this.getSubAccountId (params),
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['base'] = [];
+            request['base'].push (market['baseId']);
+            request['quote'] = [];
+            request['quote'].push (market['quoteId']);
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        if (since !== undefined) {
+            request['start_time'] = since * 1000000;
+        }
+        const response = await this.privateTradingPostFullV1OrderHistory (this.extend (request, params));
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "order_id": "0x0101010503e693410000000069530a7d",
+        //                "sub_account_id": "2147050003876484",
+        //                "is_market": false,
+        //                "time_in_force": "GOOD_TILL_TIME",
+        //                "post_only": false,
+        //                "reduce_only": false,
+        //                "legs": [
+        //                    {
+        //                        "instrument": "BTC_USDT_Perp",
+        //                        "size": "0.002",
+        //                        "limit_price": "88123.0",
+        //                        "is_buying_asset": true
+        //                    }
+        //                ],
+        //                "signature": {
+        //                    "signer": "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
+        //                    "r": "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
+        //                    "s": "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
+        //                    "v": "28",
+        //                    "expiration": "1767871961406000000",
+        //                    "nonce": "588129369",
+        //                    "chain_id": "0"
+        //                },
+        //                "metadata": {
+        //                    "client_order_id": "588129369",
+        //                    "create_time": "1765279966899943792",
+        //                    "trigger": {
+        //                        "trigger_type": "UNSPECIFIED",
+        //                        "tpsl": {
+        //                            "trigger_by": "UNSPECIFIED",
+        //                            "trigger_price": "0.0",
+        //                            "close_position": false
+        //                        }
+        //                    },
+        //                    "broker": "UNSPECIFIED",
+        //                    "is_position_transfer": false,
+        //                    "allow_crossing": false
+        //                },
+        //                "state": {
+        //                    "status": "OPEN",
+        //                    "reject_reason": "UNSPECIFIED",
+        //                    "book_size": [
+        //                        "0.002"
+        //                    ],
+        //                    "traded_size": [
+        //                        "0.0"
+        //                    ],
+        //                    "update_time": "1765279966899943792",
+        //                    "avg_fill_price": [
+        //                        "0.0"
+        //                    ]
+        //                }
+        //            },
+        //            ...
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // fetchClosedOrders
+        //
+        //           {
+        //                "order_id": "0x0101010503e693410000000069530a7d",
+        //                "sub_account_id": "2147050003876484",
+        //                "is_market": false,
+        //                "time_in_force": "GOOD_TILL_TIME",
+        //                "post_only": false,
+        //                "reduce_only": false,
+        //                "legs": [
+        //                    {
+        //                        "instrument": "BTC_USDT_Perp",
+        //                        "size": "0.002",
+        //                        "limit_price": "88123.0",
+        //                        "is_buying_asset": true
+        //                    }
+        //                ],
+        //                "signature": {
+        //                    "signer": "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
+        //                    "r": "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
+        //                    "s": "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
+        //                    "v": "28",
+        //                    "expiration": "1767871961406000000",
+        //                    "nonce": "588129369",
+        //                    "chain_id": "0"
+        //                },
+        //                "metadata": {
+        //                    "client_order_id": "588129369",
+        //                    "create_time": "1765279966899943792",
+        //                    "trigger": {
+        //                        "trigger_type": "UNSPECIFIED",
+        //                        "tpsl": {
+        //                            "trigger_by": "UNSPECIFIED",
+        //                            "trigger_price": "0.0",
+        //                            "close_position": false
+        //                        }
+        //                    },
+        //                    "broker": "UNSPECIFIED",
+        //                    "is_position_transfer": false,
+        //                    "allow_crossing": false
+        //                },
+        //                "state": {
+        //                    "status": "OPEN",
+        //                    "reject_reason": "UNSPECIFIED",
+        //                    "book_size": [
+        //                        "0.002"
+        //                    ],
+        //                    "traded_size": [
+        //                        "0.0"
+        //                    ],
+        //                    "update_time": "1765279966899943792",
+        //                    "avg_fill_price": [
+        //                        "0.0"
+        //                    ]
+        //                }
+        //            }
+        //
+        const isMarket = this.safeString (order, 'is_market');
+        const orderType = isMarket ? 'market' : 'limit';
+        const isPostOnly = this.safeBool (order, 'post_only');
+        const isReduceOnly = this.safeBool (order, 'reduce_only');
+        const timeInForceRaw = this.safeString (order, 'time_in_force');
+        const timeInForce = isPostOnly ? 'PO' : this.parseTimeInForce (timeInForceRaw);
+        let size = undefined;
+        let side = undefined;
+        let price = undefined;
+        let filled = undefined;
+        let avgPrice = undefined;
+        const legs = this.safeList (order, 'legs');
+        const metadata = this.safeDict (order, 'metadata', {});
+        const stateObj = this.safeDict (order, 'state', {});
+        const filledAmounts = this.safeList (stateObj, 'traded_size', []);
+        const avgPrices = this.safeList (stateObj, 'avg_fill_price', []);
+        const primaryOrderIndex = 0;
+        const firstLeg = this.safeDict (legs, primaryOrderIndex);
+        if (firstLeg !== undefined) {
+            const marketId = this.safeString (firstLeg, 'instrument');
+            market = this.safeMarket (marketId, market);
+            size = this.safeString (firstLeg, 'size');
+            side = this.safeString (firstLeg, 'is_buying_asset') ? 'buy' : 'sell';
+            price = this.safeString (firstLeg, 'limit_price');
+            filled = this.safeString (filledAmounts, primaryOrderIndex);
+            avgPrice = this.safeString (avgPrices, primaryOrderIndex);
+        }
+        const timestamp = this.safeIntegerProduct (metadata, 'create_time', 0.000001);
+        const triggerDetails = this.safeDict (metadata, 'trigger', {});
+        const legsLength = legs.length;
+        return this.safeOrder ({
+            'isMultiLeg': (legsLength > 1),
+            'id': this.safeString (order, 'order_id'),
+            'clientOrderId': this.safeString (metadata, 'client_order_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimeStamp': undefined,
+            'lastUpdateTimestamp': this.safeIntegerProduct (stateObj, 'update_time', 0.000001),
+            'status': this.parseOrderStatus (this.safeString (stateObj, 'status')),
+            'symbol': market['symbol'],
+            'type': orderType,
+            'timeInForce': timeInForce,
+            'postOnly': isPostOnly,
+            'side': side,
+            'price': price,
+            'triggerPrice': undefined,
+            'cost': undefined,
+            'average': avgPrice,
+            'amount': size,
+            'filled': filled,
+            'remaining': undefined,
+            'trades': undefined,
+            'fees': undefined,
+            'reduceOnly': isReduceOnly,
+            'info': order,
+        }, market);
+    }
+
+    parseOrderType (type: Str): Str {
+        const types: Dict = {
+            'limitGtc': 'limit',
+            'limitIoc': 'limit',
+            'limitFok': 'limit',
+            'market': 'market',
+        };
+        return this.safeStringUpper (types, type, type);
+    }
+
+    parseTimeInForce (type: Str): Str {
+        const types: Dict = {
+            'GOOD_TILL_TIME': 'GTC', // yeah, not GTD
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+        };
+        return this.safeStringUpper (types, type, type);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'OPEN': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
