@@ -1861,9 +1861,94 @@ export default class grvt extends Exchange {
         return this.parseOrders (result, undefined, since, limit);
     }
 
+    /**
+     * @method
+     * @name grvt#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api-docs.grvt.io/trading_api/#get-order
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'sub_account_id': this.getSubAccountId (params),
+        };
+        const clientOrderId = this.safeInteger (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, 'clientOrderId');
+            request['client_order_id'] = clientOrderId;
+        } else {
+            request['order_id'] = id;
+        }
+        const response = await this.privateTradingPostFullV1Order (this.extend (request, params));
+        //
+        //    {
+        //        "result": {
+        //            "order_id": "0x01010105034cddc7000000006621285c",
+        //            "sub_account_id": "2147050003876484",
+        //            "is_market": false,
+        //            "time_in_force": "GOOD_TILL_TIME",
+        //            "post_only": false,
+        //            "reduce_only": false,
+        //            "legs": [
+        //                {
+        //                    "instrument": "BTC_USDT_Perp",
+        //                    "size": "0.001",
+        //                    "limit_price": "90000.0",
+        //                    "is_buying_asset": true
+        //                }
+        //            ],
+        //            "signature": {
+        //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
+        //                "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
+        //                "v": "27",
+        //                "expiration": "1767455222801000000",
+        //                "nonce": "1375879248",
+        //                "chain_id": "0"
+        //            },
+        //            "metadata": {
+        //                "client_order_id": "1375879248",
+        //                "create_time": "1764863234474424590",
+        //                "trigger": {
+        //                    "trigger_type": "UNSPECIFIED",
+        //                    "tpsl": {
+        //                        "trigger_by": "UNSPECIFIED",
+        //                        "trigger_price": "0.0",
+        //                        "close_position": false
+        //                    }
+        //                },
+        //                "broker": "UNSPECIFIED",
+        //                "is_position_transfer": false,
+        //                "allow_crossing": false
+        //            },
+        //            "state": {
+        //                "status": "FILLED",
+        //                "reject_reason": "UNSPECIFIED",
+        //                "book_size": [
+        //                    "0.0"
+        //                ],
+        //                "traded_size": [
+        //                    "0.001"
+        //                ],
+        //                "update_time": "1764945709704912003",
+        //                "avg_fill_price": [
+        //                    "90000.0"
+        //                ]
+        //            }
+        //        }
+        //    }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOrder (result);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        // fetchOrders, fetchOpenOrders
+        // fetchOrders, fetchOpenOrders, fetchOrder
         //
         //           {
         //                "order_id": "0x0101010503e693410000000069530a7d",
