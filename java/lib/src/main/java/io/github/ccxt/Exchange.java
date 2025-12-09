@@ -30,6 +30,7 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.base.Misc;
 import io.github.ccxt.base.Strings;
 import io.github.ccxt.errors.*;
+import java.util.Random;
 
 
 public class Exchange {
@@ -560,8 +561,16 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return Crypto.Jwt(data, secret, hash, false, new HashMap<String, Object> ());
     }
 
+    public String jwt(Object data, Object secret, Object hash, boolean isRsa) {
+        return Crypto.Jwt(data, secret, hash, isRsa, new HashMap<String, Object> ());
+    }
+
     public static Map<String, Object> ecdsa(Object request, Object secret, Object curve, Object hash) {
         return Crypto.Ecdsa(request, secret, curve, hash);
+    }
+
+    public  Object axolotl(Object a, Object b, Object c) {
+        return Crypto.axolotl(a, b, c);
     }
 
     // public Object md5() {
@@ -653,6 +662,18 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return Encode.base16ToBinary(str2);
     }
 
+    public Object numberToBE(Object n2, Object size2) {
+        return Encode.numberToBE(n2, size2);
+    }
+
+    public Object remove0xPrefix(Object str2) {
+        return Encode.remove0xPrefix(str2);
+    }
+
+    public Object binaryConcatArray(Object arrays2) {
+        return Encode.binaryConcatArray(arrays2);
+    }
+
     // =======================
     // Functions
     // =======================
@@ -705,6 +726,18 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
 
     public String uuid16() {
         return io.github.ccxt.base.Functions.uuid16();
+    }
+
+    public String uuid5() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public String uuid5(Object a) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public String uuid5(Object a, Object b) {
+        throw new RuntimeException("Not implemented");
     }
 
     public java.util.List<Object> extractParams(Object str) {
@@ -933,6 +966,18 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return SafeMethods.safeTimestampN(obj, keys, defaultValue);
     }
 
+    public static Double safeFloat(Object obj, Object key, Object... defaultValue) {
+        return SafeMethods.SafeFloat(obj, key, defaultValue);
+    }
+
+    public static Double safeFloat2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        return SafeMethods.safeFloat2(obj, key1, key2, defaultValue);
+    }
+
+    public static Double safeFloatN(Object obj, Object keys, Object... defaultValue) {
+        return SafeMethods.safeFloatN(obj, keys, defaultValue);
+    }
+
     // SafeNumber / SafeNumberN
     // (If your SafeMethods.SafeNumber(...) doesn't exist, point this to SafeFloat(...) instead.)
     // public Double safeNumber(Object obj, Object key, Object... defaultValue) {
@@ -1036,6 +1081,18 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
 
     public String ymdhms(Object ts, Object infix) {
         return Time.ymdhms(ts, infix);
+    }
+
+    public Object ymd(Object ts) {
+        return Time.ymd(ts);
+    }
+
+    public Object ymd(Object ts, Object infix) {
+        return Time.ymd(ts, infix);
+    }
+
+    public Object parseDate(Object datetime2) {
+        return Time.parseDate(datetime2);
     }
     // public Long nonce() {
     //     return Time.nonce();
@@ -1808,6 +1865,94 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         throw new RuntimeException("Not implemented");
     }
 
+    public void checkRequiredDependencies()
+    {
+        // stub to implement later
+    }
+
+    public Object retrieveDydxCredentials(Object entropy)
+    {
+        throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
+    }
+
+    public int randNumber(int size) {
+        Random random = new Random();
+        StringBuilder number = new StringBuilder();
+
+        for (int i = 0; i < size; i++) {
+            number.append(random.nextInt(10)); // 0–9
+        }
+
+        return Integer.parseInt(number.toString());
+    }
+
+    public CompletableFuture<Void> loadDydxProtos()
+    {
+        throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
+    }
+
+    public Object encodeDydxTxForSimulation(
+        Object message,
+        Object memo,
+        Object sequence,
+        Object publicKey)
+    {
+        throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
+    }
+
+    public Long toDydxLong(Object numStr)
+    {
+        throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
+    }
+
+    public Object encodeDydxTxForSigning(
+        Object message,
+        Object memo,
+        Object chainId,
+        Object account,
+        Object authenticators,
+        Object fee)
+    {
+        throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
+    }
+
+    public Object encodeDydxTxRaw(Object signDoc, Object signature)
+    {
+        throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
+    }
+
+    public CompletableFuture<Void> getZKTransferSignatureObj(Object seed, Object parameters)
+    {
+        throw new RuntimeException("Apex currently does not support create order in java language");
+    }
+
+    public CompletableFuture<Void> getZKContractSignatureObj(Object seed, Object parameters)
+    {
+        throw new RuntimeException("Apex currently does not support create order in C# language");
+    }
+
+    public String strip(Object str) {
+        var str2 = (String)str;
+        return str2.trim();
+    }
+
+    public String decode(Object str) {
+        return (String)str;
+    }
+
+    public Object binaryToBase58(Object buff2) {
+        byte[] buff = (byte[])buff2;
+        return Crypto.binaryToHex(buff);
+    }
+
+    public Object toFixed(Object number, Object decimals) {
+        double num = ((Number) number).doubleValue();
+        int dec = ((Number) decimals).intValue();
+        double factor = Math.pow(10, dec);
+        return Math.round(num * factor) / factor;
+    }
+
+
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
@@ -1846,7 +1991,7 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{

@@ -374,7 +374,9 @@ function createGoHeader(exchange: Exchange, parent: string){
 // -------------------------------------------------------------------------
 
 function createJavaHeader(exchange: Exchange, parent: string){
-    const namespace = `package io.github.ccxt.api;\nimport io.github.ccxt.${capitalize(parent)};`;
+    const capParent = capitalize(parent);
+    const parentImport = parent === 'Exchange' ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
+    const namespace = `package io.github.ccxt.api;\n${parentImport};`;
     const header = `public class ${capitalize(exchange.id)}Api extends ${capitalize(parent)}\n{\n`;
     storedJavaMethods[exchange.id] = [ getPreamble(), namespace, '', header];
 }
@@ -426,7 +428,10 @@ async function main() {
     const shouldGenerateAll = args.length === 0;
 
     // const exchanges = ccxt.exchanges;
-    const exchanges = ['binance', 'bybit'];
+
+    let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+    exchanges = exchanges.ids;
+    // const exchanges = ['gate', 'gateio'];
 
     log.bright.cyan ('Exporting TypeScript implicit api methods')
     populateImplicitMethods(exchanges); // common step for all languages

@@ -12,12 +12,15 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class Helpers {
 
-    // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
 
+    private static final ObjectMapper mapper = new ObjectMapper();
+    // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
     public static Object normalizeIntIfNeeded(Object a) {
         if (a == null) return null;
         if (a instanceof Integer) {
@@ -352,6 +355,15 @@ public class Helpers {
         double first = toDouble(a);
         double second = toDouble(b);
         return (first < second) ? a : b;
+    }
+
+    public static double mathPow(Object base, Object exp) {
+        if (base instanceof Number && exp instanceof Number) {
+            double baseFloat = ((Number) base).doubleValue();
+            double expFloat = ((Number) exp).doubleValue();
+            return Math.pow(baseFloat, expFloat);
+        }
+        return 0;
     }
 
     public static Object mathMax(Object a, Object b) {
@@ -844,5 +856,13 @@ public class Helpers {
         }
 
         return str.substring(str.length() - length);
+    }
+
+    public static String json(Object obj) {
+        try {
+            return mapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize JSON", e);
+        }
     }
 }

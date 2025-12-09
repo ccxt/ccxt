@@ -910,8 +910,7 @@ class NewTranspiler {
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids: string[] = []
         try {
-            // ids = (exchanges as any).ids
-            ids = ['binance', 'bybit']
+            ids = (exchanges as any).ids
         } catch (e) {
         }
 
@@ -957,8 +956,12 @@ class NewTranspiler {
         const javaImports = this.getJavaImports(name, ws).join("\n") + "\n\n";
         let content = javaVersion.content;
 
+        const regex = /class (\w+) extends (\w+)/
+        // const res = content.match(regex)
+        // const parentExchange = res[1].toLowerCase();
         // override extends from Exchange to ClassApi
-        content = content.replace(/extends\sExchange/g, `extends ${this.capitalize(name)}Api`);
+        content = content.replace(/extends\s\w+/g, `extends ${this.capitalize(name)}Api`);
+
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
 
         // const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
