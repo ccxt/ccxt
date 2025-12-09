@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import io.github.ccxt.exchanges.Binance;
+// import io.github.ccxt.exchanges.Binance;
 import io.github.ccxt.Exchange;
 
 public class Main {
@@ -187,10 +187,10 @@ public class Main {
             // return;
         }
 
-        // var exchangeName = args[0];
-        var exchangeName = "binance";
-        // var methodName = args[1];
-        var methodName = "fetchTrades";
+        var exchangeName = args[0];
+        // var exchangeName = "binance";
+        var methodName = args[1];
+        // var methodName = "fetchTrades";
 
         var params = getParamsFromArgs(args);
 
