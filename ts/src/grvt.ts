@@ -90,8 +90,10 @@ export default class grvt extends Exchange {
                 },
                 'privateTrading': {
                     'post': {
+                        'full/v1/order': 1,
                         'full/v1/cancel_on_disconnect': 1,
                         'full/v1/order_history': 1,
+                        'full/v1/open_orders': 1,
                         'full/v1/fill_history': 1,
                         'full/v1/positions': 1,
                         'full/v1/funding_payment_history': 1,
@@ -1682,17 +1684,16 @@ export default class grvt extends Exchange {
 
     /**
      * @method
-     * @name grvt#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user
+     * @name grvt#fetchOrders
+     * @description fetches information on multiple orders made by the user
      * @see https://api-docs.grvt.io/trading_api/#order-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let request = {
             'sub_account_id': this.getSubAccountId (params),
@@ -1713,6 +1714,89 @@ export default class grvt extends Exchange {
             request['start_time'] = since * 1000000;
         }
         const response = await this.privateTradingPostFullV1OrderHistory (this.extend (request, params));
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "order_id": "0x01010105034cddc7000000006621285c",
+        //                "sub_account_id": "2147050003876484",
+        //                "is_market": false,
+        //                "time_in_force": "GOOD_TILL_TIME",
+        //                "post_only": false,
+        //                "reduce_only": false,
+        //                "legs": [
+        //                    {
+        //                        "instrument": "BTC_USDT_Perp",
+        //                        "size": "0.001",
+        //                        "limit_price": "90000.0",
+        //                        "is_buying_asset": true
+        //                    }
+        //                ],
+        //                "signature": {
+        //                    "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                    "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
+        //                    "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
+        //                    "v": "27",
+        //                    "expiration": "1767455222801000000",
+        //                    "nonce": "1375879248",
+        //                    "chain_id": "0"
+        //                },
+        //                "metadata": {
+        //                    "client_order_id": "1375879248",
+        //                    "create_time": "1764863234474424590",
+        //                    "trigger": {
+        //                        "trigger_type": "UNSPECIFIED",
+        //                        "tpsl": {
+        //                            "trigger_by": "UNSPECIFIED",
+        //                            "trigger_price": "0.0",
+        //                            "close_position": false
+        //                        }
+        //                    },
+        //                    "broker": "UNSPECIFIED",
+        //                    "is_position_transfer": false,
+        //                    "allow_crossing": false
+        //                },
+        //                "state": {
+        //                    "status": "FILLED",
+        //                    "reject_reason": "UNSPECIFIED",
+        //                    "book_size": [
+        //                        "0.0"
+        //                    ],
+        //                    "traded_size": [
+        //                        "0.001"
+        //                    ],
+        //                    "update_time": "1764945709704912003",
+        //                    "avg_fill_price": [
+        //                        "90000.0"
+        //                    ]
+        //                }
+        //            },
+        //            ...
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api-docs.grvt.io/trading_api/#open-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const request = {
+            'sub_account_id': this.getSubAccountId (params),
+        };
+        const response = await this.privateTradingPostFullV1OpenOrders (this.extend (request, params));
         //
         //    {
         //        "result": [
@@ -1769,18 +1853,17 @@ export default class grvt extends Exchange {
         //                        "0.0"
         //                    ]
         //                }
-        //            },
-        //            ...
-        //        ],
-        //        "next": ""
+        //            }
+        //        ]
         //    }
         //
-        return this.parseOrders (response, market, since, limit);
+        const result = this.safeList (response, 'result', []);
+        return this.parseOrders (result, undefined, since, limit);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        // fetchClosedOrders
+        // fetchOrders, fetchOpenOrders
         //
         //           {
         //                "order_id": "0x0101010503e693410000000069530a7d",
@@ -1895,16 +1978,6 @@ export default class grvt extends Exchange {
         }, market);
     }
 
-    parseOrderType (type: Str): Str {
-        const types: Dict = {
-            'limitGtc': 'limit',
-            'limitIoc': 'limit',
-            'limitFok': 'limit',
-            'market': 'market',
-        };
-        return this.safeStringUpper (types, type, type);
-    }
-
     parseTimeInForce (type: Str): Str {
         const types: Dict = {
             'GOOD_TILL_TIME': 'GTC', // yeah, not GTD
@@ -1916,7 +1989,11 @@ export default class grvt extends Exchange {
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
+            'PENDING': 'pending',
             'OPEN': 'open',
+            'FILLED': 'closed',
+            'REJECTED': 'rejected',
+            'CANCELLED': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
