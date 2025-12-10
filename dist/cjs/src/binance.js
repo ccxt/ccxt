@@ -2627,7 +2627,8 @@ class binance extends binance$1["default"] {
                 },
                 'broad': {
                     'has no operation privilege': errors.PermissionDenied,
-                    'MAX_POSITION': errors.BadRequest, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
+                    'MAX_POSITION': errors.BadRequest,
+                    'PERCENT_PRICE_BY_SIDE': errors.InvalidOrder, // {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
                 },
             },
         });

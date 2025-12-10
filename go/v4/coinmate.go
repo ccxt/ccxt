@@ -128,10 +128,10 @@ func (this *CoinmateCore) Describe() interface{} {
 		},
 		"api": map[string]interface{}{
 			"public": map[string]interface{}{
-				"get": []interface{}{"orderBook", "ticker", "tickerAll", "products", "transactions", "tradingPairs"},
+				"get": []interface{}{"orderBook", "ticker", "tickerAll", "products", "transactions", "tradingPairs", "system/time"},
 			},
 			"private": map[string]interface{}{
-				"post": []interface{}{"balances", "bitcoinCashWithdrawal", "bitcoinCashDepositAddresses", "bitcoinDepositAddresses", "bitcoinWithdrawal", "bitcoinWithdrawalFees", "buyInstant", "buyLimit", "cancelOrder", "cancelOrderWithInfo", "createVoucher", "dashDepositAddresses", "dashWithdrawal", "ethereumWithdrawal", "ethereumDepositAddresses", "litecoinWithdrawal", "litecoinDepositAddresses", "openOrders", "order", "orderHistory", "orderById", "pusherAuth", "redeemVoucher", "replaceByBuyLimit", "replaceByBuyInstant", "replaceBySellLimit", "replaceBySellInstant", "rippleDepositAddresses", "rippleWithdrawal", "sellInstant", "sellLimit", "transactionHistory", "traderFees", "tradeHistory", "transfer", "transferHistory", "unconfirmedBitcoinDeposits", "unconfirmedBitcoinCashDeposits", "unconfirmedDashDeposits", "unconfirmedEthereumDeposits", "unconfirmedLitecoinDeposits", "unconfirmedRippleDeposits", "cancelAllOpenOrders", "withdrawVirtualCurrency", "virtualCurrencyDepositAddresses", "unconfirmedVirtualCurrencyDeposits", "adaWithdrawal", "adaDepositAddresses", "unconfirmedAdaDeposits", "solWithdrawal", "solDepositAddresses", "unconfirmedSolDeposits"},
+				"post": []interface{}{"currencies", "balances", "bitcoinCashWithdrawal", "bitcoinCashDepositAddresses", "bitcoinDepositAddresses", "bitcoinWithdrawal", "bitcoinWithdrawalFees", "buyInstant", "buyLimit", "cancelOrder", "cancelOrderWithInfo", "createVoucher", "dashDepositAddresses", "dashWithdrawal", "ethereumWithdrawal", "ethereumDepositAddresses", "litecoinWithdrawal", "litecoinDepositAddresses", "openOrders", "order", "orderHistory", "orderById", "pusherAuth", "redeemVoucher", "replaceByBuyLimit", "replaceByBuyInstant", "replaceBySellLimit", "replaceBySellInstant", "rippleDepositAddresses", "rippleWithdrawal", "sellInstant", "sellLimit", "transactionHistory", "traderFees", "tradeHistory", "transfer", "transferHistory", "unconfirmedBitcoinDeposits", "unconfirmedBitcoinCashDeposits", "unconfirmedDashDeposits", "unconfirmedEthereumDeposits", "unconfirmedLitecoinDeposits", "unconfirmedRippleDeposits", "cancelAllOpenOrders", "withdrawVirtualCurrency", "virtualCurrencyDepositAddresses", "unconfirmedVirtualCurrencyDeposits", "adaWithdrawal", "adaDepositAddresses", "unconfirmedAdaDeposits", "solWithdrawal", "solDepositAddresses", "unconfirmedSolDeposits", "bankWireWithdrawal"},
 			},
 		},
 		"fees": map[string]interface{}{
@@ -244,6 +244,37 @@ func (this *CoinmateCore) Describe() interface{} {
 		},
 		"precisionMode": TICK_SIZE,
 	})
+}
+
+/**
+ * @method
+ * @name coinmate#fetchTime
+ * @description fetches the current integer timestamp in milliseconds from the bingx server
+ * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int} the current integer timestamp in milliseconds from the bingx server
+ */
+func (this *CoinmateCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+
+		response := (<-this.PublicGetSystemTime(params))
+		PanicOnError(response)
+
+		//
+		//     {
+		//         "serverTime": 1765250628745
+		//     }
+		//
+		ch <- this.SafeInteger(response, "serverTime")
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -385,8 +416,8 @@ func (this *CoinmateCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes4498 := (<-this.LoadMarkets())
-		PanicOnError(retRes4498)
+		retRes4708 := (<-this.LoadMarkets())
+		PanicOnError(retRes4708)
 
 		response := (<-this.PrivatePostBalances(params))
 		PanicOnError(response)
@@ -418,8 +449,8 @@ func (this *CoinmateCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes4658 := (<-this.LoadMarkets())
-		PanicOnError(retRes4658)
+		retRes4868 := (<-this.LoadMarkets())
+		PanicOnError(retRes4868)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"currencyPair":      GetValue(market, "id"),
@@ -455,8 +486,8 @@ func (this *CoinmateCore) FetchTicker(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes4878 := (<-this.LoadMarkets())
-		PanicOnError(retRes4878)
+		retRes5088 := (<-this.LoadMarkets())
+		PanicOnError(retRes5088)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"currencyPair": GetValue(market, "id"),
@@ -509,8 +540,8 @@ func (this *CoinmateCore) FetchTickers(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes5248 := (<-this.LoadMarkets())
-		PanicOnError(retRes5248)
+		retRes5458 := (<-this.LoadMarkets())
+		PanicOnError(retRes5458)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PublicGetTickerAll(params))
@@ -616,8 +647,8 @@ func (this *CoinmateCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes6098 := (<-this.LoadMarkets())
-		PanicOnError(retRes6098)
+		retRes6308 := (<-this.LoadMarkets())
+		PanicOnError(retRes6308)
 		var request interface{} = map[string]interface{}{
 			"limit": 1000,
 		}
@@ -759,8 +790,8 @@ func (this *CoinmateCore) Withdraw(code interface{}, amount interface{}, address
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes7338 := (<-this.LoadMarkets())
-		PanicOnError(retRes7338)
+		retRes7548 := (<-this.LoadMarkets())
+		PanicOnError(retRes7548)
 		var currency interface{} = this.Currency(code)
 		var withdrawOptions interface{} = this.SafeValue(this.Options, "withdraw", map[string]interface{}{})
 		var methods interface{} = this.SafeValue(withdrawOptions, "methods", map[string]interface{}{})
@@ -832,8 +863,8 @@ func (this *CoinmateCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes7858 := (<-this.LoadMarkets())
-		PanicOnError(retRes7858)
+		retRes8068 := (<-this.LoadMarkets())
+		PanicOnError(retRes8068)
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 1000
 		}
@@ -947,8 +978,8 @@ func (this *CoinmateCore) FetchTrades(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes8808 := (<-this.LoadMarkets())
-		PanicOnError(retRes8808)
+		retRes9018 := (<-this.LoadMarkets())
+		PanicOnError(retRes9018)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"currencyPair":       GetValue(market, "id"),
@@ -999,8 +1030,8 @@ func (this *CoinmateCore) FetchTradingFee(symbol interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes9178 := (<-this.LoadMarkets())
-		PanicOnError(retRes9178)
+		retRes9388 := (<-this.LoadMarkets())
+		PanicOnError(retRes9388)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"currencyPair": GetValue(market, "id"),
@@ -1101,8 +1132,8 @@ func (this *CoinmateCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
 
-		retRes9778 := (<-this.LoadMarkets())
-		PanicOnError(retRes9778)
+		retRes9988 := (<-this.LoadMarkets())
+		PanicOnError(retRes9988)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"currencyPair": GetValue(market, "id"),
@@ -1252,8 +1283,8 @@ func (this *CoinmateCore) CreateOrder(symbol interface{}, typeVar interface{}, s
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes11128 := (<-this.LoadMarkets())
-		PanicOnError(retRes11128)
+		retRes11338 := (<-this.LoadMarkets())
+		PanicOnError(retRes11338)
 		var method interface{} = Add("privatePost", this.Capitalize(side))
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
@@ -1307,8 +1338,8 @@ func (this *CoinmateCore) FetchOrder(id interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes11508 := (<-this.LoadMarkets())
-		PanicOnError(retRes11508)
+		retRes11718 := (<-this.LoadMarkets())
+		PanicOnError(retRes11718)
 		var request interface{} = map[string]interface{}{
 			"orderId": id,
 		}

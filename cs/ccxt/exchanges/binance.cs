@@ -2538,6 +2538,7 @@ public partial class binance : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "has no operation privilege", typeof(PermissionDenied) },
                     { "MAX_POSITION", typeof(BadRequest) },
+                    { "PERCENT_PRICE_BY_SIDE", typeof(InvalidOrder) },
                 } },
             } },
         });

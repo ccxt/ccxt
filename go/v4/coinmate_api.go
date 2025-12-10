@@ -31,6 +31,14 @@ func (this *CoinmateCore) PublicGetTradingPairs(args ...interface{}) <-chan inte
 	return this.callEndpointAsync("publicGetTradingPairs", args...)
 }
 
+func (this *CoinmateCore) PublicGetSystemTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSystemTime", args...)
+}
+
+func (this *CoinmateCore) PrivatePostCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCurrencies", args...)
+}
+
 func (this *CoinmateCore) PrivatePostBalances(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBalances", args...)
 }
@@ -237,4 +245,8 @@ func (this *CoinmateCore) PrivatePostSolDepositAddresses(args ...interface{}) <-
 
 func (this *CoinmateCore) PrivatePostUnconfirmedSolDeposits(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostUnconfirmedSolDeposits", args...)
+}
+
+func (this *CoinmateCore) PrivatePostBankWireWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBankWireWithdrawal", args...)
 }

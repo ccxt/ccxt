@@ -1410,6 +1410,7 @@ class bitget extends bitget$1["default"] {
                     'invalid end time': errors.BadRequest,
                     '20003': errors.ExchangeError,
                     '01001': errors.ExchangeError,
+                    '40024': errors.RestrictedLocation,
                     '43111': errors.PermissionDenied, // {"code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null}
                 },
                 'broad': {

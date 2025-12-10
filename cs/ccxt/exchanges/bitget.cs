@@ -1369,6 +1369,7 @@ public partial class bitget : Exchange
                     { "invalid end time", typeof(BadRequest) },
                     { "20003", typeof(ExchangeError) },
                     { "01001", typeof(ExchangeError) },
+                    { "40024", typeof(RestrictedLocation) },
                     { "43111", typeof(PermissionDenied) },
                 } },
                 { "broad", new Dictionary<string, object>() {
