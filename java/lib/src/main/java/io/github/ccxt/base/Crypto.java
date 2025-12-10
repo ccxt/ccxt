@@ -111,6 +111,10 @@ public final class Crypto {
         byte[] request = (request2 instanceof String) ? toUtf8(request2) : (byte[]) request2;
         byte[] secret  = (secret2  instanceof String) ? toUtf8(secret2)  : (byte[]) secret2;
 
+        if (digest == null) {
+            digest = "hex"; // default
+        }
+
         String algo = "md5";
         if (algorithm2 != null) {
             algo = toString(algorithm2); // pass "sha256"/"sha512"/"sha384"/"md5"

@@ -5,6 +5,8 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -81,7 +83,26 @@ public class Main {
     }
 
 
-    public static void setCredentials(Exchange instance) throws IllegalArgumentException, IllegalAccessException {
+    public static void setCredentials(Exchange instance) throws IllegalArgumentException, IllegalAccessException, IOException {
+        var basePath = FileSystems.getDefault().getPath("").toAbsolutePath().toString();
+        var prefix = (basePath.endsWith("cli")) ? "/../../" : "/../";
+        var keysJsonPath = basePath + prefix + "keys.json";
+
+//        System.out.println("Looking for keys.json at: " + keysJsonPath);
+
+        Map<String, Object> keysJsonContent = null;
+        if (FileSystems.getDefault().getPath(keysJsonPath).toFile().exists()) {
+            System.out.println("Loading credentials from: " + keysJsonPath);
+//            var content = FileUtils.readFileAsString(keysJsonPath);
+            String content = new String(Files.readAllBytes(Paths.get(keysJsonPath)));
+
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                keysJsonContent = mapper.readValue(content, Map.class);
+            } catch (Exception e) {
+                System.out.println("Error parsing keys.json: " + e.getMessage());
+            }
+        }
 
         Map<String, Boolean> credentials = (Map<String, Boolean>)instance.requiredCredentials;
         if (noKeys || credentials == null) {
@@ -96,31 +117,52 @@ public class Main {
                 continue;
             }
 
-
             String instanceIdKey = instance.id;
+            String credentialValue = null;
 
-
+            if (keysJsonContent != null && keysJsonContent.containsKey(instanceIdKey)) {
+                Map<String, Object> instanceCredentials = (Map<String, Object>)keysJsonContent.get(instanceIdKey);
+                if (instanceCredentials.containsKey(key)) {
+                    credentialValue = instanceCredentials.get(key).toString();
+                    System.out.println("Setting credential from keys.json: " + instanceIdKey + "." + key);
+                    setProperty(instance, key, credentialValue);
+                    continue;
+                }
+            }
             String envKey = instanceIdKey.toUpperCase() + "_" + key.toUpperCase();
-            var credentialValue = System.getenv(envKey);
+            credentialValue = System.getenv(envKey);
 
             if (credentialValue != null && credentialValue.startsWith("-----BEGIN")) {
                 credentialValue = credentialValue.replace("\\n", "\n");
             }
 
             if (credentialValue != null) {
+                System.out.println("Setting credential from ENV: " + envKey);
                 setProperty(instance, key, credentialValue);
             }
         }
     }
 
-    private static void setProperty(Exchange instance, String key, String value) throws IllegalArgumentException, IllegalAccessException {
-        Class<?> clazz = instance.getClass();
+    private static void setProperty(Exchange instance, String key, String value)
+            throws IllegalArgumentException, IllegalAccessException {
 
-        try {
-            Field field = clazz.getDeclaredField(key);
+        Class<?> clazz = instance.getClass();
+        Field field = null;
+
+        // look for the field in this class and its superclasses
+        while (clazz != null) {
+            try {
+                field = clazz.getDeclaredField(key);
+                break; // found it
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass(); // go up the hierarchy
+            }
+        }
+
+        if (field != null) {
             field.setAccessible(true);
             field.set(instance, value);
-        } catch (NoSuchFieldException e) {
+        } else {
             System.out.println("No field or setter found for credential: " + key);
         }
     }
@@ -182,15 +224,19 @@ public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("[java] CCXT CLI");
 
+
+
+        // System.out.println("User Directory: " + userDirectory);
+
         if (args.length < 2) {
-            // System.out.println("Usage: java -cp <classpath> cli.Main [--verbose] [--sandbox] <exchange-id> [arg1 arg2 ...]");
-            // return;
+            System.out.println("Usage: java -cp <classpath> cli.Main [--verbose] [--sandbox] <exchange-id> [arg1 arg2 ...]");
+            return;
         }
 
-        var exchangeName = args[0];
-        // var exchangeName = "binance";
-        var methodName = args[1];
-        // var methodName = "fetchTrades";
+       var exchangeName = args[0];
+        //  var exchangeName = "binance";
+       var methodName = args[1];
+        //  var methodName = "fetchBalance";
 
         var params = getParamsFromArgs(args);
 
@@ -206,8 +252,11 @@ public class Main {
             if (Main.verbose) {
                 instance.verbose = true;
             }
-
+            // instance.enableDemoTrading(true); // tmp remove
+//            var currencies = instance.fetchCurrencies().get();
+//            System.out.println("Currencies: " + currencies);
             instance.loadMarkets().get();
+            // instance.verbose = true;
             CompletableFuture<?> f = (CompletableFuture<?>) callDynamic(instance, methodName, params);
             var response = f.get();
             System.out.println(response);
