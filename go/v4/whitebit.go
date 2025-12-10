@@ -19,7 +19,7 @@ func (this *WhitebitCore) Describe() interface{} {
 		"name":      "WhiteBit",
 		"version":   "v4",
 		"countries": []interface{}{"EE"},
-		"rateLimit": 50,
+		"rateLimit": 20,
 		"pro":       true,
 		"has": map[string]interface{}{
 			"CORS":                           nil,
