@@ -7,6 +7,9 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -90,6 +93,7 @@ export default class grvt extends Exchange {
                 },
                 'privateTrading': {
                     'post': {
+                        'full/v1/cancel_all_orders': 1,
                         'full/v1/order': 1,
                         'full/v1/cancel_on_disconnect': 1,
                         'full/v1/order_history': 1,
@@ -106,6 +110,7 @@ export default class grvt extends Exchange {
                         'full/v1/deposit_history': 1,
                         'full/v1/transfer_history': 1,
                         'full/v1/withdrawal_history': 1,
+                        'full/v1/cancel_order': 1,
                     },
                 },
             },
@@ -1192,24 +1197,18 @@ export default class grvt extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadAccounts ();
+        await this.loadMarkets ();
         const currency = this.currency (code);
         const defaultFromAccountId = this.safeString (this.options, 'AuthAccountId');
         const request: Dict = {
             'from_account_id': this.safeString (params, 'from_account_id', defaultFromAccountId),
-            'from_sub_account_id': this.safeString (params, 'from_sub_account_id'),
+            'from_sub_account_id': this.safeString (params, 'from_sub_account_id', fromAccount),
             'to_account_id': this.safeString (params, 'to_account_id', defaultFromAccountId),
-            'to_sub_account_id': this.safeString (params, 'to_sub_account_id'),
+            'to_sub_account_id': this.safeString (params, 'to_sub_account_id', toAccount),
             'currency': currency['id'],
             'num_tokens': this.currencyToPrecision (code, amount),
             'transfer_type': 'STANDARD',
-            'transfer_metadata': {
-                'provider': 'xxxxxxxxxxxxxxxxx',
-                'direction': 'xxxxxxxxxxxxxxxxx',
-                'provider_tx_id': 'xxxxxxxxxxxxxxxxx',
-                'chainid': 'xxxxxxxxxxxxxxxxx',
-                'endpoint': 'xxxxxxxxxxxxxxxxx',
-            },
+            'transfer_metadata': null,
         };
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
@@ -1218,11 +1217,11 @@ export default class grvt extends Exchange {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
         const signature = {
-            'signer': 'xxxxxxxxxxxxxxxxx',
+            'signer': this.safeString (params, 'from_account_id', defaultFromAccountId),
             'r': 'xxxxxxxxxxxxxxxxx',
             's': 'xxxxxxxxxxxxxxxxx',
             'v': 28,
-            'expiration': 'xxxxxxxxxxxxxxxxx',
+            'expiration': (this.milliseconds () + 100000) * 1000000,
             'nonce': this.nonce (),
             'chain_id': '325',
         };
@@ -1372,82 +1371,129 @@ export default class grvt extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let orderType = type.toUpperCase ();
-        const orderSide = side.toUpperCase ();
-        const orderSize = this.amountToPrecision (symbol, amount);
-        let orderPrice = '0';
-        if (price !== undefined) {
-            orderPrice = this.priceToPrecision (symbol, price);
-        }
-        const fees = this.safeDict (this.fees, 'swap', {});
-        const taker = this.safeString (fees, 'taker', '0.0005');
-        const maker = this.safeString (fees, 'maker', '0.0002');
-        const limitFee = this.decimalToPrecision (Precise.stringAdd (Precise.stringMul (Precise.stringMul (orderPrice, orderSize), taker), this.numberToString (market['precision']['price'])), TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
-        const timeNow = this.milliseconds ();
-        let triggerPrice = this.safeString (params, 'triggerPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        if (stopLossPrice !== undefined) {
-            orderType = (orderType === 'MARKET') ? 'STOP_MARKET' : 'STOP_LIMIT';
-            triggerPrice = stopLossPrice;
-        } else if (takeProfitPrice !== undefined) {
-            orderType = (orderType === 'MARKET') ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
-            triggerPrice = takeProfitPrice;
-        }
-        const isMarket = orderType === 'MARKET';
-        if (isMarket && (price === undefined)) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for market orders');
-        }
-        let timeInForce = this.safeStringUpper (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarket, undefined, params);
-        if (timeInForce === undefined) {
-            timeInForce = 'GOOD_TIL_CANCEL';
-        }
-        if (!isMarket) {
-            if (postOnly) {
-                timeInForce = 'POST_ONLY';
-            } else if (timeInForce === 'ioc') {
-                timeInForce = 'IMMEDIATE_OR_CANCEL';
-            }
-        }
-        params = this.omit (params, 'timeInForce');
-        params = this.omit (params, 'postOnly');
-        let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]); 
-        params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
-        const orderToSign = {
-            'accountId': accountId,
-            'slotId': clientOrderId,
-            'nonce': clientOrderId,
-            'pairId': market['quoteId'],
-            'size': orderSize,
-            'price': orderPrice,
-            'direction': orderSide,
-            'makerFeeRate': maker,
-            'takerFeeRate': taker,
+        const orderLeg = {
+            'instrument': market['id'],
+            'size': amount.toString (),
+            'limit_price': this.numberToString (price),
         };
-        if (triggerPrice !== undefined) {
-            orderToSign['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        if (side === 'sell') {
+            orderLeg['is_buying_asset'] = false;
+        } else if (side === 'buy') {
+            orderLeg['is_buying_asset'] = true;
+        } else {
+            throw new InvalidOrder (this.id + ' createOrder(): order side must be either "buy" or "sell"');
         }
-        const request: Dict = {
-            'symbol': market['id'],
-            'side': orderSide,
-            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
-            'size': orderSize,
-            'price': orderPrice,
-            'limitFee': limitFee,
-            'expiration': Math.floor (timeNow / 1000 + 30 * 24 * 60 * 60),
-            'timeInForce': timeInForce,
-            'clientId': clientOrderId,
-            'brokerId': this.safeString (this.options, 'brokerId', '6956'),
+        const request = {
+            'sub_account_id': parseInt (this.getSubAccountId (params)),
+            'is_market': false,
+            'time_in_force': 1, // 'GOOD_TILL_TIME'
+            'post_only': false,
+            'reduce_only': false,
+            'legs': [ orderLeg ],
         };
-        if (triggerPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-        }
-        const accountId = await this.getAccountId ();
-        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (request, params));
+        request['metadata'] = {
+            'client_order_id': this.nonce ().toString (),
+            'create_time': (this.milliseconds () * 1000000).toString (),
+            // 'broker': 'BROKER_CODE',
+        };
+        request['signature'] = {
+            'signer': this.safeString (this.options, 'AuthAccountId'),
+            'r': '',
+            's': '',
+            'v': 0,
+            'expiration': '1760000000000', // (this.milliseconds () * 1000000 + 1000000000).toString (),
+            'nonce': '123', // this.nonce ().toString (),
+            'chain_id': '325',
+        };
+        const domainData = this.get_EIP712_domain_data ();
+        const messageData = this.build_EIP712_order_message_data (request);
+        const privateKey = this.secret.substring (2); // remove first two characters '0x'
+        const ethEncodedMessageData = this.ethEncodeStructureDataOnly (domainData, this.EIP712_ORDER_MESSAGE_TYPE, messageData);
+        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.EIP712_ORDER_MESSAGE_TYPE, messageData);
+        const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
+        const signature = this.signHash (ethEncodedMessageHashed, privateKey.slice (-64));
+        // const signature = this.signHash (ethEncodedMessage, privateKey);
+        request['signature']['r'] = '0x' + signature.r.slice (2).padStart (64, '0');
+        request['signature']['s'] = '0x' + signature.s.slice (2).padStart (64, '0');
+        request['signature']['v'] = signature.v;
+        const fullRequest = {
+            'order': request,
+        };
+        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (fullRequest, params));
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
+
+    build_EIP712_order_message_data (order) {
+        const legs = [];
+        for (let i = 0; i < order.legs.length; i++) {
+            const leg = order.legs[i];
+            const market = this.market (leg.instrument);
+            const size_multiplier = 10n ** this.convertToBigInt (this.precisionFromString (this.safeString (market['precision'], 'amount')).toString ());
+            const size_int = Number ((this.convertToBigInt (leg.size.replace ('.', '')) * size_multiplier) / (10n ** this.convertToBigInt (leg.size.split ('.')[1]?.length || 0)));
+            const price_int = Number ((this.convertToBigInt (leg.limit_price.replace ('.', '')) * this.convertToBigInt (this.PRICE_MULTIPLIER.toString ())) / (10n ** this.convertToBigInt (leg.limit_price.split ('.')[1]?.length || 0)));
+            legs.push ({
+                'assetID': market['info']['instrument_hash'],
+                'contractSize': size_int,
+                'limitPrice': price_int,
+                'isBuyingContract': leg.is_buying_asset,
+            });
+        }
+        return {
+            'subAccountID': order.sub_account_id,
+            'isMarket': order.is_market || false,
+            'timeInForce': 1, // gtc
+            'postOnly': order.post_only || false,
+            'reduceOnly': order.reduce_only || false,
+            'legs': legs,
+            'nonce': order.signature.nonce,
+            'expiration': order.signature.expiration,
+        };
+    }
+
+    get_EIP712_domain_data () {
+        // const CHAIN_IDS = {
+        //     GrvtEnv.DEV.value: 327,
+        //     GrvtEnv.STAGING.value: 327,
+        //     GrvtEnv.TESTNET.value: 326,
+        //     GrvtEnv.PROD.value: 325,
+        // };
+        return {
+            'name': 'GRVT Exchange',
+            'version': '0',
+            'chainId': 325, // CHAIN_IDS[env.value],
+        };
+    }
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        return {
+            'r': '0x' + signature['r'],
+            's': '0x' + signature['s'],
+            'v': this.sum (27, signature['v']),
+        };
+    }
+
+    PRICE_MULTIPLIER = 1_000_000;
+
+    EIP712_ORDER_MESSAGE_TYPE = {
+        'Order': [
+            { 'name': 'subAccountID', 'type': 'uint64' },
+            { 'name': 'isMarket', 'type': 'bool' },
+            { 'name': 'timeInForce', 'type': 'uint8' },
+            { 'name': 'postOnly', 'type': 'bool' },
+            { 'name': 'reduceOnly', 'type': 'bool' },
+            { 'name': 'legs', 'type': 'OrderLeg[]' },
+            { 'name': 'nonce', 'type': 'uint32' },
+            { 'name': 'expiration', 'type': 'int64' },
+        ],
+        'OrderLeg': [
+            { 'name': 'assetID', 'type': 'uint256' },
+            { 'name': 'contractSize', 'type': 'uint64' },
+            { 'name': 'limitPrice', 'type': 'uint64' },
+            { 'name': 'isBuyingContract', 'type': 'bool' },
+        ],
+    };
 
     /**
      * @method
@@ -1876,7 +1922,7 @@ export default class grvt extends Exchange {
         const request = {
             'sub_account_id': this.getSubAccountId (params),
         };
-        const clientOrderId = this.safeInteger (params, 'clientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             params = this.omit (params, 'clientOrderId');
             request['client_order_id'] = clientOrderId;
@@ -2005,6 +2051,18 @@ export default class grvt extends Exchange {
         //                }
         //            }
         //
+        // cancelOrder, cancelAllOrders
+        //
+        //    {
+        //        "ack": true
+        //    }
+        //
+        if ('ack' in order) {
+            return this.safeOrder ({
+                'info': order,
+                'id': undefined,
+            });
+        }
         const isMarket = this.safeString (order, 'is_market');
         const orderType = isMarket ? 'market' : 'limit';
         const isPostOnly = this.safeBool (order, 'post_only');
@@ -2081,6 +2139,72 @@ export default class grvt extends Exchange {
             'CANCELLED': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name grvt#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
+     * @param {string} symbol cancel alls open orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'sub_account_id': this.getSubAccountId (params),
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['base'] = [];
+            request['base'].push (market['baseId']);
+            request['quote'] = [];
+            request['quote'].push (market['quoteId']);
+        }
+        const response = await this.privateTradingPostFullV1CancelAllOrders (this.extend (request, params));
+        //
+        //    {
+        //        "result": {
+        //            "ack": true
+        //        }
+        //    }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOrder (result, undefined);
+    }
+
+    /**
+     * @method
+     * @name grvt#cancelOrder
+     * @description cancels an open order
+     * @see https://api-docs.grvt.io/trading_api/#cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        const request = {
+            'sub_account_id': this.getSubAccountId (params),
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, 'clientOrderId');
+            request['client_order_id'] = clientOrderId;
+        } else {
+            request['order_id'] = id;
+        }
+        const response = await this.privateTradingPostFullV1CancelOrder (this.extend (request, params));
+        //
+        //    {
+        //        "result": {
+        //            "ack": true
+        //        }
+        //    }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOrder (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
