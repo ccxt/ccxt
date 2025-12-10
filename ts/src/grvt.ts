@@ -129,15 +129,29 @@ export default class grvt extends Exchange {
                     '728126428': 'TRX',
                     '324': 'ZKSYNCERA',
                 },
+                'EIP712_ORDER_MESSAGE_TYPE': {
+                    'Order': [
+                        { 'name': 'subAccountID', 'type': 'uint64' },
+                        { 'name': 'isMarket', 'type': 'bool' },
+                        { 'name': 'timeInForce', 'type': 'uint8' },
+                        { 'name': 'postOnly', 'type': 'bool' },
+                        { 'name': 'reduceOnly', 'type': 'bool' },
+                        { 'name': 'legs', 'type': 'OrderLeg[]' },
+                        { 'name': 'nonce', 'type': 'uint32' },
+                        { 'name': 'expiration', 'type': 'int64' },
+                    ],
+                    'OrderLeg': [
+                        { 'name': 'assetID', 'type': 'uint256' },
+                        { 'name': 'contractSize', 'type': 'uint64' },
+                        { 'name': 'limitPrice', 'type': 'uint64' },
+                        { 'name': 'isBuyingContract', 'type': 'bool' },
+                    ],
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'exact': {
-                    
-                },
-                'broad': {
-                    
-                },
+                'exact': {},
+                'broad': {},
             },
         });
     }
@@ -247,7 +261,7 @@ export default class grvt extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
-                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'tick_size'))),
+                'price': this.safeNumber (market, 'tick_size'),
             },
             'limits': {
                 'leverage': {
@@ -819,12 +833,6 @@ export default class grvt extends Exchange {
         return this.safeBalance (result);
     }
 
-    // async fetchMainAccountId (params = {}) {
-    //     let mainAccountId =
-    //     const response = await this.privateTradingPostFullV1AggregatedAccountSummary (params);
-
-    // }
-
     /**
      * @method
      * @name grvt#fetchDeposits
@@ -1384,38 +1392,53 @@ export default class grvt extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder(): order side must be either "buy" or "sell"');
         }
         const request = {
-            'sub_account_id': parseInt (this.getSubAccountId (params)),
+            'sub_account_id': this.getSubAccountId (params),
+            'time_in_force': 'GOOD_TILL_TIME',
+            'legs': [ orderLeg ],
+            'signature': {
+                'signer': '', // this.apiKey, // this.safeString (this.options, 'AuthAccountId'),
+                'r': '',
+                's': '',
+                'v': 0,
+                'expiration': (this.milliseconds () * 1000000 + 1000000000).toString (),
+                'nonce': this.nonce (),
+                // 'chain_id': '325',
+            },
+            'metadata': {
+                'client_order_id': '12345678',  // str(self.nonce()),
+                // 'create_time': '1765000000000000000',  //(self.milliseconds() * str(1000000)),
+                // 'trigger': {
+                //     'trigger_type': 'TAKE_PROFIT',
+                //     'tpsl': {
+                //         'trigger_by': 'LAST',
+                //          'trigger_price': '80000.0',
+                //          'close_position': false,
+                //     },
+                // },
+                // 'broker': 'BROKER_CODE',
+            },
+            // 'order_id': null,
             'is_market': false,
-            'time_in_force': 1, // 'GOOD_TILL_TIME'
             'post_only': false,
             'reduce_only': false,
-            'legs': [ orderLeg ],
-        };
-        request['metadata'] = {
-            'client_order_id': this.nonce ().toString (),
-            'create_time': (this.milliseconds () * 1000000).toString (),
-            // 'broker': 'BROKER_CODE',
-        };
-        request['signature'] = {
-            'signer': this.safeString (this.options, 'AuthAccountId'),
-            'r': '',
-            's': '',
-            'v': 0,
-            'expiration': '1760000000000', // (this.milliseconds () * 1000000 + 1000000000).toString (),
-            'nonce': '123', // this.nonce ().toString (),
-            'chain_id': '325',
+            // 'state': null,
         };
         const domainData = this.get_EIP712_domain_data ();
         const messageData = this.build_EIP712_order_message_data (request);
-        const privateKey = this.secret.substring (2); // remove first two characters '0x'
-        const ethEncodedMessageData = this.ethEncodeStructureDataOnly (domainData, this.EIP712_ORDER_MESSAGE_TYPE, messageData);
-        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.EIP712_ORDER_MESSAGE_TYPE, messageData);
+        const privateKey = this.remove0xPrefix (this.secret); // remove first two characters '0x'
+        // from eth_account import Account
+        // account = Account.from_key(privateKey)
+        // const encodedData = this.ethEncodeStructuredDataOnly (domainData, this.options['EIP712_ORDER_MESSAGE_TYPE'], messageData);
+        // signed_message = account.sign_message(encodedData)
+        // request['signature']['r'] = "0x" + hex(signed_message.r)[2:].zfill(64) # same as: "0x" + signed_message.r.to_bytes(32, byteorder="big").hex()
+        // request['signature']['signer'] = str(account.address)
+        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later
+        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options['EIP712_ORDER_MESSAGE_TYPE'], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
-        const signature = this.signHash (ethEncodedMessageHashed, privateKey.slice (-64));
-        // const signature = this.signHash (ethEncodedMessage, privateKey);
-        request['signature']['r'] = '0x' + signature.r.slice (2).padStart (64, '0');
-        request['signature']['s'] = '0x' + signature.s.slice (2).padStart (64, '0');
-        request['signature']['v'] = signature.v;
+        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
+        request['signature']['r'] = '0x' + signature['r'];
+        request['signature']['s'] = '0x' + signature['s'];
+        request['signature']['v'] = this.sum (28, signature['v']);
         const fullRequest = {
             'order': request,
         };
@@ -1424,30 +1447,45 @@ export default class grvt extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    convertToBigInt (x) {
+        return parseInt (x);
+    }
+
     build_EIP712_order_message_data (order) {
+        const PRICE_MULTIPLIER = '1000000';
+        const orderLegs = this.safeList (order, 'legs', []);
         const legs = [];
-        for (let i = 0; i < order.legs.length; i++) {
-            const leg = order.legs[i];
-            const market = this.market (leg.instrument);
-            const size_multiplier = 10n ** this.convertToBigInt (this.precisionFromString (this.safeString (market['precision'], 'amount')).toString ());
-            const size_int = Number ((this.convertToBigInt (leg.size.replace ('.', '')) * size_multiplier) / (10n ** this.convertToBigInt (leg.size.split ('.')[1]?.length || 0)));
-            const price_int = Number ((this.convertToBigInt (leg.limit_price.replace ('.', '')) * this.convertToBigInt (this.PRICE_MULTIPLIER.toString ())) / (10n ** this.convertToBigInt (leg.limit_price.split ('.')[1]?.length || 0)));
+        for (let i = 0; i < orderLegs.length; i++) {
+            const leg = orderLegs[i];
+            const market = this.market (leg['instrument']);
+            const bigInt10 = this.convertToBigInt ('10');
+            const size_multiplier = bigInt10 ** this.convertToBigInt (this.precisionFromString (this.safeString (market['precision'], 'amount')).toString ());
+            const size = leg['size'];
+            const parts = size.split ('.');
+            const sizeDec = parts[1];
+            const size_int = ((this.convertToBigInt (size.replace ('.', '')) * size_multiplier) / (bigInt10 ** this.convertToBigInt (sizeDec.length)));
+            const price = leg['limit_price'];
+            const limitParts = price.split ('.');
+            const limitDec = this.safeString (limitParts, 1, '');
+            const limitDecLength = limitDec.length;
+            const limitDecLengthStr = limitDecLength.toString ();
+            const price_int = (this.convertToBigInt (price.replace ('.', '')) * this.convertToBigInt (PRICE_MULTIPLIER) / (bigInt10 ** this.convertToBigInt (limitDecLengthStr)));
             legs.push ({
                 'assetID': market['info']['instrument_hash'],
-                'contractSize': size_int,
-                'limitPrice': price_int,
-                'isBuyingContract': leg.is_buying_asset,
+                'contractSize': parseInt (size_int),
+                'limitPrice': parseInt (price_int),
+                'isBuyingContract': leg['is_buying_asset'],
             });
         }
         return {
-            'subAccountID': order.sub_account_id,
-            'isMarket': order.is_market || false,
-            'timeInForce': 1, // gtc
-            'postOnly': order.post_only || false,
-            'reduceOnly': order.reduce_only || false,
+            'subAccountID': order['sub_account_id'],
+            'isMarket': order['is_market'],
+            'timeInForce': 1, // good_till_time
+            'postOnly': order['post_only'],
+            'reduceOnly': order['reduce_only'],
             'legs': legs,
-            'nonce': order.signature.nonce,
-            'expiration': order.signature.expiration,
+            'nonce': order['signature']['nonce'],
+            'expiration': order['signature']['expiration'],
         };
     }
 
@@ -1473,27 +1511,6 @@ export default class grvt extends Exchange {
             'v': this.sum (27, signature['v']),
         };
     }
-
-    PRICE_MULTIPLIER = 1_000_000;
-
-    EIP712_ORDER_MESSAGE_TYPE = {
-        'Order': [
-            { 'name': 'subAccountID', 'type': 'uint64' },
-            { 'name': 'isMarket', 'type': 'bool' },
-            { 'name': 'timeInForce', 'type': 'uint8' },
-            { 'name': 'postOnly', 'type': 'bool' },
-            { 'name': 'reduceOnly', 'type': 'bool' },
-            { 'name': 'legs', 'type': 'OrderLeg[]' },
-            { 'name': 'nonce', 'type': 'uint32' },
-            { 'name': 'expiration', 'type': 'int64' },
-        ],
-        'OrderLeg': [
-            { 'name': 'assetID', 'type': 'uint256' },
-            { 'name': 'contractSize', 'type': 'uint64' },
-            { 'name': 'limitPrice', 'type': 'uint64' },
-            { 'name': 'isBuyingContract', 'type': 'bool' },
-        ],
-    };
 
     /**
      * @method
@@ -2244,7 +2261,7 @@ export default class grvt extends Exchange {
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (url.endsWith ('auth/api_key/login')) {
-            const accountId = this.safeString (headers, 'X-Grvt-Account-Id');
+            const accountId = this.safeString2 (headers, 'X-Grvt-Account-Id', 'x-grvt-account-id');
             this.options['AuthAccountId'] = accountId;
             const cookie = this.safeString2 (headers, 'Set-Cookie', 'set-cookie');
             if (cookie !== undefined) {
