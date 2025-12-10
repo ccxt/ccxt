@@ -9,7 +9,37 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    marketGetFullV1Instrument (params?: {}): Promise<implicitReturnType>;
+    privateEdgePostAuthApiKeyLogin (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1Instrument (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1AllInstruments (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1Instruments (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1Currency (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1MarginRules (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1Mini (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1Ticker (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1Book (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1Trade (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1TradeHistory (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1Kline (params?: {}): Promise<implicitReturnType>;
+    privateMarketPostFullV1Funding (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1CancelAllOrders (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1Order (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1CancelOnDisconnect (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1OrderHistory (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1OpenOrders (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1FillHistory (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1Positions (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1FundingPaymentHistory (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1CreateOrder (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1AccountSummary (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1AccountHistory (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1AggregatedAccountSummary (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1FundingAccountSummary (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1Transfer (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1DepositHistory (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1TransferHistory (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1WithdrawalHistory (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1CancelOrder (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
