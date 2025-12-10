@@ -2649,6 +2649,7 @@ class binance(Exchange, ImplicitAPI):
                 'broad': {
                     'has no operation privilege': PermissionDenied,
                     'MAX_POSITION': BadRequest,  # {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
+                    'PERCENT_PRICE_BY_SIDE': InvalidOrder,  # {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
                 },
             },
         })
