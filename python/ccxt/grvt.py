@@ -1324,44 +1324,52 @@ class grvt(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' createOrder(): order side must be either "buy" or "sell"')
         request = {
             'sub_account_id': self.get_sub_account_id(params),
-            'is_market': False,
             'time_in_force': 'GOOD_TILL_TIME',
+            'legs': [orderLeg],
+            'signature': {
+                'signer': '',  # self.apiKey,  # self.safe_string(self.options, 'AuthAccountId'),
+                'r': '',
+                's': '',
+                'v': 0,
+                'expiration': '1765500000000000000',  #(self.milliseconds() * 1000000 + str(1000000000)),
+                'nonce': 123456789,  # self.nonce(),
+                # 'chain_id': '325',
+            },
+            'metadata': {
+                'client_order_id': '12345678',  # str(self.nonce()),
+                # 'create_time': '1765000000000000000',  #(self.milliseconds() * str(1000000)),
+                # 'trigger': {
+                #     'trigger_type': 'TAKE_PROFIT',
+                #     'tpsl': {
+                #         'trigger_by': 'LAST',
+                #          'trigger_price': '80000.0',
+                #          'close_position': False,
+                #     },
+                # },
+                # 'broker': 'BROKER_CODE',
+            },
+            # 'order_id': null,
+            'is_market': False,
             'post_only': False,
             'reduce_only': False,
-            'legs': [orderLeg],
-        }
-        request['signature'] = {
-            'signer': self.apiKey,  # self.safe_string(self.options, 'AuthAccountId'),
-            'r': '',
-            's': '',
-            'v': 28,
-            'expiration': '1766000000000000000',  #(self.milliseconds() * 1000000 + str(1000000000)),
-            'nonce': 12345678,  # self.nonce(),
-            'chain_id': '325',
-        }
-        request['metadata'] = {
-            'client_order_id': '123',  # str(self.nonce()),
-            'create_time': '1765000000000000000',  #(self.milliseconds() * str(1000000)),
-            'trigger': {
-                'trigger_type': 'TAKE_PROFIT',
-                'tpsl': {
-                    'trigger_by': 'LAST',
-                    'trigger_price': '80000.0',
-                    'close_position': False,
-                },
-            },
-            'broker': 'BROKER_CODE',
+            # 'state': null,
         }
         domainData = self.get_eip712_domain_data()
         messageData = self.build_eip712_order_message_data(request)
-        privateKey = self.secret  # .substring(2)  # remove first two characters '0x'
-        ethEncodedMessageHash1 = self.eth_encode_structure_data_only(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
+        privateKey = self.remove0x_prefix(self.secret)  # remove first two characters '0x'
+        # from eth_account import Account
+        # account = Account.from_key(privateKey)
+        # encodedData = self.eth_encode_structured_data_only(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
+        # signed_message = account.sign_message(encodedData)
+        # request['signature']['r'] = "0x" + hex(signed_message.r)[2:].zfill(64)  # same as: "0x" + signed_message.r.to_bytes(32, byteorder="big").hex()
+        # request['signature']['signer'] = str(account.address)
+        request['signature']['signer'] = self.options['sub_account_address']  # todo: unify later
         ethEncodedMessage = self.eth_encode_structured_data(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
         ethEncodedMessageHashed = '0x' + self.hash(ethEncodedMessage, 'keccak', 'hex')
-        signature = self.sign_hash(ethEncodedMessageHashed, privateKey)
-        request['signature']['r'] = signature.r
-        request['signature']['s'] = signature.s
-        request['signature']['v'] = signature.v
+        signature = self.ecdsa(self.remove0x_prefix(ethEncodedMessageHashed), privateKey, 'secp256k1', None)
+        request['signature']['r'] = '0x' + signature['r']
+        request['signature']['s'] = '0x' + signature['s']
+        request['signature']['v'] = self.sum(28, signature['v'])
         fullRequest = {
             'order': request,
         }
@@ -1419,14 +1427,6 @@ class grvt(Exchange, ImplicitAPI):
             'name': 'GRVT Exchange',
             'version': '0',
             'chainId': 325,  # CHAIN_IDS[env.value],
-        }
-
-    def sign_hash(self, hash, privateKey):
-        signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        return {
-            'r': '0x' + signature['r'],
-            's': '0x' + signature['s'],
-            'v': self.sum(27, signature['v']),
         }
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

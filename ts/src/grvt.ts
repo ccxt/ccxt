@@ -1400,8 +1400,8 @@ export default class grvt extends Exchange {
                 'r': '',
                 's': '',
                 'v': 0,
-                'expiration': (this.milliseconds () * 1000000 + 1000000000).toString (),
-                'nonce': this.nonce (),
+                'expiration': '1765500000000000000', // (this.milliseconds () * 1000000 + 1000000000).toString (),
+                'nonce': 123456789,  // this.nonce (),
                 // 'chain_id': '325',
             },
             'metadata': {
@@ -1431,14 +1431,13 @@ export default class grvt extends Exchange {
         // const encodedData = this.ethEncodeStructuredDataOnly (domainData, this.options['EIP712_ORDER_MESSAGE_TYPE'], messageData);
         // signed_message = account.sign_message(encodedData)
         // request['signature']['r'] = "0x" + hex(signed_message.r)[2:].zfill(64) # same as: "0x" + signed_message.r.to_bytes(32, byteorder="big").hex()
-        // request['signature']['signer'] = str(account.address)
-        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later
+        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later, eg. str(account.address)
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options['EIP712_ORDER_MESSAGE_TYPE'], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
         request['signature']['r'] = '0x' + signature['r'];
         request['signature']['s'] = '0x' + signature['s'];
-        request['signature']['v'] = this.sum (28, signature['v']);
+        request['signature']['v'] = this.sum (27, signature['v']);
         const fullRequest = {
             'order': request,
         };
@@ -1500,15 +1499,6 @@ export default class grvt extends Exchange {
             'name': 'GRVT Exchange',
             'version': '0',
             'chainId': 325, // CHAIN_IDS[env.value],
-        };
-    }
-
-    signHash (hash, privateKey) {
-        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        return {
-            'r': '0x' + signature['r'],
-            's': '0x' + signature['s'],
-            'v': this.sum (27, signature['v']),
         };
     }
 
