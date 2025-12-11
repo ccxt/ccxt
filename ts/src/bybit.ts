@@ -3957,6 +3957,7 @@ export default class bybit extends Exchange {
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
      * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+     * @param {boolean} [params.tradingStopEndpoint] whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -3968,7 +3969,7 @@ export default class bybit extends Exchange {
         const isStopLossOrder = this.safeString (params, 'stopLossPrice') !== undefined;
         const isTakeProfitOrder = this.safeString (params, 'takeProfitPrice') !== undefined;
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params, enableUnifiedAccount);
-        const switchToOco = (isStopLossOrder && isTakeProfitOrder);
+        const switchToOco = (isStopLossOrder && isTakeProfitOrder) || this.safeBool (params, 'tradingStopEndpoint', false);
         let defaultMethod = undefined;
         if ((isTrailingOrder || switchToOco) && !market['spot']) {
             defaultMethod = 'privatePostV5PositionTradingStop';
@@ -4046,7 +4047,7 @@ export default class bybit extends Exchange {
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
         const isBuy = side === 'buy';
-        const switchToOco = (isStopLossOrder && isTakeProfitOrder);
+        const switchToOco = (isStopLossOrder && isTakeProfitOrder) || this.safeBool (params, 'tradingStopEndpoint', false);
         let defaultMethod = undefined;
         if (isTrailingOrder || switchToOco) {
             defaultMethod = 'privatePostV5PositionTradingStop';
