@@ -6406,7 +6406,7 @@ public partial class binance : Exchange
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         object cost = this.safeString2(order, "cummulativeQuoteQty", "cumQuote");
         cost = this.safeString(order, "cumBase", cost);
-        object type = this.safeStringLower(order, "type");
+        object type = this.safeStringLower2(order, "type", "orderType");
         object side = this.safeStringLower(order, "side");
         object fills = this.safeList(order, "fills", new List<object>() {});
         object timeInForce = this.safeString(order, "timeInForce");
