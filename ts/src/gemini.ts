@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrd
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2001,6 +2001,104 @@ export default class gemini extends Exchange {
         const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
         const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
         return this.groupBy (results, 'network') as DepositAddress[];
+    }
+
+    /**
+     * @method
+     * @name gemini#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.gemini.com/rest/derivatives#get-open-positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const response = await this.privatePostV1Positions (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "btcgusdperp",
+        //             "instrument_type": "perp",
+        //             "quantity": "0.2",
+        //             "notional_value": "4000.036",
+        //             "realised_pnl": "1234.5678",
+        //             "unrealised_pnl": "999.946",
+        //             "average_cost": "15000.45",
+        //             "mark_price": "20000.18"
+        //         }
+        //     ]
+        //
+        return this.parsePositions (response, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "btcgusdperp",
+        //         "instrument_type": "perp",
+        //         "quantity": "0.2",
+        //         "notional_value": "4000.036",
+        //         "realised_pnl": "1234.5678",
+        //         "unrealised_pnl": "999.946",
+        //         "average_cost": "15000.45",
+        //         "mark_price": "20000.18"
+        //     }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const rawQuantity = this.safeNumber (position, 'quantity');
+        let side = undefined;
+        let contracts = undefined;
+        if (rawQuantity !== undefined) {
+            if (rawQuantity > 0) {
+                side = 'long';
+            } else if (rawQuantity < 0) {
+                side = 'short';
+            }
+            contracts = Math.abs (rawQuantity);
+        }
+        const rawNotional = this.safeNumber (position, 'notional_value');
+        const notional = (rawNotional !== undefined) ? Math.abs (rawNotional) : undefined;
+        const entryPrice = this.safeNumber (position, 'average_cost');
+        const unrealizedPnl = this.safeNumber (position, 'unrealised_pnl');
+        let percentage = undefined;
+        if (unrealizedPnl !== undefined && contracts && entryPrice) {
+            const initialValue = contracts * entryPrice;
+            if (initialValue > 0) {
+                percentage = (unrealizedPnl / initialValue) * 100;
+            }
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'notional': notional,
+            'marginMode': undefined,
+            'liquidationPrice': undefined,
+            'entryPrice': entryPrice,
+            'unrealizedPnl': unrealizedPnl,
+            'realizedPnl': this.safeNumber (position, 'realised_pnl'),
+            'percentage': percentage,
+            'contracts': contracts,
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'markPrice': this.safeNumber (position, 'mark_price'),
+            'lastPrice': undefined,
+            'side': side,
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
