@@ -1147,7 +1147,7 @@ class coincatch extends coincatch$1["default"] {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const market = this.getMarketFromSymbols(symbols);
-        let marketType = 'spot';
+        let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams(methodName, market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
