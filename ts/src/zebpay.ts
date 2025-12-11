@@ -1852,7 +1852,8 @@ export default class zebpay extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         params = this.omit (params, 'defaultType');
-        const marketType = (path.indexOf ('v1/') > -1) ? 'swap' : 'spot';
+        const isV1 = path.indexOf ('v1/') > -1;
+        const marketType = isV1 ? 'swap' : 'spot';
         let url = this.urls['api'][marketType];
         const tail = '/api/' + this.implodeParams (path, params);
         url += tail;
@@ -1880,12 +1881,12 @@ export default class zebpay extends Exchange {
             if (method === 'GET' || (method === 'DELETE' && isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
                 const queryString = this.urlencode (params);
-                signature = this.hmac (queryString, this.secret, sha256, 'hex');
+                signature = this.hmac (this.encode (queryString), this.encode (this.secret), sha256, 'hex');
                 url += '?' + queryString;
             } else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
                 body = JSON.stringify (params);
-                signature = this.hmac (body, this.secret, sha256, 'hex');
+                signature = this.hmac (this.encode (body), this.encode (this.secret), sha256, 'hex');
             }
             headers = {
                 'X-AUTH-APIKEY': this.apiKey,
