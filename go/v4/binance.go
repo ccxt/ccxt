@@ -6513,7 +6513,7 @@ func (this *BinanceCore) ParseOrder(order interface{}, optionalArgs ...interface
 	//   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
 	var cost interface{} = this.SafeString2(order, "cummulativeQuoteQty", "cumQuote")
 	cost = this.SafeString(order, "cumBase", cost)
-	var typeVar interface{} = this.SafeStringLower(order, "type")
+	var typeVar interface{} = this.SafeStringLower2(order, "type", "orderType")
 	var side interface{} = this.SafeStringLower(order, "side")
 	var fills interface{} = this.SafeList(order, "fills", []interface{}{})
 	var timeInForce interface{} = this.SafeString(order, "timeInForce")
