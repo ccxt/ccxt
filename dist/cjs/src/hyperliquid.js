@@ -239,11 +239,11 @@ class hyperliquid extends hyperliquid$1["default"] {
                     'UXPL': 'XPL',
                 },
                 'fetchMarkets': {
-                    'types': ['spot', 'swap', 'hip3'], // 'spot', 'swap', 'hip3'
-                    // 'hip3': {
-                    //     'limit': 5, // how many dexes to load max if dexes are not specified
-                    //     'dex': [ 'xyz' ],
-                    // },
+                    'types': ['spot', 'swap', 'hip3'],
+                    'hip3': {
+                        'limit': 10,
+                        'dexes': [], // list of dexes eg flx, xyz, etc
+                    },
                 },
             },
             'features': {
@@ -578,19 +578,16 @@ class hyperliquid extends hyperliquid$1["default"] {
         let fetchDexesList = [];
         const options = this.safeDict(this.options, 'fetchMarkets', {});
         const hip3 = this.safeDict(options, 'hip3', {});
-        const defaultLimit = this.safeInteger(hip3, 'limit', 10);
-        const dexesLength = fetchDexes.length;
-        if (dexesLength > defaultLimit) { // first element is null
-            const defaultDexes = this.safeList(hip3, 'dex', []);
-            if (defaultDexes.length === 0) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options["fetchMarkets"]["hip3"]["dex"] parameter to fetch markets from those DEXes only. The limit is set to ' + defaultLimit.toString() + ' DEXes by default.');
-            }
-            else {
-                fetchDexesList = defaultDexes;
+        const dexesProvided = this.safeList(hip3, 'dexes'); // let users provide their own list of dexes to load
+        const maxLimit = this.safeInteger(hip3, 'limit', 10);
+        if (dexesProvided !== undefined) {
+            const userProvidedDexesLength = dexesProvided.length;
+            if (userProvidedDexesLength > 0) {
+                fetchDexesList = dexesProvided;
             }
         }
         else {
-            for (let i = 1; i < fetchDexes.length; i++) {
+            for (let i = 1; i < maxLimit; i++) {
                 const dex = this.safeDict(fetchDexes, i, {});
                 const dexName = this.safeString(dex, 'name');
                 fetchDexesList.push(dexName);
