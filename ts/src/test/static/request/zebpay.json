@@ -1,6 +1,6 @@
 {
     "exchange": "zebpay",
-    "skipKeys": [],
+    "skipKeys": ["timestamp", "clientOrderId"],
     "options": {},
     "methods": {
         "fetchOpenOrders": [
@@ -88,7 +88,7 @@
                         "leverage": 1
                     }
                 ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"BUY\",\"formType\":\"ORDER_FORM\",\"amount\":0.1,\"marginAsset\":\"INR\",\"leverage\":\"1\",\"type\":\"LIMIT\",\"price\":4090,\"timestamp\":\"1756205128628\"}"
+                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"BUY\",\"formType\":\"ORDER_FORM\",\"amount\":0.1,\"marginAsset\":\"INR\",\"leverage\":1,\"type\":\"LIMIT\",\"price\":4090,\"timestamp\":\"1756205128628\"}"
             },
             {
                 "description": "spot limit buy order",
@@ -127,7 +127,7 @@
                     null,
                     5
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"limit\":5,\"interval\":\"60\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"limit\":5,\"interval\":\"1h\"}"
             }
         ],
         "fetchBalance": [
@@ -174,7 +174,7 @@
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://sapi.zebpay.com/api/v2/market/orderbook?symbol=BTC-USDT&limit=15",
+                "url": "https://sapi.zebpay.com/api/v2/market/orderbook?symbol=BTC-USDT",
                 "input": [
                     "BTC/USDT"
                 ],
