@@ -5828,6 +5828,19 @@ public partial class binance : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    public virtual object parseOrderType(object type)
+    {
+        object types = new Dictionary<string, object>() {
+            { "limit_maker", "limit" },
+            { "stop", "limit" },
+            { "stop_market", "market" },
+            { "take_profit", "limit" },
+            { "take_profit_market", "market" },
+            { "trailing_stop_market", "market" },
+        };
+        return this.safeString(types, type, type);
+    }
+
     public override object parseOrder(object order, object market = null)
     {
         //
@@ -6403,10 +6416,6 @@ public partial class binance : Exchange
             timeInForce = "PO";
         }
         object postOnly = isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "PO")));
-        if (isTrue(isEqual(type, "limit_maker")))
-        {
-            type = "limit";
-        }
         object stopPriceString = this.safeString2(order, "stopPrice", "triggerPrice");
         object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         object feeCost = this.safeNumber(order, "fee");
@@ -6428,7 +6437,7 @@ public partial class binance : Exchange
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "symbol", symbol },
-            { "type", type },
+            { "type", this.parseOrderType(type) },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "reduceOnly", this.safeBool(order, "reduceOnly") },
