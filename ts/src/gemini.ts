@@ -44,7 +44,7 @@ export default class gemini extends Exchange {
                 'fetchBidsAsks': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -1563,6 +1563,57 @@ export default class gemini extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol); // throws on non-existent symbol
         }
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name gemini#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.gemini.com/rest/orders#list-past-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol); // throws on non-existent symbol
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit_orders'] = Math.min (limit, 500);
+        }
+        const response = await this.privatePostV1OrdersHistory (this.extend (request, params));
+        //
+        //      [
+        //          {
+        //              "order_id":"106028543717",
+        //              "id":"106028543717",
+        //              "symbol":"etheur",
+        //              "exchange":"gemini",
+        //              "avg_execution_price":"0.00",
+        //              "side":"buy",
+        //              "type":"exchange limit",
+        //              "timestamp":"1650398446",
+        //              "timestampms":1650398446375,
+        //              "is_live":true,
+        //              "is_cancelled":false,
+        //              "is_hidden":false,
+        //              "was_forced":false,
+        //              "executed_amount":"0",
+        //              "client_order_id":"1650398445709",
+        //              "options":[],
+        //              "price":"2000.00",
+        //              "original_amount":"0.01",
+        //              "remaining_amount":"0.01"
+        //          }
+        //      ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
