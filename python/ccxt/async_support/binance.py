@@ -5995,7 +5995,7 @@ class binance(Exchange, ImplicitAPI):
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
         cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
         cost = self.safe_string(order, 'cumBase', cost)
-        type = self.safe_string_lower(order, 'type')
+        type = self.safe_string_lower_2(order, 'type', 'orderType')
         side = self.safe_string_lower(order, 'side')
         fills = self.safe_list(order, 'fills', [])
         timeInForce = self.safe_string(order, 'timeInForce')
