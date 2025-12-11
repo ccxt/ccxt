@@ -1138,7 +1138,7 @@ public partial class coincatch : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, true, true);
         object market = this.getMarketFromSymbols(symbols);
-        object marketType = "spot";
+        object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];

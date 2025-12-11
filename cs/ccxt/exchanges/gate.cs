@@ -310,6 +310,7 @@ public partial class gate : Exchange
                             { "small_balance", 1 },
                             { "small_balance_history", 1 },
                             { "push", 1 },
+                            { "getLowCapExchangeList", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "transfers", 2.5 },
@@ -498,6 +499,7 @@ public partial class gate : Exchange
                         } },
                         { "put", new Dictionary<string, object>() {
                             { "{settle}/orders/{order_id}", 1 },
+                            { "{settle}/price_orders/{order_id}", 1 },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "{settle}/orders", divide(20, 75) },

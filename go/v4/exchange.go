@@ -1116,6 +1116,9 @@ func (this *Exchange) StringToCharsArray(value interface{}) []string {
 }
 
 func (this *Exchange) GetMarket(symbol string) MarketInterface {
+	if this.Markets == nil {
+		panic("Markets not loaded, please call LoadMarkets() first")
+	}
 	// market := this.Markets[symbol]
 	market, ok := this.Markets.Load(symbol)
 	if !ok {

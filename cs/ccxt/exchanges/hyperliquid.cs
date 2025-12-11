@@ -228,6 +228,10 @@ public partial class hyperliquid : Exchange
                 } },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"spot", "swap", "hip3"} },
+                    { "hip3", new Dictionary<string, object>() {
+                        { "limit", 10 },
+                        { "dexes", new List<object>() {} },
+                    } },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -593,21 +597,18 @@ public partial class hyperliquid : Exchange
         object fetchDexesList = new List<object>() {};
         object options = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
         object hip3 = this.safeDict(options, "hip3", new Dictionary<string, object>() {});
-        object defaultLimit = this.safeInteger(hip3, "limit", 10);
-        object dexesLength = getArrayLength(fetchDexes);
-        if (isTrue(isGreaterThan(dexesLength, defaultLimit)))
+        object dexesProvided = this.safeList(hip3, "dexes"); // let users provide their own list of dexes to load
+        object maxLimit = this.safeInteger(hip3, "limit", 10);
+        if (isTrue(!isEqual(dexesProvided, null)))
         {
-            object defaultDexes = this.safeList(hip3, "dex", new List<object>() {});
-            if (isTrue(isEqual(getArrayLength(defaultDexes), 0)))
+            object userProvidedDexesLength = getArrayLength(dexesProvided);
+            if (isTrue(isGreaterThan(userProvidedDexesLength, 0)))
             {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options[\"fetchMarkets\"][\"hip3\"][\"dex\"] parameter to fetch markets from those DEXes only. The limit is set to "), ((object)defaultLimit).ToString()), " DEXes by default.")) ;
-            } else
-            {
-                fetchDexesList = defaultDexes;
+                fetchDexesList = dexesProvided;
             }
         } else
         {
-            for (object i = 1; isLessThan(i, getArrayLength(fetchDexes)); postFixIncrement(ref i))
+            for (object i = 1; isLessThan(i, maxLimit); postFixIncrement(ref i))
             {
                 object dex = this.safeDict(fetchDexes, i, new Dictionary<string, object>() {});
                 object dexName = this.safeString(dex, "name");

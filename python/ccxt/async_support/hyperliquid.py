@@ -250,10 +250,10 @@ class hyperliquid(Exchange, ImplicitAPI):
                 },
                 'fetchMarkets': {
                     'types': ['spot', 'swap', 'hip3'],  # 'spot', 'swap', 'hip3'
-                    # 'hip3': {
-                    #     'limit': 5,  # how many dexes to load max if dexes are not specified
-                    #     'dex': ['xyz'],
-                    # },
+                    'hip3': {
+                        'limit': 10,
+                        'dexes': [],  # list of dexes eg flx, xyz, etc
+                    },
                 },
             },
             'features': {
@@ -569,16 +569,14 @@ class hyperliquid(Exchange, ImplicitAPI):
         fetchDexesList = []
         options = self.safe_dict(self.options, 'fetchMarkets', {})
         hip3 = self.safe_dict(options, 'hip3', {})
-        defaultLimit = self.safe_integer(hip3, 'limit', 10)
-        dexesLength = len(fetchDexes)
-        if dexesLength > defaultLimit:  # first element is null
-            defaultDexes = self.safe_list(hip3, 'dex', [])
-            if len(defaultDexes) == 0:
-                raise ArgumentsRequired(self.id + ' fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options["fetchMarkets"]["hip3"]["dex"] parameter to fetch markets from those DEXes only. The limit is set to ' + str(defaultLimit) + ' DEXes by default.')
-            else:
-                fetchDexesList = defaultDexes
+        dexesProvided = self.safe_list(hip3, 'dexes')  # users provide their own list of dexes to load
+        maxLimit = self.safe_integer(hip3, 'limit', 10)
+        if dexesProvided is not None:
+            userProvidedDexesLength = len(dexesProvided)
+            if userProvidedDexesLength > 0:
+                fetchDexesList = dexesProvided
         else:
-            for i in range(1, len(fetchDexes)):
+            for i in range(1, maxLimit):
                 dex = self.safe_dict(fetchDexes, i, {})
                 dexName = self.safe_string(dex, 'name')
                 fetchDexesList.append(dexName)

@@ -12,7 +12,7 @@ public partial class whitebit : Exchange
             { "name", "WhiteBit" },
             { "version", "v4" },
             { "countries", new List<object>() {"EE"} },
-            { "rateLimit", 50 },
+            { "rateLimit", 20 },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
