@@ -191,7 +191,7 @@ class Exchange(BaseExchange):
             final_proxy = self.aiohttp_proxy
 
         proxyAgentSet = final_proxy is not None or socksProxy is not None
-        self.checkConflictingProxies(proxyAgentSet, proxyUrl)
+        self.check_conflicting_proxies(proxyAgentSet, proxyUrl)
 
         # avoid old proxies mixing
         if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
