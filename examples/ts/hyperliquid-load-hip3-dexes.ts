@@ -7,7 +7,8 @@ async function example () {
         'options': {
             'fetchMarkets': {
                 'hip3': {
-                    'dexes': [ 'flx', 'xyz' ], // optionally specify dexes to load here
+                    'dexes': [ 'flx', 'xyz' ], // optionally specify dexes to load here,
+                    'limit': 10, // otherwise limit how many dexes to load, won't be used if dexes are specified
                 },
             },
         },
@@ -15,7 +16,7 @@ async function example () {
 
     await exchange.loadMarkets ();
     Object.values (exchange.markets).filter ((p) => p['info']['hip3']).forEach ((market) => {
-        console.log (market['symbol'], 'from DEX', market['info']['hip3']['dex']);
+        console.log (market['symbol'], 'from DEX');
     });
 }
 await example ();
