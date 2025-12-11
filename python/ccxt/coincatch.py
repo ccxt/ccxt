@@ -1141,7 +1141,7 @@ class coincatch(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         market = self.get_market_from_symbols(symbols)
-        marketType = 'spot'
+        marketType = None
         marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
         response = None
         if marketType == 'spot':
