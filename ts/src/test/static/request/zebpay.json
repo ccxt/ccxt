@@ -59,6 +59,22 @@
         ],
         "createOrder": [
             {
+                "description": "spot market order using cost",
+                "method": "createOrder",
+                "url": "https://www.zebstage.com/api/v2/ex/orders",
+                "input": [
+                    "ETH/INR",
+                    "market",
+                    "buy",
+                    0,
+                    0,
+                    {
+                        "cost": 100
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-INR\",\"side\":\"BUY\",\"type\":\"MARKET\",\"clientOrderId\":\"ce2cd9b3-7112-4f7b-9520-5d37da801e59\",\"timeInForce\":\"GTC\",\"quoteOrderAmount\":\"100\",\"timestamp\":\"1765380997900\"}"
+            },
+            {
                 "description": "swap create order",
                 "method": "createOrder",
                 "url": "https://dev-futuresbe.zebstage.com/api/v1/trade/order",
@@ -89,6 +105,18 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "swap candles",
+                "method": "fetchOHLCV",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/market/klines",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    5
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"interval\":\"1h\",\"limit\":5}"
+            },
             {
                 "description": "swap candles",
                 "method": "fetchOHLCV",
