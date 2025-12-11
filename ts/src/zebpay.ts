@@ -41,13 +41,13 @@ export default class zebpay extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverages': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
                 'fetchPositions': true,
-                'fetchMyTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -1852,7 +1852,7 @@ export default class zebpay extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         params = this.omit (params, 'defaultType');
-        const marketType = path.includes ('v1/') ? 'swap' : 'spot';
+        const marketType = (path.indexOf ('v1/') > -1) ? 'swap' : 'spot';
         let url = this.urls['api'][marketType];
         const tail = '/api/' + this.implodeParams (path, params);
         url += tail;
@@ -1879,12 +1879,6 @@ export default class zebpay extends Exchange {
             params['timestamp'] = timestamp;
             if (method === 'GET' || (method === 'DELETE' && isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
-                if (method === 'DELETE' && path.includes ('ex/orders')) {
-                    params = this.omit (params, 'orderId');
-                }
-                if (method === 'GET' && path.includes ('ex/orders/')) {
-                    params = this.omit (params, 'orderId');
-                }
                 const queryString = this.urlencode (params);
                 signature = this.hmac (queryString, this.secret, sha256, 'hex');
                 url += '?' + queryString;
