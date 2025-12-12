@@ -82,7 +82,7 @@ class zebpay(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad',
                 'api': {
-                    'spot': 'https://api.zebpay.com',
+                    'spot': 'https://sapi.zebpay.com',
                     'swap': 'https://futuresbe.zebpay.com',
                 },
                 'test': {
