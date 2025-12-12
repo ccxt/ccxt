@@ -1808,6 +1808,7 @@ class zebpay(Exchange, ImplicitAPI):
                 body = json.dumps(params)
                 signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha256, 'hex')
             headers = {
+                'Referrer': 'ccxt',
                 'X-AUTH-APIKEY': self.apiKey,
                 'X-AUTH-SIGNATURE': signature,
             }
