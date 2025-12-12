@@ -335,6 +335,7 @@ class gate(Exchange, ImplicitAPI):
                             'small_balance': 1,
                             'small_balance_history': 1,
                             'push': 1,
+                            'getLowCapExchangeList': 1,
                         },
                         'post': {
                             'transfers': 2.5,  # 8r/s cost = 20 / 8 = 2.5
@@ -524,6 +525,7 @@ class gate(Exchange, ImplicitAPI):
                         },
                         'put': {
                             '{settle}/orders/{order_id}': 1,
+                            '{settle}/price_orders/{order_id}': 1,
                         },
                         'delete': {
                             '{settle}/orders': 20 / 75,

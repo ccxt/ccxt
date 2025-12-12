@@ -477,9 +477,21 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.stopLossLimitPrice</term>
+    /// <description>
+    /// float : The limit price for a stoploss order (only when used in OCO with takeProfitPrice)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.takeProfitPrice</term>
     /// <description>
     /// float : The price at which a take profit order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitLimitPrice</term>
+    /// <description>
+    /// float : The limit price for a takeprofit order (only when used in OCO combination with stopLossPrice)
     /// </description>
     /// </item>
     /// <item>
@@ -504,6 +516,12 @@ public partial class bybit
     /// <term>params.trailingTriggerPrice</term>
     /// <description>
     /// string : the price to trigger a trailing order, default uses the price argument
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.tradingStopEndpoint</term>
+    /// <description>
+    /// boolean : whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order
     /// </description>
     /// </item>
     /// </list>

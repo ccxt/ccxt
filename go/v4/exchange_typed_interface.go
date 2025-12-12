@@ -544,6 +544,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "zaif":
 		itf := NewZaif(options)
 		return itf
+	case "zebpay":
+		itf := NewZebpay(options)
+		return itf
 	case "zonda":
 		itf := NewZonda(options)
 		return itf

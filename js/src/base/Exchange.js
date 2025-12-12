@@ -4983,8 +4983,8 @@ export default class Exchange {
         throw new NotSupported(this.id + ' fetchLedgerEntry() is not supported yet');
     }
     parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
-        const price = this.safeNumber(bidask, priceKey);
-        const amount = this.safeNumber(bidask, amountKey);
+        const price = this.safeFloat(bidask, priceKey);
+        const amount = this.safeFloat(bidask, amountKey);
         const countOrId = this.safeInteger(bidask, countOrIdKey);
         const bidAsk = [price, amount];
         if (countOrId !== undefined) {

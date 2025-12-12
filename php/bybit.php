@@ -3973,13 +3973,16 @@ class bybit extends Exchange {
          * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
          * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
          * @param {float} [$params->stopLossPrice] The $price at which a stop loss $order is triggered at
+         * @param {float} [$params->stopLossLimitPrice] The limit $price for a stoploss $order (only when used in OCO with takeProfitPrice)
          * @param {float} [$params->takeProfitPrice] The $price at which a take profit $order is triggered at
+         * @param {float} [$params->takeProfitLimitPrice] The limit $price for a takeprofit $order (only when used in OCO combination with stopLossPrice)
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing $order, default uses the $price argument
+         * @param {boolean} [$params->tradingStopEndpoint] whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl $order
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -3990,8 +3993,9 @@ class bybit extends Exchange {
         $isStopLossOrder = $this->safe_string($params, 'stopLossPrice') !== null;
         $isTakeProfitOrder = $this->safe_string($params, 'takeProfitPrice') !== null;
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, $enableUnifiedAccount);
+        $switchToOco = ($isStopLossOrder && $isTakeProfitOrder) || $this->safe_bool($params, 'tradingStopEndpoint', false);
         $defaultMethod = null;
-        if (($isTrailingOrder || $isStopLossOrder || $isTakeProfitOrder) && !$market['spot']) {
+        if (($isTrailingOrder || $switchToOco) && !$market['spot']) {
             $defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             $defaultMethod = 'privatePostV5OrderCreate';
@@ -4002,7 +4006,7 @@ class bybit extends Exchange {
         if ($method === 'privatePostV5PositionTradingStop') {
             $response = $this->privatePostV5PositionTradingStop ($orderRequest);
         } else {
-            $response = $this->privatePostV5OrderCreate ($orderRequest); // already extended inside createOrderRequest
+            $response = $this->privatePostV5OrderCreate ($orderRequest);
         }
         //
         //     {
@@ -4024,9 +4028,6 @@ class bybit extends Exchange {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         $lowerCaseType = strtolower($type);
-        if (($price === null) && ($lowerCaseType === 'limit')) {
-            throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
-        }
         $request = array(
             'symbol' => $market['id'],
             // 'side' => $this->capitalize($side),
@@ -4066,12 +4067,13 @@ class bybit extends Exchange {
         $isStopLossOrder = $stopLossTriggerPrice !== null;
         $isTakeProfitOrder = $takeProfitTriggerPrice !== null;
         $hasStopLoss = $stopLoss !== null;
-        $isTakeProfit = $takeProfit !== null;
+        $hasTakeProfit = $takeProfit !== null;
         $isMarket = $lowerCaseType === 'market';
         $isLimit = $lowerCaseType === 'limit';
         $isBuy = $side === 'buy';
+        $switchToOco = ($isStopLossOrder && $isTakeProfitOrder) || $this->safe_bool($params, 'tradingStopEndpoint', false);
         $defaultMethod = null;
-        if (($isTrailingOrder || $isStopLossOrder || $isTakeProfitOrder) && !$market['spot']) {
+        if ($isTrailingOrder || $switchToOco) {
             $defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             $defaultMethod = 'privatePostV5OrderCreate';
@@ -4079,39 +4081,63 @@ class bybit extends Exchange {
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', $defaultMethod);
         $endpointIsTradingStop = $method === 'privatePostV5PositionTradingStop';
-        $amountString = $this->get_amount($symbol, $amount);
+        if (($price === null) && ($lowerCaseType === 'limit') && !$endpointIsTradingStop) {
+            throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
+        }
+        // workaround, bcz for some langs we have to allow 0.0 (bcz of $type)
+        if (!Precise::string_gt($this->number_to_string($amount), '0')) {
+            $amount = null;
+        }
+        $amountString = ($amount !== null) ? $this->get_amount($symbol, $amount) : null;
         $priceString = ($price !== null) ? $this->get_price($symbol, $this->number_to_string($price)) : null;
-        if ($isTrailingOrder || $endpointIsTradingStop) {
-            if ($hasStopLoss || $isTakeProfit || $isTriggerOrder || $market['spot']) {
+        if ($endpointIsTradingStop) {
+            if ($hasStopLoss || $hasTakeProfit || $isTriggerOrder || $market['spot']) {
                 throw new InvalidOrder($this->id . ' the API endpoint used only supports contract $trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if ($isStopLossOrder || $isTakeProfitOrder) {
-                $tpslMode = $this->safe_string($params, 'tpslMode', 'Partial');
-                $isFullTpsl = $tpslMode === 'Full';
-                $isPartialTpsl = $tpslMode === 'Partial';
-                if ($isLimit && $isFullTpsl) {
-                    throw new InvalidOrder($this->id . ' tpsl orders with "full" $tpslMode only support "market" type');
-                }
-                $request['tpslMode'] = $tpslMode;
+                $tpslModeSl = null;
+                $tpslModeTp = null;
                 if ($isStopLossOrder) {
                     $request['stopLoss'] = $this->get_price($symbol, $stopLossTriggerPrice);
-                    if ($isPartialTpsl) {
-                        $request['slSize'] = $amountString;
-                    }
-                    if ($isLimit) {
+                    $stopLossLimitPrice = $this->safe_string_2($params, 'stopLossLimitPrice', 'slLimitPrice');
+                    if ($stopLossLimitPrice !== null) {
+                        $tpslModeSl = 'Partial';
                         $request['slOrderType'] = 'Limit';
-                        $request['slLimitPrice'] = $priceString;
-                    }
-                } elseif ($isTakeProfitOrder) {
-                    $request['takeProfit'] = $this->get_price($symbol, $takeProfitTriggerPrice);
-                    if ($isPartialTpsl) {
-                        $request['tpSize'] = $amountString;
-                    }
-                    if ($isLimit) {
-                        $request['tpOrderType'] = 'Limit';
-                        $request['tpLimitPrice'] = $priceString;
+                        $request['slLimitPrice'] = $stopLossLimitPrice;
+                        $request['slSize'] = $amountString;
+                    } else {
+                        $request['slOrderType'] = 'Market';
+                        if ($amountString !== null) {
+                            $request['slSize'] = $amountString;
+                            $tpslModeSl = 'Partial';
+                        } else {
+                            $tpslModeSl = 'Full';
+                        }
                     }
                 }
+                if ($isTakeProfitOrder) {
+                    $request['takeProfit'] = $this->get_price($symbol, $takeProfitTriggerPrice);
+                    $takeProfitLimitPrice = $this->safe_string_2($params, 'takeProfitLimitPrice', 'tpLimitPrice');
+                    if ($takeProfitLimitPrice !== null) {
+                        $tpslModeTp = 'Partial';
+                        $request['tpOrderType'] = 'Limit';
+                        $request['tpLimitPrice'] = $takeProfitLimitPrice;
+                        $request['tpSize'] = $amountString;
+                    } else {
+                        $request['tpOrderType'] = 'Market';
+                        if ($amountString !== null) {
+                            $request['tpSize'] = $amountString;
+                            $tpslModeTp = 'Partial';
+                        } else {
+                            $tpslModeTp = 'Full';
+                        }
+                    }
+                }
+                if ($tpslModeSl !== $tpslModeTp) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires both $stopLoss and $takeProfit to be full or partial when using combination');
+                }
+                $request['tpslMode'] = $tpslModeSl; // same
+                $params = $this->omit($params, array( 'stopLossLimitPrice', 'takeProfitLimitPrice' ));
             }
         } else {
             $request['side'] = $this->capitalize($side);
@@ -4228,7 +4254,7 @@ class bybit extends Exchange {
             $request['triggerPrice'] = $this->get_price($symbol, $triggerPrice);
             $request['reduceOnly'] = true;
         }
-        if (($hasStopLoss || $isTakeProfit) && !$endpointIsTradingStop) {
+        if (($hasStopLoss || $hasTakeProfit) && !$endpointIsTradingStop) {
             if ($hasStopLoss) {
                 $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                 $request['stopLoss'] = $this->get_price($symbol, $slTriggerPrice);
@@ -4248,7 +4274,7 @@ class bybit extends Exchange {
                     throw new InvalidOrder($this->id . ' createOrder() => attached $stopLoss is not supported for spot $market orders');
                 }
             }
-            if ($isTakeProfit) {
+            if ($hasTakeProfit) {
                 $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
                 $request['takeProfit'] = $this->get_price($symbol, $tpTriggerPrice);
                 $tpLimitPrice = $this->safe_value($takeProfit, 'price');

@@ -4138,13 +4138,16 @@ public partial class bybit : Exchange
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+     * @param {float} [params.stopLossLimitPrice] The limit price for a stoploss order (only when used in OCO with takeProfitPrice)
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+     * @param {float} [params.takeProfitLimitPrice] The limit price for a takeprofit order (only when used in OCO combination with stopLossPrice)
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
      * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+     * @param {boolean} [params.tradingStopEndpoint] whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -4158,8 +4161,9 @@ public partial class bybit : Exchange
         object isStopLossOrder = !isEqual(this.safeString(parameters, "stopLossPrice"), null);
         object isTakeProfitOrder = !isEqual(this.safeString(parameters, "takeProfitPrice"), null);
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, enableUnifiedAccount);
+        object switchToOco = isTrue((isTrue(isStopLossOrder) && isTrue(isTakeProfitOrder))) || isTrue(this.safeBool(parameters, "tradingStopEndpoint", false));
         object defaultMethod = null;
-        if (isTrue(isTrue((isTrue(isTrue(isTrailingOrder) || isTrue(isStopLossOrder)) || isTrue(isTakeProfitOrder))) && !isTrue(getValue(market, "spot"))))
+        if (isTrue(isTrue((isTrue(isTrailingOrder) || isTrue(switchToOco))) && !isTrue(getValue(market, "spot"))))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -4176,7 +4180,7 @@ public partial class bybit : Exchange
             response = await this.privatePostV5PositionTradingStop(orderRequest);
         } else
         {
-            response = await this.privatePostV5OrderCreate(orderRequest); // already extended inside createOrderRequest
+            response = await this.privatePostV5OrderCreate(orderRequest);
         }
         //
         //     {
@@ -4201,10 +4205,6 @@ public partial class bybit : Exchange
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object lowerCaseType = ((string)type).ToLower();
-        if (isTrue(isTrue((isEqual(price, null))) && isTrue((isEqual(lowerCaseType, "limit")))))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " createOrder requires a price argument for limit orders")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -4222,12 +4222,13 @@ public partial class bybit : Exchange
         object isStopLossOrder = !isEqual(stopLossTriggerPrice, null);
         object isTakeProfitOrder = !isEqual(takeProfitTriggerPrice, null);
         object hasStopLoss = !isEqual(stopLoss, null);
-        object isTakeProfit = !isEqual(takeProfit, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
         object isMarket = isEqual(lowerCaseType, "market");
         object isLimit = isEqual(lowerCaseType, "limit");
         object isBuy = isEqual(side, "buy");
+        object switchToOco = isTrue((isTrue(isStopLossOrder) && isTrue(isTakeProfitOrder))) || isTrue(this.safeBool(parameters, "tradingStopEndpoint", false));
         object defaultMethod = null;
-        if (isTrue(isTrue((isTrue(isTrue(isTrailingOrder) || isTrue(isStopLossOrder)) || isTrue(isTakeProfitOrder))) && !isTrue(getValue(market, "spot"))))
+        if (isTrue(isTrue(isTrailingOrder) || isTrue(switchToOco)))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -4239,49 +4240,79 @@ public partial class bybit : Exchange
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         object endpointIsTradingStop = isEqual(method, "privatePostV5PositionTradingStop");
-        object amountString = this.getAmount(symbol, amount);
-        object priceString = ((bool) isTrue((!isEqual(price, null)))) ? this.getPrice(symbol, this.numberToString(price)) : null;
-        if (isTrue(isTrue(isTrailingOrder) || isTrue(endpointIsTradingStop)))
+        if (isTrue(isTrue(isTrue((isEqual(price, null))) && isTrue((isEqual(lowerCaseType, "limit")))) && !isTrue(endpointIsTradingStop)))
         {
-            if (isTrue(isTrue(isTrue(isTrue(hasStopLoss) || isTrue(isTakeProfit)) || isTrue(isTriggerOrder)) || isTrue(getValue(market, "spot"))))
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder requires a price argument for limit orders")) ;
+        }
+        // workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
+        if (!isTrue(Precise.stringGt(this.numberToString(amount), "0")))
+        {
+            amount = null;
+        }
+        object amountString = ((bool) isTrue((!isEqual(amount, null)))) ? this.getAmount(symbol, amount) : null;
+        object priceString = ((bool) isTrue((!isEqual(price, null)))) ? this.getPrice(symbol, this.numberToString(price)) : null;
+        if (isTrue(endpointIsTradingStop))
+        {
+            if (isTrue(isTrue(isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)) || isTrue(isTriggerOrder)) || isTrue(getValue(market, "spot"))))
             {
                 throw new InvalidOrder ((string)add(this.id, " the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders")) ;
             }
             if (isTrue(isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder)))
             {
-                object tpslMode = this.safeString(parameters, "tpslMode", "Partial");
-                object isFullTpsl = isEqual(tpslMode, "Full");
-                object isPartialTpsl = isEqual(tpslMode, "Partial");
-                if (isTrue(isTrue(isLimit) && isTrue(isFullTpsl)))
-                {
-                    throw new InvalidOrder ((string)add(this.id, " tpsl orders with \"full\" tpslMode only support \"market\" type")) ;
-                }
-                ((IDictionary<string,object>)request)["tpslMode"] = tpslMode;
+                object tpslModeSl = null;
+                object tpslModeTp = null;
                 if (isTrue(isStopLossOrder))
                 {
                     ((IDictionary<string,object>)request)["stopLoss"] = this.getPrice(symbol, stopLossTriggerPrice);
-                    if (isTrue(isPartialTpsl))
+                    object stopLossLimitPrice = this.safeString2(parameters, "stopLossLimitPrice", "slLimitPrice");
+                    if (isTrue(!isEqual(stopLossLimitPrice, null)))
                     {
-                        ((IDictionary<string,object>)request)["slSize"] = amountString;
-                    }
-                    if (isTrue(isLimit))
-                    {
+                        tpslModeSl = "Partial";
                         ((IDictionary<string,object>)request)["slOrderType"] = "Limit";
-                        ((IDictionary<string,object>)request)["slLimitPrice"] = priceString;
-                    }
-                } else if (isTrue(isTakeProfitOrder))
-                {
-                    ((IDictionary<string,object>)request)["takeProfit"] = this.getPrice(symbol, takeProfitTriggerPrice);
-                    if (isTrue(isPartialTpsl))
+                        ((IDictionary<string,object>)request)["slLimitPrice"] = stopLossLimitPrice;
+                        ((IDictionary<string,object>)request)["slSize"] = amountString;
+                    } else
                     {
-                        ((IDictionary<string,object>)request)["tpSize"] = amountString;
-                    }
-                    if (isTrue(isLimit))
-                    {
-                        ((IDictionary<string,object>)request)["tpOrderType"] = "Limit";
-                        ((IDictionary<string,object>)request)["tpLimitPrice"] = priceString;
+                        ((IDictionary<string,object>)request)["slOrderType"] = "Market";
+                        if (isTrue(!isEqual(amountString, null)))
+                        {
+                            ((IDictionary<string,object>)request)["slSize"] = amountString;
+                            tpslModeSl = "Partial";
+                        } else
+                        {
+                            tpslModeSl = "Full";
+                        }
                     }
                 }
+                if (isTrue(isTakeProfitOrder))
+                {
+                    ((IDictionary<string,object>)request)["takeProfit"] = this.getPrice(symbol, takeProfitTriggerPrice);
+                    object takeProfitLimitPrice = this.safeString2(parameters, "takeProfitLimitPrice", "tpLimitPrice");
+                    if (isTrue(!isEqual(takeProfitLimitPrice, null)))
+                    {
+                        tpslModeTp = "Partial";
+                        ((IDictionary<string,object>)request)["tpOrderType"] = "Limit";
+                        ((IDictionary<string,object>)request)["tpLimitPrice"] = takeProfitLimitPrice;
+                        ((IDictionary<string,object>)request)["tpSize"] = amountString;
+                    } else
+                    {
+                        ((IDictionary<string,object>)request)["tpOrderType"] = "Market";
+                        if (isTrue(!isEqual(amountString, null)))
+                        {
+                            ((IDictionary<string,object>)request)["tpSize"] = amountString;
+                            tpslModeTp = "Partial";
+                        } else
+                        {
+                            tpslModeTp = "Full";
+                        }
+                    }
+                }
+                if (isTrue(!isEqual(tpslModeSl, tpslModeTp)))
+                {
+                    throw new InvalidOrder ((string)add(this.id, " createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination")) ;
+                }
+                ((IDictionary<string,object>)request)["tpslMode"] = tpslModeSl; // same as tpslModeTp
+                parameters = this.omit(parameters, new List<object>() {"stopLossLimitPrice", "takeProfitLimitPrice"});
             }
         } else
         {
@@ -4440,7 +4471,7 @@ public partial class bybit : Exchange
             ((IDictionary<string,object>)request)["triggerPrice"] = this.getPrice(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["reduceOnly"] = true;
         }
-        if (isTrue(isTrue((isTrue(hasStopLoss) || isTrue(isTakeProfit))) && !isTrue(endpointIsTradingStop)))
+        if (isTrue(isTrue((isTrue(hasStopLoss) || isTrue(hasTakeProfit))) && !isTrue(endpointIsTradingStop)))
         {
             if (isTrue(hasStopLoss))
             {
@@ -4466,7 +4497,7 @@ public partial class bybit : Exchange
                     throw new InvalidOrder ((string)add(this.id, " createOrder(): attached stopLoss is not supported for spot market orders")) ;
                 }
             }
-            if (isTrue(isTakeProfit))
+            if (isTrue(hasTakeProfit))
             {
                 object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
                 ((IDictionary<string,object>)request)["takeProfit"] = this.getPrice(symbol, tpTriggerPrice);

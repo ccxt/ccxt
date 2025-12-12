@@ -36,6 +36,8 @@
 
 - [How To Import One Exchange Esm](./examples/ts/how-to-import-one-exchange-esm.md)
 
+- [Hyperliquid Load Hip3 Dexes](./examples/ts/hyperliquid-load-hip3-dexes.md)
+
 - [Kraken Create And Close Position](./examples/ts/kraken-create-and-close-position.md)
 
 - [Margin Loan Borrow Buy Sell Repay](./examples/ts/margin-loan-borrow-buy-sell-repay.md)

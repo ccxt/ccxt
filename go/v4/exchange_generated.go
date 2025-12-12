@@ -4961,8 +4961,8 @@ func (this *Exchange) ParseBidAsk(bidask interface{}, optionalArgs ...interface{
 	_ = amountKey
 	countOrIdKey := GetArg(optionalArgs, 2, 2)
 	_ = countOrIdKey
-	var price interface{} = this.SafeNumber(bidask, priceKey)
-	var amount interface{} = this.SafeNumber(bidask, amountKey)
+	var price interface{} = this.SafeFloat(bidask, priceKey)
+	var amount interface{} = this.SafeFloat(bidask, amountKey)
 	var countOrId interface{} = this.SafeInteger(bidask, countOrIdKey)
 	var bidAsk interface{} = []interface{}{price, amount}
 	if IsTrue(!IsEqual(countOrId, nil)) {

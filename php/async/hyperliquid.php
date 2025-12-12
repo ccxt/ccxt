@@ -244,10 +244,10 @@ class hyperliquid extends Exchange {
                 ),
                 'fetchMarkets' => array(
                     'types' => array( 'spot', 'swap', 'hip3' ), // 'spot', 'swap', 'hip3'
-                    // 'hip3' => array(
-                    //     'limit' => 5, // how many dexes to load max if dexes are not specified
-                    //     'dex' => array( 'xyz' ),
-                    // ),
+                    'hip3' => array(
+                        'limit' => 10,
+                        'dexes' => [ ], // list of dexes eg flx, xyz, etc
+                    ),
                 ),
             ),
             'features' => array(
@@ -592,17 +592,15 @@ class hyperliquid extends Exchange {
             $fetchDexesList = array();
             $options = $this->safe_dict($this->options, 'fetchMarkets', array());
             $hip3 = $this->safe_dict($options, 'hip3', array());
-            $defaultLimit = $this->safe_integer($hip3, 'limit', 10);
-            $dexesLength = count($fetchDexes);
-            if ($dexesLength > $defaultLimit) { // first element is null
-                $defaultDexes = $this->safe_list($hip3, 'dex', array());
-                if (strlen($defaultDexes) === 0) {
-                    throw new ArgumentsRequired($this->id . ' fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options["fetchMarkets"]["hip3"]["dex"] parameter to fetch $markets from those DEXes only. The limit is set to ' . (string) $defaultLimit . ' DEXes by default.');
-                } else {
-                    $fetchDexesList = $defaultDexes;
+            $dexesProvided = $this->safe_list($hip3, 'dexes'); // $users provide their own list of dexes to load
+            $maxLimit = $this->safe_integer($hip3, 'limit', 10);
+            if ($dexesProvided !== null) {
+                $userProvidedDexesLength = count($dexesProvided);
+                if ($userProvidedDexesLength > 0) {
+                    $fetchDexesList = $dexesProvided;
                 }
             } else {
-                for ($i = 1; $i < count($fetchDexes); $i++) {
+                for ($i = 1; $i < $maxLimit; $i++) {
                     $dex = $this->safe_dict($fetchDexes, $i, array());
                     $dexName = $this->safe_string($dex, 'name');
                     $fetchDexesList[] = $dexName;

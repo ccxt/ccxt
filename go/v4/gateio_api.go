@@ -343,6 +343,10 @@ func (this *GateioCore) PrivateWalletGetPush(args ...interface{}) <-chan interfa
 	return this.callEndpointAsync("privateWalletGetPush", args...)
 }
 
+func (this *GateioCore) PrivateWalletGetGetLowCapExchangeList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateWalletGetGetLowCapExchangeList", args...)
+}
+
 func (this *GateioCore) PrivateWalletPostTransfers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateWalletPostTransfers", args...)
 }
@@ -877,6 +881,10 @@ func (this *GateioCore) PrivateFuturesPostSettlePriceOrders(args ...interface{})
 
 func (this *GateioCore) PrivateFuturesPutSettleOrdersOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesPutSettleOrdersOrderId", args...)
+}
+
+func (this *GateioCore) PrivateFuturesPutSettlePriceOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPutSettlePriceOrdersOrderId", args...)
 }
 
 func (this *GateioCore) PrivateFuturesDeleteSettleOrders(args ...interface{}) <-chan interface{} {

@@ -3794,7 +3794,7 @@ export default class binance extends binanceRest {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': this.safeStringLower(order, 'o'),
+            'type': this.parseOrderType(this.safeStringLower(order, 'o')),
             'timeInForce': timeInForce,
             'postOnly': undefined,
             'reduceOnly': this.safeBool(order, 'R'),
