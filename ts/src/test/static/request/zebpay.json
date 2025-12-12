@@ -88,7 +88,7 @@
                         "leverage": 1
                     }
                 ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"BUY\",\"formType\":\"ORDER_FORM\",\"amount\":\"0.1\",\"marginAsset\":\"INR\",\"leverage\":1,\"type\":\"LIMIT\",\"price\":\"4090\",\"timestamp\":\"1756205128628\"}"
+                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"BUY\",\"formType\":\"ORDER_FORM\",\"amount\":0.1,\"marginAsset\":\"INR\",\"leverage\":1,\"type\":\"LIMIT\",\"price\":4090,\"timestamp\":\"1756205128628\"}"
             },
             {
                 "description": "spot limit buy order",
