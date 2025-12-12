@@ -5,7 +5,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, InsufficientFunds } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Currencies, Dict, Int, int, Leverage, Leverages, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
-import Precise from './base/Precise.js';
+import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -178,6 +178,7 @@ export default class zebpay extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '77': InvalidOrder,
                     '400': BadRequest, // Bad Request -- Invalid request format
                     '401': AuthenticationError, // Unauthorized -- Invalid API Key
                     '403': NotSupported, // Forbidden -- The request is forbidden
@@ -194,6 +195,7 @@ export default class zebpay extends Exchange {
                     'the request you sent is invalid': BadRequest,
                 },
                 'broad': {
+                    'InvalidOrder': InvalidOrder, // Rate should be in the range of
                 },
             },
         });
@@ -1005,16 +1007,16 @@ export default class zebpay extends Exchange {
             const marginAsset = this.safeString (params, 'marginAsset', 'INR');
             const formType = this.safeStringUpper (params, 'formType', 'ORDER_FORM');
             request['formType'] = formType;
-            request['amount'] = parseFloat (this.amountToPrecision (market['id'], amount));
+            request['amount'] = this.amountToPrecision (market['id'], amount);
             request['marginAsset'] = marginAsset;
             const hasTP = takeProfitPrice !== undefined;
             const hasSL = stopLossPrice !== undefined;
             if (hasTP || hasSL) {
                 if (hasTP) {
-                    request['takeProfitPrice'] = parseFloat (this.priceToPrecision (symbol, takeProfitPrice));
+                    request['takeProfitPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
                 }
                 if (hasSL) {
-                    request['stopLossPrice'] = parseFloat (this.priceToPrecision (symbol, stopLossPrice));
+                    request['stopLossPrice'] = this.priceToPrecision (symbol, stopLossPrice);
                 }
                 response = await this.privateSwapPostV1TradeOrderAddTPSL (this.extend (request, params));
             } else {
@@ -1023,9 +1025,8 @@ export default class zebpay extends Exchange {
                     if (price === undefined) {
                         throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
                     }
-                    request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+                    request['price'] = this.priceToPrecision (symbol, price);
                 }
-                params = this.omit (params, [ 'price' ]);
                 response = await this.privateSwapPostV1TradeOrder (this.extend (request, params));
             }
         }
@@ -1054,7 +1055,7 @@ export default class zebpay extends Exchange {
             if (quoteOrderQty === undefined) {
                 throw new ExchangeError (this.id + ' spot market orders require cost in params');
             }
-            request['quoteOrderAmount'] = quoteOrderQty;
+            request['quoteOrderAmount'] = this.costToPrecision (symbol, quoteOrderQty);
         } else {
             if (triggerPrice !== undefined) {
                 request['stopLossPrice'] = this.priceToPrecision (symbol, triggerPrice);
