@@ -1039,16 +1039,16 @@ class zebpay extends Exchange {
                 $marginAsset = $this->safe_string($params, 'marginAsset', 'INR');
                 $formType = $this->safe_string_upper($params, 'formType', 'ORDER_FORM');
                 $request['formType'] = $formType;
-                $request['amount'] = $this->amount_to_precision($market['id'], $amount);
+                $request['amount'] = $this->parse_to_numeric($this->amount_to_precision($market['id'], $amount));
                 $request['marginAsset'] = $marginAsset;
                 $hasTP = $takeProfitPrice !== null;
                 $hasSL = $stopLossPrice !== null;
                 if ($hasTP || $hasSL) {
                     if ($hasTP) {
-                        $request['takeProfitPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                        $request['takeProfitPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $takeProfitPrice));
                     }
                     if ($hasSL) {
-                        $request['stopLossPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
+                        $request['stopLossPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
                     }
                     $response = Async\await($this->privateSwapPostV1TradeOrderAddTPSL ($this->extend($request, $params)));
                 } else {
@@ -1057,7 +1057,7 @@ class zebpay extends Exchange {
                         if ($price === null) {
                             throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for limit orders');
                         }
-                        $request['price'] = $this->price_to_precision($symbol, $price);
+                        $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
                     }
                     $response = Async\await($this->privateSwapPostV1TradeOrder ($this->extend($request, $params)));
                 }
@@ -1945,7 +1945,7 @@ class zebpay extends Exchange {
                 $url .= '?' . $queryString;
             } else {
                 // For POST/PUT => Convert $body to JSON and sign the stringified payload
-                $body = json_encode ($params);
+                $body = $this->json($params);
                 $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha256', 'hex');
             }
             $headers = array(
