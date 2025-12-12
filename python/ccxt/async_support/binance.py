@@ -5434,7 +5434,7 @@ class binance(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: str):
+    def parse_order_type(self, type: Str):
         types = {
             'limit_maker': 'limit',
             'stop': 'limit',
