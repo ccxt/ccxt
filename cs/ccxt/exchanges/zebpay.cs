@@ -62,7 +62,7 @@ public partial class zebpay : Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad" },
                 { "api", new Dictionary<string, object>() {
-                    { "spot", "https://api.zebpay.com" },
+                    { "spot", "https://sapi.zebpay.com" },
                     { "swap", "https://futuresbe.zebpay.com" },
                 } },
                 { "test", new Dictionary<string, object>() {
