@@ -972,22 +972,22 @@ class zebpay(Exchange, ImplicitAPI):
             marginAsset = self.safe_string(params, 'marginAsset', 'INR')
             formType = self.safe_string_upper(params, 'formType', 'ORDER_FORM')
             request['formType'] = formType
-            request['amount'] = self.amount_to_precision(market['id'], amount)
+            request['amount'] = self.parse_to_numeric(self.amount_to_precision(market['id'], amount))
             request['marginAsset'] = marginAsset
             hasTP = takeProfitPrice is not None
             hasSL = stopLossPrice is not None
             if hasTP or hasSL:
                 if hasTP:
-                    request['takeProfitPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+                    request['takeProfitPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
                 if hasSL:
-                    request['stopLossPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                    request['stopLossPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
                 response = self.privateSwapPostV1TradeOrderAddTPSL(self.extend(request, params))
             else:
                 request['type'] = upperCaseType
                 if type == 'limit':
                     if price is None:
                         raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit orders')
-                    request['price'] = self.price_to_precision(symbol, price)
+                    request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
                 response = self.privateSwapPostV1TradeOrder(self.extend(request, params))
         #
         #    {
@@ -1805,7 +1805,7 @@ class zebpay(Exchange, ImplicitAPI):
                 url += '?' + queryString
             else:
                 # For POST/PUT: Convert body to JSON and sign the stringified payload
-                body = json.dumps(params)
+                body = self.json(params)
                 signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha256, 'hex')
             headers = {
                 'Referrer': 'ccxt',
