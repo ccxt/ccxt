@@ -109,4 +109,5 @@
 	- [xt](exchanges/xt.md)
 	- [yobit](exchanges/yobit.md)
 	- [zaif](exchanges/zaif.md)
+	- [fetchStatus](exchanges/fetchStatus.md)
 	- [zonda](exchanges/zonda.md)

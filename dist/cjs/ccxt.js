@@ -116,6 +116,7 @@ var woofipro = require('./src/woofipro.js');
 var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
+var zebpay = require('./src/zebpay.js');
 var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
@@ -307,6 +308,7 @@ const exchanges = {
     'xt': xt["default"],
     'yobit': yobit["default"],
     'zaif': zaif["default"],
+    'zebpay': zebpay["default"],
     'zonda': zonda["default"],
 };
 const pro = {
@@ -546,6 +548,7 @@ exports.woofipro = woofipro["default"];
 exports.xt = xt["default"];
 exports.yobit = yobit["default"];
 exports.zaif = zaif["default"];
+exports.zebpay = zebpay["default"];
 exports.zonda = zonda["default"];
 exports["default"] = ccxt;
 exports.exchanges = exchanges;

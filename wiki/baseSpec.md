@@ -32,6 +32,7 @@ add margin
 * [poloniex](/exchanges/poloniex.md#addmargin)
 * [woo](/exchanges/woo.md#addmargin)
 * [xt](/exchanges/xt.md#addmargin)
+* [zebpayfutures](/exchanges/zebpayfutures.md#addmargin)
 
 ---
 
@@ -375,6 +376,7 @@ cancels an open order
 * [xt](/exchanges/xt.md#cancelorder)
 * [yobit](/exchanges/yobit.md#cancelorder)
 * [zaif](/exchanges/zaif.md#cancelorder)
+* [zebpay](/exchanges/zebpay.md#cancelorder)
 * [zonda](/exchanges/zonda.md#cancelorder)
 
 ---
@@ -465,6 +467,7 @@ cancel multiple orders
 * [toobit](/exchanges/toobit.md#cancelorders)
 * [woofipro](/exchanges/woofipro.md#cancelorders)
 * [xt](/exchanges/xt.md#cancelorders)
+* [zebpay](/exchanges/zebpay.md#cancelorders)
 
 ---
 
@@ -585,6 +588,7 @@ closes open positions for a market
 * [hitbtc](/exchanges/hitbtc.md#closeposition)
 * [kucoinfutures](/exchanges/kucoinfutures.md#closeposition)
 * [okx](/exchanges/okx.md#closeposition)
+* [zebpay](/exchanges/zebpay.md#closeposition)
 
 ---
 
@@ -936,6 +940,7 @@ create a trade order
 * [xt](/exchanges/xt.md#createorder)
 * [yobit](/exchanges/yobit.md#createorder)
 * [zaif](/exchanges/zaif.md#createorder)
+* [zebpay](/exchanges/zebpay.md#createorder)
 * [zonda](/exchanges/zonda.md#createorder)
 
 ---
@@ -1614,6 +1619,7 @@ query for balance and get the amount of funds available for trading or funds loc
 * [xt](/exchanges/xt.md#fetchbalance)
 * [yobit](/exchanges/yobit.md#fetchbalance)
 * [zaif](/exchanges/zaif.md#fetchbalance)
+* [zebpay](/exchanges/zebpay.md#fetchbalance)
 * [zonda](/exchanges/zonda.md#fetchbalance)
 
 ---
@@ -2180,6 +2186,7 @@ fetches all available currencies on an exchange
 * [woo](/exchanges/woo.md#fetchcurrencies)
 * [woofipro](/exchanges/woofipro.md#fetchcurrencies)
 * [xt](/exchanges/xt.md#fetchcurrencies)
+* [zebpay](/exchanges/zebpay.md#fetchcurrencies)
 
 ---
 
@@ -3157,6 +3164,7 @@ fetch the set leverage for a market
 * [toobit](/exchanges/toobit.md#fetchleverage)
 * [woo](/exchanges/woo.md#fetchleverage)
 * [woofipro](/exchanges/woofipro.md#fetchleverage)
+* [zebpay](/exchanges/zebpay.md#fetchleverage)
 
 ---
 
@@ -3213,6 +3221,7 @@ fetch the set leverage for all contract markets
 * [blofin](/exchanges/blofin.md#fetchleverages)
 * [gate](/exchanges/gate.md#fetchleverages)
 * [krakenfutures](/exchanges/krakenfutures.md#fetchleverages)
+* [zebpay](/exchanges/zebpay.md#fetchleverages)
 
 ---
 
@@ -3530,6 +3539,7 @@ retrieves data on all markets for alpaca
 * [xt](/exchanges/xt.md#fetchmarkets)
 * [yobit](/exchanges/yobit.md#fetchmarkets)
 * [zaif](/exchanges/zaif.md#fetchmarkets)
+* [zebpay](/exchanges/zebpay.md#fetchmarkets)
 * [zonda](/exchanges/zonda.md#fetchmarkets)
 
 ---
@@ -3735,6 +3745,7 @@ fetch all trades made by the user
 * [woofipro](/exchanges/woofipro.md#fetchmytrades)
 * [xt](/exchanges/xt.md#fetchmytrades)
 * [yobit](/exchanges/yobit.md#fetchmytrades)
+* [zebpay](/exchanges/zebpay.md#fetchmytrades)
 * [zonda](/exchanges/zonda.md#fetchmytrades)
 
 ---
@@ -3864,6 +3875,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [woo](/exchanges/woo.md#fetchohlcv)
 * [woofipro](/exchanges/woofipro.md#fetchohlcv)
 * [xt](/exchanges/xt.md#fetchohlcv)
+* [zebpay](/exchanges/zebpay.md#fetchohlcv)
 * [zonda](/exchanges/zonda.md#fetchohlcv)
 
 ---
@@ -4122,6 +4134,7 @@ fetch all unfilled currently open orders
 * [xt](/exchanges/xt.md#fetchopenorders)
 * [yobit](/exchanges/yobit.md#fetchopenorders)
 * [zaif](/exchanges/zaif.md#fetchopenorders)
+* [zebpay](/exchanges/zebpay.md#fetchopenorders)
 * [zonda](/exchanges/zonda.md#fetchopenorders)
 
 ---
@@ -4316,6 +4329,7 @@ fetches information on an order made by the user
 * [woofipro](/exchanges/woofipro.md#fetchorder)
 * [xt](/exchanges/xt.md#fetchorder)
 * [yobit](/exchanges/yobit.md#fetchorder)
+* [zebpay](/exchanges/zebpay.md#fetchorder)
 
 ---
 
@@ -4432,6 +4446,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [xt](/exchanges/xt.md#fetchorderbook)
 * [yobit](/exchanges/yobit.md#fetchorderbook)
 * [zaif](/exchanges/zaif.md#fetchorderbook)
+* [zebpay](/exchanges/zebpay.md#fetchorderbook)
 * [zonda](/exchanges/zonda.md#fetchorderbook)
 
 ---
@@ -4551,6 +4566,7 @@ fetch all the trades made from a single order
 * [whitebit](/exchanges/whitebit.md#fetchordertrades)
 * [woo](/exchanges/woo.md#fetchordertrades)
 * [woofipro](/exchanges/woofipro.md#fetchordertrades)
+* [zebpatspot](/exchanges/zebpatspot.md#fetchordertrades)
 
 ---
 
@@ -4967,6 +4983,7 @@ fetch all open positions
 * [woo](/exchanges/woo.md#fetchpositions)
 * [woofipro](/exchanges/woofipro.md#fetchpositions)
 * [xt](/exchanges/xt.md#fetchpositions)
+* [zebpay](/exchanges/zebpay.md#fetchpositions)
 
 ---
 
@@ -5127,6 +5144,7 @@ the latest known information on the availability of the exchange API
 * [whitebit](/exchanges/whitebit.md#fetchstatus)
 * [woo](/exchanges/woo.md#fetchstatus)
 * [woofipro](/exchanges/woofipro.md#fetchstatus)
+* [zebpay](/exchanges/zebpay.md#fetchstatus)
 
 ---
 
@@ -5251,6 +5269,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [xt](/exchanges/xt.md#fetchticker)
 * [yobit](/exchanges/yobit.md#fetchticker)
 * [zaif](/exchanges/zaif.md#fetchticker)
+* [zebpay](/exchanges/zebpay.md#fetchticker)
 * [zonda](/exchanges/zonda.md#fetchticker)
 
 ---
@@ -5373,6 +5392,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [whitebit](/exchanges/whitebit.md#fetchtickers)
 * [xt](/exchanges/xt.md#fetchtickers)
 * [yobit](/exchanges/yobit.md#fetchtickers)
+* [zebpay](/exchanges/zebpay.md#fetchtickers)
 
 ---
 
@@ -5446,6 +5466,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [woo](/exchanges/woo.md#fetchtime)
 * [woofipro](/exchanges/woofipro.md#fetchtime)
 * [xt](/exchanges/xt.md#fetchtime)
+* [zebpayfutures](/exchanges/zebpayfutures.md#fetchtime)
 
 ---
 
@@ -5563,6 +5584,7 @@ get the list of most recent trades for a particular symbol
 * [xt](/exchanges/xt.md#fetchtrades)
 * [yobit](/exchanges/yobit.md#fetchtrades)
 * [zaif](/exchanges/zaif.md#fetchtrades)
+* [zebpay](/exchanges/zebpay.md#fetchtrades)
 * [zonda](/exchanges/zonda.md#fetchtrades)
 
 ---
@@ -5635,6 +5657,7 @@ fetch the trading fees for a market
 * [timex](/exchanges/timex.md#fetchtradingfee)
 * [upbit](/exchanges/upbit.md#fetchtradingfee)
 * [woo](/exchanges/woo.md#fetchtradingfee)
+* [zebpay](/exchanges/zebpay.md#fetchtradingfee)
 
 ---
 
@@ -5695,6 +5718,7 @@ fetch the trading fees for multiple markets
 * [woo](/exchanges/woo.md#fetchtradingfees)
 * [woofipro](/exchanges/woofipro.md#fetchtradingfees)
 * [yobit](/exchanges/yobit.md#fetchtradingfees)
+* [zebpay(futures)](/exchanges/zebpay(futures).md#fetchtradingfees)
 
 ---
 
@@ -6169,6 +6193,7 @@ remove margin from a position
 * [poloniex](/exchanges/poloniex.md#reducemargin)
 * [woo](/exchanges/woo.md#reducemargin)
 * [xt](/exchanges/xt.md#reducemargin)
+* [zebpayfutures](/exchanges/zebpayfutures.md#reducemargin)
 
 ---
 
@@ -6322,6 +6347,7 @@ set the level of leverage for a market
 * [woo](/exchanges/woo.md#setleverage)
 * [woofipro](/exchanges/woofipro.md#setleverage)
 * [xt](/exchanges/xt.md#setleverage)
+* [zebpay](/exchanges/zebpay.md#setleverage)
 
 ---
 
