@@ -1308,12 +1308,14 @@ export default class zonda extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
+        const until = this.safeInteger (params, 'until');
         const request: Dict = {
             'symbol': tradingSymbol,
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
@@ -1327,13 +1329,23 @@ export default class zonda extends Exchange {
         }
         const duration = this.parseTimeframe (timeframe);
         const timerange = limit * duration * 1000;
+        const now = this.milliseconds ();
         if (since === undefined) {
-            request['to'] = this.milliseconds ();
+            if (until === undefined) {
+                request['to'] = now;
+            } else {
+                request['to'] = Math.min (until, now);
+            }
             request['from'] = request['to'] - timerange;
         } else {
             request['from'] = since;
-            request['to'] = this.sum (request['from'], timerange);
+            if (until === undefined) {
+                request['to'] = this.sum (request['from'], timerange);
+            } else {
+                request['to'] = Math.min (until, now);
+            }
         }
+        params = this.omit (params, 'until');
         const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution (this.extend (request, params));
         //
         //     {
