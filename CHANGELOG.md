@@ -1,3 +1,39 @@
+<a id="v4.5.27"></a>
+# [v4.5.27](https://github.com/ccxt/ccxt/releases/tag/v4.5.27) - 2025-12-12
+
+## What's Changed
+* feat(coinmate): add fetchTime by [@sc0Vu](https://github.com/sc0Vu) in [#27470](https://github.com/ccxt/ccxt/pull/27470)
+* feat(cryptocom): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27477](https://github.com/ccxt/ccxt/pull/27477)
+* binance error mapping by [@ndubel](https://github.com/ndubel) in [#27473](https://github.com/ccxt/ccxt/pull/27473)
+* bitget error mapping by [@ndubel](https://github.com/ndubel) in [#27472](https://github.com/ccxt/ccxt/pull/27472)
+* feat(coinex): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27469](https://github.com/ccxt/ccxt/pull/27469)
+* feat(coinsph): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27471](https://github.com/ccxt/ccxt/pull/27471)
+* feat(whitebit): add default nonceWindow parameter for authenticated calls by [@carlosmiei](https://github.com/carlosmiei) in [#27478](https://github.com/ccxt/ccxt/pull/27478)
+* feat(gate): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27479](https://github.com/ccxt/ccxt/pull/27479)
+* feat(whitebit): change default rate limiter setting value by [@vladyslavbilotserkovskyi-whitebit](https://github.com/vladyslavbilotserkovskyi-whitebit) in [#27480](https://github.com/ccxt/ccxt/pull/27480)
+* fix(binance): unify order type by [@carlosmiei](https://github.com/carlosmiei) in [#27481](https://github.com/ccxt/ccxt/pull/27481)
+* fix(coincatch): infer market type inside fetchTickers by [@carlosmiei](https://github.com/carlosmiei) in [#27487](https://github.com/ccxt/ccxt/pull/27487)
+* fix(hyperliquid): avoid error when loading hip3 dexes by [@carlosmiei](https://github.com/carlosmiei) in [#27488](https://github.com/ccxt/ccxt/pull/27488)
+* fix(Exchange.py): remove check_conflicting_proxies camelCase by [@carlosmiei](https://github.com/carlosmiei) in [#27485](https://github.com/ccxt/ccxt/pull/27485)
+* fix(binance):unify algo service order type by [@carlosmiei](https://github.com/carlosmiei) in [#27492](https://github.com/ccxt/ccxt/pull/27492)
+* fix(example): import folder by [@carlosmiei](https://github.com/carlosmiei) in [#27493](https://github.com/ccxt/ccxt/pull/27493)
+* build(deps): bump next from 15.4.8 to 15.4.9 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#27494](https://github.com/ccxt/ccxt/pull/27494)
+* fix(exchange): replace safeNumber with safeFloat in parseBidAsk by [@sc0Vu](https://github.com/sc0Vu) in [#27403](https://github.com/ccxt/ccxt/pull/27403)
+* fix(binance): parseOrderType type by [@carlosmiei](https://github.com/carlosmiei) in [#27496](https://github.com/ccxt/ccxt/pull/27496)
+* fix(bybit): tp & sl orders by [@ttodua](https://github.com/ttodua) in [#27437](https://github.com/ccxt/ccxt/pull/27437)
+* feat: add Zebpay Exchange by [@carlosmiei](https://github.com/carlosmiei) in [#26818](https://github.com/ccxt/ccxt/pull/26818)
+* fix(zebpay): update url by [@carlosmiei](https://github.com/carlosmiei) in [#27497](https://github.com/ccxt/ccxt/pull/27497)
+* fix(zebpay): headers by [@carlosmiei](https://github.com/carlosmiei) in [#27498](https://github.com/ccxt/ccxt/pull/27498)
+* fix(zebpay): json sig encode by [@carlosmiei](https://github.com/carlosmiei) in [#27499](https://github.com/ccxt/ccxt/pull/27499)
+
+## New Contributors
+* [@vladyslavbilotserkovskyi-whitebit](https://github.com/vladyslavbilotserkovskyi-whitebit) made their first contribution in [#27480](https://github.com/ccxt/ccxt/pull/27480)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.26...v4.5.27
+
+[Changes][v4.5.27]
+
+
 <a id="v4.5.26"></a>
 # [v4.5.26](https://github.com/ccxt/ccxt/releases/tag/v4.5.26) - 2025-12-08
 
@@ -12005,6 +12041,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.27]: https://github.com/ccxt/ccxt/compare/v4.5.26...v4.5.27
 [v4.5.26]: https://github.com/ccxt/ccxt/compare/v4.5.25...v4.5.26
 [v4.5.25]: https://github.com/ccxt/ccxt/compare/v4.5.24...v4.5.25
 [v4.5.24]: https://github.com/ccxt/ccxt/compare/v4.5.23...v4.5.24
