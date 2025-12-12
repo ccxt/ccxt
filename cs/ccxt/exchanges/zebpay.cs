@@ -2031,6 +2031,7 @@ public partial class zebpay : Exchange
                 signature = this.hmac(this.encode(body), this.encode(this.secret), sha256, "hex");
             }
             headers = new Dictionary<string, object>() {
+                { "Referrer", "ccxt" },
                 { "X-AUTH-APIKEY", this.apiKey },
                 { "X-AUTH-SIGNATURE", signature },
             };
