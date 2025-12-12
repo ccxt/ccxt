@@ -6,6 +6,7 @@ __version__ = '4.5.26'
 
 # -----------------------------------------------------------------------------
 
+import traceback
 import asyncio
 import concurrent.futures
 import socket
@@ -106,13 +107,15 @@ class Exchange(BaseExchange):
 
     if sys.version_info >= (3, 5):
         async def __aenter__(self):
+            print("AENTER SESS-OPEN !!!!!!!!")
             self.open()
             return self
 
         async def __aexit__(self, exc_type, exc, tb):
+            print("AEXIT CLOSE !!!!!!!!")
             await self.close()
 
-    def open(self):
+    def open(self, info = None):
         if self.asyncio_loop is None:
             if sys.version_info >= (3, 7):
                 self.asyncio_loop = asyncio.get_running_loop()
@@ -131,13 +134,17 @@ class Exchange(BaseExchange):
         if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
             self.tcp_connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
+            print("OPEN> setting session of own:" + str(info) + " !!!!!!!!")
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
         await self.ws_close()
         if self.session is not None:
+            a = 'NOT_OWN'
             if self.own_session:
+                a = 'OWN'
                 await self.session.close()
+            print("CLOSE > SESSION BEING CLOSED: " + a)
             self.session = None
         await self.close_connector()
         await self.close_proxy_sessions()
@@ -184,6 +191,7 @@ class Exchange(BaseExchange):
                 self.socks_proxy_sessions = {}
             if (socksProxy not in self.socks_proxy_sessions):
                 # Create our SSL context object with our CA cert file
+                print("PROXY SESS-OPEN !!!!!!!!")
                 self.open()  # ensure `asyncio_loop` is set
             proxy_session = self.get_socks_proxy_session(socksProxy)
         # add aiohttp_proxy for python as exclusion
@@ -205,7 +213,7 @@ class Exchange(BaseExchange):
 
         request_body = body
         encoded_body = body.encode() if body else None
-        self.open()
+        self.open(url)
         final_session = proxy_session if proxy_session is not None else self.session
         session_method = getattr(final_session, method.lower())
 
@@ -974,20 +982,29 @@ class Exchange(BaseExchange):
         self.last_request_body = request['body']
         self.last_request_url = request['url']
         for i in range(0, retries + 1):
+            exc = None
             try:
+                print("retry attempt:", i, request['url'])
                 return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
             except Exception as e:
                 if isinstance(e, OperationFailed):
+                    print ("xx: OperationFailed", i)
                     if i < retries:
                         if self.verbose:
                             index = i + 1
                             self.log('Request failed with the error: ' + str(e) + ', retrying ' + str(index) + ' of ' + str(retries) + '...')
                         if (retryDelay is not None) and (retryDelay != 0):
                             await self.sleep(retryDelay)
+                        continue
                     else:
-                        raise e
+                        exc = e
                 else:
-                    raise e
+                    print ("xx: not OperationFailed", i)
+                    exc = e
+            if (exc is not None):
+                print("SHOULD STOP AFTER HEREEEE!")
+                traceback.print_exc()           # ←←←←←←←←←←←←←←←←←←←←←←←←←
+                raise exc from None
         return None  # self line is never reached, but exists for c# value return requirement
 
     async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
