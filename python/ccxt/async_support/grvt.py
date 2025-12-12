@@ -1324,7 +1324,7 @@ class grvt(Exchange, ImplicitAPI):
         else:
             raise InvalidOrder(self.id + ' createOrder(): order side must be either "buy" or "sell"')
         request = {
-            'sub_account_id': self.get_sub_account_id(params),
+            'sub_account_id': str(self.get_sub_account_id(params)),
             'time_in_force': 'GOOD_TILL_TIME',
             'legs': [orderLeg],
             'signature': {
@@ -1332,13 +1332,13 @@ class grvt(Exchange, ImplicitAPI):
                 'r': '',
                 's': '',
                 'v': 0,
-                'expiration': '1765500000000000000',  #(self.milliseconds() * 1000000 + str(1000000000)),
-                'nonce': 123456789,  # self.nonce(),
+                'expiration': str(self.milliseconds() * 1000000 + 100000000000),
+                'nonce': self.nonce(),
                 # 'chain_id': '325',
             },
             'metadata': {
-                'client_order_id': '12345678',  # str(self.nonce()),
-                # 'create_time': '1765000000000000000',  #(self.milliseconds() * str(1000000)),
+                'client_order_id': str(self.nonce()),
+                # 'create_time': str(self.milliseconds() * 1000000),
                 # 'trigger': {
                 #     'trigger_type': 'TAKE_PROFIT',
                 #     'tpsl': {
@@ -1347,24 +1347,23 @@ class grvt(Exchange, ImplicitAPI):
                 #          'close_position': False,
                 #     },
                 # },
-                # 'broker': 'BROKER_CODE',
+                # 'trigger': None,
+                # 'broker': 'BROKER_CODE', // None
             },
-            # 'order_id': null,
             'is_market': False,
             'post_only': False,
             'reduce_only': False,
-            # 'state': null,
+            # 'order_id': None,
+            # 'state': None,
         }
         domainData = self.get_eip712_domain_data()
         messageData = self.build_eip712_order_message_data(request)
-        privateKey = self.remove0x_prefix(self.secret)  # remove first two characters '0x'
-
-        from eth_account import Account
-        account = Account.from_key(privateKey)
-        encodedData = self.eth_encode_structured_data_only(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
-        signed_message = account.sign_message(encodedData)
-        signatureR = "0x" + hex(signed_message.r)[2:].zfill(64)  # same as: "0x" + signed_message.r.to_bytes(32, byteorder="big").hex()
-
+        privateKey = self.remove0x_prefix(self.secret)
+        # from eth_account import Account
+        # account = Account.from_key(privateKey)
+        # encodedData = self.eth_encode_structured_data_only(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
+        # signed_message = account.sign_message(encodedData)
+        # signatureR = "0x" + hex(signed_message.r)[2:].zfill(64)  # same as: "0x" + signed_message.r.to_bytes(32, byteorder="big").hex()
         request['signature']['signer'] = self.options['sub_account_address']  # todo: unify later
         ethEncodedMessage = self.eth_encode_structured_data(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
         ethEncodedMessageHashed = '0x' + self.hash(ethEncodedMessage, 'keccak', 'hex')
@@ -1376,108 +1375,14 @@ class grvt(Exchange, ImplicitAPI):
             'order': request,
         }
         response = await self.privateTradingPostFullV1CreateOrder(self.extend(fullRequest, params))
-        data = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 'result', {})
         return self.parse_order(data, market)
-
-    async def create_order2(self):
-        await self.sign_in()
-        orderLeg = {
-            'instrument': 'BTC_USDT_Perp',
-            'size': "1.2",
-            'limit_price': "64170.7",
-            'is_buying_asset': True,
-        }
-        request = {
-            'sub_account_id': str(self.get_sub_account_id({})),
-            'time_in_force': 'GOOD_TILL_TIME',
-            'legs': [orderLeg],
-            'signature': {
-                'signer': '',  # self.apiKey,  # self.safe_string(self.options, 'AuthAccountId'),
-                'r': '',
-                's': '',
-                'v': 0,
-                'expiration': '1767286894814546400',  #(self.milliseconds() * 1000000 + str(1000000000)),
-                'nonce': 2485661707,  # self.nonce(),
-                # 'chain_id': '325',
-            },
-            'metadata': {
-                'client_order_id': '2147918296',  # str(self.nonce()),
-                'create_time': None,  #(self.milliseconds() * str(1000000)),
-                'trigger': None,
-                'broker': None,
-            },
-            'is_market': False,
-            'post_only': False,
-            'reduce_only': False,
-            'order_id': None,
-            'state': None,
-        }
-        domainData = self.get_eip712_domain_data()
-        messageData = self.build_eip712_order_message_data2(request)
-        privateKey = self.remove0x_prefix(self.secret)  # remove first two characters '0x'
-
-        # from eth_account import Account
-        # account = Account.from_key(privateKey)
-        # encodedData = self.eth_encode_structured_data_only(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
-        # signed_message = account.sign_message(encodedData)
-        # signatureR = "0x" + hex(signed_message.r)[2:].zfill(64)  # same as: "0x" + signed_message.r.to_bytes(32, byteorder="big").hex()
-        # signatureS = "0x" + hex(signed_message.s)[2:].zfill(64)  # same as: "0x" + signed_message.r.to_bytes(32, byteorder="big").hex()
-        # approach 2
-        ethEncodedMessage = self.eth_encode_structured_data(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
-        ethEncodedMessageHashed = '0x' + self.hash(ethEncodedMessage, 'keccak', 'hex')
-        signature = self.ecdsa(self.remove0x_prefix(ethEncodedMessageHashed), privateKey, 'secp256k1', None)
-        request['signature']['r'] = '0x' + signature['r']
-        request['signature']['s'] = '0x' + signature['s']
-        ############
-        request['signature']['v'] = self.sum(27, signature['v'])
-        request['signature']['signer'] = self.options['sub_account_address']  # todo: unify later
-        fullRequest = {
-            'order': request,
-        }
-        response = await self.privateTradingPostFullV1CreateOrder(self.extend(fullRequest))
-        data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data)
 
     def convert_to_big_int(self, x):
         return int(x)
 
-    def build_eip712_order_message_data2(self, order):
-        PRICE_MULTIPLIER = '1000000000'
-        orderLegs = self.safe_list(order, 'legs', [])
-        legs = []
-        for i in range(0, len(orderLegs)):
-            leg = orderLegs[i]
-            bigInt10 = self.convert_to_big_int('10')
-            size_multiplier = bigInt10 ** self.convert_to_big_int('9')
-            size = leg['size']
-            parts = size.split('.')
-            sizeDec = parts[1]
-            size_int = ((self.convert_to_big_int(size.replace('.', '')) * size_multiplier) / (bigInt10 ** self.convert_to_big_int(len(sizeDec))))
-            price = leg['limit_price']
-            limitParts = price.split('.')
-            limitDec = self.safe_string(limitParts, 1, '')
-            limitDecLength = len(limitDec)
-            limitDecLengthStr = str(limitDecLength)
-            price_int = (self.convert_to_big_int(price.replace('.', '')) * self.convert_to_big_int(PRICE_MULTIPLIER) / (bigInt10 ** self.convert_to_big_int(limitDecLengthStr)))
-            legs.append({
-                'assetID': '0x030501',
-                'contractSize': int(size_int),
-                'limitPrice': int(price_int),
-                'isBuyingContract': leg['is_buying_asset'],
-            })
-        return {
-            'subAccountID': order['sub_account_id'],
-            'isMarket': order['is_market'],
-            'timeInForce': 1,  # good_till_time
-            'postOnly': order['post_only'],
-            'reduceOnly': order['reduce_only'],
-            'legs': legs,
-            'nonce': order['signature']['nonce'],
-            'expiration': order['signature']['expiration'],
-        }
-
     def build_eip712_order_message_data(self, order):
-        PRICE_MULTIPLIER = '1000000'
+        PRICE_MULTIPLIER = '1000000000'
         orderLegs = self.safe_list(order, 'legs', [])
         legs = []
         for i in range(0, len(orderLegs)):
