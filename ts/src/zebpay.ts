@@ -1007,16 +1007,16 @@ export default class zebpay extends Exchange {
             const marginAsset = this.safeString (params, 'marginAsset', 'INR');
             const formType = this.safeStringUpper (params, 'formType', 'ORDER_FORM');
             request['formType'] = formType;
-            request['amount'] = this.amountToPrecision (market['id'], amount);
+            request['amount'] = this.parseToNumeric (this.amountToPrecision (market['id'], amount));
             request['marginAsset'] = marginAsset;
             const hasTP = takeProfitPrice !== undefined;
             const hasSL = stopLossPrice !== undefined;
             if (hasTP || hasSL) {
                 if (hasTP) {
-                    request['takeProfitPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+                    request['takeProfitPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, takeProfitPrice));
                 }
                 if (hasSL) {
-                    request['stopLossPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+                    request['stopLossPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
                 }
                 response = await this.privateSwapPostV1TradeOrderAddTPSL (this.extend (request, params));
             } else {
@@ -1025,7 +1025,7 @@ export default class zebpay extends Exchange {
                     if (price === undefined) {
                         throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
                     }
-                    request['price'] = this.priceToPrecision (symbol, price);
+                    request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
                 }
                 response = await this.privateSwapPostV1TradeOrder (this.extend (request, params));
             }
@@ -1886,7 +1886,7 @@ export default class zebpay extends Exchange {
                 url += '?' + queryString;
             } else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
-                body = JSON.stringify (params);
+                body = this.json (params);
                 signature = this.hmac (this.encode (body), this.encode (this.secret), sha256, 'hex');
             }
             headers = {
