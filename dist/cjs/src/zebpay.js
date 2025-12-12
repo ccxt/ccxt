@@ -1875,6 +1875,7 @@ class zebpay extends zebpay$1["default"] {
                 signature = this.hmac(this.encode(body), this.encode(this.secret), sha256.sha256, 'hex');
             }
             headers = {
+                'Referrer': 'ccxt',
                 'X-AUTH-APIKEY': this.apiKey,
                 'X-AUTH-SIGNATURE': signature,
             };
