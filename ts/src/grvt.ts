@@ -1391,8 +1391,10 @@ export default class grvt extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' createOrder(): order side must be either "buy" or "sell"');
         }
+        const expiration = this.milliseconds () * 1000000 + 100000000000;
+        const subAccountId = this.getSubAccountId (params);
         const request = {
-            'sub_account_id': this.getSubAccountId (params),
+            'sub_account_id': subAccountId.toString (),
             'time_in_force': 'GOOD_TILL_TIME',
             'legs': [ orderLeg ],
             'signature': {
@@ -1400,14 +1402,14 @@ export default class grvt extends Exchange {
                 'r': '',
                 's': '',
                 'v': 0,
-                'expiration': '1765500000000000000', // (this.milliseconds () * 1000000 + 1000000000).toString (),
-                'nonce': 123456789,  // this.nonce (),
+                'expiration': expiration.toString (),
+                'nonce': this.nonce (),
                 // 'chain_id': '325',
             },
             'metadata': {
                 'client_order_id': '12345678',  // str(self.nonce()),
                 // 'create_time': '1765000000000000000',  //(self.milliseconds() * str(1000000)),
-                // 'trigger': {
+                // 'trigger': None or {
                 //     'trigger_type': 'TAKE_PROFIT',
                 //     'tpsl': {
                 //         'trigger_by': 'LAST',
@@ -1415,12 +1417,12 @@ export default class grvt extends Exchange {
                 //          'close_position': false,
                 //     },
                 // },
-                // 'broker': 'BROKER_CODE',
+                // 'broker': 'BROKER_CODE', // None
             },
-            // 'order_id': null,
             'is_market': false,
             'post_only': false,
             'reduce_only': false,
+            // 'order_id': null,
             // 'state': null,
         };
         const domainData = this.get_EIP712_domain_data ();
@@ -1442,7 +1444,7 @@ export default class grvt extends Exchange {
             'order': request,
         };
         const response = await this.privateTradingPostFullV1CreateOrder (this.extend (fullRequest, params));
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'result', {});
         return this.parseOrder (data, market);
     }
 
