@@ -535,7 +535,7 @@ export default class bybit extends bybitRest {
         // spot
         //     {
         //         "topic": "tickers.BTCUSDT",
-        //         "ts": 1673853746003,
+        //         "ts": 1673853746002,
         //         "type": "snapshot",
         //         "cs": 2588407389,
         //         "data": {

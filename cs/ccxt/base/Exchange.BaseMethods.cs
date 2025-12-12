@@ -4391,8 +4391,8 @@ public partial class Exchange
         priceKey ??= 0;
         amountKey ??= 1;
         countOrIdKey ??= 2;
-        object price = this.safeNumber(bidask, priceKey);
-        object amount = this.safeNumber(bidask, amountKey);
+        object price = this.safeFloat(bidask, priceKey);
+        object amount = this.safeFloat(bidask, amountKey);
         object countOrId = this.safeInteger(bidask, countOrIdKey);
         object bidAsk = new List<object>() {price, amount};
         if (isTrue(!isEqual(countOrId, null)))

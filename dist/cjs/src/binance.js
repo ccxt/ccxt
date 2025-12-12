@@ -6232,7 +6232,7 @@ class binance extends binance$1["default"] {
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         let cost = this.safeString2(order, 'cummulativeQuoteQty', 'cumQuote');
         cost = this.safeString(order, 'cumBase', cost);
-        const type = this.safeStringLower(order, 'type');
+        const type = this.safeStringLower2(order, 'type', 'orderType');
         const side = this.safeStringLower(order, 'side');
         const fills = this.safeList(order, 'fills', []);
         let timeInForce = this.safeString(order, 'timeInForce');
