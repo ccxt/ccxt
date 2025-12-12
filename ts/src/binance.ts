@@ -5603,7 +5603,7 @@ export default class binance extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: string) {
+    parseOrderType (type: Str) {
         const types = {
             'limit_maker': 'limit',
             'stop': 'limit',
