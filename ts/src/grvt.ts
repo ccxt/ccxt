@@ -1407,7 +1407,7 @@ export default class grvt extends Exchange {
                 // 'chain_id': '325',
             },
             'metadata': {
-                'client_order_id': '12345678',  // str(self.nonce()),
+                'client_order_id': this.nonce ().toString (),  // str(self.nonce()),
                 // 'create_time': '1765000000000000000',  //(self.milliseconds() * str(1000000)),
                 // 'trigger': None or {
                 //     'trigger_type': 'TAKE_PROFIT',
@@ -1453,7 +1453,7 @@ export default class grvt extends Exchange {
     }
 
     build_EIP712_order_message_data (order) {
-        const PRICE_MULTIPLIER = '1000000';
+        const PRICE_MULTIPLIER = '1000000000';
         const orderLegs = this.safeList (order, 'legs', []);
         const legs = [];
         for (let i = 0; i < orderLegs.length; i++) {

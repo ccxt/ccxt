@@ -1323,8 +1323,10 @@ class grvt(Exchange, ImplicitAPI):
             orderLeg['is_buying_asset'] = True
         else:
             raise InvalidOrder(self.id + ' createOrder(): order side must be either "buy" or "sell"')
+        expiration = self.milliseconds() * 1000000 + 100000000000
+        subAccountId = self.get_sub_account_id(params)
         request = {
-            'sub_account_id': str(self.get_sub_account_id(params)),
+            'sub_account_id': str(subAccountId),
             'time_in_force': 'GOOD_TILL_TIME',
             'legs': [orderLeg],
             'signature': {
@@ -1332,14 +1334,14 @@ class grvt(Exchange, ImplicitAPI):
                 'r': '',
                 's': '',
                 'v': 0,
-                'expiration': str(self.milliseconds() * 1000000 + 100000000000),
+                'expiration': str(expiration),
                 'nonce': self.nonce(),
                 # 'chain_id': '325',
             },
             'metadata': {
-                'client_order_id': str(self.nonce()),
-                # 'create_time': str(self.milliseconds() * 1000000),
-                # 'trigger': {
+                'client_order_id': str(self.nonce()),  # str(self.nonce()),
+                # 'create_time': '1765000000000000000',  #(self.milliseconds() * str(1000000)),
+                # 'trigger': None or {
                 #     'trigger_type': 'TAKE_PROFIT',
                 #     'tpsl': {
                 #         'trigger_by': 'LAST',
@@ -1347,24 +1349,23 @@ class grvt(Exchange, ImplicitAPI):
                 #          'close_position': False,
                 #     },
                 # },
-                # 'trigger': None,
-                # 'broker': 'BROKER_CODE', // None
+                # 'broker': 'BROKER_CODE',  # None
             },
             'is_market': False,
             'post_only': False,
             'reduce_only': False,
-            # 'order_id': None,
-            # 'state': None,
+            # 'order_id': null,
+            # 'state': null,
         }
         domainData = self.get_eip712_domain_data()
         messageData = self.build_eip712_order_message_data(request)
-        privateKey = self.remove0x_prefix(self.secret)
+        privateKey = self.remove0x_prefix(self.secret)  # remove first two characters '0x'
         # from eth_account import Account
         # account = Account.from_key(privateKey)
         # encodedData = self.eth_encode_structured_data_only(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
         # signed_message = account.sign_message(encodedData)
-        # signatureR = "0x" + hex(signed_message.r)[2:].zfill(64)  # same as: "0x" + signed_message.r.to_bytes(32, byteorder="big").hex()
-        request['signature']['signer'] = self.options['sub_account_address']  # todo: unify later
+        # request['signature']['r'] = "0x" + hex(signed_message.r)[2:].zfill(64)  # same as: "0x" + signed_message.r.to_bytes(32, byteorder="big").hex()
+        request['signature']['signer'] = self.options['sub_account_address']  # todo: unify later, eg. str(account.address)
         ethEncodedMessage = self.eth_encode_structured_data(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
         ethEncodedMessageHashed = '0x' + self.hash(ethEncodedMessage, 'keccak', 'hex')
         signature = self.ecdsa(self.remove0x_prefix(ethEncodedMessageHashed), privateKey, 'secp256k1', None)
