@@ -2137,5 +2137,8 @@
                 "spread": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/19507537406/job/55838385322?pr=25884"
             }
         }
+    },
+    "zebpay": {
+        "skip": "ip whitelist required"
     }
 }
