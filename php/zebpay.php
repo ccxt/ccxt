@@ -66,7 +66,7 @@ class zebpay extends Exchange {
             'urls' => array(
                 'logo' => 'https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad',
                 'api' => array(
-                    'spot' => 'https://api.zebpay.com',
+                    'spot' => 'https://sapi.zebpay.com',
                     'swap' => 'https://futuresbe.zebpay.com',
                 ),
                 'test' => array(
