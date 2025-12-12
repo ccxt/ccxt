@@ -37,6 +37,54 @@
         ],
         "createOrder": [
             {
+                "description": "takeProfit limit order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.1,
+                    10000,
+                    {
+                        "takeProfitPrice": 10000
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"price\":\"10000\",\"category\":\"linear\",\"qty\":\"0.1\",\"triggerDirection\":1,\"triggerPrice\":\"10000\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "sl limit order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.1,
+                    4000,
+                    {
+                        "stopLossPrice": 4000
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"price\":\"4000\",\"category\":\"linear\",\"qty\":\"0.1\",\"triggerDirection\":2,\"triggerPrice\":\"4000\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "sl market order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "stopLossPrice": 4000
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"0.1\",\"triggerDirection\":2,\"triggerPrice\":\"4000\",\"reduceOnly\":true}"
+            },
+            {
                 "description": "protective oco order - limit",
                 "method": "createOrder",
                 "url": "https://api.bybit.com/v5/position/trading-stop",
