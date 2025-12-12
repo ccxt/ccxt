@@ -1260,16 +1260,16 @@ func (this *ZebpayCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 			var marginAsset interface{} = this.SafeString(params, "marginAsset", "INR")
 			var formType interface{} = this.SafeStringUpper(params, "formType", "ORDER_FORM")
 			AddElementToObject(request, "formType", formType)
-			AddElementToObject(request, "amount", this.AmountToPrecision(GetValue(market, "id"), amount))
+			AddElementToObject(request, "amount", this.ParseToNumeric(this.AmountToPrecision(GetValue(market, "id"), amount)))
 			AddElementToObject(request, "marginAsset", marginAsset)
 			var hasTP interface{} = !IsEqual(takeProfitPrice, nil)
 			var hasSL interface{} = !IsEqual(stopLossPrice, nil)
 			if IsTrue(IsTrue(hasTP) || IsTrue(hasSL)) {
 				if IsTrue(hasTP) {
-					AddElementToObject(request, "takeProfitPrice", this.PriceToPrecision(symbol, takeProfitPrice))
+					AddElementToObject(request, "takeProfitPrice", this.ParseToNumeric(this.PriceToPrecision(symbol, takeProfitPrice)))
 				}
 				if IsTrue(hasSL) {
-					AddElementToObject(request, "stopLossPrice", this.PriceToPrecision(symbol, stopLossPrice))
+					AddElementToObject(request, "stopLossPrice", this.ParseToNumeric(this.PriceToPrecision(symbol, stopLossPrice)))
 				}
 
 				response = (<-this.PrivateSwapPostV1TradeOrderAddTPSL(this.Extend(request, params)))
@@ -1280,7 +1280,7 @@ func (this *ZebpayCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 					if IsTrue(IsEqual(price, nil)) {
 						panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument for limit orders")))
 					}
-					AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+					AddElementToObject(request, "price", this.ParseToNumeric(this.PriceToPrecision(symbol, price)))
 				}
 
 				response = (<-this.PrivateSwapPostV1TradeOrder(this.Extend(request, params)))
@@ -2382,10 +2382,11 @@ func (this *ZebpayCore) Sign(path interface{}, optionalArgs ...interface{}) inte
 			url = Add(url, Add("?", queryString))
 		} else {
 			// For POST/PUT: Convert body to JSON and sign the stringified payload
-			body = JsonStringify(params)
+			body = this.Json(params)
 			signature = this.Hmac(this.Encode(body), this.Encode(this.Secret), sha256, "hex")
 		}
 		headers = map[string]interface{}{
+			"Referrer":         "ccxt",
 			"X-AUTH-APIKEY":    this.ApiKey,
 			"X-AUTH-SIGNATURE": signature,
 		}
