@@ -818,7 +818,7 @@ public partial class zebpay : Exchange
             response = await this.publicSpotGetV2MarketTrades(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "publicSwapGetV1MarketAggTrade", new object[] { this.extend(request, parameters) }));
+            response = await this.publicSwapGetV1MarketAggTrade(this.extend(request, parameters));
         }
         //
         //     [
@@ -866,7 +866,7 @@ public partial class zebpay : Exchange
             throw new NotSupported ((string)add(this.id, " fetchMyTrades() does not support spot markets")) ;
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateSwapGetV1TradeHistory", new object[] { parameters }));
+            response = await this.privateSwapGetV1TradeHistory(parameters);
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object items = this.safeList(data, "items", new List<object>() {});

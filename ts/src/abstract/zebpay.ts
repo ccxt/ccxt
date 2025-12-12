@@ -26,6 +26,7 @@ interface Exchange {
     publicSwapGetV1MarketOrderBook (params?: {}): Promise<implicitReturnType>;
     publicSwapGetV1MarketTicker24Hr (params?: {}): Promise<implicitReturnType>;
     publicSwapGetV1MarketMarkets (params?: {}): Promise<implicitReturnType>;
+    publicSwapGetV1MarketAggTrade (params?: {}): Promise<implicitReturnType>;
     publicSwapPostV1MarketKlines (params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2ExOrders (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2ExOrders (params?: {}): Promise<implicitReturnType>;
@@ -42,6 +43,7 @@ interface Exchange {
     privateSwapGetV1TradeUserLeverages (params?: {}): Promise<implicitReturnType>;
     privateSwapGetV1TradeUserLeverage (params?: {}): Promise<implicitReturnType>;
     privateSwapGetV1TradePositions (params?: {}): Promise<implicitReturnType>;
+    privateSwapGetV1TradeHistory (params?: {}): Promise<implicitReturnType>;
     privateSwapPostV1TradeOrder (params?: {}): Promise<implicitReturnType>;
     privateSwapPostV1TradeOrderAddTPSL (params?: {}): Promise<implicitReturnType>;
     privateSwapPostV1TradeAddMargin (params?: {}): Promise<implicitReturnType>;

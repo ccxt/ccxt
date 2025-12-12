@@ -5,7 +5,11 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var data = require('./data.js');
 var errors = require('./errors.js');
 
-// ----------------------------------------------------------------------------
+/**
+ *  Some mathematic operations.
+ *
+ *  @_subsection: api/utils:Math Helpers  [about-maths]
+ */
 const BN_0 = BigInt(0);
 const BN_1 = BigInt(1);
 //const BN_Max256 = (BN_1 << BigInt(256)) - BN_1;

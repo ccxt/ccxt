@@ -250,7 +250,7 @@ public partial class coinmate : Exchange
     public async override Task<object> fetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "publicGetSystemTime", new object[] { parameters }));
+        object response = await this.publicGetSystemTime(parameters);
         //
         //     {
         //         "serverTime": 1765250628745
