@@ -217,11 +217,11 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
-            // beware of .reverse() in python, because opposed to JS, python does in-place, so 
-            // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
+            // beware of .reverse() in python, because opposed to JS, python does in-place, so
+            // only cases like `x = x.reverse ()` should be transpiled, which will resul as
             // `x.reverse()` in python. otherwise, if transpiling `x = y.reverse()`, then the
             // left side `x = `will be removed and only `y.reverse()` will end up in python
-            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ], 
+            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
@@ -257,6 +257,7 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
+            [ /((?:let|const|var) \w+\: )(Partial|Readonly|Required)\s*<\s*(\w*)\s*>/, '$1$3' ],  // stripe common generic templates, ie. `let market: Partial<MarketInterface>; --> market: MarketInterface`
             [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/, '$1List[$2]' ],  // typed variable with list type
             [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/, '$1List[List[$2]]' ],  // typed variables with double list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
@@ -411,7 +412,7 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any(?:\[\])*);\n/mg, '' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|Bool|SubType|MarketType|string|number|Dict|any(?:\[\])*|(Partial|Readonly|Required)\s*<\s*\S+\s*>);\n/mg, '' ],
             [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any(?:\[\])*)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -575,7 +576,7 @@ class Transpiler {
     getTypescriptRemovalRegexes() {
         return [
             [ /\((\w+)\sas\s\w+\)/g, '$1'], // remove (this as any) or (x as number) paren included
-            [ /\sas (Dictionary<)?\w+(\[])?(>)?/g, ''], // remove any "as any" or "as number" or "as trade[]"
+            [ /\sas ((Dictionary|Partial|Readonly|Required)<)?\w+(\[])?(>)?/g, ''], // remove any "as any" or "as number" or "as trade[]"
             [ /([let|const][^:]+):([^=]+)(\s+=.*$)/g, '$1$3'], // remove variable type
         ]
     }
@@ -1621,6 +1622,8 @@ class Transpiler {
                 return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
 
+            const unwrapTemplateRe = /(Partial|Readonly|Required)<\s*(\S+)\s*>/
+
             if (this.buildPHP) {
                 // add $ to each argument name in PHP method signature
                 const phpTypes: dict = {
@@ -1659,7 +1662,11 @@ class Transpiler {
                         nullable = nullable || variable.slice (-1) === '?'
                         variable = variable.replace (/\?$/, '')
                         const type = secondPart[0].trim ()
-                        const phpType = phpTypes[type] ?? type
+                        let phpType = phpTypes[type] ?? type
+                        const unwrapTemplate = phpType.match(unwrapTemplateRe);
+                        if (unwrapTemplate) {
+                            phpType = unwrapTemplate[2]
+                        }
                         let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
                         if (resolveType === 'object[]') {
                             resolveType = 'mixed'; // in PHP objects are not compatible with ArrayCache, so removing this type for now;
@@ -1707,7 +1714,11 @@ class Transpiler {
                         let variable = parts[0]
                         // const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
                         variable = variable.replace (/\?$/, '')
-                        const rawType = unwrapLists (type)
+                        let rawType = unwrapLists (type)
+                        const unwrapTemplate = rawType.match(unwrapTemplateRe);
+                        if (unwrapTemplate) {
+                            rawType = unwrapTemplate[2]
+                        }
                         return variable + ': ' + rawType + typeParts.join (' ')
                     } else {
                         return x.replace (' = ', '=')
@@ -2515,10 +2526,10 @@ class Transpiler {
             const phpDirsAmount = getDirLevelForPath('php', test.phpFileAsync || test.phpFileSync, 2);
             const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
             // In PHP preable, for specifically WS tests, we need to avoid php namespace differences for tests, for example, if WATCH methods use ccxt\\pro, then the inlcuded non-pro test methods (like "test_trade" etc) are under ccxt, causing the purely transpiled code to have namespace conflicts specifically in PHP. so, for now, let's just leave all watch method tests under `ccxt` namespace, not `ccxt\pro`
-            // let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs); 
+            // let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs);
             const includePath = isWs && test.base;
             const addProNs = isWs && test.base; // only for base CACHE and ORDERBOOK tests
-            let phpPreamble = this.getPHPPreamble (includePath, phpDirsAmount, addProNs); 
+            let phpPreamble = this.getPHPPreamble (includePath, phpDirsAmount, addProNs);
 
 
             let pythonHeaderSync: string[] = []
