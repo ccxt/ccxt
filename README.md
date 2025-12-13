@@ -621,6 +621,12 @@ By default, CCXT uses a **leaky bucket** rate limiter to control the pace of out
 
 However, if the user provides a `rollingWindowSize` option, ccxt switches from the leaky bucket model to a **window-based rate** limiter. A window-based limiter enforces a maximum number of requests within a fixed time window (for example, N requests per X milliseconds). Once the limit is reached, further requests are delayed until the current window expires.
 
+Example:
+```Python
+exchange = ccxt.binance({
+    'rollingWindowSize': 5000 # if binance allows X requests per 5 seconds, those requests can be fired in a burst at any time during this window
+})
+```
 
 ## CCXT CLI
 
