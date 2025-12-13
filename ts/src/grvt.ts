@@ -1391,7 +1391,7 @@ export default class grvt extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' createOrder(): order side must be either "buy" or "sell"');
         }
-        const expiration = this.milliseconds () * 1000000 + 100000000000;
+        const expiration = '12345'; // this.milliseconds () * 1000000 + 100000000000;
         const subAccountId = this.getSubAccountId (params);
         const request = {
             'sub_account_id': subAccountId.toString (),
@@ -1403,11 +1403,11 @@ export default class grvt extends Exchange {
                 's': '',
                 'v': 0,
                 'expiration': expiration.toString (),
-                'nonce': this.nonce (),
+                'nonce': '1234', // this.nonce (),
                 // 'chain_id': '325',
             },
             'metadata': {
-                'client_order_id': this.nonce ().toString (),  // str(self.nonce()),
+                'client_order_id': '1234', // this.nonce ().toString (),
                 // 'create_time': '1765000000000000000',  //(self.milliseconds() * str(1000000)),
                 // 'trigger': None or {
                 //     'trigger_type': 'TAKE_PROFIT',
@@ -1433,13 +1433,13 @@ export default class grvt extends Exchange {
         // const encodedData = this.ethEncodeStructuredDataOnly (domainData, this.options['EIP712_ORDER_MESSAGE_TYPE'], messageData);
         // signed_message = account.sign_message(encodedData)
         // request['signature']['r'] = "0x" + hex(signed_message.r)[2:].zfill(64) # same as: "0x" + signed_message.r.to_bytes(32, byteorder="big").hex()
-        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later, eg. str(account.address)
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options['EIP712_ORDER_MESSAGE_TYPE'], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
         request['signature']['r'] = '0x' + signature['r'];
         request['signature']['s'] = '0x' + signature['s'];
         request['signature']['v'] = this.sum (27, signature['v']);
+        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later, eg. str(account.address)
         const fullRequest = {
             'order': request,
         };

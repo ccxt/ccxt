@@ -1322,7 +1322,7 @@ class grvt(Exchange, ImplicitAPI):
             orderLeg['is_buying_asset'] = True
         else:
             raise InvalidOrder(self.id + ' createOrder(): order side must be either "buy" or "sell"')
-        expiration = self.milliseconds() * 1000000 + 100000000000
+        expiration = '12345'  # self.milliseconds() * 1000000 + 100000000000
         subAccountId = self.get_sub_account_id(params)
         request = {
             'sub_account_id': str(subAccountId),
@@ -1334,11 +1334,11 @@ class grvt(Exchange, ImplicitAPI):
                 's': '',
                 'v': 0,
                 'expiration': str(expiration),
-                'nonce': self.nonce(),
+                'nonce': '1234',  # self.nonce(),
                 # 'chain_id': '325',
             },
             'metadata': {
-                'client_order_id': str(self.nonce()),  # str(self.nonce()),
+                'client_order_id': '1234',  # str(self.nonce()),
                 # 'create_time': '1765000000000000000',  #(self.milliseconds() * str(1000000)),
                 # 'trigger': None or {
                 #     'trigger_type': 'TAKE_PROFIT',
@@ -1364,13 +1364,13 @@ class grvt(Exchange, ImplicitAPI):
         # encodedData = self.eth_encode_structured_data_only(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
         # signed_message = account.sign_message(encodedData)
         # request['signature']['r'] = "0x" + hex(signed_message.r)[2:].zfill(64)  # same as: "0x" + signed_message.r.to_bytes(32, byteorder="big").hex()
-        request['signature']['signer'] = self.options['sub_account_address']  # todo: unify later, eg. str(account.address)
         ethEncodedMessage = self.eth_encode_structured_data(domainData, self.options['EIP712_ORDER_MESSAGE_TYPE'], messageData)
         ethEncodedMessageHashed = '0x' + self.hash(ethEncodedMessage, 'keccak', 'hex')
         signature = self.ecdsa(self.remove0x_prefix(ethEncodedMessageHashed), privateKey, 'secp256k1', None)
         request['signature']['r'] = '0x' + signature['r']
         request['signature']['s'] = '0x' + signature['s']
         request['signature']['v'] = self.sum(27, signature['v'])
+        request['signature']['signer'] = self.options['sub_account_address']  # todo: unify later, eg. str(account.address)
         fullRequest = {
             'order': request,
         }
