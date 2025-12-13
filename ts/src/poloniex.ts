@@ -3272,9 +3272,9 @@ export default class poloniex extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3298,7 +3298,20 @@ export default class poloniex extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.swapPrivatePostV3PositionLeverage (this.extend (request, params));
-        return response;
+        //
+        //     {
+        //         "code":200,
+        //         "data":{
+        //             "lever":"7",
+        //             "symbol":"DOGE_USDT_PERP",
+        //             "mgnMode": "CROSS",
+        //             "posSide": "BOTH"
+        //         },
+        //         "msg":"Success"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**
@@ -3369,12 +3382,27 @@ export default class poloniex extends Exchange {
         let marketId: Str = undefined;
         let marginMode: Str = undefined;
         const data = this.safeList (leverage, 'data');
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            marketId = this.safeString (entry, 'symbol');
-            marginMode = this.safeString (entry, 'mgnMode');
-            const lever = this.safeInteger (entry, 'lever');
-            const posSide = this.safeString (entry, 'posSide');
+        if (data !== undefined) {
+            for (let i = 0; i < data.length; i++) {
+                const entry = data[i];
+                marketId = this.safeString (entry, 'symbol');
+                marginMode = this.safeStringLower (entry, 'mgnMode');
+                const lever = this.safeInteger (entry, 'lever');
+                const posSide = this.safeString (entry, 'posSide');
+                if (posSide === 'LONG') {
+                    longLeverage = lever;
+                } else if (posSide === 'SHORT') {
+                    shortLeverage = lever;
+                } else {
+                    longLeverage = lever;
+                    shortLeverage = lever;
+                }
+            }
+        } else {
+            marketId = this.safeString (leverage, 'symbol');
+            marginMode = this.safeStringLower (leverage, 'mgnMode');
+            const lever = this.safeInteger (leverage, 'lever');
+            const posSide = this.safeString (leverage, 'posSide');
             if (posSide === 'LONG') {
                 longLeverage = lever;
             } else if (posSide === 'SHORT') {
