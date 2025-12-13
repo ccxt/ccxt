@@ -73,6 +73,8 @@ export default class deribit extends Exchange {
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
                 'fetchOption': true,
                 'fetchOptionChain': true,
@@ -3768,6 +3770,107 @@ export default class deribit extends Exchange {
             'baseVolume': this.safeNumber (chain, 'volume'),
             'quoteVolume': this.safeNumber (chain, 'volume_usd'),
         };
+    }
+
+    /**
+     * @method
+     * @name deribit#fetchOpenInterest
+     * @description Retrieves the open interest of a symbol
+     * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterest (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const request: Dict = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicGetGetBookSummaryByInstrument (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "high": 93099.5,
+        //                 "low": 81773.0,
+        //                 "last": 87197.0,
+        //                 "instrument_name": "BTC-PERPETUAL",
+        //                 "bid_price": 87083.0,
+        //                 "ask_price": 87149.5,
+        //                 "open_interest": 9978911260,
+        //                 "mark_price": 87102.01,
+        //                 "creation_timestamp": 1763674177068,
+        //                 "price_change": -3.2032,
+        //                 "volume": 7377.18657991,
+        //                 "estimated_delivery_price": 87047.2,
+        //                 "base_currency": "BTC",
+        //                 "quote_currency": "USD",
+        //                 "volume_usd": 661040250.0,
+        //                 "volume_notional": 661040250.0,
+        //                 "current_funding": 1.2966e-4,
+        //                 "funding_8h": -8.1069e-4,
+        //                 "mid_price": 87116.25
+        //             }
+        //         ],
+        //         "usIn": 1763674177068845,
+        //         "usOut": 1763674177068996,
+        //         "usDiff": 151,
+        //         "testnet": true
+        //     }
+        //
+        const result = this.safeList (response, 'result', []);
+        const data = this.safeDict (result, 0, {});
+        return this.parseOpenInterest (data, market);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        //     {
+        //         "high": 93099.5,
+        //         "low": 81773.0,
+        //         "last": 87197.0,
+        //         "instrument_name": "BTC-PERPETUAL",
+        //         "bid_price": 87083.0,
+        //         "ask_price": 87149.5,
+        //         "open_interest": 9978911260,
+        //         "mark_price": 87102.01,
+        //         "creation_timestamp": 1763674177068,
+        //         "price_change": -3.2032,
+        //         "volume": 7377.18657991,
+        //         "estimated_delivery_price": 87047.2,
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USD",
+        //         "volume_usd": 661040250.0,
+        //         "volume_notional": 661040250.0,
+        //         "current_funding": 1.2966e-4,
+        //         "funding_8h": -8.1069e-4,
+        //         "mid_price": 87116.25
+        //     }
+        //
+        const timestamp = this.safeInteger (interest, 'creation_timestamp');
+        const marketId = this.safeString (interest, 'instrument_name');
+        market = this.safeMarket (marketId, market);
+        const openInterest = this.safeNumber (interest, 'open_interest');
+        let openInterestAmount = undefined;
+        let openInterestValue = undefined;
+        if (market['option'] || (market['future'] && market['linear'])) {
+            openInterestAmount = openInterest;
+        } else {
+            openInterestValue = openInterest;
+        }
+        return this.safeOpenInterest ({
+            'symbol': this.safeSymbol (marketId, market),
+            'openInterestAmount': openInterestAmount,
+            'openInterestValue': openInterestValue,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
     }
 
     nonce () {

@@ -564,6 +564,7 @@ func (this *Bybit) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] unique client order id
  * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
  * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
  * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at

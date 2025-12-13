@@ -1637,8 +1637,8 @@ func (this *GateCore) ParseContractMarket(market interface{}, settleId interface
 		"contract":       true,
 		"linear":         isLinear,
 		"inverse":        !IsTrue(isLinear),
-		"taker":          nil,
-		"maker":          nil,
+		"taker":          this.ParseNumber("0.0005"),
+		"maker":          this.ParseNumber("0.0002"),
 		"contractSize":   this.ParseNumber(contractSize),
 		"expiry":         expiry,
 		"expiryDatetime": this.Iso8601(expiry),
@@ -1766,8 +1766,8 @@ func (this *GateCore) FetchOptionMarkets(optionalArgs ...interface{}) <-chan int
 					"contract":       true,
 					"linear":         true,
 					"inverse":        false,
-					"taker":          nil,
-					"maker":          nil,
+					"taker":          this.ParseNumber("0.0003"),
+					"maker":          this.ParseNumber("0.0003"),
 					"contractSize":   this.ParseNumber("1"),
 					"expiry":         expiry,
 					"expiryDatetime": this.Iso8601(expiry),
@@ -4488,7 +4488,7 @@ func (this *GateCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
 	if IsTrue(!IsEqual(pointFee, nil)) {
 		AppendToArray(&fees, map[string]interface{}{
 			"cost":     pointFee,
-			"currency": "GatePoint",
+			"currency": "GATEPOINT",
 		})
 	}
 	var takerOrMaker interface{} = this.SafeString(trade, "role")

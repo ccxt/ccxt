@@ -20,10 +20,11 @@ require (
 	github.com/supranational/blst v0.3.16-0.20250831170142-f48500c1fdbe // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	golang.org/x/crypto v0.36.0 // indirect
-	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 )
 
 replace github.com/ccxt/ccxt/go/v4 => ../

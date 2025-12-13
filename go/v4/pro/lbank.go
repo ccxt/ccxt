@@ -62,9 +62,11 @@ func  (this *LbankCore) Describe() interface{}  {
     })
 }
 func  (this *LbankCore) RequestId() interface{}  {
+    this.LockId()
     var previousValue interface{} = this.SafeInteger(this.Options, "requestId", 0)
     var newValue interface{} = this.Sum(previousValue, 1)
     ccxt.AddElementToObject(this.Options, "requestId", newValue)
+    this.UnlockId()
     return newValue
 }
 /**
@@ -93,8 +95,8 @@ func  (this *LbankCore) FetchOHLCVWs(symbol interface{}, optionalArgs ...interfa
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes768 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes768)
+            retRes788 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes788)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var watchOHLCVOptions interface{} = this.SafeValue(this.Options, "watchOHLCV", map[string]interface{} {})
@@ -116,9 +118,9 @@ func  (this *LbankCore) FetchOHLCVWs(symbol interface{}, optionalArgs ...interfa
             var request interface{} = this.DeepExtend(message, params)
             var requestId interface{} = this.RequestId()
         
-                retRes9715 :=  (<-this.Watch(url, messageHash, request, requestId, request))
-                ccxt.PanicOnError(retRes9715)
-                ch <- retRes9715
+                retRes9915 :=  (<-this.Watch(url, messageHash, request, requestId, request))
+                ccxt.PanicOnError(retRes9915)
+                ch <- retRes9915
                 return nil
         
             }()
@@ -150,8 +152,8 @@ func  (this *LbankCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes1138 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1138)
+            retRes1158 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1158)
             var market interface{} = this.Market(symbol)
             var watchOHLCVOptions interface{} = this.SafeValue(this.Options, "watchOHLCV", map[string]interface{} {})
             var timeframes interface{} = this.SafeValue(watchOHLCVOptions, "timeframes", map[string]interface{} {})
@@ -285,8 +287,8 @@ func  (this *LbankCore) FetchTickerWs(symbol interface{}, optionalArgs ...interf
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes2498 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2498)
+            retRes2518 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2518)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = ccxt.Add("fetchTicker:", ccxt.GetValue(market, "symbol"))
@@ -298,9 +300,9 @@ func  (this *LbankCore) FetchTickerWs(symbol interface{}, optionalArgs ...interf
             var request interface{} = this.DeepExtend(message, params)
             var requestId interface{} = this.RequestId()
         
-                retRes26015 :=  (<-this.Watch(url, messageHash, request, requestId, request))
-                ccxt.PanicOnError(retRes26015)
-                ch <- retRes26015
+                retRes26215 :=  (<-this.Watch(url, messageHash, request, requestId, request))
+                ccxt.PanicOnError(retRes26215)
+                ch <- retRes26215
                 return nil
         
             }()
@@ -323,8 +325,8 @@ func  (this *LbankCore) WatchTicker(symbol interface{}, optionalArgs ...interfac
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes2738 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2738)
+            retRes2758 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2758)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
@@ -335,9 +337,9 @@ func  (this *LbankCore) WatchTicker(symbol interface{}, optionalArgs ...interfac
             }
             var request interface{} = this.DeepExtend(message, params)
         
-                retRes28315 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
-                ccxt.PanicOnError(retRes28315)
-                ch <- retRes28315
+                retRes28515 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
+                ccxt.PanicOnError(retRes28515)
+                ch <- retRes28515
                 return nil
         
             }()
@@ -449,8 +451,8 @@ func  (this *LbankCore) FetchTradesWs(symbol interface{}, optionalArgs ...interf
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes3818 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3818)
+            retRes3838 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3838)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = ccxt.Add("fetchTrades:", ccxt.GetValue(market, "symbol"))
@@ -466,9 +468,9 @@ func  (this *LbankCore) FetchTradesWs(symbol interface{}, optionalArgs ...interf
             var request interface{} = this.DeepExtend(message, params)
             var requestId interface{} = this.RequestId()
         
-                retRes39615 :=  (<-this.Watch(url, messageHash, request, requestId, request))
-                ccxt.PanicOnError(retRes39615)
-                ch <- retRes39615
+                retRes39815 :=  (<-this.Watch(url, messageHash, request, requestId, request))
+                ccxt.PanicOnError(retRes39815)
+                ch <- retRes39815
                 return nil
         
             }()
@@ -497,8 +499,8 @@ func  (this *LbankCore) WatchTrades(symbol interface{}, optionalArgs ...interfac
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes4118 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4118)
+            retRes4138 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4138)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = ccxt.Add("trades:", ccxt.GetValue(market, "symbol"))
@@ -637,8 +639,8 @@ func  (this *LbankCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes5318 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5318)
+            retRes5338 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5338)
         
             key:= (<-this.Authenticate(params))
             ccxt.PanicOnError(key)
@@ -816,8 +818,8 @@ func  (this *LbankCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6958 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6958)
+            retRes6978 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6978)
         
             key:= (<-this.Authenticate(params))
             ccxt.PanicOnError(key)
@@ -830,9 +832,9 @@ func  (this *LbankCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
             }
             var request interface{} = this.DeepExtend(message, params)
         
-                retRes70515 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
-                ccxt.PanicOnError(retRes70515)
-                ch <- retRes70515
+                retRes70715 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
+                ccxt.PanicOnError(retRes70715)
+                ch <- retRes70715
                 return nil
         
             }()
@@ -890,8 +892,8 @@ func  (this *LbankCore) FetchOrderBookWs(symbol interface{}, optionalArgs ...int
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7528 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7528)
+            retRes7548 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7548)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = ccxt.Add("fetchOrderbook:", ccxt.GetValue(market, "symbol"))
@@ -935,8 +937,8 @@ func  (this *LbankCore) WatchOrderBook(symbol interface{}, optionalArgs ...inter
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7818 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7818)
+            retRes7838 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7838)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
@@ -1074,11 +1076,11 @@ func  (this *LbankCore) HandlePing(client interface{}, message interface{}) <- c
                         }()
             		    // try block:
                         
-                    retRes89512 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
+                    retRes89712 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
                         "action": "pong",
                         "pong": pingId,
                     }))
-                    ccxt.PanicOnError(retRes89512)
+                    ccxt.PanicOnError(retRes89712)
             		    return nil
             	    }(this)
                 

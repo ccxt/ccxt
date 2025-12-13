@@ -879,6 +879,7 @@ class binance extends binance$1["default"] {
                         'commissionRate': 20,
                         'rateLimit/order': 1,
                         'apiTradingStatus': 1,
+                        'symbolAdlRisk': 1,
                         'multiAssetsMargin': 30,
                         // broker endpoints
                         'apiReferral/ifNewUser': 1,

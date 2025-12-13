@@ -39,6 +39,18 @@ func (this *DeepcoinCore) PublicGetDeepcoinMarketStepMargin(args ...interface{})
 	return this.callEndpointAsync("publicGetDeepcoinMarketStepMargin", args...)
 }
 
+func (this *DeepcoinCore) PublicGetDeepcoinTradeFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDeepcoinTradeFundingRate", args...)
+}
+
+func (this *DeepcoinCore) PublicGetDeepcoinTradeFundRateCurrentFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDeepcoinTradeFundRateCurrentFundingRate", args...)
+}
+
+func (this *DeepcoinCore) PublicGetDeepcoinTradeFundRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDeepcoinTradeFundRateHistory", args...)
+}
+
 func (this *DeepcoinCore) PrivateGetDeepcoinAccountBalances(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetDeepcoinAccountBalances", args...)
 }
@@ -69,18 +81,6 @@ func (this *DeepcoinCore) PrivateGetDeepcoinTradeOrdersHistory(args ...interface
 
 func (this *DeepcoinCore) PrivateGetDeepcoinTradeV2OrdersPending(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetDeepcoinTradeV2OrdersPending", args...)
-}
-
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeFundingRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetDeepcoinTradeFundingRate", args...)
-}
-
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeFundRateCurrentFundingRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetDeepcoinTradeFundRateCurrentFundingRate", args...)
-}
-
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeFundRateHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetDeepcoinTradeFundRateHistory", args...)
 }
 
 func (this *DeepcoinCore) PrivateGetDeepcoinTradeTriggerOrdersPending(args ...interface{}) <-chan interface{} {

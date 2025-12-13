@@ -50,8 +50,8 @@ retrieves data on all markets for upbit
 
 **See**
 
-- https://docs.upbit.com/kr/reference/마켓-코드-조회
-- https://global-docs.upbit.com/reference/listing-market-list
+- https://docs.upbit.com/kr/reference/list-trading-pairs
+- https://global-docs.upbit.com/reference/list-trading-pairs
 
 
 | Param | Type | Required | Description |
@@ -74,8 +74,8 @@ query for balance and get the amount of funds available for trading or funds loc
 
 **See**
 
-- https://docs.upbit.com/kr/reference/전체-계좌-조회
-- https://global-docs.upbit.com/reference/overall-account-inquiry
+- https://docs.upbit.com/kr/reference/get-balance
+- https://global-docs.upbit.com/reference/get-balance
 
 
 | Param | Type | Required | Description |
@@ -98,8 +98,8 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 **See**
 
-- https://docs.upbit.com/kr/reference/호가-정보-조회
-- https://global-docs.upbit.com/reference/order-book-list
+- https://docs.upbit.com/kr/reference/list-orderbooks
+- https://global-docs.upbit.com/reference/list-orderbooks
 
 
 | Param | Type | Required | Description |
@@ -124,8 +124,8 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 **See**
 
-- https://docs.upbit.com/kr/reference/호가-정보-조회
-- https://global-docs.upbit.com/reference/order-book-list
+- https://docs.upbit.com/kr/reference/list-orderbooks
+- https://global-docs.upbit.com/reference/list-orderbooks
 
 
 | Param | Type | Required | Description |
@@ -150,8 +150,8 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 **See**
 
-- https://docs.upbit.com/kr/reference/ticker현재가-정보
-- https://global-docs.upbit.com/reference/tickers
+- https://docs.upbit.com/kr/reference/list-tickers
+- https://global-docs.upbit.com/reference/list-tickers
 
 
 | Param | Type | Required | Description |
@@ -175,8 +175,8 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 **See**
 
-- https://docs.upbit.com/kr/reference/ticker현재가-정보
-- https://global-docs.upbit.com/reference/tickers
+- https://docs.upbit.com/kr/reference/list-tickers
+- https://global-docs.upbit.com/reference/list-tickers
 
 
 | Param | Type | Required | Description |
@@ -200,8 +200,8 @@ get the list of most recent trades for a particular symbol
 
 **See**
 
-- https://docs.upbit.com/kr/reference/최근-체결-내역
-- https://global-docs.upbit.com/reference/today-trades-history
+- https://docs.upbit.com/kr/reference/list-pair-trades
+- https://global-docs.upbit.com/reference/list-pair-trades
 
 
 | Param | Type | Required | Description |
@@ -227,7 +227,7 @@ fetch the trading fees for a market
 
 **See**
 
-- https://docs.upbit.com/kr/reference/주문-가능-정보
+- https://docs.upbit.com/kr/reference/available-order-information
 - https://global-docs.upbit.com/reference/available-order-information
 
 
@@ -271,8 +271,8 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 **See**
 
-- https://docs.upbit.com/kr/reference/분minute-캔들-1
-- https://global-docs.upbit.com/reference/minutes
+- https://docs.upbit.com/kr/reference/list-candles-minutes
+- https://global-docs.upbit.com/reference/list-candles-minutes
 
 
 | Param | Type | Required | Description |
@@ -299,8 +299,10 @@ create a trade order
 
 **See**
 
-- https://docs.upbit.com/kr/reference/주문하기
-- https://global-docs.upbit.com/reference/order
+- https://docs.upbit.com/kr/reference/new-order
+- https://global-docs.upbit.com/reference/new-order
+- https://docs.upbit.com/kr/reference/order-test
+- https://global-docs.upbit.com/reference/order-test
 
 
 | Param | Type | Required | Description |
@@ -315,6 +317,7 @@ create a trade order
 | params.ordType | <code>string</code> | No | this field can be used to place a ‘best’ type order |
 | params.timeInForce | <code>string</code> | No | 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'. |
 | params.selfTradePrevention | <code>string</code> | No | 'reduce', 'cancel_maker', 'cancel_taker' [https://global-docs.upbit.com/docs/smp](https://global-docs.upbit.com/docs/smp) |
+| params.test | <code>boolean</code> | No | If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false. |
 
 
 ```javascript
@@ -332,8 +335,8 @@ cancels an open order
 
 **See**
 
-- https://docs.upbit.com/kr/reference/주문-취소
-- https://global-docs.upbit.com/reference/order-cancel
+- https://docs.upbit.com/kr/reference/cancel-order
+- https://global-docs.upbit.com/reference/cancel-order
 
 
 | Param | Type | Required | Description |
@@ -358,8 +361,8 @@ canceled existing order and create new order. It's only generated same side and 
 
 **See**
 
-- https://docs.upbit.com/kr/reference/취소-후-재주문
-- https://global-docs.upbit.com/reference/cancel-and-new
+- https://docs.upbit.com/kr/reference/cancel-and-new-order
+- https://global-docs.upbit.com/reference/cancel-and-new-order
 
 
 | Param | Type | Required | Description |
@@ -394,8 +397,8 @@ fetch all deposits made to an account
 
 **See**
 
-- https://docs.upbit.com/kr/reference/입금-리스트-조회
-- https://global-docs.upbit.com/reference/deposit-list-inquiry
+- https://docs.upbit.com/kr/reference/list-deposits
+- https://global-docs.upbit.com/reference/list-deposits
 
 
 | Param | Type | Required | Description |
@@ -421,8 +424,8 @@ fetch information on a deposit
 
 **See**
 
-- https://docs.upbit.com/kr/reference/개별-입금-조회
-- https://global-docs.upbit.com/reference/individual-deposit-inquiry
+- https://docs.upbit.com/kr/reference/get-deposit
+- https://global-docs.upbit.com/reference/get-deposit
 
 
 | Param | Type | Required | Description |
@@ -448,8 +451,8 @@ fetch all withdrawals made from an account
 
 **See**
 
-- https://docs.upbit.com/kr/reference/전체-출금-조회
-- https://global-docs.upbit.com/reference/withdrawal-list-inquiry
+- https://docs.upbit.com/kr/reference/list-withdrawals
+- https://global-docs.upbit.com/reference/list-withdrawals
 
 
 | Param | Type | Required | Description |
@@ -475,8 +478,8 @@ fetch data on a currency withdrawal via the withdrawal id
 
 **See**
 
-- https://docs.upbit.com/kr/reference/개별-출금-조회
-- https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+- https://docs.upbit.com/kr/reference/get-withdrawal
+- https://global-docs.upbit.com/reference/get-withdrawal
 
 
 | Param | Type | Required | Description |
@@ -502,8 +505,8 @@ fetch all unfilled currently open orders
 
 **See**
 
-- https://docs.upbit.com/kr/reference/대기-주문-조회
-- https://global-docs.upbit.com/reference/open-order
+- https://docs.upbit.com/kr/reference/list-open-orders
+- https://global-docs.upbit.com/reference/list-open-orders
 
 
 | Param | Type | Required | Description |
@@ -530,8 +533,8 @@ fetches information on multiple closed orders made by the user
 
 **See**
 
-- https://docs.upbit.com/kr/reference/종료-주문-조회
-- https://global-docs.upbit.com/reference/closed-order
+- https://docs.upbit.com/kr/reference/list-closed-orders
+- https://global-docs.upbit.com/reference/list-closed-orders
 
 
 | Param | Type | Required | Description |
@@ -558,8 +561,8 @@ fetches information on multiple canceled orders made by the user
 
 **See**
 
-- https://docs.upbit.com/kr/reference/종료-주문-조회
-- https://global-docs.upbit.com/reference/closed-order
+- https://docs.upbit.com/kr/reference/list-closed-orders
+- https://global-docs.upbit.com/reference/list-closed-orders
 
 
 | Param | Type | Required | Description |
@@ -586,8 +589,8 @@ fetches information on an order made by the user
 
 **See**
 
-- https://docs.upbit.com/kr/reference/개별-주문-조회
-- https://global-docs.upbit.com/reference/individual-order-inquiry
+- https://docs.upbit.com/kr/reference/get-order
+- https://global-docs.upbit.com/reference/get-order
 
 
 | Param | Type | Required | Description |
@@ -612,8 +615,8 @@ fetch deposit addresses for multiple currencies and chain types
 
 **See**
 
-- https://docs.upbit.com/kr/reference/전체-입금-주소-조회
-- https://global-docs.upbit.com/reference/general-deposit-address-inquiry
+- https://docs.upbit.com/kr/reference/list-deposit-addresses
+- https://global-docs.upbit.com/reference/list-deposit-addresses
 
 
 | Param | Type | Required | Description |
@@ -637,8 +640,8 @@ fetch the deposit address for a currency associated with this account
 
 **See**
 
-- https://docs.upbit.com/kr/reference/개별-입금-주소-조회
-- https://global-docs.upbit.com/reference/individual-deposit-address-inquiry
+- https://docs.upbit.com/kr/reference/get-deposit-address
+- https://global-docs.upbit.com/reference/get-deposit-address
 
 
 | Param | Type | Required | Description |
@@ -663,8 +666,8 @@ create a currency deposit address
 
 **See**
 
-- https://docs.upbit.com/kr/reference/입금-주소-생성-요청
-- https://global-docs.upbit.com/reference/deposit-address-generation
+- https://docs.upbit.com/kr/reference/create-deposit-address
+- https://global-docs.upbit.com/reference/create-deposit-address
 
 
 | Param | Type | Required | Description |
@@ -688,8 +691,8 @@ make a withdrawal
 
 **See**
 
-- https://docs.upbit.com/kr/reference/디지털자산-출금하기
-- https://global-docs.upbit.com/reference/withdrawal-digital-assets
+- https://docs.upbit.com/kr/reference/withdraw
+- https://global-docs.upbit.com/reference/withdraw
 
 
 | Param | Type | Required | Description |

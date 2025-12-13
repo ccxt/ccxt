@@ -114,8 +114,10 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return requestId;
     }
 
@@ -1303,7 +1305,7 @@ public partial class kucoin : ccxt.kucoin
             this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
         object cachedOrders = ((bool) isTrue(isTriggerOrder)) ? this.triggerOrders : this.orders;
-        object orders = this.safeValue((cachedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+        object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
         object order = this.safeValue(orders, orderId);
         if (isTrue(!isEqual(order, null)))
         {

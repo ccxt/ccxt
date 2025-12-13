@@ -1598,8 +1598,8 @@ class gate(Exchange, ImplicitAPI):
             'contract': True,
             'linear': isLinear,
             'inverse': not isLinear,
-            'taker': None,
-            'maker': None,
+            'taker': self.parse_number('0.0005'),  # 0.05% vip0
+            'maker': self.parse_number('0.0002'),  # 0.02% vip0
             'contractSize': self.parse_number(contractSize),
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
@@ -1717,8 +1717,8 @@ class gate(Exchange, ImplicitAPI):
                     'contract': True,
                     'linear': True,
                     'inverse': False,
-                    'taker': None,
-                    'maker': None,
+                    'taker': self.parse_number('0.0003'),  # assume 0.03% for maker/taker vip0 btc/eth options
+                    'maker': self.parse_number('0.0003'),
                     'contractSize': self.parse_number('1'),
                     'expiry': expiry,
                     'expiryDatetime': self.iso8601(expiry),
@@ -3787,7 +3787,7 @@ class gate(Exchange, ImplicitAPI):
         if pointFee is not None:
             fees.append({
                 'cost': pointFee,
-                'currency': 'GatePoint',
+                'currency': 'GATEPOINT',
             })
         takerOrMaker = self.safe_string(trade, 'role')
         return self.safe_trade({

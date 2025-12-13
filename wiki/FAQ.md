@@ -114,6 +114,40 @@
       sl_order = await binance.create_order(symbol, 'limit', 'sell', 50, 0.24, {"stopLossPrice": 0.25}) # stop loss order
   ```
 
+ ## How do trailing orders work?
+  Some exchanges support using `createOrder` to create a `trailingPercent` or `trailingAmount` order - view: [Trailing Orders](Manual.md#trailing-orders)
+  
+  Trailing orders follow behind the current market price by either a percentange or a quote amount. The order trails in one direction but not the other so that it can eventually be executed. The executed order can be a market order or a limit order. A trailing order can usually be placed to open a position, or combined with the `reduceOnly` parameter set to true in order to close a position. These details about what orders are allowed depends on the exchange. Trailing orders often support a `trailingTriggerPrice` parameter and if the current market price crosses that value it will start the trailing function set by `trailingPercent` or `trailingAmount`.
+  
+  Some exchanges might not support this trailing feature. You can check the `.features` property. You can also check if `createOrder` on the exchange you're using has `trailingPercent` or `trailingAmount` as an available parameter in the docstring. Some exchanges might have `exchange.has['createTrailingPercentOrder']`, or `exchange.has['createTrailingAmountOrder']` set to true, which signals that the `trailingPercent` or `trailingAmount` parameters are available in `createOrder`.
+
+  Examples of creating `trailingPercent` and `trailingAmount` orders:
+  ```Python
+    params = {
+      'trailingPercent': 1.0, # percentage away from the current market price, 1.0 means 1%
+      # 'trailingAmount': 100.0, # quote amount away from the current market price, for a SOL/USDT pair this is 100 USDT away from the current market price.
+      # 'trailingTriggerPrice': 44500.0, # the price to trigger activating a trailing stop order
+      'reduceOnly': True, # set to true if you want to close a position, set to false if you want to open a new position
+    }
+    order = exchange.create_order ('SOL/USDT:USDT', 'market', 'sell', 0.5, None, params)
+  ```
+  ```Python
+    trailingAmount = 100.0
+    trailingTriggerPrice = 115.0
+    params = {
+        'reduceOnly': True,
+    }
+    order = exchange.create_trailing_amount_order ('SOL/USDT:USDT', 'market', 'sell', 0.5, None, trailingAmount, trailingTriggerPrice, params)
+  ```
+  ```Python
+    trailingPercent = 1.0
+    trailingTriggerPrice = 115.0
+    params = {
+        'reduceOnly': False,
+    }
+    order = exchange.create_trailing_percent_order ('SOL/USDT:USDT', 'limit', 'buy', 0.5, 13, trailingPercent, trailingTriggerPrice, params)
+  ```
+
   ## How to create a spot market buy with cost?
   To create a market-buy order with cost, first, you need to check if the exchange supports that feature (`exchange.has['createMarketBuyOrderWithCost']).
   If it does, then you can use the `createMarketBuyOrderWithCost` method.
@@ -184,8 +218,6 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```
 <!-- tabs:end -->
 
-
-  See more: [Trailing Orders](Manual.md#trailing-orders)
 
   ## How to check the endpoint used by the unified method?
   To check the endpoint used by a unified method in the CCXT library, you would typically need to refer to the source code of the library for the specific exchange implementation you're interested in. The unified methods in CCXT abstract away the details of the specific endpoints they interact with, so this information is not directly exposed via the library's API. For detailed inspection, you can look at the implementation of the method for the particular exchange in the CCXT library's source code on GitHub.

@@ -1182,7 +1182,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 object currentOrder = getValue(data, i);
                 object orderId = this.safeString(currentOrder, "orderID");
-                object previousOrder = this.safeValue((stored as ArrayCacheBySymbolById).hashmap, orderId);
+                object previousOrder = this.safeValue((stored as ArrayCache).hashmap, orderId);
                 object rawOrder = currentOrder;
                 if (isTrue(!isEqual(previousOrder, null)))
                 {

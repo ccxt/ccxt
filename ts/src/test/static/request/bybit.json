@@ -7,6 +7,25 @@
     ],
     "outputType": "json",
     "methods": {
+        "editOrder": [
+            {
+                "description": "edit order using clientOrderId",
+                "method": "editOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/amend",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.22,
+                    73,
+                    {
+                        "clientOrderId": "bybit1"
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderLinkId\":\"bybit1\",\"category\":\"spot\",\"qty\":\"0.22\",\"price\":\"73\",\"clientOrderId\":\"bybit1\"}"
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

@@ -65,9 +65,9 @@ func (this *ParadexCore) Describe() interface{} {
 			"fetchDeposits":                 true,
 			"fetchDepositWithdrawFee":       false,
 			"fetchDepositWithdrawFees":      false,
-			"fetchFundingHistory":           false,
+			"fetchFundingHistory":           true,
 			"fetchFundingRate":              false,
-			"fetchFundingRateHistory":       false,
+			"fetchFundingRateHistory":       true,
 			"fetchFundingRates":             false,
 			"fetchGreeks":                   true,
 			"fetchIndexOHLCV":               false,
@@ -3217,6 +3217,97 @@ func (this *ParadexCore) ParseGreeks(greeks interface{}, optionalArgs ...interfa
 		"underlyingPrice":       this.SafeNumber(greeks, "underlying_price"),
 		"info":                  greeks,
 	}
+}
+
+/**
+ * @method
+ * @name paradex#fetchFundingRateHistory
+ * @description fetches historical funding rate prices
+ * @see https://docs.paradex.trade/api/prod/markets/get-funding-data
+ * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+ * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+ * @param {int} [limit] the maximum amount of funding rate structures
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ */
+func (this *ParadexCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbol := GetArg(optionalArgs, 0, nil)
+		_ = symbol
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		_ = params
+		if IsTrue(IsEqual(symbol, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
+		}
+
+		retRes25918 := (<-this.LoadMarkets())
+		PanicOnError(retRes25918)
+		var market interface{} = this.Market(symbol)
+		var request interface{} = map[string]interface{}{
+			"market": GetValue(market, "id"),
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "page_size", mathMin(limit, 5000)) // api maximum 5000
+		} else {
+			AddElementToObject(request, "page_size", 1000) // max is 5000
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "start_at", since)
+		}
+		var until interface{} = this.SafeInteger(params, "until")
+		if IsTrue(!IsEqual(until, nil)) {
+			params = this.Omit(params, "until")
+			AddElementToObject(request, "end_at", until)
+		}
+
+		response := (<-this.PublicGetFundingData(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		// {
+		//     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+		//     "prev": "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+		//     "results": [
+		//          {
+		//              "market":"BTC-USD-PERP",
+		//              "funding_index":"20511.93608234044552",
+		//              "funding_premium":"-6.04646651485986656",
+		//              "funding_rate":"-0.00006992598926",
+		//              "funding_rate_8h":"",
+		//              "funding_period_hours":0,
+		//              "created_at":1764160327843
+		//          }
+		//     ]
+		// }
+		//
+		var results interface{} = this.SafeList(response, "results", []interface{}{})
+		var rates interface{} = []interface{}{}
+		for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
+			var rate interface{} = GetValue(results, i)
+			var timestamp interface{} = this.SafeInteger(rate, "created_at")
+			var datetime interface{} = this.Iso8601(timestamp)
+			AppendToArray(&rates, map[string]interface{}{
+				"info":        rate,
+				"symbol":      GetValue(market, "symbol"),
+				"fundingRate": this.SafeNumber(rate, "funding_rate"),
+				"timestamp":   timestamp,
+				"datetime":    datetime,
+			})
+		}
+		var sorted interface{} = this.SortBy(rates, "timestamp")
+
+		ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+		return nil
+
+	}()
+	return ch
 }
 func (this *ParadexCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
 	api := GetArg(optionalArgs, 0, "public")

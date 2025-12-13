@@ -580,6 +580,7 @@ class ImplicitAPI:
     fapiprivate_get_commissionrate = fapiPrivateGetCommissionRate = Entry('commissionRate', 'fapiPrivate', 'GET', {'cost': 20})
     fapiprivate_get_ratelimit_order = fapiPrivateGetRateLimitOrder = Entry('rateLimit/order', 'fapiPrivate', 'GET', {'cost': 1})
     fapiprivate_get_apitradingstatus = fapiPrivateGetApiTradingStatus = Entry('apiTradingStatus', 'fapiPrivate', 'GET', {'cost': 1})
+    fapiprivate_get_symboladlrisk = fapiPrivateGetSymbolAdlRisk = Entry('symbolAdlRisk', 'fapiPrivate', 'GET', {'cost': 1})
     fapiprivate_get_multiassetsmargin = fapiPrivateGetMultiAssetsMargin = Entry('multiAssetsMargin', 'fapiPrivate', 'GET', {'cost': 30})
     fapiprivate_get_apireferral_ifnewuser = fapiPrivateGetApiReferralIfNewUser = Entry('apiReferral/ifNewUser', 'fapiPrivate', 'GET', {'cost': 1})
     fapiprivate_get_apireferral_customization = fapiPrivateGetApiReferralCustomization = Entry('apiReferral/customization', 'fapiPrivate', 'GET', {'cost': 1})

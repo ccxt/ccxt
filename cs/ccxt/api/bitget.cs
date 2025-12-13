@@ -261,6 +261,21 @@ public partial class bitget : Exchange
         return await this.callAsync ("publicMixGetV2MixMarketVipFeeRate",parameters);
     }
 
+    public async Task<object> publicMixGetV2MixMarketUnionInterestRateHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicMixGetV2MixMarketUnionInterestRateHistory",parameters);
+    }
+
+    public async Task<object> publicMixGetV2MixMarketExchangeRate (object parameters = null)
+    {
+        return await this.callAsync ("publicMixGetV2MixMarketExchangeRate",parameters);
+    }
+
+    public async Task<object> publicMixGetV2MixMarketDiscountRate (object parameters = null)
+    {
+        return await this.callAsync ("publicMixGetV2MixMarketDiscountRate",parameters);
+    }
+
     public async Task<object> publicMixGetV2MixMarketMergeDepth (object parameters = null)
     {
         return await this.callAsync ("publicMixGetV2MixMarketMergeDepth",parameters);
@@ -329,6 +344,11 @@ public partial class bitget : Exchange
     public async Task<object> publicMixGetV2MixMarketCurrentFundRate (object parameters = null)
     {
         return await this.callAsync ("publicMixGetV2MixMarketCurrentFundRate",parameters);
+    }
+
+    public async Task<object> publicMixGetV2MixMarketOiLimit (object parameters = null)
+    {
+        return await this.callAsync ("publicMixGetV2MixMarketOiLimit",parameters);
     }
 
     public async Task<object> publicMixGetV2MixMarketContracts (object parameters = null)
@@ -1121,6 +1141,21 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateMixGetV2MixAccountSubAccountAssets",parameters);
     }
 
+    public async Task<object> privateMixGetV2MixAccountInterestHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateMixGetV2MixAccountInterestHistory",parameters);
+    }
+
+    public async Task<object> privateMixGetV2MixAccountMaxOpen (object parameters = null)
+    {
+        return await this.callAsync ("privateMixGetV2MixAccountMaxOpen",parameters);
+    }
+
+    public async Task<object> privateMixGetV2MixAccountLiqPrice (object parameters = null)
+    {
+        return await this.callAsync ("privateMixGetV2MixAccountLiqPrice",parameters);
+    }
+
     public async Task<object> privateMixGetV2MixAccountOpenCount (object parameters = null)
     {
         return await this.callAsync ("privateMixGetV2MixAccountOpenCount",parameters);
@@ -1129,6 +1164,26 @@ public partial class bitget : Exchange
     public async Task<object> privateMixGetV2MixAccountBill (object parameters = null)
     {
         return await this.callAsync ("privateMixGetV2MixAccountBill",parameters);
+    }
+
+    public async Task<object> privateMixGetV2MixAccountTransferLimits (object parameters = null)
+    {
+        return await this.callAsync ("privateMixGetV2MixAccountTransferLimits",parameters);
+    }
+
+    public async Task<object> privateMixGetV2MixAccountUnionConfig (object parameters = null)
+    {
+        return await this.callAsync ("privateMixGetV2MixAccountUnionConfig",parameters);
+    }
+
+    public async Task<object> privateMixGetV2MixAccountSwitchUnionUsdt (object parameters = null)
+    {
+        return await this.callAsync ("privateMixGetV2MixAccountSwitchUnionUsdt",parameters);
+    }
+
+    public async Task<object> privateMixGetV2MixAccountIsolatedSymbols (object parameters = null)
+    {
+        return await this.callAsync ("privateMixGetV2MixAccountIsolatedSymbols",parameters);
     }
 
     public async Task<object> privateMixGetV2MixMarketQueryPositionLever (object parameters = null)
@@ -1144,6 +1199,11 @@ public partial class bitget : Exchange
     public async Task<object> privateMixGetV2MixPositionAllPosition (object parameters = null)
     {
         return await this.callAsync ("privateMixGetV2MixPositionAllPosition",parameters);
+    }
+
+    public async Task<object> privateMixGetV2MixPositionAdlRank (object parameters = null)
+    {
+        return await this.callAsync ("privateMixGetV2MixPositionAdlRank",parameters);
     }
 
     public async Task<object> privateMixGetV2MixPositionHistoryPosition (object parameters = null)
@@ -1174,6 +1234,11 @@ public partial class bitget : Exchange
     public async Task<object> privateMixGetV2MixOrderOrdersHistory (object parameters = null)
     {
         return await this.callAsync ("privateMixGetV2MixOrderOrdersHistory",parameters);
+    }
+
+    public async Task<object> privateMixGetV2MixOrderPlanSubOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateMixGetV2MixOrderPlanSubOrder",parameters);
     }
 
     public async Task<object> privateMixGetV2MixOrderOrdersPlanPending (object parameters = null)
@@ -1401,9 +1466,19 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateMixPostMixV1TraceTraderUpdateTpslRatioConfig",parameters);
     }
 
+    public async Task<object> privateMixPostV2MixAccountSetAutoMargin (object parameters = null)
+    {
+        return await this.callAsync ("privateMixPostV2MixAccountSetAutoMargin",parameters);
+    }
+
     public async Task<object> privateMixPostV2MixAccountSetLeverage (object parameters = null)
     {
         return await this.callAsync ("privateMixPostV2MixAccountSetLeverage",parameters);
+    }
+
+    public async Task<object> privateMixPostV2MixAccountSetAllLeverage (object parameters = null)
+    {
+        return await this.callAsync ("privateMixPostV2MixAccountSetAllLeverage",parameters);
     }
 
     public async Task<object> privateMixPostV2MixAccountSetMargin (object parameters = null)
@@ -1411,9 +1486,19 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateMixPostV2MixAccountSetMargin",parameters);
     }
 
+    public async Task<object> privateMixPostV2MixAccountSetAssetMode (object parameters = null)
+    {
+        return await this.callAsync ("privateMixPostV2MixAccountSetAssetMode",parameters);
+    }
+
     public async Task<object> privateMixPostV2MixAccountSetMarginMode (object parameters = null)
     {
         return await this.callAsync ("privateMixPostV2MixAccountSetMarginMode",parameters);
+    }
+
+    public async Task<object> privateMixPostV2MixAccountUnionConvert (object parameters = null)
+    {
+        return await this.callAsync ("privateMixPostV2MixAccountUnionConvert",parameters);
     }
 
     public async Task<object> privateMixPostV2MixAccountSetPositionMode (object parameters = null)
@@ -1456,9 +1541,19 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateMixPostV2MixOrderClosePositions",parameters);
     }
 
+    public async Task<object> privateMixPostV2MixOrderCancelAllOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateMixPostV2MixOrderCancelAllOrders",parameters);
+    }
+
     public async Task<object> privateMixPostV2MixOrderPlaceTpslOrder (object parameters = null)
     {
         return await this.callAsync ("privateMixPostV2MixOrderPlaceTpslOrder",parameters);
+    }
+
+    public async Task<object> privateMixPostV2MixOrderPlacePosTpsl (object parameters = null)
+    {
+        return await this.callAsync ("privateMixPostV2MixOrderPlacePosTpsl",parameters);
     }
 
     public async Task<object> privateMixPostV2MixOrderPlacePlanOrder (object parameters = null)

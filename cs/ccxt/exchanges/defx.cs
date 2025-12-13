@@ -327,6 +327,7 @@ public partial class defx : Exchange
                 { "exact", new Dictionary<string, object>() {
                     { "404", typeof(BadRequest) },
                     { "missing_auth_signature", typeof(AuthenticationError) },
+                    { "leverage_higher_than_capped_leverage", typeof(BadRequest) },
                     { "order_rejected", typeof(InvalidOrder) },
                     { "invalid_order_id", typeof(InvalidOrder) },
                     { "filter_lotsize_maxqty", typeof(InvalidOrder) },

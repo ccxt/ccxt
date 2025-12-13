@@ -411,6 +411,8 @@ export default class Exchange {
     randomBytes(length: number): string;
     randNumber(size: number): number;
     binaryLength(binary: Uint8Array): number;
+    lockId(): any;
+    unlockId(): any;
     describe(): any;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;

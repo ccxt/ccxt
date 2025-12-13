@@ -2551,6 +2551,15 @@ class hyperliquid extends hyperliquid$1["default"] {
         const sorted = this.sortBy(result, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
+    getDexFromHip3Symbol(market) {
+        const baseName = this.safeString(market, 'baseName', '');
+        const part = baseName.split(':');
+        const partsLength = part.length;
+        if (partsLength > 1) {
+            return this.safeString(part, 0);
+        }
+        return undefined;
+    }
     /**
      * @method
      * @name hyperliquid#fetchOpenOrders
@@ -2580,11 +2589,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
             // check if is hip3 symbol
-            const baseName = this.safeString(market, 'baseName', '');
-            const part = baseName.split(':');
-            const partsLength = part.length;
-            if (partsLength > 1) {
-                request['dex'] = this.safeString(part, 0);
+            const dexName = this.getDexFromHip3Symbol(market);
+            if (dexName !== undefined) {
+                request['dex'] = dexName;
             }
         }
         const response = await this.publicPostInfo(this.extend(request, params));
@@ -2673,17 +2680,26 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.dex] perp dex name. default is null
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchOrders', params);
         await this.loadMarkets();
-        const market = this.safeMarket(symbol);
+        let market = undefined;
         const request = {
             'type': 'historicalOrders',
             'user': userAddress,
         };
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            // check if is hip3 symbol
+            const dexName = this.getDexFromHip3Symbol(market);
+            if (dexName !== undefined) {
+                request['dex'] = dexName;
+            }
+        }
         const response = await this.publicPostInfo(this.extend(request, params));
         //
         //     [
@@ -3087,6 +3103,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.dex] perp dex name, eg: XYZ
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
@@ -3098,6 +3115,13 @@ class hyperliquid extends hyperliquid$1["default"] {
             'type': 'clearinghouseState',
             'user': userAddress,
         };
+        if (symbols !== undefined) {
+            const market = this.market(symbols[0]);
+            const dexName = this.getDexFromHip3Symbol(market);
+            if (dexName !== undefined) {
+                request['dex'] = dexName;
+            }
+        }
         const response = await this.publicPostInfo(this.extend(request, params));
         //
         //     {

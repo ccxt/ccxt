@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.19';
+$version = '4.5.22';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.19';
+    const VERSION = '4.5.22';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2403,6 +2403,14 @@ class Exchange {
 
     public function encode_dydx_tx_raw ($signDoc, $signature) {
         throw new NotSupported ('Dydx currently does not support create order / transfer asset in PHP language');
+    }
+
+    public function lock_id() {
+        return true;
+    }
+
+    public function unlock_id() {
+        return true;
     }
 
     // ########################################################################
@@ -5801,7 +5809,8 @@ class Exchange {
                 if ($e instanceof OperationFailed) {
                     if ($i < $retries) {
                         if ($this->verbose) {
-                            $this->log('Request failed with the error => ' . (string) $e . ', retrying ' . ($i . (string) 1) . ' of ' . (string) $retries . '...');
+                            $index = $i + 1;
+                            $this->log('Request failed with the error => ' . (string) $e . ', retrying ' . (string) $index . ' of ' . (string) $retries . '...');
                         }
                         if (($retryDelay !== null) && ($retryDelay !== 0)) {
                             $this->sleep($retryDelay);

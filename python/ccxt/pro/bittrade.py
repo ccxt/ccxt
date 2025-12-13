@@ -46,8 +46,10 @@ class bittrade(ccxt.async_support.bittrade):
         })
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return str(requestId)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:

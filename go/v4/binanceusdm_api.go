@@ -2111,6 +2111,10 @@ func (this *BinanceusdmCore) FapiPrivateGetApiTradingStatus(args ...interface{})
 	return this.callEndpointAsync("fapiPrivateGetApiTradingStatus", args...)
 }
 
+func (this *BinanceusdmCore) FapiPrivateGetSymbolAdlRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetSymbolAdlRisk", args...)
+}
+
 func (this *BinanceusdmCore) FapiPrivateGetMultiAssetsMargin(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetMultiAssetsMargin", args...)
 }

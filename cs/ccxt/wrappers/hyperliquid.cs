@@ -947,6 +947,12 @@ public partial class hyperliquid
     /// string : sub account user address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : perp dex name. default is null
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1090,6 +1096,12 @@ public partial class hyperliquid
     /// <term>params.subAccountAddress</term>
     /// <description>
     /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : perp dex name, eg: XYZ
     /// </description>
     /// </item>
     /// </list>

@@ -44,6 +44,7 @@
 * [fetchGreeks](#fetchgreeks)
 * [fetchOption](#fetchoption)
 * [fetchOptionChain](#fetchoptionchain)
+* [fetchOpenInterest](#fetchopeninterest)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
@@ -964,6 +965,27 @@ fetches data for an underlying asset that is commonly found in an option chain
 
 ```javascript
 deribit.fetchOptionChain (code[, params])
+```
+
+
+<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+
+### fetchOpenInterest{docsify-ignore}
+Retrieves the open interest of a symbol
+
+**Kind**: instance method of [<code>deribit</code>](#deribit)  
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+
+**See**: https://docs.deribit.com/?shell#public-get_book_summary_by_instrument  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified CCXT market symbol |
+| params | <code>object</code> | No | exchange specific parameters |
+
+
+```javascript
+deribit.fetchOpenInterest (symbol[, params])
 ```
 
 

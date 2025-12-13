@@ -62,6 +62,8 @@ public partial class deribit : Exchange
                 { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", true },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
                 { "fetchOption", true },
                 { "fetchOptionChain", true },
@@ -3970,6 +3972,113 @@ public partial class deribit : Exchange
             { "baseVolume", this.safeNumber(chain, "volume") },
             { "quoteVolume", this.safeNumber(chain, "volume_usd") },
         };
+    }
+
+    /**
+     * @method
+     * @name deribit#fetchOpenInterest
+     * @description Retrieves the open interest of a symbol
+     * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "contract")))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "instrument_name", getValue(market, "id") },
+        };
+        object response = await this.publicGetGetBookSummaryByInstrument(this.extend(request, parameters));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "high": 93099.5,
+        //                 "low": 81773.0,
+        //                 "last": 87197.0,
+        //                 "instrument_name": "BTC-PERPETUAL",
+        //                 "bid_price": 87083.0,
+        //                 "ask_price": 87149.5,
+        //                 "open_interest": 9978911260,
+        //                 "mark_price": 87102.01,
+        //                 "creation_timestamp": 1763674177068,
+        //                 "price_change": -3.2032,
+        //                 "volume": 7377.18657991,
+        //                 "estimated_delivery_price": 87047.2,
+        //                 "base_currency": "BTC",
+        //                 "quote_currency": "USD",
+        //                 "volume_usd": 661040250.0,
+        //                 "volume_notional": 661040250.0,
+        //                 "current_funding": 1.2966e-4,
+        //                 "funding_8h": -8.1069e-4,
+        //                 "mid_price": 87116.25
+        //             }
+        //         ],
+        //         "usIn": 1763674177068845,
+        //         "usOut": 1763674177068996,
+        //         "usDiff": 151,
+        //         "testnet": true
+        //     }
+        //
+        object result = this.safeList(response, "result", new List<object>() {});
+        object data = this.safeDict(result, 0, new Dictionary<string, object>() {});
+        return this.parseOpenInterest(data, market);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        //     {
+        //         "high": 93099.5,
+        //         "low": 81773.0,
+        //         "last": 87197.0,
+        //         "instrument_name": "BTC-PERPETUAL",
+        //         "bid_price": 87083.0,
+        //         "ask_price": 87149.5,
+        //         "open_interest": 9978911260,
+        //         "mark_price": 87102.01,
+        //         "creation_timestamp": 1763674177068,
+        //         "price_change": -3.2032,
+        //         "volume": 7377.18657991,
+        //         "estimated_delivery_price": 87047.2,
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USD",
+        //         "volume_usd": 661040250.0,
+        //         "volume_notional": 661040250.0,
+        //         "current_funding": 1.2966e-4,
+        //         "funding_8h": -8.1069e-4,
+        //         "mid_price": 87116.25
+        //     }
+        //
+        object timestamp = this.safeInteger(interest, "creation_timestamp");
+        object marketId = this.safeString(interest, "instrument_name");
+        market = this.safeMarket(marketId, market);
+        object openInterest = this.safeNumber(interest, "open_interest");
+        object openInterestAmount = null;
+        object openInterestValue = null;
+        if (isTrue(isTrue(getValue(market, "option")) || isTrue((isTrue(getValue(market, "future")) && isTrue(getValue(market, "linear"))))))
+        {
+            openInterestAmount = openInterest;
+        } else
+        {
+            openInterestValue = openInterest;
+        }
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "openInterestAmount", openInterestAmount },
+            { "openInterestValue", openInterestValue },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "info", interest },
+        }, market);
     }
 
     public override object nonce()

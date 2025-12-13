@@ -60,9 +60,11 @@ class lbank(ccxt.async_support.lbank):
         })
 
     def request_id(self):
+        self.lock_id()
         previousValue = self.safe_integer(self.options, 'requestId', 0)
         newValue = self.sum(previousValue, 1)
         self.options['requestId'] = newValue
+        self.unlock_id()
         return newValue
 
     async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:

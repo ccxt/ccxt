@@ -1631,8 +1631,8 @@ class gate extends Exchange {
             'contract' => true,
             'linear' => $isLinear,
             'inverse' => !$isLinear,
-            'taker' => null,
-            'maker' => null,
+            'taker' => $this->parse_number('0.0005'), // 0.05% vip0
+            'maker' => $this->parse_number('0.0002'), // 0.02% vip0
             'contractSize' => $this->parse_number($contractSize),
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
@@ -1752,8 +1752,8 @@ class gate extends Exchange {
                         'contract' => true,
                         'linear' => true,
                         'inverse' => false,
-                        'taker' => null,
-                        'maker' => null,
+                        'taker' => $this->parse_number('0.0003'), // assume 0.03% for maker/taker vip0 btc/eth options
+                        'maker' => $this->parse_number('0.0003'),
                         'contractSize' => $this->parse_number('1'),
                         'expiry' => $expiry,
                         'expiryDatetime' => $this->iso8601($expiry),
@@ -3998,7 +3998,7 @@ class gate extends Exchange {
         if ($pointFee !== null) {
             $fees[] = array(
                 'cost' => $pointFee,
-                'currency' => 'GatePoint',
+                'currency' => 'GATEPOINT',
             );
         }
         $takerOrMaker = $this->safe_string($trade, 'role');

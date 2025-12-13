@@ -943,8 +943,8 @@ class gate extends \ccxt\async\gate {
             $ohlcv = $result[$i];
             $subscription = $this->safe_string($ohlcv, 'n', '');
             $parts = explode('_', $subscription);
-            $timeframe = $this->safe_string($parts, 0);
-            $timeframeId = $this->find_timeframe($timeframe);
+            $timeframeId = $this->safe_string($parts, 0);
+            $timeframe = $this->find_timeframe($timeframeId);
             $prefix = $timeframe . '_';
             $marketId = str_replace($prefix, '', $subscription);
             $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
@@ -954,7 +954,7 @@ class gate extends \ccxt\async\gate {
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp ($limit);
-                $this->ohlcvs[$symbol][$timeframeId] = $stored;
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             $stored->append ($parsed);
             $marketIds[$symbol] = $timeframe;
@@ -2039,8 +2039,10 @@ class gate extends \ccxt\async\gate {
 
     public function request_id() {
         // their support said that $reqid must be an int32, not documented
+        $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;
+        $this->unlock_id();
         return $reqid;
     }
 

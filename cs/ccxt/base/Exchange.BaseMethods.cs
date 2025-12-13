@@ -4150,7 +4150,8 @@ public partial class Exchange
                     {
                         if (isTrue(this.verbose))
                         {
-                            this.log(add(add(add(add(add(add("Request failed with the error: ", ((object)e).ToString()), ", retrying "), ((object)(add(i, 1))).ToString()), " of "), ((object)retries).ToString()), "..."));
+                            object index = add(i, 1);
+                            this.log(add(add(add(add(add(add("Request failed with the error: ", ((object)e).ToString()), ", retrying "), ((object)index).ToString()), " of "), ((object)retries).ToString()), "..."));
                         }
                         if (isTrue(isTrue((!isEqual(retryDelay, null))) && isTrue((!isEqual(retryDelay, 0)))))
                         {

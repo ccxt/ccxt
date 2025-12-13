@@ -45,8 +45,10 @@ class exmo(ccxt.async_support.exmo):
         })
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return requestId
 
     async def watch_balance(self, params={}) -> Balances:

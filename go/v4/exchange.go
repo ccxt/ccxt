@@ -185,6 +185,9 @@ type Exchange struct {
 	Clients     map[string]interface{}
 	newUpdates  bool
 	streaming   map[string]interface{}
+
+	// id lock
+	idMutex sync.Mutex
 }
 
 const (
@@ -1935,15 +1938,16 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
 	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
+		orderBookInterface := stored.(OrderBookInterface)
 		for tries < maxRetries.(int) {
-			cache := this.GetProperty(stored, "Cache")
 			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
+			cache := (*orderBookInterface.GetCache()).([]interface{})
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
 				// Call Reset method on stored orderbook
-				stored.(OrderBookInterface).Reset(orderBook)
-				this.DerivedExchange.HandleDeltas(stored, cache.([]interface{})[int(index):])
-				stored.(OrderBookInterface).SetCache(map[string]interface{}{})
+				orderBookInterface.Reset(orderBook)
+				this.DerivedExchange.HandleDeltas(stored, cache[int(index):])
+				orderBookInterface.SetCache(map[string]interface{}{})
 				// this.SetProperty(cache, "length", 0)
 				client.(*Client).Resolve(stored, messageHash)
 				return nil
@@ -2036,4 +2040,14 @@ func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
 
 func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
 	return ""
+}
+
+func (this *Exchange) LockId() bool {
+	this.idMutex.Lock()
+	return true
+}
+
+func (this *Exchange) UnlockId() bool {
+	this.idMutex.Unlock()
+	return true
 }

@@ -31,6 +31,15 @@ abstract class deepcoin extends \ccxt\Exchange {
     public function public_get_deepcoin_market_step_margin($params = array()) {
         return $this->request('deepcoin/market/step-margin', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function public_get_deepcoin_trade_funding_rate($params = array()) {
+        return $this->request('deepcoin/trade/funding-rate', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_deepcoin_trade_fund_rate_current_funding_rate($params = array()) {
+        return $this->request('deepcoin/trade/fund-rate/current-funding-rate', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_deepcoin_trade_fund_rate_history($params = array()) {
+        return $this->request('deepcoin/trade/fund-rate/history', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_deepcoin_account_balances($params = array()) {
         return $this->request('deepcoin/account/balances', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -54,15 +63,6 @@ abstract class deepcoin extends \ccxt\Exchange {
     }
     public function private_get_deepcoin_trade_v2_orders_pending($params = array()) {
         return $this->request('deepcoin/trade/v2/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function private_get_deepcoin_trade_funding_rate($params = array()) {
-        return $this->request('deepcoin/trade/funding-rate', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function private_get_deepcoin_trade_fund_rate_current_funding_rate($params = array()) {
-        return $this->request('deepcoin/trade/fund-rate/current-funding-rate', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function private_get_deepcoin_trade_fund_rate_history($params = array()) {
-        return $this->request('deepcoin/trade/fund-rate/history', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_deepcoin_trade_trigger_orders_pending($params = array()) {
         return $this->request('deepcoin/trade/trigger-orders-pending', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -190,6 +190,15 @@ abstract class deepcoin extends \ccxt\Exchange {
     public function publicGetDeepcoinMarketStepMargin($params = array()) {
         return $this->request('deepcoin/market/step-margin', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function publicGetDeepcoinTradeFundingRate($params = array()) {
+        return $this->request('deepcoin/trade/funding-rate', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetDeepcoinTradeFundRateCurrentFundingRate($params = array()) {
+        return $this->request('deepcoin/trade/fund-rate/current-funding-rate', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetDeepcoinTradeFundRateHistory($params = array()) {
+        return $this->request('deepcoin/trade/fund-rate/history', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetDeepcoinAccountBalances($params = array()) {
         return $this->request('deepcoin/account/balances', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -213,15 +222,6 @@ abstract class deepcoin extends \ccxt\Exchange {
     }
     public function privateGetDeepcoinTradeV2OrdersPending($params = array()) {
         return $this->request('deepcoin/trade/v2/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function privateGetDeepcoinTradeFundingRate($params = array()) {
-        return $this->request('deepcoin/trade/funding-rate', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function privateGetDeepcoinTradeFundRateCurrentFundingRate($params = array()) {
-        return $this->request('deepcoin/trade/fund-rate/current-funding-rate', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function privateGetDeepcoinTradeFundRateHistory($params = array()) {
-        return $this->request('deepcoin/trade/fund-rate/history', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetDeepcoinTradeTriggerOrdersPending($params = array()) {
         return $this->request('deepcoin/trade/trigger-orders-pending', 'private', 'GET', $params, null, null, array("cost" => 5));

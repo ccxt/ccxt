@@ -344,6 +344,7 @@ export default class defx extends Exchange {
                 'exact': {
                     '404': BadRequest,
                     'missing_auth_signature': AuthenticationError,
+                    'leverage_higher_than_capped_leverage': BadRequest,
                     'order_rejected': InvalidOrder,
                     'invalid_order_id': InvalidOrder,
                     'filter_lotsize_maxqty': InvalidOrder,

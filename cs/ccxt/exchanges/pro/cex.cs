@@ -46,8 +46,10 @@ public partial class cex : ccxt.cex
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return ((object)requestId).ToString();
     }
 
@@ -789,7 +791,7 @@ public partial class cex : ccxt.cex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object storedOrders = this.orders;
-        object ordersBySymbol = this.safeValue((storedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+        object ordersBySymbol = this.safeValue((storedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
         object order = this.safeValue(ordersBySymbol, orderId);
         if (isTrue(isEqual(order, null)))
         {

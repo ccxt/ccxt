@@ -46,23 +46,34 @@ class upbit extends \ccxt\async\upbit {
             $url = $this->implode_params($this->urls['api']['ws'], array(
                 'hostname' => $this->hostname,
             ));
-            $this->options[$channel] = $this->safe_value($this->options, $channel, array());
-            $this->options[$channel][$symbol] = true;
-            $symbols = is_array($this->options[$channel]) ? array_keys($this->options[$channel]) : array();
-            $marketIds = $this->market_ids($symbols);
+            $client = $this->client($url);
+            $subscriptionsKey = 'upbitPublicSubscriptions';
+            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey, $client->subscriptions))) {
+                $client->subscriptions[$subscriptionsKey] = array();
+            }
+            $subscriptions = $client->subscriptions[$subscriptionsKey];
+            $messageHash = $channel;
             $request = array(
+                'type' => $channel,
+            );
+            if ($symbol !== null) {
+                $messageHash = $channel . ':' . $symbol;
+                $request['codes'] = array( $marketId );
+            }
+            if (!(is_array($subscriptions) && array_key_exists($messageHash, $subscriptions))) {
+                $subscriptions[$messageHash] = $request;
+            }
+            $finalMessage = array(
                 array(
                     'ticket' => $this->uuid(),
                 ),
-                array(
-                    'type' => $channel,
-                    'codes' => $marketIds,
-                    // 'isOnlySnapshot' => false,
-                    // 'isOnlyRealtime' => false,
-                ),
             );
-            $messageHash = $channel . ':' . $marketId;
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            $channelKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
+            for ($i = 0; $i < count($channelKeys); $i++) {
+                $key = $channelKeys[$i];
+                $finalMessage[] = $subscriptions[$key];
+            }
+            return Async\await($this->watch($url, $messageHash, $finalMessage, $messageHash));
         }) ();
     }
 

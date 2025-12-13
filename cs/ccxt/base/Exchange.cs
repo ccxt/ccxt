@@ -16,6 +16,8 @@ using dict = Dictionary<string, object>;
 public partial class Exchange
 {
 
+    protected readonly object idLock = new object();
+
     public Exchange(object userConfig2 = null)
     {
         var userConfig = (dict)userConfig2;
@@ -1247,6 +1249,16 @@ public partial class Exchange
             }
         }
         throw new Exception("Data is not a valid byte array for protobuf decoding.");
+    }
+
+    public void lockId()
+    {
+        Monitor.Enter(this.idLock);
+    }
+
+    public void unlockId()
+    {
+        Monitor.Exit(this.idLock);
     }
 
 

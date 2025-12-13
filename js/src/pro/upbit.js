@@ -44,23 +44,34 @@ export default class upbit extends upbitRest {
         const url = this.implodeParams(this.urls['api']['ws'], {
             'hostname': this.hostname,
         });
-        this.options[channel] = this.safeValue(this.options, channel, {});
-        this.options[channel][symbol] = true;
-        const symbols = Object.keys(this.options[channel]);
-        const marketIds = this.marketIds(symbols);
-        const request = [
+        const client = this.client(url);
+        const subscriptionsKey = 'upbitPublicSubscriptions';
+        if (!(subscriptionsKey in client.subscriptions)) {
+            client.subscriptions[subscriptionsKey] = {};
+        }
+        const subscriptions = client.subscriptions[subscriptionsKey];
+        let messageHash = channel;
+        const request = {
+            'type': channel,
+        };
+        if (symbol !== undefined) {
+            messageHash = channel + ':' + symbol;
+            request['codes'] = [marketId];
+        }
+        if (!(messageHash in subscriptions)) {
+            subscriptions[messageHash] = request;
+        }
+        const finalMessage = [
             {
                 'ticket': this.uuid(),
             },
-            {
-                'type': channel,
-                'codes': marketIds,
-                // 'isOnlySnapshot': false,
-                // 'isOnlyRealtime': false,
-            },
         ];
-        const messageHash = channel + ':' + marketId;
-        return await this.watch(url, messageHash, request, messageHash);
+        const channelKeys = Object.keys(subscriptions);
+        for (let i = 0; i < channelKeys.length; i++) {
+            const key = channelKeys[i];
+            finalMessage.push(subscriptions[key]);
+        }
+        return await this.watch(url, messageHash, finalMessage, messageHash);
     }
     async watchPublicMultiple(symbols, channel, params = {}) {
         await this.loadMarkets();

@@ -98,9 +98,11 @@ export default class deepcoin extends deepcoinRest {
     }
 
     requestId () {
+        this.lockId ();
         const previousValue = this.safeInteger (this.options, 'lastRequestId', 0);
         const newValue = this.sum (previousValue, 1);
         this.options['lastRequestId'] = newValue;
+        this.unlockId ();
         return newValue;
     }
 

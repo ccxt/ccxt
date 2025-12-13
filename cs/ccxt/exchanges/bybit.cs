@@ -4587,8 +4587,15 @@ public partial class bybit : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "orderId", id },
         };
+        object clientOrderId = this.safeString2(parameters, "orderLinkId", "clientOrderId");
+        if (isTrue(isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["orderId"] = id;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderLinkId"] = clientOrderId;
+        }
         object category = null;
         var categoryparametersVariable = this.getBybitType("editOrderRequest", market, parameters);
         category = ((IList<object>)categoryparametersVariable)[0];
@@ -4641,11 +4648,6 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)request)["tpTriggerBy"] = tpTriggerBy;
             }
         }
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
-        if (isTrue(!isEqual(clientOrderId, null)))
-        {
-            ((IDictionary<string,object>)request)["orderLinkId"] = clientOrderId;
-        }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "stopLossPrice", "takeProfitPrice", "triggerPrice", "clientOrderId", "stopLoss", "takeProfit"});
         return request;
     }
@@ -4664,6 +4666,7 @@ public partial class bybit : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] unique client order id
      * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
@@ -4684,6 +4687,7 @@ public partial class bybit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a symbol argument")) ;
         }
+        object market = this.market(symbol);
         object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = await this.privatePostV5OrderAmend(this.extend(request, parameters));
         //
@@ -4702,7 +4706,8 @@ public partial class bybit : Exchange
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
             { "id", this.safeString(result, "orderId") },
-        });
+            { "clientOrderId", this.safeString(result, "orderLinkId") },
+        }, market);
     }
 
     /**

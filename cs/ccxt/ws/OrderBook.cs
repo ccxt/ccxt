@@ -14,12 +14,21 @@ public interface IOrderBook : IDictionary<string, object>
     public IOrderBook update(object snapshot);
     IAsks asks { get; set; }
     IBids bids { get; set; }
+
+    String symbol { get; set; }
+
+    long? nonce { get; set; }
+    long? timestamp { get; set; }
     public IList<object> cache { get; set; }
 }
 
 public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 {
     // protected readonly object _syncRoot = new object();
+
+    public String symbol { get; set; }
+    public long? nonce { get; set; }
+    public long? timestamp { get; set; }
     private IList<object> _cache = new SlimConcurrentList<object>();
 
     public IList<object> cache
@@ -106,6 +115,20 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
         defaults["nonce"] = Exchange.SafeValue(snapshotCopy, "nonce", defaults["nonce"]);
         defaults["symbol"] = Exchange.SafeValue(snapshotCopy, "symbol", defaults["symbol"]);
 
+        if (defaults["symbol"] != null)
+        {
+            this.symbol = defaults["symbol"].ToString();
+        }
+        if (defaults["nonce"] != null)
+        {
+            this.nonce = Convert.ToInt64(defaults["nonce"]);
+        }
+
+        if (defaults["timestamp"] != null)
+        {
+            this.timestamp = Convert.ToInt64(defaults["timestamp"]);
+        }
+
         // this.Merge(defaults);
         for (var i = 0; i < defaults.Count; i++)
         {
@@ -149,6 +172,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             this["nonce"] = snapshotNonce;
             this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
             this["datetime"] = Exchange.SafeValue(snapshot as dict, "datetime", this["datetime"]);
+            this["symbol"] = Exchange.SafeString(snapshot as dict, "symbol", this["symbol"]);
             this.reset(snapshot);
             return null;
         }
@@ -210,6 +234,9 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
             copy["timestamp"] = this["timestamp"];
             copy["datetime"] = this["datetime"];
             copy["symbol"] = this["symbol"];
+            copy.symbol = (String)this["symbol"];
+            copy.nonce = (long?)this["nonce"];
+            copy.timestamp = (long?)this["timestamp"];
             // copy["nonce"] = this["nonce"];
             // copy["timestamp"] = this["timestamp"];
             // copy["datetime"] = this["datetime"];

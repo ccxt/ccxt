@@ -904,7 +904,7 @@ public partial class poloniex : ccxt.poloniex
                     callDynamically(orders, "append", new object[] {parsed});
                 } else
                 {
-                    object previousOrders = this.safeValue((orders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+                    object previousOrders = this.safeValue((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
                     object previousOrder = this.safeValue2(previousOrders, orderId, clientOrderId);
                     object trade = this.parseWsTrade(order);
                     this.handleMyTrades(client as WebSocketClient, trade);

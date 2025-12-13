@@ -850,6 +850,7 @@ func (this *Hyperliquid) FetchCanceledAndClosedOrders(options ...FetchCanceledAn
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.dex] perp dex name. default is null
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Hyperliquid) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
@@ -1009,6 +1010,7 @@ func (this *Hyperliquid) FetchPosition(symbol string, options ...FetchPositionOp
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.dex] perp dex name, eg: XYZ
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
 func (this *Hyperliquid) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {

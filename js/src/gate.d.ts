@@ -63,8 +63,8 @@ export default class gate extends Exchange {
         contract: boolean;
         linear: boolean;
         inverse: boolean;
-        taker: any;
-        maker: any;
+        taker: number;
+        maker: number;
         contractSize: number;
         expiry: number;
         expiryDatetime: string;

@@ -101,9 +101,11 @@ class deepcoin extends \ccxt\async\deepcoin {
     }
 
     public function request_id() {
+        $this->lock_id();
         $previousValue = $this->safe_integer($this->options, 'lastRequestId', 0);
         $newValue = $this->sum($previousValue, 1);
         $this->options['lastRequestId'] = $newValue;
+        $this->unlock_id();
         return $newValue;
     }
 

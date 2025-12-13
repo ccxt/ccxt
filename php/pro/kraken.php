@@ -660,8 +660,10 @@ class kraken extends \ccxt\async\kraken {
 
     public function request_id() {
         // their support said that $reqid must be an int32, not documented
+        $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;
+        $this->unlock_id();
         return $reqid;
     }
 

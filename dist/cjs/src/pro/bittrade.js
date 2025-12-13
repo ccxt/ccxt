@@ -42,8 +42,10 @@ class bittrade extends bittrade$1["default"] {
         });
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId.toString();
     }
     /**

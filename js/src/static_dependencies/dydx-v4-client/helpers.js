@@ -9,13 +9,35 @@
 * DO NOT MODIFY BY HAND. Instead, download the latest proto files for your chain
 * and run the transpile command or yarn proto command to regenerate this bundle.
 */
-import _m0 from "protobufjs/minimal.js";
+let _m0;
+let loaded = false;
+(async () => {
+    await loadProtoBuf();
+})();
 import Long from './long/index.cjs';
+if (!loaded) {
+    (async () => {
+        await loadProtoBuf();
+    })();
+}
 // @ts-ignore
 // const Long = (long !== undefined && long.default !== undefined) ? long.default : long;
-if (_m0.util.Long !== Long) {
+if (_m0 && _m0.util.Long !== Long) {
     _m0.util.Long = Long;
     _m0.configure();
+}
+async function loadProtoBuf() {
+    try {
+        if (loaded) {
+            return;
+        }
+        loaded = true;
+        // import _m0 from "protobufjs/minimal.js";
+        _m0 = (await import("protobufjs/minimal.js")).default;
+    }
+    catch (e) {
+        // do nothing
+    }
 }
 export { Long };
 var globalThis = (() => {

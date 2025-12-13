@@ -30,11 +30,11 @@ func TestRemoveRepeatedElementsFromArray() {
 		"uniq":      "x4",
 	}}
 	var res1 interface{} = exchange.RemoveRepeatedElementsFromArray(array1, false)
-	var res1Length interface{} = GetArrayLength(res1)
-	Assert(IsEqual(res1Length, 3))
-	Assert(IsEqual(GetValue(GetValue(res1, 0), "uniq"), "x1"))
-	Assert(IsEqual(GetValue(GetValue(res1, 1), "uniq"), "x2"))
-	Assert(IsEqual(GetValue(GetValue(res1, 2), "uniq"), "x4"))
+	var res1Length interface{} = ccxt.GetArrayLength(res1)
+	Assert(ccxt.IsEqual(res1Length, 3))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res1, 0), "uniq"), "x1"))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res1, 1), "uniq"), "x2"))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res1, 2), "uniq"), "x4"))
 	// CASE 2: by timestamp
 	var array2 interface{} = []interface{}{map[string]interface{}{
 		"id":        nil,
@@ -54,15 +54,15 @@ func TestRemoveRepeatedElementsFromArray() {
 		"uniq":      "x4",
 	}}
 	var res2 interface{} = exchange.RemoveRepeatedElementsFromArray(array2, true)
-	var res2Length interface{} = GetArrayLength(res2)
-	Assert(IsEqual(res2Length, 3))
-	Assert(IsEqual(GetValue(GetValue(res2, 0), "uniq"), "x1"))
-	Assert(IsEqual(GetValue(GetValue(res2, 1), "uniq"), "x2"))
-	Assert(IsEqual(GetValue(GetValue(res2, 2), "uniq"), "x4"))
+	var res2Length interface{} = ccxt.GetArrayLength(res2)
+	Assert(ccxt.IsEqual(res2Length, 3))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res2, 0), "uniq"), "x1"))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res2, 1), "uniq"), "x2"))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res2, 2), "uniq"), "x4"))
 	// CASE 3: by timestamp index (used in ohlcv)
 	var array3 interface{} = []interface{}{[]interface{}{555, 1, 1, "x1"}, []interface{}{666, 1, 1, "x2"}, []interface{}{555, 1, 1, "x3"}}
 	var res3 interface{} = exchange.RemoveRepeatedElementsFromArray(array3, true)
-	Assert(IsEqual(GetArrayLength(res3), 2))
-	Assert(IsEqual(GetValue(GetValue(res3, 0), 3), "x1"))
-	Assert(IsEqual(GetValue(GetValue(res3, 1), 3), "x2"))
+	Assert(ccxt.IsEqual(ccxt.GetArrayLength(res3), 2))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res3, 0), 3), "x1"))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(res3, 1), 3), "x2"))
 }

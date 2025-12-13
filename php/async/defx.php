@@ -344,6 +344,7 @@ class defx extends Exchange {
                 'exact' => array(
                     '404' => '\\ccxt\\BadRequest', // array("errorCode":404,"errorMessage":"Not Found")
                     'missing_auth_signature' => '\\ccxt\\AuthenticationError', // array("msg":"Missing auth signature","code":"missing_auth_signature")
+                    'leverage_higher_than_capped_leverage' => '\\ccxt\\BadRequest', // array("errorCode":"leverage_higher_than_capped_leverage","errorMessage":"Leverage higher than capped leverage","errorData":array("cappedLeverage":"25"))
                     'order_rejected' => '\\ccxt\\InvalidOrder', // array("success":false,"err":array("msg":"Order has already been rejected","code":"order_rejected"))
                     'invalid_order_id' => '\\ccxt\\InvalidOrder', // array("success":false,"err":array("msg":"Invalid order id","code":"invalid_order_id"))
                     'filter_lotsize_maxqty' => '\\ccxt\\InvalidOrder', // array("errorCode":"filter_lotsize_maxqty","errorMessage":"LOT_SIZE filter failed, quantity more than maxQty","errorData":array("maxQty":"5000.00"))

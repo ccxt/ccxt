@@ -668,7 +668,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             object makerOrderId = this.safeString(message, "maker_order_id");
             object takerOrderId = this.safeString(message, "taker_order_id");
             object orders = this.orders;
-            object previousOrders = this.safeValue((orders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+            object previousOrders = this.safeValue((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             object previousOrder = this.safeValue(previousOrders, orderId);
             if (isTrue(isEqual(previousOrder, null)))
             {

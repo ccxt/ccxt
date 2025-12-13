@@ -30,8 +30,8 @@ public partial class upbit
     /// retrieves data on all markets for upbit
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/마켓-코드-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/listing-market-list"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-trading-pairs"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-trading-pairs"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -51,8 +51,8 @@ public partial class upbit
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/전체-계좌-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/overall-account-inquiry"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/get-balance"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/get-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -72,8 +72,8 @@ public partial class upbit
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/호가-정보-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/order-book-list"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-orderbooks"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-orderbooks"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -100,8 +100,8 @@ public partial class upbit
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/호가-정보-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/order-book-list"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-orderbooks"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-orderbooks"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -128,8 +128,8 @@ public partial class upbit
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/ticker현재가-정보"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/tickers"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-tickers"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -149,8 +149,8 @@ public partial class upbit
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/ticker현재가-정보"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/tickers"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-tickers"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -170,8 +170,8 @@ public partial class upbit
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/최근-체결-내역"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/today-trades-history"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-pair-trades"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-pair-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -205,7 +205,7 @@ public partial class upbit
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/주문-가능-정보"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/available-order-information"/>  <br/>
     /// See <see href="https://global-docs.upbit.com/reference/available-order-information"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -245,8 +245,8 @@ public partial class upbit
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/분minute-캔들-1"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/minutes"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-candles-minutes"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-candles-minutes"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -280,8 +280,10 @@ public partial class upbit
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/주문하기"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/order"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/new-order"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/new-order"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/order-test"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/order-test"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -319,6 +321,12 @@ public partial class upbit
     /// string : 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.test</term>
+    /// <description>
+    /// boolean : If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -332,8 +340,8 @@ public partial class upbit
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/주문-취소"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/order-cancel"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/cancel-order"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -353,8 +361,8 @@ public partial class upbit
     /// canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/취소-후-재주문"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/cancel-and-new"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/cancel-and-new-order"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/cancel-and-new-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -412,8 +420,8 @@ public partial class upbit
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/입금-리스트-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/deposit-list-inquiry"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-deposits"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -447,8 +455,8 @@ public partial class upbit
     /// fetch information on a deposit
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/개별-입금-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/individual-deposit-inquiry"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/get-deposit"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/get-deposit"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -480,8 +488,8 @@ public partial class upbit
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/전체-출금-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/withdrawal-list-inquiry"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-withdrawals"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-withdrawals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -515,8 +523,8 @@ public partial class upbit
     /// fetch data on a currency withdrawal via the withdrawal id
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/개별-출금-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/individual-withdrawal-inquiry"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/get-withdrawal"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/get-withdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -548,8 +556,8 @@ public partial class upbit
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/대기-주문-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/open-order"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-open-orders"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -589,8 +597,8 @@ public partial class upbit
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/종료-주문-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/closed-order"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-closed-orders"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-closed-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -630,8 +638,8 @@ public partial class upbit
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/종료-주문-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/closed-order"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-closed-orders"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-closed-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -671,8 +679,8 @@ public partial class upbit
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/개별-주문-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/individual-order-inquiry"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/get-order"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/get-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -692,8 +700,8 @@ public partial class upbit
     /// fetch deposit addresses for multiple currencies and chain types
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/전체-입금-주소-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/general-deposit-address-inquiry"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/list-deposit-addresses"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/list-deposit-addresses"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -713,8 +721,8 @@ public partial class upbit
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/개별-입금-주소-조회"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/individual-deposit-address-inquiry"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/get-deposit-address"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/get-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -734,8 +742,8 @@ public partial class upbit
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/입금-주소-생성-요청"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/deposit-address-generation"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/create-deposit-address"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/create-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -755,8 +763,8 @@ public partial class upbit
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/디지털자산-출금하기"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/withdrawal-digital-assets"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/withdraw"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

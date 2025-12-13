@@ -2572,6 +2572,16 @@ class hyperliquid extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
+    public function get_dex_from_hip3_symbol($market) {
+        $baseName = $this->safe_string($market, 'baseName', '');
+        $part = explode(':', $baseName);
+        $partsLength = count($part);
+        if ($partsLength > 1) {
+            return $this->safe_string($part, 0);
+        }
+        return null;
+    }
+
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
@@ -2601,11 +2611,9 @@ class hyperliquid extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             // check if is hip3 $symbol
-            $baseName = $this->safe_string($market, 'baseName', '');
-            $part = explode(':', $baseName);
-            $partsLength = count($part);
-            if ($partsLength > 1) {
-                $request['dex'] = $this->safe_string($part, 0);
+            $dexName = $this->get_dex_from_hip3_symbol($market);
+            if ($dexName !== null) {
+                $request['dex'] = $dexName;
             }
         }
         $response = $this->publicPostInfo ($this->extend($request, $params));
@@ -2691,16 +2699,25 @@ class hyperliquid extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @param {string} [$params->subAccountAddress] sub account user address
+         * @param {string} [$params->dex] perp dex name. default is null
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
         $this->load_markets();
-        $market = $this->safe_market($symbol);
+        $market = null;
         $request = array(
             'type' => 'historicalOrders',
             'user' => $userAddress,
         );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            // check if is hip3 $symbol
+            $dexName = $this->get_dex_from_hip3_symbol($market);
+            if ($dexName !== null) {
+                $request['dex'] = $dexName;
+            }
+        }
         $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     array(
@@ -3106,10 +3123,11 @@ class hyperliquid extends Exchange {
          *
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
          *
-         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @param {string} [$params->subAccountAddress] sub account user address
+         * @param {string} [$params->dex] perp dex name, eg => XYZ
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
@@ -3120,6 +3138,13 @@ class hyperliquid extends Exchange {
             'type' => 'clearinghouseState',
             'user' => $userAddress,
         );
+        if ($symbols !== null) {
+            $market = $this->market($symbols[0]);
+            $dexName = $this->get_dex_from_hip3_symbol($market);
+            if ($dexName !== null) {
+                $request['dex'] = $dexName;
+            }
+        }
         $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     {

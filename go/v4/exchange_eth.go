@@ -58,6 +58,7 @@ type OrderHyperliquid struct {
 	S string    `mapstructure:"s" msgpack:"s"`
 	R bool      `mapstructure:"r" msgpack:"r"`
 	T OrderKind `mapstructure:"t" msgpack:"t"`
+	C string    `mapstructure:"c,omitempty" msgpack:"c,omitempty"` // optional client order id
 }
 
 type OrderMessage struct {

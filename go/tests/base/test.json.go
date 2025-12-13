@@ -16,14 +16,14 @@ func TestJson() {
 		"k": "v",
 	}
 	var objJson interface{} = exchange.Json(obj)
-	Assert(IsEqual(objJson, "{\"k\":\"v\"}"))
+	Assert(ccxt.IsEqual(objJson, "{\"k\":\"v\"}"))
 	// Test: list
 	var list interface{} = []interface{}{1, 2}
 	var listJson interface{} = exchange.Json(list)
-	Assert(IsEqual(listJson, "[1,2]"))
+	Assert(ccxt.IsEqual(listJson, "[1,2]"))
 
 	// Test: json a string
 	var str interface{} = "ccxt, rocks!"
 	var serializedString interface{} = exchange.Json(str)
-	Assert(IsEqual(serializedString, "\"ccxt, rocks!\""))
+	Assert(ccxt.IsEqual(serializedString, "\"ccxt, rocks!\""))
 }

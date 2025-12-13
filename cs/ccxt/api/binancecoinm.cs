@@ -2641,6 +2641,11 @@ public partial class binancecoinm : binance
         return await this.callAsync ("fapiPrivateGetApiTradingStatus",parameters);
     }
 
+    public async Task<object> fapiPrivateGetSymbolAdlRisk (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetSymbolAdlRisk",parameters);
+    }
+
     public async Task<object> fapiPrivateGetMultiAssetsMargin (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetMultiAssetsMargin",parameters);

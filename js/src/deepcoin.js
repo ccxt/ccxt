@@ -162,6 +162,9 @@ export default class deepcoin extends Exchange {
                         'deepcoin/market/trades': 1,
                         'deepcoin/market/mark-price-candles': 1,
                         'deepcoin/market/step-margin': 5,
+                        'deepcoin/trade/funding-rate': 5,
+                        'deepcoin/trade/fund-rate/current-funding-rate': 5,
+                        'deepcoin/trade/fund-rate/history': 5,
                     },
                 },
                 'private': {
@@ -174,9 +177,6 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/finishOrderByID': 5,
                         'deepcoin/trade/orders-history': 5,
                         'deepcoin/trade/v2/orders-pending': 5,
-                        'deepcoin/trade/funding-rate': 5,
-                        'deepcoin/trade/fund-rate/current-funding-rate': 5,
-                        'deepcoin/trade/fund-rate/history': 5,
                         'deepcoin/trade/trigger-orders-pending': 5,
                         'deepcoin/trade/trigger-orders-history': 5,
                         'deepcoin/copytrading/support-contracts': 5,
@@ -2654,7 +2654,7 @@ export default class deepcoin extends Exchange {
         const request = {
             'instType': instType,
         };
-        const response = await this.privateGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, params));
+        const response = await this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, params));
         //
         //     {
         //         "code": "0",
@@ -2696,7 +2696,7 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
             'instType': this.getProductGroupFromMarket(market),
         };
-        const response = await this.privateGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, params));
+        const response = await this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, params));
         //
         //     {
         //         "code": "0",
@@ -2770,7 +2770,7 @@ export default class deepcoin extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default 20, max 100
         }
-        const response = await this.privateGetDeepcoinTradeFundRateHistory(this.extend(request, params));
+        const response = await this.publicGetDeepcoinTradeFundRateHistory(this.extend(request, params));
         //
         //     {
         //         "code": "0",

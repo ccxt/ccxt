@@ -848,8 +848,8 @@ class gate(ccxt.async_support.gate):
             ohlcv = result[i]
             subscription = self.safe_string(ohlcv, 'n', '')
             parts = subscription.split('_')
-            timeframe = self.safe_string(parts, 0)
-            timeframeId = self.find_timeframe(timeframe)
+            timeframeId = self.safe_string(parts, 0)
+            timeframe = self.find_timeframe(timeframeId)
             prefix = timeframe + '_'
             marketId = subscription.replace(prefix, '')
             symbol = self.safe_symbol(marketId, None, '_', marketType)
@@ -859,7 +859,7 @@ class gate(ccxt.async_support.gate):
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol][timeframeId] = stored
+                self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
             marketIds[symbol] = timeframe
         keys = list(marketIds.keys())
@@ -1832,8 +1832,10 @@ class gate(ccxt.async_support.gate):
 
     def request_id(self):
         # their support said that reqid must be an int32, not documented
+        self.lock_id()
         reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
         self.options['reqid'] = reqid
+        self.unlock_id()
         return reqid
 
     async def subscribe_public(self, url, messageHash, payload, channel, params={}, subscription=None):

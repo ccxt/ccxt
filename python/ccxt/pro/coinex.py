@@ -99,8 +99,10 @@ class coinex(ccxt.async_support.coinex):
         })
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return requestId
 
     def handle_ticker(self, client: Client, message):

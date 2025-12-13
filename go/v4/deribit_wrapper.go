@@ -1330,6 +1330,34 @@ func (this *Deribit) FetchOptionChain(code string, options ...FetchOptionChainOp
 	return NewOptionChain(res), nil
 }
 
+/**
+ * @method
+ * @name deribit#fetchOpenInterest
+ * @description Retrieves the open interest of a symbol
+ * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ */
+func (this *Deribit) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+
+	opts := FetchOpenInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterest(symbol, params)
+	if IsError(res) {
+		return OpenInterest{}, CreateReturnError(res)
+	}
+	return NewOpenInterest(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Deribit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
@@ -1544,9 +1572,6 @@ func (this *Deribit) FetchMarkPrice(symbol string, options ...FetchMarkPriceOpti
 }
 func (this *Deribit) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Deribit) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
 }
 func (this *Deribit) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)

@@ -975,7 +975,7 @@ public partial class woofipro : ccxt.woofipro
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             object cachedOrders = this.orders;
-            object orders = this.safeDict((cachedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+            object orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             object order = this.safeDict(orders, orderId);
             if (isTrue(!isEqual(order, null)))
             {

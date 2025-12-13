@@ -244,10 +244,7 @@ export default class xt extends xtRest {
             unsubscribe['params'] = [ name ];
         }
         const tradeType = isContract ? 'contract' : 'spot';
-        let subMessageHash = name + '::' + tradeType;
-        if (symbols !== undefined) {
-            subMessageHash = subMessageHash + '::' + symbols.join (',');
-        }
+        const subMessageHash = name + '::' + tradeType;
         const request = this.extend (unsubscribe, params);
         let tail = access;
         if (isContract) {
@@ -262,6 +259,11 @@ export default class xt extends xtRest {
             'symbols': symbols,
             'topic': topic,
         };
+        const symbolsAndTimeframes = this.safeList (subscriptionParams, 'symbolsAndTimeframes');
+        if (symbolsAndTimeframes !== undefined) {
+            subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
+            subscriptionParams = this.omit (subscriptionParams, 'symbolsAndTimeframes');
+        }
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, this.extend (subscription, subscriptionParams));
     }
 
@@ -406,8 +408,8 @@ export default class xt extends xtRest {
         const market = this.market (symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
         const messageHash = 'unsubscribe::' + name;
-        params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
-        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOHLCV', 'kline', market, undefined, params);
+        const symbolsAndTimeframes = [ [ market['symbol'], timeframe ] ];
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOHLCV', 'ohlcv', market, [ symbol ], params, { 'symbolsAndTimeframes': symbolsAndTimeframes });
     }
 
     /**
@@ -448,7 +450,7 @@ export default class xt extends xtRest {
         const market = this.market (symbol);
         const name = 'trade@' + market['id'];
         const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTrades', 'trade', market, undefined, params);
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTrades', 'trades', market, [ symbol ], params);
     }
 
     /**
@@ -501,7 +503,7 @@ export default class xt extends xtRest {
             name = 'depth@' + market['id'] + ',' + levels;
         }
         const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOrderBook', 'depth', market, undefined, params);
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [ symbol ], params);
     }
 
     /**
@@ -1431,12 +1433,22 @@ export default class xt extends xtRest {
         //         method: 'unsubscribe'
         //     }
         //
-        const method = this.safeStringLower (message, 'method');
-        if (method === 'unsubscribe') {
-            const id = this.safeString (message, 'id');
-            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, id, {});
-            this.handleUnSubscription (client, subscription);
+        //     {
+        //         code: 0,
+        //         msg: 'success',
+        //         id: '1764032903806ticker@btc_usdt',
+        //         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
+        //     }
+        //
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        let unsubscribe = false;
+        if (id !== undefined) {
+            const subscription = this.safeDict (subscriptionsById, id, {});
+            unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
+            if (unsubscribe) {
+                this.handleUnSubscription (client, subscription);
+            }
         }
         return message;
     }

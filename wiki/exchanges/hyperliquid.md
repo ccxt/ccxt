@@ -770,6 +770,7 @@ fetch all orders
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.dex | <code>string</code> | No | perp dex name. default is null |
 
 
 ```javascript
@@ -869,6 +870,7 @@ fetch all open positions
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.dex | <code>string</code> | No | perp dex name, eg: XYZ |
 
 
 ```javascript

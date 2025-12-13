@@ -13,6 +13,7 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 import ccxt  # noqa: F402
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402
 
 def equals(a, b):
     return a == b
@@ -273,3 +274,88 @@ def test_safe_methods():
     assert exchange.safe_number_omit_zero(input_dict, 'emptyString') is None
     assert exchange.safe_number_omit_zero(input_dict, 'floatNumeric') is not None
     assert exchange.safe_number_omit_zero(input_dict, 'floatString') is not None
+    # tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
+    # tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+    # Test cache types - ArrayCache
+    array_cache = ArrayCache(100)
+    array_cache.append({
+        'symbol': 'BTC/USDT',
+        'id': 'order1',
+        'price': 50000,
+    })
+    assert len(array_cache) > 0
+    # Test cache types - ArrayCacheByTimestamp
+    array_cache_by_timestamp = ArrayCacheByTimestamp(100)
+    array_cache_by_timestamp.append([1000, 50000, 1, 2, 3])
+    array_cache_by_timestamp_data = exchange.safe_value(array_cache_by_timestamp, 'Data')
+    cache_by_timestamp_data = array_cache_by_timestamp_data if array_cache_by_timestamp_data is not None else array_cache_by_timestamp
+    assert len(cache_by_timestamp_data) > 0
+    # Test cache types - ArrayCacheBySymbolById
+    array_cache_by_symbol_by_id = ArrayCacheBySymbolById(100)
+    array_cache_by_symbol_by_id.append({
+        'symbol': 'ETH/USDT',
+        'id': 'order2',
+        'price': 3000,
+    })
+    # Use direct property access for object attributes
+    array_cache_by_symbol_by_id_hashmap = array_cache_by_symbol_by_id.hashmap
+    assert array_cache_by_symbol_by_id_hashmap['ETH/USDT'] is not None
+    assert array_cache_by_symbol_by_id_hashmap['ETH/USDT']['order2'] is not None
+    array_cache_by_symbol_by_id_data = exchange.safe_value(array_cache_by_symbol_by_id, 'Data')
+    cache_by_symbol_by_id_data = array_cache_by_symbol_by_id_data if array_cache_by_symbol_by_id_data is not None else array_cache_by_symbol_by_id
+    assert len(cache_by_symbol_by_id_data) > 0
+    # Test cache types - ArrayCacheBySymbolBySide
+    array_cache_by_symbol_by_side = ArrayCacheBySymbolBySide()
+    array_cache_by_symbol_by_side.append({
+        'symbol': 'BNB/USDT',
+        'side': 'buy',
+        'price': 400,
+    })
+    # Use direct property access for object attributes
+    array_cache_by_symbol_by_side_hashmap = array_cache_by_symbol_by_side.hashmap
+    assert array_cache_by_symbol_by_side_hashmap['BNB/USDT'] is not None
+    array_cache_by_symbol_by_side_data = exchange.safe_value(array_cache_by_symbol_by_side, 'Data')
+    cache_by_symbol_by_side_data = array_cache_by_symbol_by_side_data if array_cache_by_symbol_by_side_data is not None else array_cache_by_symbol_by_side
+    assert len(cache_by_symbol_by_side_data) > 0
+    # Test map[string]map[string]interface{} (ArrayCache.hashmap)
+    # Use direct property access for object attributes
+    array_cache_hashmap_direct = array_cache.hashmap
+    nested_map = array_cache_hashmap_direct
+    assert exchange.safe_value(nested_map, 'NONEXISTENT') is None
+    # Test map[string]*ArrayCache (Trades structure)
+    trades_map = {
+        'BTC/USDT': array_cache,
+        'ETH/USDT': array_cache_by_symbol_by_id,
+    }
+    stored = exchange.safe_value(trades_map, 'BTC/USDT')
+    assert stored is not None
+    # Use direct property access for hashmap (object attribute)
+    retrieved_array_cache_hashmap = stored.hashmap
+    assert retrieved_array_cache_hashmap is not None
+    retrieved_array_cache_by_symbol_by_id = exchange.safe_value(trades_map, 'ETH/USDT')
+    assert retrieved_array_cache_by_symbol_by_id is not None
+    # Use direct property access for hashmap (object attribute)
+    retrieved_array_cache_by_symbol_by_id_hashmap = retrieved_array_cache_by_symbol_by_id.hashmap
+    assert retrieved_array_cache_by_symbol_by_id_hashmap is not None
+    assert exchange.safe_value(trades_map, 'NONEXISTENT') is None
+    # Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
+    ohlcv_inner_map = {
+        '1m': array_cache_by_timestamp,
+        '5m': ArrayCacheByTimestamp(100),
+    }
+    retrieved_array_cache_by_timestamp = exchange.safe_value(ohlcv_inner_map, '1m')
+    assert retrieved_array_cache_by_timestamp is not None
+    # Use direct property access for object attributes
+    retrieved_array_cache_by_timestamp_hashmap = retrieved_array_cache_by_timestamp.hashmap
+    assert retrieved_array_cache_by_timestamp_hashmap is not None
+    assert exchange.safe_value(ohlcv_inner_map, '5m') is not None
+    assert exchange.safe_value(ohlcv_inner_map, 'NONEXISTENT') is None
+    # Test map[string]*ArrayCacheBySymbolBySide
+    cache_by_side_map = {
+        'BTC/USDT': array_cache_by_symbol_by_side,
+    }
+    retrieved_array_cache_by_symbol_by_side = exchange.safe_value(cache_by_side_map, 'BTC/USDT')
+    assert retrieved_array_cache_by_symbol_by_side is not None
+    retrieved_array_cache_by_symbol_by_side_hashmap = retrieved_array_cache_by_symbol_by_side.hashmap
+    assert retrieved_array_cache_by_symbol_by_side_hashmap is not None
+    assert exchange.safe_value(cache_by_side_map, 'NONEXISTENT') is None

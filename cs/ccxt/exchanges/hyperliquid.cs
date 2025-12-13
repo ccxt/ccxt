@@ -2829,6 +2829,18 @@ public partial class hyperliquid : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
+    public virtual object getDexFromHip3Symbol(object market)
+    {
+        object baseName = this.safeString(market, "baseName", "");
+        object part = ((string)baseName).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        object partsLength = getArrayLength(part);
+        if (isTrue(isGreaterThan(partsLength, 1)))
+        {
+            return this.safeString(part, 0);
+        }
+        return null;
+    }
+
     /**
      * @method
      * @name hyperliquid#fetchOpenOrders
@@ -2865,12 +2877,10 @@ public partial class hyperliquid : Exchange
         {
             market = this.market(symbol);
             // check if is hip3 symbol
-            object baseName = this.safeString(market, "baseName", "");
-            object part = ((string)baseName).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-            object partsLength = getArrayLength(part);
-            if (isTrue(isGreaterThan(partsLength, 1)))
+            object dexName = this.getDexFromHip3Symbol(market);
+            if (isTrue(!isEqual(dexName, null)))
             {
-                ((IDictionary<string,object>)request)["dex"] = this.safeString(part, 0);
+                ((IDictionary<string,object>)request)["dex"] = dexName;
             }
         }
         object response = await this.publicPostInfo(this.extend(request, parameters));
@@ -2971,6 +2981,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.dex] perp dex name. default is null
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2981,11 +2992,21 @@ public partial class hyperliquid : Exchange
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         await this.loadMarkets();
-        object market = this.safeMarket(symbol);
+        object market = null;
         object request = new Dictionary<string, object>() {
             { "type", "historicalOrders" },
             { "user", userAddress },
         };
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            // check if is hip3 symbol
+            object dexName = this.getDexFromHip3Symbol(market);
+            if (isTrue(!isEqual(dexName, null)))
+            {
+                ((IDictionary<string,object>)request)["dex"] = dexName;
+            }
+        }
         object response = await this.publicPostInfo(this.extend(request, parameters));
         //
         //     [
@@ -3424,6 +3445,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.dex] perp dex name, eg: XYZ
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -3439,6 +3461,15 @@ public partial class hyperliquid : Exchange
             { "type", "clearinghouseState" },
             { "user", userAddress },
         };
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object market = this.market(getValue(symbols, 0));
+            object dexName = this.getDexFromHip3Symbol(market);
+            if (isTrue(!isEqual(dexName, null)))
+            {
+                ((IDictionary<string,object>)request)["dex"] = dexName;
+            }
+        }
         object response = await this.publicPostInfo(this.extend(request, parameters));
         //
         //     {

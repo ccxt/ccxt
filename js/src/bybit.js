@@ -4386,7 +4386,7 @@ export default class bybit extends Exchange {
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
-            'orderId': id,
+            // 'orderId': id,
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
             // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
@@ -4397,6 +4397,13 @@ export default class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
+        const clientOrderId = this.safeString2(params, 'orderLinkId', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        }
+        else {
+            request['orderLinkId'] = clientOrderId;
+        }
         let category = undefined;
         [category, params] = this.getBybitType('editOrderRequest', market, params);
         request['category'] = category;
@@ -4440,10 +4447,6 @@ export default class bybit extends Exchange {
                 request['tpTriggerBy'] = tpTriggerBy;
             }
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['orderLinkId'] = clientOrderId;
-        }
         params = this.omit(params, ['stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit']);
         return request;
     }
@@ -4461,6 +4464,7 @@ export default class bybit extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] unique client order id
      * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
@@ -4478,6 +4482,7 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
         }
+        const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         const response = await this.privatePostV5OrderAmend(this.extend(request, params));
         //
@@ -4496,7 +4501,8 @@ export default class bybit extends Exchange {
         return this.safeOrder({
             'info': response,
             'id': this.safeString(result, 'orderId'),
-        });
+            'clientOrderId': this.safeString(result, 'orderLinkId'),
+        }, market);
     }
     /**
      * @method

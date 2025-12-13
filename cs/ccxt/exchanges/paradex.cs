@@ -58,9 +58,9 @@ public partial class paradex : Exchange
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
-                { "fetchFundingHistory", false },
+                { "fetchFundingHistory", true },
                 { "fetchFundingRate", false },
-                { "fetchFundingRateHistory", false },
+                { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
                 { "fetchGreeks", true },
                 { "fetchIndexOHLCV", false },
@@ -2759,6 +2759,84 @@ public partial class paradex : Exchange
             { "underlyingPrice", this.safeNumber(greeks, "underlying_price") },
             { "info", greeks },
         };
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.paradex.trade/api/prod/markets/get-funding-data
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["page_size"] = mathMin(limit, 5000); // api maximum 5000
+        } else
+        {
+            ((IDictionary<string,object>)request)["page_size"] = 1000; // max is 5000
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_at"] = since;
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["end_at"] = until;
+        }
+        object response = await this.publicGetFundingData(this.extend(request, parameters));
+        //
+        // {
+        //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+        //     "prev": "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+        //     "results": [
+        //          {
+        //              "market":"BTC-USD-PERP",
+        //              "funding_index":"20511.93608234044552",
+        //              "funding_premium":"-6.04646651485986656",
+        //              "funding_rate":"-0.00006992598926",
+        //              "funding_rate_8h":"",
+        //              "funding_period_hours":0,
+        //              "created_at":1764160327843
+        //          }
+        //     ]
+        // }
+        //
+        object results = this.safeList(response, "results", new List<object>() {});
+        object rates = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        {
+            object rate = getValue(results, i);
+            object timestamp = this.safeInteger(rate, "created_at");
+            object datetime = this.iso8601(timestamp);
+            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+                { "info", rate },
+                { "symbol", getValue(market, "symbol") },
+                { "fundingRate", this.safeNumber(rate, "funding_rate") },
+                { "timestamp", timestamp },
+                { "datetime", datetime },
+            });
+        }
+        object sorted = this.sortBy(rates, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
