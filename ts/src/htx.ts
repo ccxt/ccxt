@@ -5409,9 +5409,11 @@ export default class htx extends Exchange {
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
+        //I'm not sure the parameters should be 'contractSize' or 'contractsize'
+        const contractSize = this.safeNumber (market, 'contractSize', 1);
         const request: Dict = {
             'contract_code': market['id'],
-            'volume': this.amountToPrecision (symbol, amount),
+            'volume': this.amountToPrecision (symbol, amount / contractSize),
             'direction': side,
         };
         let postOnly = undefined;
