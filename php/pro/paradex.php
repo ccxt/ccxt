@@ -254,7 +254,7 @@ class paradex extends \ccxt\async\paradex {
                 ),
             );
             $messageHashes = array();
-            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+            if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
                 for ($i = 0; $i < count($symbols); $i++) {
                     $messageHash = $channel . '.' . $symbols[$i];
                     $messageHashes[] = $messageHash;

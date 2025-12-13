@@ -231,8 +231,8 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 **See**
 
-- https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
-- https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-data
+- https://www.mexc.com/api-docs/spot-v3/market-data-endpoints#klinecandlestick-data
+- https://www.mexc.com/api-docs/futures/market-endpoints#get-candlestick-data
 
 
 | Param | Type | Required | Description |

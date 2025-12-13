@@ -1539,6 +1539,21 @@ class testMainClass {
             // inverse swap
             $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
             assert(str_starts_with($client_order_id_inverse, $inverse_swap_id), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
+            // linear swap conditional order
+            $swap_algo_order_request = null;
+            try {
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, array(
+                    'triggerPrice' => 101000,
+                )));
+                $check_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+                $algo_order_id_defined = ($check_order_request['algoOrderId'] !== null);
+                assert($algo_order_id_defined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
+                $client_algo_id_swap = $swap_algo_order_request['clientAlgoId'];
+                $swap_algo_id_string = ((string) $swap_id);
+                assert(str_starts_with($client_algo_id_swap, $swap_algo_id_string), 'binance - swap clientOrderId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_algo_id_string);
+            } catch(\Throwable $e) {
+                $swap_algo_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
             $create_orders_request = null;
             try {
                 $orders = [array(

@@ -766,7 +766,7 @@ class oceanex extends Exchange {
         if ($data === null) {
             throw new OrderNotFound($this->id . ' could not found matching order');
         }
-        if (gettype($id) === 'array' && array_keys($id) === array_keys(array_keys($id))) {
+        if ((gettype($id) === 'array' && array_keys($id) === array_keys(array_keys($id)))) {
             $orders = $this->parse_orders($data, $market);
             return $orders[0];
         }

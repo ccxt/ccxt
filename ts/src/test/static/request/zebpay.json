@@ -1,0 +1,217 @@
+{
+    "exchange": "zebpay",
+    "skipKeys": ["timestamp", "clientOrderId"],
+    "options": {},
+    "methods": {
+        "fetchOpenOrders": [
+            {
+                "description": "fetch swap open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/trade/order/open-orders?symbol=ETHUSDT&timestamp=1756205366203",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/trade/order/open-orders?symbol=ETHUSDT&timestamp=1756205159788",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://www.zebstage.com/api/v2/ex/orders?symbol=ETH-USDT&currentPage=1&timestamp=1756205091920",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel swap order",
+                "method": "cancelOrder",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/trade/order",
+                "input": [
+                    41549,
+                    "ETH/USDT:USDT",
+                    {
+                        "clientOrderId": "c25a8b2db0089e6e867b-161-zeb"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"clientOrderId\":\"c25a8b2db0089e6e867b-161-zeb\",\"timestamp\":\"1756205470552\"}"
+            },
+            {
+                "description": "cancel spot order",
+                "method": "cancelOrder",
+                "url": "https://www.zebstage.com/api/v2/ex/order?orderId=8226482&timestamp=1756204652003",
+                "input": [
+                    8226482,
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "spot market order using cost",
+                "method": "createOrder",
+                "url": "https://www.zebstage.com/api/v2/ex/orders",
+                "input": [
+                    "ETH/INR",
+                    "market",
+                    "buy",
+                    0,
+                    0,
+                    {
+                        "cost": 100
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-INR\",\"side\":\"BUY\",\"type\":\"MARKET\",\"clientOrderId\":\"ce2cd9b3-7112-4f7b-9520-5d37da801e59\",\"timeInForce\":\"GTC\",\"quoteOrderAmount\":\"100\",\"timestamp\":\"1765380997900\"}"
+            },
+            {
+                "description": "swap create order",
+                "method": "createOrder",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    4090,
+                    {
+                        "leverage": 1
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"BUY\",\"formType\":\"ORDER_FORM\",\"amount\":0.1,\"marginAsset\":\"INR\",\"leverage\":1,\"type\":\"LIMIT\",\"price\":4090,\"timestamp\":\"1756205128628\"}"
+            },
+            {
+                "description": "spot limit buy order",
+                "method": "createOrder",
+                "url": "https://www.zebstage.com/api/v2/ex/orders",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    4090
+                ],
+                "output": "{\"symbol\":\"ETH-USDT\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"clientOrderId\":\"8c8620df-9816-4aea-85fc-b92eb0e91fce\",\"timeInForce\":\"GTC\",\"amount\":\"0.1\",\"price\":\"4090\",\"timestamp\":\"1756204609686\"}"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "swap candles",
+                "method": "fetchOHLCV",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/market/klines",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    5
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"interval\":\"1h\",\"limit\":5}"
+            },
+            {
+                "description": "swap candles",
+                "method": "fetchOHLCV",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/market/klines",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    5
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"limit\":5,\"interval\":\"1h\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "swap balance",
+                "method": "fetchBalance",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/wallet/balance?timestamp=1756204500240",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot balance",
+                "method": "fetchBalance",
+                "url": "https://www.zebstage.com/api/v2/account/balance?timestamp=1756204318381",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "swap  ticker",
+                "method": "fetchTicker",
+                "url": "https://futuresbe.zebpay.com/api/v1/market/ticker24Hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://sapi.zebpay.com/api/v2/market/ticker?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://sapi.zebpay.com/api/v2/market/orderbook?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://futuresbe.zebpay.com/api/v1/market/orderBook?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot trades",
+                "method": "fetchTrades",
+                "url": "https://sapi.zebpay.com/api/v2/market/trades?symbol=BTC-USDT&limit=1",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "spot trades",
+                "method": "fetchTrades",
+                "url": "https://sapi.zebpay.com/api/v2/market/trades?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}

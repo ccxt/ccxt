@@ -532,13 +532,16 @@ create a trade order
 | params.triggerDirection | <code>string</code> | No | *contract only* the direction for trigger orders, 'ascending' or 'descending' |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | The price at which a stop loss order is triggered at |
+| params.stopLossLimitPrice | <code>float</code> | No | The limit price for a stoploss order (only when used in OCO with takeProfitPrice) |
 | params.takeProfitPrice | <code>float</code> | No | The price at which a take profit order is triggered at |
+| params.takeProfitLimitPrice | <code>float</code> | No | The limit price for a takeprofit order (only when used in OCO combination with stopLossPrice) |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered |
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
 | params.trailingAmount | <code>string</code> | No | the quote amount to trail away from the current market price |
 | params.trailingTriggerPrice | <code>string</code> | No | the price to trigger a trailing order, default uses the price argument |
+| params.tradingStopEndpoint | <code>boolean</code> | No | whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order |
 
 
 ```javascript

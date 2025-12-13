@@ -431,6 +431,11 @@ public partial class gate : Exchange
         return await this.callAsync ("privateWalletGetPush",parameters);
     }
 
+    public async Task<object> privateWalletGetGetLowCapExchangeList (object parameters = null)
+    {
+        return await this.callAsync ("privateWalletGetGetLowCapExchangeList",parameters);
+    }
+
     public async Task<object> privateWalletPostTransfers (object parameters = null)
     {
         return await this.callAsync ("privateWalletPostTransfers",parameters);
@@ -1099,6 +1104,11 @@ public partial class gate : Exchange
     public async Task<object> privateFuturesPutSettleOrdersOrderId (object parameters = null)
     {
         return await this.callAsync ("privateFuturesPutSettleOrdersOrderId",parameters);
+    }
+
+    public async Task<object> privateFuturesPutSettlePriceOrdersOrderId (object parameters = null)
+    {
+        return await this.callAsync ("privateFuturesPutSettlePriceOrdersOrderId",parameters);
     }
 
     public async Task<object> privateFuturesDeleteSettleOrders (object parameters = null)

@@ -146,10 +146,12 @@ class coinmate(Exchange, ImplicitAPI):
                         'products',
                         'transactions',
                         'tradingPairs',
+                        'system/time',
                     ],
                 },
                 'private': {
                     'post': [
+                        'currencies',
                         'balances',
                         'bitcoinCashWithdrawal',
                         'bitcoinCashDepositAddresses',
@@ -202,6 +204,7 @@ class coinmate(Exchange, ImplicitAPI):
                         'solWithdrawal',
                         'solDepositAddresses',
                         'unconfirmedSolDeposits',
+                        'bankWireWithdrawal',
                     ],
                 },
             },
@@ -333,6 +336,23 @@ class coinmate(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
         })
+
+    async def fetch_time(self, params={}) -> Int:
+        """
+        fetches the current integer timestamp in milliseconds from the bingx server
+
+        https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int: the current integer timestamp in milliseconds from the bingx server
+        """
+        response = await self.publicGetSystemTime(params)
+        #
+        #     {
+        #         "serverTime": 1765250628745
+        #     }
+        #
+        return self.safe_integer(response, 'serverTime')
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """

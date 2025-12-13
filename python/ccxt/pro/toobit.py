@@ -728,7 +728,7 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         await self.authenticate()
-        market = self.market_or_None(symbol)
+        market = self.market_or_null(symbol)
         symbol = self.safe_string(market, 'symbol', symbol)
         messageHash = 'orders'
         if symbol is not None:
@@ -840,7 +840,7 @@ class toobit(ccxt.async_support.toobit):
         """
         await self.load_markets()
         await self.authenticate()
-        market = self.market_or_None(symbol)
+        market = self.market_or_null(symbol)
         symbol = self.safe_string(market, 'symbol', symbol)
         messageHash = 'myTrades'
         if symbol is not None:

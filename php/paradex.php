@@ -618,7 +618,7 @@ class paradex extends Exchange {
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          *
          * @see https://docs.api.testnet.paradex.trade/#ohlcv-for-a-$symbol
          *
@@ -628,6 +628,7 @@ class paradex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {string} [$params->price] "last", "mark", "index", default is "last"
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -639,7 +640,11 @@ class paradex extends Exchange {
         $now = $this->milliseconds();
         $duration = $this->parse_timeframe($timeframe);
         $until = $this->safe_integer_2($params, 'until', 'till', $now);
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $price = $this->safe_string($params, 'price');
+        if ($price !== null) {
+            $request['price_kind'] = $price;
+        }
+        $params = $this->omit($params, array( 'until', 'till', 'price' ));
         if ($since !== null) {
             $request['start_at'] = $since;
             if ($limit !== null) {

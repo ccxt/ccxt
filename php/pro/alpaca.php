@@ -712,7 +712,7 @@ class alpaca extends \ccxt\async\alpaca {
     }
 
     public function handle_message(Client $client, $message) {
-        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
+        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             $this->handle_crypto_message($client, $message);
             return;
         }

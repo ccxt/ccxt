@@ -259,6 +259,9 @@ abstract class gateio extends \ccxt\gate {
     public function private_wallet_get_push($params = array()) {
         return $this->request('push', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_wallet_get_getlowcapexchangelist($params = array()) {
+        return $this->request('getLowCapExchangeList', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_wallet_post_transfers($params = array()) {
         return $this->request('transfers', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -660,6 +663,9 @@ abstract class gateio extends \ccxt\gate {
     }
     public function private_futures_put_settle_orders_order_id($params = array()) {
         return $this->request('{settle}/orders/{order_id}', array('private', 'futures'), 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function private_futures_put_settle_price_orders_order_id($params = array()) {
+        return $this->request('{settle}/price_orders/{order_id}', array('private', 'futures'), 'PUT', $params, null, null, array("cost" => 1));
     }
     public function private_futures_delete_settle_orders($params = array()) {
         return $this->request('{settle}/orders', array('private', 'futures'), 'DELETE', $params, null, null, array("cost" => 0.26666666666666666));
@@ -1231,6 +1237,9 @@ abstract class gateio extends \ccxt\gate {
     public function privateWalletGetPush($params = array()) {
         return $this->request('push', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateWalletGetGetLowCapExchangeList($params = array()) {
+        return $this->request('getLowCapExchangeList', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateWalletPostTransfers($params = array()) {
         return $this->request('transfers', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -1632,6 +1641,9 @@ abstract class gateio extends \ccxt\gate {
     }
     public function privateFuturesPutSettleOrdersOrderId($params = array()) {
         return $this->request('{settle}/orders/{order_id}', array('private', 'futures'), 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function privateFuturesPutSettlePriceOrdersOrderId($params = array()) {
+        return $this->request('{settle}/price_orders/{order_id}', array('private', 'futures'), 'PUT', $params, null, null, array("cost" => 1));
     }
     public function privateFuturesDeleteSettleOrders($params = array()) {
         return $this->request('{settle}/orders', array('private', 'futures'), 'DELETE', $params, null, null, array("cost" => 0.26666666666666666));

@@ -28,6 +28,36 @@ func NewHyperliquidFromCore(core *HyperliquidCore) *Hyperliquid {
 
 /**
  * @method
+ * @name hyperliquid#fetchStatus
+ * @description the latest known information on the availability of the exchange API
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ */
+func (this *Hyperliquid) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+	res := <-this.Core.FetchStatus(params...)
+	if IsError(res) {
+		return map[string]interface{}{}, CreateReturnError(res)
+	}
+	return res.(map[string]interface{}), nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchTime
+ * @description fetches the current integer timestamp in milliseconds from the exchange server
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int} the current integer timestamp in milliseconds from the exchange server
+ */
+func (this *Hyperliquid) FetchTime(params ...interface{}) (int64, error) {
+	res := <-this.Core.FetchTime(params...)
+	if IsError(res) {
+		return -1, CreateReturnError(res)
+	}
+	return (res).(int64), nil
+}
+
+/**
+ * @method
  * @name hyperliquid#fetchCurrencies
  * @description fetches all available currencies on an exchange
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
@@ -118,6 +148,7 @@ func (this *Hyperliquid) FetchSpotMarkets(params ...interface{}) ([]MarketInterf
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
  * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+ * @param {string} [params.dex] for hip3 markets, the dex name, eg: 'xyz'
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
  */
@@ -172,6 +203,7 @@ func (this *Hyperliquid) FetchOrderBook(symbol string, options ...FetchOrderBook
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', by default fetches both
+ * @param {boolean} [params.hip3] set to true to fetch hip3 markets only
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
  */
 func (this *Hyperliquid) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -1707,14 +1739,8 @@ func (this *Hyperliquid) FetchPositionsRisk(options ...FetchPositionsRiskOptions
 func (this *Hyperliquid) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Hyperliquid) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
-	return this.exchangeTyped.FetchStatus(params...)
-}
 func (this *Hyperliquid) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 	return this.exchangeTyped.FetchTicker(symbol, options...)
-}
-func (this *Hyperliquid) FetchTime(params ...interface{}) (int64, error) {
-	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Hyperliquid) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)

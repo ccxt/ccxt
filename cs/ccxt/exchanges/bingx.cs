@@ -5153,7 +5153,7 @@ public partial class bingx : Exchange
             { "3", "rejected" },
             { "4", "pending" },
             { "5", "rejected" },
-            { "6", "ok" },
+            { "6", "pending" },
         };
         return this.safeString(statuses, status, status);
     }

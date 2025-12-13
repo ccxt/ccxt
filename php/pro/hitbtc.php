@@ -375,7 +375,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             );
             $newTickers = Async\await($this->subscribe_public($name, 'tickers', $symbols, $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
-                if (gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers))) {
+                if ((gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers)))) {
                     $tickers = array();
                     $tickers[$newTickers['symbol']] = $newTickers;
                     return $tickers;
@@ -526,7 +526,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             );
             $newTickers = Async\await($this->subscribe_public($name, 'bidask', $symbols, $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
-                if (gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers))) {
+                if ((gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers)))) {
                     $tickers = array();
                     $tickers[$newTickers['symbol']] = $newTickers;
                     return $tickers;
@@ -935,7 +935,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         $data = $this->safe_value($message, 'params', array());
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             for ($i = 0; $i < count($data); $i++) {
                 $order = $data[$i];
                 $this->handle_order_helper($client, $message, $order);
@@ -1320,7 +1320,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_value($message, 'result', array());
-        if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
+        if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
             $parsedOrders = array();
             for ($i = 0; $i < count($result); $i++) {
                 $parsedOrder = $this->parse_ws_order($result[$i]);
@@ -1376,7 +1376,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             if (($result === true) && !(is_array($message) && array_key_exists('id', $message))) {
                 $this->handle_authenticate($client, $message);
             }
-            if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
+            if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
                 // to do improve this, not very reliable right now
                 $first = $this->safe_value($result, 0, array());
                 $arrayLength = count($result);

@@ -1177,7 +1177,7 @@ class woo extends \ccxt\async\woo {
         //
         $topic = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data');
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             // algoexecutionreportv2
             for ($i = 0; $i < count($data); $i++) {
                 $order = $data[$i];

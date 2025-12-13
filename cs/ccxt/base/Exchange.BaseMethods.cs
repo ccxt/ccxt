@@ -406,12 +406,9 @@ public partial class Exchange
         {
             return defaultValue;
         }
-        if (isTrue(((value is IDictionary<string, object>))))
+        if (isTrue(isTrue(((value is IDictionary<string, object>))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
-            if (!isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-            {
-                return value;
-            }
+            return value;
         }
         return defaultValue;
     }
@@ -4394,8 +4391,8 @@ public partial class Exchange
         priceKey ??= 0;
         amountKey ??= 1;
         countOrIdKey ??= 2;
-        object price = this.safeNumber(bidask, priceKey);
-        object amount = this.safeNumber(bidask, amountKey);
+        object price = this.safeFloat(bidask, priceKey);
+        object amount = this.safeFloat(bidask, amountKey);
         object countOrId = this.safeInteger(bidask, countOrIdKey);
         object bidAsk = new List<object>() {price, amount};
         if (isTrue(!isEqual(countOrId, null)))
@@ -4488,7 +4485,7 @@ public partial class Exchange
         });
     }
 
-    public virtual object marketOrNull(object symbol)
+    public virtual object marketOrNull(object symbol = null)
     {
         if (isTrue(isEqual(symbol, null)))
         {

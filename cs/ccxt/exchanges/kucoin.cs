@@ -151,6 +151,8 @@ public partial class kucoin : Exchange
                         { "margin/config", 25 },
                         { "announcements", 20 },
                         { "margin/collateralRatio", 10 },
+                        { "convert/symbol", 5 },
+                        { "convert/currencies", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "bullet-public", 15 },
@@ -230,6 +232,12 @@ public partial class kucoin : Exchange
                         { "broker/queryUser", 3 },
                         { "broker/queryDetailByUid", 3 },
                         { "migrate/user/account/status", 3 },
+                        { "convert/quote", 20 },
+                        { "convert/order/detail", 5 },
+                        { "convert/order/history", 5 },
+                        { "convert/limit/quote", 20 },
+                        { "convert/limit/order/detail", 5 },
+                        { "convert/limit/orders", 5 },
                         { "affiliate/inviter/statistics", 30 },
                     } },
                     { "post", new Dictionary<string, object>() {
@@ -264,6 +272,8 @@ public partial class kucoin : Exchange
                         { "purchase", 15 },
                         { "redeem", 15 },
                         { "lend/purchase/update", 10 },
+                        { "convert/order", 20 },
+                        { "convert/limit/order", 20 },
                         { "bullet-private", 10 },
                         { "position/update-user-leverage", 5 },
                         { "deposit-address/create", 20 },
@@ -290,6 +300,7 @@ public partial class kucoin : Exchange
                         { "hf/margin/orders/{orderId}", 5 },
                         { "hf/margin/orders/client-order/{clientOid}", 5 },
                         { "hf/margin/orders", 10 },
+                        { "convert/limit/order/cancel", 5 },
                     } },
                 } },
                 { "futuresPublic", new Dictionary<string, object>() {
@@ -399,6 +410,7 @@ public partial class kucoin : Exchange
                 } },
                 { "earn", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
+                        { "otc-loan/discount-rate-configs", 10 },
                         { "otc-loan/loan", 1 },
                         { "otc-loan/accounts", 1 },
                         { "earn/redeem-preview", 7.5 },
@@ -408,9 +420,12 @@ public partial class kucoin : Exchange
                         { "earn/kcs-staking/products", 7.5 },
                         { "earn/staking/products", 7.5 },
                         { "earn/eth-staking/products", 7.5 },
+                        { "struct-earn/dual/products", 4.5 },
+                        { "struct-earn/orders", 7.5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "earn/orders", 7.5 },
+                        { "struct-earn/orders", 7.5 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "earn/orders", 7.5 },

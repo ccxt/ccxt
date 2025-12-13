@@ -258,7 +258,7 @@ class dydx extends \ccxt\async\dydx {
     }
 
     public function handle_delta($bookside, $delta) {
-        if (gettype($delta) === 'array' && array_keys($delta) === array_keys(array_keys($delta))) {
+        if ((gettype($delta) === 'array' && array_keys($delta) === array_keys(array_keys($delta)))) {
             $price = $this->safe_float($delta, 0);
             $amount = $this->safe_float($delta, 1);
             $bookside->store ($price, $amount);

@@ -145,6 +145,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		btcturkItf := NewBtcturkCore()
 		btcturkItf.Init(exchangeArgs)
 		return btcturkItf, true
+	case "bullish":
+		bullishItf := NewBullishCore()
+		bullishItf.Init(exchangeArgs)
+		return bullishItf, true
 	case "bybit":
 		bybitItf := NewBybitCore()
 		bybitItf.Init(exchangeArgs)
@@ -437,6 +441,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		zaifItf := NewZaifCore()
 		zaifItf.Init(exchangeArgs)
 		return zaifItf, true
+	case "zebpay":
+		zebpayItf := NewZebpayCore()
+		zebpayItf.Init(exchangeArgs)
+		return zebpayItf, true
 	case "zonda":
 		zondaItf := NewZondaCore()
 		zondaItf.Init(exchangeArgs)

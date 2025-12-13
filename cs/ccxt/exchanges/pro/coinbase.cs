@@ -876,7 +876,7 @@ public partial class coinbase : ccxt.coinbase
             { "type", this.safeString(order, "order_type") },
             { "timeInForce", null },
             { "postOnly", null },
-            { "side", this.safeString2(order, "side", "order_side") },
+            { "side", this.safeStringLower2(order, "side", "order_side") },
             { "price", this.safeString(order, "limit_price") },
             { "stopPrice", stopPrice },
             { "triggerPrice", stopPrice },
@@ -885,7 +885,7 @@ public partial class coinbase : ccxt.coinbase
             { "average", this.safeString(order, "avg_price") },
             { "filled", this.safeString(order, "cumulative_quantity") },
             { "remaining", this.safeString(order, "leaves_quantity") },
-            { "status", this.safeStringLower(order, "status") },
+            { "status", this.parseOrderStatus(this.safeString(order, "status")) },
             { "fee", new Dictionary<string, object>() {
                 { "amount", this.safeString(order, "total_fees") },
                 { "currency", this.safeString(market, "quote") },

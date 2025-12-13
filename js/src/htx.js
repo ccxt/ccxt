@@ -917,6 +917,10 @@ export default class htx extends Exchange {
                     'order-marketorder-amount-min-error': InvalidOrder,
                     'order-limitorder-price-min-error': InvalidOrder,
                     'order-limitorder-price-max-error': InvalidOrder,
+                    'order-limitorder-price-buy-min-error': InvalidOrder,
+                    'order-limitorder-price-buy-max-error': InvalidOrder,
+                    'order-limitorder-price-sell-min-error': InvalidOrder,
+                    'order-limitorder-price-sell-max-error': InvalidOrder,
                     'order-stop-order-hit-trigger': InvalidOrder,
                     'order-value-min-error': InvalidOrder,
                     'order-invalid-price': InvalidOrder,
@@ -933,6 +937,7 @@ export default class htx extends Exchange {
                     'base-symbol-error': BadSymbol,
                     'system-maintenance': OnMaintenance,
                     'base-request-exceed-frequency-limit': RateLimitExceeded,
+                    'rate-too-many-requests': RateLimitExceeded,
                     // err-msg
                     'invalid symbol': BadSymbol,
                     'symbol trade not open now': BadSymbol,
@@ -5558,7 +5563,9 @@ export default class htx extends Exchange {
                 params = this.omit(params, ['clientOrderId']);
             }
             if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
-                request['price'] = this.priceToPrecision(symbol, price);
+                if (price !== undefined) {
+                    request['price'] = this.priceToPrecision(symbol, price);
+                }
             }
         }
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only', false);
@@ -7611,7 +7618,7 @@ export default class htx extends Exchange {
         }
         if ('status' in response) {
             //
-            //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             const status = this.safeString(response, 'status');

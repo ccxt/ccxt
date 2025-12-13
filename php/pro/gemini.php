@@ -871,7 +871,7 @@ class gemini extends \ccxt\async\gemini {
         //         }
         //     )
         //
-        $isArray = gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message));
+        $isArray = (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)));
         if ($isArray) {
             $this->handle_order($client, $message);
             return;

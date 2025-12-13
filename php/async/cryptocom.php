@@ -216,6 +216,13 @@ class cryptocom extends Exchange {
                             'private/get-deposit-history' => 10 / 3,
                             'private/get-fee-rate' => 2,
                             'private/get-instrument-fee-rate' => 2,
+                            'private/fiat/fiat-deposit-info' => 10 / 3,
+                            'private/fiat/fiat-deposit-history' => 10 / 3,
+                            'private/fiat/fiat-withdraw-history' => 10 / 3,
+                            'private/fiat/fiat-create-withdraw' => 10 / 3,
+                            'private/fiat/fiat-transaction-quota' => 10 / 3,
+                            'private/fiat/fiat-transaction-limit' => 10 / 3,
+                            'private/fiat/fiat-get-bank-accounts' => 10 / 3,
                             'private/staking/stake' => 2,
                             'private/staking/unstake' => 2,
                             'private/staking/get-staking-position' => 2,
@@ -876,7 +883,7 @@ class cryptocom extends Exchange {
             $request = array();
             if ($symbols !== null) {
                 $symbol = null;
-                if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+                if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
                     $symbolsLength = count($symbols);
                     if ($symbolsLength > 1) {
                         throw new BadRequest($this->id . ' fetchTickers() $symbols argument cannot contain more than 1 symbol');
@@ -3283,7 +3290,7 @@ class cryptocom extends Exchange {
             $market = null;
             if ($symbols !== null) {
                 $symbol = null;
-                if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+                if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
                     $symbolsLength = count($symbols);
                     if ($symbolsLength > 1) {
                         throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
@@ -3393,7 +3400,7 @@ class cryptocom extends Exchange {
         }
         $returnString = '';
         $paramsKeys = null;
-        if (gettype($object) === 'array' && array_keys($object) === array_keys(array_keys($object))) {
+        if ((gettype($object) === 'array' && array_keys($object) === array_keys(array_keys($object)))) {
             $paramsKeys = $object;
         } else {
             $sorted = $this->keysort($object);
@@ -3405,7 +3412,7 @@ class cryptocom extends Exchange {
             $value = $object[$key];
             if ($value === 'null') {
                 $returnString .= 'null';
-            } elseif (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+            } elseif ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                 for ($j = 0; $j < count($value); $j++) {
                     $returnString .= $this->params_to_string($value[$j], $level + 1);
                 }

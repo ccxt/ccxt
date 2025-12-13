@@ -87,6 +87,14 @@ func (this *KucoinfuturesCore) PublicGetMarginCollateralRatio(args ...interface{
 	return this.callEndpointAsync("publicGetMarginCollateralRatio", args...)
 }
 
+func (this *KucoinfuturesCore) PublicGetConvertSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConvertSymbol", args...)
+}
+
+func (this *KucoinfuturesCore) PublicGetConvertCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConvertCurrencies", args...)
+}
+
 func (this *KucoinfuturesCore) PublicPostBulletPublic(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicPostBulletPublic", args...)
 }
@@ -379,6 +387,30 @@ func (this *KucoinfuturesCore) PrivateGetMigrateUserAccountStatus(args ...interf
 	return this.callEndpointAsync("privateGetMigrateUserAccountStatus", args...)
 }
 
+func (this *KucoinfuturesCore) PrivateGetConvertQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertQuote", args...)
+}
+
+func (this *KucoinfuturesCore) PrivateGetConvertOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertOrderDetail", args...)
+}
+
+func (this *KucoinfuturesCore) PrivateGetConvertOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertOrderHistory", args...)
+}
+
+func (this *KucoinfuturesCore) PrivateGetConvertLimitQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertLimitQuote", args...)
+}
+
+func (this *KucoinfuturesCore) PrivateGetConvertLimitOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertLimitOrderDetail", args...)
+}
+
+func (this *KucoinfuturesCore) PrivateGetConvertLimitOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertLimitOrders", args...)
+}
+
 func (this *KucoinfuturesCore) PrivateGetAffiliateInviterStatistics(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAffiliateInviterStatistics", args...)
 }
@@ -507,6 +539,14 @@ func (this *KucoinfuturesCore) PrivatePostLendPurchaseUpdate(args ...interface{}
 	return this.callEndpointAsync("privatePostLendPurchaseUpdate", args...)
 }
 
+func (this *KucoinfuturesCore) PrivatePostConvertOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostConvertOrder", args...)
+}
+
+func (this *KucoinfuturesCore) PrivatePostConvertLimitOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostConvertLimitOrder", args...)
+}
+
 func (this *KucoinfuturesCore) PrivatePostBulletPrivate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBulletPrivate", args...)
 }
@@ -601,6 +641,10 @@ func (this *KucoinfuturesCore) PrivateDeleteHfMarginOrdersClientOrderClientOid(a
 
 func (this *KucoinfuturesCore) PrivateDeleteHfMarginOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteHfMarginOrders", args...)
+}
+
+func (this *KucoinfuturesCore) PrivateDeleteConvertLimitOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteConvertLimitOrderCancel", args...)
 }
 
 func (this *KucoinfuturesCore) FuturesPublicGetContractsActive(args ...interface{}) <-chan interface{} {
@@ -1031,6 +1075,10 @@ func (this *KucoinfuturesCore) BrokerDeleteBrokerNdAccountApikey(args ...interfa
 	return this.callEndpointAsync("brokerDeleteBrokerNdAccountApikey", args...)
 }
 
+func (this *KucoinfuturesCore) EarnGetOtcLoanDiscountRateConfigs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetOtcLoanDiscountRateConfigs", args...)
+}
+
 func (this *KucoinfuturesCore) EarnGetOtcLoanLoan(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("earnGetOtcLoanLoan", args...)
 }
@@ -1067,8 +1115,20 @@ func (this *KucoinfuturesCore) EarnGetEarnEthStakingProducts(args ...interface{}
 	return this.callEndpointAsync("earnGetEarnEthStakingProducts", args...)
 }
 
+func (this *KucoinfuturesCore) EarnGetStructEarnDualProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetStructEarnDualProducts", args...)
+}
+
+func (this *KucoinfuturesCore) EarnGetStructEarnOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetStructEarnOrders", args...)
+}
+
 func (this *KucoinfuturesCore) EarnPostEarnOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("earnPostEarnOrders", args...)
+}
+
+func (this *KucoinfuturesCore) EarnPostStructEarnOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnPostStructEarnOrders", args...)
 }
 
 func (this *KucoinfuturesCore) EarnDeleteEarnOrders(args ...interface{}) <-chan interface{} {

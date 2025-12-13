@@ -96,6 +96,12 @@ public partial class paradex
     /// int : timestamp in ms of the latest candle to fetch
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.price</term>
+    /// <description>
+    /// string : "last", "mark", "index", default is "last"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>

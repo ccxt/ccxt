@@ -557,7 +557,7 @@ class bybit extends \ccxt\async\bybit {
         // spot
         //     {
         //         "topic" => "tickers.BTCUSDT",
-        //         "ts" => 1673853746003,
+        //         "ts" => 1673853746002,
         //         "type" => "snapshot",
         //         "cs" => 2588407389,
         //         "data" => {
@@ -1486,7 +1486,7 @@ class bybit extends \ccxt\async\bybit {
         $spot = $topic === 'ticketInfo';
         $executionFast = $topic === 'execution.fast';
         $data = $this->safe_value($message, 'data', array());
-        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+        if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             $data = $this->safe_value($data, 'result', array());
         }
         if ($this->myTrades === null) {
@@ -1774,7 +1774,7 @@ class bybit extends \ccxt\async\bybit {
         //         )
         //     }
         //
-        if (gettype($message['data']) === 'array' && array_keys($message['data']) === array_keys(array_keys($message['data']))) {
+        if ((gettype($message['data']) === 'array' && array_keys($message['data']) === array_keys(array_keys($message['data'])))) {
             $rawLiquidations = $this->safe_list($message, 'data', array());
             for ($i = 0; $i < count($rawLiquidations); $i++) {
                 $rawLiquidation = $rawLiquidations[$i];

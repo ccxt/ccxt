@@ -21,7 +21,7 @@ class whitebit extends whitebit$1["default"] {
             'name': 'WhiteBit',
             'version': 'v4',
             'countries': ['EE'],
-            'rateLimit': 50,
+            'rateLimit': 20,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -298,6 +298,7 @@ class whitebit extends whitebit$1["default"] {
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
+                'nonceWindow': false,
                 'fetchBalance': {
                     'account': 'spot',
                 },
@@ -3921,7 +3922,8 @@ class whitebit extends whitebit$1["default"] {
             const nonce = this.nonce().toString();
             const secret = this.encode(this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
-            body = this.json(this.extend({ 'request': request, 'nonce': nonce }, params));
+            const [nonceWindow, requestParams] = this.handleOptionAndParams(params, 'sign', 'nonceWindow', false);
+            body = this.json(this.extend({ 'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow }, requestParams));
             const payload = this.stringToBase64(body);
             const signature = this.hmac(this.encode(payload), secret, sha512.sha512);
             headers = {

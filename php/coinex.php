@@ -313,6 +313,7 @@ class coinex extends Exchange {
                             'futures/index' => 1,
                             'futures/funding-rate' => 1,
                             'futures/funding-rate-history' => 1,
+                            'futures/premium-index-history' => 1,
                             'futures/position-level' => 1,
                             'futures/liquidation-history' => 1,
                             'futures/basis-history' => 1,
@@ -327,20 +328,26 @@ class coinex extends Exchange {
                             'account/subs/info' => 1,
                             'account/subs/api' => 40,
                             'account/subs/transfer-history' => 40,
+                            'account/subs/balance' => 1,
                             'account/subs/spot-balance' => 1,
                             'account/trade-fee-rate' => 40,
+                            'account/futures-market-settings' => 1,
+                            'account/info' => 1,
                             'assets/spot/balance' => 40,
                             'assets/futures/balance' => 40,
                             'assets/margin/balance' => 1,
                             'assets/financial/balance' => 40,
                             'assets/amm/liquidity' => 40,
                             'assets/credit/info' => 40,
+                            'assets/spot/transcation-history' => 1,
                             'assets/margin/borrow-history' => 40,
                             'assets/margin/interest-limit' => 1,
                             'assets/deposit-address' => 40,
                             'assets/deposit-history' => 40,
                             'assets/withdraw' => 40,
                             'assets/transfer-history' => 40,
+                            'assets/amm/liquidity-pool' => 40,
+                            'assets/amm/income-history' => 40,
                             'spot/order-status' => 8,
                             'spot/batch-order-status' => 8,
                             'spot/pending-order' => 8,
@@ -363,6 +370,12 @@ class coinex extends Exchange {
                             'futures/position-funding-history' => 40,
                             'futures/position-adl-history' => 1,
                             'futures/position-settle-history' => 1,
+                            'refer/referee' => 1,
+                            'refer/referee-rebate/record' => 1,
+                            'refer/referee-rebate/detail' => 1,
+                            'refer/agent-referee' => 1,
+                            'refer/agent-rebate/record' => 1,
+                            'refer/agent-rebate/detail' => 1,
                         ),
                         'post' => array(
                             'account/subs' => 40,
@@ -373,6 +386,7 @@ class coinex extends Exchange {
                             'account/subs/delete-api' => 40,
                             'account/subs/transfer' => 40,
                             'account/settings' => 40,
+                            'account/futures-market-settings' => 40,
                             'assets/margin/borrow' => 40,
                             'assets/margin/repay' => 40,
                             'assets/renewal-deposit-address' => 40,
@@ -387,6 +401,7 @@ class coinex extends Exchange {
                             'spot/batch-stop-order' => 1,
                             'spot/modify-order' => 13.334,
                             'spot/modify-stop-order' => 13.334,
+                            'spot/batch-modify-order' => 13.334,
                             'spot/cancel-all-order' => 1,
                             'spot/cancel-order' => 6.667,
                             'spot/cancel-stop-order' => 6.667,
@@ -400,6 +415,7 @@ class coinex extends Exchange {
                             'futures/batch-stop-order' => 1,
                             'futures/modify-order' => 20,
                             'futures/modify-stop-order' => 20,
+                            'futures/batch-modify-order' => 20,
                             'futures/cancel-all-order' => 1,
                             'futures/cancel-order' => 10,
                             'futures/cancel-stop-order' => 10,
@@ -4022,7 +4038,7 @@ class coinex extends Exchange {
         $market = null;
         if ($symbols !== null) {
             $symbol = null;
-            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+            if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
                 $symbolsLength = count($symbols);
                 if ($symbolsLength > 1) {
                     throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');

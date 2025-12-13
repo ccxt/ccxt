@@ -260,7 +260,7 @@ class bitmart extends \ccxt\async\bitmart {
         $type = $isSpot ? 'spot' : 'swap';
         $this->balance[$type]['info'] = $message;
         if ($isSpot) {
-            if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+            if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
                 return;
             }
             for ($i = 0; $i < count($data); $i++) {

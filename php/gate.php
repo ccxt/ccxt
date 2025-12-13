@@ -316,6 +316,7 @@ class gate extends Exchange {
                             'small_balance' => 1,
                             'small_balance_history' => 1,
                             'push' => 1,
+                            'getLowCapExchangeList' => 1,
                         ),
                         'post' => array(
                             'transfers' => 2.5, // 8r/s cost = 20 / 8 = 2.5
@@ -505,6 +506,7 @@ class gate extends Exchange {
                         ),
                         'put' => array(
                             '{settle}/orders/{order_id}' => 1,
+                            '{settle}/price_orders/{order_id}' => 1,
                         ),
                         'delete' => array(
                             '{settle}/orders' => 20 / 75,
@@ -1087,7 +1089,6 @@ class gate extends Exchange {
                     'LOAN_RECORD_NOT_FOUND' => '\\ccxt\\OrderNotFound',
                     'NO_MATCHED_LOAN' => '\\ccxt\\ExchangeError',
                     'NOT_MERGEABLE' => '\\ccxt\\ExchangeError',
-                    'NO_CHANGE' => '\\ccxt\\ExchangeError',
                     'REPAY_TOO_MUCH' => '\\ccxt\\ExchangeError',
                     'TOO_MANY_CURRENCY_PAIRS' => '\\ccxt\\InvalidOrder',
                     'TOO_MANY_ORDERS' => '\\ccxt\\InvalidOrder',
@@ -1130,6 +1131,7 @@ class gate extends Exchange {
                     'AUTO_TRIGGER_PRICE_GREATE_LAST' => '\\ccxt\\InvalidOrder', // array("label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument => Trigger.Price must > last_price")
                     'POSITION_HOLDING' => '\\ccxt\\BadRequest',
                     'USER_LOAN_EXCEEDED' => '\\ccxt\\BadRequest', // array("label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded")
+                    'NO_CHANGE' => '\\ccxt\\InvalidOrder', // array("label":"NO_CHANGE","message":"No change is made")
                 ),
                 'broad' => array(),
             ),
@@ -3465,7 +3467,7 @@ class gate extends Exchange {
         //          "l" => "40783.94"         // Lowest price
         //     }
         //
-        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
+        if ((gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv)))) {
             return array(
                 $this->safe_timestamp($ohlcv, 0),   // unix timestamp in seconds
                 $this->safe_number($ohlcv, 5),      // open price
@@ -6447,7 +6449,7 @@ class gate extends Exchange {
         //         }
         //     )
         //
-        if (gettype($info) !== 'array' || array_keys($info) !== array_keys(array_keys($info))) {
+        if ((gettype($info) !== 'array' || array_keys($info) !== array_keys(array_keys($info)))) {
             return $this->parse_emulated_leverage_tiers($info, $market);
         }
         $minNotional = 0;
@@ -6793,7 +6795,7 @@ class gate extends Exchange {
             }
             $params = $newParams;
             $query = $newParams;
-        } elseif (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) {
+        } elseif ((gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)))) {
             // endpoints like createOrders use an array instead of an object
             // so we infer the $settle from one of the elements
             // they have to be all the same so relying on the $first one is fine

@@ -27,7 +27,7 @@ class whitebit extends Exchange {
             'name' => 'WhiteBit',
             'version' => 'v4',
             'countries' => array( 'EE' ),
-            'rateLimit' => 50,
+            'rateLimit' => 20,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -304,6 +304,7 @@ class whitebit extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fiatCurrencies' => array( 'EUR', 'USD', 'RUB', 'UAH' ),
+                'nonceWindow' => false, // controls nonce validation behavior in API requests. Set to true for time-based validation. Useful for high-frequency trading systems with concurrent requests. For more details, see https://docs.whitebit.com/private/http-auth/
                 'fetchBalance' => array(
                     'account' => 'spot',
                 ),
@@ -1634,7 +1635,7 @@ class whitebit extends Exchange {
             //         ),
             //     )
             //
-            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                 return $this->parse_trades($response, $market, $since, $limit);
             } else {
                 $results = array();
@@ -2834,7 +2835,7 @@ class whitebit extends Exchange {
             //     ]
             //
             $subAccounts = Async\await($this->v4PrivatePostSubAccountList ($params));
-            if ($subAccounts && gettype($subAccounts) === 'array' && array_keys($subAccounts) === array_keys(array_keys($subAccounts))) {
+            if ($subAccounts && (gettype($subAccounts) === 'array' && array_keys($subAccounts) === array_keys(array_keys($subAccounts)))) {
                 for ($i = 0; $i < count($subAccounts); $i++) {
                     $subAccount = $this->safe_value($subAccounts, $i);
                     $accountId = $this->safe_string($subAccount, 'id');
@@ -4068,7 +4069,8 @@ class whitebit extends Exchange {
             $nonce = (string) $this->nonce();
             $secret = $this->encode($this->secret);
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
-            $body = $this->json($this->extend(array( 'request' => $request, 'nonce' => $nonce ), $params));
+            list($nonceWindow, $requestParams) = $this->handle_option_and_params($params, 'sign', 'nonceWindow', false);
+            $body = $this->json($this->extend(array( 'request' => $request, 'nonce' => $nonce, 'nonceWindow' => $nonceWindow ), $requestParams));
             $payload = base64_encode($body);
             $signature = $this->hmac($this->encode($payload), $secret, 'sha512');
             $headers = array(

@@ -169,6 +169,7 @@ class mexc extends Exchange {
                         'get' => array(
                             'ping' => 1,
                             'time' => 1,
+                            'defaultSymbols' => 1,
                             'exchangeInfo' => 10,
                             'depth' => 1,
                             'trades' => 5,
@@ -184,14 +185,19 @@ class mexc extends Exchange {
                     ),
                     'private' => array(
                         'get' => array(
+                            'kyc/status' => 1,
+                            'uid' => 1,
                             'order' => 2,
                             'openOrders' => 3,
                             'allOrders' => 10,
                             'account' => 10,
                             'myTrades' => 10,
+                            'strategy/group' => 20,
+                            'strategy/group/uid' => 20,
                             'tradeFee' => 10,
                             'sub-account/list' => 1,
                             'sub-account/apiKey' => 1,
+                            'sub-account/asset' => 1,
                             'capital/config/getall' => 10,
                             'capital/deposit/hisrec' => 1,
                             'capital/withdraw/history' => 1,
@@ -237,6 +243,7 @@ class mexc extends Exchange {
                             'sub-account/futures' => 1,
                             'sub-account/margin' => 1,
                             'batchOrders' => 10,
+                            'strategy/group' => 20,
                             'capital/withdraw/apply' => 1,
                             'capital/withdraw' => 1,
                             'capital/transfer' => 1,
@@ -1749,8 +1756,8 @@ class mexc extends Exchange {
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-$data
-         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-$data
+         * @see https://www.mexc.com/api-docs/spot-v3/market-$data-endpoints#klinecandlestick-$data
+         * @see https://www.mexc.com/api-docs/futures/market-endpoints#get-candlestick-$data
          *
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1764,7 +1771,7 @@ class mexc extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $maxLimit = ($market['spot']) ? 1000 : 2000;
+        $maxLimit = ($market['spot']) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
@@ -1779,10 +1786,16 @@ class mexc extends Exchange {
             'interval' => $timeframeValue,
         );
         $candles = null;
+        $until = $this->safe_integer_n($params, array( 'until', 'endTime' ));
+        $start = $since;
+        if (($until !== null) && ($since === null)) {
+            $params = $this->omit($params, array( 'until' ));
+            $usedLimit = $limit ? $limit : $maxLimit;
+            $start = $until - ($usedLimit * $duration);
+        }
         if ($market['spot']) {
-            $until = $this->safe_integer_n($params, array( 'until', 'endTime' ));
-            if ($since !== null) {
-                $request['startTime'] = $since;
+            if ($start !== null) {
+                $request['startTime'] = $start;
                 if ($until === null) {
                     // we have to calculate it assuming we can get at most 2000 entries per $request
                     $end = $this->sum($since, $maxLimit * $duration);
@@ -1794,8 +1807,7 @@ class mexc extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($until !== null) {
-                $params = $this->omit($params, array( 'until' ));
-                $request['endTime'] = $until;
+                $request['endTime'] = $until + 1; // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
             }
             $response = $this->spotPublicGetKlines ($this->extend($request, $params));
             //
@@ -1814,13 +1826,14 @@ class mexc extends Exchange {
             //
             $candles = $response;
         } elseif ($market['swap']) {
-            $until = $this->safe_integer_product_n($params, array( 'until', 'endTime' ), 0.001);
             if ($since !== null) {
                 $request['start'] = $this->parse_to_int($since / 1000);
             }
             if ($until !== null) {
-                $params = $this->omit($params, array( 'until' ));
-                $request['end'] = $until;
+                $request['end'] = $this->parse_to_int($until / 1000);
+                if ($since === null) {
+                    $request['start'] = $this->parse_to_int($start / 1000);
+                }
             }
             $priceType = $this->safe_string($params, 'price', 'default');
             $params = $this->omit($params, 'price');

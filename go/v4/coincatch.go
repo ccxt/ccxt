@@ -1196,7 +1196,7 @@ func (this *CoincatchCore) FetchTickers(optionalArgs ...interface{}) <-chan inte
 		PanicOnError(retRes11508)
 		symbols = this.MarketSymbols(symbols, nil, true, true)
 		var market interface{} = this.GetMarketFromSymbols(symbols)
-		var marketType interface{} = "spot"
+		var marketType interface{} = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams(methodName, market, params, marketType)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)

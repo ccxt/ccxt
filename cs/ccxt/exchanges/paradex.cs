@@ -631,6 +631,7 @@ public partial class paradex : Exchange
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.price] "last", "mark", "index", default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -646,7 +647,12 @@ public partial class paradex : Exchange
         object now = this.milliseconds();
         object duration = this.parseTimeframe(timeframe);
         object until = this.safeInteger2(parameters, "until", "till", now);
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object price = this.safeString(parameters, "price");
+        if (isTrue(!isEqual(price, null)))
+        {
+            ((IDictionary<string,object>)request)["price_kind"] = price;
+        }
+        parameters = this.omit(parameters, new List<object>() {"until", "till", "price"});
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_at"] = since;

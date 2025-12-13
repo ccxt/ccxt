@@ -185,6 +185,7 @@ class coinsph extends Exchange {
                     'get' => array(
                         'openapi/v1/ping' => 1,
                         'openapi/v1/time' => 1,
+                        'openapi/v1/user/ip' => 1,
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
                         // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omited
@@ -206,11 +207,14 @@ class coinsph extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'openapi/v1/check-sys-status' => 1,
                         'openapi/wallet/v1/config/getall' => 10,
                         'openapi/wallet/v1/deposit/address' => 10,
                         'openapi/wallet/v1/deposit/history' => 1,
                         'openapi/wallet/v1/withdraw/history' => 1,
+                        'openapi/wallet/v1/withdraw/address-whitelist' => 1,
                         'openapi/v1/account' => 10,
+                        'openapi/v1/api-keys' => 1,
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders' => array( 'cost' => 3, 'noSymbol' => 40 ),
                         'openapi/v1/asset/tradeFee' => 1,
@@ -224,6 +228,15 @@ class coinsph extends Exchange {
                         'merchant-api/v1/get-invoices' => 1,
                         'openapi/account/v3/crypto-accounts' => 1,
                         'openapi/transfer/v3/transfers/{id}' => 1,
+                        'openapi/v1/sub-account/list' => 10,
+                        'openapi/v1/sub-account/asset' => 10,
+                        'openapi/v1/sub-account/transfer/universal-transfer-history' => 10,
+                        'openapi/v1/sub-account/transfer/sub-history' => 10,
+                        'openapi/v1/sub-account/apikey/ip-restriction' => 10,
+                        'openapi/v1/sub-account/wallet/deposit/address' => 1,
+                        'openapi/v1/sub-account/wallet/deposit/history' => 1,
+                        'openapi/v1/fund-collect/get-fund-record' => 1,
+                        'openapi/v1/asset/transaction/history' => 20,
                     ),
                     'post' => array(
                         'openapi/wallet/v1/withdraw/apply' => 600,
@@ -240,12 +253,22 @@ class coinsph extends Exchange {
                         'openapi/convert/v1/get-supported-trading-pairs' => 1,
                         'openapi/convert/v1/get-quote' => 1,
                         'openapi/convert/v1/accpet-quote' => 1,
+                        'openapi/convert/v1/query-order-history' => 1,
                         'openapi/fiat/v1/support-channel' => 1,
                         'openapi/fiat/v1/cash-out' => 1,
                         'openapi/fiat/v1/history' => 1,
                         'openapi/migration/v4/sellorder' => 1,
                         'openapi/migration/v4/validate-field' => 1,
                         'openapi/transfer/v3/transfers' => 1,
+                        'openapi/v1/sub-account/create' => 30,
+                        'openapi/v1/sub-account/transfer/universal-transfer' => 100,
+                        'openapi/v1/sub-account/transfer/sub-to-master' => 100,
+                        'openapi/v1/sub-account/apikey/add-ip-restriction' => 30,
+                        'openapi/v1/sub-account/apikey/delete-ip-restriction' => 30,
+                        'openapi/v1/fund-collect/collect-from-sub-account' => 1,
+                    ),
+                    'put' => array(
+                        'openapi/v1/userDataStream' => 1,
                     ),
                     'delete' => array(
                         'openapi/v1/order' => 1,
@@ -2151,7 +2174,7 @@ class coinsph extends Exchange {
         $keys = is_array($query) ? array_keys($query) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if (gettype($query[$key]) === 'array' && array_keys($query[$key]) === array_keys(array_keys($query[$key]))) {
+            if ((gettype($query[$key]) === 'array' && array_keys($query[$key]) === array_keys(array_keys($query[$key])))) {
                 if ($i !== 0) {
                     $encodedArrayParams .= '&';
                 }

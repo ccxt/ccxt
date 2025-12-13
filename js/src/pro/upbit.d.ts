@@ -3,7 +3,6 @@ import type { Int, Str, Order, OrderBook, Trade, Ticker, Balances, Tickers, Stri
 import Client from '../base/ws/Client.js';
 export default class upbit extends upbitRest {
     describe(): any;
-    watchPublic(symbol: string, channel: any, params?: {}): Promise<any>;
     watchPublicMultiple(symbols: Strings, channel: any, params?: {}): Promise<any>;
     /**
      * @method

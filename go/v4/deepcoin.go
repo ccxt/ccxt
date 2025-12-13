@@ -136,7 +136,7 @@ func (this *DeepcoinCore) Describe() interface{} {
 			"1y":  "1Y",
 		},
 		"urls": map[string]interface{}{
-			"logo": "https://github.com/user-attachments/assets/671bd35c-770e-4935-9070-f8fb114f79c4",
+			"logo": "https://github.com/user-attachments/assets/ddf3e178-c3b6-409d-8f9f-af8b7cf80454",
 			"api": map[string]interface{}{
 				"public":  "https://api.deepcoin.com",
 				"private": "https://api.deepcoin.com",

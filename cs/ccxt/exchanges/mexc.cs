@@ -161,6 +161,7 @@ public partial class mexc : Exchange
                         { "get", new Dictionary<string, object>() {
                             { "ping", 1 },
                             { "time", 1 },
+                            { "defaultSymbols", 1 },
                             { "exchangeInfo", 10 },
                             { "depth", 1 },
                             { "trades", 5 },
@@ -176,14 +177,19 @@ public partial class mexc : Exchange
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
+                            { "kyc/status", 1 },
+                            { "uid", 1 },
                             { "order", 2 },
                             { "openOrders", 3 },
                             { "allOrders", 10 },
                             { "account", 10 },
                             { "myTrades", 10 },
+                            { "strategy/group", 20 },
+                            { "strategy/group/uid", 20 },
                             { "tradeFee", 10 },
                             { "sub-account/list", 1 },
                             { "sub-account/apiKey", 1 },
+                            { "sub-account/asset", 1 },
                             { "capital/config/getall", 10 },
                             { "capital/deposit/hisrec", 1 },
                             { "capital/withdraw/history", 1 },
@@ -229,6 +235,7 @@ public partial class mexc : Exchange
                             { "sub-account/futures", 1 },
                             { "sub-account/margin", 1 },
                             { "batchOrders", 10 },
+                            { "strategy/group", 20 },
                             { "capital/withdraw/apply", 1 },
                             { "capital/withdraw", 1 },
                             { "capital/transfer", 1 },
@@ -1591,8 +1598,8 @@ public partial class mexc : Exchange
     /**
      * @method
      * @name mexc#fetchOHLCV
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-data
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints#klinecandlestick-data
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints#get-candlestick-data
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1609,7 +1616,7 @@ public partial class mexc : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object maxLimit = ((bool) isTrue((getValue(market, "spot")))) ? 1000 : 2000;
+        object maxLimit = ((bool) isTrue((getValue(market, "spot")))) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1627,12 +1634,19 @@ public partial class mexc : Exchange
             { "interval", timeframeValue },
         };
         object candles = null;
+        object until = this.safeIntegerN(parameters, new List<object>() {"until", "endTime"});
+        object start = since;
+        if (isTrue(isTrue((!isEqual(until, null))) && isTrue((isEqual(since, null)))))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until"});
+            object usedLimit = ((bool) isTrue(limit)) ? limit : maxLimit;
+            start = subtract(until, (multiply(usedLimit, duration)));
+        }
         if (isTrue(getValue(market, "spot")))
         {
-            object until = this.safeIntegerN(parameters, new List<object>() {"until", "endTime"});
-            if (isTrue(!isEqual(since, null)))
+            if (isTrue(!isEqual(start, null)))
             {
-                ((IDictionary<string,object>)request)["startTime"] = since;
+                ((IDictionary<string,object>)request)["startTime"] = start;
                 if (isTrue(isEqual(until, null)))
                 {
                     // we have to calculate it assuming we can get at most 2000 entries per request
@@ -1647,8 +1661,7 @@ public partial class mexc : Exchange
             }
             if (isTrue(!isEqual(until, null)))
             {
-                parameters = this.omit(parameters, new List<object>() {"until"});
-                ((IDictionary<string,object>)request)["endTime"] = until;
+                ((IDictionary<string,object>)request)["endTime"] = add(until, 1); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
             }
             object response = await this.spotPublicGetKlines(this.extend(request, parameters));
             //
@@ -1668,15 +1681,17 @@ public partial class mexc : Exchange
             candles = response;
         } else if (isTrue(getValue(market, "swap")))
         {
-            object until = this.safeIntegerProductN(parameters, new List<object>() {"until", "endTime"}, 0.001);
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
             }
             if (isTrue(!isEqual(until, null)))
             {
-                parameters = this.omit(parameters, new List<object>() {"until"});
-                ((IDictionary<string,object>)request)["end"] = until;
+                ((IDictionary<string,object>)request)["end"] = this.parseToInt(divide(until, 1000));
+                if (isTrue(isEqual(since, null)))
+                {
+                    ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(start, 1000));
+                }
             }
             object priceType = this.safeString(parameters, "price", "default");
             parameters = this.omit(parameters, "price");

@@ -12,7 +12,7 @@ public partial class whitebit : Exchange
             { "name", "WhiteBit" },
             { "version", "v4" },
             { "countries", new List<object>() {"EE"} },
-            { "rateLimit", 50 },
+            { "rateLimit", 20 },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -173,6 +173,7 @@ public partial class whitebit : Exchange
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "fiatCurrencies", new List<object>() {"EUR", "USD", "RUB", "UAH"} },
+                { "nonceWindow", false },
                 { "fetchBalance", new Dictionary<string, object>() {
                     { "account", "spot" },
                 } },
@@ -4138,10 +4139,14 @@ public partial class whitebit : Exchange
             object nonce = ((object)this.nonce()).ToString();
             object secret = this.encode(this.secret);
             object request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
+            var nonceWindowrequestParamsVariable = this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
+            var nonceWindow = ((IList<object>) nonceWindowrequestParamsVariable)[0];
+            var requestParams = ((IList<object>) nonceWindowrequestParamsVariable)[1];
             body = this.json(this.extend(new Dictionary<string, object>() {
                 { "request", request },
                 { "nonce", nonce },
-            }, parameters));
+                { "nonceWindow", nonceWindow },
+            }, requestParams));
             object payload = this.stringToBase64(body);
             object signature = this.hmac(this.encode(payload), secret, sha512);
             headers = new Dictionary<string, object>() {

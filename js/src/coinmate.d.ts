@@ -8,6 +8,15 @@ export default class coinmate extends Exchange {
     describe(): any;
     /**
      * @method
+     * @name coinmate#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the bingx server
+     * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the bingx server
+     */
+    fetchTime(params?: {}): Promise<Int>;
+    /**
+     * @method
      * @name coinmate#fetchMarkets
      * @description retrieves data on all markets for coinmate
      * @see https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get

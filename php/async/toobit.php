@@ -3054,7 +3054,7 @@ class toobit extends Exchange {
             $queryString = '';
             if ($isPost || $isDelete) {
                 // everything else except Batch-Orders
-                if (gettype($params) !== 'array' || array_keys($params) !== array_keys(array_keys($params))) {
+                if ((gettype($params) !== 'array' || array_keys($params) !== array_keys(array_keys($params)))) {
                     $body = $this->urlencode($queryExtended);
                 } else {
                     $queryString = $this->urlencode($extraQuery);

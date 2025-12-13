@@ -362,7 +362,7 @@ class bithumb extends Exchange {
                 $market = $data[$currencyId];
                 $base = $this->safe_currency_code($currencyId);
                 $active = true;
-                if (gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market))) {
+                if ((gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market)))) {
                     $numElements = count($market);
                     if ($numElements === 0) {
                         $active = false;

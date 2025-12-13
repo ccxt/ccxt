@@ -336,6 +336,11 @@ class hyperliquid extends \ccxt\async\hyperliquid {
              */
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
+            // try to infer dex from $market
+            $dexName = $this->safe_string($this->safe_dict($market, 'info', array()), 'dex');
+            if ($dexName) {
+                $params = $this->extend($params, array( 'dex' => $dexName ));
+            }
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
         }) ();
@@ -348,8 +353,9 @@ class hyperliquid extends \ccxt\async\hyperliquid {
              *
              * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
              *
-             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->dex] for for hip3 tokens subscription, eg => 'xyz' or 'flx`, if $symbols are provided we will infer it from the first symbol's $market
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -363,6 +369,21 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                     'user' => '0x0000000000000000000000000000000000000000',
                 ),
             );
+            $defaultDex = $this->safe_string($params, 'dex');
+            $firstSymbol = $this->safe_string($symbols, 0);
+            if ($firstSymbol !== null) {
+                $market = $this->market($firstSymbol);
+                $dexName = $this->safe_string($this->safe_dict($market, 'info', array()), 'dex');
+                if ($dexName !== null) {
+                    $defaultDex = $dexName;
+                }
+            }
+            if ($defaultDex !== null) {
+                $params = $this->omit($params, 'dex');
+                $messageHash = 'tickers:' . $defaultDex;
+                $request['subscription']['type'] = 'allMids';
+                $request['subscription']['dex'] = $defaultDex;
+            }
             $tickers = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
@@ -438,6 +459,19 @@ class hyperliquid extends \ccxt\async\hyperliquid {
     }
 
     public function handle_ws_tickers(Client $client, $message) {
+        // hip3 $mids
+        // {
+        //     $channel => 'allMids',
+        //     $data => {
+        //         dex => 'flx',
+        //         $mids => {
+        //         'flx:COIN' => '270.075',
+        //         'flx:CRCL' => '78.8175',
+        //         'flx:NVDA' => '180.64',
+        //         'flx:TSLA' => '436.075'
+        //         }
+        //     }
+        // }
         //
         //     {
         //         "channel" => "webData2",
@@ -484,13 +518,36 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         //         }
         //     }
         //
+        // handle hip3 $mids
+        $channel = $this->safe_string($message, 'channel');
+        if ($channel === 'allMids') {
+            $data = $this->safe_dict($message, 'data', array());
+            $mids = $this->safe_dict($data, 'mids', array());
+            if ($mids !== null) {
+                $keys = is_array($mids) ? array_keys($mids) : array();
+                for ($i = 0; $i < count($keys); $i++) {
+                    $name = $keys[$i];
+                    $marketId = $this->coinToMarketId ($name);
+                    $market = $this->safe_market($marketId, null, null, 'swap');
+                    $symbol = $market['symbol'];
+                    $ticker = $this->parse_ws_ticker(array(
+                        'price' => $this->safe_number($mids, $name),
+                    ), $market);
+                    $this->tickers[$symbol] = $ticker;
+                }
+                $messageHash = 'tickers:' . $this->safe_string($data, 'dex');
+                $client->resolve ($this->tickers, $messageHash);
+                return true;
+            }
+        }
         // spot
         $rawData = $this->safe_dict($message, 'data', array());
         $spotAssets = $this->safe_list($rawData, 'spotAssetCtxs', array());
         $parsedTickers = array();
         for ($i = 0; $i < count($spotAssets); $i++) {
             $assetObject = $spotAssets[$i];
-            $marketId = $this->safe_string($assetObject, 'coin');
+            $coin = $this->safe_string($assetObject, 'coin');
+            $marketId = $this->coinToMarketId ($coin);
             $market = $this->safe_market($marketId, null, null, 'spot');
             $symbol = $market['symbol'];
             $ticker = $this->parse_ws_ticker($assetObject, $market);
@@ -506,8 +563,9 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 $this->safe_dict($universe, $i, array()),
                 $this->safe_dict($assetCtxs, $i, array())
             );
-            $id = $data['name'] . '/USDC:USDC';
-            $market = $this->safe_market($id, null, null, 'swap');
+            $coin = $this->safe_string($data, 'name');
+            $marketId = $this->coinToMarketId ($coin);
+            $market = $this->safe_market($marketId, null, null, 'swap');
             $symbol = $market['symbol'];
             $ticker = $this->parse_ws_ticker($data, $market);
             $this->tickers[$symbol] = $ticker;
@@ -515,6 +573,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
         $tickers = $this->index_by($parsedTickers, 'symbol');
         $client->resolve ($tickers, 'tickers');
+        return true;
     }
 
     public function parse_ws_ticker($rawTicker, ?array $market = null): array {
@@ -581,17 +640,17 @@ class hyperliquid extends \ccxt\async\hyperliquid {
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
-            // s
-            // @method
-            // @name hyperliquid#watchTrades
-            // @description watches information on multiple $trades made in a $market
-            // @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
-            // @param {string} $symbol unified $market $symbol of the $market $trades were made in
-            // @param {int} [$since] the earliest time in ms to fetch $trades for
-            // @param {int} [$limit] the maximum number of trade structures to retrieve
-            // @param {object} [$params] extra parameters specific to the exchange API endpoint
-            // @returns {objectarray()} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
-            //
+            /**
+             * watches information on multiple $trades made in a $market
+             *
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             *
+             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -1150,6 +1209,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'orderUpdates' => array($this, 'handle_order'),
             'userFills' => array($this, 'handle_my_trades'),
             'webData2' => array($this, 'handle_ws_tickers'),
+            'allMids' => array($this, 'handle_ws_tickers'),
             'post' => array($this, 'handle_ws_post'),
             'subscriptionResponse' => array($this, 'handle_subscription_response'),
         );

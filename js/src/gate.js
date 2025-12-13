@@ -321,6 +321,7 @@ export default class gate extends Exchange {
                             'small_balance': 1,
                             'small_balance_history': 1,
                             'push': 1,
+                            'getLowCapExchangeList': 1,
                         },
                         'post': {
                             'transfers': 2.5,
@@ -510,6 +511,7 @@ export default class gate extends Exchange {
                         },
                         'put': {
                             '{settle}/orders/{order_id}': 1,
+                            '{settle}/price_orders/{order_id}': 1,
                         },
                         'delete': {
                             '{settle}/orders': 20 / 75,
@@ -1092,7 +1094,6 @@ export default class gate extends Exchange {
                     'LOAN_RECORD_NOT_FOUND': OrderNotFound,
                     'NO_MATCHED_LOAN': ExchangeError,
                     'NOT_MERGEABLE': ExchangeError,
-                    'NO_CHANGE': ExchangeError,
                     'REPAY_TOO_MUCH': ExchangeError,
                     'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
                     'TOO_MANY_ORDERS': InvalidOrder,
@@ -1134,7 +1135,8 @@ export default class gate extends Exchange {
                     'AUTO_TRIGGER_PRICE_LESS_LAST': InvalidOrder,
                     'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder,
                     'POSITION_HOLDING': BadRequest,
-                    'USER_LOAN_EXCEEDED': BadRequest, // {"label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded"}
+                    'USER_LOAN_EXCEEDED': BadRequest,
+                    'NO_CHANGE': InvalidOrder, // {"label":"NO_CHANGE","message":"No change is made"}
                 },
                 'broad': {},
             },

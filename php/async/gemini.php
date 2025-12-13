@@ -749,7 +749,7 @@ class gemini extends Exchange {
         $linear = null;
         $inverse = null;
         $isString = (gettype($response) === 'string');
-        $isArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
+        $isArray = ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))));
         if (!$isString && !$isArray) {
             $marketId = $this->safe_string_lower($response, 'symbol');
             $amountPrecision = $this->safe_number($response, 'tick_size'); // right, exchange has an imperfect naming and this turns out to be an amount-precision

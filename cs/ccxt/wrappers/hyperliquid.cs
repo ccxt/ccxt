@@ -7,6 +7,44 @@ namespace ccxt;
 public partial class hyperliquid
 {
     /// <summary>
+    /// the latest known information on the availability of the exchange API
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchStatus(parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetches the current integer timestamp in milliseconds from the exchange server
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
+    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTime(parameters);
+        return (Int64)res;
+    }
+    /// <summary>
     /// retrieves data on all markets for hyperliquid
     /// </summary>
     /// <remarks>
@@ -120,6 +158,12 @@ public partial class hyperliquid
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.dex</term>
+    /// <description>
+    /// string : for hip3 markets, the dex name, eg: 'xyz'
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.subAccountAddress</term>
     /// <description>
     /// string : sub account user address
@@ -177,6 +221,12 @@ public partial class hyperliquid
     /// <term>params.type</term>
     /// <description>
     /// string : 'spot' or 'swap', by default fetches both
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hip3</term>
+    /// <description>
+    /// boolean : set to true to fetch hip3 markets only
     /// </description>
     /// </item>
     /// </list>

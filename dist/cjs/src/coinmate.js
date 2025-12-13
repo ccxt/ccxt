@@ -140,10 +140,12 @@ class coinmate extends coinmate$1["default"] {
                         'products',
                         'transactions',
                         'tradingPairs',
+                        'system/time',
                     ],
                 },
                 'private': {
                     'post': [
+                        'currencies',
                         'balances',
                         'bitcoinCashWithdrawal',
                         'bitcoinCashDepositAddresses',
@@ -196,6 +198,7 @@ class coinmate extends coinmate$1["default"] {
                         'solWithdrawal',
                         'solDepositAddresses',
                         'unconfirmedSolDeposits',
+                        'bankWireWithdrawal',
                     ],
                 },
             },
@@ -327,6 +330,23 @@ class coinmate extends coinmate$1["default"] {
             },
             'precisionMode': number.TICK_SIZE,
         });
+    }
+    /**
+     * @method
+     * @name coinmate#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the bingx server
+     * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the bingx server
+     */
+    async fetchTime(params = {}) {
+        const response = await this.publicGetSystemTime(params);
+        //
+        //     {
+        //         "serverTime": 1765250628745
+        //     }
+        //
+        return this.safeInteger(response, 'serverTime');
     }
     /**
      * @method

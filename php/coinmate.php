@@ -135,10 +135,12 @@ class coinmate extends Exchange {
                         'products',
                         'transactions',
                         'tradingPairs',
+                        'system/time',
                     ),
                 ),
                 'private' => array(
                     'post' => array(
+                        'currencies',
                         'balances',
                         'bitcoinCashWithdrawal',
                         'bitcoinCashDepositAddresses',
@@ -191,6 +193,7 @@ class coinmate extends Exchange {
                         'solWithdrawal',
                         'solDepositAddresses',
                         'unconfirmedSolDeposits',
+                        'bankWireWithdrawal',
                     ),
                 ),
             ),
@@ -322,6 +325,24 @@ class coinmate extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
         ));
+    }
+
+    public function fetch_time($params = array ()): ?int {
+        /**
+         * fetches the current integer timestamp in milliseconds from the bingx server
+         *
+         * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the bingx server
+         */
+        $response = $this->publicGetSystemTime ($params);
+        //
+        //     {
+        //         "serverTime" => 1765250628745
+        //     }
+        //
+        return $this->safe_integer($response, 'serverTime');
     }
 
     public function fetch_markets($params = array ()): array {

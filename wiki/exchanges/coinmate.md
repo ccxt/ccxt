@@ -5,6 +5,7 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [fetchTime](#fetchtime)
 * [fetchMarkets](#fetchmarkets)
 * [fetchBalance](#fetchbalance)
 * [fetchOrderBook](#fetchorderbook)
@@ -20,6 +21,26 @@
 * [createOrder](#createorder)
 * [fetchOrder](#fetchorder)
 * [cancelOrder](#cancelorder)
+
+<a name="fetchTime" id="fetchtime"></a>
+
+### fetchTime{docsify-ignore}
+fetches the current integer timestamp in milliseconds from the bingx server
+
+**Kind**: instance method of [<code>coinmate</code>](#coinmate)  
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the bingx server
+
+**See**: https://coinmate.docs.apiary.io/#reference/system/get-server-time/get  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinmate.fetchTime ([params])
+```
+
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 

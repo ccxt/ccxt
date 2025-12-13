@@ -68,6 +68,8 @@ export default class Client {
 
     throttle: any
 
+    cookies: Dictionary<any>
+
     decompressBinary = true
 
     binaryMessageDecoder: any

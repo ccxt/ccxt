@@ -101,9 +101,10 @@ export default class hyperliquid extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
@@ -221,7 +222,9 @@ export default class hyperliquid extends Exchange {
                 'defaultType': 'swap',
                 'sandboxMode': false,
                 'defaultSlippage': 0.05,
+                'marketHelperProps': [ 'hip3TokensByName', 'cachedCurrenciesById' ],
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                // below will be filled automatically
                 'spotCurrencyMapping': {
                     'UDZ': '2Z',
                     'UBONK': 'BONK',
@@ -238,10 +241,10 @@ export default class hyperliquid extends Exchange {
                 },
                 'fetchMarkets': {
                     'types': [ 'spot', 'swap', 'hip3' ], // 'spot', 'swap', 'hip3'
-                    // 'hip3': {
-                    //     'limit': 5, // how many dexes to load max if dexes are not specified
-                    //     'dex': [ 'xyz' ],
-                    // },
+                    'hip3': {
+                        'limit': 10,
+                        'dexes': [ ], // list of dexes eg flx, xyz, etc
+                    },
                 },
             },
             'features': {
@@ -364,51 +367,65 @@ export default class hyperliquid extends Exchange {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        if (symbol in this.markets) {
-            const market = this.markets[symbol];
-            if (market['spot']) {
-                const baseName = this.safeString (market, 'baseName');
-                const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
-                if (baseName in spotCurrencyMapping) {
-                    const unifiedBaseName = this.safeString (spotCurrencyMapping, baseName);
-                    const quote = this.safeString (market, 'quote');
-                    const newSymbol = this.safeCurrencyCode (unifiedBaseName) + '/' + quote;
-                    if (newSymbol in this.markets) {
-                        return this.markets[newSymbol];
-                    }
+        if ((symbol !== undefined) && !(symbol in this.markets)) {
+            const symbolParts = symbol.split ('/');
+            const baseName = this.safeString (symbolParts, 0);
+            const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
+            if (baseName in spotCurrencyMapping) {
+                const unifiedBaseName = this.safeString (spotCurrencyMapping, baseName);
+                const quote = this.safeString (symbolParts, 1);
+                const newSymbol = this.safeCurrencyCode (unifiedBaseName) + '/' + quote;
+                if (newSymbol in this.markets) {
+                    return this.markets[newSymbol];
                 }
             }
         }
-        const res = super.market (symbol);
-        return res;
+        return super.market (symbol);
     }
 
-    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
-        if (marketId !== undefined) {
-            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
-                const markets = this.markets_by_id[marketId];
-                const numMarkets = markets.length;
-                if (numMarkets === 1) {
-                    return markets[0];
-                } else {
-                    if (numMarkets > 2) {
-                        throw new ExchangeError (this.id + ' safeMarket() found more than two markets with the same market id ' + marketId);
-                    }
-                    const firstMarket = markets[0];
-                    const secondMarket = markets[1];
-                    if (this.safeString (firstMarket, 'type') !== this.safeString (secondMarket, 'type')) {
-                        throw new ExchangeError (this.id + ' safeMarket() found two different market types with the same market id ' + marketId);
-                    }
-                    const baseCurrency = this.safeString (firstMarket, 'base');
-                    const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
-                    if (baseCurrency in spotCurrencyMapping) {
-                        return secondMarket;
-                    }
-                    return firstMarket;
-                }
-            }
-        }
-        return super.safeMarket (marketId, market, delimiter, marketType);
+    /**
+     * @method
+     * @name hyperliquid#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
+    async fetchStatus (params = {}) {
+        const request: Dict = {
+            'type': 'exchangeStatus',
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok"
+        //     }
+        //
+        const status = this.safeString (response, 'specialStatuses');
+        return {
+            'status': (status === undefined) ? 'ok' : 'maintenance',
+            'updated': this.safeInteger (response, 'time'),
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    async fetchTime (params = {}) {
+        const request: Dict = {
+            'type': 'exchangeStatus',
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        // { specialStatuses: null, time: '1764617438643' }
+        //
+        return this.safeInteger (response, 'time');
     }
 
     /**
@@ -424,7 +441,8 @@ export default class hyperliquid extends Exchange {
             await this.initializeClient ();
         }
         const request: Dict = {
-            'type': 'meta',
+            // 'type': 'meta',
+            'type': 'spotMeta',
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -441,18 +459,23 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        const meta = this.safeList (response, 'universe', []);
+        // const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
+        const tokens = this.safeList (response, 'tokens', []);
+        // const meta = this.safeList (response, 'universe', []);
+        this.options['cachedCurrenciesById'] = {}; // used to map hip3 markets
         const result: Dict = {};
-        for (let i = 0; i < meta.length; i++) {
-            const data = this.safeDict (meta, i, {});
-            const id = i;
+        for (let i = 0; i < tokens.length; i++) {
+            const data = this.safeDict (tokens, i, {});
+            // const id = i;
+            const id = this.safeString (data, 'index');
             const name = this.safeString (data, 'name');
             const code = this.safeCurrencyCode (name);
+            this.options['cachedCurrenciesById'][id] = name;
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': undefined,
+                'precision': this.parsePrecision (this.safeString (data, 'weiDecimals')),
                 'info': data,
                 'active': undefined,
                 'deposit': undefined,
@@ -471,6 +494,20 @@ export default class hyperliquid extends Exchange {
                     },
                 },
             });
+            // add in wrapped map
+            const fullName = this.safeString (data, 'fullName');
+            if (fullName !== undefined && name !== undefined) {
+                const isWrapped = fullName.startsWith ('Unit ') && name.startsWith ('U');
+                if (isWrapped) {
+                    const parts = name.split ('U');
+                    let nameWithoutU = '';
+                    for (let j = 0; j < parts.length; j++) {
+                        nameWithoutU = nameWithoutU + parts[j];
+                    }
+                    const baseCode = this.safeCurrencyCode (nameWithoutU);
+                    this.options['spotCurrencyMapping'][code] = baseCode;
+                }
+            }
         }
         return result;
     }
@@ -547,17 +584,15 @@ export default class hyperliquid extends Exchange {
         let fetchDexesList = [];
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const hip3 = this.safeDict (options, 'hip3', {});
-        const defaultLimit = this.safeInteger (hip3, 'limit', 5);
-        const dexesLength = fetchDexes.length;
-        if (dexesLength >= defaultLimit) { // first element is null
-            const defaultDexes = this.safeList (hip3, 'dex', []);
-            if (defaultDexes.length === 0) {
-                throw new ArgumentsRequired (this.id + ' fetchHip3Markets() Too many DEXes found. Please specify a list of DEXes in the exchange.options["fetchMarkets"]["hip3"]["dex"] parameter to fetch markets from those DEXes only. The limit is set to ' + defaultLimit.toString () + ' DEXes by default.');
-            } else {
-                fetchDexesList = defaultDexes;
+        const dexesProvided = this.safeList (hip3, 'dexes'); // let users provide their own list of dexes to load
+        const maxLimit = this.safeInteger (hip3, 'limit', 10);
+        if (dexesProvided !== undefined) {
+            const userProvidedDexesLength = dexesProvided.length;
+            if (userProvidedDexesLength > 0) {
+                fetchDexesList = dexesProvided;
             }
         } else {
-            for (let i = 1; i < fetchDexes.length; i++) {
+            for (let i = 1; i < maxLimit; i++) {
                 const dex = this.safeDict (fetchDexes, i, {});
                 const dexName = this.safeString (dex, 'name');
                 fetchDexesList.push (dexName);
@@ -572,21 +607,41 @@ export default class hyperliquid extends Exchange {
             rawPromises.push (this.publicPostInfo (this.extend (request, params)));
         }
         const promises = await Promise.all (rawPromises);
+        this.options['hip3TokensByName'] = {};
         let markets = [];
         for (let i = 0; i < promises.length; i++) {
             const dexName = fetchDexesList[i];
             const offset = perpDexesOffset[dexName];
             const response = promises[i];
             const meta = this.safeDict (response, 0, {});
+            const collateralToken = this.safeString (meta, 'collateralToken');
             const universe = this.safeList (meta, 'universe', []);
             const assetCtxs = this.safeList (response, 1, []);
             const result = [];
+            // helper because some endpoints return just the coin name like: flx:crcl
+            // and we don't have the base/settle information and we can't assume it's USDC for hip3 markets
             for (let j = 0; j < universe.length; j++) {
                 const data = this.extend (
                     this.safeDict (universe, j, {}),
                     this.safeDict (assetCtxs, j, {})
                 );
                 data['baseId'] = j + offset;
+                data['collateralToken'] = collateralToken;
+                data['hip3'] = true;
+                data['dex'] = dexName;
+                const cachedCurrencies = this.safeDict (this.options, 'cachedCurrenciesById', {});
+                // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
+                if (collateralToken in cachedCurrencies) {
+                    const name = this.safeString (data, 'name');
+                    const collateralTokenCode = this.safeString (cachedCurrencies, collateralToken);
+                    data['collateralTokenName'] = collateralTokenCode;
+                    // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
+                    const safeCode = this.safeCurrencyCode (name);
+                    this.options['hip3TokensByName'][name] = {
+                        'quote': collateralTokenCode,
+                        'code': safeCode.replace (':', '-'),
+                    };
+                }
                 result.push (data);
             }
             markets = this.arrayConcat (markets, this.parseMarkets (result));
@@ -889,18 +944,18 @@ export default class hyperliquid extends Exchange {
                 'info': this.extend (extraData, market),
             };
             markets.push (this.safeMarketStructure (entry));
-            // backward support
-            const base = this.safeCurrencyCode (baseName);
-            const quote = this.safeCurrencyCode (quoteId);
-            const newEntry = this.extend ({}, entry);
-            const symbol = base + '/' + quote;
-            if (symbol !== mappedSymbol) {
-                newEntry['symbol'] = symbol;
-                newEntry['base'] = base;
-                newEntry['quote'] = quote;
-                newEntry['baseName'] = baseName;
-                markets.push (this.safeMarketStructure (newEntry));
-            }
+            // // backward support
+            // const base = this.safeCurrencyCode (baseName);
+            // const quote = this.safeCurrencyCode (quoteId);
+            // const newEntry = this.extend ({}, entry);
+            // const symbol = base + '/' + quote;
+            // if (symbol !== mappedSymbol) {
+            //     newEntry['symbol'] = symbol;
+            //     newEntry['base'] = base;
+            //     newEntry['quote'] = quote;
+            //     newEntry['baseName'] = baseName;
+            //     markets.push (this.safeMarketStructure (newEntry));
+            // }
         }
         return markets;
     }
@@ -924,16 +979,19 @@ export default class hyperliquid extends Exchange {
         //         "oraclePx": "2367.3",
         //         "premium": "0.00090821",
         //         "prevDayPx": "2381.5"
+        //         "collateralToken": "0" hip3 tokens only
         //     }
         //
-        const quoteId = 'USDC';
+        const collateralTokenCode = this.safeString (market, 'collateralTokenName');
+        const quoteId = (collateralTokenCode === undefined) ? 'USDC' : collateralTokenCode;
+        const settleId = (collateralTokenCode === undefined) ? 'USDC' : collateralTokenCode;
         const baseName = this.safeString (market, 'name');
-        const base = this.safeCurrencyCode (baseName);
+        let base = this.safeCurrencyCode (baseName);
+        base = base.replace (':', '-'); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         const quote = this.safeCurrencyCode (quoteId);
         const baseId = this.safeString (market, 'baseId');
-        const settleId = 'USDC';
         const settle = this.safeCurrencyCode (settleId);
-        let symbol = base.replace (':', '-') + '/' + quote;
+        let symbol = base + '/' + quote;
         const contract = true;
         const swap = true;
         if (contract) {
@@ -1021,6 +1079,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+     * @param {string} [params.dex] for hip3 markets, the dex name, eg: 'xyz'
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -1164,6 +1223,7 @@ export default class hyperliquid extends Exchange {
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', by default fetches both
+     * @param {boolean} [params.hip3] set to true to fetch hip3 markets only
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -1173,7 +1233,22 @@ export default class hyperliquid extends Exchange {
         let response = [];
         const type = this.safeString (params, 'type');
         params = this.omit (params, 'type');
-        if (type === 'spot') {
+        let hip3 = false;
+        [ hip3, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'hip3', false);
+        if (symbols !== undefined) {
+            // infer from first symbol
+            const firstSymbol = this.safeString (symbols, 0);
+            if (firstSymbol !== undefined) {
+                const market = this.market (firstSymbol);
+                if (this.safeBool (this.safeDict (market, 'info'), 'hip3')) {
+                    hip3 = true;
+                }
+            }
+        }
+        if (hip3) {
+            params = this.omit (params, 'hip3');
+            response = await this.fetchHip3Markets (params);
+        } else if (type === 'spot') {
             response = await this.fetchSpotMarkets (params);
         } else if (type === 'swap') {
             response = await this.fetchSwapMarkets (params);
@@ -1317,6 +1392,9 @@ export default class hyperliquid extends Exchange {
         //         "circulatingSupply": "998949190.03400207", // only in spot
         //     },
         //
+        const name = this.safeString (ticker, 'name');
+        const marketId = this.coinToMarketId (name);
+        market = this.safeMarket (marketId, market);
         const bidAsk = this.safeList (ticker, 'impactPxs');
         return this.safeTicker ({
             'symbol': market['symbol'],
@@ -1438,7 +1516,10 @@ export default class hyperliquid extends Exchange {
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchTrades', params);
         await this.loadMarkets ();
-        const market = this.safeMarket (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request: Dict = {
             'user': userAddress,
         };
@@ -2776,7 +2857,10 @@ export default class hyperliquid extends Exchange {
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrder', params);
         await this.loadMarkets ();
-        const market = this.safeMarket (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const request: Dict = {
             'type': 'orderStatus',
@@ -3028,7 +3112,10 @@ export default class hyperliquid extends Exchange {
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchMyTrades', params);
         await this.loadMarkets ();
-        const market = this.safeMarket (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request: Dict = {
             'user': userAddress,
         };
@@ -3141,6 +3228,30 @@ export default class hyperliquid extends Exchange {
         return this.safeDict (positions, 0, {}) as Position;
     }
 
+    getDexFromSymbols (methodName: string, symbols: Strings = undefined) {
+        if (symbols === undefined) {
+            return undefined;
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            return undefined;
+        }
+        let dexName = undefined;
+        for (let i = 0; i < symbolsLength; i++) {
+            if (dexName === undefined) {
+                const market = this.market (symbols[i]);
+                dexName = this.getDexFromHip3Symbol (market);
+            } else {
+                const market = this.market (symbols[i]);
+                const currentDexName = this.getDexFromHip3Symbol (market);
+                if (currentDexName !== dexName) {
+                    throw new NotSupported (this.id + ' ' + methodName + ' only supports fetching positions for one DEX at a time for HIP3 markets');
+                }
+            }
+        }
+        return dexName;
+    }
+
     /**
      * @method
      * @name hyperliquid#fetchPositions
@@ -3162,12 +3273,9 @@ export default class hyperliquid extends Exchange {
             'type': 'clearinghouseState',
             'user': userAddress,
         };
-        if (symbols !== undefined) {
-            const market = this.market (symbols[0]);
-            const dexName = this.getDexFromHip3Symbol (market);
-            if (dexName !== undefined) {
-                request['dex'] = dexName;
-            }
+        const dexName = this.getDexFromSymbols ('fetchPositions', symbols);
+        if (dexName !== undefined) {
+            request['dex'] = dexName;
         }
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -4300,6 +4408,17 @@ export default class hyperliquid extends Exchange {
     }
 
     coinToMarketId (coin: Str) {
+        // handle also hip3 tokens like flx:CRCL
+        if (coin === undefined) {
+            return undefined;
+        }
+        const hi3TokensByname = this.safeDict (this.options, 'hip3TokensByName', {});
+        if (this.safeDict (hi3TokensByname, coin)) {
+            const hip3Dict = this.safeDict (hi3TokensByname, coin);
+            const quote = this.safeString (hip3Dict, 'quote', 'USDC');
+            const code = this.safeString (hip3Dict, 'code', coin);
+            return code + '/' + quote + ':' + quote;
+        }
         if (coin.indexOf ('/') > -1 || coin.indexOf ('@') > -1) {
             return coin; // spot
         }

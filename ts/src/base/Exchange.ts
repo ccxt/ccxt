@@ -35,6 +35,7 @@ import { // eslint-disable-line object-curly-newline
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
+import type Client from './ws/Client.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
 // ----------------------------------------------------------------------------
@@ -52,7 +53,6 @@ import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
-import Client from './ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
@@ -2357,10 +2357,8 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object')) {
-            if (!Array.isArray (value)) {
-                return value;
-            }
+        if ((typeof value === 'object') && !Array.isArray (value)) {
+            return value;
         }
         return defaultValue;
     }
@@ -5552,8 +5550,8 @@ export default class Exchange {
     }
 
     parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
-        const price = this.safeNumber (bidask, priceKey);
-        const amount = this.safeNumber (bidask, amountKey);
+        const price = this.safeFloat (bidask, priceKey);
+        const amount = this.safeFloat (bidask, amountKey);
         const countOrId = this.safeInteger (bidask, countOrIdKey);
         const bidAsk = [ price, amount ];
         if (countOrId !== undefined) {
@@ -5625,7 +5623,7 @@ export default class Exchange {
         return this.safeMarketStructure ({ 'symbol': marketId, 'marketId': marketId });
     }
 
-    marketOrNull (symbol: string): MarketInterface {
+    marketOrNull (symbol: Str = undefined): MarketInterface {
         if (symbol === undefined) {
             return undefined;
         }

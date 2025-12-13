@@ -635,6 +635,7 @@ export default class paradex extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.price] "last", "mark", "index", default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -647,7 +648,11 @@ export default class paradex extends Exchange {
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe);
         const until = this.safeInteger2 (params, 'until', 'till', now);
-        params = this.omit (params, [ 'until', 'till' ]);
+        const price = this.safeString (params, 'price');
+        if (price !== undefined) {
+            request['price_kind'] = price;
+        }
+        params = this.omit (params, [ 'until', 'till', 'price' ]);
         if (since !== undefined) {
             request['start_at'] = since;
             if (limit !== undefined) {

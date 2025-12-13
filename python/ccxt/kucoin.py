@@ -186,6 +186,9 @@ class kucoin(Exchange, ImplicitAPI):
                         'margin/config': 25,  # 25SW
                         'announcements': 20,  # 20W
                         'margin/collateralRatio': 10,
+                        # convert
+                        'convert/symbol': 5,
+                        'convert/currencies': 5,
                     },
                     'post': {
                         # ws
@@ -271,6 +274,13 @@ class kucoin(Exchange, ImplicitAPI):
                         'broker/queryUser': 3,
                         'broker/queryDetailByUid': 3,
                         'migrate/user/account/status': 3,
+                        # convert
+                        'convert/quote': 20,
+                        'convert/order/detail': 5,
+                        'convert/order/history': 5,
+                        'convert/limit/quote': 20,
+                        'convert/limit/order/detail': 5,
+                        'convert/limit/orders': 5,
                         # affiliate
                         'affiliate/inviter/statistics': 30,
                     },
@@ -310,6 +320,9 @@ class kucoin(Exchange, ImplicitAPI):
                         'purchase': 15,  # 15SW
                         'redeem': 15,  # 15SW
                         'lend/purchase/update': 10,  # 10SW
+                        # convert
+                        'convert/order': 20,
+                        'convert/limit/order': 20,
                         # ws
                         'bullet-private': 10,  # 10SW
                         'position/update-user-leverage': 5,
@@ -341,6 +354,8 @@ class kucoin(Exchange, ImplicitAPI):
                         'hf/margin/orders/{orderId}': 5,  # 5SW
                         'hf/margin/orders/client-order/{clientOid}': 5,  # 5SW
                         'hf/margin/orders': 10,  # 10SW
+                        # convert
+                        'convert/limit/order/cancel': 5,
                     },
                 },
                 'futuresPublic': {
@@ -458,6 +473,7 @@ class kucoin(Exchange, ImplicitAPI):
                 },
                 'earn': {
                     'get': {
+                        'otc-loan/discount-rate-configs': 10,
                         'otc-loan/loan': 1,
                         'otc-loan/accounts': 1,
                         'earn/redeem-preview': 7.5,  # 5EW
@@ -467,9 +483,12 @@ class kucoin(Exchange, ImplicitAPI):
                         'earn/kcs-staking/products': 7.5,  # 5EW
                         'earn/staking/products': 7.5,  # 5EW
                         'earn/eth-staking/products': 7.5,  # 5EW
+                        'struct-earn/dual/products': 4.5,
+                        'struct-earn/orders': 7.5,
                     },
                     'post': {
                         'earn/orders': 7.5,  # 5EW
+                        'struct-earn/orders': 7.5,
                     },
                     'delete': {
                         'earn/orders': 7.5,  # 5EW
