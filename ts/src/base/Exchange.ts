@@ -2304,7 +2304,11 @@ export default class Exchange {
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN (dictionary, [ key ], defaultValue);
+        const value = this.safeValue (dictionary, key, defaultValue);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        return defaultValue;
     }
 
     safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
@@ -2331,7 +2335,16 @@ export default class Exchange {
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN (dictionary, [ key ], defaultValue);
+        const value = this.safeValue (dictionary, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if ((typeof value === 'object')) {
+            if (!Array.isArray (value)) {
+                return value;
+            }
+        }
+        return defaultValue;
     }
 
     safeDict2 (dictionary, key1: IndexType, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
@@ -2378,7 +2391,14 @@ export default class Exchange {
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN (dictionaryOrList, [ key ], defaultValue);
+        const value = this.safeValue (dictionaryOrList, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if (Array.isArray (value)) {
+            return value;
+        }
+        return defaultValue;
     }
 
     handleDeltas (orderbook, deltas) {
