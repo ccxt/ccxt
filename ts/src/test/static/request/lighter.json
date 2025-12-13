@@ -1,0 +1,81 @@
+{
+    "exchange": "lighter",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://mainnet.zklighter.elliot.ai",
+                "input": []
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://mainnet.zklighter.elliot.ai",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookOrders?market_id=0&limit=5",
+                "input": [
+                    "ETH/USDC:USDC",
+                    5
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails?market_id=0",
+                "input": [
+                    "ETH/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails",
+                "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/candlesticks?market_id=0&count_back=0&resolution=5m&start_timestamp=1763060345862&end_timestamp=1763090345862",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "5m",
+                    1763060345862,
+                    100
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "//mainnet.zklighter.elliot.ai/api/v1/funding-rates",
+                "input": []
+            }
+        ]
+    }
+}
