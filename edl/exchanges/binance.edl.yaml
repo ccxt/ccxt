@@ -1,0 +1,1089 @@
+# Binance Exchange Definition Language (EDL) File
+# Based on CCXT's existing binance.ts implementation
+
+exchange:
+  id: binance
+  name: Binance
+  countries: []  # Binance operates globally
+  version: v3
+  rateLimit: 50
+  certified: true
+  pro: true
+  alias: false
+  dex: false
+
+urls:
+  logo: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
+  api:
+    public: https://api.binance.com/api/v3
+    private: https://api.binance.com/api/v3
+    sapi: https://api.binance.com/sapi/v1
+    fapiPublic: https://fapi.binance.com/fapi/v1
+    fapiPrivate: https://fapi.binance.com/fapi/v1
+    dapiPublic: https://dapi.binance.com/dapi/v1
+    dapiPrivate: https://dapi.binance.com/dapi/v1
+    eapiPublic: https://eapi.binance.com/eapi/v1
+    eapiPrivate: https://eapi.binance.com/eapi/v1
+  test:
+    public: https://testnet.binance.vision/api/v3
+    private: https://testnet.binance.vision/api/v3
+    fapiPublic: https://testnet.binancefuture.com/fapi/v1
+    fapiPrivate: https://testnet.binancefuture.com/fapi/v1
+    dapiPublic: https://testnet.binancefuture.com/dapi/v1
+    dapiPrivate: https://testnet.binancefuture.com/dapi/v1
+  www: https://www.binance.com
+  doc:
+    - https://binance-docs.github.io/apidocs/spot/en
+  fees: https://www.binance.com/en/fee/trading
+  referral: https://www.binance.com/en/register?ref=D7YA7CLY
+
+has:
+  # Market types
+  publicAPI: true
+  privateAPI: true
+  CORS: null
+  sandbox: true
+  spot: true
+  margin: true
+  swap: true
+  future: true
+  option: true
+
+  # Market data
+  fetchMarkets: true
+  fetchCurrencies: true
+  fetchTicker: true
+  fetchTickers: true
+  fetchOrderBook: true
+  fetchTrades: true
+  fetchOHLCV: true
+  fetchStatus: true
+  fetchTime: true
+  fetchBidsAsks: true
+  fetchLastPrices: true
+  fetchMarkPrice: true
+  fetchIndexPrice: true
+  fetchFundingRate: true
+  fetchFundingRates: true
+  fetchFundingRateHistory: true
+  fetchFundingHistory: true
+
+  # Trading
+  createOrder: true
+  createOrders: true
+  createLimitOrder: true
+  createMarketOrder: true
+  createStopLimitOrder: true
+  createStopMarketOrder: true
+  createTakeProfitOrder: true
+  createOrderWs: true
+  cancelOrder: true
+  cancelOrders: true
+  cancelAllOrders: true
+  cancelAllOrdersAfter: true
+  cancelOrderWs: true
+  editOrder: true
+
+  # Account
+  fetchBalance: true
+  fetchBalanceWs: true
+  fetchAccountPositions: true
+  fetchPositions: true
+  fetchPositionsRisk: true
+  fetchOpenOrders: true
+  fetchOpenOrdersWs: true
+  fetchClosedOrders: true
+  fetchOrders: true
+  fetchOrder: true
+  fetchOrderWs: true
+  fetchMyTrades: true
+  fetchMyTradesWs: true
+
+  # Wallet
+  fetchDeposits: true
+  fetchWithdrawals: true
+  fetchTransactions: false
+  fetchDepositAddress: true
+  fetchDepositAddresses: false
+  fetchDepositAddressesByNetwork: true
+  withdraw: true
+  transfer: true
+  fetchTransfers: true
+
+  # Margin
+  fetchBorrowRates: true
+  fetchBorrowRate: true
+  fetchBorrowInterest: true
+  borrowMargin: true
+  repayMargin: true
+  setMarginMode: true
+  setLeverage: true
+  fetchLeverage: true
+  fetchLeverages: true
+  addMargin: true
+  reduceMargin: true
+
+timeframes:
+  1s: 1s
+  1m: 1m
+  3m: 3m
+  5m: 5m
+  15m: 15m
+  30m: 30m
+  1h: 1h
+  2h: 2h
+  4h: 4h
+  6h: 6h
+  8h: 8h
+  12h: 12h
+  1d: 1d
+  3d: 3d
+  1w: 1w
+  1M: 1M
+
+requiredCredentials:
+  apiKey: true
+  secret: true
+  uid: false
+  login: false
+  password: false
+  twofa: false
+  privateKey: false
+  walletAddress: false
+  token: false
+
+auth:
+  type: hmac
+  algorithm: sha256
+  encoding: hex
+  timestampUnit: milliseconds
+  nonceType: timestamp
+  signatureFormat: "{queryString}"
+
+  signature:
+    components:
+      - query
+
+  headers:
+    X-MBX-APIKEY: "{apiKey}"
+
+  query:
+    timestamp: "{timestamp}"
+    signature: "{signature}"
+
+api:
+  public:
+    get:
+      ping:
+        cost: 0.2
+        params: {}
+      time:
+        cost: 0.2
+        params: {}
+      exchangeInfo:
+        cost: 4
+        params:
+          symbol:
+            type: string
+            required: false
+          symbols:
+            type: string
+            required: false
+          permissions:
+            type: string
+            required: false
+      depth:
+        cost: 1
+        params:
+          symbol:
+            type: string
+            required: true
+          limit:
+            type: int
+            required: false
+            default: "100"
+        byLimit:
+          - [100, 1]
+          - [500, 5]
+          - [1000, 10]
+          - [5000, 50]
+      trades:
+        cost: 2
+        params:
+          symbol:
+            type: string
+            required: true
+          limit:
+            type: int
+            required: false
+            default: "500"
+      historicalTrades:
+        cost: 10
+        params:
+          symbol:
+            type: string
+            required: true
+          limit:
+            type: int
+            required: false
+          fromId:
+            type: string
+            required: false
+      aggTrades:
+        cost: 2
+        params:
+          symbol:
+            type: string
+            required: true
+          fromId:
+            type: string
+            required: false
+          startTime:
+            type: timestamp_ms
+            required: false
+          endTime:
+            type: timestamp_ms
+            required: false
+          limit:
+            type: int
+            required: false
+            default: "500"
+      klines:
+        cost: 2
+        params:
+          symbol:
+            type: string
+            required: true
+          interval:
+            type: string
+            required: true
+          startTime:
+            type: timestamp_ms
+            required: false
+          endTime:
+            type: timestamp_ms
+            required: false
+          limit:
+            type: int
+            required: false
+            default: "500"
+      avgPrice:
+        cost: 0.2
+        params:
+          symbol:
+            type: string
+            required: true
+      ticker/24hr:
+        cost: 0.4
+        noSymbol: 16
+        params:
+          symbol:
+            type: string
+            required: false
+          symbols:
+            type: string
+            required: false
+          type:
+            type: string
+            required: false
+      ticker/tradingDay:
+        cost: 0.8
+        params:
+          symbol:
+            type: string
+            required: false
+          symbols:
+            type: string
+            required: false
+      ticker/price:
+        cost: 0.2
+        noSymbol: 0.4
+        params:
+          symbol:
+            type: string
+            required: false
+          symbols:
+            type: string
+            required: false
+      ticker/bookTicker:
+        cost: 0.2
+        noSymbol: 0.4
+        params:
+          symbol:
+            type: string
+            required: false
+          symbols:
+            type: string
+            required: false
+      ticker:
+        cost: 0.4
+        noSymbol: 16
+        params:
+          symbol:
+            type: string
+            required: false
+          symbols:
+            type: string
+            required: false
+          windowSize:
+            type: string
+            required: false
+
+  private:
+    get:
+      account:
+        cost: 4
+        params:
+          recvWindow:
+            type: int
+            required: false
+      myTrades:
+        cost: 4
+        params:
+          symbol:
+            type: string
+            required: true
+          orderId:
+            type: string
+            required: false
+          startTime:
+            type: timestamp_ms
+            required: false
+          endTime:
+            type: timestamp_ms
+            required: false
+          fromId:
+            type: string
+            required: false
+          limit:
+            type: int
+            required: false
+            default: "500"
+          recvWindow:
+            type: int
+            required: false
+      openOrders:
+        cost: 1.2
+        noSymbol: 16
+        params:
+          symbol:
+            type: string
+            required: false
+          recvWindow:
+            type: int
+            required: false
+      allOrders:
+        cost: 4
+        params:
+          symbol:
+            type: string
+            required: true
+          orderId:
+            type: string
+            required: false
+          startTime:
+            type: timestamp_ms
+            required: false
+          endTime:
+            type: timestamp_ms
+            required: false
+          limit:
+            type: int
+            required: false
+            default: "500"
+          recvWindow:
+            type: int
+            required: false
+      order:
+        cost: 0.8
+        params:
+          symbol:
+            type: string
+            required: true
+          orderId:
+            type: string
+            required: false
+          origClientOrderId:
+            type: string
+            required: false
+          recvWindow:
+            type: int
+            required: false
+
+    post:
+      order:
+        cost: 0.2
+        params:
+          symbol:
+            type: string
+            required: true
+          side:
+            type: string
+            required: true
+          type:
+            type: string
+            required: true
+          timeInForce:
+            type: string
+            required: false
+          quantity:
+            type: float
+            required: false
+          quoteOrderQty:
+            type: float
+            required: false
+          price:
+            type: float
+            required_if: "type in [LIMIT, STOP_LOSS_LIMIT, TAKE_PROFIT_LIMIT]"
+          newClientOrderId:
+            type: string
+            required: false
+          stopPrice:
+            type: float
+            required_if: "type in [STOP_LOSS, STOP_LOSS_LIMIT, TAKE_PROFIT, TAKE_PROFIT_LIMIT]"
+          trailingDelta:
+            type: int
+            required: false
+          icebergQty:
+            type: float
+            required: false
+          newOrderRespType:
+            type: string
+            required: false
+          recvWindow:
+            type: int
+            required: false
+      order/test:
+        cost: 0.2
+        params:
+          symbol:
+            type: string
+            required: true
+          side:
+            type: string
+            required: true
+          type:
+            type: string
+            required: true
+
+    delete:
+      order:
+        cost: 0.2
+        params:
+          symbol:
+            type: string
+            required: true
+          orderId:
+            type: string
+            required: false
+          origClientOrderId:
+            type: string
+            required: false
+          recvWindow:
+            type: int
+            required: false
+      openOrders:
+        cost: 0.2
+        params:
+          symbol:
+            type: string
+            required: true
+          recvWindow:
+            type: int
+            required: false
+
+parsers:
+  ticker:
+    source: ticker/24hr
+    path: null
+    mapping:
+      symbol:
+        compute: "this.safeSymbol(marketId, market, undefined, marketType)"
+        dependencies: [marketId, market, marketType]
+      timestamp:
+        path: closeTime
+        transform: parse_timestamp_ms
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      high:
+        path: highPrice
+        transform: parse_number
+      low:
+        path: lowPrice
+        transform: parse_number
+      bid:
+        path: bidPrice
+        transform: parse_number
+      bidVolume:
+        path: bidQty
+        transform: parse_number
+      ask:
+        path: askPrice
+        transform: parse_number
+      askVolume:
+        path: askQty
+        transform: parse_number
+      vwap:
+        path: weightedAvgPrice
+        transform: parse_number
+      open:
+        path: openPrice
+        transform: parse_number
+      close:
+        path: lastPrice
+        transform: parse_number
+      last:
+        path: lastPrice
+        transform: parse_number
+      previousClose:
+        path: prevClosePrice
+        transform: parse_number
+      change:
+        path: priceChange
+        transform: parse_number
+      percentage:
+        path: priceChangePercent
+        transform: parse_number
+      average:
+        literal: "undefined"
+      baseVolume:
+        path: volume
+        transform: parse_number
+      quoteVolume:
+        path: quoteVolume
+        transform: parse_number
+      info:
+        from_context: rawData
+
+  order:
+    source: order
+    path: null
+    mapping:
+      id:
+        path: orderId
+        transform: parse_string
+      clientOrderId:
+        path: clientOrderId
+      timestamp:
+        path: time
+        fallback:
+          - createTime
+          - workingTime
+          - transactTime
+          - updateTime
+        transform: parse_timestamp_ms
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      lastTradeTimestamp:
+        path: updateTime
+        fallback:
+          - transactTime
+        transform: parse_timestamp_ms
+      symbol:
+        compute: "this.safeSymbol(marketId, market, undefined, marketType)"
+        dependencies: [marketId, market, marketType]
+      type:
+        path: type
+        transform: lowercase
+      timeInForce:
+        path: timeInForce
+      postOnly:
+        compute: "(type === 'limit_maker') || (timeInForce === 'PO')"
+        dependencies: [type, timeInForce]
+      side:
+        path: side
+        transform: lowercase
+      price:
+        path: price
+        transform: parse_number
+      stopPrice:
+        path: stopPrice
+        transform: parse_number
+      triggerPrice:
+        path: stopPrice
+        transform: parse_number
+      amount:
+        path: origQty
+        fallback:
+          - quantity
+        transform: parse_number
+      cost:
+        path: cummulativeQuoteQty
+        fallback:
+          - cumQuote
+          - cumBase
+        transform: parse_number
+      average:
+        path: avgPrice
+        transform: parse_number
+      filled:
+        path: executedQty
+        transform: parse_number
+      remaining:
+        compute: "amount - filled"
+        dependencies: [amount, filled]
+      status:
+        path: status
+        map:
+          NEW: open
+          PARTIALLY_FILLED: open
+          FILLED: closed
+          CANCELED: canceled
+          PENDING_CANCEL: canceled
+          REJECTED: rejected
+          EXPIRED: expired
+          EXPIRED_IN_MATCH: expired
+      fee:
+        literal: "undefined"
+      trades:
+        literal: "undefined"
+      reduceOnly:
+        path: reduceOnly
+      info:
+        from_context: rawData
+
+  trade:
+    source: myTrades
+    path: null
+    mapping:
+      id:
+        path: id
+        fallback:
+          - a
+        transform: parse_string
+      order:
+        path: orderId
+        transform: parse_string
+      timestamp:
+        path: time
+        fallback:
+          - T
+        transform: parse_timestamp_ms
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      symbol:
+        compute: "this.safeSymbol(marketId, market, undefined, marketType)"
+        dependencies: [marketId, market, marketType]
+      type:
+        literal: "undefined"
+      side:
+        path: isBuyer
+        map:
+          true: buy
+          false: sell
+      takerOrMaker:
+        path: isMaker
+        map:
+          true: maker
+          false: taker
+      price:
+        path: price
+        fallback:
+          - p
+        transform: parse_number
+      amount:
+        path: qty
+        fallback:
+          - q
+        transform: parse_number
+      cost:
+        path: quoteQty
+        fallback:
+          - baseQty
+        transform: parse_number
+      fee:
+        path: commission
+        transform: parse_number
+      feeCurrency:
+        path: commissionAsset
+        transform: parse_currency_code
+      info:
+        from_context: rawData
+
+  balance:
+    source: account
+    path: balances
+    fallback:
+      - userAssets
+    iterator: array
+    structure: balance
+    mapping:
+      currency:
+        path: asset
+        transform: parse_currency_code
+      free:
+        path: free
+        transform: parse_number
+      used:
+        path: locked
+        transform: parse_number
+      total:
+        compute: "free + used"
+        dependencies: [free, used]
+
+  market:
+    source: exchangeInfo
+    path: symbols
+    iterator: array
+    mapping:
+      id:
+        path: symbol
+      symbol:
+        compute: "base + '/' + quote"
+        dependencies: [base, quote]
+      base:
+        path: baseAsset
+        transform: parse_currency_code
+      quote:
+        path: quoteAsset
+        transform: parse_currency_code
+      baseId:
+        path: baseAsset
+      quoteId:
+        path: quoteAsset
+      active:
+        path: status
+        map:
+          TRADING: true
+        default: false
+      type:
+        literal: "spot"
+      spot:
+        literal: true
+      margin:
+        path: isMarginTradingAllowed
+      swap:
+        literal: false
+      future:
+        literal: false
+      option:
+        literal: false
+      contract:
+        literal: false
+      settle:
+        literal: null
+      settleId:
+        literal: null
+      contractSize:
+        literal: null
+      linear:
+        literal: null
+      inverse:
+        literal: null
+      expiry:
+        literal: null
+      expiryDatetime:
+        literal: null
+      strike:
+        literal: null
+      optionType:
+        literal: null
+      precision.amount:
+        compute: "this.parseNumber(this.safeString(data, 'stepSize') || this.safeString(data.filters?.find(f => f.filterType === 'LOT_SIZE'), 'stepSize'))"
+        dependencies: []
+      precision.price:
+        compute: "this.parseNumber(this.safeString(data, 'tickSize') || this.safeString(data.filters?.find(f => f.filterType === 'PRICE_FILTER'), 'tickSize'))"
+        dependencies: []
+      limits.amount.min:
+        compute: "this.parseNumber(this.safeString(data, 'minQty') || this.safeString(data.filters?.find(f => f.filterType === 'LOT_SIZE'), 'minQty'))"
+        dependencies: []
+      limits.amount.max:
+        compute: "this.parseNumber(this.safeString(data, 'maxQty') || this.safeString(data.filters?.find(f => f.filterType === 'LOT_SIZE'), 'maxQty'))"
+        dependencies: []
+      limits.price.min:
+        compute: "this.parseNumber(this.safeString(data, 'minPrice') || this.safeString(data.filters?.find(f => f.filterType === 'PRICE_FILTER'), 'minPrice'))"
+        dependencies: []
+      limits.price.max:
+        compute: "this.parseNumber(this.safeString(data, 'maxPrice') || this.safeString(data.filters?.find(f => f.filterType === 'PRICE_FILTER'), 'maxPrice'))"
+        dependencies: []
+      limits.cost.min:
+        compute: "this.parseNumber(this.safeString(data, 'minNotional') || this.safeString(data.filters?.find(f => f.filterType === 'MIN_NOTIONAL'), 'minNotional'))"
+        dependencies: []
+      limits.cost.max:
+        literal: null
+      info:
+        from_context: value
+
+  deposit:
+    source: sapi/capital/deposit/hisrec
+    path: null
+    mapping:
+      id:
+        path: orderNo
+      txid:
+        compute: "this.parseTxId(this.safeString(data, 'txId'))"
+        dependencies: []
+      type:
+        literal: "deposit"
+      currency:
+        path: [coin, fiatCurrency]
+        transform: parse_currency_code
+      amount:
+        path: amount
+        transform: parse_number
+      status:
+        path: status
+        map:
+          0: pending
+          1: ok
+          6: ok
+          3: failed
+          Failed: failed
+          Successful: ok
+      address:
+        path: address
+      addressTo:
+        path: address
+      addressFrom:
+        literal: null
+      tag:
+        compute: "this.parseTag(this.safeString(data, 'addressTag'))"
+        dependencies: []
+      tagTo:
+        compute: "this.parseTag(this.safeString(data, 'addressTag'))"
+        dependencies: []
+      tagFrom:
+        literal: null
+      network:
+        path: network
+      timestamp:
+        compute: "this.safeInteger2(data, 'insertTime', 'createTime')"
+        dependencies: []
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      updated:
+        compute: "(this.safeInteger2(data, 'successTime', 'updateTime') ?? null)"
+        dependencies: []
+      internal:
+        compute: "this.parseInternal(this.safeInteger(data, 'transferType'))"
+        dependencies: []
+      comment:
+        literal: null
+      fee:
+        compute: "this.parseTransactionFee(this.safeNumber2(data, 'transactionFee', 'totalFee'), currency)"
+        dependencies: [currency]
+      info:
+        from_context: value
+
+  withdrawal:
+    source: sapi/capital/withdraw/history
+    path: null
+    mapping:
+      id:
+        path: [id, orderNo]
+      txid:
+        compute: "this.parseTxId(this.safeString(data, 'txId'))"
+        dependencies: []
+      type:
+        literal: "withdrawal"
+      currency:
+        path: [coin, fiatCurrency]
+        transform: parse_currency_code
+      amount:
+        path: amount
+        transform: parse_number
+      status:
+        path: status
+        map:
+          0: pending
+          1: canceled
+          2: pending
+          3: failed
+          4: pending
+          5: failed
+          6: ok
+          Successful: ok
+          Failed: failed
+      address:
+        path: address
+      addressTo:
+        path: address
+      addressFrom:
+        literal: null
+      tag:
+        compute: "this.parseTag(this.safeString(data, 'addressTag'))"
+        dependencies: []
+      tagTo:
+        compute: "this.parseTag(this.safeString(data, 'addressTag'))"
+        dependencies: []
+      tagFrom:
+        literal: null
+      network:
+        path: network
+      timestamp:
+        compute: "this.parseTransactionTimestamp(this.safeInteger2(data, 'insertTime', 'createTime'), this.safeString(data, 'applyTime'))"
+        dependencies: []
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      updated:
+        compute: "(this.safeInteger2(data, 'successTime', 'updateTime') ?? null)"
+        dependencies: []
+      internal:
+        compute: "this.parseInternal(this.safeInteger(data, 'transferType'))"
+        dependencies: []
+      comment:
+        literal: null
+      fee:
+        compute: "this.parseTransactionFee(this.safeNumber2(data, 'transactionFee', 'totalFee'), currency)"
+        dependencies: [currency]
+      info:
+        from_context: value
+
+  depositAddress:
+    source: sapi/capital/deposit/address
+    path: null
+    mapping:
+      currency:
+        path: coin
+        transform: parse_currency_code
+      address:
+        path: address
+      tag:
+        path: tag
+      network:
+        path: network
+      info:
+        from_context: rawData
+
+errors:
+  patterns:
+    # Authentication errors
+    - match: "-2014"
+      type: AuthenticationError
+      message: "API-key format invalid"
+    - match: "-2015"
+      type: AuthenticationError
+      message: "Invalid API-key, IP, or permissions for action"
+    - match: "-1022"
+      type: AuthenticationError
+      message: "Signature for this request is not valid"
+
+    # Permission errors
+    - match: "-2016"
+      type: PermissionDenied
+      message: "No trading window could be found for the symbol"
+    - match: "-3029"
+      type: PermissionDenied
+      message: "Transfer out not allowed"
+
+    # Insufficient funds
+    - match: "-2010"
+      type: InsufficientFunds
+      message: "Insufficient balance"
+    - match: "-3041"
+      type: InsufficientFunds
+      message: "Balance is not enough"
+
+    # Order errors
+    - match: "-2011"
+      type: OrderNotFound
+      message: "Unknown order sent"
+    - match: "-2013"
+      type: OrderNotFound
+      message: "Order does not exist"
+    - match: "-1013"
+      type: InvalidOrder
+      message: "Invalid quantity"
+    - match: "-1111"
+      type: InvalidOrder
+      message: "Precision is over the maximum defined for this asset"
+    - match: "-1116"
+      type: InvalidOrder
+      message: "Invalid orderType"
+
+    # Rate limiting
+    - match: "-1003"
+      type: RateLimitExceeded
+      retry: exponential
+      message: "Too many requests; current limit"
+    - match: "-1015"
+      type: RateLimitExceeded
+      retry: exponential
+      message: "Too many new orders"
+
+    # Exchange availability
+    - match: "-1000"
+      type: ExchangeNotAvailable
+      retry: linear
+      message: "Unknown error occurred while processing the request"
+    - match: "-1001"
+      type: ExchangeNotAvailable
+      retry: linear
+      message: "Internal error; unable to process your request"
+
+    # Bad requests
+    - match: "-1100"
+      type: BadRequest
+      message: "Illegal characters found in parameter"
+    - match: "-1101"
+      type: BadRequest
+      message: "Too many parameters sent for this endpoint"
+    - match: "-1102"
+      type: ArgumentsRequired
+      message: "Mandatory parameter was not sent"
+    - match: "-1121"
+      type: BadSymbol
+      message: "Invalid symbol"
+
+fees:
+  trading:
+    tierBased: false
+    percentage: true
+    taker: 0.001
+    maker: 0.001
+
+limits:
+  amount:
+    min: null
+    max: null
+  price:
+    min: null
+    max: null
+  cost:
+    min: null
+    max: null
+  leverage:
+    min: 1
+    max: 125
+
+precision:
+  amount: 8
+  price: 8
+
+options:
+  defaultType: spot
+  recvWindow: "5000"
+  adjustForTimeDifference: "true"
+  fetchMarkets: "['spot', 'linear', 'inverse', 'option']"
+  fetchBalance: "{'type': 'spot'}"
+  newOrderRespType: RESULT
+  quoteOrderQty: "true"
+  createMarketBuyOrderRequiresPrice: "false"
+
+overrides:
+  - method: fetchBalance
+    description: "Binance requires different endpoints for spot/margin/futures balance"
+    file: binance.overrides.ts
+  - method: sign
+    description: "Binance signature handling with RSA/EdDSA support"
+    file: binance.overrides.ts
+  - method: parseTxId
+    description: "Parse transaction ID, stripping 'Internal transfer ' prefix if present"
+    file: binance.overrides.ts
+  - method: parseTag
+    description: "Parse address tag, returning null for empty strings"
+    file: binance.overrides.ts
+  - method: parseInternal
+    description: "Parse internal transfer flag from transferType"
+    file: binance.overrides.ts
+  - method: parseTransactionFee
+    description: "Parse transaction fee into fee object"
+    file: binance.overrides.ts
+  - method: parseTransactionTimestamp
+    description: "Parse transaction timestamp with fallback to applyTime"
+    file: binance.overrides.ts
