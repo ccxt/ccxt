@@ -22,6 +22,7 @@ class Throttler {
 
     async loop () {
         let lastTimestamp = now ();
+        let throttleAlertSent = false;
         while (this.running) {
             const { resolver, cost } = this.queue[0];
             if (this.config['tokens'] >= 0) {
@@ -33,7 +34,12 @@ class Throttler {
                 if (this.queue.length === 0) {
                     this.running = false;
                 }
+                throttleAlertSent = false;
             } else {
+                if (!throttleAlertSent) {
+                    console.warn (Date.now().toString() + ' ccxt rate limit exceeded, throttling requests.')
+                    throttleAlertSent = true;
+                }
                 await sleep (this.config['delay'] * 1000);
                 const current = now ();
                 const elapsed = current - lastTimestamp;
