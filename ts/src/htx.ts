@@ -964,6 +964,9 @@ export default class htx extends Exchange {
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
+                'fetchOrderBook': {
+                    'adjustLimit': false, // to automatically ceil the limit number to the nearest supported value
+                },
                 'withdraw': {
                     'includeFee': false,
                 },
@@ -2572,13 +2575,14 @@ export default class htx extends Exchange {
      * @method
      * @name htx#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4a0fc-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb808ad-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2e10f-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d517804-77b6-11ed-9966-0242ac110003
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.adjustLimit] true/false, to automatically ceil the limit to the nearest supported value
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -2609,9 +2613,14 @@ export default class htx extends Exchange {
             }
         } else {
             if (limit !== undefined) {
-                // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
-                if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 150)) {
-                    throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be undefined, 5, 10, 20, or 150, default is 150');
+                const supported = [ 5, 10, 20, 150 ];
+                // Valid depths are 5, 10, 20 or empty (for 150)
+                if (!this.inArray (limit, supported)) {
+                    if (this.handleOption ('fetchOrderBook', 'adjustLimit', false)) {
+                        limit = this.findNearestCeiling ([ 5, 10, 20, 150 ], limit);
+                    } else {
+                        throw new BadRequest (this.id + ' fetchOrderBook(): for spot markets limit argument must be undefined or one from: ' + this.json (supported) + ', default is 150');
+                    }
                 }
                 // only set the depth if it is not 150
                 // 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
