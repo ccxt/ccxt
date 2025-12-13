@@ -946,7 +946,8 @@ export default class zonda extends Exchange {
             request['limit'] = limit;
         }
         request = this.extend (request, params);
-        const response = await this.v1_01PrivateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
+        const jsonRequest = this.json (request);
+        const response = await this.v1_01PrivateGetBalancesBITBAYHistory ({ 'query': jsonRequest });
         const items = response['items'];
         return this.parseLedger (items, undefined, since, limit);
     }
@@ -1474,10 +1475,11 @@ export default class zonda extends Exchange {
         const market = this.market (symbol);
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         amount = parseFloat (this.amountToPrecision (symbol, amount));
+        const finalAmount = amount; // req java
         const request: Dict = {
             'symbol': tradingSymbol,
             'offerType': side.toUpperCase (),
-            'amount': amount,
+            'amount': finalAmount,
         };
         const stopLossPrice = this.safeValue2 (params, 'stopPrice', 'stopLossPrice');
         const isStopLossPrice = stopLossPrice !== undefined;
@@ -1574,7 +1576,7 @@ export default class zonda extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'amount': amount,
+            'amount': finalAmount,
             'cost': undefined,
             'filled': undefined,
             'remaining': undefined,

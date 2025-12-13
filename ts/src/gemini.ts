@@ -798,6 +798,7 @@ export default class gemini extends Exchange {
             inverse = false;
         }
         const type = swap ? 'swap' : 'spot';
+        const isSpot = !swap;
         return {
             'id': marketId,
             'symbol': symbol,
@@ -808,7 +809,7 @@ export default class gemini extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': !swap,
+            'spot': isSpot,
             'margin': false,
             'swap': swap,
             'future': false,
@@ -1921,8 +1922,9 @@ export default class gemini extends Exchange {
                 throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
             const nonce = this.nonce ().toString ();
+            const finalUrl = url;
             const request = this.extend ({
-                'request': url,
+                'request': finalUrl,
                 'nonce': nonce,
             }, query);
             let payload = this.json (request);

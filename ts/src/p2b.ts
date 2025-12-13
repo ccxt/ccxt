@@ -1133,10 +1133,12 @@ export default class p2b extends Exchange {
             throw new BadRequest (this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const market = this.market (symbol);
+        const sinceSec = this.parseToInt (since / 1000);
+        const untilSec = this.parseToInt (until / 1000);
         const request: Dict = {
             'market': market['id'],
-            'startTime': this.parseToInt (since / 1000),
-            'endTime': this.parseToInt (until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1209,9 +1211,11 @@ export default class p2b extends Exchange {
         if ((until - since) > 86400000) {
             throw new BadRequest (this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
+        const sinceSec = this.parseToInt (since / 1000);
+        const untilSec = this.parseToInt (until / 1000);
         const request: Dict = {
-            'startTime': this.parseToInt (since / 1000),
-            'endTime': this.parseToInt (until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         };
         if (market !== undefined) {
             request['market'] = market['id'];

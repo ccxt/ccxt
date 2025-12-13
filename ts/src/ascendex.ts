@@ -915,12 +915,14 @@ export default class ascendex extends Exchange {
             accountGroup = this.safeString (data, 'accountGroup');
             this.options['account-group'] = accountGroup;
         }
+        const finalResponse = response; // java req
+        const finalAccountGroup = accountGroup;
         return [
             {
-                'id': accountGroup,
+                'id': finalAccountGroup,
                 'type': undefined,
                 'code': undefined,
-                'info': response,
+                'info': finalResponse,
             },
         ];
     }
@@ -3060,8 +3062,9 @@ export default class ascendex extends Exchange {
         if (type === 'reduce') {
             amount = Precise.stringAbs (amount);
         }
+        const parsedAmount = this.parseNumber (amount);
         return this.extend (this.parseMarginModification (response, market), {
-            'amount': this.parseNumber (amount),
+            'amount': parsedAmount,
             'type': type,
         });
     }
