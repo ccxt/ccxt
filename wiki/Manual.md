@@ -682,6 +682,11 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
 
 Exchanges usually impose what is called a *rate limit*. Exchanges will remember and track your user credentials and your IP address and will not allow you to query the API too frequently. They balance their load and control traffic congestion to protect API servers from (D)DoS and misuse.
 
+CCXT supports two different rate-limiting algorithms:
+
+- **leaky bucket (default)**: works by queueing requests and releasing them at a steady, fixed rate. Bursts of requests are smoothed out over time rather than executed immediately, which helps prevent hitting exchange rate limits while still allowing short spikes in activity to be handled gracefully.
+- **window-based rate limiter**:  If the user provides the `rollingWindowSize` option, ccxt switches from the leaky bucket model to a window-based rate limiter. A window-based limiter enforces a maximum number of requests within a fixed time window (for example, N requests per X milliseconds). Once the limit is reached, further requests are delayed until the current window expires.
+
 **WARNING: Stay under the rate limit to avoid ban!**
 
 Most exchanges allow **up to 1 or 2 requests per second**. Exchanges may temporarily restrict your access to their API or ban you for some period of time if you are too aggressive with your requests.
