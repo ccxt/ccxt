@@ -4596,7 +4596,7 @@ func (this *BybitCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 		}
 		AddElementToObject(request, "positionIdx", Ternary(IsTrue((IsEqual(side, "buy"))), 1, 2))
 	}
-	params = this.Omit(params, []interface{}{"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged", "tpslMode"})
+	params = this.Omit(params, []interface{}{"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"})
 	return this.Extend(request, params)
 }
 
