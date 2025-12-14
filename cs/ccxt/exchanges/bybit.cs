@@ -4531,7 +4531,7 @@ public partial class bybit : Exchange
             }
             ((IDictionary<string,object>)request)["positionIdx"] = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 2;
         }
-        parameters = this.omit(parameters, new List<object>() {"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged", "tpslMode"});
+        parameters = this.omit(parameters, new List<object>() {"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"});
         return this.extend(request, parameters);
     }
 
