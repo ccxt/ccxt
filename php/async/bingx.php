@@ -3078,8 +3078,8 @@ class bingx extends Exchange {
             $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
             $stopLoss = $this->safe_value($params, 'stopLoss');
             $takeProfit = $this->safe_value($params, 'takeProfit');
-            $isStopLoss = $stopLoss !== null;
-            $isTakeProfit = $takeProfit !== null;
+            $hasStopLoss = $stopLoss !== null;
+            $hasTakeProfit = $takeProfit !== null;
             if ((($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT') || ($type === 'STOP') || ($type === 'TAKE_PROFIT')) && !$isTrailing) {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
@@ -3118,9 +3118,9 @@ class bingx extends Exchange {
                     $request['priceRate'] = $this->parse_to_numeric($requestTrailingPercent);
                 }
             }
-            if ($isStopLoss || $isTakeProfit) {
+            if ($hasStopLoss || $hasTakeProfit) {
                 $stringifiedAmount = $this->number_to_string($amount);
-                if ($isStopLoss) {
+                if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                     $slWorkingType = $this->safe_string($stopLoss, 'workingType', 'MARK_PRICE');
                     $slType = $this->safe_string($stopLoss, 'type', 'STOP_MARKET');
@@ -3137,7 +3137,7 @@ class bingx extends Exchange {
                     $slRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $slQuantity));
                     $request['stopLoss'] = $this->json($slRequest);
                 }
-                if ($isTakeProfit) {
+                if ($hasTakeProfit) {
                     $tkTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
                     $tkWorkingType = $this->safe_string($takeProfit, 'workingType', 'MARK_PRICE');
                     $tpType = $this->safe_string($takeProfit, 'type', 'TAKE_PROFIT_MARKET');
