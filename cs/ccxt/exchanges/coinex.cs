@@ -42,6 +42,7 @@ public partial class coinex : Exchange
                 { "createTakeProfitOrder", true },
                 { "createTriggerOrder", true },
                 { "editOrder", true },
+                { "editOrders", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
@@ -2594,6 +2595,94 @@ public partial class coinex : Exchange
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
+    }
+
+    /**
+     * @method
+     * @name coinex#editOrders
+     * @description edit a list of trade orders
+     * @see https://docs.coinex.com/api/v2/spot/order/http/edit-multi-order
+     * @see https://docs.coinex.com/api/v2/futures/order/http/edit-multi-order
+     * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> editOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ordersRequests = new List<object>() {};
+        object orderSymbols = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(orders, i);
+            object marketId = this.safeString(rawOrder, "symbol");
+            object market = this.market(marketId);
+            ((IList<object>)orderSymbols).Add(marketId);
+            object id = this.safeString(rawOrder, "id");
+            object amount = this.safeValue(rawOrder, "amount");
+            object price = this.safeValue(rawOrder, "price");
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            object marginMode = null;
+            var marginModeorderParamsVariable = this.handleMarginModeAndParams("editOrders", orderParams);
+            marginMode = ((IList<object>)marginModeorderParamsVariable)[0];
+            orderParams = ((IList<object>)marginModeorderParamsVariable)[1];
+            object market_type = "SPOT";
+            if (isTrue(getValue(market, "swap")))
+            {
+                market_type = "FUTURES";
+            } else if (isTrue(!isEqual(marginMode, null)))
+            {
+                market_type = "MARGIN";
+            }
+            object orderRequest = new Dictionary<string, object>() {
+                { "order_id", this.parseToNumeric(id) },
+                { "market", getValue(market, "id") },
+                { "market_type", market_type },
+            };
+            if (isTrue(!isEqual(amount, null)))
+            {
+                ((IDictionary<string,object>)orderRequest)["amount"] = this.amountToPrecision(marketId, amount);
+            }
+            if (isTrue(!isEqual(price, null)))
+            {
+                ((IDictionary<string,object>)orderRequest)["price"] = this.priceToPrecision(marketId, price);
+            }
+            ((IList<object>)ordersRequests).Add(this.extend(orderRequest, orderParams));
+        }
+        orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
+        object firstSymbol = this.safeString(orderSymbols, 0);
+        object firstMarket = this.market(firstSymbol);
+        object request = new Dictionary<string, object>() {
+            { "orders", ordersRequests },
+        };
+        object response = null;
+        if (isTrue(getValue(firstMarket, "spot")))
+        {
+            response = await this.v2PrivatePostSpotBatchModifyOrder(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v2PrivatePostFuturesBatchModifyOrder(this.extend(request, parameters));
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object entry = getValue(data, i);
+            object code = this.safeString(entry, "code");
+            object message = this.safeString(entry, "message");
+            if (isTrue(isTrue((!isEqual(code, "0"))) || isTrue((isTrue(isTrue(isTrue((!isEqual(message, "Success"))) && isTrue((!isEqual(message, "Succeeded")))) && isTrue((!isEqual(((string)message).ToLower(), "ok")))) && !isTrue(data)))))
+            {
+                object feedback = add(add(this.id, " "), message);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                throw new ExchangeError ((string)feedback) ;
+            }
+            object item = this.safeDict(entry, "data", new Dictionary<string, object>() {});
+            object order = this.parseOrder(item);
+            ((IList<object>)result).Add(order);
+        }
+        return result;
     }
 
     /**

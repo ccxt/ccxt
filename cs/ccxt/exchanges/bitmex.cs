@@ -733,6 +733,10 @@ public partial class bitmex : Exchange
             baseId = this.safeString(market, "rootSymbol");
             type = "future";
             future = true;
+        } else if (isTrue(isEqual(typ, "FFSCSX")))
+        {
+            type = "swap";
+            swap = true;
         }
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);

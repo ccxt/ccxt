@@ -473,6 +473,27 @@ public partial class coinex
         return new Order(res);
     }
     /// <summary>
+    /// edit a list of trade orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/edit-multi-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/edit-multi-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> EditOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.editOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
     /// cancels an open order
     /// </summary>
     /// <remarks>

@@ -5376,8 +5376,8 @@ public partial class bitget : Exchange
         object takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object isStopLoss = !isEqual(stopLoss, null);
-        object isTakeProfit = !isEqual(takeProfit, null);
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
         object isStopLossTrigger = !isEqual(stopLossTriggerPrice, null);
         object isTakeProfitTrigger = !isEqual(takeProfitTriggerPrice, null);
         object isStopLossOrTakeProfitTrigger = isTrue(isStopLossTrigger) || isTrue(isTakeProfitTrigger);
@@ -5413,7 +5413,7 @@ public partial class bitget : Exchange
             parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
         } else
         {
-            if (isTrue(isStopLoss))
+            if (isTrue(hasStopLoss))
             {
                 object slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                 object slLimitPrice = this.safeNumber(stopLoss, "price");
@@ -5427,7 +5427,7 @@ public partial class bitget : Exchange
                     ((IDictionary<string,object>)request)["slOrderType"] = this.safeString(parameters, "slOrderType", "market");
                 }
             }
-            if (isTrue(isTakeProfit))
+            if (isTrue(hasTakeProfit))
             {
                 object tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                 object tpLimitPrice = this.safeNumber(takeProfit, "price");
@@ -5533,10 +5533,10 @@ public partial class bitget : Exchange
         object isTriggerOrder = !isEqual(triggerPrice, null);
         object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
         object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
-        object isStopLoss = !isEqual(stopLoss, null);
-        object isTakeProfit = !isEqual(takeProfit, null);
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
         object isStopLossOrTakeProfitTrigger = isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder);
-        object isStopLossOrTakeProfit = isTrue(isStopLoss) || isTrue(isTakeProfit);
+        object isStopLossOrTakeProfit = isTrue(hasStopLoss) || isTrue(hasTakeProfit);
         object trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice", this.numberToString(price));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
@@ -5610,7 +5610,7 @@ public partial class bitget : Exchange
                 {
                     ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
                 }
-                if (isTrue(isStopLoss))
+                if (isTrue(hasStopLoss))
                 {
                     object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["stopLossTriggerPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
@@ -5619,7 +5619,7 @@ public partial class bitget : Exchange
                     object slType = this.safeString(stopLoss, "type", "mark_price");
                     ((IDictionary<string,object>)request)["stopLossTriggerType"] = slType;
                 }
-                if (isTrue(isTakeProfit))
+                if (isTrue(hasTakeProfit))
                 {
                     object tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["stopSurplusTriggerPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
@@ -5652,12 +5652,12 @@ public partial class bitget : Exchange
                 }
             } else
             {
-                if (isTrue(isStopLoss))
+                if (isTrue(hasStopLoss))
                 {
                     object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["presetStopLossPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
                 }
-                if (isTrue(isTakeProfit))
+                if (isTrue(hasTakeProfit))
                 {
                     object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["presetStopSurplusPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
@@ -6021,8 +6021,8 @@ public partial class bitget : Exchange
         object isTakeProfitOrder = !isEqual(takeProfitPrice, null);
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object isStopLoss = !isEqual(stopLoss, null);
-        object isTakeProfit = !isEqual(takeProfit, null);
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
         object trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice", this.numberToString(price));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "newCallbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
@@ -6170,7 +6170,7 @@ public partial class bitget : Exchange
             } else if (isTrue(isTriggerOrder))
             {
                 ((IDictionary<string,object>)request)["newTriggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
-                if (isTrue(isStopLoss))
+                if (isTrue(hasStopLoss))
                 {
                     object slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["newStopLossTriggerPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
@@ -6179,7 +6179,7 @@ public partial class bitget : Exchange
                     object slType = this.safeString(stopLoss, "type", "mark_price");
                     ((IDictionary<string,object>)request)["newStopLossTriggerType"] = slType;
                 }
-                if (isTrue(isTakeProfit))
+                if (isTrue(hasTakeProfit))
                 {
                     object tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["newSurplusTriggerPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
@@ -6195,12 +6195,12 @@ public partial class bitget : Exchange
                 object newClientOrderId = this.safeString2(parameters, "newClientOid", "newClientOrderId", defaultNewClientOrderId);
                 parameters = this.omit(parameters, "newClientOrderId");
                 ((IDictionary<string,object>)request)["newClientOid"] = newClientOrderId;
-                if (isTrue(isStopLoss))
+                if (isTrue(hasStopLoss))
                 {
                     object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["newPresetStopLossPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
                 }
-                if (isTrue(isTakeProfit))
+                if (isTrue(hasTakeProfit))
                 {
                     object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["newPresetStopSurplusPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
