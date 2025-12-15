@@ -2704,22 +2704,22 @@ class coincatch extends Exchange {
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $requestTriggerPrice = null;
-        $takeProfitParams = $this->safe_dict($params, 'takeProfit');
-        $stopLossParams = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $isTrigger = ($triggerPrice !== null);
         $trailingPercent = $this->safe_string($params, 'trailingPercent');
         $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice');
         $hasTPPrice = ($takeProfitPrice !== null);
         $hasSLPrice = ($stopLossPrice !== null);
-        $hasTPParams = ($takeProfitParams !== null);
-        if ($hasTPParams && !$hasTPPrice) {
-            $takeProfitPrice = $this->safe_string($takeProfitParams, 'triggerPrice');
+        $hasTakeProfit = ($takeProfit !== null);
+        if ($hasTakeProfit && !$hasTPPrice) {
+            $takeProfitPrice = $this->safe_string($takeProfit, 'triggerPrice');
             $hasTPPrice = ($takeProfitPrice !== null);
         }
-        $hasSLParams = ($stopLossParams !== null);
-        if ($hasSLParams && !$hasSLPrice) {
-            $stopLossPrice = $this->safe_string($stopLossParams, 'triggerPrice');
+        $hasStopLoss = ($stopLoss !== null);
+        if ($hasStopLoss && !$hasSLPrice) {
+            $stopLossPrice = $this->safe_string($stopLoss, 'triggerPrice');
             $hasSLPrice = ($stopLossPrice !== null);
         }
         $hasBothTPAndSL = $hasTPPrice && $hasSLPrice;
