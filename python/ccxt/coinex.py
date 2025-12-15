@@ -73,6 +73,7 @@ class coinex(Exchange, ImplicitAPI):
                 'createTakeProfitOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'editOrders': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': False,
@@ -2942,6 +2943,73 @@ class coinex(Exchange, ImplicitAPI):
                 #
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
+
+    def edit_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+        """
+        edit a list of trade orders
+
+        https://docs.coinex.com/api/v2/spot/order/http/edit-multi-order
+        https://docs.coinex.com/api/v2/futures/order/http/edit-multi-order
+
+        :param Array orders: list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        orderSymbols = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            market = self.market(marketId)
+            orderSymbols.append(marketId)
+            id = self.safe_string(rawOrder, 'id')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            marginMode = None
+            marginMode, orderParams = self.handle_margin_mode_and_params('editOrders', orderParams)
+            market_type = 'SPOT'
+            if market['swap']:
+                market_type = 'FUTURES'
+            elif marginMode is not None:
+                market_type = 'MARGIN'
+            orderRequest: dict = {
+                'order_id': self.parse_to_numeric(id),
+                'market': market['id'],
+                'market_type': market_type,
+            }
+            if amount is not None:
+                orderRequest['amount'] = self.amount_to_precision(marketId, amount)
+            if price is not None:
+                orderRequest['price'] = self.price_to_precision(marketId, price)
+            ordersRequests.append(self.extend(orderRequest, orderParams))
+        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
+        firstSymbol = self.safe_string(orderSymbols, 0)
+        firstMarket = self.market(firstSymbol)
+        request: dict = {
+            'orders': ordersRequests,
+        }
+        response = None
+        if firstMarket['spot']:
+            response = self.v2PrivatePostSpotBatchModifyOrder(self.extend(request, params))
+        else:
+            response = self.v2PrivatePostFuturesBatchModifyOrder(self.extend(request, params))
+        data = self.safe_list(response, 'data', [])
+        result = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            code = self.safe_string(entry, 'code')
+            message = self.safe_string(entry, 'message')
+            if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and not data):
+                feedback = self.id + ' ' + message
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                raise ExchangeError(feedback)
+            item = self.safe_dict(entry, 'data', {})
+            order = self.parse_order(item)
+            result.append(order)
+        return result
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """

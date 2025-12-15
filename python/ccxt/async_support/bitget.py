@@ -5000,8 +5000,8 @@ class bitget(Exchange, ImplicitAPI):
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
-        isStopLoss = stopLoss is not None
-        isTakeProfit = takeProfit is not None
+        hasStopLoss = stopLoss is not None
+        hasTakeProfit = takeProfit is not None
         isStopLossTrigger = stopLossTriggerPrice is not None
         isTakeProfitTrigger = takeProfitTriggerPrice is not None
         isStopLossOrTakeProfitTrigger = isStopLossTrigger or isTakeProfitTrigger
@@ -5026,7 +5026,7 @@ class bitget(Exchange, ImplicitAPI):
                     request['tpOrderType'] = self.safe_string(params, 'tpOrderType', 'market')
             params = self.omit(params, ['stopLossPrice', 'takeProfitPrice'])
         else:
-            if isStopLoss:
+            if hasStopLoss:
                 slTriggerPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'stopPrice')
                 slLimitPrice = self.safe_number(stopLoss, 'price')
                 request['stopLoss'] = self.price_to_precision(symbol, slTriggerPrice)
@@ -5035,7 +5035,7 @@ class bitget(Exchange, ImplicitAPI):
                     request['slOrderType'] = self.safe_string(params, 'slOrderType', 'limit')
                 else:
                     request['slOrderType'] = self.safe_string(params, 'slOrderType', 'market')
-            if isTakeProfit:
+            if hasTakeProfit:
                 tpTriggerPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'stopPrice')
                 tpLimitPrice = self.safe_number(takeProfit, 'price')
                 request['takeProfit'] = self.price_to_precision(symbol, tpTriggerPrice)
@@ -5103,10 +5103,10 @@ class bitget(Exchange, ImplicitAPI):
         isTriggerOrder = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
-        isStopLoss = stopLoss is not None
-        isTakeProfit = takeProfit is not None
+        hasStopLoss = stopLoss is not None
+        hasTakeProfit = takeProfit is not None
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
-        isStopLossOrTakeProfit = isStopLoss or isTakeProfit
+        isStopLossOrTakeProfit = hasStopLoss or hasTakeProfit
         trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
@@ -5154,14 +5154,14 @@ class bitget(Exchange, ImplicitAPI):
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if price is not None:
                     request['executePrice'] = self.price_to_precision(symbol, price)
-                if isStopLoss:
+                if hasStopLoss:
                     slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice')
                     request['stopLossTriggerPrice'] = self.price_to_precision(symbol, slTriggerPrice)
                     slPrice = self.safe_string(stopLoss, 'price')
                     request['stopLossExecutePrice'] = self.price_to_precision(symbol, slPrice)
                     slType = self.safe_string(stopLoss, 'type', 'mark_price')
                     request['stopLossTriggerType'] = slType
-                if isTakeProfit:
+                if hasTakeProfit:
                     tpTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice')
                     request['stopSurplusTriggerPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
                     tpPrice = self.safe_string(takeProfit, 'price')
@@ -5182,10 +5182,10 @@ class bitget(Exchange, ImplicitAPI):
                     request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                     request['planType'] = 'pos_profit'
             else:
-                if isStopLoss:
+                if hasStopLoss:
                     slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
                     request['presetStopLossPrice'] = self.price_to_precision(symbol, slTriggerPrice)
-                if isTakeProfit:
+                if hasTakeProfit:
                     tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
                     request['presetStopSurplusPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
             if not isStopLossOrTakeProfitTrigger:
@@ -5452,8 +5452,8 @@ class bitget(Exchange, ImplicitAPI):
         isTakeProfitOrder = takeProfitPrice is not None
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
-        isStopLoss = stopLoss is not None
-        isTakeProfit = takeProfit is not None
+        hasStopLoss = stopLoss is not None
+        hasTakeProfit = takeProfit is not None
         trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'newCallbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
@@ -5546,14 +5546,14 @@ class bitget(Exchange, ImplicitAPI):
                 response = await self.privateMixPostV2MixOrderModifyTpslOrder(self.extend(request, params))
             elif isTriggerOrder:
                 request['newTriggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-                if isStopLoss:
+                if hasStopLoss:
                     slTriggerPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'stopPrice')
                     request['newStopLossTriggerPrice'] = self.price_to_precision(symbol, slTriggerPrice)
                     slPrice = self.safe_number(stopLoss, 'price')
                     request['newStopLossExecutePrice'] = self.price_to_precision(symbol, slPrice)
                     slType = self.safe_string(stopLoss, 'type', 'mark_price')
                     request['newStopLossTriggerType'] = slType
-                if isTakeProfit:
+                if hasTakeProfit:
                     tpTriggerPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'stopPrice')
                     request['newSurplusTriggerPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
                     tpPrice = self.safe_number(takeProfit, 'price')
@@ -5566,10 +5566,10 @@ class bitget(Exchange, ImplicitAPI):
                 newClientOrderId = self.safe_string_2(params, 'newClientOid', 'newClientOrderId', defaultNewClientOrderId)
                 params = self.omit(params, 'newClientOrderId')
                 request['newClientOid'] = newClientOrderId
-                if isStopLoss:
+                if hasStopLoss:
                     slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
                     request['newPresetStopLossPrice'] = self.price_to_precision(symbol, slTriggerPrice)
-                if isTakeProfit:
+                if hasTakeProfit:
                     tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
                     request['newPresetStopSurplusPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
                 response = await self.privateMixPostV2MixOrderModifyOrder(self.extend(request, params))

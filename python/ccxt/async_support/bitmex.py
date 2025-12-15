@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -705,7 +705,7 @@ class bitmex(Exchange, ImplicitAPI):
         # 'positionCurrency' may be empty("", currently returns for ETHUSD)
         # so let's take the settlCurrency first and then adjust if needed
         typ = self.safe_string(market, 'typ')  # type definitions at: https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_get
-        type: MarketType
+        type = None
         swap = False
         spot = False
         future = False
@@ -724,6 +724,9 @@ class bitmex(Exchange, ImplicitAPI):
             baseId = self.safe_string(market, 'rootSymbol')
             type = 'future'
             future = True
+        elif typ == 'FFSCSX':
+            type = 'swap'
+            swap = True
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         contract = swap or future
