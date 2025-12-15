@@ -2960,22 +2960,22 @@ func (this *CoincatchCore) HandleTriggerStopLossAndTakeProfit(symbol interface{}
 	var stopLossPrice interface{} = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice interface{} = this.SafeString(params, "takeProfitPrice")
 	var requestTriggerPrice interface{} = nil
-	var takeProfitParams interface{} = this.SafeDict(params, "takeProfit")
-	var stopLossParams interface{} = this.SafeDict(params, "stopLoss")
+	var takeProfit interface{} = this.SafeDict(params, "takeProfit")
+	var stopLoss interface{} = this.SafeDict(params, "stopLoss")
 	var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var isTrigger interface{} = (!IsEqual(triggerPrice, nil))
 	var trailingPercent interface{} = this.SafeString(params, "trailingPercent")
 	var trailingTriggerPrice interface{} = this.SafeString(params, "trailingTriggerPrice")
 	var hasTPPrice interface{} = (!IsEqual(takeProfitPrice, nil))
 	var hasSLPrice interface{} = (!IsEqual(stopLossPrice, nil))
-	var hasTPParams interface{} = (!IsEqual(takeProfitParams, nil))
-	if IsTrue(IsTrue(hasTPParams) && !IsTrue(hasTPPrice)) {
-		takeProfitPrice = this.SafeString(takeProfitParams, "triggerPrice")
+	var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
+	if IsTrue(IsTrue(hasTakeProfit) && !IsTrue(hasTPPrice)) {
+		takeProfitPrice = this.SafeString(takeProfit, "triggerPrice")
 		hasTPPrice = (!IsEqual(takeProfitPrice, nil))
 	}
-	var hasSLParams interface{} = (!IsEqual(stopLossParams, nil))
-	if IsTrue(IsTrue(hasSLParams) && !IsTrue(hasSLPrice)) {
-		stopLossPrice = this.SafeString(stopLossParams, "triggerPrice")
+	var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
+	if IsTrue(IsTrue(hasStopLoss) && !IsTrue(hasSLPrice)) {
+		stopLossPrice = this.SafeString(stopLoss, "triggerPrice")
 		hasSLPrice = (!IsEqual(stopLossPrice, nil))
 	}
 	var hasBothTPAndSL interface{} = IsTrue(hasTPPrice) && IsTrue(hasSLPrice)
