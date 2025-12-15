@@ -877,6 +877,8 @@ public partial class binance : Exchange
                         { "lvtKlines", 1 },
                         { "convert/exchangeInfo", 4 },
                         { "insuranceBalance", 1 },
+                        { "symbolAdlRisk", 1 },
+                        { "tradingSchedule", 5 },
                     } },
                 } },
                 { "fapiData", new Dictionary<string, object>() {
@@ -914,7 +916,6 @@ public partial class binance : Exchange
                         { "commissionRate", 20 },
                         { "rateLimit/order", 1 },
                         { "apiTradingStatus", 1 },
-                        { "symbolAdlRisk", 1 },
                         { "multiAssetsMargin", 30 },
                         { "apiReferral/ifNewUser", 1 },
                         { "apiReferral/customization", 1 },
@@ -943,6 +944,7 @@ public partial class binance : Exchange
                             { "noSymbol", 40 },
                         } },
                         { "allAlgoOrders", 5 },
+                        { "stock/contract", 50 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "batchOrders", 5 },
