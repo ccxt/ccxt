@@ -2916,8 +2916,8 @@ class bingx(Exchange, ImplicitAPI):
             isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
             stopLoss = self.safe_value(params, 'stopLoss')
             takeProfit = self.safe_value(params, 'takeProfit')
-            isStopLoss = stopLoss is not None
-            isTakeProfit = takeProfit is not None
+            hasStopLoss = stopLoss is not None
+            hasTakeProfit = takeProfit is not None
             if ((type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT')) and not isTrailing:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             reduceOnly = self.safe_bool(params, 'reduceOnly', False)
@@ -2949,9 +2949,9 @@ class bingx(Exchange, ImplicitAPI):
                 elif isTrailingPercentOrder:
                     requestTrailingPercent = Precise.string_div(trailingPercent, '100')
                     request['priceRate'] = self.parse_to_numeric(requestTrailingPercent)
-            if isStopLoss or isTakeProfit:
+            if hasStopLoss or hasTakeProfit:
                 stringifiedAmount = self.number_to_string(amount)
-                if isStopLoss:
+                if hasStopLoss:
                     slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
                     slWorkingType = self.safe_string(stopLoss, 'workingType', 'MARK_PRICE')
                     slType = self.safe_string(stopLoss, 'type', 'STOP_MARKET')
@@ -2966,7 +2966,7 @@ class bingx(Exchange, ImplicitAPI):
                     slQuantity = self.safe_string(stopLoss, 'quantity', stringifiedAmount)
                     slRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, slQuantity))
                     request['stopLoss'] = self.json(slRequest)
-                if isTakeProfit:
+                if hasTakeProfit:
                     tkTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
                     tkWorkingType = self.safe_string(takeProfit, 'workingType', 'MARK_PRICE')
                     tpType = self.safe_string(takeProfit, 'type', 'TAKE_PROFIT_MARKET')
