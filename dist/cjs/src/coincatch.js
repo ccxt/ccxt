@@ -2654,22 +2654,22 @@ class coincatch extends coincatch$1["default"] {
         let stopLossPrice = this.safeString(params, 'stopLossPrice');
         let takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         let requestTriggerPrice = undefined;
-        const takeProfitParams = this.safeDict(params, 'takeProfit');
-        const stopLossParams = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
+        const stopLoss = this.safeDict(params, 'stopLoss');
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const isTrigger = (triggerPrice !== undefined);
         const trailingPercent = this.safeString(params, 'trailingPercent');
         const trailingTriggerPrice = this.safeString(params, 'trailingTriggerPrice');
         let hasTPPrice = (takeProfitPrice !== undefined);
         let hasSLPrice = (stopLossPrice !== undefined);
-        const hasTPParams = (takeProfitParams !== undefined);
-        if (hasTPParams && !hasTPPrice) {
-            takeProfitPrice = this.safeString(takeProfitParams, 'triggerPrice');
+        const hasTakeProfit = (takeProfit !== undefined);
+        if (hasTakeProfit && !hasTPPrice) {
+            takeProfitPrice = this.safeString(takeProfit, 'triggerPrice');
             hasTPPrice = (takeProfitPrice !== undefined);
         }
-        const hasSLParams = (stopLossParams !== undefined);
-        if (hasSLParams && !hasSLPrice) {
-            stopLossPrice = this.safeString(stopLossParams, 'triggerPrice');
+        const hasStopLoss = (stopLoss !== undefined);
+        if (hasStopLoss && !hasSLPrice) {
+            stopLossPrice = this.safeString(stopLoss, 'triggerPrice');
             hasSLPrice = (stopLossPrice !== undefined);
         }
         const hasBothTPAndSL = hasTPPrice && hasSLPrice;
