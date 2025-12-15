@@ -5182,8 +5182,8 @@ class bitget extends bitget$1["default"] {
         const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const isStopLoss = stopLoss !== undefined;
-        const isTakeProfit = takeProfit !== undefined;
+        const hasStopLoss = stopLoss !== undefined;
+        const hasTakeProfit = takeProfit !== undefined;
         const isStopLossTrigger = stopLossTriggerPrice !== undefined;
         const isTakeProfitTrigger = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTrigger || isTakeProfitTrigger;
@@ -5215,7 +5215,7 @@ class bitget extends bitget$1["default"] {
             params = this.omit(params, ['stopLossPrice', 'takeProfitPrice']);
         }
         else {
-            if (isStopLoss) {
+            if (hasStopLoss) {
                 const slTriggerPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'stopPrice');
                 const slLimitPrice = this.safeNumber(stopLoss, 'price');
                 request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
@@ -5227,7 +5227,7 @@ class bitget extends bitget$1["default"] {
                     request['slOrderType'] = this.safeString(params, 'slOrderType', 'market');
                 }
             }
-            if (isTakeProfit) {
+            if (hasTakeProfit) {
                 const tpTriggerPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'stopPrice');
                 const tpLimitPrice = this.safeNumber(takeProfit, 'price');
                 request['takeProfit'] = this.priceToPrecision(symbol, tpTriggerPrice);
@@ -5310,10 +5310,10 @@ class bitget extends bitget$1["default"] {
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
-        const isStopLoss = stopLoss !== undefined;
-        const isTakeProfit = takeProfit !== undefined;
+        const hasStopLoss = stopLoss !== undefined;
+        const hasTakeProfit = takeProfit !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-        const isStopLossOrTakeProfit = isStopLoss || isTakeProfit;
+        const isStopLossOrTakeProfit = hasStopLoss || hasTakeProfit;
         const trailingTriggerPrice = this.safeString(params, 'trailingTriggerPrice', this.numberToString(price));
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
@@ -5373,7 +5373,7 @@ class bitget extends bitget$1["default"] {
                 if (price !== undefined) {
                     request['executePrice'] = this.priceToPrecision(symbol, price);
                 }
-                if (isStopLoss) {
+                if (hasStopLoss) {
                     const slTriggerPrice = this.safeString2(stopLoss, 'triggerPrice', 'stopPrice');
                     request['stopLossTriggerPrice'] = this.priceToPrecision(symbol, slTriggerPrice);
                     const slPrice = this.safeString(stopLoss, 'price');
@@ -5381,7 +5381,7 @@ class bitget extends bitget$1["default"] {
                     const slType = this.safeString(stopLoss, 'type', 'mark_price');
                     request['stopLossTriggerType'] = slType;
                 }
-                if (isTakeProfit) {
+                if (hasTakeProfit) {
                     const tpTriggerPrice = this.safeString2(takeProfit, 'triggerPrice', 'stopPrice');
                     request['stopSurplusTriggerPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
                     const tpPrice = this.safeString(takeProfit, 'price');
@@ -5410,11 +5410,11 @@ class bitget extends bitget$1["default"] {
                 }
             }
             else {
-                if (isStopLoss) {
+                if (hasStopLoss) {
                     const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
                     request['presetStopLossPrice'] = this.priceToPrecision(symbol, slTriggerPrice);
                 }
-                if (isTakeProfit) {
+                if (hasTakeProfit) {
                     const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
                     request['presetStopSurplusPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
                 }
@@ -5733,8 +5733,8 @@ class bitget extends bitget$1["default"] {
         const isTakeProfitOrder = takeProfitPrice !== undefined;
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const isStopLoss = stopLoss !== undefined;
-        const isTakeProfit = takeProfit !== undefined;
+        const hasStopLoss = stopLoss !== undefined;
+        const hasTakeProfit = takeProfit !== undefined;
         const trailingTriggerPrice = this.safeString(params, 'trailingTriggerPrice', this.numberToString(price));
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'newCallbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
@@ -5858,7 +5858,7 @@ class bitget extends bitget$1["default"] {
             }
             else if (isTriggerOrder) {
                 request['newTriggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-                if (isStopLoss) {
+                if (hasStopLoss) {
                     const slTriggerPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'stopPrice');
                     request['newStopLossTriggerPrice'] = this.priceToPrecision(symbol, slTriggerPrice);
                     const slPrice = this.safeNumber(stopLoss, 'price');
@@ -5866,7 +5866,7 @@ class bitget extends bitget$1["default"] {
                     const slType = this.safeString(stopLoss, 'type', 'mark_price');
                     request['newStopLossTriggerType'] = slType;
                 }
-                if (isTakeProfit) {
+                if (hasTakeProfit) {
                     const tpTriggerPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'stopPrice');
                     request['newSurplusTriggerPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
                     const tpPrice = this.safeNumber(takeProfit, 'price');
@@ -5881,11 +5881,11 @@ class bitget extends bitget$1["default"] {
                 const newClientOrderId = this.safeString2(params, 'newClientOid', 'newClientOrderId', defaultNewClientOrderId);
                 params = this.omit(params, 'newClientOrderId');
                 request['newClientOid'] = newClientOrderId;
-                if (isStopLoss) {
+                if (hasStopLoss) {
                     const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
                     request['newPresetStopLossPrice'] = this.priceToPrecision(symbol, slTriggerPrice);
                 }
-                if (isTakeProfit) {
+                if (hasTakeProfit) {
                     const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
                     request['newPresetStopSurplusPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
                 }

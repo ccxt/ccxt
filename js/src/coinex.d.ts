@@ -229,6 +229,17 @@ export default class coinex extends Exchange {
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     /**
      * @method
+     * @name coinex#editOrders
+     * @description edit a list of trade orders
+     * @see https://docs.coinex.com/api/v2/spot/order/http/edit-multi-order
+     * @see https://docs.coinex.com/api/v2/futures/order/http/edit-multi-order
+     * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    /**
+     * @method
      * @name coinex#cancelOrder
      * @description cancels an open order
      * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-order

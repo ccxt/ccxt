@@ -1191,16 +1191,16 @@ class blofin extends blofin$1["default"] {
         const stopLoss = this.safeDict(params, 'stopLoss');
         const takeProfit = this.safeDict(params, 'takeProfit');
         params = this.omit(params, ['stopLoss', 'takeProfit', 'hedged']);
-        const isStopLoss = stopLoss !== undefined;
-        const isTakeProfit = takeProfit !== undefined;
-        if (isStopLoss || isTakeProfit) {
-            if (isStopLoss) {
+        const hasStopLoss = stopLoss !== undefined;
+        const hasTakeProfit = takeProfit !== undefined;
+        if (hasStopLoss || hasTakeProfit) {
+            if (hasStopLoss) {
                 const slTriggerPrice = this.safeString2(stopLoss, 'triggerPrice', 'stopPrice');
                 request['slTriggerPrice'] = this.priceToPrecision(symbol, slTriggerPrice);
                 const slOrderPrice = this.safeString(stopLoss, 'price', '-1');
                 request['slOrderPrice'] = this.priceToPrecision(symbol, slOrderPrice);
             }
-            if (isTakeProfit) {
+            if (hasTakeProfit) {
                 const tpTriggerPrice = this.safeString2(takeProfit, 'triggerPrice', 'stopPrice');
                 request['tpTriggerPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
                 const tpPrice = this.safeString(takeProfit, 'price', '-1');

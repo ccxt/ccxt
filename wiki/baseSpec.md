@@ -1384,6 +1384,7 @@ edit a list of trade orders
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#editorders)
 * [bybit](/exchanges/bybit.md#editorders)
+* [coinex](/exchanges/coinex.md#editorders)
 * [hibachi](/exchanges/hibachi.md#editorders)
 * [hyperliquid](/exchanges/hyperliquid.md#editorders)
 

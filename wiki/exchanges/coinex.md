@@ -21,6 +21,7 @@
 * [createOrders](#createorders)
 * [cancelOrders](#cancelorders)
 * [editOrder](#editorder)
+* [editOrders](#editorders)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrder](#fetchorder)
@@ -491,6 +492,31 @@ edit a trade order
 
 ```javascript
 coinex.editOrder (id, symbol, type, side, amount[, price, params])
+```
+
+
+<a name="editOrders" id="editorders"></a>
+
+### editOrders{docsify-ignore}
+edit a list of trade orders
+
+**Kind**: instance method of [<code>coinex</code>](#coinex)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://docs.coinex.com/api/v2/spot/order/http/edit-multi-order
+- https://docs.coinex.com/api/v2/futures/order/http/edit-multi-order
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| orders | <code>Array</code> | Yes | list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinex.editOrders (orders[, params])
 ```
 
 
