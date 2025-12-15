@@ -854,6 +854,8 @@ class binance extends Exchange {
                         'lvtKlines' => 1,
                         'convert/exchangeInfo' => 4,
                         'insuranceBalance' => 1,
+                        'symbolAdlRisk' => 1,
+                        'tradingSchedule' => 5,
                     ),
                 ),
                 'fapiData' => array(
@@ -885,7 +887,6 @@ class binance extends Exchange {
                         'commissionRate' => 20,
                         'rateLimit/order' => 1,
                         'apiTradingStatus' => 1,
-                        'symbolAdlRisk' => 1,
                         'multiAssetsMargin' => 30,
                         // broker endpoints
                         'apiReferral/ifNewUser' => 1,
@@ -913,6 +914,7 @@ class binance extends Exchange {
                         'algoOrder' => 1,
                         'openAlgoOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'allAlgoOrders' => 5,
+                        'stock/contract' => 50,
                     ),
                     'post' => array(
                         'batchOrders' => 5,
