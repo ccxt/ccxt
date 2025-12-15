@@ -30,9 +30,10 @@
             {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
-                "url": "https://api.coinone.co.kr/public/v2/orderbook/KRW/BTC",
+                "url": "https://api.coinone.co.kr/public/v2/orderbook/KRW/BTC?size=5",
                 "input": [
-                    "BTC/KRW"
+                    "BTC/KRW",
+                    5
                 ]
             }
         ],
@@ -41,18 +42,7 @@
                 "description": "fetchTickers",
                 "method": "fetchTickers",
                 "url": "https://api.coinone.co.kr/public/v2/ticker_new/KRW",
-                "input": [
-                ]
-            },
-            {
-                "description": "fetchTickers",
-                "method": "fetchTickers",
-                "url": "https://api.coinone.co.kr/public/v2/ticker_new/KRW/BTC",
-                "input": [
-                    [
-                        "BTC/KRW"
-                    ]
-                ]
+                "input": []
             }
         ],
         "fetchTicker": [
@@ -69,9 +59,11 @@
             {
                 "description": "fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.coinone.co.kr/public/v2/trades/KRW/BTC",
+                "url": "https://api.coinone.co.kr/public/v2/trades/KRW/BTC?size=5",
                 "input": [
-                    "BTC/KRW"
+                    "BTC/KRW",
+                    null,
+                    5
                 ]
             }
         ]
