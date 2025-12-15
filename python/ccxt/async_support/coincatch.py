@@ -2544,21 +2544,21 @@ class coincatch(Exchange, ImplicitAPI):
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         requestTriggerPrice: Str = None
-        takeProfitParams = self.safe_dict(params, 'takeProfit')
-        stopLossParams = self.safe_dict(params, 'stopLoss')
+        takeProfit = self.safe_dict(params, 'takeProfit')
+        stopLoss = self.safe_dict(params, 'stopLoss')
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         isTrigger = (triggerPrice is not None)
         trailingPercent = self.safe_string(params, 'trailingPercent')
         trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice')
         hasTPPrice = (takeProfitPrice is not None)
         hasSLPrice = (stopLossPrice is not None)
-        hasTPParams = (takeProfitParams is not None)
-        if hasTPParams and not hasTPPrice:
-            takeProfitPrice = self.safe_string(takeProfitParams, 'triggerPrice')
+        hasTakeProfit = (takeProfit is not None)
+        if hasTakeProfit and not hasTPPrice:
+            takeProfitPrice = self.safe_string(takeProfit, 'triggerPrice')
             hasTPPrice = (takeProfitPrice is not None)
-        hasSLParams = (stopLossParams is not None)
-        if hasSLParams and not hasSLPrice:
-            stopLossPrice = self.safe_string(stopLossParams, 'triggerPrice')
+        hasStopLoss = (stopLoss is not None)
+        if hasStopLoss and not hasSLPrice:
+            stopLossPrice = self.safe_string(stopLoss, 'triggerPrice')
             hasSLPrice = (stopLossPrice is not None)
         hasBothTPAndSL = hasTPPrice and hasSLPrice
         isTrailingPercentOrder = (trailingPercent is not None)
