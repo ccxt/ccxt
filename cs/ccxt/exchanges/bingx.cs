@@ -2995,8 +2995,8 @@ public partial class bingx : Exchange
             object isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
             object stopLoss = this.safeValue(parameters, "stopLoss");
             object takeProfit = this.safeValue(parameters, "takeProfit");
-            object isStopLoss = !isEqual(stopLoss, null);
-            object isTakeProfit = !isEqual(takeProfit, null);
+            object hasStopLoss = !isEqual(stopLoss, null);
+            object hasTakeProfit = !isEqual(takeProfit, null);
             if (isTrue(isTrue((isTrue(isTrue(isTrue((isEqual(type, "LIMIT"))) || isTrue((isEqual(type, "TRIGGER_LIMIT")))) || isTrue((isEqual(type, "STOP")))) || isTrue((isEqual(type, "TAKE_PROFIT"))))) && !isTrue(isTrailing)))
             {
                 ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
@@ -3049,10 +3049,10 @@ public partial class bingx : Exchange
                     ((IDictionary<string,object>)request)["priceRate"] = this.parseToNumeric(requestTrailingPercent);
                 }
             }
-            if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
+            if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
             {
                 object stringifiedAmount = this.numberToString(amount);
-                if (isTrue(isStopLoss))
+                if (isTrue(hasStopLoss))
                 {
                     object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
                     object slWorkingType = this.safeString(stopLoss, "workingType", "MARK_PRICE");
@@ -3071,7 +3071,7 @@ public partial class bingx : Exchange
                     ((IDictionary<string,object>)slRequest)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
                     ((IDictionary<string,object>)request)["stopLoss"] = this.json(slRequest);
                 }
-                if (isTrue(isTakeProfit))
+                if (isTrue(hasTakeProfit))
                 {
                     object tkTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
                     object tkWorkingType = this.safeString(takeProfit, "workingType", "MARK_PRICE");
