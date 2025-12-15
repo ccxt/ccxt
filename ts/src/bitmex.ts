@@ -713,7 +713,7 @@ export default class bitmex extends Exchange {
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-        let type: MarketType = undefined;
+        let type = undefined;
         let swap = false;
         let spot = false;
         let future = false;
