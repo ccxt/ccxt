@@ -1265,18 +1265,18 @@ public partial class blofin : Exchange
         object stopLoss = this.safeDict(parameters, "stopLoss");
         object takeProfit = this.safeDict(parameters, "takeProfit");
         parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit", "hedged"});
-        object isStopLoss = !isEqual(stopLoss, null);
-        object isTakeProfit = !isEqual(takeProfit, null);
-        if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
+        if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
-            if (isTrue(isStopLoss))
+            if (isTrue(hasStopLoss))
             {
                 object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                 ((IDictionary<string,object>)request)["slTriggerPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
                 object slOrderPrice = this.safeString(stopLoss, "price", "-1");
                 ((IDictionary<string,object>)request)["slOrderPrice"] = this.priceToPrecision(symbol, slOrderPrice);
             }
-            if (isTrue(isTakeProfit))
+            if (isTrue(hasTakeProfit))
             {
                 object tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
                 ((IDictionary<string,object>)request)["tpTriggerPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
