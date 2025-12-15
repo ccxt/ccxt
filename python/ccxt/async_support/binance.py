@@ -871,6 +871,8 @@ class binance(Exchange, ImplicitAPI):
                         'lvtKlines': 1,
                         'convert/exchangeInfo': 4,
                         'insuranceBalance': 1,
+                        'symbolAdlRisk': 1,
+                        'tradingSchedule': 5,
                     },
                 },
                 'fapiData': {
@@ -902,7 +904,6 @@ class binance(Exchange, ImplicitAPI):
                         'commissionRate': 20,
                         'rateLimit/order': 1,
                         'apiTradingStatus': 1,
-                        'symbolAdlRisk': 1,
                         'multiAssetsMargin': 30,
                         # broker endpoints
                         'apiReferral/ifNewUser': 1,
@@ -930,6 +931,7 @@ class binance(Exchange, ImplicitAPI):
                         'algoOrder': 1,
                         'openAlgoOrders': {'cost': 1, 'noSymbol': 40},
                         'allAlgoOrders': 5,
+                        'stock/contract': 50,
                     },
                     'post': {
                         'batchOrders': 5,
