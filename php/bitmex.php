@@ -707,6 +707,7 @@ class bitmex extends Exchange {
         // 'positionCurrency' may be empty ("", currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         $typ = $this->safe_string($market, 'typ'); // $type definitions at => https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
+        $type = null;
         $swap = false;
         $spot = false;
         $future = false;
@@ -725,6 +726,9 @@ class bitmex extends Exchange {
             $baseId = $this->safe_string($market, 'rootSymbol');
             $type = 'future';
             $future = true;
+        } elseif ($typ === 'FFSCSX') {
+            $type = 'swap';
+            $swap = true;
         }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);

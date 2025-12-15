@@ -1229,16 +1229,16 @@ class blofin extends Exchange {
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $takeProfit = $this->safe_dict($params, 'takeProfit');
         $params = $this->omit($params, array( 'stopLoss', 'takeProfit', 'hedged' ));
-        $isStopLoss = $stopLoss !== null;
-        $isTakeProfit = $takeProfit !== null;
-        if ($isStopLoss || $isTakeProfit) {
-            if ($isStopLoss) {
+        $hasStopLoss = $stopLoss !== null;
+        $hasTakeProfit = $takeProfit !== null;
+        if ($hasStopLoss || $hasTakeProfit) {
+            if ($hasStopLoss) {
                 $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice');
                 $request['slTriggerPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
                 $slOrderPrice = $this->safe_string($stopLoss, 'price', '-1');
                 $request['slOrderPrice'] = $this->price_to_precision($symbol, $slOrderPrice);
             }
-            if ($isTakeProfit) {
+            if ($hasTakeProfit) {
                 $tpTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice');
                 $request['tpTriggerPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                 $tpPrice = $this->safe_string($takeProfit, 'price', '-1');

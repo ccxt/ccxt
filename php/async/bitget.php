@@ -5191,8 +5191,8 @@ class bitget extends Exchange {
         $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
-        $isStopLoss = $stopLoss !== null;
-        $isTakeProfit = $takeProfit !== null;
+        $hasStopLoss = $stopLoss !== null;
+        $hasTakeProfit = $takeProfit !== null;
         $isStopLossTrigger = $stopLossTriggerPrice !== null;
         $isTakeProfitTrigger = $takeProfitTriggerPrice !== null;
         $isStopLossOrTakeProfitTrigger = $isStopLossTrigger || $isTakeProfitTrigger;
@@ -5220,7 +5220,7 @@ class bitget extends Exchange {
             }
             $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice' ));
         } else {
-            if ($isStopLoss) {
+            if ($hasStopLoss) {
                 $slTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
                 $slLimitPrice = $this->safe_number($stopLoss, 'price');
                 $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
@@ -5231,7 +5231,7 @@ class bitget extends Exchange {
                     $request['slOrderType'] = $this->safe_string($params, 'slOrderType', 'market');
                 }
             }
-            if ($isTakeProfit) {
+            if ($hasTakeProfit) {
                 $tpTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
                 $tpLimitPrice = $this->safe_number($takeProfit, 'price');
                 $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
@@ -5309,10 +5309,10 @@ class bitget extends Exchange {
         $isTriggerOrder = $triggerPrice !== null;
         $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
-        $isStopLoss = $stopLoss !== null;
-        $isTakeProfit = $takeProfit !== null;
+        $hasStopLoss = $stopLoss !== null;
+        $hasTakeProfit = $takeProfit !== null;
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
-        $isStopLossOrTakeProfit = $isStopLoss || $isTakeProfit;
+        $isStopLossOrTakeProfit = $hasStopLoss || $hasTakeProfit;
         $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $this->number_to_string($price));
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
@@ -5368,7 +5368,7 @@ class bitget extends Exchange {
                 if ($price !== null) {
                     $request['executePrice'] = $this->price_to_precision($symbol, $price);
                 }
-                if ($isStopLoss) {
+                if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice');
                     $request['stopLossTriggerPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
                     $slPrice = $this->safe_string($stopLoss, 'price');
@@ -5376,7 +5376,7 @@ class bitget extends Exchange {
                     $slType = $this->safe_string($stopLoss, 'type', 'mark_price');
                     $request['stopLossTriggerType'] = $slType;
                 }
-                if ($isTakeProfit) {
+                if ($hasTakeProfit) {
                     $tpTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice');
                     $request['stopSurplusTriggerPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                     $tpPrice = $this->safe_string($takeProfit, 'price');
@@ -5401,11 +5401,11 @@ class bitget extends Exchange {
                     $request['planType'] = 'pos_profit';
                 }
             } else {
-                if ($isStopLoss) {
+                if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
                     $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
                 }
-                if ($isTakeProfit) {
+                if ($hasTakeProfit) {
                     $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
                     $request['presetStopSurplusPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                 }
@@ -5714,8 +5714,8 @@ class bitget extends Exchange {
             $isTakeProfitOrder = $takeProfitPrice !== null;
             $stopLoss = $this->safe_value($params, 'stopLoss');
             $takeProfit = $this->safe_value($params, 'takeProfit');
-            $isStopLoss = $stopLoss !== null;
-            $isTakeProfit = $takeProfit !== null;
+            $hasStopLoss = $stopLoss !== null;
+            $hasTakeProfit = $takeProfit !== null;
             $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $this->number_to_string($price));
             $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'newCallbackRatio');
             $isTrailingPercentOrder = $trailingPercent !== null;
@@ -5826,7 +5826,7 @@ class bitget extends Exchange {
                     $response = Async\await($this->privateMixPostV2MixOrderModifyTpslOrder ($this->extend($request, $params)));
                 } elseif ($isTriggerOrder) {
                     $request['newTriggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                    if ($isStopLoss) {
+                    if ($hasStopLoss) {
                         $slTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
                         $request['newStopLossTriggerPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
                         $slPrice = $this->safe_number($stopLoss, 'price');
@@ -5834,7 +5834,7 @@ class bitget extends Exchange {
                         $slType = $this->safe_string($stopLoss, 'type', 'mark_price');
                         $request['newStopLossTriggerType'] = $slType;
                     }
-                    if ($isTakeProfit) {
+                    if ($hasTakeProfit) {
                         $tpTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
                         $request['newSurplusTriggerPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                         $tpPrice = $this->safe_number($takeProfit, 'price');
@@ -5848,11 +5848,11 @@ class bitget extends Exchange {
                     $newClientOrderId = $this->safe_string_2($params, 'newClientOid', 'newClientOrderId', $defaultNewClientOrderId);
                     $params = $this->omit($params, 'newClientOrderId');
                     $request['newClientOid'] = $newClientOrderId;
-                    if ($isStopLoss) {
+                    if ($hasStopLoss) {
                         $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
                         $request['newPresetStopLossPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
                     }
-                    if ($isTakeProfit) {
+                    if ($hasTakeProfit) {
                         $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
                         $request['newPresetStopSurplusPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                     }

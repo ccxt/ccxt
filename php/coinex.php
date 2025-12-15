@@ -55,6 +55,7 @@ class coinex extends Exchange {
                 'createTakeProfitOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'editOrders' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
@@ -3033,6 +3034,81 @@ class coinex extends Exchange {
         }
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
+    }
+
+    public function edit_orders(array $orders, $params = array ()): array {
+        /**
+         * edit a list of trade $orders
+         *
+         * @see https://docs.coinex.com/api/v2/spot/order/http/edit-multi-$order
+         * @see https://docs.coinex.com/api/v2/futures/order/http/edit-multi-$order
+         *
+         * @param {Array} $orders list of $orders to edit, each object should contain the parameters required by editOrder, namely $id, symbol, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        $orderSymbols = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $marketId = $this->safe_string($rawOrder, 'symbol');
+            $market = $this->market($marketId);
+            $orderSymbols[] = $marketId;
+            $id = $this->safe_string($rawOrder, 'id');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $marginMode = null;
+            list($marginMode, $orderParams) = $this->handle_margin_mode_and_params('editOrders', $orderParams);
+            $market_type = 'SPOT';
+            if ($market['swap']) {
+                $market_type = 'FUTURES';
+            } elseif ($marginMode !== null) {
+                $market_type = 'MARGIN';
+            }
+            $orderRequest = array(
+                'order_id' => $this->parse_to_numeric($id),
+                'market' => $market['id'],
+                'market_type' => $market_type,
+            );
+            if ($amount !== null) {
+                $orderRequest['amount'] = $this->amount_to_precision($marketId, $amount);
+            }
+            if ($price !== null) {
+                $orderRequest['price'] = $this->price_to_precision($marketId, $price);
+            }
+            $ordersRequests[] = $this->extend($orderRequest, $orderParams);
+        }
+        $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
+        $firstSymbol = $this->safe_string($orderSymbols, 0);
+        $firstMarket = $this->market($firstSymbol);
+        $request = array(
+            'orders' => $ordersRequests,
+        );
+        $response = null;
+        if ($firstMarket['spot']) {
+            $response = $this->v2PrivatePostSpotBatchModifyOrder ($this->extend($request, $params));
+        } else {
+            $response = $this->v2PrivatePostFuturesBatchModifyOrder ($this->extend($request, $params));
+        }
+        $data = $this->safe_list($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $code = $this->safe_string($entry, 'code');
+            $message = $this->safe_string($entry, 'message');
+            if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && !$data)) {
+                $feedback = $this->id . ' ' . $message;
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                throw new ExchangeError($feedback);
+            }
+            $item = $this->safe_dict($entry, 'data', array());
+            $order = $this->parse_order($item);
+            $result[] = $order;
+        }
+        return $result;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
