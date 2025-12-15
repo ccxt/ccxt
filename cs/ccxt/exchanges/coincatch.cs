@@ -2735,24 +2735,24 @@ public partial class coincatch : Exchange
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object requestTriggerPrice = null;
-        object takeProfitParams = this.safeDict(parameters, "takeProfit");
-        object stopLossParams = this.safeDict(parameters, "stopLoss");
+        object takeProfit = this.safeDict(parameters, "takeProfit");
+        object stopLoss = this.safeDict(parameters, "stopLoss");
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object isTrigger = (!isEqual(triggerPrice, null));
         object trailingPercent = this.safeString(parameters, "trailingPercent");
         object trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice");
         object hasTPPrice = (!isEqual(takeProfitPrice, null));
         object hasSLPrice = (!isEqual(stopLossPrice, null));
-        object hasTPParams = (!isEqual(takeProfitParams, null));
-        if (isTrue(isTrue(hasTPParams) && !isTrue(hasTPPrice)))
+        object hasTakeProfit = (!isEqual(takeProfit, null));
+        if (isTrue(isTrue(hasTakeProfit) && !isTrue(hasTPPrice)))
         {
-            takeProfitPrice = this.safeString(takeProfitParams, "triggerPrice");
+            takeProfitPrice = this.safeString(takeProfit, "triggerPrice");
             hasTPPrice = (!isEqual(takeProfitPrice, null));
         }
-        object hasSLParams = (!isEqual(stopLossParams, null));
-        if (isTrue(isTrue(hasSLParams) && !isTrue(hasSLPrice)))
+        object hasStopLoss = (!isEqual(stopLoss, null));
+        if (isTrue(isTrue(hasStopLoss) && !isTrue(hasSLPrice)))
         {
-            stopLossPrice = this.safeString(stopLossParams, "triggerPrice");
+            stopLossPrice = this.safeString(stopLoss, "triggerPrice");
             hasSLPrice = (!isEqual(stopLossPrice, null));
         }
         object hasBothTPAndSL = isTrue(hasTPPrice) && isTrue(hasSLPrice);
