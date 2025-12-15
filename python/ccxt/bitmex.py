@@ -724,6 +724,10 @@ class bitmex(Exchange, ImplicitAPI):
             baseId = self.safe_string(market, 'rootSymbol')
             type = 'future'
             future = True
+        elif typ == 'FFSCSX':
+            # unlisted equity markets (without any volume)
+            type = 'swap'
+            swap = True
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         contract = swap or future
