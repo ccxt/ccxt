@@ -3251,8 +3251,8 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 		var isTrailing interface{} = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
 		var stopLoss interface{} = this.SafeValue(params, "stopLoss")
 		var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-		var isStopLoss interface{} = !IsEqual(stopLoss, nil)
-		var isTakeProfit interface{} = !IsEqual(takeProfit, nil)
+		var hasStopLoss interface{} = !IsEqual(stopLoss, nil)
+		var hasTakeProfit interface{} = !IsEqual(takeProfit, nil)
 		if IsTrue(IsTrue((IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "LIMIT"))) || IsTrue((IsEqual(typeVar, "TRIGGER_LIMIT")))) || IsTrue((IsEqual(typeVar, "STOP")))) || IsTrue((IsEqual(typeVar, "TAKE_PROFIT"))))) && !IsTrue(isTrailing)) {
 			AddElementToObject(request, "price", this.ParseToNumeric(this.PriceToPrecision(symbol, price)))
 		}
@@ -3291,9 +3291,9 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 				AddElementToObject(request, "priceRate", this.ParseToNumeric(requestTrailingPercent))
 			}
 		}
-		if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
+		if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 			var stringifiedAmount interface{} = this.NumberToString(amount)
-			if IsTrue(isStopLoss) {
+			if IsTrue(hasStopLoss) {
 				var slTriggerPrice interface{} = this.SafeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss)
 				var slWorkingType interface{} = this.SafeString(stopLoss, "workingType", "MARK_PRICE")
 				var slType interface{} = this.SafeString(stopLoss, "type", "STOP_MARKET")
@@ -3310,7 +3310,7 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 				AddElementToObject(slRequest, "quantity", this.ParseToNumeric(this.AmountToPrecision(symbol, slQuantity)))
 				AddElementToObject(request, "stopLoss", this.Json(slRequest))
 			}
-			if IsTrue(isTakeProfit) {
+			if IsTrue(hasTakeProfit) {
 				var tkTriggerPrice interface{} = this.SafeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit)
 				var tkWorkingType interface{} = this.SafeString(takeProfit, "workingType", "MARK_PRICE")
 				var tpType interface{} = this.SafeString(takeProfit, "type", "TAKE_PROFIT_MARKET")
