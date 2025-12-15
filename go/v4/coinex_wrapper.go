@@ -566,6 +566,35 @@ func (this *Coinex) EditOrder(id string, symbol string, typeVar string, side str
 
 /**
  * @method
+ * @name coinex#editOrders
+ * @description edit a list of trade orders
+ * @see https://docs.coinex.com/api/v2/spot/order/http/edit-multi-order
+ * @see https://docs.coinex.com/api/v2/futures/order/http/edit-multi-order
+ * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Coinex) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
+
+	opts := EditOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.EditOrders(orders, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+
+/**
+ * @method
  * @name coinex#cancelOrder
  * @description cancels an open order
  * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-order
@@ -1838,9 +1867,6 @@ func (this *Coinex) EditLimitSellOrder(id string, symbol string, amount float64,
 }
 func (this *Coinex) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Coinex) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.EditOrders(orders, options...)
 }
 func (this *Coinex) FetchAccounts(params ...interface{}) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)

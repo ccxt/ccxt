@@ -5557,8 +5557,8 @@ func (this *BitgetCore) CreateUtaOrderRequest(symbol interface{}, typeVar interf
 	var takeProfitTriggerPrice interface{} = this.SafeNumber(params, "takeProfitPrice")
 	var stopLoss interface{} = this.SafeValue(params, "stopLoss")
 	var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-	var isStopLoss interface{} = !IsEqual(stopLoss, nil)
-	var isTakeProfit interface{} = !IsEqual(takeProfit, nil)
+	var hasStopLoss interface{} = !IsEqual(stopLoss, nil)
+	var hasTakeProfit interface{} = !IsEqual(takeProfit, nil)
 	var isStopLossTrigger interface{} = !IsEqual(stopLossTriggerPrice, nil)
 	var isTakeProfitTrigger interface{} = !IsEqual(takeProfitTriggerPrice, nil)
 	var isStopLossOrTakeProfitTrigger interface{} = IsTrue(isStopLossTrigger) || IsTrue(isTakeProfitTrigger)
@@ -5586,7 +5586,7 @@ func (this *BitgetCore) CreateUtaOrderRequest(symbol interface{}, typeVar interf
 		}
 		params = this.Omit(params, []interface{}{"stopLossPrice", "takeProfitPrice"})
 	} else {
-		if IsTrue(isStopLoss) {
+		if IsTrue(hasStopLoss) {
 			var slTriggerPrice interface{} = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
 			var slLimitPrice interface{} = this.SafeNumber(stopLoss, "price")
 			AddElementToObject(request, "stopLoss", this.PriceToPrecision(symbol, slTriggerPrice))
@@ -5597,7 +5597,7 @@ func (this *BitgetCore) CreateUtaOrderRequest(symbol interface{}, typeVar interf
 				AddElementToObject(request, "slOrderType", this.SafeString(params, "slOrderType", "market"))
 			}
 		}
-		if IsTrue(isTakeProfit) {
+		if IsTrue(hasTakeProfit) {
 			var tpTriggerPrice interface{} = this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice")
 			var tpLimitPrice interface{} = this.SafeNumber(takeProfit, "price")
 			AddElementToObject(request, "takeProfit", this.PriceToPrecision(symbol, tpTriggerPrice))
@@ -5690,10 +5690,10 @@ func (this *BitgetCore) CreateOrderRequest(symbol interface{}, typeVar interface
 	var isTriggerOrder interface{} = !IsEqual(triggerPrice, nil)
 	var isStopLossTriggerOrder interface{} = !IsEqual(stopLossTriggerPrice, nil)
 	var isTakeProfitTriggerOrder interface{} = !IsEqual(takeProfitTriggerPrice, nil)
-	var isStopLoss interface{} = !IsEqual(stopLoss, nil)
-	var isTakeProfit interface{} = !IsEqual(takeProfit, nil)
+	var hasStopLoss interface{} = !IsEqual(stopLoss, nil)
+	var hasTakeProfit interface{} = !IsEqual(takeProfit, nil)
 	var isStopLossOrTakeProfitTrigger interface{} = IsTrue(isStopLossTriggerOrder) || IsTrue(isTakeProfitTriggerOrder)
-	var isStopLossOrTakeProfit interface{} = IsTrue(isStopLoss) || IsTrue(isTakeProfit)
+	var isStopLossOrTakeProfit interface{} = IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)
 	var trailingTriggerPrice interface{} = this.SafeString(params, "trailingTriggerPrice", this.NumberToString(price))
 	var trailingPercent interface{} = this.SafeString2(params, "trailingPercent", "callbackRatio")
 	var isTrailingPercentOrder interface{} = !IsEqual(trailingPercent, nil)
@@ -5753,7 +5753,7 @@ func (this *BitgetCore) CreateOrderRequest(symbol interface{}, typeVar interface
 			if IsTrue(!IsEqual(price, nil)) {
 				AddElementToObject(request, "executePrice", this.PriceToPrecision(symbol, price))
 			}
-			if IsTrue(isStopLoss) {
+			if IsTrue(hasStopLoss) {
 				var slTriggerPrice interface{} = this.SafeString2(stopLoss, "triggerPrice", "stopPrice")
 				AddElementToObject(request, "stopLossTriggerPrice", this.PriceToPrecision(symbol, slTriggerPrice))
 				var slPrice interface{} = this.SafeString(stopLoss, "price")
@@ -5761,7 +5761,7 @@ func (this *BitgetCore) CreateOrderRequest(symbol interface{}, typeVar interface
 				var slType interface{} = this.SafeString(stopLoss, "type", "mark_price")
 				AddElementToObject(request, "stopLossTriggerType", slType)
 			}
-			if IsTrue(isTakeProfit) {
+			if IsTrue(hasTakeProfit) {
 				var tpTriggerPrice interface{} = this.SafeString2(takeProfit, "triggerPrice", "stopPrice")
 				AddElementToObject(request, "stopSurplusTriggerPrice", this.PriceToPrecision(symbol, tpTriggerPrice))
 				var tpPrice interface{} = this.SafeString(takeProfit, "price")
@@ -5786,11 +5786,11 @@ func (this *BitgetCore) CreateOrderRequest(symbol interface{}, typeVar interface
 				AddElementToObject(request, "planType", "pos_profit")
 			}
 		} else {
-			if IsTrue(isStopLoss) {
+			if IsTrue(hasStopLoss) {
 				var slTriggerPrice interface{} = this.SafeValue2(stopLoss, "triggerPrice", "stopPrice")
 				AddElementToObject(request, "presetStopLossPrice", this.PriceToPrecision(symbol, slTriggerPrice))
 			}
-			if IsTrue(isTakeProfit) {
+			if IsTrue(hasTakeProfit) {
 				var tpTriggerPrice interface{} = this.SafeValue2(takeProfit, "triggerPrice", "stopPrice")
 				AddElementToObject(request, "presetStopSurplusPrice", this.PriceToPrecision(symbol, tpTriggerPrice))
 			}
@@ -6149,8 +6149,8 @@ func (this *BitgetCore) EditOrder(id interface{}, symbol interface{}, typeVar in
 		var isTakeProfitOrder interface{} = !IsEqual(takeProfitPrice, nil)
 		var stopLoss interface{} = this.SafeValue(params, "stopLoss")
 		var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-		var isStopLoss interface{} = !IsEqual(stopLoss, nil)
-		var isTakeProfit interface{} = !IsEqual(takeProfit, nil)
+		var hasStopLoss interface{} = !IsEqual(stopLoss, nil)
+		var hasTakeProfit interface{} = !IsEqual(takeProfit, nil)
 		var trailingTriggerPrice interface{} = this.SafeString(params, "trailingTriggerPrice", this.NumberToString(price))
 		var trailingPercent interface{} = this.SafeString2(params, "trailingPercent", "newCallbackRatio")
 		var isTrailingPercentOrder interface{} = !IsEqual(trailingPercent, nil)
@@ -6277,7 +6277,7 @@ func (this *BitgetCore) EditOrder(id interface{}, symbol interface{}, typeVar in
 				PanicOnError(response)
 			} else if IsTrue(isTriggerOrder) {
 				AddElementToObject(request, "newTriggerPrice", this.PriceToPrecision(symbol, triggerPrice))
-				if IsTrue(isStopLoss) {
+				if IsTrue(hasStopLoss) {
 					var slTriggerPrice interface{} = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
 					AddElementToObject(request, "newStopLossTriggerPrice", this.PriceToPrecision(symbol, slTriggerPrice))
 					var slPrice interface{} = this.SafeNumber(stopLoss, "price")
@@ -6285,7 +6285,7 @@ func (this *BitgetCore) EditOrder(id interface{}, symbol interface{}, typeVar in
 					var slType interface{} = this.SafeString(stopLoss, "type", "mark_price")
 					AddElementToObject(request, "newStopLossTriggerType", slType)
 				}
-				if IsTrue(isTakeProfit) {
+				if IsTrue(hasTakeProfit) {
 					var tpTriggerPrice interface{} = this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice")
 					AddElementToObject(request, "newSurplusTriggerPrice", this.PriceToPrecision(symbol, tpTriggerPrice))
 					var tpPrice interface{} = this.SafeNumber(takeProfit, "price")
@@ -6301,11 +6301,11 @@ func (this *BitgetCore) EditOrder(id interface{}, symbol interface{}, typeVar in
 				var newClientOrderId interface{} = this.SafeString2(params, "newClientOid", "newClientOrderId", defaultNewClientOrderId)
 				params = this.Omit(params, "newClientOrderId")
 				AddElementToObject(request, "newClientOid", newClientOrderId)
-				if IsTrue(isStopLoss) {
+				if IsTrue(hasStopLoss) {
 					var slTriggerPrice interface{} = this.SafeValue2(stopLoss, "triggerPrice", "stopPrice")
 					AddElementToObject(request, "newPresetStopLossPrice", this.PriceToPrecision(symbol, slTriggerPrice))
 				}
-				if IsTrue(isTakeProfit) {
+				if IsTrue(hasTakeProfit) {
 					var tpTriggerPrice interface{} = this.SafeValue2(takeProfit, "triggerPrice", "stopPrice")
 					AddElementToObject(request, "newPresetStopSurplusPrice", this.PriceToPrecision(symbol, tpTriggerPrice))
 				}

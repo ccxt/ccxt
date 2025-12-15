@@ -1398,16 +1398,16 @@ func (this *BlofinCore) CreateOrderRequest(symbol interface{}, typeVar interface
 	var stopLoss interface{} = this.SafeDict(params, "stopLoss")
 	var takeProfit interface{} = this.SafeDict(params, "takeProfit")
 	params = this.Omit(params, []interface{}{"stopLoss", "takeProfit", "hedged"})
-	var isStopLoss interface{} = !IsEqual(stopLoss, nil)
-	var isTakeProfit interface{} = !IsEqual(takeProfit, nil)
-	if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
-		if IsTrue(isStopLoss) {
+	var hasStopLoss interface{} = !IsEqual(stopLoss, nil)
+	var hasTakeProfit interface{} = !IsEqual(takeProfit, nil)
+	if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
+		if IsTrue(hasStopLoss) {
 			var slTriggerPrice interface{} = this.SafeString2(stopLoss, "triggerPrice", "stopPrice")
 			AddElementToObject(request, "slTriggerPrice", this.PriceToPrecision(symbol, slTriggerPrice))
 			var slOrderPrice interface{} = this.SafeString(stopLoss, "price", "-1")
 			AddElementToObject(request, "slOrderPrice", this.PriceToPrecision(symbol, slOrderPrice))
 		}
-		if IsTrue(isTakeProfit) {
+		if IsTrue(hasTakeProfit) {
 			var tpTriggerPrice interface{} = this.SafeString2(takeProfit, "triggerPrice", "stopPrice")
 			AddElementToObject(request, "tpTriggerPrice", this.PriceToPrecision(symbol, tpTriggerPrice))
 			var tpPrice interface{} = this.SafeString(takeProfit, "price", "-1")
