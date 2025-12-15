@@ -107,12 +107,12 @@ class Exchange(BaseExchange):
 
     if sys.version_info >= (3, 5):
         async def __aenter__(self):
-            print("AENTER SESS-OPEN !!!!!!!!")
+            print("__aenter__ SESS-OPEN !!!!!!!!")
             self.open()
             return self
 
         async def __aexit__(self, exc_type, exc, tb):
-            print("AEXIT CLOSE !!!!!!!!")
+            print("__aexit__ SESS-CLOSE !!!!!!!!")
             await self.close()
 
     def open(self, info = None):
@@ -134,7 +134,6 @@ class Exchange(BaseExchange):
         if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
             self.tcp_connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
-            print("OPEN> setting session of own:" + str(info) + " !!!!!!!!")
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
@@ -144,7 +143,7 @@ class Exchange(BaseExchange):
             if self.own_session:
                 a = 'OWN'
                 await self.session.close()
-            print("CLOSE > SESSION BEING CLOSED: " + a)
+            print(">>> close() > SESSION BEING CLOSED: " + a)
             self.session = None
         await self.close_connector()
         await self.close_proxy_sessions()
@@ -191,7 +190,6 @@ class Exchange(BaseExchange):
                 self.socks_proxy_sessions = {}
             if (socksProxy not in self.socks_proxy_sessions):
                 # Create our SSL context object with our CA cert file
-                print("PROXY SESS-OPEN !!!!!!!!")
                 self.open()  # ensure `asyncio_loop` is set
             proxy_session = self.get_socks_proxy_session(socksProxy)
         # add aiohttp_proxy for python as exclusion
@@ -213,6 +211,7 @@ class Exchange(BaseExchange):
 
         request_body = body
         encoded_body = body.encode() if body else None
+        print(">>> fetch -> session .open()")  # DEBUG
         self.open(url)
         final_session = proxy_session if proxy_session is not None else self.session
         session_method = getattr(final_session, method.lower())
@@ -338,16 +337,20 @@ class Exchange(BaseExchange):
             # coroutines can only be awaited once so we wrap it in a task
             self.markets_loading = asyncio.ensure_future(coroutine)
         try:
+            print(">>>> load_markets(): before await self.markets_loading")
             result = await self.markets_loading
         except asyncio.CancelledError as e:  # CancelledError is a base exception so we need to catch it explicitly
             self.reloading_markets = False
             self.markets_loading = None
+            print(">>>> load_markets(): exception CancelError")
             raise e
         except Exception as e:
             self.reloading_markets = False
             self.markets_loading = None
+            print(">>>> load_markets(): exception Exception")
             raise e
         self.reloading_markets = False
+        print(">>>> load_markets(): returned from await self.markets_loading")
         return result
 
     async def load_fees(self, reload=False):
@@ -981,14 +984,15 @@ class Exchange(BaseExchange):
         self.last_request_headers = request['headers']
         self.last_request_body = request['body']
         self.last_request_url = request['url']
+        urll = ' ********** ' + path # request['url'][:66]
         for i in range(0, retries + 1):
             exc = None
             try:
-                print("retry attempt:", i, request['url'])
+                print(">>> fetch2 >>> try                    :", urll, i)
                 return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
             except Exception as e:
                 if isinstance(e, OperationFailed):
-                    print ("xx: OperationFailed", i)
+                    print (">>> fetch2 >>> caught  OperationFailed:", urll, i)
                     if i < retries:
                         if self.verbose:
                             index = i + 1
@@ -999,10 +1003,10 @@ class Exchange(BaseExchange):
                     else:
                         exc = e
                 else:
-                    print ("xx: not OperationFailed", i)
+                    print (">>> fetch2 >>> caught NOT OpertFailed :", urll, i)
                     exc = e
             if (exc is not None):
-                print("SHOULD STOP AFTER HEREEEE!")
+                print (">>> fetch2 >>> RAISE EXC              :", urll, i)
                 traceback.print_exc()           # ←←←←←←←←←←←←←←←←←←←←←←←←←
                 raise exc from None
         return None  # self line is never reached, but exists for c# value return requirement

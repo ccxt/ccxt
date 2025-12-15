@@ -464,13 +464,13 @@ class Exchange(object):
                         setattr(self, camelcase, attr)
 
         if not self.session and self.synchronous:
-            print("SSet sync session")
+            print("! Set sync session")
             self.session = Session()
             self.session.trust_env = self.requests_trust_env
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
     def __del__(self):
-        print("DELETING EXCHANGE sync")
+        print("! DELETING EXCHANGE sync")
         if self.session:
             try:
                 self.session.close()
