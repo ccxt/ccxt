@@ -1171,15 +1171,15 @@ class blofin(Exchange, ImplicitAPI):
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')
         params = self.omit(params, ['stopLoss', 'takeProfit', 'hedged'])
-        isStopLoss = stopLoss is not None
-        isTakeProfit = takeProfit is not None
-        if isStopLoss or isTakeProfit:
-            if isStopLoss:
+        hasStopLoss = stopLoss is not None
+        hasTakeProfit = takeProfit is not None
+        if hasStopLoss or hasTakeProfit:
+            if hasStopLoss:
                 slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice')
                 request['slTriggerPrice'] = self.price_to_precision(symbol, slTriggerPrice)
                 slOrderPrice = self.safe_string(stopLoss, 'price', '-1')
                 request['slOrderPrice'] = self.price_to_precision(symbol, slOrderPrice)
-            if isTakeProfit:
+            if hasTakeProfit:
                 tpTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice')
                 request['tpTriggerPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
                 tpPrice = self.safe_string(takeProfit, 'price', '-1')
