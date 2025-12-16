@@ -392,6 +392,20 @@ export default class bitmart extends bitmartRest {
 
     /**
      * @method
+     * @name bitmart#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        return await this.unWatchTickers ([ symbol ], params);
+    }
+
+    /**
+     * @method
      * @name bitmart#unWatchTickers
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
@@ -1648,24 +1662,32 @@ export default class bitmart extends bitmartRest {
 
     handleUnSubscription (client: Client, message) {
         //
+        // spot
         //     {
         //         "topic": "spot/ticker:ETH_USDT",
         //         "event": "unsubscribe"
         //     }
         //
-        const messageTopic = this.safeString (message, 'topic');
+        // swap
+        //     {
+        //         "action": "unsubscribe",
+        //         "group": "futures/ticker:ETHUSDT",
+        //         "success": true,
+        //         "request": {
+        //             "action": "unsubscribe",
+        //             "args": [
+        //                 "futures/ticker:ETHUSDT"
+        //             ]
+        //         }
+        //     }
+        //
+        const messageTopic = this.safeString2 (message, 'topic', 'group');
         const unSubMessageTopic = 'unsubscribe::' + messageTopic;
         const subscription = this.getUnSubParams (messageTopic);
         const subHash = this.safeString (subscription, 'subHash');
         const unsubHash = 'unsubscribe::' + subHash;
-        console.log ('Subscriptions before unsubscription-------------------------')
-        console.log (client.subscriptions);
-        console.log ('----------------------------------------------------------')
         this.cleanUnsubscription (client, subHash, unsubHash);
         this.cleanUnsubscription (client, messageTopic, unSubMessageTopic);
-        console.log ('Subscriptions after unsubscription-------------------------')
-        console.log (client.subscriptions);
-        console.log ('----------------------------------------------------------')
         this.cleanCache (subscription);
     }
 
@@ -1674,9 +1696,11 @@ export default class bitmart extends bitmartRest {
         const channel = this.safeString (parts, 0);
         const marketTypeAndTopic = channel.split ('/');
         const marketType = this.safeStringLower (marketTypeAndTopic, 0);
+        const type = this.parseMarketType (marketType);
         const topic = this.safeString (marketTypeAndTopic, 1);
         const marketId = this.safeString (parts, 1);
-        const market = this.safeMarket (marketId, undefined, '_', marketType);
+        const delimiter = (type === 'spot') ? '_' : '';
+        const market = this.safeMarket (marketId, undefined, delimiter, type);
         const symbol = market['symbol'];
         const subHash = topic + ':' + symbol;
         const result = {
@@ -1687,17 +1711,12 @@ export default class bitmart extends bitmartRest {
         return result;
     }
 
-    async test () {
-        await this.watchTickers ([ 'BTC/USDT', 'ETH/USDT' ])
-        await this.sleep (2000)
-        console.log ('Cache after watch----------------------------------------')
-        console.log (this.tickers)
-        console.log ('----------------------------------------------------------')
-        await this.unWatchTickers ([ 'ETH/USDT' ])
-        await this.sleep (2000)
-        console.log ('Cache after unWatch----------------------------------------')
-        console.log (this.tickers)
-        console.log ('----------------------------------------------------------')
+    parseMarketType (marketType: string) {
+        const types = {
+            'spot': 'spot',
+            'futures': 'swap',
+        };
+        return this.safeString (types, marketType, marketType);
     }
 
     handleMessage (client: Client, message) {
