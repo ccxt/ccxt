@@ -1659,11 +1659,13 @@ export default class toobit extends Exchange {
         }
         const stopLoss = this.safeDict (params, 'stopLoss');
         const takeProfit = this.safeDict (params, 'takeProfit');
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
         const triggerPriceTypes = {
             'mark': 'MARK_PRICE',
             'last': 'CONTRACT_PRICE',
         };
-        if (stopLoss !== undefined) {
+        if (hasStopLoss) {
             request['stopLoss'] = this.safeValue (stopLoss, 'triggerPrice');
             const limitPrice = this.safeValue (stopLoss, 'price');
             if (limitPrice !== undefined) {
@@ -1676,7 +1678,7 @@ export default class toobit extends Exchange {
             }
             params = this.omit (params, 'stopLoss');
         }
-        if (takeProfit !== undefined) {
+        if (hasTakeProfit) {
             request['takeProfit'] = this.safeValue (takeProfit, 'triggerPrice');
             const limitPrice = this.safeValue (takeProfit, 'price');
             if (limitPrice !== undefined) {

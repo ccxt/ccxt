@@ -1444,8 +1444,10 @@ class woofipro(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
+        hasStopLoss = (stopLoss is not None)
+        hasTakeProfit = (takeProfit is not None)
         algoType = self.safe_string(params, 'algoType')
-        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (self.safe_value(params, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
@@ -1474,7 +1476,7 @@ class woofipro(Exchange, ImplicitAPI):
         if triggerPrice is not None:
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
             request['algo_type'] = 'STOP'
-        elif (stopLoss is not None) or (takeProfit is not None):
+        elif hasStopLoss or hasTakeProfit:
             request['algo_type'] = 'TP_SL'
             outterOrder: dict = {
                 'symbol': market['id'],
@@ -1484,7 +1486,7 @@ class woofipro(Exchange, ImplicitAPI):
             }
             childOrders = outterOrder['child_orders']
             closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
-            if stopLoss is not None:
+            if hasStopLoss:
                 stopLossPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'price', stopLoss)
                 stopLossOrder: dict = {
                     'side': closeSide,
@@ -1494,7 +1496,7 @@ class woofipro(Exchange, ImplicitAPI):
                     'reduce_only': True,
                 }
                 childOrders.append(stopLossOrder)
-            if takeProfit is not None:
+            if hasTakeProfit:
                 takeProfitPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'price', takeProfit)
                 takeProfitOrder: dict = {
                     'side': closeSide,
