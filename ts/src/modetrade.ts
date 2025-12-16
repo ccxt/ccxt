@@ -1482,8 +1482,10 @@ export default class modetrade extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
+        const hasStopLoss = stopLoss !== undefined;
+        const hasTakeProfit = takeProfit !== undefined;
         const algoType = this.safeString (params, 'algoType');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue (params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
@@ -1518,7 +1520,7 @@ export default class modetrade extends Exchange {
         if (triggerPrice !== undefined) {
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['algo_type'] = 'STOP';
-        } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
+        } else if (hasStopLoss || hasTakeProfit) {
             request['algo_type'] = 'TP_SL';
             const outterOrder: Dict = {
                 'symbol': market['id'],
@@ -1528,7 +1530,7 @@ export default class modetrade extends Exchange {
             };
             const childOrders = outterOrder['child_orders'];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
-            if (stopLoss !== undefined) {
+            if (hasStopLoss) {
                 const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
                 const stopLossOrder: Dict = {
                     'side': closeSide,
@@ -1539,7 +1541,7 @@ export default class modetrade extends Exchange {
                 };
                 childOrders.push (stopLossOrder);
             }
-            if (takeProfit !== undefined) {
+            if (hasTakeProfit) {
                 const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
                 const takeProfitOrder: Dict = {
                     'side': closeSide,
