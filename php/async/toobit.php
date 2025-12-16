@@ -1690,11 +1690,13 @@ class toobit extends Exchange {
         }
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $hasStopLoss = ($stopLoss !== null);
+        $hasTakeProfit = ($takeProfit !== null);
         $triggerPriceTypes = array(
             'mark' => 'MARK_PRICE',
             'last' => 'CONTRACT_PRICE',
         );
-        if ($stopLoss !== null) {
+        if ($hasStopLoss) {
             $request['stopLoss'] = $this->safe_value($stopLoss, 'triggerPrice');
             $limitPrice = $this->safe_value($stopLoss, 'price');
             if ($limitPrice !== null) {
@@ -1707,7 +1709,7 @@ class toobit extends Exchange {
             }
             $params = $this->omit($params, 'stopLoss');
         }
-        if ($takeProfit !== null) {
+        if ($hasTakeProfit) {
             $request['takeProfit'] = $this->safe_value($takeProfit, 'triggerPrice');
             $limitPrice = $this->safe_value($takeProfit, 'price');
             if ($limitPrice !== null) {

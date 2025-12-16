@@ -1251,6 +1251,8 @@ class woo extends Exchange {
             $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_value($params, 'stopLoss');
             $takeProfit = $this->safe_value($params, 'takeProfit');
+            $hasStopLoss = ($stopLoss !== null);
+            $hasTakeProfit = ($takeProfit !== null);
             $algoType = $this->safe_string($params, 'algoType');
             $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activatedPrice', $this->number_to_string($price));
             $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'callbackValue');
@@ -1258,7 +1260,7 @@ class woo extends Exchange {
             $isTrailingAmountOrder = $trailingAmount !== null;
             $isTrailingPercentOrder = $trailingPercent !== null;
             $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
-            $isConditional = $isTrailing || $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+            $isConditional = $isTrailing || $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($this->safe_value($params, 'childOrders') !== null);
             $isMarket = $orderType === 'MARKET';
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
             $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1322,7 +1324,7 @@ class woo extends Exchange {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                     $request['algoType'] = 'STOP';
                 }
-            } elseif (($stopLoss !== null) || ($takeProfit !== null)) {
+            } elseif ($hasStopLoss || $hasTakeProfit) {
                 $request['algoType'] = 'BRACKET';
                 $outterOrder = array(
                     'symbol' => $market['id'],
@@ -1332,7 +1334,7 @@ class woo extends Exchange {
                 );
                 $childOrders = $outterOrder['childOrders'];
                 $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
-                if ($stopLoss !== null) {
+                if ($hasStopLoss) {
                     $stopLossPrice = $this->safe_string($stopLoss, 'triggerPrice', $stopLoss);
                     $stopLossOrder = array(
                         'side' => $closeSide,
@@ -1343,7 +1345,7 @@ class woo extends Exchange {
                     );
                     $childOrders[] = $stopLossOrder;
                 }
-                if ($takeProfit !== null) {
+                if ($hasTakeProfit) {
                     $takeProfitPrice = $this->safe_string($takeProfit, 'triggerPrice', $takeProfit);
                     $takeProfitOrder = array(
                         'side' => $closeSide,
