@@ -232,6 +232,27 @@ export default class cow extends Exchange {
                     'taker': this.parseNumber ('0'),
                 },
             },
+            'exceptions': {
+                'exact': {
+                    'DuplicatedOrder': InvalidOrder,
+                    'OrderAlreadyExists': InvalidOrder,
+                    'InvalidOrder': InvalidOrder,
+                    'InsufficientFee': InvalidOrder,
+                    'InsufficientFunds': InsufficientFunds,
+                    'UnknownOrder': OrderNotFound,
+                    'OrderNotFound': OrderNotFound,
+                    'OrderExpired': OrderNotFound,
+                    'InvalidSignature': AuthenticationError,
+                    'UnsupportedSellToken': BadSymbol,
+                    'UnsupportedBuyToken': BadSymbol,
+                    'UnsupportedSigningScheme': AuthenticationError,
+                    'InvalidAppData': BadRequest,
+                    'SellAmountDoesNotCoverFee': InvalidOrder,
+                    'SlippageTooLarge': InvalidOrder,
+                    'NoLiquidity': InvalidOrder,
+                },
+                'broad': {},
+            },
         });
     }
 
@@ -1045,9 +1066,7 @@ export default class cow extends Exchange {
                 try {
                     const currentAllowance = await this.checkERC20Allowance (sellTokenAddress, this.hexWith0xPrefix (signerAddr), vaultRelayer);
                     if (Precise.stringLt (currentAllowance, requiredAmount)) {
-                        this.log ('Insufficient allowance detected. Approving VaultRelayer...');
-                        const approvalResult = await this.approveERC20 (sellTokenAddress, vaultRelayer);
-                        this.log ('Approval transaction:', approvalResult['txHash']);
+                        await this.approveERC20 (sellTokenAddress, vaultRelayer);
                         await this.sleep (5000);
                     }
                 } catch (e) {
@@ -1089,8 +1108,8 @@ export default class cow extends Exchange {
             'signature': this.signOrderCancellation (orderUids, signingScheme),
             'signingScheme': signingScheme,
         };
-        const headers = { 'Content-Type': 'application/json' };
-        const response = await this.request ('api/v1/orders', 'public', 'DELETE', params, headers, this.json (requestBody));
+        const deleteParams = this.extend (params, requestBody);
+        const response = await this.publicDeleteApiV1Orders (deleteParams);
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         return this.parseOrder ({ 'uid': id, 'status': 'canceled', 'info': response, 'owner': owner }, market);
     }
@@ -1771,26 +1790,8 @@ export default class cow extends Exchange {
         if (errorType !== undefined) {
             const description = this.safeString (response, 'description');
             const feedback = this.id + ' ' + (description === undefined ? body : description);
-            const errors = {
-                'DuplicatedOrder': InvalidOrder,
-                'OrderAlreadyExists': InvalidOrder,
-                'InvalidOrder': InvalidOrder,
-                'InsufficientFee': InvalidOrder,
-                'InsufficientFunds': InsufficientFunds,
-                'UnknownOrder': OrderNotFound,
-                'OrderNotFound': OrderNotFound,
-                'OrderExpired': OrderNotFound,
-                'InvalidSignature': AuthenticationError,
-                'UnsupportedSellToken': BadSymbol,
-                'UnsupportedBuyToken': BadSymbol,
-                'UnsupportedSigningScheme': AuthenticationError,
-                'InvalidAppData': BadRequest,
-                'SellAmountDoesNotCoverFee': InvalidOrder,
-                'SlippageTooLarge': InvalidOrder,
-                'NoLiquidity': InvalidOrder,
-            };
-            const Exception = this.safeValue (errors, errorType, ExchangeError);
-            throw new Exception (feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorType, feedback);
+            throw new ExchangeError (feedback);
         }
         const errorsList = this.safeList (response, 'errors');
         if (errorsList !== undefined) {
@@ -1800,17 +1801,8 @@ export default class cow extends Exchange {
                 if (type !== undefined) {
                     const description = this.safeString (error, 'description');
                     const feedback = this.id + ' ' + (description === undefined ? this.json (error) : description);
-                    const errors = {
-                        'DuplicatedOrder': InvalidOrder,
-                        'InvalidOrder': InvalidOrder,
-                        'InsufficientFee': InvalidOrder,
-                        'InsufficientFunds': InsufficientFunds,
-                        'UnsupportedSellToken': BadSymbol,
-                        'UnsupportedBuyToken': BadSymbol,
-                        'NoLiquidity': InvalidOrder,
-                    };
-                    const Exception = this.safeValue (errors, type, ExchangeError);
-                    throw new Exception (feedback);
+                    this.throwExactlyMatchedException (this.exceptions['exact'], type, feedback);
+                    throw new ExchangeError (feedback);
                 }
             }
         }
