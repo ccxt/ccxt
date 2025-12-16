@@ -1800,6 +1800,8 @@ export default class mexc extends Exchange {
      * @name mexc#fetchOHLCV
      * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints#klinecandlestick-data
      * @see https://www.mexc.com/api-docs/futures/market-endpoints#get-candlestick-data
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints#get-index-price-candles
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints#get-fair-price-candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -2215,10 +2217,7 @@ export default class mexc extends Exchange {
     async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let isSingularMarket = false;
         if (symbols !== undefined) {
-            const length = symbols.length;
-            isSingularMarket = length === 1;
             market = this.market (symbols[0]);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
@@ -2239,8 +2238,7 @@ export default class mexc extends Exchange {
         } else if (marketType === 'swap') {
             throw new NotSupported (this.id + ' fetchBidsAsks() is not available for ' + marketType + ' markets');
         }
-        // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        if (isSingularMarket) {
+        if (!Array.isArray (tickers)) {
             tickers = [ tickers ];
         }
         return this.parseTickers (tickers, symbols);
@@ -5917,7 +5915,7 @@ export default class mexc extends Exchange {
      * @method
      * @name mexc#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#get-position-leverage-multipliers
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
