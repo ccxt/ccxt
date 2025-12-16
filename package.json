@@ -185,7 +185,7 @@
     "test-base-rest-php": "npm run ti-php -- --baseTests",
     "test-base-rest-cs": "npm run ti-cs  -- --baseTests",
     "test-base-rest-go": "npm run ti-go  -- --baseTests && cd ../",
-    "test-base-rest-java": "cd java/ && ./gradlew :tests:build && cd ../",
+    "test-base-rest-java": "cd java/ &&  ./gradlew :tests:run -- --args=\"--baseTests\" && cd ../",
     "test-base-ws-ts": "npm run ti-ts  -- --baseTests --ws",
     "test-base-ws-js": "npm run ti-js  -- --baseTests --ws",
     "test-base-ws-py": "npm run ti-py  -- --baseTests --ws",
