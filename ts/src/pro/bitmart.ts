@@ -127,11 +127,20 @@ export default class bitmart extends bitmartRest {
         const actionType = (type === 'spot') ? 'op' : 'action';
         const rawSubscriptions = [];
         const messageHashes = [];
+        const subHashes = [];
+        const unsubscribe = this.safeBool (params, 'unsubscribe', false);
+        if (unsubscribe) {
+            params = this.omit (params, 'unsubscribe');
+        }
+        const prefix = unsubscribe ? 'unsubscribe::' : '';
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             const message = channelType + '/' + channel + ':' + market['id'];
+            const subHash = prefix + message;
+            const messageHash = prefix + channel + ':' + market['symbol'];
             rawSubscriptions.push (message);
-            messageHashes.push (channel + ':' + market['symbol']);
+            subHashes.push (subHash);
+            messageHashes.push (messageHash);
         }
         // as an exclusion, futures "tickers" need one generic request for all symbols
         // if ((type !== 'spot') && (channel === 'ticker')) {
@@ -141,8 +150,8 @@ export default class bitmart extends bitmartRest {
         const request: Dict = {
             'args': rawSubscriptions,
         };
-        request[actionType] = 'subscribe';
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions);
+        request[actionType] = unsubscribe ? 'unsubscribe' : 'subscribe';
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subHashes);
     }
 
     /**
@@ -379,6 +388,26 @@ export default class bitmart extends bitmartRest {
             return tickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name bitmart#unWatchTickers
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        params = this.extend (params, { 'unsubscribe': true });
+        const market = this.getMarketFromSymbols (symbols);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        params = this.extend (params, { 'unsubscribe': true });
+        return await this.subscribeMultiple ('ticker', marketType, symbols, params);
     }
 
     /**
@@ -1617,6 +1646,60 @@ export default class bitmart extends bitmartRest {
         }
     }
 
+    handleUnSubscription (client: Client, message) {
+        //
+        //     {
+        //         "topic": "spot/ticker:ETH_USDT",
+        //         "event": "unsubscribe"
+        //     }
+        //
+        const messageTopic = this.safeString (message, 'topic');
+        const unSubMessageTopic = 'unsubscribe::' + messageTopic;
+        const subscription = this.getUnSubParams (messageTopic);
+        const subHash = this.safeString (subscription, 'subHash');
+        const unsubHash = 'unsubscribe::' + subHash;
+        console.log ('Subscriptions before unsubscription-------------------------')
+        console.log (client.subscriptions);
+        console.log ('----------------------------------------------------------')
+        this.cleanUnsubscription (client, subHash, unsubHash);
+        this.cleanUnsubscription (client, messageTopic, unSubMessageTopic);
+        console.log ('Subscriptions after unsubscription-------------------------')
+        console.log (client.subscriptions);
+        console.log ('----------------------------------------------------------')
+        this.cleanCache (subscription);
+    }
+
+    getUnSubParams (messageTopic) {
+        const parts = messageTopic.split (':');
+        const channel = this.safeString (parts, 0);
+        const marketTypeAndTopic = channel.split ('/');
+        const marketType = this.safeStringLower (marketTypeAndTopic, 0);
+        const topic = this.safeString (marketTypeAndTopic, 1);
+        const marketId = this.safeString (parts, 1);
+        const market = this.safeMarket (marketId, undefined, '_', marketType);
+        const symbol = market['symbol'];
+        const subHash = topic + ':' + symbol;
+        const result = {
+            'topic': topic,
+            'symbols': [ symbol ],
+            'subHash': subHash,
+        };
+        return result;
+    }
+
+    async test () {
+        await this.watchTickers ([ 'BTC/USDT', 'ETH/USDT' ])
+        await this.sleep (2000)
+        console.log ('Cache after watch----------------------------------------')
+        console.log (this.tickers)
+        console.log ('----------------------------------------------------------')
+        await this.unWatchTickers ([ 'ETH/USDT' ])
+        await this.sleep (2000)
+        console.log ('Cache after unWatch----------------------------------------')
+        console.log (this.tickers)
+        console.log ('----------------------------------------------------------')
+    }
+
     handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
@@ -1676,6 +1759,7 @@ export default class bitmart extends bitmartRest {
                     'login': this.handleAuthenticate,
                     'access': this.handleAuthenticate,
                     'subscribe': this.handleSubscriptionStatus,
+                    'unsubscribe': this.handleUnSubscription,
                 };
                 const method = this.safeValue (methods, event);
                 if (method !== undefined) {
@@ -1705,3 +1789,4 @@ export default class bitmart extends bitmartRest {
         }
     }
 }
+
