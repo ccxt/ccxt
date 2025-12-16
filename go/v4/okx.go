@@ -3292,9 +3292,9 @@ func (this *OkxCore) CreateOrderRequest(symbol interface{}, typeVar interface{},
 	var slTriggerPxType interface{} = this.SafeString(params, "slTriggerPxType", "last")
 	var clientOrderId interface{} = this.SafeString2(params, "clOrdId", "clientOrderId")
 	var stopLoss interface{} = this.SafeValue(params, "stopLoss")
-	var stopLossDefined interface{} = (!IsEqual(stopLoss, nil))
 	var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-	var takeProfitDefined interface{} = (!IsEqual(takeProfit, nil))
+	var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
+	var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
 	var trailingPercent interface{} = this.SafeString2(params, "trailingPercent", "callbackRatio")
 	var isTrailingPercentOrder interface{} = !IsEqual(trailingPercent, nil)
 	var trailingPrice interface{} = this.SafeString2(params, "trailingPrice", "callbackSpread")
@@ -3416,9 +3416,9 @@ func (this *OkxCore) CreateOrderRequest(symbol interface{}, typeVar interface{},
 	} else if IsTrue(isTrailingPriceOrder) {
 		AddElementToObject(request, "callbackSpread", trailingPrice)
 		AddElementToObject(request, "ordType", "move_order_stop")
-	} else if IsTrue(IsTrue(stopLossDefined) || IsTrue(takeProfitDefined)) {
+	} else if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 		var attachAlgoOrd interface{} = map[string]interface{}{}
-		if IsTrue(stopLossDefined) {
+		if IsTrue(hasStopLoss) {
 			var stopLossTriggerPrice interface{} = this.SafeValueN(stopLoss, []interface{}{"triggerPrice", "stopPrice", "slTriggerPx"})
 			if IsTrue(IsEqual(stopLossTriggerPrice, nil)) {
 				panic(InvalidOrder(Add(this.Id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")))
@@ -3456,7 +3456,7 @@ func (this *OkxCore) CreateOrderRequest(symbol interface{}, typeVar interface{},
 			}
 			attachAlgoOrd = this.Extend(attachAlgoOrd, slOrder)
 		}
-		if IsTrue(takeProfitDefined) {
+		if IsTrue(hasTakeProfit) {
 			var takeProfitTriggerPrice interface{} = this.SafeValueN(takeProfit, []interface{}{"triggerPrice", "stopPrice", "tpTriggerPx"})
 			if IsTrue(IsEqual(takeProfitTriggerPrice, nil)) {
 				panic(InvalidOrder(Add(this.Id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")))
@@ -3742,8 +3742,8 @@ func (this *OkxCore) EditOrderRequest(id interface{}, symbol interface{}, typeVa
 	var takeProfitTriggerPriceType interface{} = this.SafeString(params, "newTpTriggerPxType", "last")
 	var stopLoss interface{} = this.SafeValue(params, "stopLoss")
 	var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-	var stopLossDefined interface{} = (!IsEqual(stopLoss, nil))
-	var takeProfitDefined interface{} = (!IsEqual(takeProfit, nil))
+	var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
+	var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
 	if IsTrue(isAlgoOrder) {
 		if IsTrue(IsTrue((IsEqual(stopLossTriggerPrice, nil))) && IsTrue((IsEqual(takeProfitTriggerPrice, nil)))) {
 			panic(BadRequest(Add(this.Id, " editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order")))
@@ -3775,7 +3775,7 @@ func (this *OkxCore) EditOrderRequest(id interface{}, symbol interface{}, typeVa
 			AddElementToObject(request, "newTpOrdPx", Ternary(IsTrue((IsEqual(typeVar, "market"))), "-1", this.PriceToPrecision(symbol, takeProfitPrice)))
 			AddElementToObject(request, "newTpTriggerPxType", takeProfitTriggerPriceType)
 		}
-		if IsTrue(stopLossDefined) {
+		if IsTrue(hasStopLoss) {
 			stopLossTriggerPrice = this.SafeValue(stopLoss, "triggerPrice")
 			stopLossPrice = this.SafeValue(stopLoss, "price")
 			var stopLossType interface{} = this.SafeString(stopLoss, "type")
@@ -3783,7 +3783,7 @@ func (this *OkxCore) EditOrderRequest(id interface{}, symbol interface{}, typeVa
 			AddElementToObject(request, "newSlOrdPx", Ternary(IsTrue((IsEqual(stopLossType, "market"))), "-1", this.PriceToPrecision(symbol, stopLossPrice)))
 			AddElementToObject(request, "newSlTriggerPxType", stopLossTriggerPriceType)
 		}
-		if IsTrue(takeProfitDefined) {
+		if IsTrue(hasTakeProfit) {
 			takeProfitTriggerPrice = this.SafeValue(takeProfit, "triggerPrice")
 			takeProfitPrice = this.SafeValue(takeProfit, "price")
 			var takeProfitType interface{} = this.SafeString(takeProfit, "type")

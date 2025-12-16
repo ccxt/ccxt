@@ -2810,9 +2810,9 @@ func (this *PhemexCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		}
 		var clientOrderId interface{} = this.SafeString2(params, "clOrdID", "clientOrderId")
 		var stopLoss interface{} = this.SafeValue(params, "stopLoss")
-		var stopLossDefined interface{} = (!IsEqual(stopLoss, nil))
 		var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-		var takeProfitDefined interface{} = (!IsEqual(takeProfit, nil))
+		var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
+		var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
 		var isStableSettled interface{} = IsTrue((IsEqual(GetValue(market, "settle"), "USDT"))) || IsTrue((IsEqual(GetValue(market, "settle"), "USDC")))
 		if IsTrue(IsEqual(clientOrderId, nil)) {
 			var brokerId interface{} = this.SafeString(this.Options, "brokerId", "CCXT123456")
@@ -2917,8 +2917,8 @@ func (this *PhemexCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 					}
 				}
 			}
-			if IsTrue(IsTrue(stopLossDefined) || IsTrue(takeProfitDefined)) {
-				if IsTrue(stopLossDefined) {
+			if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
+				if IsTrue(hasStopLoss) {
 					var stopLossTriggerPrice interface{} = this.SafeValue2(stopLoss, "triggerPrice", "stopPrice")
 					if IsTrue(IsEqual(stopLossTriggerPrice, nil)) {
 						panic(InvalidOrder(Add(this.Id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")))
@@ -2937,7 +2937,7 @@ func (this *PhemexCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 						AddElementToObject(request, "slPxRp", this.PriceToPrecision(symbol, slLimitPrice))
 					}
 				}
-				if IsTrue(takeProfitDefined) {
+				if IsTrue(hasTakeProfit) {
 					var takeProfitTriggerPrice interface{} = this.SafeValue2(takeProfit, "triggerPrice", "stopPrice")
 					if IsTrue(IsEqual(takeProfitTriggerPrice, nil)) {
 						panic(InvalidOrder(Add(this.Id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order")))

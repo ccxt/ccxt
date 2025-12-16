@@ -21,34 +21,63 @@ func (this *ZaifCore) Describe() interface{} {
 		"rateLimit": 100,
 		"version":   "1",
 		"has": map[string]interface{}{
-			"CORS":                     nil,
-			"spot":                     true,
-			"margin":                   nil,
-			"swap":                     false,
-			"future":                   false,
-			"option":                   false,
-			"cancelOrder":              true,
-			"createMarketOrder":        false,
-			"createOrder":              true,
-			"fetchBalance":             true,
-			"fetchClosedOrders":        true,
-			"fetchCurrencies":          false,
-			"fetchFundingHistory":      false,
-			"fetchFundingRate":         false,
-			"fetchFundingRateHistory":  false,
-			"fetchFundingRates":        false,
-			"fetchIndexOHLCV":          false,
-			"fetchMarkets":             true,
-			"fetchMarkOHLCV":           false,
-			"fetchOpenInterestHistory": false,
-			"fetchOpenOrders":          true,
-			"fetchOrderBook":           true,
-			"fetchPremiumIndexOHLCV":   false,
-			"fetchTicker":              true,
-			"fetchTrades":              true,
-			"fetchTradingFee":          false,
-			"fetchTradingFees":         false,
-			"withdraw":                 true,
+			"CORS":                       nil,
+			"spot":                       true,
+			"margin":                     nil,
+			"swap":                       false,
+			"future":                     false,
+			"option":                     false,
+			"cancelOrder":                true,
+			"closeAllPositions":          false,
+			"closePosition":              false,
+			"createMarketOrder":          false,
+			"createOrder":                true,
+			"createStopLossOrder":        false,
+			"createTakeProfitOrder":      false,
+			"fetchAllGreeks":             false,
+			"fetchBalance":               true,
+			"fetchClosedOrders":          true,
+			"fetchCurrencies":            false,
+			"fetchFundingHistory":        false,
+			"fetchFundingInterval":       false,
+			"fetchFundingIntervals":      false,
+			"fetchFundingRate":           false,
+			"fetchFundingRateHistory":    false,
+			"fetchFundingRates":          false,
+			"fetchGreeks":                false,
+			"fetchIndexOHLCV":            false,
+			"fetchLeverageTiers":         false,
+			"fetchLongShortRatio":        false,
+			"fetchLongShortRatioHistory": false,
+			"fetchMarketLeverageTiers":   false,
+			"fetchMarkets":               true,
+			"fetchMarkOHLCV":             false,
+			"fetchMarkPrice":             false,
+			"fetchMarkPrices":            false,
+			"fetchMySettlementHistory":   false,
+			"fetchOpenInterestHistory":   false,
+			"fetchOpenInterests":         false,
+			"fetchOpenOrders":            true,
+			"fetchOption":                false,
+			"fetchOptionChain":           false,
+			"fetchOrderBook":             true,
+			"fetchPosition":              false,
+			"fetchPositionHistory":       false,
+			"fetchPositionMode":          false,
+			"fetchPositions":             false,
+			"fetchPositionsForSymbol":    false,
+			"fetchPositionsHistory":      false,
+			"fetchPositionsRisk":         false,
+			"fetchPremiumIndexOHLCV":     false,
+			"fetchSettlementHistory":     false,
+			"fetchTicker":                true,
+			"fetchTrades":                true,
+			"fetchTradingFee":            false,
+			"fetchTradingFees":           false,
+			"fetchUnderlyingAssets":      false,
+			"fetchVolatilityHistory":     false,
+			"setMarginMode":              false,
+			"withdraw":                   true,
 		},
 		"urls": map[string]interface{}{
 			"logo": "https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg",
@@ -338,8 +367,8 @@ func (this *ZaifCore) FetchBalance(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes3318 := (<-this.LoadMarkets())
-		PanicOnError(retRes3318)
+		retRes3608 := (<-this.LoadMarkets())
+		PanicOnError(retRes3608)
 
 		response := (<-this.PrivatePostGetInfo(params))
 		PanicOnError(response)
@@ -371,8 +400,8 @@ func (this *ZaifCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes3478 := (<-this.LoadMarkets())
-		PanicOnError(retRes3478)
+		retRes3768 := (<-this.LoadMarkets())
+		PanicOnError(retRes3768)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"pair": GetValue(market, "id"),
@@ -447,8 +476,8 @@ func (this *ZaifCore) FetchTicker(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes4078 := (<-this.LoadMarkets())
-		PanicOnError(retRes4078)
+		retRes4368 := (<-this.LoadMarkets())
+		PanicOnError(retRes4368)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"pair": GetValue(market, "id"),
@@ -537,8 +566,8 @@ func (this *ZaifCore) FetchTrades(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes4778 := (<-this.LoadMarkets())
-		PanicOnError(retRes4778)
+		retRes5068 := (<-this.LoadMarkets())
+		PanicOnError(retRes5068)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"pair": GetValue(market, "id"),
@@ -596,8 +625,8 @@ func (this *ZaifCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes5198 := (<-this.LoadMarkets())
-		PanicOnError(retRes5198)
+		retRes5488 := (<-this.LoadMarkets())
+		PanicOnError(retRes5488)
 		if IsTrue(!IsEqual(typeVar, "limit")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 		}
@@ -752,8 +781,8 @@ func (this *ZaifCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes6388 := (<-this.LoadMarkets())
-		PanicOnError(retRes6388)
+		retRes6678 := (<-this.LoadMarkets())
+		PanicOnError(retRes6678)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -796,8 +825,8 @@ func (this *ZaifCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes6648 := (<-this.LoadMarkets())
-		PanicOnError(retRes6648)
+		retRes6938 := (<-this.LoadMarkets())
+		PanicOnError(retRes6938)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -841,8 +870,8 @@ func (this *ZaifCore) Withdraw(code interface{}, amount interface{}, address int
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes6998 := (<-this.LoadMarkets())
-		PanicOnError(retRes6998)
+		retRes7288 := (<-this.LoadMarkets())
+		PanicOnError(retRes7288)
 		var currency interface{} = this.Currency(code)
 		if IsTrue(IsEqual(code, "JPY")) {
 			panic(ExchangeError(Add(Add(Add(this.Id, " withdraw() does not allow "), code), " withdrawals")))
