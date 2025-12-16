@@ -1,7 +1,7 @@
 package tests;
 
 import io.github.ccxt.base.Crypto;
-import tests.base.Cryptography;
+import tests.base.TestInit;
 
 public class Main {
     public static void main(String[] args) {
@@ -12,7 +12,9 @@ public class Main {
 
         System.out.println("Running tests...");
 
-        var cryptoClass = new Cryptography();
-        cryptoClass.testCryptography();
+        if (isBaseTests) {
+            var baseTests = new TestInit();
+            baseTests.baseTestsInit();
+        }
     }
 }

@@ -56,7 +56,7 @@ const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
 const GENERATED_TESTS_FOLDER = './cs/tests/Generated/Exchange/';
-const BASE_TESTS_FOLDER = './cs/tests/Generated/Base';
+const BASE_TESTS_FOLDER = 'java/tests/src/main/java/tests/base/';
 const BASE_TESTS_FILE =  './cs/tests/Generated/TestMethods.cs';
 const EXCHANGE_BASE_FOLDER = './cs/tests/Generated/Exchange/Base/';
 const EXCHANGE_GENERATED_FOLDER = './cs/tests/Generated/Exchange/';
@@ -875,7 +875,7 @@ class NewTranspiler {
         }
 
 
-        // this.transpileTests()
+        this.transpileTests()
 
         this.transpileErrorHierarchy ()
 
@@ -1102,17 +1102,19 @@ class NewTranspiler {
 
     // ---------------------------------------------------------------------------------------------
 
-    transpileCryptoTestsToCSharp (outDir: string) {
+    transpileCryptoTestsToJava (outDir: string) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
-        const csharpFile = `${outDir}/test.cryptography.cs`;
+        const csharpFile = `${outDir}/TestCryptography.java`;
 
-        log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
+        log.magenta ('[java] Transpiling from', (jsFile as any).yellow)
 
-        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
-        let content = csharp.content;
+        const java = this.transpiler.transpileJavaByPath(jsFile);
+        let content = java.content;
         content = this.regexAll (content, [
-            [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
+            [ /\s*public\sObject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
+            [/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/gm, `, $1()$2`],
+            [/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/gm, `, $1()$2`], // quick fix to replace twice
             [/assert/g, 'Assert'],
             // [/(^\s*Assert\(equals\(ecdsa\([^;]+;)/gm, '/*\n $1\nTODO: add ecdsa\n*/'] // temporarily disable ecdsa tests
         ]).trim ()
@@ -1122,12 +1124,12 @@ class NewTranspiler {
 
 
         const file = [
-            'using ccxt;',
-            'namespace Tests;',
+            'package tests.base;',
+            'import tests.BaseTest;',
+            'import io.github.ccxt.Helpers;',
             '',
             this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
+            'public class TestCryptography extends BaseTest {',
             contentIdented,
             '}',
         ].join('\n')
@@ -1185,12 +1187,12 @@ class NewTranspiler {
         await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (outDir + file[0] + '.cs', file[1])))
     }
 
-    transpileBaseTestsToCSharp () {
+    transpileBaseTestsToJava () {
         const outDir = BASE_TESTS_FOLDER;
         this.transpileBaseTests(outDir);
-        this.transpileCryptoTestsToCSharp(outDir);
-        this.transpileWsCacheTestsToCSharp(outDir);
-        this.transpileWsOrderbookTestsToCSharp(outDir);
+        this.transpileCryptoTestsToJava(outDir);
+        // this.transpileWsCacheTestsToCSharp(outDir);
+        // this.transpileWsOrderbookTestsToCSharp(outDir);
     }
 
     transpileBaseTests (outDir: string) {
@@ -1208,37 +1210,58 @@ class NewTranspiler {
                 continue;
             }
 
-            const csharpFile = `${outDir}/${testName}.cs`;
+            const correctedTestName = 'Test' + this.capitalize(testName.replace('test.', '').replace('tests.', ''))
+            const javaFile = `${outDir}/${correctedTestName}.java`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
 
-            const csharp = this.transpiler.transpileCSharpByPath(tsFile);
-            let content = csharp.content;
+            const java = this.transpiler.transpileJavaByPath(tsFile);
+            let content = java.content;
             content = this.regexAll (content, [
+                [/async public/gm, 'public'],
                 [/object  = functions;/g, '' ], // tmp fix
                 [/assert/g, 'Assert'],
-                [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
-                [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
+                [ /Object exchange(?=[,)])/g, 'Exchange exchange' ],
+                [/new ccxt\.Exchange/gm, 'new Exchange'],
+                [ /\s*public\sObject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
             ]).trim ()
+
+            if (correctedTestName === 'TestInit') {
+                content = this.regexAll (content, [
+                    [/(test(\w+))\(\)/gm, '(new Test$2()).$1()'],
+                ])
+            } else if (correctedTestName === 'TestSafeMethods') {
+                // we don't support wS structs yet
+
+                content = this.regexAll (content, [
+                    [/\/\/ init array cache tests[\s\S]*/gm, '}'],
+                ]);
+            }
 
             const contentLines = content.split ('\n');
             const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
 
+            const usesExchange = java.content.indexOf('ccxt.Exchange') >= 0;
+            const usesPrecise = java.content.indexOf('Precise.') >= 0;
+            const exchangeImport = usesExchange ? 'import io.github.ccxt.Exchange;\n' : '';
+            const preciseImport = usesPrecise ? 'import io.github.ccxt.base.Precise;\n' : '';
             const file = [
-                'using ccxt;',
-                'namespace Tests;',
-                '',
+                'package tests.base;',
+                'import tests.BaseTest;',
+                'import io.github.ccxt.Helpers;',
+                exchangeImport,
+                preciseImport,
                 this.createGeneratedHeader().join('\n'),
-                'public partial class BaseTest',
+                `public class ${correctedTestName} extends BaseTest` ,
                 '{',
                 contentIdented,
                 '}',
             ].join('\n')
 
-            log.magenta ('→', (csharpFile as any).yellow)
+            log.magenta ('→', (javaFile as any).yellow)
 
-            overwriteFileAndFolder (csharpFile, file);
+            overwriteFileAndFolder (javaFile, file);
         } 
     }
 
@@ -1409,9 +1432,9 @@ class NewTranspiler {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToCSharp();
-        this.transpileExchangeTests();
-        this.transpileWsExchangeTests();
+        this.transpileBaseTestsToJava();
+        // this.transpileExchangeTests();
+        // this.transpileWsExchangeTests();
     }
 }
 

@@ -2,6 +2,7 @@ package tests;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.base.Crypto;
+import io.github.ccxt.base.Functions;
 import io.github.ccxt.base.NumberHelpers;
 
 import java.util.List;
@@ -9,6 +10,16 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class BaseTest {
+
+    public int TRUNCATE = Exchange.TRUNCATE;
+    public int DECIMAL_PLACES = Exchange.DECIMAL_PLACES;
+    public int ROUND = Exchange.ROUND;
+    public int ROUND_UP = Exchange.ROUND_UP;
+    public int ROUND_DOWN = Exchange.ROUND_DOWN;
+    public int SIGNIFICANT_DIGITS = Exchange.SIGNIFICANT_DIGITS;
+    public int TICK_SIZE = Exchange.TICK_SIZE;
+    public int NO_PADDING = Exchange.NO_PADDING;
+    public int PAD_WITH_ZERO = Exchange.PAD_WITH_ZERO;
 
     public static String sha1() {
         return "sha1";
@@ -262,5 +273,39 @@ public class BaseTest {
 
     public String numberToString(Object number) {
         return NumberHelpers.numberToString(number);
+    }
+
+    // Equal methods
+
+    public static Object deepEqual(Object a, Object b) {
+        return Helpers.isEqual(
+            Functions.json(a),
+            Functions.json(b)
+        );
+    }
+
+    public static void AssertDeepEqual(
+            Exchange exchange,
+            Object skippedProperties,
+            Object method,
+            Object a,
+            Object b
+    ) {
+        Assert(
+            deepEqual(a, b),
+            Helpers.add(
+                Helpers.add(
+                    Helpers.add(
+                        Helpers.add(
+                            "two dicts do not match: ",
+                            Functions.json(a)
+                        ),
+                        " != "
+                    ),
+                    Functions.json(b)
+                ),
+                method
+            )
+        );
     }
 }

@@ -1,5 +1,6 @@
 package io.github.ccxt;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1952,6 +1953,25 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return Math.round(num * factor) / factor;
     }
 
+    public static Object getProperty(Object obj, Object property, Object defaultValue) {
+        if (obj == null || property == null) {
+            return defaultValue;
+        }
+
+        try {
+            Field field = obj.getClass().getDeclaredField(property.toString());
+            field.setAccessible(true);
+            return field.get(obj);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return defaultValue;
+        }
+    }
+
+    public static Object getProperty(Object obj, Object property) {
+        return Exchange.getProperty(obj, property, null);
+    }
+
+
 
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -1991,7 +2011,7 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{
@@ -7105,8 +7125,8 @@ public Object describe()
         Object priceKey = Helpers.getArg(optionalArgs, 0, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);
         Object countOrIdKey = Helpers.getArg(optionalArgs, 2, 2);
-        Object price = this.safeNumber(bidask, priceKey);
-        Object amount = this.safeNumber(bidask, amountKey);
+        Object price = this.safeFloat(bidask, priceKey);
+        Object amount = this.safeFloat(bidask, amountKey);
         Object countOrId = this.safeInteger(bidask, countOrIdKey);
         Object bidAsk = new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount));
         if (Helpers.isTrue(!Helpers.isEqual(countOrId, null)))
