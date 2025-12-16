@@ -919,16 +919,16 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return SafeMethods.SafeIntegerN(obj, keys, defaultValue);
     }
 
-    public Object safeIntegerProduct(Object obj, Object key, Object... defaultValue) {
-        return SafeMethods.safeIntegerProduct(obj, key, defaultValue);
+    public Object safeIntegerProduct(Object obj, Object key, Object multiplier, Object... defaultValue) {
+        return SafeMethods.safeIntegerProduct(obj, key, multiplier, defaultValue);
     }
 
-    public Object safeIntegerProduct2(Object obj, Object key1, Object key2, Object... defaultValue) {
-        return SafeMethods.safeIntegerProduct2(obj, key1, key2, defaultValue);
+    public Object safeIntegerProduct2(Object obj, Object key1, Object key2, Object multipler, Object... defaultValue) {
+        return SafeMethods.safeIntegerProduct2(obj, key1, key2, multipler, defaultValue);
     }
 
-    public Object safeIntegerProductN(Object obj, Object keys, Object... defaultValue) {
-        return SafeMethods.safeIntegerProductN(obj, (List<Object>)keys, defaultValue);
+    public Object safeIntegerProductN(Object obj, Object keys, Object multiplier, Object... defaultValue) {
+        return SafeMethods.safeIntegerProductN(obj, (List<Object>)keys, multiplier, defaultValue);
     }
 
     public Object safeStringUpper(Object obj, Object key, Object... defaultValue) {
