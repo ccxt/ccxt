@@ -2987,9 +2987,9 @@ class okx(Exchange, ImplicitAPI):
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         stopLoss = self.safe_value(params, 'stopLoss')
-        stopLossDefined = (stopLoss is not None)
         takeProfit = self.safe_value(params, 'takeProfit')
-        takeProfitDefined = (takeProfit is not None)
+        hasStopLoss = (stopLoss is not None)
+        hasTakeProfit = (takeProfit is not None)
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
         trailingPrice = self.safe_string_2(params, 'trailingPrice', 'callbackSpread')
@@ -3085,9 +3085,9 @@ class okx(Exchange, ImplicitAPI):
         elif isTrailingPriceOrder:
             request['callbackSpread'] = trailingPrice
             request['ordType'] = 'move_order_stop'
-        elif stopLossDefined or takeProfitDefined:
+        elif hasStopLoss or hasTakeProfit:
             attachAlgoOrd = {}
-            if stopLossDefined:
+            if hasStopLoss:
                 stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
                 if stopLossTriggerPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order')
@@ -3118,7 +3118,7 @@ class okx(Exchange, ImplicitAPI):
                         raise InvalidOrder(self.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"')
                     slOrder['slTriggerPxType'] = stopLossTriggerPriceType
                 attachAlgoOrd = self.extend(attachAlgoOrd, slOrder)
-            if takeProfitDefined:
+            if hasTakeProfit:
                 takeProfitTriggerPrice = self.safe_value_n(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx'])
                 if takeProfitTriggerPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order')
@@ -3332,8 +3332,8 @@ class okx(Exchange, ImplicitAPI):
         takeProfitTriggerPriceType = self.safe_string(params, 'newTpTriggerPxType', 'last')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
-        stopLossDefined = (stopLoss is not None)
-        takeProfitDefined = (takeProfit is not None)
+        hasStopLoss = (stopLoss is not None)
+        hasTakeProfit = (takeProfit is not None)
         if isAlgoOrder:
             if (stopLossTriggerPrice is None) and (takeProfitTriggerPrice is None):
                 raise BadRequest(self.id + ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order')
@@ -3358,14 +3358,14 @@ class okx(Exchange, ImplicitAPI):
                 request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType
-            if stopLossDefined:
+            if hasStopLoss:
                 stopLossTriggerPrice = self.safe_value(stopLoss, 'triggerPrice')
                 stopLossPrice = self.safe_value(stopLoss, 'price')
                 stopLossType = self.safe_string(stopLoss, 'type')
                 request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                 request['newSlOrdPx'] = '-1' if (stopLossType == 'market') else self.price_to_precision(symbol, stopLossPrice)
                 request['newSlTriggerPxType'] = stopLossTriggerPriceType
-            if takeProfitDefined:
+            if hasTakeProfit:
                 takeProfitTriggerPrice = self.safe_value(takeProfit, 'triggerPrice')
                 takeProfitPrice = self.safe_value(takeProfit, 'price')
                 takeProfitType = self.safe_string(takeProfit, 'type')

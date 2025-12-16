@@ -1600,11 +1600,13 @@ class toobit(Exchange, ImplicitAPI):
             request['stopPrice'] = triggerPrice
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')
+        hasStopLoss = (stopLoss is not None)
+        hasTakeProfit = (takeProfit is not None)
         triggerPriceTypes = {
             'mark': 'MARK_PRICE',
             'last': 'CONTRACT_PRICE',
         }
-        if stopLoss is not None:
+        if hasStopLoss:
             request['stopLoss'] = self.safe_value(stopLoss, 'triggerPrice')
             limitPrice = self.safe_value(stopLoss, 'price')
             if limitPrice is not None:
@@ -1614,7 +1616,7 @@ class toobit(Exchange, ImplicitAPI):
             if triggerPriceType is not None:
                 request['slTriggerBy'] = self.safe_string(triggerPriceTypes, triggerPriceType, triggerPriceType)
             params = self.omit(params, 'stopLoss')
-        if takeProfit is not None:
+        if hasTakeProfit:
             request['takeProfit'] = self.safe_value(takeProfit, 'triggerPrice')
             limitPrice = self.safe_value(takeProfit, 'price')
             if limitPrice is not None:
