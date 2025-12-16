@@ -369,8 +369,14 @@ export default class bitmart extends bitmartRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const length = symbols.length;
+        if (length > 20) {
+            throw new NotSupported (this.id + ' unWatchTradesForSymbols() accepts a maximum of 20 symbols in one request');
+        }
+        const market = this.market (symbols[0]);
         let marketType = undefined;
-        [ symbols, marketType, params ] = this.getParamsForMultipleSub ('watchTradesForSymbols', symbols, undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('unWatchTradesForSymbols', market, params);
         const channelName = 'trade';
         params = this.extend (params, { 'unsubscribe': true });
         await this.subscribeMultiple (channelName, marketType, symbols, params);
