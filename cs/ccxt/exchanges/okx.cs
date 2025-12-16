@@ -3095,9 +3095,9 @@ public partial class okx : Exchange
         object slTriggerPxType = this.safeString(parameters, "slTriggerPxType", "last");
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         object stopLoss = this.safeValue(parameters, "stopLoss");
-        object stopLossDefined = (!isEqual(stopLoss, null));
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object takeProfitDefined = (!isEqual(takeProfit, null));
+        object hasStopLoss = (!isEqual(stopLoss, null));
+        object hasTakeProfit = (!isEqual(takeProfit, null));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         object trailingPrice = this.safeString2(parameters, "trailingPrice", "callbackSpread");
@@ -3248,10 +3248,10 @@ public partial class okx : Exchange
         {
             ((IDictionary<string,object>)request)["callbackSpread"] = trailingPrice;
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
-        } else if (isTrue(isTrue(stopLossDefined) || isTrue(takeProfitDefined)))
+        } else if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
             object attachAlgoOrd = new Dictionary<string, object>() {};
-            if (isTrue(stopLossDefined))
+            if (isTrue(hasStopLoss))
             {
                 object stopLossTriggerPrice = this.safeValueN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "slTriggerPx"});
                 if (isTrue(isEqual(stopLossTriggerPrice, null)))
@@ -3301,7 +3301,7 @@ public partial class okx : Exchange
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, slOrder);
             }
-            if (isTrue(takeProfitDefined))
+            if (isTrue(hasTakeProfit))
             {
                 object takeProfitTriggerPrice = this.safeValueN(takeProfit, new List<object>() {"triggerPrice", "stopPrice", "tpTriggerPx"});
                 if (isTrue(isEqual(takeProfitTriggerPrice, null)))
@@ -3591,8 +3591,8 @@ public partial class okx : Exchange
         object takeProfitTriggerPriceType = this.safeString(parameters, "newTpTriggerPxType", "last");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object stopLossDefined = (!isEqual(stopLoss, null));
-        object takeProfitDefined = (!isEqual(takeProfit, null));
+        object hasStopLoss = (!isEqual(stopLoss, null));
+        object hasTakeProfit = (!isEqual(takeProfit, null));
         if (isTrue(isAlgoOrder))
         {
             if (isTrue(isTrue((isEqual(stopLossTriggerPrice, null))) && isTrue((isEqual(takeProfitTriggerPrice, null)))))
@@ -3633,7 +3633,7 @@ public partial class okx : Exchange
                 ((IDictionary<string,object>)request)["newTpOrdPx"] = ((bool) isTrue((isEqual(type, "market")))) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
                 ((IDictionary<string,object>)request)["newTpTriggerPxType"] = takeProfitTriggerPriceType;
             }
-            if (isTrue(stopLossDefined))
+            if (isTrue(hasStopLoss))
             {
                 stopLossTriggerPrice = this.safeValue(stopLoss, "triggerPrice");
                 stopLossPrice = this.safeValue(stopLoss, "price");
@@ -3642,7 +3642,7 @@ public partial class okx : Exchange
                 ((IDictionary<string,object>)request)["newSlOrdPx"] = ((bool) isTrue((isEqual(stopLossType, "market")))) ? "-1" : this.priceToPrecision(symbol, stopLossPrice);
                 ((IDictionary<string,object>)request)["newSlTriggerPxType"] = stopLossTriggerPriceType;
             }
-            if (isTrue(takeProfitDefined))
+            if (isTrue(hasTakeProfit))
             {
                 takeProfitTriggerPrice = this.safeValue(takeProfit, "triggerPrice");
                 takeProfitPrice = this.safeValue(takeProfit, "price");

@@ -1587,7 +1587,7 @@ public partial class kucoinfutures : kucoin
         object market = this.market(symbol);
         object testOrder = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
-        object isTpAndSlOrder = isTrue((!isEqual(this.safeValue(parameters, "stopLoss"), null))) || isTrue((!isEqual(this.safeValue(parameters, "takeProfit"), null)));
+        object hasTpOrSlOrder = isTrue((!isEqual(this.safeValue(parameters, "stopLoss"), null))) || isTrue((!isEqual(this.safeValue(parameters, "takeProfit"), null)));
         object orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(testOrder))
@@ -1595,7 +1595,7 @@ public partial class kucoinfutures : kucoin
             response = await this.futuresPrivatePostOrdersTest(orderRequest);
         } else
         {
-            if (isTrue(isTpAndSlOrder))
+            if (isTrue(hasTpOrSlOrder))
             {
                 response = await this.futuresPrivatePostStOrders(orderRequest);
             } else
@@ -1707,6 +1707,8 @@ public partial class kucoinfutures : kucoin
         var takeProfitPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[2];
         object stopLoss = this.safeDict(parameters, "stopLoss");
         object takeProfit = this.safeDict(parameters, "takeProfit");
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
         // const isTpAndSl = stopLossPrice && takeProfitPrice;
         object triggerPriceTypes = new Dictionary<string, object>() {
             { "mark", "MP" },
@@ -1721,17 +1723,17 @@ public partial class kucoinfutures : kucoin
             ((IDictionary<string,object>)request)["stop"] = ((bool) isTrue((isEqual(side, "buy")))) ? "up" : "down";
             ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["stopPriceType"] = triggerPriceTypeValue;
-        } else if (isTrue(isTrue(!isEqual(stopLoss, null)) || isTrue(!isEqual(takeProfit, null))))
+        } else if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
             object priceType = triggerPriceTypeValue;
-            if (isTrue(!isEqual(stopLoss, null)))
+            if (isTrue(hasStopLoss))
             {
                 object slPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                 ((IDictionary<string,object>)request)["triggerStopDownPrice"] = this.priceToPrecision(symbol, slPrice);
                 priceType = this.safeString(stopLoss, "triggerPriceType", "mark");
                 priceType = this.safeString(triggerPriceTypes, priceType, priceType);
             }
-            if (isTrue(!isEqual(takeProfit, null)))
+            if (isTrue(hasTakeProfit))
             {
                 object tpPrice = this.safeString2(takeProfit, "triggerPrice", "takeProfitPrice");
                 ((IDictionary<string,object>)request)["triggerStopUpPrice"] = this.priceToPrecision(symbol, tpPrice);

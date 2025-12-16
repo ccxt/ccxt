@@ -2763,9 +2763,9 @@ public partial class phemex : Exchange
         };
         object clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object stopLoss = this.safeValue(parameters, "stopLoss");
-        object stopLossDefined = (!isEqual(stopLoss, null));
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object takeProfitDefined = (!isEqual(takeProfit, null));
+        object hasStopLoss = (!isEqual(stopLoss, null));
+        object hasTakeProfit = (!isEqual(takeProfit, null));
         object isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
         if (isTrue(isEqual(clientOrderId, null)))
         {
@@ -2902,9 +2902,9 @@ public partial class phemex : Exchange
                     }
                 }
             }
-            if (isTrue(isTrue(stopLossDefined) || isTrue(takeProfitDefined)))
+            if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
             {
-                if (isTrue(stopLossDefined))
+                if (isTrue(hasStopLoss))
                 {
                     object stopLossTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
                     if (isTrue(isEqual(stopLossTriggerPrice, null)))
@@ -2929,7 +2929,7 @@ public partial class phemex : Exchange
                         ((IDictionary<string,object>)request)["slPxRp"] = this.priceToPrecision(symbol, slLimitPrice);
                     }
                 }
-                if (isTrue(takeProfitDefined))
+                if (isTrue(hasTakeProfit))
                 {
                     object takeProfitTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
                     if (isTrue(isEqual(takeProfitTriggerPrice, null)))

@@ -1670,11 +1670,13 @@ public partial class toobit : Exchange
         }
         object stopLoss = this.safeDict(parameters, "stopLoss");
         object takeProfit = this.safeDict(parameters, "takeProfit");
+        object hasStopLoss = (!isEqual(stopLoss, null));
+        object hasTakeProfit = (!isEqual(takeProfit, null));
         object triggerPriceTypes = new Dictionary<string, object>() {
             { "mark", "MARK_PRICE" },
             { "last", "CONTRACT_PRICE" },
         };
-        if (isTrue(!isEqual(stopLoss, null)))
+        if (isTrue(hasStopLoss))
         {
             ((IDictionary<string,object>)request)["stopLoss"] = this.safeValue(stopLoss, "triggerPrice");
             object limitPrice = this.safeValue(stopLoss, "price");
@@ -1690,7 +1692,7 @@ public partial class toobit : Exchange
             }
             parameters = this.omit(parameters, "stopLoss");
         }
-        if (isTrue(!isEqual(takeProfit, null)))
+        if (isTrue(hasTakeProfit))
         {
             ((IDictionary<string,object>)request)["takeProfit"] = this.safeValue(takeProfit, "triggerPrice");
             object limitPrice = this.safeValue(takeProfit, "price");
