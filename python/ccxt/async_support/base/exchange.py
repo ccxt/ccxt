@@ -17,6 +17,7 @@ import yarl
 import math
 from typing import Any, List
 from ccxt.base.types import Int, Str, Num, Strings
+from typing import TypeVar, Awaitable, Sequence
 
 # -----------------------------------------------------------------------------
 
@@ -38,13 +39,14 @@ from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
-
 # -----------------------------------------------------------------------------
 
 try:
     from aiohttp_socks import ProxyConnector as SocksProxyConnector
 except ImportError:
     SocksProxyConnector = None
+
+TypeVarT = TypeVar('T')
 
 # -----------------------------------------------------------------------------
 
@@ -341,6 +343,16 @@ class Exchange(BaseExchange):
             raise e
         self.reloading_markets = False
         return result
+
+    async def promise_all(tasks: Sequence[Awaitable[TypeVarT]]) -> list[TypeVarT]:
+        """
+        Execute multiple coroutines concurrently, cancelling all if any fails.
+        Mimics Promise.all() behavior.
+        """
+        async with asyncio.TaskGroup() as tg:
+            task_objects = [tg.create_task(task) for task in tasks]
+        
+        return [task.result() for task in task_objects]
 
     async def load_fees(self, reload=False):
         if not reload:
