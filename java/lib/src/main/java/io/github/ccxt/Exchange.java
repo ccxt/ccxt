@@ -1119,7 +1119,16 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
     public CompletableFuture<Object> sleep(Object milliseconds) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Thread.sleep((long) milliseconds);
+                if (milliseconds instanceof Integer) {
+                    // milliseconds = Long.valueOf((int) milliseconds);
+                    Thread.sleep((Integer) milliseconds);
+                } else if (milliseconds instanceof Long) {
+                    Thread.sleep((Long) milliseconds);
+                } else if (milliseconds instanceof String) {
+                    Thread.sleep(Long.valueOf((String) milliseconds));
+                } else {
+                    throw new IllegalArgumentException("milliseconds must be Integer, Long, or String");
+                }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

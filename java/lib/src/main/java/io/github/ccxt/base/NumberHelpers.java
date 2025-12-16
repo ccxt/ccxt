@@ -44,6 +44,11 @@ public class NumberHelpers {
         return DecimalToPrecision(x, roundingMode2, numPrecisionDigits2, countmode2, paddingMode);
     }
 
+
+    public static double trunc(double value) {
+        return value<0 ? Math.ceil(value) : Math.floor(value);
+    }
+
     public static String DecimalToPrecision(Object x, Object roundingMode2, Object numPrecisionDigits2, Object countmode2, Object paddingMode) {
         int countMode = (countmode2 == null) ? DECIMAL_PLACES : toInt(countmode2);
         int roundingMode = toInt(roundingMode2);
@@ -65,11 +70,11 @@ public class NumberHelpers {
             if (roundingMode == ROUND) {
                 String res = DecimalToPrecision(parsedX / toNearest, ROUND, 0, DECIMAL_PLACES, padMode);
                 double r = toDouble(res);
-                return toPlainString(toNearest * r);
+                return NumberToString2(toNearest * r);
             }
             if (roundingMode == TRUNCATE) {
                 double v = parsedX - (parsedX % toNearest);
-                return toPlainString(v);
+                return NumberToString2(v);
             }
         }
 
@@ -86,7 +91,7 @@ public class NumberHelpers {
                 double scale = Math.pow(10, newNumPrecisionDigits);
                 long xScaled = Math.round(parsedX * scale);
                 long tickScaled = Math.round(numPrecisionDigits * scale);
-                long ticks = (long) Math.floor((double) xScaled / (double) tickScaled);
+                long ticks = (long) trunc((double) xScaled / (double) tickScaled);
                 parsedX = (ticks * (double) tickScaled) / scale;
 
                 if (padMode == NO_PADDING) {
@@ -292,39 +297,47 @@ public class NumberHelpers {
 
     public static String NumberToString(Object number) {
         if (number == null) return null;
+
         if (number instanceof Integer || number instanceof Long) {
             return String.valueOf(number);
         }
+
         if (number instanceof String) {
-            // Assume already a decimal string
             return (String) number;
         }
-        if (number instanceof java.math.BigDecimal) {
-            return ((BigDecimal) number).toPlainString();
+
+        if (number instanceof BigDecimal) {
+            return ((BigDecimal) number)
+                    .stripTrailingZeros()
+                    .toPlainString();
         }
-        if (number instanceof java.lang.Number) {
-            // Avoid scientific notation
-            return BigDecimal.valueOf(((java.lang.Number) number).doubleValue()).toPlainString();
+
+        if (number instanceof Number) {
+            return BigDecimal
+                    .valueOf(((Number) number).doubleValue())
+                    .stripTrailingZeros()
+                    .toPlainString();
         }
-        // Fallback
+
         return String.valueOf(number);
     }
 
     public static String NumberToString2(Object number) {
-        if (number == null) return null;
+        return NumberToString(number);
+        // if (number == null) return null;
 
-        if (number instanceof Integer || number instanceof Long) {
-            return String.valueOf(number);
-        }
-        if (number instanceof String) {
-            return (String) number;
-        }
+        // if (number instanceof Integer || number instanceof Long) {
+        //     return String.valueOf(number);
+        // }
+        // if (number instanceof String) {
+        //     return (String) number;
+        // }
 
-        // Prefer BigDecimal plain string (covers both small and large exponents cleanly)
-        if (number instanceof java.lang.Number) {
-            return BigDecimal.valueOf(((java.lang.Number) number).doubleValue()).toPlainString();
-        }
-        return String.valueOf(number);
+        // // Prefer BigDecimal plain string (covers both small and large exponents cleanly)
+        // if (number instanceof java.lang.Number) {
+        //     return BigDecimal.valueOf(((java.lang.Number) number).doubleValue()).toPlainString();
+        // }
+        // return String.valueOf(number);
     }
 
     // -----------------------------
