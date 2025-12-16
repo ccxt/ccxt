@@ -1,6 +1,5 @@
 package tests;
 
-import io.github.ccxt.base.Crypto;
 import tests.base.TestInit;
 
 public class Main {
@@ -15,7 +14,7 @@ public class Main {
         if (isBaseTests) {
             System.out.println("Running base tests...");
             var baseTests = new TestInit();
-            baseTests.baseTestsInit();
+            baseTests.baseTestsInit().join();
         }
     }
 }

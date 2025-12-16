@@ -1,13 +1,13 @@
 package tests;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
 import io.github.ccxt.Exchange;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.base.Crypto;
 import io.github.ccxt.base.Functions;
 import io.github.ccxt.base.NumberHelpers;
-
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class BaseTest {
 
@@ -68,6 +68,8 @@ public class BaseTest {
             String errorMessage = "Assertion failed";
             if (message != null) {
                 errorMessage += ": " + message;
+            } else {
+                // errorMessage += ".";
             }
             throw new RuntimeException(errorMessage);
         }
