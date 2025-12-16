@@ -2694,9 +2694,9 @@ class phemex extends Exchange {
             );
             $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
             $stopLoss = $this->safe_value($params, 'stopLoss');
-            $stopLossDefined = ($stopLoss !== null);
             $takeProfit = $this->safe_value($params, 'takeProfit');
-            $takeProfitDefined = ($takeProfit !== null);
+            $hasStopLoss = ($stopLoss !== null);
+            $hasTakeProfit = ($takeProfit !== null);
             $isStableSettled = ($market['settle'] === 'USDT') || ($market['settle'] === 'USDC');
             if ($clientOrderId === null) {
                 $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT123456');
@@ -2799,8 +2799,8 @@ class phemex extends Exchange {
                         }
                     }
                 }
-                if ($stopLossDefined || $takeProfitDefined) {
-                    if ($stopLossDefined) {
+                if ($hasStopLoss || $hasTakeProfit) {
+                    if ($hasStopLoss) {
                         $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
                         if ($stopLossTriggerPrice === null) {
                             throw new InvalidOrder($this->id . ' createOrder() requires a trigger $price in $params["stopLoss"]["triggerPrice"] for a stop loss order');
@@ -2819,7 +2819,7 @@ class phemex extends Exchange {
                             $request['slPxRp'] = $this->price_to_precision($symbol, $slLimitPrice);
                         }
                     }
-                    if ($takeProfitDefined) {
+                    if ($hasTakeProfit) {
                         $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
                         if ($takeProfitTriggerPrice === null) {
                             throw new InvalidOrder($this->id . ' createOrder() requires a trigger $price in $params["takeProfit"]["triggerPrice"] for a take profit order');

@@ -1561,13 +1561,13 @@ class kucoinfutures extends kucoin {
         $market = $this->market($symbol);
         $testOrder = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, 'test');
-        $isTpAndSlOrder = ($this->safe_value($params, 'stopLoss') !== null) || ($this->safe_value($params, 'takeProfit') !== null);
+        $hasTpOrSlOrder = ($this->safe_value($params, 'stopLoss') !== null) || ($this->safe_value($params, 'takeProfit') !== null);
         $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
         if ($testOrder) {
             $response = $this->futuresPrivatePostOrdersTest ($orderRequest);
         } else {
-            if ($isTpAndSlOrder) {
+            if ($hasTpOrSlOrder) {
                 $response = $this->futuresPrivatePostStOrders ($orderRequest);
             } else {
                 $response = $this->futuresPrivatePostOrders ($orderRequest);
@@ -1665,6 +1665,8 @@ class kucoinfutures extends kucoin {
         list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $hasStopLoss = $stopLoss !== null;
+        $hasTakeProfit = $takeProfit !== null;
         // $isTpAndSl = $stopLossPrice && $takeProfitPrice;
         $triggerPriceTypes = array(
             'mark' => 'MP',
@@ -1678,15 +1680,15 @@ class kucoinfutures extends kucoin {
             $request['stop'] = ($side === 'buy') ? 'up' : 'down';
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['stopPriceType'] = $triggerPriceTypeValue;
-        } elseif ($stopLoss !== null || $takeProfit !== null) {
+        } elseif ($hasStopLoss || $hasTakeProfit) {
             $priceType = $triggerPriceTypeValue;
-            if ($stopLoss !== null) {
+            if ($hasStopLoss) {
                 $slPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice');
                 $request['triggerStopDownPrice'] = $this->price_to_precision($symbol, $slPrice);
                 $priceType = $this->safe_string($stopLoss, 'triggerPriceType', 'mark');
                 $priceType = $this->safe_string($triggerPriceTypes, $priceType, $priceType);
             }
-            if ($takeProfit !== null) {
+            if ($hasTakeProfit) {
                 $tpPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'takeProfitPrice');
                 $request['triggerStopUpPrice'] = $this->price_to_precision($symbol, $tpPrice);
                 $priceType = $this->safe_string($takeProfit, 'triggerPriceType', 'mark');

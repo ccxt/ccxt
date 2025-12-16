@@ -1505,8 +1505,10 @@ class modetrade extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
+        $hasStopLoss = $stopLoss !== null;
+        $hasTakeProfit = $takeProfit !== null;
         $algoType = $this->safe_string($params, 'algoType');
-        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($this->safe_value($params, 'childOrders') !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1541,7 +1543,7 @@ class modetrade extends Exchange {
         if ($triggerPrice !== null) {
             $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['algo_type'] = 'STOP';
-        } elseif (($stopLoss !== null) || ($takeProfit !== null)) {
+        } elseif ($hasStopLoss || $hasTakeProfit) {
             $request['algo_type'] = 'TP_SL';
             $outterOrder = array(
                 'symbol' => $market['id'],
@@ -1551,7 +1553,7 @@ class modetrade extends Exchange {
             );
             $childOrders = $outterOrder['child_orders'];
             $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
-            if ($stopLoss !== null) {
+            if ($hasStopLoss) {
                 $stopLossPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
                 $stopLossOrder = array(
                     'side' => $closeSide,
@@ -1562,7 +1564,7 @@ class modetrade extends Exchange {
                 );
                 $childOrders[] = $stopLossOrder;
             }
-            if ($takeProfit !== null) {
+            if ($hasTakeProfit) {
                 $takeProfitPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
                 $takeProfitOrder = array(
                     'side' => $closeSide,

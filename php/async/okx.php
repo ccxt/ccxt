@@ -3099,9 +3099,9 @@ class okx extends Exchange {
         $slTriggerPxType = $this->safe_string($params, 'slTriggerPxType', 'last');
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         $stopLoss = $this->safe_value($params, 'stopLoss');
-        $stopLossDefined = ($stopLoss !== null);
         $takeProfit = $this->safe_value($params, 'takeProfit');
-        $takeProfitDefined = ($takeProfit !== null);
+        $hasStopLoss = ($stopLoss !== null);
+        $hasTakeProfit = ($takeProfit !== null);
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
         $trailingPrice = $this->safe_string_2($params, 'trailingPrice', 'callbackSpread');
@@ -3215,9 +3215,9 @@ class okx extends Exchange {
         } elseif ($isTrailingPriceOrder) {
             $request['callbackSpread'] = $trailingPrice;
             $request['ordType'] = 'move_order_stop';
-        } elseif ($stopLossDefined || $takeProfitDefined) {
+        } elseif ($hasStopLoss || $hasTakeProfit) {
             $attachAlgoOrd = array();
-            if ($stopLossDefined) {
+            if ($hasStopLoss) {
                 $stopLossTriggerPrice = $this->safe_value_n($stopLoss, array( 'triggerPrice', 'stopPrice', 'slTriggerPx' ));
                 if ($stopLossTriggerPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["stopLoss"]["triggerPrice"], or $params["stopLoss"]["stopPrice"], or $params["stopLoss"]["slTriggerPx"] for a stop loss order');
@@ -3255,7 +3255,7 @@ class okx extends Exchange {
                 }
                 $attachAlgoOrd = $this->extend($attachAlgoOrd, $slOrder);
             }
-            if ($takeProfitDefined) {
+            if ($hasTakeProfit) {
                 $takeProfitTriggerPrice = $this->safe_value_n($takeProfit, array( 'triggerPrice', 'stopPrice', 'tpTriggerPx' ));
                 if ($takeProfitTriggerPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["takeProfit"]["triggerPrice"], or $params["takeProfit"]["stopPrice"], or $params["takeProfit"]["tpTriggerPx"] for a take profit order');
@@ -3504,8 +3504,8 @@ class okx extends Exchange {
         $takeProfitTriggerPriceType = $this->safe_string($params, 'newTpTriggerPxType', 'last');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
-        $stopLossDefined = ($stopLoss !== null);
-        $takeProfitDefined = ($takeProfit !== null);
+        $hasStopLoss = ($stopLoss !== null);
+        $hasTakeProfit = ($takeProfit !== null);
         if ($isAlgoOrder) {
             if (($stopLossTriggerPrice === null) && ($takeProfitTriggerPrice === null)) {
                 throw new BadRequest($this->id . ' editOrder() requires a $stopLossPrice or $takeProfitPrice parameter for editing an algo order');
@@ -3537,7 +3537,7 @@ class okx extends Exchange {
                 $request['newTpOrdPx'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $takeProfitPrice);
                 $request['newTpTriggerPxType'] = $takeProfitTriggerPriceType;
             }
-            if ($stopLossDefined) {
+            if ($hasStopLoss) {
                 $stopLossTriggerPrice = $this->safe_value($stopLoss, 'triggerPrice');
                 $stopLossPrice = $this->safe_value($stopLoss, 'price');
                 $stopLossType = $this->safe_string($stopLoss, 'type');
@@ -3545,7 +3545,7 @@ class okx extends Exchange {
                 $request['newSlOrdPx'] = ($stopLossType === 'market') ? '-1' : $this->price_to_precision($symbol, $stopLossPrice);
                 $request['newSlTriggerPxType'] = $stopLossTriggerPriceType;
             }
-            if ($takeProfitDefined) {
+            if ($hasTakeProfit) {
                 $takeProfitTriggerPrice = $this->safe_value($takeProfit, 'triggerPrice');
                 $takeProfitPrice = $this->safe_value($takeProfit, 'price');
                 $takeProfitType = $this->safe_string($takeProfit, 'type');
