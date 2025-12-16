@@ -35,6 +35,10 @@ export default class bitmart extends bitmartRest {
                 'watchOHLCV': true,
                 'watchPosition': 'emulated',
                 'watchPositions': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -311,6 +315,7 @@ export default class bitmart extends bitmartRest {
      * @method
      * @name bitmart#watchTradesForSymbols
      * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
      * @description get the list of most recent trades for a list of symbols
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -336,6 +341,39 @@ export default class bitmart extends bitmartRest {
             return filtered as Trade[];
         }
         return result as Trade[];
+    }
+
+    /**
+     * @method
+     * @name bitmart#unWatchTrades
+     * @description unWatches from the stream channel
+     * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name bitmart#unWatchTradesForSymbols
+     * @description unsubscribes from the trades channel
+     * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let marketType = undefined;
+        [ symbols, marketType, params ] = this.getParamsForMultipleSub ('watchTradesForSymbols', symbols, undefined, params);
+        const channelName = 'trade';
+        params = this.extend (params, { 'unsubscribe': true });
+        await this.subscribeMultiple (channelName, marketType, symbols, params);
     }
 
     getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
@@ -417,7 +455,6 @@ export default class bitmart extends bitmartRest {
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        params = this.extend (params, { 'unsubscribe': true });
         const market = this.getMarketFromSymbols (symbols);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
@@ -1705,11 +1742,19 @@ export default class bitmart extends bitmartRest {
         const symbol = market['symbol'];
         const subHash = topic + ':' + symbol;
         const result = {
-            'topic': topic,
+            'topic': this.parseTopic (topic),
             'symbols': [ symbol ],
             'subHash': subHash,
         };
         return result;
+    }
+
+    parseTopic (topic) {
+        const topics = {
+            'ticker': 'ticker',
+            'trade': 'trades',
+        };
+        return this.safeString (topics, topic, topic);
     }
 
     parseMarketType (marketType: string) {
