@@ -3049,9 +3049,9 @@ export default class okx extends Exchange {
         const slTriggerPxType = this.safeString(params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         const stopLoss = this.safeValue(params, 'stopLoss');
-        const stopLossDefined = (stopLoss !== undefined);
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const takeProfitDefined = (takeProfit !== undefined);
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const trailingPrice = this.safeString2(params, 'trailingPrice', 'callbackSpread');
@@ -3176,9 +3176,9 @@ export default class okx extends Exchange {
             request['callbackSpread'] = trailingPrice;
             request['ordType'] = 'move_order_stop';
         }
-        else if (stopLossDefined || takeProfitDefined) {
+        else if (hasStopLoss || hasTakeProfit) {
             let attachAlgoOrd = {};
-            if (stopLossDefined) {
+            if (hasStopLoss) {
                 const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
                 if (stopLossTriggerPrice === undefined) {
                     throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
@@ -3221,7 +3221,7 @@ export default class okx extends Exchange {
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, slOrder);
             }
-            if (takeProfitDefined) {
+            if (hasTakeProfit) {
                 const takeProfitTriggerPrice = this.safeValueN(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx']);
                 if (takeProfitTriggerPrice === undefined) {
                     throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
@@ -3475,8 +3475,8 @@ export default class okx extends Exchange {
         const takeProfitTriggerPriceType = this.safeString(params, 'newTpTriggerPxType', 'last');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const stopLossDefined = (stopLoss !== undefined);
-        const takeProfitDefined = (takeProfit !== undefined);
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
         if (isAlgoOrder) {
             if ((stopLossTriggerPrice === undefined) && (takeProfitTriggerPrice === undefined)) {
                 throw new BadRequest(this.id + ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order');
@@ -3509,7 +3509,7 @@ export default class okx extends Exchange {
                 request['newTpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
             }
-            if (stopLossDefined) {
+            if (hasStopLoss) {
                 stopLossTriggerPrice = this.safeValue(stopLoss, 'triggerPrice');
                 stopLossPrice = this.safeValue(stopLoss, 'price');
                 const stopLossType = this.safeString(stopLoss, 'type');
@@ -3517,7 +3517,7 @@ export default class okx extends Exchange {
                 request['newSlOrdPx'] = (stopLossType === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
                 request['newSlTriggerPxType'] = stopLossTriggerPriceType;
             }
-            if (takeProfitDefined) {
+            if (hasTakeProfit) {
                 takeProfitTriggerPrice = this.safeValue(takeProfit, 'triggerPrice');
                 takeProfitPrice = this.safeValue(takeProfit, 'price');
                 const takeProfitType = this.safeString(takeProfit, 'type');

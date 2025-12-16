@@ -1215,6 +1215,8 @@ class woo extends woo$1["default"] {
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString(params, 'algoType');
         const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
@@ -1222,7 +1224,7 @@ class woo extends woo$1["default"] {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-        const isConditional = isTrailing || triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
+        const isConditional = isTrailing || triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue(params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -1294,7 +1296,7 @@ class woo extends woo$1["default"] {
                 request['algoType'] = 'STOP';
             }
         }
-        else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
+        else if (hasStopLoss || hasTakeProfit) {
             request['algoType'] = 'BRACKET';
             const outterOrder = {
                 'symbol': market['id'],
@@ -1304,7 +1306,7 @@ class woo extends woo$1["default"] {
             };
             const childOrders = outterOrder['childOrders'];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
-            if (stopLoss !== undefined) {
+            if (hasStopLoss) {
                 const stopLossPrice = this.safeString(stopLoss, 'triggerPrice', stopLoss);
                 const stopLossOrder = {
                     'side': closeSide,
@@ -1315,7 +1317,7 @@ class woo extends woo$1["default"] {
                 };
                 childOrders.push(stopLossOrder);
             }
-            if (takeProfit !== undefined) {
+            if (hasTakeProfit) {
                 const takeProfitPrice = this.safeString(takeProfit, 'triggerPrice', takeProfit);
                 const takeProfitOrder = {
                     'side': closeSide,

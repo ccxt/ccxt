@@ -1558,14 +1558,14 @@ export default class kucoinfutures extends kucoin {
         const market = this.market(symbol);
         const testOrder = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
-        const isTpAndSlOrder = (this.safeValue(params, 'stopLoss') !== undefined) || (this.safeValue(params, 'takeProfit') !== undefined);
+        const hasTpOrSlOrder = (this.safeValue(params, 'stopLoss') !== undefined) || (this.safeValue(params, 'takeProfit') !== undefined);
         const orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
         if (testOrder) {
             response = await this.futuresPrivatePostOrdersTest(orderRequest);
         }
         else {
-            if (isTpAndSlOrder) {
+            if (hasTpOrSlOrder) {
                 response = await this.futuresPrivatePostStOrders(orderRequest);
             }
             else {
@@ -1663,6 +1663,8 @@ export default class kucoinfutures extends kucoin {
         const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
         const stopLoss = this.safeDict(params, 'stopLoss');
         const takeProfit = this.safeDict(params, 'takeProfit');
+        const hasStopLoss = stopLoss !== undefined;
+        const hasTakeProfit = takeProfit !== undefined;
         // const isTpAndSl = stopLossPrice && takeProfitPrice;
         const triggerPriceTypes = {
             'mark': 'MP',
@@ -1677,15 +1679,15 @@ export default class kucoinfutures extends kucoin {
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['stopPriceType'] = triggerPriceTypeValue;
         }
-        else if (stopLoss !== undefined || takeProfit !== undefined) {
+        else if (hasStopLoss || hasTakeProfit) {
             let priceType = triggerPriceTypeValue;
-            if (stopLoss !== undefined) {
+            if (hasStopLoss) {
                 const slPrice = this.safeString2(stopLoss, 'triggerPrice', 'stopPrice');
                 request['triggerStopDownPrice'] = this.priceToPrecision(symbol, slPrice);
                 priceType = this.safeString(stopLoss, 'triggerPriceType', 'mark');
                 priceType = this.safeString(triggerPriceTypes, priceType, priceType);
             }
-            if (takeProfit !== undefined) {
+            if (hasTakeProfit) {
                 const tpPrice = this.safeString2(takeProfit, 'triggerPrice', 'takeProfitPrice');
                 request['triggerStopUpPrice'] = this.priceToPrecision(symbol, tpPrice);
                 priceType = this.safeString(takeProfit, 'triggerPriceType', 'mark');
