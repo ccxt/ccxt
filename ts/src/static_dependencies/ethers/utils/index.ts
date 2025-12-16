@@ -106,7 +106,7 @@ export function keccak256(value: any): string {
 
 export function sha256(value: any): string {
     if (isHexString(value)) {
-        return '0x' + hash(getBytes(value), keccak_256, 'hex');
+        return '0x' + hash(getBytes(value), sha_256, 'hex');
     }
     return '0x' + hash(value, sha_256, 'hex');
 }
