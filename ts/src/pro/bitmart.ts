@@ -129,10 +129,11 @@ export default class bitmart extends bitmartRest {
         const messageHashes = [];
         const subHashes = [];
         const unsubscribe = this.safeBool (params, 'unsubscribe', false);
+        let prefix = '';
         if (unsubscribe) {
             params = this.omit (params, 'unsubscribe');
+            prefix = 'unsubscribe::';
         }
-        const prefix = unsubscribe ? 'unsubscribe::' : '';
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             const message = channelType + '/' + channel + ':' + market['id'];
