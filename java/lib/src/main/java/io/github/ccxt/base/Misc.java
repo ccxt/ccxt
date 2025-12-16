@@ -1,17 +1,65 @@
 package io.github.ccxt.base;
 
+import io.github.ccxt.Exchange;
+
 import java.util.List;
 import java.util.Map;
 
 public class Misc {
 
-    public static final int ROUND_UP = 1;
-    public static final int ROUND_DOWN = 0;
+    public static int ROUND = Exchange.ROUND;
+    public static int ROUND_UP = Exchange.ROUND_UP;
+    public static int ROUND_DOWN = Exchange.ROUND_DOWN;
 
-    public static long parseTimeframe(Object timeframe) {
-        // throw if it's not implemented yet in your port
-        throw new UnsupportedOperationException("parseTimeframe not implemented");
+    public static int parseTimeframe(Object timeframe2) {
+        if (!(timeframe2 instanceof String)) {
+            throw new IllegalArgumentException("Invalid timeframe: " + timeframe2);
+        }
+
+        String timeframe = ((String) timeframe2).trim();
+        if (timeframe.length() < 2) {
+            throw new IllegalArgumentException("Invalid timeframe: " + timeframe);
+        }
+
+        int amount;
+        try {
+            amount = Integer.parseInt(timeframe.substring(0, timeframe.length() - 1));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid timeframe: " + timeframe);
+        }
+
+        String unit = timeframe.substring(timeframe.length() - 1);
+        int scale;
+
+        switch (unit) {
+            case "y":
+                scale = 60 * 60 * 24 * 365;
+                break;
+            case "M":
+                scale = 60 * 60 * 24 * 30;
+                break;
+            case "w":
+                scale = 60 * 60 * 24 * 7;
+                break;
+            case "d":
+                scale = 60 * 60 * 24;
+                break;
+            case "h":
+                scale = 60 * 60;
+                break;
+            case "m":
+                scale = 60;
+                break;
+            case "s":
+                scale = 1;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid timeframe: " + timeframe);
+        }
+
+        return amount * scale;
     }
+
 
     public static Object roundTimeframe(Object timeframe, Object timestamp, Object direction) {
 

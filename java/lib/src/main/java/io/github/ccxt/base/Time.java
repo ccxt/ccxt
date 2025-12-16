@@ -6,6 +6,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 public final class Time {
 
@@ -57,15 +59,78 @@ public final class Time {
 
     // -------- parseDate / parse8601 --------
 
+    // public static Object parseDate(Object datetime2) {
+    //     if (!(datetime2 instanceof String)) return null;
+    //     Long ms = parseToMillis((String) datetime2);
+    //     return ms;
+    // }
+
+        private static final DateTimeFormatter SPACE_FORMAT =
+            DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss")
+                    .withResolverStyle(ResolverStyle.STRICT);
+
+    // Returns Long (epoch millis) or null
     public static Object parseDate(Object datetime2) {
-        if (!(datetime2 instanceof String)) return null;
-        Long ms = parseToMillis((String) datetime2);
-        return ms;
+        if (!(datetime2 instanceof String)) {
+            return null;
+        }
+
+        String datetime = ((String) datetime2).trim();
+        if (datetime.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // ISO 8601 like: 1986-04-26T01:23:47.000Z
+            if (datetime.indexOf('T') >= 0) {
+                return Instant.parse(datetime).toEpochMilli();
+            }
+
+            // Space format like: 1986-04-26 00:00:00 (treated as UTC)
+            LocalDateTime ldt = LocalDateTime.parse(datetime, SPACE_FORMAT);
+            return ldt.toInstant(ZoneOffset.UTC).toEpochMilli();
+
+        } catch (DateTimeParseException ex) {
+            return null;
+        }
     }
 
+    // public static Long parse8601(Object datetime2) {
+    //     if (!(datetime2 instanceof String)) return null;
+    //     return parseToMillis((String) datetime2);
+    // }
+
     public static Long parse8601(Object datetime2) {
-        if (!(datetime2 instanceof String)) return null;
-        return parseToMillis((String) datetime2);
+        if (!(datetime2 instanceof String)) {
+            return null;
+        }
+
+        String datetime = ((String) datetime2).trim();
+        if (datetime.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // Handle: "2023-05-08T17:04:43+0000" (strip "+0000" part like C# code)
+            if (datetime.contains("+0")) {
+                int plus = datetime.indexOf('+');
+                if (plus >= 0) {
+                    datetime = datetime.substring(0, plus);
+                }
+            }
+
+            // ISO 8601 with Z, e.g. "1986-04-26T01:23:47.000Z"
+            if (datetime.indexOf('T') >= 0) {
+                return Instant.parse(datetime).toEpochMilli();
+            }
+
+            // Space format, e.g. "2019-08-12 13:20:00" (treat as UTC)
+            LocalDateTime ldt = LocalDateTime.parse(datetime, SPACE_FORMAT);
+            return ldt.toInstant(ZoneOffset.UTC).toEpochMilli();
+
+        } catch (DateTimeParseException ex) {
+            return null;
+        }
     }
 
     // -------- iso8601 formatting --------
