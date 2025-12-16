@@ -1533,13 +1533,13 @@ class kucoinfutures(kucoin, ImplicitAPI):
         market = self.market(symbol)
         testOrder = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
-        isTpAndSlOrder = (self.safe_value(params, 'stopLoss') is not None) or (self.safe_value(params, 'takeProfit') is not None)
+        hasTpOrSlOrder = (self.safe_value(params, 'stopLoss') is not None) or (self.safe_value(params, 'takeProfit') is not None)
         orderRequest = self.create_contract_order_request(symbol, type, side, amount, price, params)
         response = None
         if testOrder:
             response = self.futuresPrivatePostOrdersTest(orderRequest)
         else:
-            if isTpAndSlOrder:
+            if hasTpOrSlOrder:
                 response = self.futuresPrivatePostStOrders(orderRequest)
             else:
                 response = self.futuresPrivatePostOrders(orderRequest)
@@ -1629,6 +1629,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')
+        hasStopLoss = stopLoss is not None
+        hasTakeProfit = takeProfit is not None
         # isTpAndSl = stopLossPrice and takeProfitPrice
         triggerPriceTypes: dict = {
             'mark': 'MP',
@@ -1642,14 +1644,14 @@ class kucoinfutures(kucoin, ImplicitAPI):
             request['stop'] = 'up' if (side == 'buy') else 'down'
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['stopPriceType'] = triggerPriceTypeValue
-        elif stopLoss is not None or takeProfit is not None:
+        elif hasStopLoss or hasTakeProfit:
             priceType = triggerPriceTypeValue
-            if stopLoss is not None:
+            if hasStopLoss:
                 slPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice')
                 request['triggerStopDownPrice'] = self.price_to_precision(symbol, slPrice)
                 priceType = self.safe_string(stopLoss, 'triggerPriceType', 'mark')
                 priceType = self.safe_string(triggerPriceTypes, priceType, priceType)
-            if takeProfit is not None:
+            if hasTakeProfit:
                 tpPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'takeProfitPrice')
                 request['triggerStopUpPrice'] = self.price_to_precision(symbol, tpPrice)
                 priceType = self.safe_string(takeProfit, 'triggerPriceType', 'mark')

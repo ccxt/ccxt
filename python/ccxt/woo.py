@@ -1199,6 +1199,8 @@ class woo(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
+        hasStopLoss = (stopLoss is not None)
+        hasTakeProfit = (takeProfit is not None)
         algoType = self.safe_string(params, 'algoType')
         trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', self.number_to_string(price))
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'callbackValue')
@@ -1206,7 +1208,7 @@ class woo(Exchange, ImplicitAPI):
         isTrailingAmountOrder = trailingAmount is not None
         isTrailingPercentOrder = trailingPercent is not None
         isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
-        isConditional = isTrailing or triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = isTrailing or triggerPrice is not None or hasStopLoss or hasTakeProfit or (self.safe_value(params, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
@@ -1259,7 +1261,7 @@ class woo(Exchange, ImplicitAPI):
             if algoType != 'TRAILING_STOP':
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 request['algoType'] = 'STOP'
-        elif (stopLoss is not None) or (takeProfit is not None):
+        elif hasStopLoss or hasTakeProfit:
             request['algoType'] = 'BRACKET'
             outterOrder: dict = {
                 'symbol': market['id'],
@@ -1269,7 +1271,7 @@ class woo(Exchange, ImplicitAPI):
             }
             childOrders = outterOrder['childOrders']
             closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
-            if stopLoss is not None:
+            if hasStopLoss:
                 stopLossPrice = self.safe_string(stopLoss, 'triggerPrice', stopLoss)
                 stopLossOrder: dict = {
                     'side': closeSide,
@@ -1279,7 +1281,7 @@ class woo(Exchange, ImplicitAPI):
                     'reduceOnly': True,
                 }
                 childOrders.append(stopLossOrder)
-            if takeProfit is not None:
+            if hasTakeProfit:
                 takeProfitPrice = self.safe_string(takeProfit, 'triggerPrice', takeProfit)
                 takeProfitOrder: dict = {
                     'side': closeSide,
