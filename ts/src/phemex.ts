@@ -2678,9 +2678,9 @@ export default class phemex extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const stopLoss = this.safeValue (params, 'stopLoss');
-        const stopLossDefined = (stopLoss !== undefined);
         const takeProfit = this.safeValue (params, 'takeProfit');
-        const takeProfitDefined = (takeProfit !== undefined);
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
         const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId', 'CCXT123456');
@@ -2783,8 +2783,8 @@ export default class phemex extends Exchange {
                     }
                 }
             }
-            if (stopLossDefined || takeProfitDefined) {
-                if (stopLossDefined) {
+            if (hasStopLoss || hasTakeProfit) {
+                if (hasStopLoss) {
                     const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
                     if (stopLossTriggerPrice === undefined) {
                         throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order');
@@ -2803,7 +2803,7 @@ export default class phemex extends Exchange {
                         request['slPxRp'] = this.priceToPrecision (symbol, slLimitPrice);
                     }
                 }
-                if (takeProfitDefined) {
+                if (hasTakeProfit) {
                     const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
                     if (takeProfitTriggerPrice === undefined) {
                         throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"] for a take profit order');
