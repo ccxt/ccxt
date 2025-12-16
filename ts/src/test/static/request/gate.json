@@ -327,7 +327,7 @@
                     null,
                     55
                 ],
-                "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"price\":\"55\"}"
+                "output": "{\"price\":\"55\"}"
             },
             {
                 "description": "edit swap amount",
@@ -341,7 +341,7 @@
                   2,
                   54
                 ],
-                "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"size\":2,\"price\":\"54\"}"
+                "output": "{\"size\":2,\"price\":\"54\"}"
             },
             {
                 "description": "edit swap sell order",
@@ -355,7 +355,7 @@
                   2,
                   101
                 ],
-                "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"size\":-2,\"price\":\"101\"}"
+                "output": "{\"size\":-2,\"price\":\"101\"}"
             },
             {
                 "description": "unified spot edit an order",
@@ -373,6 +373,23 @@
                   }
                 ],
                 "output": "{\"currency_pair\":\"BTC_USDT\",\"account\":\"unified\",\"price\":\"51000\"}"
+            },
+            {
+                "description": "edit swap trigger order",
+                "method": "editOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders/436745134770",
+                "input": [
+                  "436745134770",
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  2,
+                  101,
+                  {
+                    "trigger": true
+                  }
+                ],
+                "output": "{\"size\":-2,\"price\":\"101\"}"
             }
         ],
         "fetchPositions": [

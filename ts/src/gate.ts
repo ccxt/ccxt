@@ -4703,18 +4703,24 @@ export default class gate extends Exchange {
         if (isUnifiedAccount) {
             account = 'unified';
         }
+        const priceType = this.safeInteger (params, 'price_type');
+        if (priceType < 0 || priceType > 2) {
+            throw new BadRequest (this.id + ' createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price');
+        }
+        const trigger = this.safeValue (params, 'trigger');
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'trigger', 'triggerPrice', 'stopPrice', 'price_type' ]);
+        const isTpsl = triggerPrice || trigger;
         const isLimitOrder = (type === 'limit');
+        const request: Dict = {
+            'order_id': id.toString (),
+        };
         if (account === 'spot') {
             if (!isLimitOrder) {
                 // exchange doesn't have market orders for spot
                 throw new InvalidOrder (this.id + ' editOrder() does not support ' + type + ' orders for ' + marketType + ' markets');
             }
         }
-        const request: Dict = {
-            'order_id': id.toString (),
-            'currency_pair': market['id'],
-            'account': account,
-        };
         if (amount !== undefined) {
             if (market['spot']) {
                 request['amount'] = this.amountToPrecision (symbol, amount);
@@ -4731,6 +4737,17 @@ export default class gate extends Exchange {
         }
         if (!market['spot']) {
             request['settle'] = market['settleId'];
+            if (isTpsl) {
+                if (triggerPrice !== undefined) {
+                    request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+                }
+                if (priceType !== undefined) {
+                    request['price_type'] = priceType;
+                }
+            }
+        } else {
+            request['currency_pair'] = market['id'];
+            request['account'] = account;
         }
         return this.extend (request, params);
     }
@@ -4741,6 +4758,7 @@ export default class gate extends Exchange {
      * @description edit a trade order, gate currently only supports the modification of the price or amount fields
      * @see https://www.gate.com/docs/developers/apiv4/en/#amend-an-order
      * @see https://www.gate.com/docs/developers/apiv4/en/#amend-an-order-2
+     * @see https://www.gate.com/docs/developers/apiv4/en/#modify-a-single-auto-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -4749,18 +4767,28 @@ export default class gate extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.auto_size] *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+     * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadUnifiedStatus ();
         const market = this.market (symbol);
+        const trigger = this.safeValue (params, 'trigger');
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const isTpsl = triggerPrice || trigger;
         const extendedRequest = this.editOrderRequest (id, symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['spot']) {
             response = await this.privateSpotPatchOrdersOrderId (extendedRequest);
         } else {
-            response = await this.privateFuturesPutSettleOrdersOrderId (extendedRequest);
+            if (isTpsl) {
+                response = await this.privateFuturesPutSettlePriceOrdersOrderId (extendedRequest);
+            } else {
+                response = await this.privateFuturesPutSettleOrdersOrderId (extendedRequest);
+            }
         }
         //
         //     {
