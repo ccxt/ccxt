@@ -1,7 +1,6 @@
 
 // ----------------------------------------------------------------------------
 
-import { off } from 'process';
 import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
