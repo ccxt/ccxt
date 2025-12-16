@@ -2297,14 +2297,22 @@ export default class Exchange {
         return this.safeBoolN (dictionary, [ key1, key2 ], defaultValue);
     }
 
-    safeBool (dictionary, key: IndexType, defaultValue: boolean = undefined): boolean | undefined {
+    safeBool (dictionaryOrList, key: IndexType, defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN (dictionary, [ key ], defaultValue);
+        try {
+            const value = dictionaryOrList[key];
+            if ((value !== undefined) && (typeof value === 'boolean')) {
+                return value;
+            }
+        } catch (e) {
+            return defaultValue;
+        }
+        return defaultValue;
     }
 
     safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
