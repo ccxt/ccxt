@@ -144,7 +144,7 @@ class woofipro(Exchange, ImplicitAPI):
                 },
                 'www': 'https://dex.woo.org',
                 'doc': [
-                    'https://orderly.network/docs/build-on-evm/building-on-evm',
+                    'https://orderly.network/docs/build-on-omnichain/building-on-evm',
                 ],
                 'fees': [
                     'https://dex.woo.org/en/orderly',
@@ -439,7 +439,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
@@ -475,7 +475,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -585,7 +585,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for woofipro
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -806,7 +806,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -896,7 +896,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the current funding rate interval
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -908,7 +908,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the current funding rate
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -942,7 +942,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the current funding rate for multiple markets
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
 
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -976,7 +976,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -1131,7 +1131,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
@@ -1185,7 +1185,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -1235,7 +1235,7 @@ class woofipro(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
 
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1515,8 +1515,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1583,7 +1583,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         *contract only* create a list of trade orders
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1636,8 +1636,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -1708,10 +1708,10 @@ class woofipro(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
 
         cancels an open order
         :param str id: order id
@@ -1781,8 +1781,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         cancel multiple orders
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
 
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
@@ -1817,8 +1817,8 @@ class woofipro(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
 
         cancel all open orders in a market
         :param str symbol: unified market symbol
@@ -1862,10 +1862,10 @@ class woofipro(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
 
         fetches information on an order made by the user
         :param str id: the order id
@@ -1932,8 +1932,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2015,8 +2015,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2037,8 +2037,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2059,7 +2059,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -2104,7 +2104,7 @@ class woofipro(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
 
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -2181,7 +2181,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -2288,7 +2288,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
 
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -2348,7 +2348,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -2365,7 +2365,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -2382,7 +2382,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch history of deposits and withdrawals
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
 
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
@@ -2438,7 +2438,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         make a withdrawal
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2525,7 +2525,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the set leverage for a market
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2568,7 +2568,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
 
         :param int [leverage]: the rate of leverage
         :param str [symbol]: unified market symbol
@@ -2655,7 +2655,7 @@ class woofipro(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: Str, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
 
         fetch data on an open position
         :param str symbol: unified market symbol of the market the position is held in
@@ -2701,7 +2701,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch all open positions
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
