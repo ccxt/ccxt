@@ -146,9 +146,11 @@ export default class bitmart extends bitmartRest {
         const subHashes = [];
         const unsubscribe = this.safeBool (params, 'unsubscribe', false);
         let prefix = '';
+        let requestOp = 'subscribe';
         if (unsubscribe) {
             params = this.omit (params, 'unsubscribe');
             prefix = 'unsubscribe::';
+            requestOp = 'unsubscribe';
         }
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
@@ -167,7 +169,7 @@ export default class bitmart extends bitmartRest {
         const request: Dict = {
             'args': rawSubscriptions,
         };
-        request[actionType] = unsubscribe ? 'unsubscribe' : 'subscribe';
+        request[actionType] = requestOp;
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subHashes);
     }
 
@@ -381,17 +383,8 @@ export default class bitmart extends bitmartRest {
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        // symbols = this.marketSymbols (symbols, undefined, false, true);
-        // const length = symbols.length;
-        // if (length > 20) {
-        //     throw new NotSupported (this.id + ' unWatchTradesForSymbols() accepts a maximum of 20 symbols in one request');
-        // }
-        // const market = this.market (symbols[0]);
-        // let marketType = undefined;
-        // [ marketType, params ] = this.handleMarketTypeAndParams ('unWatchTradesForSymbols', market, params);
-        const market = this.getMarketFromSymbols (symbols);
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        [ symbols, marketType, params ] = this.getParamsForMultipleSub ('unWatchTradesForSymbols', symbols, undefined, params);
         const channelName = 'trade';
         params = this.extend (params, { 'unsubscribe': true });
         await this.subscribeMultiple (channelName, marketType, symbols, params);
@@ -1826,6 +1819,7 @@ export default class bitmart extends bitmartRest {
         this.cleanUnsubscription (client, subHash, unsubHash);
         this.cleanUnsubscription (client, messageTopic, unSubMessageTopic);
         this.cleanCache (subscription);
+        return message;
     }
 
     getUnSubParams (messageTopic) {
