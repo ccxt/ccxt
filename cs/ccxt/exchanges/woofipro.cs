@@ -126,7 +126,7 @@ public partial class woofipro : Exchange
                     { "private", "https://testnet-api-evm.orderly.org" },
                 } },
                 { "www", "https://dex.woo.org" },
-                { "doc", new List<object>() {"https://orderly.network/docs/build-on-evm/building-on-evm"} },
+                { "doc", new List<object>() {"https://orderly.network/docs/build-on-omnichain/building-on-evm"} },
                 { "fees", new List<object>() {"https://dex.woo.org/en/orderly"} },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://dex.woo.org/en/trade?ref=CCXT" },
@@ -418,7 +418,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -461,7 +461,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -576,7 +576,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchMarkets
      * @description retrieves data on all markets for woofipro
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -819,7 +819,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -918,7 +918,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -933,7 +933,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -970,7 +970,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchFundingRates
      * @description fetch the current funding rate for multiple markets
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1007,7 +1007,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1194,7 +1194,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -1253,7 +1253,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1303,7 +1303,7 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#fetchOHLCV
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1632,8 +1632,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#createOrder
      * @description create a trade order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1679,7 +1679,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#createOrders
      * @description *contract only* create a list of trade orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1739,8 +1739,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#editOrder
      * @description edit a trade order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1830,10 +1830,10 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#cancelOrder
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1926,8 +1926,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#cancelOrders
      * @description cancel multiple orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1968,8 +1968,8 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#cancelAllOrders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2019,10 +2019,10 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#fetchOrder
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -2103,8 +2103,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2207,8 +2207,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2234,8 +2234,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchClosedOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2261,7 +2261,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2311,7 +2311,7 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#fetchMyTrades
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2408,7 +2408,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -2533,7 +2533,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2602,7 +2602,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2622,7 +2622,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2642,7 +2642,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -2710,7 +2710,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#withdraw
      * @description make a withdrawal
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -2821,7 +2821,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -2867,7 +2867,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#setLeverage
      * @description set the level of leverage for a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
      * @param {int} [leverage] the rate of leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2964,7 +2964,7 @@ public partial class woofipro : Exchange
     /**
      * @method
      * @name woofipro#fetchPosition
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3013,7 +3013,7 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchPositions
      * @description fetch all open positions
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
