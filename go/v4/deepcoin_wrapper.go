@@ -68,7 +68,7 @@ func (this *Deepcoin) FetchMarketsByType(typeVar interface{}, options ...FetchMa
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Deepcoin) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -152,7 +152,7 @@ func (this *Deepcoin) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
  * @see https://www.deepcoin.com/docs/DeepCoinMarket/getMarketTickers
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Deepcoin) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -187,7 +187,7 @@ func (this *Deepcoin) FetchTickers(options ...FetchTickersOptions) (Tickers, err
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Deepcoin) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -225,7 +225,7 @@ func (this *Deepcoin) FetchTrades(symbol string, options ...FetchTradesOptions) 
  * @see https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBalance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] "spot" or "swap", the market type for the balance
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Deepcoin) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -246,7 +246,7 @@ func (this *Deepcoin) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Deepcoin) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -293,7 +293,7 @@ func (this *Deepcoin) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Deepcoin) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -336,7 +336,7 @@ func (this *Deepcoin) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @see https://www.deepcoin.com/docs/assets/chainlist
  * @param {string[]|undefined} codes list of unified currency codes, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Deepcoin) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 
@@ -370,7 +370,7 @@ func (this *Deepcoin) FetchDepositAddresses(options ...FetchDepositAddressesOpti
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] unified network code for deposit chain
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Deepcoin) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -402,7 +402,7 @@ func (this *Deepcoin) FetchDepositAddress(code string, options ...FetchDepositAd
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @param {string} [params.type] 'spot' or 'swap', the market type for the ledger (default 'spot')
- * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *Deepcoin) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -449,7 +449,7 @@ func (this *Deepcoin) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
  * @param {string} toAccount account to transfer to ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.userId] user id
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Deepcoin) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -492,7 +492,7 @@ func (this *Deepcoin) Transfer(code string, amount float64, fromAccount string, 
  * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
  * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode
  * @param {string} [params.marginMode] *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -526,7 +526,7 @@ func (this *Deepcoin) CreateOrder(symbol string, typeVar string, side string, am
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
 
@@ -554,7 +554,7 @@ func (this *Deepcoin) CreateMarketOrderWithCost(symbol string, side string, cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -582,7 +582,7 @@ func (this *Deepcoin) CreateMarketBuyOrderWithCost(symbol string, cost float64, 
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
 
@@ -611,7 +611,7 @@ func (this *Deepcoin) CreateMarketSellOrderWithCost(symbol string, cost float64,
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) FetchClosedOrder(id string, options ...FetchClosedOrderOptions) (Order, error) {
 
@@ -645,7 +645,7 @@ func (this *Deepcoin) FetchClosedOrder(id string, options ...FetchClosedOrderOpt
  * @param {string} id order id
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (Order, error) {
 
@@ -686,7 +686,7 @@ func (this *Deepcoin) FetchOpenOrder(id string, options ...FetchOpenOrderOptions
  * @param {string} [params.state] *non trigger orders only* 'canceled' or 'filled', the order state to filter by
  * @param {string} [params.OrderType] *trigger orders only* 'limit' or 'market'
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 
@@ -732,7 +732,7 @@ func (this *Deepcoin) FetchCanceledAndClosedOrders(options ...FetchCanceledAndCl
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
@@ -778,7 +778,7 @@ func (this *Deepcoin) FetchCanceledOrders(options ...FetchCanceledOrdersOptions)
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -827,7 +827,7 @@ func (this *Deepcoin) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
  * @param {bool} [params.trigger] whether to fetch trigger/algo orders (default false)
  * @param {int} [params.index] *non trigger orders only* pagination index, default is 1
  * @param {string} [params.orderType] *trigger orders only* 'limit' or 'market'
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -872,7 +872,7 @@ func (this *Deepcoin) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] whether the order is a trigger/algo order (default false)
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -907,7 +907,7 @@ func (this *Deepcoin) CancelOrder(id string, options ...CancelOrderOptions) (Ord
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
  * @param {bool} [params.merged] *swap only* true for merged positions, false for split positions (default true)
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -948,7 +948,7 @@ func (this *Deepcoin) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Orde
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -986,7 +986,7 @@ func (this *Deepcoin) EditOrder(id string, symbol string, typeVar string, side s
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deepcoin) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -1020,7 +1020,7 @@ func (this *Deepcoin) CancelOrders(ids []string, options ...CancelOrdersOptions)
  * @description fetch all open positions for specific symbol
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Deepcoin) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
 
@@ -1048,7 +1048,7 @@ func (this *Deepcoin) FetchPositionsForSymbol(symbol string, options ...FetchPos
  * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Deepcoin) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1118,7 +1118,7 @@ func (this *Deepcoin) SetLeverage(leverage int64, options ...SetLeverageOptions)
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *Deepcoin) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 
@@ -1151,7 +1151,7 @@ func (this *Deepcoin) FetchFundingRates(options ...FetchFundingRatesOptions) (Fu
  * @see https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Deepcoin) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -1179,10 +1179,10 @@ func (this *Deepcoin) FetchFundingRate(symbol string, options ...FetchFundingRat
  * @see https://www.deepcoin.com/docs/DeepCoinTrade/fundingRateHistory
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.page] pagination page number
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Deepcoin) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -1230,7 +1230,7 @@ func (this *Deepcoin) FetchFundingRateHistory(options ...FetchFundingRateHistory
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch
  * @param {string} [params.type] 'spot' or 'swap', the market type for the trades (default is 'spot')
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Deepcoin) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -1277,7 +1277,7 @@ func (this *Deepcoin) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', the market type for the trades
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Deepcoin) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 

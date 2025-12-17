@@ -423,7 +423,7 @@ func (this *KucoinfuturesCore) Describe() interface{} {
  * @description the latest known information on the availability of the exchange API
  * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-service-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *KucoinfuturesCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -780,7 +780,7 @@ func (this *KucoinfuturesCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...int
  * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *KucoinfuturesCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -837,7 +837,7 @@ func (this *KucoinfuturesCore) FetchDepositAddress(code interface{}, optionalArg
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *KucoinfuturesCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -908,7 +908,7 @@ func (this *KucoinfuturesCore) FetchOrderBook(symbol interface{}, optionalArgs .
  * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KucoinfuturesCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -960,7 +960,7 @@ func (this *KucoinfuturesCore) FetchTicker(symbol interface{}, optionalArgs ...i
  * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KucoinfuturesCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -996,7 +996,7 @@ func (this *KucoinfuturesCore) FetchMarkPrice(symbol interface{}, optionalArgs .
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KucoinfuturesCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1221,7 +1221,7 @@ func (this *KucoinfuturesCore) ParseTicker(ticker interface{}, optionalArgs ...i
  * @description fetches the bid and ask price and volume for multiple markets
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KucoinfuturesCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1254,7 +1254,7 @@ func (this *KucoinfuturesCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *KucoinfuturesCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1346,7 +1346,7 @@ func (this *KucoinfuturesCore) FetchFundingHistory(optionalArgs ...interface{}) 
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *KucoinfuturesCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1425,7 +1425,7 @@ func (this *KucoinfuturesCore) FetchPosition(symbol interface{}, optionalArgs ..
  * @see https://docs.kucoin.com/futures/#get-position-list
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *KucoinfuturesCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1508,7 +1508,7 @@ func (this *KucoinfuturesCore) FetchPositions(optionalArgs ...interface{}) <-cha
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] closing end time
  * @param {int} [params.pageId] page id
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *KucoinfuturesCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1757,7 +1757,7 @@ func (this *KucoinfuturesCore) ParsePosition(position interface{}, optionalArgs 
  * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
  * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
  * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinfuturesCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1816,7 +1816,7 @@ func (this *KucoinfuturesCore) CreateOrder(symbol interface{}, typeVar interface
  * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinfuturesCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2011,7 +2011,7 @@ func (this *KucoinfuturesCore) CreateContractOrderRequest(symbol interface{}, ty
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] cancel order by client order id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinfuturesCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2074,7 +2074,7 @@ func (this *KucoinfuturesCore) CancelOrder(id interface{}, optionalArgs ...inter
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinfuturesCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2212,7 +2212,7 @@ func (this *KucoinfuturesCore) CancelAllOrders(optionalArgs ...interface{}) <-ch
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
 func (this *KucoinfuturesCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2379,7 +2379,7 @@ func (this *KucoinfuturesCore) ParseMarginModification(info interface{}, optiona
  * @param {string} [params.side] buy or sell
  * @param {string} [params.type] limit or market
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinfuturesCore) FetchOrdersByStatus(status interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2517,7 +2517,7 @@ func (this *KucoinfuturesCore) FetchOrdersByStatus(status interface{}, optionalA
  * @param {string} [params.side] buy or sell
  * @param {string} [params.type] limit, or market
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinfuturesCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2571,7 +2571,7 @@ func (this *KucoinfuturesCore) FetchClosedOrders(optionalArgs ...interface{}) <-
  * @param {string} [params.type] limit, or market
  * @param {boolean} [params.trigger] set to true to retrieve untriggered stop orders
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinfuturesCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2618,7 +2618,7 @@ func (this *KucoinfuturesCore) FetchOpenOrders(optionalArgs ...interface{}) <-ch
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinfuturesCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2845,7 +2845,7 @@ func (this *KucoinfuturesCore) ParseOrder(order interface{}, optionalArgs ...int
  * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *KucoinfuturesCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2893,7 +2893,7 @@ func (this *KucoinfuturesCore) FetchFundingRate(symbol interface{}, optionalArgs
  * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *KucoinfuturesCore) FetchFundingInterval(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2979,7 +2979,7 @@ func (this *KucoinfuturesCore) ParseBalance(response interface{}) interface{} {
  * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *KucoinfuturesCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3037,7 +3037,7 @@ func (this *KucoinfuturesCore) FetchBalance(optionalArgs ...interface{}) <-chan 
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *KucoinfuturesCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3152,7 +3152,7 @@ func (this *KucoinfuturesCore) ParseTransferType(transferType interface{}) inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] End time in ms
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *KucoinfuturesCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3251,7 +3251,7 @@ func (this *KucoinfuturesCore) FetchMyTrades(optionalArgs ...interface{}) <-chan
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *KucoinfuturesCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3444,7 +3444,7 @@ func (this *KucoinfuturesCore) ParseTrade(trade interface{}, optionalArgs ...int
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *KucoinfuturesCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3523,7 +3523,7 @@ func (this *KucoinfuturesCore) FetchDeposits(optionalArgs ...interface{}) <-chan
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *KucoinfuturesCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3601,7 +3601,7 @@ func (this *KucoinfuturesCore) FetchWithdrawals(optionalArgs ...interface{}) <-c
  * @see https://www.kucoin.com/docs/rest/futures-trading/risk-limit/get-futures-risk-limit-level
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *KucoinfuturesCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3694,10 +3694,10 @@ func (this *KucoinfuturesCore) ParseMarketLeverageTiers(info interface{}, option
  * @description fetches historical funding rate prices
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] not used by kucuoinfutures
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *KucoinfuturesCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3784,7 +3784,7 @@ func (this *KucoinfuturesCore) ParseFundingRateHistory(info interface{}, optiona
  * @param {string} side not used by kucoinfutures closePositions
  * @param {object} [params] extra parameters specific to the okx api endpoint
  * @param {string} [params.clientOrderId] client order id of the order
- * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *KucoinfuturesCore) ClosePosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3836,7 +3836,7 @@ func (this *KucoinfuturesCore) ClosePosition(symbol interface{}, optionalArgs ..
  * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-futures
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *KucoinfuturesCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3890,7 +3890,7 @@ func (this *KucoinfuturesCore) FetchTradingFee(symbol interface{}, optionalArgs 
  * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *KucoinfuturesCore) FetchMarginMode(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4042,7 +4042,7 @@ func (this *KucoinfuturesCore) SetPositionMode(hedged interface{}, optionalArgs 
  * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *KucoinfuturesCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

@@ -947,7 +947,7 @@ func (this *BullishCore) ParseMarketType(typeVar interface{}, optionalArgs ...in
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (not used by bullish)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *BullishCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1008,7 +1008,7 @@ func (this *BullishCore) FetchOrderBook(symbol interface{}, optionalArgs ...inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BullishCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1084,7 +1084,7 @@ func (this *BullishCore) FetchTrades(symbol interface{}, optionalArgs ...interfa
  * @param {string} [params.orderId] the order id to fetch trades for
  * @param {string} [params.clientOrderId] the client order id to fetch trades for
  * @param {string} [params.tradingAccountId] the trading account id to fetch trades for
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BullishCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1179,7 +1179,7 @@ func (this *BullishCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inter
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] the client order id to fetch trades for
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BullishCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1313,7 +1313,7 @@ func (this *BullishCore) ParseTrade(trade interface{}, optionalArgs ...interface
  * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BullishCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1622,7 +1622,7 @@ func (this *BullishCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface
  * @param {int} [since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
  * @param {int} [limit] the maximum amount of funding rate structures to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *BullishCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1720,7 +1720,7 @@ func (this *BullishCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-
  * @param {string} [params.clientOrderId] the client id of the order to fetch for
  * @param {string} [params.status] filter by order status, 'OPEN', 'CANCELLED', 'CLOSED', 'REJECTED'
  * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BullishCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1888,7 +1888,7 @@ func (this *BullishCore) GetClosestLimit(limit interface{}) interface{} {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BullishCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1926,7 +1926,7 @@ func (this *BullishCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan int
  * @param {int} [limit] the max number of canceled orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BullishCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1965,7 +1965,7 @@ func (this *BullishCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan
  * @param {int} [limit] the max number of closed orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BullishCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2004,7 +2004,7 @@ func (this *BullishCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan i
  * @param {int} [limit] the max number of closed orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BullishCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2042,7 +2042,7 @@ func (this *BullishCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BullishCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2122,7 +2122,7 @@ func (this *BullishCore) FetchOrder(id interface{}, optionalArgs ...interface{})
  * @param {bool} [params.allowBorrow] if true, the order will be allowed to borrow assets to fulfill the order (default is false)
  * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
  * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BullishCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2207,7 +2207,7 @@ func (this *BullishCore) CreateOrder(symbol interface{}, typeVar interface{}, si
  * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
  * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
  * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BullishCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2271,7 +2271,7 @@ func (this *BullishCore) EditOrder(id interface{}, symbol interface{}, typeVar i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.commandType the command type, default is 'V3CancelOrder' (mandatory parameter)
  * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BullishCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2325,7 +2325,7 @@ func (this *BullishCore) CancelOrder(id interface{}, optionalArgs ...interface{}
  * @param {string} [symbol] alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BullishCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2503,7 +2503,7 @@ func (this *BullishCore) ParseOrderType(typeVar interface{}) interface{} {
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BullishCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2595,7 +2595,7 @@ func (this *BullishCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <
  * @param {string} params.timestamp the timestamp of the withdrawal request (mandatory)
  * @param {string} params.nonce the nonce of the withdrawal request (mandatory)
  * @param {string} params.network network for withdraw (mandatory)
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BullishCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2782,7 +2782,7 @@ func (this *BullishCore) LoadAccount(optionalArgs ...interface{}) <-chan interfa
  * @description fetch all the accounts associated with a profile
  * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--trading-accounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *BullishCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2900,7 +2900,7 @@ func (this *BullishCore) ParseAccount(account interface{}) interface{} {
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] network for deposit address
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *BullishCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2988,7 +2988,7 @@ func (this *BullishCore) ParseDepositAddress(depositAddress interface{}, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
  * @param {string} [params.code] unified currency code, default is undefined
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BullishCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3078,7 +3078,7 @@ func (this *BullishCore) ParseBalance(response interface{}) interface{} {
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.tradingAccountId the trading account id
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BullishCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3207,7 +3207,7 @@ func (this *BullishCore) ParsePositionSide(side interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} params.until the latest time in ms to fetch transfers for (default time now)
  * @param {string} params.tradingAccountId the trading account id
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BullishCore) FetchTransfers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3298,7 +3298,7 @@ func (this *BullishCore) FetchTransfers(optionalArgs ...interface{}) <-chan inte
  * @param {string} fromAccount account ID to transfer from
  * @param {string} toAccount account ID to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BullishCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3403,11 +3403,11 @@ func (this *BullishCore) ParseTransferStatus(status interface{}) interface{} {
  * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/borrow-interest
  * @param {string} code unified currency code
  * @param {int} [since] timestamp for the earliest borrow rate
- * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+ * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} params.until the latest time in ms to fetch entries for
  * @param {string} params.tradingAccountId the trading account id
- * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *BullishCore) FetchBorrowRateHistory(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

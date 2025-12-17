@@ -380,7 +380,7 @@ func (this *HyperliquidCore) Market(symbol interface{}) interface{} {
  * @name hyperliquid#fetchStatus
  * @description the latest known information on the availability of the exchange API
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *HyperliquidCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1148,7 +1148,7 @@ func (this *HyperliquidCore) ParseMarket(market interface{}) interface{} {
  * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
  * @param {string} [params.dex] for hip3 markets, the dex name, eg: 'xyz'
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *HyperliquidCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1263,7 +1263,7 @@ func (this *HyperliquidCore) FetchBalance(optionalArgs ...interface{}) <-chan in
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *HyperliquidCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1331,7 +1331,7 @@ func (this *HyperliquidCore) FetchOrderBook(symbol interface{}, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', by default fetches both
  * @param {boolean} [params.hip3] set to true to fetch hip3 markets only
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *HyperliquidCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1671,7 +1671,7 @@ func (this *HyperliquidCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...inter
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.user] wallet address that made trades
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *HyperliquidCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2200,7 +2200,7 @@ func (this *HyperliquidCore) EnableUserDexAbstraction(enabled interface{}, optio
  * @param {string} [params.slippage] the slippage for market order
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2235,7 +2235,7 @@ func (this *HyperliquidCore) CreateOrder(symbol interface{}, typeVar interface{}
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2367,7 +2367,7 @@ func (this *HyperliquidCore) CreateOrdersRequest(orders interface{}, optionalArg
 	 * @description create a list of trade orders
 	 * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
 	 * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
 	params := GetArg(optionalArgs, 0, map[string]interface{}{})
 	_ = params
@@ -2489,7 +2489,7 @@ func (this *HyperliquidCore) CreateOrdersRequest(orders interface{}, optionalArg
  * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2523,7 +2523,7 @@ func (this *HyperliquidCore) CancelOrder(id interface{}, optionalArgs ...interfa
  * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2654,7 +2654,7 @@ func (this *HyperliquidCore) CancelOrdersRequest(ids interface{}, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) CancelOrdersForSymbols(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2945,7 +2945,7 @@ func (this *HyperliquidCore) EditOrdersRequest(orders interface{}, optionalArgs 
  * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2985,7 +2985,7 @@ func (this *HyperliquidCore) EditOrder(id interface{}, symbol interface{}, typeV
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) EditOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3113,10 +3113,10 @@ func (this *HyperliquidCore) CreateVault(name interface{}, description interface
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *HyperliquidCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3209,7 +3209,7 @@ func (this *HyperliquidCore) GetDexFromHip3Symbol(market interface{}) interface{
  * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {string} [params.dex] perp dex name. default is null
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3290,7 +3290,7 @@ func (this *HyperliquidCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3329,7 +3329,7 @@ func (this *HyperliquidCore) FetchClosedOrders(optionalArgs ...interface{}) <-ch
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3368,7 +3368,7 @@ func (this *HyperliquidCore) FetchCanceledOrders(optionalArgs ...interface{}) <-
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3409,7 +3409,7 @@ func (this *HyperliquidCore) FetchCanceledAndClosedOrders(optionalArgs ...interf
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {string} [params.dex] perp dex name. default is null
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3479,7 +3479,7 @@ func (this *HyperliquidCore) FetchOrders(optionalArgs ...interface{}) <-chan int
  * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3751,7 +3751,7 @@ func (this *HyperliquidCore) ParseOrderType(status interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *HyperliquidCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3890,7 +3890,7 @@ func (this *HyperliquidCore) ParseTrade(trade interface{}, optionalArgs ...inter
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *HyperliquidCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3945,7 +3945,7 @@ func (this *HyperliquidCore) GetDexFromSymbols(methodName interface{}, optionalA
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {string} [params.dex] perp dex name, eg: XYZ
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *HyperliquidCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4273,7 +4273,7 @@ func (this *HyperliquidCore) SetLeverage(leverage interface{}, optionalArgs ...i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
 func (this *HyperliquidCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4302,7 +4302,7 @@ func (this *HyperliquidCore) AddMargin(symbol interface{}, amount interface{}, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
  */
 func (this *HyperliquidCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4410,7 +4410,7 @@ func (this *HyperliquidCore) ParseMarginModification(data interface{}, optionalA
  * @param {string} toAccount account to transfer to *swap, spot or address*
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address for order
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *HyperliquidCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4557,7 +4557,7 @@ func (this *HyperliquidCore) ParseTransfer(transfer interface{}, optionalArgs ..
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] vault address withdraw from
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HyperliquidCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4693,7 +4693,7 @@ func (this *HyperliquidCore) ParseTransaction(transaction interface{}, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *HyperliquidCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4822,7 +4822,7 @@ func (this *HyperliquidCore) ParseTradingFee(fee interface{}, optionalArgs ...in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *HyperliquidCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4942,7 +4942,7 @@ func (this *HyperliquidCore) ParseLedgerEntryType(typeVar interface{}) interface
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {string} [params.vaultAddress] vault address
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HyperliquidCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5034,7 +5034,7 @@ func (this *HyperliquidCore) FetchDeposits(optionalArgs ...interface{}) <-chan i
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {string} [params.vaultAddress] vault address
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HyperliquidCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5118,7 +5118,7 @@ func (this *HyperliquidCore) FetchWithdrawals(optionalArgs ...interface{}) <-cha
  * @description Retrieves the open interest for a list of symbols
  * @param {string[]} [symbols] Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *HyperliquidCore) FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5150,7 +5150,7 @@ func (this *HyperliquidCore) FetchOpenInterests(optionalArgs ...interface{}) <-c
  * @description retrieves the open interest of a contract trading pair
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *HyperliquidCore) FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5219,7 +5219,7 @@ func (this *HyperliquidCore) ParseOpenInterest(interest interface{}, optionalArg
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *HyperliquidCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
