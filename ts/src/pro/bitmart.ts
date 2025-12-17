@@ -35,12 +35,12 @@ export default class bitmart extends bitmartRest {
                 'watchOHLCV': true,
                 'watchPosition': 'emulated',
                 'watchPositions': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
                 'unWatchTrades': true,
                 'unWatchTradesForSymbols': true,
-                'unWatchOrderBook': true,
-                'unWatchOrderBookForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -1248,7 +1248,7 @@ export default class bitmart extends bitmartRest {
         symbol = this.symbol (symbol);
         const market = this.market (symbol);
         let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe);
         let name = undefined;
@@ -1262,6 +1262,35 @@ export default class bitmart extends bitmartRest {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name bitmart#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see @see https://developer-pro.bitmart.com/en/spot/#public-kline-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const market = this.market (symbol);
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const interval = this.safeString (timeframes, timeframe);
+        let name = undefined;
+        if (type === 'spot') {
+            name = 'kline' + interval;
+        } else {
+            name = 'klineBin' + interval;
+        }
+        params = this.extend (params, { 'unsubscribe': true });
+        return await this.subscribe (name, symbol, type, params);
     }
 
     handleOHLCV (client: Client, message) {
@@ -1814,10 +1843,22 @@ export default class bitmart extends bitmartRest {
         const market = this.safeMarket (marketId, undefined, delimiter, type);
         const symbol = market['symbol'];
         const subHash = topic + ':' + symbol;
+        const symbolsAndTimeframes = [];
+        if (topic.startsWith ('kline')) {
+            let interval = topic.replace ('kline', '');
+            if (interval.startsWith ('Bin')) {
+                interval = interval.replace ('Bin', '');
+            }
+            const timeframes = this.safeDict (this.options, 'timeframes', {});
+            const timeframe = this.findTimeframe (interval, timeframes);
+            const symbolAndTimeframe = [ symbol, timeframe ];
+            symbolsAndTimeframes.push (symbolAndTimeframe);
+        }
         const result = {
             'topic': this.parseTopic (topic),
             'symbols': [ symbol ],
             'subHash': subHash,
+            'symbolsAndTimeframes': symbolsAndTimeframes,
         };
         return result;
     }
@@ -1825,6 +1866,9 @@ export default class bitmart extends bitmartRest {
     parseTopic (topic) {
         if (topic.startsWith ('depth')) {
             return 'orderbook';
+        }
+        if (topic.startsWith ('kline')) {
+            return 'ohlcv';
         }
         const topics = {
             'ticker': 'ticker',
