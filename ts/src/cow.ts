@@ -1067,7 +1067,7 @@ export default class cow extends Exchange {
                     const currentAllowance = await this.checkERC20Allowance (sellTokenAddress, this.hexWith0xPrefix (signerAddr), vaultRelayer);
                     if (Precise.stringLt (currentAllowance, requiredAmount)) {
                         await this.approveERC20 (sellTokenAddress, vaultRelayer);
-                        await this.sleep (5000);
+                        await this.waitForSufficientAllowance (sellTokenAddress, this.hexWith0xPrefix (signerAddr), vaultRelayer, requiredAmount);
                     }
                 } catch (e) {
                     const message = this.safeString (e, 'message', this.json (e));
@@ -1318,6 +1318,17 @@ export default class cow extends Exchange {
             }
         }
         return result;
+    }
+
+    async waitForSufficientAllowance (tokenAddress: Str, ownerAddress: Str, spenderAddress: Str, requiredAmount: Str, maxAttempts: Int = 30, delayMs: Int = 5000) {
+        for (let i = 0; i < maxAttempts; i++) {
+            const currentAllowance = await this.checkERC20Allowance (tokenAddress, ownerAddress, spenderAddress);
+            if (!Precise.stringLt (currentAllowance, requiredAmount)) {
+                return currentAllowance;
+            }
+            await this.sleep (delayMs);
+        }
+        throw new ExchangeError (this.id + ' waitForSufficientAllowance() allowance not updated after ' + this.numberToString (maxAttempts) + ' attempts');
     }
 
     async approveERC20 (tokenAddress: Str, spenderAddress: Str, amount: Str = undefined) {
