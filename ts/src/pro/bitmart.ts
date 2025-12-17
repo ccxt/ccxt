@@ -1269,7 +1269,7 @@ export default class bitmart extends bitmartRest {
      * @method
      * @name bitmart#unWatchOHLCV
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see @see https://developer-pro.bitmart.com/en/spot/#public-kline-channel
+     * @see https://developer-pro.bitmart.com/en/spot/#public-kline-channel
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
