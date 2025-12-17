@@ -11,7 +11,7 @@ public class Main {
 
         System.out.println("Running tests...");
 
-        if (isBaseTests) {
+        if (true || isBaseTests) {
             System.out.println("Running base tests...");
             var baseTests = new TestInit();
             baseTests.baseTestsInit().join();

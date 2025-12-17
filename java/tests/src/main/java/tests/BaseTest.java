@@ -1,13 +1,24 @@
 package tests;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import io.github.ccxt.Exchange;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.base.Crypto;
 import io.github.ccxt.base.Functions;
 import io.github.ccxt.base.NumberHelpers;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
+
+import io.github.ccxt.base.JsonHelper;
 
 public class BaseTest {
 
@@ -114,7 +125,7 @@ public class BaseTest {
         return isEqual(a, b);
     }
 
-        public static Object mod(Object a, Object b) {
+    public static Object mod(Object a, Object b) {
         return Helpers.mod(a, b);
     }
 
@@ -203,7 +214,12 @@ public class BaseTest {
         return Crypto.hash(request, algorithm, null);
     }
 
-    public static String hmac(Object request, Object secret, Object algorithm, String digest) {
+    public static String hmac(
+        Object request,
+        Object secret,
+        Object algorithm,
+        String digest
+    ) {
         return Crypto.hmac(request, secret, algorithm, digest);
     }
 
@@ -223,7 +239,12 @@ public class BaseTest {
         return Crypto.rsa(request, secret, null);
     }
 
-    public static Object ecdsa(Object request, Object secret, Object alg, Object stub) {
+    public static Object ecdsa(
+        Object request,
+        Object secret,
+        Object alg,
+        Object stub
+    ) {
         return Crypto.Ecdsa(request, secret, alg, stub);
     }
 
@@ -257,7 +278,13 @@ public class BaseTest {
 
     // --- instance passthroughs ---
 
-    public String decimalToPrecision(Object a, Object b, Object c, Object d, Object e) {
+    public String decimalToPrecision(
+        Object a,
+        Object b,
+        Object c,
+        Object d,
+        Object e
+    ) {
         return NumberHelpers.decimalToPrecision(a, b, c, d, e);
     }
 
@@ -280,18 +307,15 @@ public class BaseTest {
     // Equal methods
 
     public static Object deepEqual(Object a, Object b) {
-        return Helpers.isEqual(
-            Functions.json(a),
-            Functions.json(b)
-        );
+        return Helpers.isEqual(Functions.json(a), Functions.json(b));
     }
 
     public static void AssertDeepEqual(
-            Exchange exchange,
-            Object skippedProperties,
-            Object method,
-            Object a,
-            Object b
+        Exchange exchange,
+        Object skippedProperties,
+        Object method,
+        Object a,
+        Object b
     ) {
         Assert(
             deepEqual(a, b),
@@ -310,4 +334,284 @@ public class BaseTest {
             )
         );
     }
+
+    // TestMain helpers
+
+    public static boolean getCliArgValue(Object option) {
+        String optionStr = (String) option;
+        String[] args = Main.getArgs();
+        for (String arg : args) {
+            if (arg.equals(optionStr)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void dump(Object... messObjects) {
+        StringBuilder sb = new StringBuilder();
+        for (Object obj : messObjects) {
+            sb.append(Helpers.toStringOrNull(obj));
+        }
+        System.out.println(sb.toString());
+    }
+
+    public static void exitScript(int code) {
+        System.exit(code);
+    }
+
+    public boolean isSync() {
+        return false;
+    }
+
+    public String exceptionMessage(Object e) {
+        return ((Exception) e).getMessage();
+    }
+
+    public static CompletableFuture<Void> close(Object exchange) {
+        // do nothing
+        return CompletableFuture.completedFuture(null);
+    }
+
+    public static boolean isNullValue(Object value) {
+        return value == null;
+    }
+
+    public static Object convertAscii(Object data) {
+        return data; // stub for now todo check
+    }
+
+    public static Object jsonStringify(Object data) {
+        return Functions.json(data);
+    }
+
+    public static Exchange setFetchResponse(Object exchange2, Object response) {
+        var exchange = (Exchange) exchange2;
+        exchange.setFetchResponse(response);
+        return exchange;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static CompletableFuture<Object> callExchangeMethodDynamicallySync(
+        Object exchange,
+        Object methodName2,
+        Object... args
+    ) throws Exception {
+        throw new Exception("Not implemented");
+    }
+
+    @SuppressWarnings("unchecked")
+    public static CompletableFuture<Object> callExchangeMethodDynamically(
+        Object exchange,
+        Object methodName2,
+        Object... args
+    ) throws Exception {
+        var methodName = (String) methodName2;
+        List<Object> realArgs;
+        if (args.length == 0) {
+            realArgs = new ArrayList<>();
+        } else {
+            realArgs = (List<Object>) args[0];
+        }
+
+        Method method = null;
+        Class<?> clazz = exchange.getClass();
+
+        for (Method m : clazz.getDeclaredMethods()) {
+            if (m.getName().equals(methodName)) {
+                method = m;
+                break;
+            }
+        }
+
+        if (method == null) {
+            throw new NoSuchMethodException(methodName);
+        }
+
+        method.setAccessible(true);
+
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        Object[] newArgs = new Object[parameterTypes.length];
+
+        for (int i = 0; i < parameterTypes.length; i++) {
+            if (i < realArgs.size()) {
+                newArgs[i] = realArgs.get(i);
+            } else {
+                newArgs[i] = null;
+            }
+        }
+
+        Object result = method.invoke(exchange, newArgs);
+
+        if (result instanceof CompletableFuture<?>) {
+            return (CompletableFuture<Object>) result;
+        }
+
+        return CompletableFuture.completedFuture(result);
+    }
+
+    public static Exception getRootException(Exception exc) {
+        if (exc == null) {
+            return null;
+        }
+        Throwable cause = exc.getCause();
+        if (cause instanceof Exception) {
+            return (Exception) cause;
+        }
+        return exc;
+    }
+
+    public static Object jsonParse(Object jsonString) {
+        return JsonHelper.deserialize((String) jsonString);
+    }
+
+    public static Object getExchangeProp(Object exchange, Object prop) {
+        return getExchangeProp(exchange, prop, null);
+    }
+
+    public static Object getExchangeProp(Object exchange, Object prop, Object defaultValue) {
+        if (exchange == null || !(prop instanceof String)) {
+            return defaultValue;
+        }
+
+        String propName = (String) prop;
+
+        try {
+            // 2) Try public field
+            try {
+                Field field = exchange.getClass().getField(propName);
+                Object value = field.get(exchange);
+                return (value != null) ? value : defaultValue;
+            } catch (NoSuchFieldException ignored) {
+                // fall through
+            }
+
+        } catch (Exception ignored) {
+        }
+
+        return defaultValue;
+    }
+
+    public static void setExchangeProp(Object exchange, Object prop, Object value) {
+        if (exchange == null || !(prop instanceof String)) {
+            return;
+        }
+
+        String propName = (String) prop;
+
+        try {
+
+            try {
+                Field field = exchange.getClass().getField(propName);
+                field.set(exchange, value);
+            } catch (NoSuchFieldException ignored) {
+            }
+
+        } catch (Exception ignored) {
+            // do nothing
+        }
+    }
+
+    public static String getRootDir() {
+        var res = FileSystems.getDefault().getPath("").toAbsolutePath() + "../../../../.." ;
+        return res;
+    }
+
+        public static Object ioFileRead(Object path2) {
+        if (!(path2 instanceof String)) {
+            return null;
+        }
+
+        String path = (String) path2;
+
+        try {
+            String text = Files.readString(Path.of(path), StandardCharsets.UTF_8);
+            return JsonHelper.deserialize(text);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static boolean ioFileExists(Object path2) {
+        if (!(path2 instanceof String)) {
+            return false;
+        }
+
+        String path = (String) path2;
+
+        try {
+            return Files.exists(Path.of(path));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static Object ioDirRead(Object path2) {
+        if (!(path2 instanceof String)) {
+            return null;
+        }
+
+        String path = (String) path2;
+
+        try (Stream<Path> stream = Files.list(Path.of(path))) {
+            List<String> fileNameOnly = new ArrayList<>();
+
+            stream
+                .filter(Files::isRegularFile)
+                .forEach(p -> fileNameOnly.add(p.getFileName().toString()));
+
+            return fileNameOnly;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Exchange initExchange(Object exchangeId, Object exchangeArgs, boolean isWs) {
+        if (!(exchangeId instanceof String)) {
+            return null;
+        }
+
+        String id = (String) exchangeId;
+
+        // if (isWs) {
+        //     id = "ccxt.pro." + id;
+        // }
+
+        return Exchange.dynamicallyCreateInstance(id, exchangeArgs, false);
+    }
+
+    public static Exchange initExchange(Object exchangeId, Object exchangeArgs) {
+        return initExchange(exchangeId, exchangeArgs, false);
+    }
+
+    public static Object getEnvVars() {
+        return System.getenv();
+    }
+
+    public String getLang() {
+        return "java";
+    }
+
+    public String getExt() {
+        return ".java";
+    }
+
+    public static CompletableFuture<Map<String, Object>> getTestFiles (Object properties, Object tests) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public static Map<String, Object> getTestFilesSync (Object properties, Object tests) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public static Object callMethodSync(Object testFiles2, Object methodName, Object exchange, Object... args)
+    {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public static CompletableFuture<Object> callMethod(Object testFiles2, Object methodName, Object exchange, Object... args)
+    {
+        throw new RuntimeException("Not implemented");
+    }
+
 }

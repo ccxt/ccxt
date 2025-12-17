@@ -32,11 +32,13 @@ import io.github.ccxt.base.Misc;
 import io.github.ccxt.base.Strings;
 import io.github.ccxt.errors.*;
 import java.util.Random;
+import java.lang.reflect.Constructor;
+
 
 
 public class Exchange {
 
-    public long timeout = 10000; // default timeout 10s
+    public Object timeout = 10000; // default timeout 10s
     // If you have these constants elsewhere, remove these placeholders.
     // HTTP
     public HttpClient httpClient;                         // no default (like C#)
@@ -149,6 +151,8 @@ public class Exchange {
     public Object socks_proxy = null;
     public Object wsSocksProxy = null;
     public Object ws_socks_proxy = null;
+    public Object wsProxy = null;
+    public Object wssProxy = null;
 
     public Object httpsProxyCallback = null;
     public Object https_proxy_callback = null;
@@ -183,10 +187,10 @@ public class Exchange {
     public Object positions;
 
     // properties that had { get; set; } in C#
-    private Object wssProxy = null;
-    private Object wss_proxy = null;
-    private Object wsProxy = null;
-    private Object ws_proxy = null;
+    // public Object wssProxy = null;
+    public Object wss_proxy = null;
+    // public Object wsProxy = null;
+    public Object ws_proxy = null;
 
     // to do avoid this dup
     // precisionConstants
@@ -449,37 +453,36 @@ public class Exchange {
     }
 
 
-public static Exchange dynamicallyCreateInstance(String className, Object args) {
-    if (args == null) {
-        args = new java.util.HashMap<String, Object>();
-    }
-
-    className = className.substring(0, 1).toUpperCase() + className.substring(1); // capitalize first letter
-
-    try {
-        Class<?> clazz;
-        try {
-            String pkg = Exchange.class.getPackage().getName();
-            clazz = Class.forName(pkg + ".exchanges." + className);
-        } catch (ClassNotFoundException e) {
-            // clazz = Class.forName(pkg + ".exchanges." + className);
-            throw e;
+    public static Exchange dynamicallyCreateInstance(String className, Object args) {
+        if (args == null) {
+            args = new java.util.HashMap<String, Object>();
         }
 
-        // check this accept constructor with Object arg
-        java.lang.reflect.Constructor<?> ctor = clazz.getConstructor();
+        className = className.substring(0, 1).toUpperCase() + className.substring(1); // capitalize first letter
 
-        Object instance = ctor.newInstance(); // check args
+        try {
+            Class<?> clazz;
+            try {
+                String pkg = Exchange.class.getPackage().getName();
+                clazz = Class.forName(pkg + ".exchanges." + className);
+            } catch (ClassNotFoundException e) {
+                throw e;
+            }
 
-        return (Exchange) instance;
-    } catch (ClassNotFoundException
-             | NoSuchMethodException
-             | InstantiationException
-             | IllegalAccessException
-             | java.lang.reflect.InvocationTargetException e) {
-        throw new RuntimeException("Failed to create instance for: " + className, e);
+            // check this accept constructor with Object arg
+            java.lang.reflect.Constructor<?> ctor = clazz.getConstructor();
+
+            Object instance = ctor.newInstance(); // check args
+
+            return (Exchange) instance;
+        } catch (ClassNotFoundException
+                | NoSuchMethodException
+                | InstantiationException
+                | IllegalAccessException
+                | java.lang.reflect.InvocationTargetException e) {
+            throw new RuntimeException("Failed to create instance for: " + className, e);
+        }
     }
-}
 
     private double toDoubleSafe(Object val, double defaultValue) {
         if (val == null) {
@@ -1138,6 +1141,10 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
 
     public HashMap<String, Object> createSafeDictionary() {
         return new HashMap<String, Object>();
+    }
+
+    public Map<String, Object> convertToSafeDictionary(Object obj) {
+        return (Map<String, Object>) obj; // to do safety checks
     }
 
     public boolean valueIsDefined(Object value) {
@@ -1980,7 +1987,69 @@ public static Exchange dynamicallyCreateInstance(String className, Object args) 
         return Exchange.getProperty(obj, property, null);
     }
 
+    public void setFetchResponse(Object response) {
+        this.fetchResponse = response;
+    }
 
+        public static Exchange dynamicallyCreateInstance(String className, Object args, boolean isWs) {
+        if (className == null || className.trim().isEmpty()) {
+            return null;
+        }
+
+        String fqcn = className.trim();
+        if (isWs) {
+            fqcn = "ccxt.pro." + fqcn;
+        }
+
+        // default args like the C# code
+        if (args == null) {
+            args = new HashMap<String, Object>();
+        }
+
+        try {
+            Class<?> clazz = Class.forName(fqcn);
+
+            // must be an Exchange (or subclass)
+            if (!Exchange.class.isAssignableFrom(clazz)) {
+                return null;
+            }
+
+            try {
+                Constructor<?> ctor = clazz.getConstructor(Object.class);
+                Object instance = ctor.newInstance(args);
+                return (Exchange) instance;
+            } catch (NoSuchMethodException ignored) {}
+
+            if (args instanceof Map) {
+                try {
+                    @SuppressWarnings("rawtypes")
+                    Constructor<?> ctor = clazz.getConstructor(Map.class);
+                    Object instance = ctor.newInstance(args);
+                    return (Exchange) instance;
+                } catch (NoSuchMethodException ignored) {}
+            }
+
+            try {
+                Constructor<?> ctor = clazz.getConstructor();
+                Object instance = ctor.newInstance();
+                return (Exchange) instance;
+            } catch (NoSuchMethodException ignored) {}
+
+            return null;
+
+        } catch (Exception e) {
+            // swallow like your helpers
+            return null;
+        }
+    }
+
+    public void extendExchangeOptions(Object options) {
+        if (options instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> optionsMap = (Map<String, Object>) options;
+            this.options = (Map<String, Object>) this.extend(this.options, optionsMap);
+        }
+    }
 
     // ------------------------------------------------------------------------
     // ########################################################################
