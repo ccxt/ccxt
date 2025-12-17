@@ -39,6 +39,7 @@ export default class bitmart extends bitmartRest {
                 'unWatchTickers': true,
                 'unWatchTrades': true,
                 'unWatchTradesForSymbols': true,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -103,10 +104,18 @@ export default class bitmart extends bitmartRest {
         const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
         let request = {};
         let messageHash = undefined;
+        const unsubscribe = this.safeBool (params, 'unsubscribe', false);
+        let prefix = '';
+        let requestOp = 'subscribe';
+        if (unsubscribe) {
+            params = this.omit (params, 'unsubscribe');
+            prefix = 'unsubscribe::';
+            requestOp = 'unsubscribe';
+        }
         if (type === 'spot') {
             messageHash = 'spot/' + channel + ':' + market['id'];
             request = {
-                'op': 'subscribe',
+                'op': requestOp,
                 'args': [ messageHash ],
             };
         } else {
@@ -117,10 +126,11 @@ export default class bitmart extends bitmartRest {
                 messageHash += ':' + speed;
             }
             request = {
-                'action': 'subscribe',
+                'action': requestOp,
                 'args': [ messageHash ],
             };
         }
+        messageHash = prefix + messageHash;
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
@@ -1374,6 +1384,32 @@ export default class bitmart extends bitmartRest {
         return orderbook.limit ();
     }
 
+    /**
+     * @method
+     * @name bitmart#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
+     * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        let depth = this.safeString (options, 'depth', 'depth/increase100');
+        symbol = this.symbol (symbol);
+        const market = this.market (symbol);
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('unWatchOrderBook', market, params);
+        if (type === 'swap' && depth === 'depth/increase100') {
+            depth = 'depth50';
+        }
+        params = this.extend (params, { 'unsubscribe': true });
+        return await this.subscribe (depth, symbol, type, params);
+    }
+
     handleDelta (bookside, delta) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
@@ -1744,7 +1780,11 @@ export default class bitmart extends bitmartRest {
         const marketTypeAndTopic = channel.split ('/');
         const marketType = this.safeStringLower (marketTypeAndTopic, 0);
         const type = this.parseMarketType (marketType);
-        const topic = this.safeString (marketTypeAndTopic, 1);
+        let topic = this.safeString (marketTypeAndTopic, 1);
+        const thirdPart = this.safeString (marketTypeAndTopic, 2);
+        if (thirdPart !== undefined) {
+            topic += '/' + thirdPart;
+        }
         const marketId = this.safeString (parts, 1);
         const delimiter = (type === 'spot') ? '_' : '';
         const market = this.safeMarket (marketId, undefined, delimiter, type);
@@ -1759,6 +1799,9 @@ export default class bitmart extends bitmartRest {
     }
 
     parseTopic (topic) {
+        if (topic.startsWith ('depth')) {
+            return 'orderbook';
+        }
         const topics = {
             'ticker': 'ticker',
             'trade': 'trades',
