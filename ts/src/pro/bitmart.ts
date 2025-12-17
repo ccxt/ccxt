@@ -39,6 +39,7 @@ export default class bitmart extends bitmartRest {
                 'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': true,
+                'unWatchOrders': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
                 'unWatchTrades': true,
@@ -605,6 +606,53 @@ export default class bitmart extends bitmartRest {
             return newOrders;
         }
         return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name bitmart#unWatchOrders
+     * @description unWatches information on multiple orders made by the user
+     * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let market = undefined;
+        let messageHash = 'unsubscribe::orders';
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            market = this.market (symbol);
+            if (market['swap']) {
+                throw new NotSupported (this.id + ' unWatchOrders() does not support a symbol for swap markets, unWatch from all markets only');
+            }
+            messageHash += '::' + symbol;
+        }
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        await this.authenticate (type, params);
+        let request = undefined;
+        if (type === 'spot') {
+            let argsRequest = 'spot/user/order:';
+            if (symbol !== undefined) {
+                argsRequest += market['id'];
+            } else {
+                argsRequest = 'spot/user/orders:ALL_SYMBOLS';
+            }
+            request = {
+                'op': 'unsubscribe',
+                'args': [ argsRequest ],
+            };
+        } else {
+            request = {
+                'action': 'unsubscribe',
+                'args': [ 'futures/order' ],
+            };
+        }
+        const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     handleOrders (client: Client, message) {
@@ -1814,35 +1862,55 @@ export default class bitmart extends bitmartRest {
         //
         const messageTopic = this.safeString2 (message, 'topic', 'group');
         const unSubMessageTopic = 'unsubscribe::' + messageTopic;
+        // one message includes info about one unsubscription only even if we requested multiple
+        // so we can not just create subscription object in unWatch method and use it here
+        // we need to reconstruct subscription params from the messageTopic
         const subscription = this.getUnSubParams (messageTopic);
         const subHash = this.safeString (subscription, 'subHash');
         const unsubHash = 'unsubscribe::' + subHash;
-        this.cleanUnsubscription (client, subHash, unsubHash);
-        this.cleanUnsubscription (client, messageTopic, unSubMessageTopic);
+        const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
+        this.cleanUnsubscription (client, subHash, unsubHash, subHashIsPrefix);
+        this.cleanUnsubscription (client, messageTopic, unSubMessageTopic, subHashIsPrefix);
         this.cleanCache (subscription);
-        return message;
     }
 
     getUnSubParams (messageTopic) {
         const parts = messageTopic.split (':');
         const channel = this.safeString (parts, 0);
         const marketTypeAndTopic = channel.split ('/');
-        const marketType = this.safeStringLower (marketTypeAndTopic, 0);
-        const type = this.parseMarketType (marketType);
+        const rawMarketType = this.safeStringLower (marketTypeAndTopic, 0);
+        const marketType = this.parseMarketType (rawMarketType);
         let topic = this.safeString (marketTypeAndTopic, 1);
         const thirdPart = this.safeString (marketTypeAndTopic, 2);
         if (thirdPart !== undefined) {
             topic += '/' + thirdPart;
         }
         const marketId = this.safeString (parts, 1);
-        const delimiter = (type === 'spot') ? '_' : '';
-        const market = this.safeMarket (marketId, undefined, delimiter, type);
-        const symbol = market['symbol'];
-        const subHash = topic + ':' + symbol;
+        const symbols = [];
+        let symbol = undefined;
+        let subHash = topic;
+        let hashDelimiter = ':';
+        let subHashIsPrefix = false;
+        const parsedTopic = this.parseTopic (topic);
+        if ((parsedTopic === 'orders') || (parsedTopic === 'positions')) {
+            subHash = parsedTopic;
+            hashDelimiter = '::';
+        }
+        if ((marketId !== undefined) && (marketId !== 'ALL_SYMBOLS')) {
+            // if marketId is defined, we have a single symbol subscription
+            const delimiter = (marketType === 'spot') ? '_' : '';
+            const market = this.safeMarket (marketId, undefined, delimiter, marketType);
+            symbol = market['symbol'];
+            subHash += hashDelimiter + symbol;
+            symbols.push (symbol);
+        } else {
+            subHashIsPrefix = true; // need to clean all subHashes with this prefix
+        }
         const symbolsAndTimeframes = [];
         if (topic.startsWith ('kline')) {
             let interval = topic.replace ('kline', '');
             if (interval.startsWith ('Bin')) {
+                // swap market
                 interval = interval.replace ('Bin', '');
             }
             const timeframes = this.safeDict (this.options, 'timeframes', {});
@@ -1851,10 +1919,11 @@ export default class bitmart extends bitmartRest {
             symbolsAndTimeframes.push (symbolAndTimeframe);
         }
         const result = {
-            'topic': this.parseTopic (topic),
-            'symbols': [ symbol ],
+            'topic': parsedTopic,
+            'symbols': symbols,
             'subHash': subHash,
             'symbolsAndTimeframes': symbolsAndTimeframes,
+            'subHashIsPrefix': subHashIsPrefix,
         };
         return result;
     }
@@ -1869,6 +1938,10 @@ export default class bitmart extends bitmartRest {
         const topics = {
             'ticker': 'ticker',
             'trade': 'trades',
+            'user/order': 'orders',
+            'user/orders': 'orders',
+            'order': 'orders',
+            'futures/position': 'positions',
         };
         return this.safeString (topics, topic, topic);
     }
