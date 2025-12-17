@@ -205,8 +205,8 @@ export default class bitmart extends bitmartRest {
         this.setBalanceCache (client, type, messageHash);
         let fetchBalanceSnapshot = undefined;
         let awaitBalanceSnapshot = undefined;
-        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
-        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
+        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
