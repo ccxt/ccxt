@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.23'
+__version__ = '4.5.28'
 
 # -----------------------------------------------------------------------------
 
@@ -2550,9 +2550,8 @@ class Exchange(object):
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if value is None:
             return defaultValue
-        if (isinstance(value, dict)):
-            if not isinstance(value, list):
-                return value
+        if isinstance(value, dict):
+            return value
         return defaultValue
 
     def safe_dict(self, dictionary, key: IndexType, defaultValue: dict = None):
@@ -3131,7 +3130,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the earliest change to fetch
         :param int [limit]: the maximum amount of changes to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns dict[]: a list of `margin structures <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :returns dict[]: a list of `margin structures <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
         raise NotSupported(self.id + ' fetchMarginAdjustmentHistory() is not supported yet')
 
@@ -5096,7 +5095,7 @@ class Exchange(object):
         fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for one-market position, because of less rate-limit consumption and speed
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
         """
         raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
 
@@ -5105,7 +5104,7 @@ class Exchange(object):
         fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for one-market position, because of less rate-limit consumption and speed
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
         """
         raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
 
@@ -5131,8 +5130,8 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetchLedgerEntry() is not supported yet')
 
     def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
-        price = self.safe_number(bidask, priceKey)
-        amount = self.safe_number(bidask, amountKey)
+        price = self.safe_float(bidask, priceKey)
+        amount = self.safe_float(bidask, amountKey)
         countOrId = self.safe_integer(bidask, countOrIdKey)
         bidAsk = [price, amount]
         if countOrId is not None:
@@ -5490,7 +5489,7 @@ class Exchange(object):
         :param str clientOrderId: client order Id
         :param str symbol: unified symbol of the market to create an order in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         extendedParams = self.extend(params, {'clientOrderId': clientOrderId})
         return self.fetch_order('', symbol, extendedParams)
@@ -5533,7 +5532,7 @@ class Exchange(object):
         :param float trailingAmount: the quote amount to trail away from the current market price
         :param float [trailingTriggerPrice]: the price to activate a trailing order, default uses the price argument
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if trailingAmount is None:
             raise ArgumentsRequired(self.id + ' createTrailingAmountOrder() requires a trailingAmount argument')
@@ -5555,7 +5554,7 @@ class Exchange(object):
         :param float trailingAmount: the quote amount to trail away from the current market price
         :param float [trailingTriggerPrice]: the price to activate a trailing order, default uses the price argument
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if trailingAmount is None:
             raise ArgumentsRequired(self.id + ' createTrailingAmountOrderWs() requires a trailingAmount argument')
@@ -5577,7 +5576,7 @@ class Exchange(object):
         :param float trailingPercent: the percent to trail away from the current market price
         :param float [trailingTriggerPrice]: the price to activate a trailing order, default uses the price argument
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if trailingPercent is None:
             raise ArgumentsRequired(self.id + ' createTrailingPercentOrder() requires a trailingPercent argument')
@@ -5599,7 +5598,7 @@ class Exchange(object):
         :param float trailingPercent: the percent to trail away from the current market price
         :param float [trailingTriggerPrice]: the price to activate a trailing order, default uses the price argument
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if trailingPercent is None:
             raise ArgumentsRequired(self.id + ' createTrailingPercentOrderWs() requires a trailingPercent argument')
@@ -5617,7 +5616,7 @@ class Exchange(object):
         :param str side: 'buy' or 'sell'
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.has['createMarketOrderWithCost'] or (self.has['createMarketBuyOrderWithCost'] and self.has['createMarketSellOrderWithCost']):
             return self.create_order(symbol, 'market', side, cost, 1, params)
@@ -5629,7 +5628,7 @@ class Exchange(object):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.options['createMarketBuyOrderRequiresPrice'] or self.has['createMarketBuyOrderWithCost']:
             return self.create_order(symbol, 'market', 'buy', cost, 1, params)
@@ -5641,7 +5640,7 @@ class Exchange(object):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.options['createMarketSellOrderRequiresPrice'] or self.has['createMarketSellOrderWithCost']:
             return self.create_order(symbol, 'market', 'sell', cost, 1, params)
@@ -5654,7 +5653,7 @@ class Exchange(object):
         :param str side: 'buy' or 'sell'
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.has['createMarketOrderWithCostWs'] or (self.has['createMarketBuyOrderWithCostWs'] and self.has['createMarketSellOrderWithCostWs']):
             return self.create_order_ws(symbol, 'market', side, cost, 1, params)
@@ -5670,7 +5669,7 @@ class Exchange(object):
         :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
         :param float triggerPrice: the price to trigger the stop order, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createTriggerOrder() requires a triggerPrice argument')
@@ -5689,7 +5688,7 @@ class Exchange(object):
         :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
         :param float triggerPrice: the price to trigger the stop order, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createTriggerOrderWs() requires a triggerPrice argument')
@@ -5708,7 +5707,7 @@ class Exchange(object):
         :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
         :param float stopLossPrice: the price to trigger the stop loss order, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if stopLossPrice is None:
             raise ArgumentsRequired(self.id + ' createStopLossOrder() requires a stopLossPrice argument')
@@ -5727,7 +5726,7 @@ class Exchange(object):
         :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
         :param float stopLossPrice: the price to trigger the stop loss order, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if stopLossPrice is None:
             raise ArgumentsRequired(self.id + ' createStopLossOrderWs() requires a stopLossPrice argument')
@@ -5746,7 +5745,7 @@ class Exchange(object):
         :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
         :param float takeProfitPrice: the price to trigger the take profit order, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if takeProfitPrice is None:
             raise ArgumentsRequired(self.id + ' createTakeProfitOrder() requires a takeProfitPrice argument')
@@ -5765,7 +5764,7 @@ class Exchange(object):
         :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
         :param float takeProfitPrice: the price to trigger the take profit order, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if takeProfitPrice is None:
             raise ArgumentsRequired(self.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument')
@@ -5793,7 +5792,7 @@ class Exchange(object):
         :param float [params.stopLossLimitPrice]: *not available on all exchanges* stop loss for a limit stop loss order
         :param float [params.takeProfitAmount]: *not available on all exchanges* the amount for a take profit
         :param float [params.stopLossAmount]: *not available on all exchanges* the amount for a stop loss
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         params = self.set_take_profit_and_stop_loss_params(symbol, type, side, amount, price, takeProfit, stopLoss, params)
         if self.has['createOrderWithTakeProfitAndStopLoss']:
@@ -5857,7 +5856,7 @@ class Exchange(object):
         :param float [params.stopLossLimitPrice]: *not available on all exchanges* stop loss for a limit stop loss order
         :param float [params.takeProfitAmount]: *not available on all exchanges* the amount for a take profit
         :param float [params.stopLossAmount]: *not available on all exchanges* the amount for a stop loss
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         params = self.set_take_profit_and_stop_loss_params(symbol, type, side, amount, price, takeProfit, stopLoss, params)
         if self.has['createOrderWithTakeProfitAndStopLossWs']:
@@ -5882,7 +5881,7 @@ class Exchange(object):
         :param str clientOrderId: client order Id
         :param str symbol: unified symbol of the market to create an order in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         extendedParams = self.extend(params, {'clientOrderId': clientOrderId})
         return self.cancel_order('', symbol, extendedParams)
@@ -5899,7 +5898,7 @@ class Exchange(object):
         :param str[] clientOrderIds: client order Ids
         :param str symbol: unified symbol of the market to create an order in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         extendedParams = self.extend(params, {'clientOrderIds': clientOrderIds})
         return self.cancel_orders([], symbol, extendedParams)
@@ -6000,7 +5999,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
 
@@ -6879,7 +6878,7 @@ class Exchange(object):
         :param dict market: ccxt market
         :param int [since]: when defined, the response items are filtered to only include items after self timestamp
         :param int [limit]: limits the number of items in the response
-        :returns dict[]: an array of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict[]: an array of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         result = []
         for i in range(0, len(incomes)):
@@ -6911,7 +6910,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.has['fetchDepositsWithdrawals']:
             return self.fetch_deposits_withdrawals(code, since, limit, params)
@@ -7242,7 +7241,7 @@ class Exchange(object):
         :param dict market: ccxt market
         :param int [since]: when defined, the response items are filtered to only include items after self timestamp
         :param int [limit]: limits the number of items in the response
-        :returns dict[]: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
+        :returns dict[]: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
         result = []
         for i in range(0, len(liquidations)):
@@ -7425,7 +7424,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the position
         :param int [limit]: the maximum amount of candles to fetch, default=1000
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.has['fetchPositionsHistory']:
             positions = self.fetch_positions_history([symbol], since, limit, params)
@@ -7440,7 +7439,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the position
         :param int [limit]: the maximum amount of candles to fetch, default=1000
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')
 
@@ -7463,7 +7462,7 @@ class Exchange(object):
         :param str id: transfer id
         :param [str] code: unified currency code
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         raise NotSupported(self.id + ' fetchTransfer() is not supported yet')
 
@@ -7474,7 +7473,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the earliest transfer to fetch
         :param int [limit]: the maximum amount of transfers to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
 
@@ -7493,7 +7492,7 @@ class Exchange(object):
         watches a mark price for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         raise NotSupported(self.id + ' watchMarkPrice() is not supported yet')
 
@@ -7502,7 +7501,7 @@ class Exchange(object):
         watches the mark price for all markets
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         raise NotSupported(self.id + ' watchMarkPrices() is not supported yet')
 
@@ -7514,7 +7513,7 @@ class Exchange(object):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         raise NotSupported(self.id + ' withdrawWs() is not supported yet')
 
@@ -7523,7 +7522,7 @@ class Exchange(object):
         unWatches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         raise NotSupported(self.id + ' unWatchMyTrades() is not supported yet')
 
@@ -7532,7 +7531,7 @@ class Exchange(object):
         create a list of trade orders
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         raise NotSupported(self.id + ' createOrdersWs() is not supported yet')
 
@@ -7542,7 +7541,7 @@ class Exchange(object):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         raise NotSupported(self.id + ' fetchOrdersByStatusWs() is not supported yet')
 
@@ -7551,7 +7550,7 @@ class Exchange(object):
         unWatches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         raise NotSupported(self.id + ' unWatchBidsAsks() is not supported yet')
 

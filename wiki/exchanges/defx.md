@@ -59,7 +59,7 @@
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://api-docs.defx.com/#4b03bb3b-a0fa-4dfb-b96c-237bde0ce9e6  
 
@@ -123,7 +123,7 @@ defx.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api-docs.defx.com/#fe6f81d0-2f3a-4eee-976f-c8fc8f4c5d56  
 
@@ -144,7 +144,7 @@ defx.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api-docs.defx.com/#8c61cfbd-40d9-410e-b014-f5b36eba51d1  
 
@@ -190,7 +190,7 @@ defx.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://api-docs.defx.com/#5865452f-ea32-4f13-bfbc-03af5f5574fd  
 
@@ -213,7 +213,7 @@ defx.fetchTrades (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://api-docs.defx.com/#06b5b33c-2fc6-48de-896c-fc316f5871a7  
 
@@ -236,7 +236,7 @@ defx.fetchMyTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://api-docs.defx.com/#6c1a2971-8325-4e7d-9962-e0bfcaacf9c4  
 
@@ -259,7 +259,7 @@ defx.fetchOrderBook (symbol[, limit, params])
 fetches mark price for the market
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api-docs.defx.com/#12168192-4e7b-4458-a001-e8b80961f0b7  
 
@@ -281,7 +281,7 @@ defx.fetchMarkPrice (symbol[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://api-docs.defx.com/#12168192-4e7b-4458-a001-e8b80961f0b7  
 
@@ -302,7 +302,7 @@ defx.fetchFundingRate (symbol[, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://api-docs.defx.com/#26414338-14f7-40a1-b246-f8ea8571493f  
 
@@ -322,7 +322,7 @@ defx.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.defx.com/#ba222d88-8856-4d3c-87a9-7cec07bb2622  
 
@@ -349,7 +349,7 @@ defx.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.defx.com/#09186f23-f8d1-4993-acf4-9974d8a6ddb0  
 
@@ -371,7 +371,7 @@ defx.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.defx.com/#db5531da-3692-4a53-841f-6ad6495f823a  
 
@@ -392,7 +392,7 @@ defx.cancelAllOrders (symbol[, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api-docs.defx.com/#d89dbb86-9aba-4f59-ac5d-a97ff25ea80e  
 
@@ -413,7 +413,7 @@ defx.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api-docs.defx.com/#d89dbb86-9aba-4f59-ac5d-a97ff25ea80e  
 
@@ -434,7 +434,7 @@ defx.fetchPositions ([symbols, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.defx.com/#44f82dd5-26b3-4e1f-b4aa-88ceddd65237  
 
@@ -456,7 +456,7 @@ defx.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751  
 
@@ -480,7 +480,7 @@ defx.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751  
 
@@ -504,7 +504,7 @@ defx.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751  
 
@@ -528,7 +528,7 @@ defx.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751  
 
@@ -552,7 +552,7 @@ defx.fetchCanceledOrders (symbol[, since, limit, params])
 closes an open position for a market
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.defx.com/#b2c08074-c4d9-4e50-b637-0d6c498fa29e  
 
@@ -578,7 +578,7 @@ defx.closePosition (symbol[, side, params])
 closes all open positions for a market type
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api-docs.defx.com/#d6f63b43-100e-47a9-998c-8b6c0c72d204  
 
@@ -598,7 +598,7 @@ defx.closeAllPositions ([params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
 
 **See**: https://api-docs.defx.com/#38cc8974-794f-48c0-b959-db045a0ee565  
 
@@ -623,7 +623,7 @@ defx.fetchLedger ([code, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api-docs.defx.com/#2600f503-63ed-4672-b8f6-69ea5f03203b  
 
@@ -759,7 +759,7 @@ defx.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -780,7 +780,7 @@ defx.watchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -802,7 +802,7 @@ defx.unWatchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -823,7 +823,7 @@ defx.watchTickers ([symbols, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -844,7 +844,7 @@ defx.unWatchTickers ([symbols, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -865,7 +865,7 @@ defx.watchBidsAsks (symbols[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -888,7 +888,7 @@ defx.watchTrades (symbol[, since, limit, params])
 unWatches from the stream channel
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -909,7 +909,7 @@ defx.unWatchTrades (symbol[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -932,7 +932,7 @@ defx.watchTradesForSymbols (symbols[, since, limit, params])
 unWatches from the stream channel
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -953,7 +953,7 @@ defx.unWatchTradesForSymbols (symbols[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -975,7 +975,7 @@ defx.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -996,7 +996,7 @@ defx.unWatchOrderBook (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -1018,7 +1018,7 @@ defx.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9  
 
@@ -1039,7 +1039,7 @@ defx.unWatchOrderBookForSymbols (symbols[, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809  
 
@@ -1059,7 +1059,7 @@ defx.watchBalance ([params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809  
 

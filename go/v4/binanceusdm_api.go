@@ -7,3106 +7,3114 @@
 
 package ccxt
 
-func (this *BinanceusdmCore) SapiGetCopyTradingFuturesUserStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetCopyTradingFuturesUserStatus", args...)
+func (this *BinanceusdmCore) SapiGetCopyTradingFuturesUserStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetCopyTradingFuturesUserStatus", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetCopyTradingFuturesLeadSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetCopyTradingFuturesLeadSymbol", args...)
+func (this *BinanceusdmCore) SapiGetCopyTradingFuturesLeadSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetCopyTradingFuturesLeadSymbol", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSystemStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSystemStatus", args...)
+func (this *BinanceusdmCore) SapiGetSystemStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSystemStatus", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAccountSnapshot (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAccountSnapshot", args...)
+func (this *BinanceusdmCore) SapiGetAccountSnapshot(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccountSnapshot", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAccountInfo", args...)
+func (this *BinanceusdmCore) SapiGetAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccountInfo", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginAsset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginAsset", args...)
+func (this *BinanceusdmCore) SapiGetMarginAsset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginAsset", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginPair", args...)
+func (this *BinanceusdmCore) SapiGetMarginPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginPair", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginAllAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginAllAssets", args...)
+func (this *BinanceusdmCore) SapiGetMarginAllAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginAllAssets", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginAllPairs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginAllPairs", args...)
+func (this *BinanceusdmCore) SapiGetMarginAllPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginAllPairs", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginPriceIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginPriceIndex", args...)
+func (this *BinanceusdmCore) SapiGetMarginPriceIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginPriceIndex", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSpotDelistSchedule (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSpotDelistSchedule", args...)
+func (this *BinanceusdmCore) SapiGetSpotDelistSchedule(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSpotDelistSchedule", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAssetAssetDividend (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAssetAssetDividend", args...)
+func (this *BinanceusdmCore) SapiGetAssetAssetDividend(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAssetAssetDividend", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAssetDribblet (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAssetDribblet", args...)
+func (this *BinanceusdmCore) SapiGetAssetDribblet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAssetDribblet", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAssetTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAssetTransfer", args...)
+func (this *BinanceusdmCore) SapiGetAssetTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAssetTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAssetAssetDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAssetAssetDetail", args...)
+func (this *BinanceusdmCore) SapiGetAssetAssetDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAssetAssetDetail", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAssetTradeFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAssetTradeFee", args...)
+func (this *BinanceusdmCore) SapiGetAssetTradeFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAssetTradeFee", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAssetLedgerTransferCloudMiningQueryByPage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAssetLedgerTransferCloudMiningQueryByPage", args...)
+func (this *BinanceusdmCore) SapiGetAssetLedgerTransferCloudMiningQueryByPage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAssetLedgerTransferCloudMiningQueryByPage", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAssetConvertTransferQueryByPage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAssetConvertTransferQueryByPage", args...)
+func (this *BinanceusdmCore) SapiGetAssetConvertTransferQueryByPage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAssetConvertTransferQueryByPage", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAssetWalletBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAssetWalletBalance", args...)
+func (this *BinanceusdmCore) SapiGetAssetWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAssetWalletBalance", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAssetCustodyTransferHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAssetCustodyTransferHistory", args...)
+func (this *BinanceusdmCore) SapiGetAssetCustodyTransferHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAssetCustodyTransferHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginBorrowRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginBorrowRepay", args...)
+func (this *BinanceusdmCore) SapiGetMarginBorrowRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginBorrowRepay", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginLoan", args...)
+func (this *BinanceusdmCore) SapiGetMarginLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginLoan", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginRepay", args...)
+func (this *BinanceusdmCore) SapiGetMarginRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginRepay", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginAccount", args...)
+func (this *BinanceusdmCore) SapiGetMarginAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginTransfer", args...)
+func (this *BinanceusdmCore) SapiGetMarginTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginInterestHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginInterestHistory", args...)
+func (this *BinanceusdmCore) SapiGetMarginInterestHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginInterestHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginForceLiquidationRec (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginForceLiquidationRec", args...)
+func (this *BinanceusdmCore) SapiGetMarginForceLiquidationRec(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginForceLiquidationRec", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginOrder", args...)
+func (this *BinanceusdmCore) SapiGetMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginOrder", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginOpenOrders", args...)
+func (this *BinanceusdmCore) SapiGetMarginOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginAllOrders", args...)
+func (this *BinanceusdmCore) SapiGetMarginAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginAllOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginMyTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginMyTrades", args...)
+func (this *BinanceusdmCore) SapiGetMarginMyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginMyTrades", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginMaxBorrowable (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginMaxBorrowable", args...)
+func (this *BinanceusdmCore) SapiGetMarginMaxBorrowable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginMaxBorrowable", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginMaxTransferable (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginMaxTransferable", args...)
+func (this *BinanceusdmCore) SapiGetMarginMaxTransferable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginMaxTransferable", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginTradeCoeff (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginTradeCoeff", args...)
+func (this *BinanceusdmCore) SapiGetMarginTradeCoeff(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginTradeCoeff", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginIsolatedTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginIsolatedTransfer", args...)
+func (this *BinanceusdmCore) SapiGetMarginIsolatedTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginIsolatedTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginIsolatedAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginIsolatedAccount", args...)
+func (this *BinanceusdmCore) SapiGetMarginIsolatedAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginIsolatedAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginIsolatedPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginIsolatedPair", args...)
+func (this *BinanceusdmCore) SapiGetMarginIsolatedPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginIsolatedPair", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginIsolatedAllPairs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginIsolatedAllPairs", args...)
+func (this *BinanceusdmCore) SapiGetMarginIsolatedAllPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginIsolatedAllPairs", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginIsolatedAccountLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginIsolatedAccountLimit", args...)
+func (this *BinanceusdmCore) SapiGetMarginIsolatedAccountLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginIsolatedAccountLimit", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginInterestRateHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginInterestRateHistory", args...)
+func (this *BinanceusdmCore) SapiGetMarginInterestRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginInterestRateHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginOrderList", args...)
+func (this *BinanceusdmCore) SapiGetMarginOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginOrderList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginAllOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginAllOrderList", args...)
+func (this *BinanceusdmCore) SapiGetMarginAllOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginAllOrderList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginOpenOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginOpenOrderList", args...)
+func (this *BinanceusdmCore) SapiGetMarginOpenOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginOpenOrderList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginCrossMarginData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginCrossMarginData", args...)
+func (this *BinanceusdmCore) SapiGetMarginCrossMarginData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginCrossMarginData", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginIsolatedMarginData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginIsolatedMarginData", args...)
+func (this *BinanceusdmCore) SapiGetMarginIsolatedMarginData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginIsolatedMarginData", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginIsolatedMarginTier (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginIsolatedMarginTier", args...)
+func (this *BinanceusdmCore) SapiGetMarginIsolatedMarginTier(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginIsolatedMarginTier", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginRateLimitOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginRateLimitOrder", args...)
+func (this *BinanceusdmCore) SapiGetMarginRateLimitOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginRateLimitOrder", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginDribblet (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginDribblet", args...)
+func (this *BinanceusdmCore) SapiGetMarginDribblet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginDribblet", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginDust (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginDust", args...)
+func (this *BinanceusdmCore) SapiGetMarginDust(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginDust", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginCrossMarginCollateralRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginCrossMarginCollateralRatio", args...)
+func (this *BinanceusdmCore) SapiGetMarginCrossMarginCollateralRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginCrossMarginCollateralRatio", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginExchangeSmallLiability (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginExchangeSmallLiability", args...)
+func (this *BinanceusdmCore) SapiGetMarginExchangeSmallLiability(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginExchangeSmallLiability", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginExchangeSmallLiabilityHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginExchangeSmallLiabilityHistory", args...)
+func (this *BinanceusdmCore) SapiGetMarginExchangeSmallLiabilityHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginExchangeSmallLiabilityHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginNextHourlyInterestRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginNextHourlyInterestRate", args...)
+func (this *BinanceusdmCore) SapiGetMarginNextHourlyInterestRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginNextHourlyInterestRate", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginCapitalFlow (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginCapitalFlow", args...)
+func (this *BinanceusdmCore) SapiGetMarginCapitalFlow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginCapitalFlow", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginDelistSchedule (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginDelistSchedule", args...)
+func (this *BinanceusdmCore) SapiGetMarginDelistSchedule(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginDelistSchedule", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginAvailableInventory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginAvailableInventory", args...)
+func (this *BinanceusdmCore) SapiGetMarginAvailableInventory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginAvailableInventory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMarginLeverageBracket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMarginLeverageBracket", args...)
+func (this *BinanceusdmCore) SapiGetMarginLeverageBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMarginLeverageBracket", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanVipLoanableData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanVipLoanableData", args...)
+func (this *BinanceusdmCore) SapiGetLoanVipLoanableData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanVipLoanableData", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanVipCollateralData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanVipCollateralData", args...)
+func (this *BinanceusdmCore) SapiGetLoanVipCollateralData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanVipCollateralData", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanVipRequestData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanVipRequestData", args...)
+func (this *BinanceusdmCore) SapiGetLoanVipRequestData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanVipRequestData", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanVipRequestInterestRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanVipRequestInterestRate", args...)
+func (this *BinanceusdmCore) SapiGetLoanVipRequestInterestRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanVipRequestInterestRate", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanIncome (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanIncome", args...)
+func (this *BinanceusdmCore) SapiGetLoanIncome(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanIncome", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanOngoingOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanOngoingOrders", args...)
+func (this *BinanceusdmCore) SapiGetLoanOngoingOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanOngoingOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanLtvAdjustmentHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanLtvAdjustmentHistory", args...)
+func (this *BinanceusdmCore) SapiGetLoanLtvAdjustmentHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanLtvAdjustmentHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanBorrowHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanBorrowHistory", args...)
+func (this *BinanceusdmCore) SapiGetLoanBorrowHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanBorrowHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanRepayHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanRepayHistory", args...)
+func (this *BinanceusdmCore) SapiGetLoanRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanRepayHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanLoanableData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanLoanableData", args...)
+func (this *BinanceusdmCore) SapiGetLoanLoanableData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanLoanableData", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanCollateralData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanCollateralData", args...)
+func (this *BinanceusdmCore) SapiGetLoanCollateralData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanCollateralData", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanRepayCollateralRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanRepayCollateralRate", args...)
+func (this *BinanceusdmCore) SapiGetLoanRepayCollateralRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanRepayCollateralRate", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanFlexibleOngoingOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanFlexibleOngoingOrders", args...)
+func (this *BinanceusdmCore) SapiGetLoanFlexibleOngoingOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanFlexibleOngoingOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanFlexibleBorrowHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanFlexibleBorrowHistory", args...)
+func (this *BinanceusdmCore) SapiGetLoanFlexibleBorrowHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanFlexibleBorrowHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanFlexibleRepayHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanFlexibleRepayHistory", args...)
+func (this *BinanceusdmCore) SapiGetLoanFlexibleRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanFlexibleRepayHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanFlexibleLtvAdjustmentHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanFlexibleLtvAdjustmentHistory", args...)
+func (this *BinanceusdmCore) SapiGetLoanFlexibleLtvAdjustmentHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanFlexibleLtvAdjustmentHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanVipOngoingOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanVipOngoingOrders", args...)
+func (this *BinanceusdmCore) SapiGetLoanVipOngoingOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanVipOngoingOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanVipRepayHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanVipRepayHistory", args...)
+func (this *BinanceusdmCore) SapiGetLoanVipRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanVipRepayHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLoanVipCollateralAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLoanVipCollateralAccount", args...)
+func (this *BinanceusdmCore) SapiGetLoanVipCollateralAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLoanVipCollateralAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetFiatOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetFiatOrders", args...)
+func (this *BinanceusdmCore) SapiGetFiatOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetFiatOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetFiatPayments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetFiatPayments", args...)
+func (this *BinanceusdmCore) SapiGetFiatPayments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetFiatPayments", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetFuturesTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetFuturesTransfer", args...)
+func (this *BinanceusdmCore) SapiGetFuturesTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetFuturesTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetFuturesHistDataLink (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetFuturesHistDataLink", args...)
+func (this *BinanceusdmCore) SapiGetFuturesHistDataLink(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetFuturesHistDataLink", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetRebateTaxQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetRebateTaxQuery", args...)
+func (this *BinanceusdmCore) SapiGetRebateTaxQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetRebateTaxQuery", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetCapitalConfigGetall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetCapitalConfigGetall", args...)
+func (this *BinanceusdmCore) SapiGetCapitalConfigGetall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetCapitalConfigGetall", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetCapitalDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetCapitalDepositAddress", args...)
+func (this *BinanceusdmCore) SapiGetCapitalDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetCapitalDepositAddress", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetCapitalDepositAddressList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetCapitalDepositAddressList", args...)
+func (this *BinanceusdmCore) SapiGetCapitalDepositAddressList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetCapitalDepositAddressList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetCapitalDepositHisrec (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetCapitalDepositHisrec", args...)
+func (this *BinanceusdmCore) SapiGetCapitalDepositHisrec(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetCapitalDepositHisrec", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetCapitalDepositSubAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetCapitalDepositSubAddress", args...)
+func (this *BinanceusdmCore) SapiGetCapitalDepositSubAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetCapitalDepositSubAddress", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetCapitalDepositSubHisrec (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetCapitalDepositSubHisrec", args...)
+func (this *BinanceusdmCore) SapiGetCapitalDepositSubHisrec(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetCapitalDepositSubHisrec", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetCapitalWithdrawHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetCapitalWithdrawHistory", args...)
+func (this *BinanceusdmCore) SapiGetCapitalWithdrawHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetCapitalWithdrawHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetCapitalWithdrawAddressList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetCapitalWithdrawAddressList", args...)
+func (this *BinanceusdmCore) SapiGetCapitalWithdrawAddressList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetCapitalWithdrawAddressList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetCapitalContractConvertibleCoins (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetCapitalContractConvertibleCoins", args...)
+func (this *BinanceusdmCore) SapiGetCapitalContractConvertibleCoins(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetCapitalContractConvertibleCoins", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetConvertTradeFlow (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetConvertTradeFlow", args...)
+func (this *BinanceusdmCore) SapiGetConvertTradeFlow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetConvertTradeFlow", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetConvertExchangeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetConvertExchangeInfo", args...)
+func (this *BinanceusdmCore) SapiGetConvertExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetConvertExchangeInfo", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetConvertAssetInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetConvertAssetInfo", args...)
+func (this *BinanceusdmCore) SapiGetConvertAssetInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetConvertAssetInfo", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetConvertOrderStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetConvertOrderStatus", args...)
+func (this *BinanceusdmCore) SapiGetConvertOrderStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetConvertOrderStatus", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetConvertLimitQueryOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetConvertLimitQueryOpenOrders", args...)
+func (this *BinanceusdmCore) SapiGetConvertLimitQueryOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetConvertLimitQueryOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAccountStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAccountStatus", args...)
+func (this *BinanceusdmCore) SapiGetAccountStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccountStatus", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAccountApiTradingStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAccountApiTradingStatus", args...)
+func (this *BinanceusdmCore) SapiGetAccountApiTradingStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccountApiTradingStatus", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAccountApiRestrictionsIpRestriction (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAccountApiRestrictionsIpRestriction", args...)
+func (this *BinanceusdmCore) SapiGetAccountApiRestrictionsIpRestriction(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccountApiRestrictionsIpRestriction", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBnbBurn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBnbBurn", args...)
+func (this *BinanceusdmCore) SapiGetBnbBurn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBnbBurn", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountFuturesAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountFuturesAccount", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountFuturesAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountFuturesAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountFuturesAccountSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountFuturesAccountSummary", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountFuturesAccountSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountFuturesAccountSummary", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountFuturesPositionRisk (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountFuturesPositionRisk", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountFuturesPositionRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountFuturesPositionRisk", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountFuturesInternalTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountFuturesInternalTransfer", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountFuturesInternalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountFuturesInternalTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountList", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountMarginAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountMarginAccount", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountMarginAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountMarginAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountMarginAccountSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountMarginAccountSummary", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountMarginAccountSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountMarginAccountSummary", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountSpotSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountSpotSummary", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountSpotSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountSpotSummary", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountStatus", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountStatus", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountSubTransferHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountSubTransferHistory", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountSubTransferHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountSubTransferHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountTransferSubUserHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountTransferSubUserHistory", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountTransferSubUserHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountTransferSubUserHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountUniversalTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountUniversalTransfer", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountUniversalTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountTransactionStatistics (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountTransactionStatistics", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountTransactionStatistics(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountTransactionStatistics", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSubAccountSubAccountApiIpRestriction (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSubAccountSubAccountApiIpRestriction", args...)
+func (this *BinanceusdmCore) SapiGetSubAccountSubAccountApiIpRestriction(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSubAccountSubAccountApiIpRestriction", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetManagedSubaccountAsset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetManagedSubaccountAsset", args...)
+func (this *BinanceusdmCore) SapiGetManagedSubaccountAsset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetManagedSubaccountAsset", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetManagedSubaccountAccountSnapshot (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetManagedSubaccountAccountSnapshot", args...)
+func (this *BinanceusdmCore) SapiGetManagedSubaccountAccountSnapshot(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetManagedSubaccountAccountSnapshot", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetManagedSubaccountQueryTransLogForInvestor (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLogForInvestor", args...)
+func (this *BinanceusdmCore) SapiGetManagedSubaccountQueryTransLogForInvestor(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLogForInvestor", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetManagedSubaccountQueryTransLogForTradeParent (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLogForTradeParent", args...)
+func (this *BinanceusdmCore) SapiGetManagedSubaccountQueryTransLogForTradeParent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLogForTradeParent", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetManagedSubaccountFetchFutureAsset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetManagedSubaccountFetchFutureAsset", args...)
+func (this *BinanceusdmCore) SapiGetManagedSubaccountFetchFutureAsset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetManagedSubaccountFetchFutureAsset", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetManagedSubaccountMarginAsset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetManagedSubaccountMarginAsset", args...)
+func (this *BinanceusdmCore) SapiGetManagedSubaccountMarginAsset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetManagedSubaccountMarginAsset", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetManagedSubaccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetManagedSubaccountInfo", args...)
+func (this *BinanceusdmCore) SapiGetManagedSubaccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetManagedSubaccountInfo", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetManagedSubaccountDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetManagedSubaccountDepositAddress", args...)
+func (this *BinanceusdmCore) SapiGetManagedSubaccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetManagedSubaccountDepositAddress", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetManagedSubaccountQueryTransLog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLog", args...)
+func (this *BinanceusdmCore) SapiGetManagedSubaccountQueryTransLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLog", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingDailyProductList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingDailyProductList", args...)
+func (this *BinanceusdmCore) SapiGetLendingDailyProductList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingDailyProductList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingDailyUserLeftQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingDailyUserLeftQuota", args...)
+func (this *BinanceusdmCore) SapiGetLendingDailyUserLeftQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingDailyUserLeftQuota", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingDailyUserRedemptionQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingDailyUserRedemptionQuota", args...)
+func (this *BinanceusdmCore) SapiGetLendingDailyUserRedemptionQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingDailyUserRedemptionQuota", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingDailyTokenPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingDailyTokenPosition", args...)
+func (this *BinanceusdmCore) SapiGetLendingDailyTokenPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingDailyTokenPosition", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingUnionAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingUnionAccount", args...)
+func (this *BinanceusdmCore) SapiGetLendingUnionAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingUnionAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingUnionPurchaseRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingUnionPurchaseRecord", args...)
+func (this *BinanceusdmCore) SapiGetLendingUnionPurchaseRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingUnionPurchaseRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingUnionRedemptionRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingUnionRedemptionRecord", args...)
+func (this *BinanceusdmCore) SapiGetLendingUnionRedemptionRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingUnionRedemptionRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingUnionInterestHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingUnionInterestHistory", args...)
+func (this *BinanceusdmCore) SapiGetLendingUnionInterestHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingUnionInterestHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingProjectList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingProjectList", args...)
+func (this *BinanceusdmCore) SapiGetLendingProjectList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingProjectList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingProjectPositionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingProjectPositionList", args...)
+func (this *BinanceusdmCore) SapiGetLendingProjectPositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingProjectPositionList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetEthStakingEthHistoryStakingHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetEthStakingEthHistoryStakingHistory", args...)
+func (this *BinanceusdmCore) SapiGetEthStakingEthHistoryStakingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetEthStakingEthHistoryStakingHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetEthStakingEthHistoryRedemptionHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetEthStakingEthHistoryRedemptionHistory", args...)
+func (this *BinanceusdmCore) SapiGetEthStakingEthHistoryRedemptionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetEthStakingEthHistoryRedemptionHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetEthStakingEthHistoryRewardsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetEthStakingEthHistoryRewardsHistory", args...)
+func (this *BinanceusdmCore) SapiGetEthStakingEthHistoryRewardsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetEthStakingEthHistoryRewardsHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetEthStakingEthQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetEthStakingEthQuota", args...)
+func (this *BinanceusdmCore) SapiGetEthStakingEthQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetEthStakingEthQuota", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetEthStakingEthHistoryRateHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetEthStakingEthHistoryRateHistory", args...)
+func (this *BinanceusdmCore) SapiGetEthStakingEthHistoryRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetEthStakingEthHistoryRateHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetEthStakingAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetEthStakingAccount", args...)
+func (this *BinanceusdmCore) SapiGetEthStakingAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetEthStakingAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetEthStakingWbethHistoryWrapHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetEthStakingWbethHistoryWrapHistory", args...)
+func (this *BinanceusdmCore) SapiGetEthStakingWbethHistoryWrapHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetEthStakingWbethHistoryWrapHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetEthStakingWbethHistoryUnwrapHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetEthStakingWbethHistoryUnwrapHistory", args...)
+func (this *BinanceusdmCore) SapiGetEthStakingWbethHistoryUnwrapHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetEthStakingWbethHistoryUnwrapHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetEthStakingEthHistoryWbethRewardsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetEthStakingEthHistoryWbethRewardsHistory", args...)
+func (this *BinanceusdmCore) SapiGetEthStakingEthHistoryWbethRewardsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetEthStakingEthHistoryWbethRewardsHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSolStakingSolHistoryStakingHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSolStakingSolHistoryStakingHistory", args...)
+func (this *BinanceusdmCore) SapiGetSolStakingSolHistoryStakingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSolStakingSolHistoryStakingHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSolStakingSolHistoryRedemptionHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSolStakingSolHistoryRedemptionHistory", args...)
+func (this *BinanceusdmCore) SapiGetSolStakingSolHistoryRedemptionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSolStakingSolHistoryRedemptionHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSolStakingSolHistoryBnsolRewardsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSolStakingSolHistoryBnsolRewardsHistory", args...)
+func (this *BinanceusdmCore) SapiGetSolStakingSolHistoryBnsolRewardsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSolStakingSolHistoryBnsolRewardsHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSolStakingSolHistoryRateHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSolStakingSolHistoryRateHistory", args...)
+func (this *BinanceusdmCore) SapiGetSolStakingSolHistoryRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSolStakingSolHistoryRateHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSolStakingAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSolStakingAccount", args...)
+func (this *BinanceusdmCore) SapiGetSolStakingAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSolStakingAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSolStakingSolQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSolStakingSolQuota", args...)
+func (this *BinanceusdmCore) SapiGetSolStakingSolQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSolStakingSolQuota", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMiningPubAlgoList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMiningPubAlgoList", args...)
+func (this *BinanceusdmCore) SapiGetMiningPubAlgoList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMiningPubAlgoList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMiningPubCoinList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMiningPubCoinList", args...)
+func (this *BinanceusdmCore) SapiGetMiningPubCoinList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMiningPubCoinList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMiningWorkerDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMiningWorkerDetail", args...)
+func (this *BinanceusdmCore) SapiGetMiningWorkerDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMiningWorkerDetail", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMiningWorkerList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMiningWorkerList", args...)
+func (this *BinanceusdmCore) SapiGetMiningWorkerList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMiningWorkerList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMiningPaymentList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMiningPaymentList", args...)
+func (this *BinanceusdmCore) SapiGetMiningPaymentList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMiningPaymentList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMiningStatisticsUserStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMiningStatisticsUserStatus", args...)
+func (this *BinanceusdmCore) SapiGetMiningStatisticsUserStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMiningStatisticsUserStatus", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMiningStatisticsUserList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMiningStatisticsUserList", args...)
+func (this *BinanceusdmCore) SapiGetMiningStatisticsUserList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMiningStatisticsUserList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetMiningPaymentUid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetMiningPaymentUid", args...)
+func (this *BinanceusdmCore) SapiGetMiningPaymentUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetMiningPaymentUid", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBswapPools (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBswapPools", args...)
+func (this *BinanceusdmCore) SapiGetBswapPools(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBswapPools", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBswapLiquidity (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBswapLiquidity", args...)
+func (this *BinanceusdmCore) SapiGetBswapLiquidity(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBswapLiquidity", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBswapLiquidityOps (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBswapLiquidityOps", args...)
+func (this *BinanceusdmCore) SapiGetBswapLiquidityOps(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBswapLiquidityOps", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBswapQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBswapQuote", args...)
+func (this *BinanceusdmCore) SapiGetBswapQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBswapQuote", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBswapSwap (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBswapSwap", args...)
+func (this *BinanceusdmCore) SapiGetBswapSwap(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBswapSwap", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBswapPoolConfigure (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBswapPoolConfigure", args...)
+func (this *BinanceusdmCore) SapiGetBswapPoolConfigure(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBswapPoolConfigure", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBswapAddLiquidityPreview (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBswapAddLiquidityPreview", args...)
+func (this *BinanceusdmCore) SapiGetBswapAddLiquidityPreview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBswapAddLiquidityPreview", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBswapRemoveLiquidityPreview (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBswapRemoveLiquidityPreview", args...)
+func (this *BinanceusdmCore) SapiGetBswapRemoveLiquidityPreview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBswapRemoveLiquidityPreview", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBswapUnclaimedRewards (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBswapUnclaimedRewards", args...)
+func (this *BinanceusdmCore) SapiGetBswapUnclaimedRewards(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBswapUnclaimedRewards", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBswapClaimedHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBswapClaimedHistory", args...)
+func (this *BinanceusdmCore) SapiGetBswapClaimedHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBswapClaimedHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBlvtTokenInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBlvtTokenInfo", args...)
+func (this *BinanceusdmCore) SapiGetBlvtTokenInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBlvtTokenInfo", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBlvtSubscribeRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBlvtSubscribeRecord", args...)
+func (this *BinanceusdmCore) SapiGetBlvtSubscribeRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBlvtSubscribeRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBlvtRedeemRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBlvtRedeemRecord", args...)
+func (this *BinanceusdmCore) SapiGetBlvtRedeemRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBlvtRedeemRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBlvtUserLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBlvtUserLimit", args...)
+func (this *BinanceusdmCore) SapiGetBlvtUserLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBlvtUserLimit", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetApiReferralIfNewUser (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetApiReferralIfNewUser", args...)
+func (this *BinanceusdmCore) SapiGetApiReferralIfNewUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetApiReferralIfNewUser", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetApiReferralCustomization (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetApiReferralCustomization", args...)
+func (this *BinanceusdmCore) SapiGetApiReferralCustomization(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetApiReferralCustomization", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetApiReferralUserCustomization (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetApiReferralUserCustomization", args...)
+func (this *BinanceusdmCore) SapiGetApiReferralUserCustomization(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetApiReferralUserCustomization", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetApiReferralRebateRecentRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetApiReferralRebateRecentRecord", args...)
+func (this *BinanceusdmCore) SapiGetApiReferralRebateRecentRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetApiReferralRebateRecentRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetApiReferralRebateHistoricalRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetApiReferralRebateHistoricalRecord", args...)
+func (this *BinanceusdmCore) SapiGetApiReferralRebateHistoricalRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetApiReferralRebateHistoricalRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetApiReferralKickbackRecentRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetApiReferralKickbackRecentRecord", args...)
+func (this *BinanceusdmCore) SapiGetApiReferralKickbackRecentRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetApiReferralKickbackRecentRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetApiReferralKickbackHistoricalRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetApiReferralKickbackHistoricalRecord", args...)
+func (this *BinanceusdmCore) SapiGetApiReferralKickbackHistoricalRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetApiReferralKickbackHistoricalRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerSubAccountApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerSubAccountApi", args...)
+func (this *BinanceusdmCore) SapiGetBrokerSubAccountApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerSubAccountApi", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerSubAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerSubAccount", args...)
+func (this *BinanceusdmCore) SapiGetBrokerSubAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerSubAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerSubAccountApiCommissionFutures (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerSubAccountApiCommissionFutures", args...)
+func (this *BinanceusdmCore) SapiGetBrokerSubAccountApiCommissionFutures(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerSubAccountApiCommissionFutures", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerSubAccountApiCommissionCoinFutures (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerSubAccountApiCommissionCoinFutures", args...)
+func (this *BinanceusdmCore) SapiGetBrokerSubAccountApiCommissionCoinFutures(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerSubAccountApiCommissionCoinFutures", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerInfo", args...)
+func (this *BinanceusdmCore) SapiGetBrokerInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerInfo", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerTransfer", args...)
+func (this *BinanceusdmCore) SapiGetBrokerTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerTransferFutures (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerTransferFutures", args...)
+func (this *BinanceusdmCore) SapiGetBrokerTransferFutures(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerTransferFutures", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerRebateRecentRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerRebateRecentRecord", args...)
+func (this *BinanceusdmCore) SapiGetBrokerRebateRecentRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerRebateRecentRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerRebateHistoricalRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerRebateHistoricalRecord", args...)
+func (this *BinanceusdmCore) SapiGetBrokerRebateHistoricalRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerRebateHistoricalRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerSubAccountBnbBurnStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerSubAccountBnbBurnStatus", args...)
+func (this *BinanceusdmCore) SapiGetBrokerSubAccountBnbBurnStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerSubAccountBnbBurnStatus", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerSubAccountDepositHist (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerSubAccountDepositHist", args...)
+func (this *BinanceusdmCore) SapiGetBrokerSubAccountDepositHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerSubAccountDepositHist", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerSubAccountSpotSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerSubAccountSpotSummary", args...)
+func (this *BinanceusdmCore) SapiGetBrokerSubAccountSpotSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerSubAccountSpotSummary", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerSubAccountMarginSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerSubAccountMarginSummary", args...)
+func (this *BinanceusdmCore) SapiGetBrokerSubAccountMarginSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerSubAccountMarginSummary", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerSubAccountFuturesSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerSubAccountFuturesSummary", args...)
+func (this *BinanceusdmCore) SapiGetBrokerSubAccountFuturesSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerSubAccountFuturesSummary", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerRebateFuturesRecentRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerRebateFuturesRecentRecord", args...)
+func (this *BinanceusdmCore) SapiGetBrokerRebateFuturesRecentRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerRebateFuturesRecentRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerSubAccountApiIpRestriction (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerSubAccountApiIpRestriction", args...)
+func (this *BinanceusdmCore) SapiGetBrokerSubAccountApiIpRestriction(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerSubAccountApiIpRestriction", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetBrokerUniversalTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetBrokerUniversalTransfer", args...)
+func (this *BinanceusdmCore) SapiGetBrokerUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetBrokerUniversalTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAccountApiRestrictions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAccountApiRestrictions", args...)
+func (this *BinanceusdmCore) SapiGetAccountApiRestrictions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccountApiRestrictions", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetC2cOrderMatchListUserOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetC2cOrderMatchListUserOrderHistory", args...)
+func (this *BinanceusdmCore) SapiGetC2cOrderMatchListUserOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetC2cOrderMatchListUserOrderHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetNftHistoryTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetNftHistoryTransactions", args...)
+func (this *BinanceusdmCore) SapiGetNftHistoryTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetNftHistoryTransactions", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetNftHistoryDeposit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetNftHistoryDeposit", args...)
+func (this *BinanceusdmCore) SapiGetNftHistoryDeposit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetNftHistoryDeposit", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetNftHistoryWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetNftHistoryWithdraw", args...)
+func (this *BinanceusdmCore) SapiGetNftHistoryWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetNftHistoryWithdraw", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetNftUserGetAsset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetNftUserGetAsset", args...)
+func (this *BinanceusdmCore) SapiGetNftUserGetAsset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetNftUserGetAsset", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPayTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPayTransactions", args...)
+func (this *BinanceusdmCore) SapiGetPayTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPayTransactions", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetGiftcardVerify (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetGiftcardVerify", args...)
+func (this *BinanceusdmCore) SapiGetGiftcardVerify(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetGiftcardVerify", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetGiftcardCryptographyRsaPublicKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetGiftcardCryptographyRsaPublicKey", args...)
+func (this *BinanceusdmCore) SapiGetGiftcardCryptographyRsaPublicKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetGiftcardCryptographyRsaPublicKey", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetGiftcardBuyCodeTokenLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetGiftcardBuyCodeTokenLimit", args...)
+func (this *BinanceusdmCore) SapiGetGiftcardBuyCodeTokenLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetGiftcardBuyCodeTokenLimit", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAlgoSpotOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAlgoSpotOpenOrders", args...)
+func (this *BinanceusdmCore) SapiGetAlgoSpotOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAlgoSpotOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAlgoSpotHistoricalOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAlgoSpotHistoricalOrders", args...)
+func (this *BinanceusdmCore) SapiGetAlgoSpotHistoricalOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAlgoSpotHistoricalOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAlgoSpotSubOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAlgoSpotSubOrders", args...)
+func (this *BinanceusdmCore) SapiGetAlgoSpotSubOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAlgoSpotSubOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAlgoFuturesOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAlgoFuturesOpenOrders", args...)
+func (this *BinanceusdmCore) SapiGetAlgoFuturesOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAlgoFuturesOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAlgoFuturesHistoricalOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAlgoFuturesHistoricalOrders", args...)
+func (this *BinanceusdmCore) SapiGetAlgoFuturesHistoricalOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAlgoFuturesHistoricalOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetAlgoFuturesSubOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetAlgoFuturesSubOrders", args...)
+func (this *BinanceusdmCore) SapiGetAlgoFuturesSubOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAlgoFuturesSubOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPortfolioAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPortfolioAccount", args...)
+func (this *BinanceusdmCore) SapiGetPortfolioAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPortfolioCollateralRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPortfolioCollateralRate", args...)
+func (this *BinanceusdmCore) SapiGetPortfolioCollateralRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioCollateralRate", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPortfolioPmLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPortfolioPmLoan", args...)
+func (this *BinanceusdmCore) SapiGetPortfolioPmLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioPmLoan", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPortfolioInterestHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPortfolioInterestHistory", args...)
+func (this *BinanceusdmCore) SapiGetPortfolioInterestHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioInterestHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPortfolioAssetIndexPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPortfolioAssetIndexPrice", args...)
+func (this *BinanceusdmCore) SapiGetPortfolioAssetIndexPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioAssetIndexPrice", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPortfolioRepayFuturesSwitch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPortfolioRepayFuturesSwitch", args...)
+func (this *BinanceusdmCore) SapiGetPortfolioRepayFuturesSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioRepayFuturesSwitch", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPortfolioMarginAssetLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPortfolioMarginAssetLeverage", args...)
+func (this *BinanceusdmCore) SapiGetPortfolioMarginAssetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioMarginAssetLeverage", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPortfolioBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPortfolioBalance", args...)
+func (this *BinanceusdmCore) SapiGetPortfolioBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioBalance", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPortfolioNegativeBalanceExchangeRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPortfolioNegativeBalanceExchangeRecord", args...)
+func (this *BinanceusdmCore) SapiGetPortfolioNegativeBalanceExchangeRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioNegativeBalanceExchangeRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPortfolioPmloanHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPortfolioPmloanHistory", args...)
+func (this *BinanceusdmCore) SapiGetPortfolioPmloanHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioPmloanHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetPortfolioEarnAssetBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetPortfolioEarnAssetBalance", args...)
+func (this *BinanceusdmCore) SapiGetPortfolioEarnAssetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioEarnAssetBalance", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetStakingProductList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetStakingProductList", args...)
+func (this *BinanceusdmCore) SapiGetStakingProductList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetStakingProductList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetStakingPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetStakingPosition", args...)
+func (this *BinanceusdmCore) SapiGetStakingPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetStakingPosition", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetStakingStakingRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetStakingStakingRecord", args...)
+func (this *BinanceusdmCore) SapiGetStakingStakingRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetStakingStakingRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetStakingPersonalLeftQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetStakingPersonalLeftQuota", args...)
+func (this *BinanceusdmCore) SapiGetStakingPersonalLeftQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetStakingPersonalLeftQuota", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestTargetAssetList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestTargetAssetList", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestTargetAssetList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestTargetAssetList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestTargetAssetRoiList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestTargetAssetRoiList", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestTargetAssetRoiList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestTargetAssetRoiList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestAllAsset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestAllAsset", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestAllAsset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestAllAsset", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestSourceAssetList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestSourceAssetList", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestSourceAssetList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestSourceAssetList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestPlanList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestPlanList", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestPlanList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestPlanList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestPlanId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestPlanId", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestPlanId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestPlanId", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestHistoryList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestHistoryList", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestHistoryList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestHistoryList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestIndexInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestIndexInfo", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestIndexInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestIndexInfo", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestIndexUserSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestIndexUserSummary", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestIndexUserSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestIndexUserSummary", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestOneOffStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestOneOffStatus", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestOneOffStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestOneOffStatus", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestRedeemHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestRedeemHistory", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestRedeemHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestRedeemHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetLendingAutoInvestRebalanceHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetLendingAutoInvestRebalanceHistory", args...)
+func (this *BinanceusdmCore) SapiGetLendingAutoInvestRebalanceHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetLendingAutoInvestRebalanceHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnFlexibleList", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnLockedList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnLockedList", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnLockedList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnLockedList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnFlexiblePersonalLeftQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnFlexiblePersonalLeftQuota", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnFlexiblePersonalLeftQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnFlexiblePersonalLeftQuota", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnLockedPersonalLeftQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnLockedPersonalLeftQuota", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnLockedPersonalLeftQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnLockedPersonalLeftQuota", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleSubscriptionPreview (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnFlexibleSubscriptionPreview", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleSubscriptionPreview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleSubscriptionPreview", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnLockedSubscriptionPreview (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnLockedSubscriptionPreview", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnLockedSubscriptionPreview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnLockedSubscriptionPreview", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleHistoryRateHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRateHistory", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleHistoryRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRateHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnFlexiblePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnFlexiblePosition", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnFlexiblePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnFlexiblePosition", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnLockedPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnLockedPosition", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnLockedPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnLockedPosition", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnAccount", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleHistorySubscriptionRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistorySubscriptionRecord", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleHistorySubscriptionRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistorySubscriptionRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnLockedHistorySubscriptionRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnLockedHistorySubscriptionRecord", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnLockedHistorySubscriptionRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnLockedHistorySubscriptionRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleHistoryRedemptionRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRedemptionRecord", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleHistoryRedemptionRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRedemptionRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnLockedHistoryRedemptionRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnLockedHistoryRedemptionRecord", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnLockedHistoryRedemptionRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnLockedHistoryRedemptionRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleHistoryRewardsRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRewardsRecord", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleHistoryRewardsRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRewardsRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnLockedHistoryRewardsRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnLockedHistoryRewardsRecord", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnLockedHistoryRewardsRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnLockedHistoryRewardsRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleHistoryCollateralRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryCollateralRecord", args...)
+func (this *BinanceusdmCore) SapiGetSimpleEarnFlexibleHistoryCollateralRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryCollateralRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetDciProductList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetDciProductList", args...)
+func (this *BinanceusdmCore) SapiGetDciProductList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetDciProductList", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetDciProductPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetDciProductPositions", args...)
+func (this *BinanceusdmCore) SapiGetDciProductPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetDciProductPositions", args...)
 }
 
-func (this *BinanceusdmCore) SapiGetDciProductAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiGetDciProductAccounts", args...)
+func (this *BinanceusdmCore) SapiGetDciProductAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetDciProductAccounts", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostAssetDust (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostAssetDust", args...)
+func (this *BinanceusdmCore) SapiPostAssetDust(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAssetDust", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostAssetDustBtc (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostAssetDustBtc", args...)
+func (this *BinanceusdmCore) SapiPostAssetDustBtc(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAssetDustBtc", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostAssetTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostAssetTransfer", args...)
+func (this *BinanceusdmCore) SapiPostAssetTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAssetTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostAssetGetFundingAsset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostAssetGetFundingAsset", args...)
+func (this *BinanceusdmCore) SapiPostAssetGetFundingAsset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAssetGetFundingAsset", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostAssetConvertTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostAssetConvertTransfer", args...)
+func (this *BinanceusdmCore) SapiPostAssetConvertTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAssetConvertTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostAccountDisableFastWithdrawSwitch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostAccountDisableFastWithdrawSwitch", args...)
+func (this *BinanceusdmCore) SapiPostAccountDisableFastWithdrawSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAccountDisableFastWithdrawSwitch", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostAccountEnableFastWithdrawSwitch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostAccountEnableFastWithdrawSwitch", args...)
+func (this *BinanceusdmCore) SapiPostAccountEnableFastWithdrawSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAccountEnableFastWithdrawSwitch", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostCapitalWithdrawApply (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostCapitalWithdrawApply", args...)
+func (this *BinanceusdmCore) SapiPostCapitalWithdrawApply(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostCapitalWithdrawApply", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostCapitalContractConvertibleCoins (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostCapitalContractConvertibleCoins", args...)
+func (this *BinanceusdmCore) SapiPostCapitalContractConvertibleCoins(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostCapitalContractConvertibleCoins", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostCapitalDepositCreditApply (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostCapitalDepositCreditApply", args...)
+func (this *BinanceusdmCore) SapiPostCapitalDepositCreditApply(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostCapitalDepositCreditApply", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMarginBorrowRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMarginBorrowRepay", args...)
+func (this *BinanceusdmCore) SapiPostMarginBorrowRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMarginBorrowRepay", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMarginTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMarginTransfer", args...)
+func (this *BinanceusdmCore) SapiPostMarginTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMarginTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMarginLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMarginLoan", args...)
+func (this *BinanceusdmCore) SapiPostMarginLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMarginLoan", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMarginRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMarginRepay", args...)
+func (this *BinanceusdmCore) SapiPostMarginRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMarginRepay", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMarginOrder", args...)
+func (this *BinanceusdmCore) SapiPostMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMarginOrder", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMarginOrderOco (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMarginOrderOco", args...)
+func (this *BinanceusdmCore) SapiPostMarginOrderOco(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMarginOrderOco", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMarginDust (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMarginDust", args...)
+func (this *BinanceusdmCore) SapiPostMarginDust(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMarginDust", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMarginExchangeSmallLiability (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMarginExchangeSmallLiability", args...)
+func (this *BinanceusdmCore) SapiPostMarginExchangeSmallLiability(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMarginExchangeSmallLiability", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMarginIsolatedTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMarginIsolatedTransfer", args...)
+func (this *BinanceusdmCore) SapiPostMarginIsolatedTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMarginIsolatedTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMarginIsolatedAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMarginIsolatedAccount", args...)
+func (this *BinanceusdmCore) SapiPostMarginIsolatedAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMarginIsolatedAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMarginMaxLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMarginMaxLeverage", args...)
+func (this *BinanceusdmCore) SapiPostMarginMaxLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMarginMaxLeverage", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBnbBurn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBnbBurn", args...)
+func (this *BinanceusdmCore) SapiPostBnbBurn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBnbBurn", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSubAccountVirtualSubAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSubAccountVirtualSubAccount", args...)
+func (this *BinanceusdmCore) SapiPostSubAccountVirtualSubAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSubAccountVirtualSubAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSubAccountMarginTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSubAccountMarginTransfer", args...)
+func (this *BinanceusdmCore) SapiPostSubAccountMarginTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSubAccountMarginTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSubAccountMarginEnable (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSubAccountMarginEnable", args...)
+func (this *BinanceusdmCore) SapiPostSubAccountMarginEnable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSubAccountMarginEnable", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSubAccountFuturesEnable (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSubAccountFuturesEnable", args...)
+func (this *BinanceusdmCore) SapiPostSubAccountFuturesEnable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSubAccountFuturesEnable", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSubAccountFuturesTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSubAccountFuturesTransfer", args...)
+func (this *BinanceusdmCore) SapiPostSubAccountFuturesTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSubAccountFuturesTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSubAccountFuturesInternalTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSubAccountFuturesInternalTransfer", args...)
+func (this *BinanceusdmCore) SapiPostSubAccountFuturesInternalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSubAccountFuturesInternalTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSubAccountTransferSubToSub (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSubAccountTransferSubToSub", args...)
+func (this *BinanceusdmCore) SapiPostSubAccountTransferSubToSub(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSubAccountTransferSubToSub", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSubAccountTransferSubToMaster (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSubAccountTransferSubToMaster", args...)
+func (this *BinanceusdmCore) SapiPostSubAccountTransferSubToMaster(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSubAccountTransferSubToMaster", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSubAccountUniversalTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSubAccountUniversalTransfer", args...)
+func (this *BinanceusdmCore) SapiPostSubAccountUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSubAccountUniversalTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSubAccountOptionsEnable (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSubAccountOptionsEnable", args...)
+func (this *BinanceusdmCore) SapiPostSubAccountOptionsEnable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSubAccountOptionsEnable", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostManagedSubaccountDeposit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostManagedSubaccountDeposit", args...)
+func (this *BinanceusdmCore) SapiPostManagedSubaccountDeposit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostManagedSubaccountDeposit", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostManagedSubaccountWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostManagedSubaccountWithdraw", args...)
+func (this *BinanceusdmCore) SapiPostManagedSubaccountWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostManagedSubaccountWithdraw", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostUserDataStream (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostUserDataStream", args...)
+func (this *BinanceusdmCore) SapiPostUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostUserDataStream", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostUserDataStreamIsolated (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostUserDataStreamIsolated", args...)
+func (this *BinanceusdmCore) SapiPostUserDataStreamIsolated(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostUserDataStreamIsolated", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostFuturesTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostFuturesTransfer", args...)
+func (this *BinanceusdmCore) SapiPostFuturesTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostFuturesTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLendingCustomizedFixedPurchase (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLendingCustomizedFixedPurchase", args...)
+func (this *BinanceusdmCore) SapiPostLendingCustomizedFixedPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLendingCustomizedFixedPurchase", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLendingDailyPurchase (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLendingDailyPurchase", args...)
+func (this *BinanceusdmCore) SapiPostLendingDailyPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLendingDailyPurchase", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLendingDailyRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLendingDailyRedeem", args...)
+func (this *BinanceusdmCore) SapiPostLendingDailyRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLendingDailyRedeem", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBswapLiquidityAdd (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBswapLiquidityAdd", args...)
+func (this *BinanceusdmCore) SapiPostBswapLiquidityAdd(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBswapLiquidityAdd", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBswapLiquidityRemove (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBswapLiquidityRemove", args...)
+func (this *BinanceusdmCore) SapiPostBswapLiquidityRemove(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBswapLiquidityRemove", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBswapSwap (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBswapSwap", args...)
+func (this *BinanceusdmCore) SapiPostBswapSwap(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBswapSwap", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBswapClaimRewards (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBswapClaimRewards", args...)
+func (this *BinanceusdmCore) SapiPostBswapClaimRewards(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBswapClaimRewards", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBlvtSubscribe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBlvtSubscribe", args...)
+func (this *BinanceusdmCore) SapiPostBlvtSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBlvtSubscribe", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBlvtRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBlvtRedeem", args...)
+func (this *BinanceusdmCore) SapiPostBlvtRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBlvtRedeem", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostApiReferralCustomization (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostApiReferralCustomization", args...)
+func (this *BinanceusdmCore) SapiPostApiReferralCustomization(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostApiReferralCustomization", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostApiReferralUserCustomization (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostApiReferralUserCustomization", args...)
+func (this *BinanceusdmCore) SapiPostApiReferralUserCustomization(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostApiReferralUserCustomization", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostApiReferralRebateHistoricalRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostApiReferralRebateHistoricalRecord", args...)
+func (this *BinanceusdmCore) SapiPostApiReferralRebateHistoricalRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostApiReferralRebateHistoricalRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostApiReferralKickbackHistoricalRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostApiReferralKickbackHistoricalRecord", args...)
+func (this *BinanceusdmCore) SapiPostApiReferralKickbackHistoricalRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostApiReferralKickbackHistoricalRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccount", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountMargin", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountMargin", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountFutures (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountFutures", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountFutures(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountFutures", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountApi", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountApi", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiPermission (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermission", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiPermission(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermission", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiCommission (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommission", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiCommission(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommission", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiCommissionFutures (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommissionFutures", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiCommissionFutures(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommissionFutures", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiCommissionCoinFutures (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommissionCoinFutures", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiCommissionCoinFutures(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommissionCoinFutures", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerTransfer", args...)
+func (this *BinanceusdmCore) SapiPostBrokerTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerTransferFutures (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerTransferFutures", args...)
+func (this *BinanceusdmCore) SapiPostBrokerTransferFutures(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerTransferFutures", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerRebateHistoricalRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerRebateHistoricalRecord", args...)
+func (this *BinanceusdmCore) SapiPostBrokerRebateHistoricalRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerRebateHistoricalRecord", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountBnbBurnSpot (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountBnbBurnSpot", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountBnbBurnSpot(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountBnbBurnSpot", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountBnbBurnMarginInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountBnbBurnMarginInterest", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountBnbBurnMarginInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountBnbBurnMarginInterest", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountBlvt (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountBlvt", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountBlvt(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountBlvt", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiIpRestriction (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountApiIpRestriction", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiIpRestriction(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountApiIpRestriction", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiIpRestrictionIpList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountApiIpRestrictionIpList", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiIpRestrictionIpList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountApiIpRestrictionIpList", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerUniversalTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerUniversalTransfer", args...)
+func (this *BinanceusdmCore) SapiPostBrokerUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerUniversalTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiPermissionUniversalTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermissionUniversalTransfer", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiPermissionUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermissionUniversalTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiPermissionVanillaOptions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermissionVanillaOptions", args...)
+func (this *BinanceusdmCore) SapiPostBrokerSubAccountApiPermissionVanillaOptions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermissionVanillaOptions", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostGiftcardCreateCode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostGiftcardCreateCode", args...)
+func (this *BinanceusdmCore) SapiPostGiftcardCreateCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostGiftcardCreateCode", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostGiftcardRedeemCode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostGiftcardRedeemCode", args...)
+func (this *BinanceusdmCore) SapiPostGiftcardRedeemCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostGiftcardRedeemCode", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostGiftcardBuyCode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostGiftcardBuyCode", args...)
+func (this *BinanceusdmCore) SapiPostGiftcardBuyCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostGiftcardBuyCode", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostAlgoSpotNewOrderTwap (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostAlgoSpotNewOrderTwap", args...)
+func (this *BinanceusdmCore) SapiPostAlgoSpotNewOrderTwap(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAlgoSpotNewOrderTwap", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostAlgoFuturesNewOrderVp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostAlgoFuturesNewOrderVp", args...)
+func (this *BinanceusdmCore) SapiPostAlgoFuturesNewOrderVp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAlgoFuturesNewOrderVp", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostAlgoFuturesNewOrderTwap (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostAlgoFuturesNewOrderTwap", args...)
+func (this *BinanceusdmCore) SapiPostAlgoFuturesNewOrderTwap(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAlgoFuturesNewOrderTwap", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostStakingPurchase (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostStakingPurchase", args...)
+func (this *BinanceusdmCore) SapiPostStakingPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostStakingPurchase", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostStakingRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostStakingRedeem", args...)
+func (this *BinanceusdmCore) SapiPostStakingRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostStakingRedeem", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostStakingSetAutoStaking (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostStakingSetAutoStaking", args...)
+func (this *BinanceusdmCore) SapiPostStakingSetAutoStaking(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostStakingSetAutoStaking", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostEthStakingEthStake (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostEthStakingEthStake", args...)
+func (this *BinanceusdmCore) SapiPostEthStakingEthStake(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostEthStakingEthStake", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostEthStakingEthRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostEthStakingEthRedeem", args...)
+func (this *BinanceusdmCore) SapiPostEthStakingEthRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostEthStakingEthRedeem", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostEthStakingWbethWrap (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostEthStakingWbethWrap", args...)
+func (this *BinanceusdmCore) SapiPostEthStakingWbethWrap(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostEthStakingWbethWrap", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSolStakingSolStake (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSolStakingSolStake", args...)
+func (this *BinanceusdmCore) SapiPostSolStakingSolStake(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSolStakingSolStake", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSolStakingSolRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSolStakingSolRedeem", args...)
+func (this *BinanceusdmCore) SapiPostSolStakingSolRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSolStakingSolRedeem", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMiningHashTransferConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMiningHashTransferConfig", args...)
+func (this *BinanceusdmCore) SapiPostMiningHashTransferConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMiningHashTransferConfig", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostMiningHashTransferConfigCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostMiningHashTransferConfigCancel", args...)
+func (this *BinanceusdmCore) SapiPostMiningHashTransferConfigCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostMiningHashTransferConfigCancel", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostPortfolioRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostPortfolioRepay", args...)
+func (this *BinanceusdmCore) SapiPostPortfolioRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioRepay", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLoanVipRenew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLoanVipRenew", args...)
+func (this *BinanceusdmCore) SapiPostLoanVipRenew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLoanVipRenew", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLoanVipBorrow (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLoanVipBorrow", args...)
+func (this *BinanceusdmCore) SapiPostLoanVipBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLoanVipBorrow", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLoanBorrow (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLoanBorrow", args...)
+func (this *BinanceusdmCore) SapiPostLoanBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLoanBorrow", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLoanRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLoanRepay", args...)
+func (this *BinanceusdmCore) SapiPostLoanRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLoanRepay", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLoanAdjustLtv (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLoanAdjustLtv", args...)
+func (this *BinanceusdmCore) SapiPostLoanAdjustLtv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLoanAdjustLtv", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLoanCustomizeMarginCall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLoanCustomizeMarginCall", args...)
+func (this *BinanceusdmCore) SapiPostLoanCustomizeMarginCall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLoanCustomizeMarginCall", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLoanFlexibleRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLoanFlexibleRepay", args...)
+func (this *BinanceusdmCore) SapiPostLoanFlexibleRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLoanFlexibleRepay", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLoanFlexibleAdjustLtv (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLoanFlexibleAdjustLtv", args...)
+func (this *BinanceusdmCore) SapiPostLoanFlexibleAdjustLtv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLoanFlexibleAdjustLtv", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLoanVipRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLoanVipRepay", args...)
+func (this *BinanceusdmCore) SapiPostLoanVipRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLoanVipRepay", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostConvertGetQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostConvertGetQuote", args...)
+func (this *BinanceusdmCore) SapiPostConvertGetQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostConvertGetQuote", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostConvertAcceptQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostConvertAcceptQuote", args...)
+func (this *BinanceusdmCore) SapiPostConvertAcceptQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostConvertAcceptQuote", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostConvertLimitPlaceOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostConvertLimitPlaceOrder", args...)
+func (this *BinanceusdmCore) SapiPostConvertLimitPlaceOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostConvertLimitPlaceOrder", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostConvertLimitCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostConvertLimitCancelOrder", args...)
+func (this *BinanceusdmCore) SapiPostConvertLimitCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostConvertLimitCancelOrder", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostPortfolioAutoCollection (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostPortfolioAutoCollection", args...)
+func (this *BinanceusdmCore) SapiPostPortfolioAutoCollection(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioAutoCollection", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostPortfolioAssetCollection (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostPortfolioAssetCollection", args...)
+func (this *BinanceusdmCore) SapiPostPortfolioAssetCollection(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioAssetCollection", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostPortfolioBnbTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostPortfolioBnbTransfer", args...)
+func (this *BinanceusdmCore) SapiPostPortfolioBnbTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioBnbTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostPortfolioRepayFuturesSwitch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostPortfolioRepayFuturesSwitch", args...)
+func (this *BinanceusdmCore) SapiPostPortfolioRepayFuturesSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioRepayFuturesSwitch", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostPortfolioRepayFuturesNegativeBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostPortfolioRepayFuturesNegativeBalance", args...)
+func (this *BinanceusdmCore) SapiPostPortfolioRepayFuturesNegativeBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioRepayFuturesNegativeBalance", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostPortfolioMint (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostPortfolioMint", args...)
+func (this *BinanceusdmCore) SapiPostPortfolioMint(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioMint", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostPortfolioRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostPortfolioRedeem", args...)
+func (this *BinanceusdmCore) SapiPostPortfolioRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioRedeem", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostPortfolioEarnAssetTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostPortfolioEarnAssetTransfer", args...)
+func (this *BinanceusdmCore) SapiPostPortfolioEarnAssetTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioEarnAssetTransfer", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLendingAutoInvestPlanAdd (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLendingAutoInvestPlanAdd", args...)
+func (this *BinanceusdmCore) SapiPostLendingAutoInvestPlanAdd(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanAdd", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLendingAutoInvestPlanEdit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLendingAutoInvestPlanEdit", args...)
+func (this *BinanceusdmCore) SapiPostLendingAutoInvestPlanEdit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanEdit", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLendingAutoInvestPlanEditStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLendingAutoInvestPlanEditStatus", args...)
+func (this *BinanceusdmCore) SapiPostLendingAutoInvestPlanEditStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanEditStatus", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLendingAutoInvestOneOff (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLendingAutoInvestOneOff", args...)
+func (this *BinanceusdmCore) SapiPostLendingAutoInvestOneOff(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLendingAutoInvestOneOff", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostLendingAutoInvestRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostLendingAutoInvestRedeem", args...)
+func (this *BinanceusdmCore) SapiPostLendingAutoInvestRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostLendingAutoInvestRedeem", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSimpleEarnFlexibleSubscribe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSimpleEarnFlexibleSubscribe", args...)
+func (this *BinanceusdmCore) SapiPostSimpleEarnFlexibleSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSimpleEarnFlexibleSubscribe", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSimpleEarnLockedSubscribe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSimpleEarnLockedSubscribe", args...)
+func (this *BinanceusdmCore) SapiPostSimpleEarnLockedSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSimpleEarnLockedSubscribe", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSimpleEarnFlexibleRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSimpleEarnFlexibleRedeem", args...)
+func (this *BinanceusdmCore) SapiPostSimpleEarnFlexibleRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSimpleEarnFlexibleRedeem", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSimpleEarnLockedRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSimpleEarnLockedRedeem", args...)
+func (this *BinanceusdmCore) SapiPostSimpleEarnLockedRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSimpleEarnLockedRedeem", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSimpleEarnFlexibleSetAutoSubscribe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSimpleEarnFlexibleSetAutoSubscribe", args...)
+func (this *BinanceusdmCore) SapiPostSimpleEarnFlexibleSetAutoSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSimpleEarnFlexibleSetAutoSubscribe", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSimpleEarnLockedSetAutoSubscribe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSimpleEarnLockedSetAutoSubscribe", args...)
+func (this *BinanceusdmCore) SapiPostSimpleEarnLockedSetAutoSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSimpleEarnLockedSetAutoSubscribe", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostSimpleEarnLockedSetRedeemOption (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostSimpleEarnLockedSetRedeemOption", args...)
+func (this *BinanceusdmCore) SapiPostSimpleEarnLockedSetRedeemOption(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostSimpleEarnLockedSetRedeemOption", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostDciProductSubscribe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostDciProductSubscribe", args...)
+func (this *BinanceusdmCore) SapiPostDciProductSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostDciProductSubscribe", args...)
 }
 
-func (this *BinanceusdmCore) SapiPostDciProductAutoCompoundEdit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPostDciProductAutoCompoundEdit", args...)
+func (this *BinanceusdmCore) SapiPostDciProductAutoCompoundEdit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostDciProductAutoCompoundEdit", args...)
 }
 
-func (this *BinanceusdmCore) SapiPutUserDataStream (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPutUserDataStream", args...)
+func (this *BinanceusdmCore) SapiPutUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPutUserDataStream", args...)
 }
 
-func (this *BinanceusdmCore) SapiPutUserDataStreamIsolated (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiPutUserDataStreamIsolated", args...)
+func (this *BinanceusdmCore) SapiPutUserDataStreamIsolated(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPutUserDataStreamIsolated", args...)
 }
 
-func (this *BinanceusdmCore) SapiDeleteMarginOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiDeleteMarginOpenOrders", args...)
+func (this *BinanceusdmCore) SapiDeleteMarginOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiDeleteMarginOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiDeleteMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiDeleteMarginOrder", args...)
+func (this *BinanceusdmCore) SapiDeleteMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiDeleteMarginOrder", args...)
 }
 
-func (this *BinanceusdmCore) SapiDeleteMarginOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiDeleteMarginOrderList", args...)
+func (this *BinanceusdmCore) SapiDeleteMarginOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiDeleteMarginOrderList", args...)
 }
 
-func (this *BinanceusdmCore) SapiDeleteMarginIsolatedAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiDeleteMarginIsolatedAccount", args...)
+func (this *BinanceusdmCore) SapiDeleteMarginIsolatedAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiDeleteMarginIsolatedAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiDeleteUserDataStream (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiDeleteUserDataStream", args...)
+func (this *BinanceusdmCore) SapiDeleteUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiDeleteUserDataStream", args...)
 }
 
-func (this *BinanceusdmCore) SapiDeleteUserDataStreamIsolated (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiDeleteUserDataStreamIsolated", args...)
+func (this *BinanceusdmCore) SapiDeleteUserDataStreamIsolated(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiDeleteUserDataStreamIsolated", args...)
 }
 
-func (this *BinanceusdmCore) SapiDeleteBrokerSubAccountApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiDeleteBrokerSubAccountApi", args...)
+func (this *BinanceusdmCore) SapiDeleteBrokerSubAccountApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiDeleteBrokerSubAccountApi", args...)
 }
 
-func (this *BinanceusdmCore) SapiDeleteBrokerSubAccountApiIpRestrictionIpList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiDeleteBrokerSubAccountApiIpRestrictionIpList", args...)
+func (this *BinanceusdmCore) SapiDeleteBrokerSubAccountApiIpRestrictionIpList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiDeleteBrokerSubAccountApiIpRestrictionIpList", args...)
 }
 
-func (this *BinanceusdmCore) SapiDeleteAlgoSpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiDeleteAlgoSpotOrder", args...)
+func (this *BinanceusdmCore) SapiDeleteAlgoSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiDeleteAlgoSpotOrder", args...)
 }
 
-func (this *BinanceusdmCore) SapiDeleteAlgoFuturesOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiDeleteAlgoFuturesOrder", args...)
+func (this *BinanceusdmCore) SapiDeleteAlgoFuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiDeleteAlgoFuturesOrder", args...)
 }
 
-func (this *BinanceusdmCore) SapiDeleteSubAccountSubAccountApiIpRestrictionIpList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiDeleteSubAccountSubAccountApiIpRestrictionIpList", args...)
+func (this *BinanceusdmCore) SapiDeleteSubAccountSubAccountApiIpRestrictionIpList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiDeleteSubAccountSubAccountApiIpRestrictionIpList", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2GetEthStakingAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2GetEthStakingAccount", args...)
+func (this *BinanceusdmCore) SapiV2GetEthStakingAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2GetEthStakingAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2GetSubAccountFuturesAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2GetSubAccountFuturesAccount", args...)
+func (this *BinanceusdmCore) SapiV2GetSubAccountFuturesAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2GetSubAccountFuturesAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2GetSubAccountFuturesAccountSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2GetSubAccountFuturesAccountSummary", args...)
+func (this *BinanceusdmCore) SapiV2GetSubAccountFuturesAccountSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2GetSubAccountFuturesAccountSummary", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2GetSubAccountFuturesPositionRisk (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2GetSubAccountFuturesPositionRisk", args...)
+func (this *BinanceusdmCore) SapiV2GetSubAccountFuturesPositionRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2GetSubAccountFuturesPositionRisk", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2GetLoanFlexibleOngoingOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2GetLoanFlexibleOngoingOrders", args...)
+func (this *BinanceusdmCore) SapiV2GetLoanFlexibleOngoingOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2GetLoanFlexibleOngoingOrders", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2GetLoanFlexibleBorrowHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2GetLoanFlexibleBorrowHistory", args...)
+func (this *BinanceusdmCore) SapiV2GetLoanFlexibleBorrowHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2GetLoanFlexibleBorrowHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2GetLoanFlexibleRepayHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2GetLoanFlexibleRepayHistory", args...)
+func (this *BinanceusdmCore) SapiV2GetLoanFlexibleRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2GetLoanFlexibleRepayHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2GetLoanFlexibleLtvAdjustmentHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2GetLoanFlexibleLtvAdjustmentHistory", args...)
+func (this *BinanceusdmCore) SapiV2GetLoanFlexibleLtvAdjustmentHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2GetLoanFlexibleLtvAdjustmentHistory", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2GetLoanFlexibleLoanableData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2GetLoanFlexibleLoanableData", args...)
+func (this *BinanceusdmCore) SapiV2GetLoanFlexibleLoanableData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2GetLoanFlexibleLoanableData", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2GetLoanFlexibleCollateralData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2GetLoanFlexibleCollateralData", args...)
+func (this *BinanceusdmCore) SapiV2GetLoanFlexibleCollateralData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2GetLoanFlexibleCollateralData", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2GetPortfolioAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2GetPortfolioAccount", args...)
+func (this *BinanceusdmCore) SapiV2GetPortfolioAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2GetPortfolioAccount", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2PostEthStakingEthStake (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2PostEthStakingEthStake", args...)
+func (this *BinanceusdmCore) SapiV2PostEthStakingEthStake(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2PostEthStakingEthStake", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2PostSubAccountSubAccountApiIpRestriction (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2PostSubAccountSubAccountApiIpRestriction", args...)
+func (this *BinanceusdmCore) SapiV2PostSubAccountSubAccountApiIpRestriction(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2PostSubAccountSubAccountApiIpRestriction", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2PostLoanFlexibleBorrow (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2PostLoanFlexibleBorrow", args...)
+func (this *BinanceusdmCore) SapiV2PostLoanFlexibleBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2PostLoanFlexibleBorrow", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2PostLoanFlexibleRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2PostLoanFlexibleRepay", args...)
+func (this *BinanceusdmCore) SapiV2PostLoanFlexibleRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2PostLoanFlexibleRepay", args...)
 }
 
-func (this *BinanceusdmCore) SapiV2PostLoanFlexibleAdjustLtv (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV2PostLoanFlexibleAdjustLtv", args...)
+func (this *BinanceusdmCore) SapiV2PostLoanFlexibleAdjustLtv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV2PostLoanFlexibleAdjustLtv", args...)
 }
 
-func (this *BinanceusdmCore) SapiV3GetSubAccountAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV3GetSubAccountAssets", args...)
+func (this *BinanceusdmCore) SapiV3GetSubAccountAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV3GetSubAccountAssets", args...)
 }
 
-func (this *BinanceusdmCore) SapiV3PostAssetGetUserAsset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV3PostAssetGetUserAsset", args...)
+func (this *BinanceusdmCore) SapiV3PostAssetGetUserAsset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV3PostAssetGetUserAsset", args...)
 }
 
-func (this *BinanceusdmCore) SapiV4GetSubAccountAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("sapiV4GetSubAccountAssets", args...)
+func (this *BinanceusdmCore) SapiV4GetSubAccountAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiV4GetSubAccountAssets", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetPing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetPing", args...)
+func (this *BinanceusdmCore) DapiPublicGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetPing", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetTime", args...)
+func (this *BinanceusdmCore) DapiPublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetTime", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetExchangeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetExchangeInfo", args...)
+func (this *BinanceusdmCore) DapiPublicGetExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetExchangeInfo", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetDepth", args...)
+func (this *BinanceusdmCore) DapiPublicGetDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetDepth", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetTrades", args...)
+func (this *BinanceusdmCore) DapiPublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetTrades", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetHistoricalTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetHistoricalTrades", args...)
+func (this *BinanceusdmCore) DapiPublicGetHistoricalTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetHistoricalTrades", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetAggTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetAggTrades", args...)
+func (this *BinanceusdmCore) DapiPublicGetAggTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetAggTrades", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetPremiumIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetPremiumIndex", args...)
+func (this *BinanceusdmCore) DapiPublicGetPremiumIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetPremiumIndex", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetFundingRate", args...)
+func (this *BinanceusdmCore) DapiPublicGetFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetFundingRate", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetKlines", args...)
+func (this *BinanceusdmCore) DapiPublicGetKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetKlines", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetContinuousKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetContinuousKlines", args...)
+func (this *BinanceusdmCore) DapiPublicGetContinuousKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetContinuousKlines", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetIndexPriceKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetIndexPriceKlines", args...)
+func (this *BinanceusdmCore) DapiPublicGetIndexPriceKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetIndexPriceKlines", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetMarkPriceKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetMarkPriceKlines", args...)
+func (this *BinanceusdmCore) DapiPublicGetMarkPriceKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetMarkPriceKlines", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetPremiumIndexKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetPremiumIndexKlines", args...)
+func (this *BinanceusdmCore) DapiPublicGetPremiumIndexKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetPremiumIndexKlines", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetTicker24hr (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetTicker24hr", args...)
+func (this *BinanceusdmCore) DapiPublicGetTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetTicker24hr", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetTickerPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetTickerPrice", args...)
+func (this *BinanceusdmCore) DapiPublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetTickerPrice", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetTickerBookTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetTickerBookTicker", args...)
+func (this *BinanceusdmCore) DapiPublicGetTickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetTickerBookTicker", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetConstituents (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetConstituents", args...)
+func (this *BinanceusdmCore) DapiPublicGetConstituents(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetConstituents", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetOpenInterest", args...)
+func (this *BinanceusdmCore) DapiPublicGetOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetOpenInterest", args...)
 }
 
-func (this *BinanceusdmCore) DapiPublicGetFundingInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPublicGetFundingInfo", args...)
+func (this *BinanceusdmCore) DapiPublicGetFundingInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPublicGetFundingInfo", args...)
 }
 
-func (this *BinanceusdmCore) DapiDataGetDeliveryPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiDataGetDeliveryPrice", args...)
+func (this *BinanceusdmCore) DapiDataGetDeliveryPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiDataGetDeliveryPrice", args...)
 }
 
-func (this *BinanceusdmCore) DapiDataGetOpenInterestHist (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiDataGetOpenInterestHist", args...)
+func (this *BinanceusdmCore) DapiDataGetOpenInterestHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiDataGetOpenInterestHist", args...)
 }
 
-func (this *BinanceusdmCore) DapiDataGetTopLongShortAccountRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiDataGetTopLongShortAccountRatio", args...)
+func (this *BinanceusdmCore) DapiDataGetTopLongShortAccountRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiDataGetTopLongShortAccountRatio", args...)
 }
 
-func (this *BinanceusdmCore) DapiDataGetTopLongShortPositionRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiDataGetTopLongShortPositionRatio", args...)
+func (this *BinanceusdmCore) DapiDataGetTopLongShortPositionRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiDataGetTopLongShortPositionRatio", args...)
 }
 
-func (this *BinanceusdmCore) DapiDataGetGlobalLongShortAccountRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiDataGetGlobalLongShortAccountRatio", args...)
+func (this *BinanceusdmCore) DapiDataGetGlobalLongShortAccountRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiDataGetGlobalLongShortAccountRatio", args...)
 }
 
-func (this *BinanceusdmCore) DapiDataGetTakerBuySellVol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiDataGetTakerBuySellVol", args...)
+func (this *BinanceusdmCore) DapiDataGetTakerBuySellVol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiDataGetTakerBuySellVol", args...)
 }
 
-func (this *BinanceusdmCore) DapiDataGetBasis (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiDataGetBasis", args...)
+func (this *BinanceusdmCore) DapiDataGetBasis(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiDataGetBasis", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetPositionSideDual (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetPositionSideDual", args...)
+func (this *BinanceusdmCore) DapiPrivateGetPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetPositionSideDual", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetOrderAmendment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetOrderAmendment", args...)
+func (this *BinanceusdmCore) DapiPrivateGetOrderAmendment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetOrderAmendment", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetOrder", args...)
+func (this *BinanceusdmCore) DapiPrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetOrder", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetOpenOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetOpenOrder", args...)
+func (this *BinanceusdmCore) DapiPrivateGetOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetOpenOrder", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetOpenOrders", args...)
+func (this *BinanceusdmCore) DapiPrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetAllOrders", args...)
+func (this *BinanceusdmCore) DapiPrivateGetAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetAllOrders", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetBalance", args...)
+func (this *BinanceusdmCore) DapiPrivateGetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetBalance", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetAccount", args...)
+func (this *BinanceusdmCore) DapiPrivateGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetAccount", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetPositionMarginHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetPositionMarginHistory", args...)
+func (this *BinanceusdmCore) DapiPrivateGetPositionMarginHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetPositionMarginHistory", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetPositionRisk (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetPositionRisk", args...)
+func (this *BinanceusdmCore) DapiPrivateGetPositionRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetPositionRisk", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetUserTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetUserTrades", args...)
+func (this *BinanceusdmCore) DapiPrivateGetUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetUserTrades", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetIncome (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetIncome", args...)
+func (this *BinanceusdmCore) DapiPrivateGetIncome(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetIncome", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetLeverageBracket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetLeverageBracket", args...)
+func (this *BinanceusdmCore) DapiPrivateGetLeverageBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetLeverageBracket", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetForceOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetForceOrders", args...)
+func (this *BinanceusdmCore) DapiPrivateGetForceOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetForceOrders", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetAdlQuantile (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetAdlQuantile", args...)
+func (this *BinanceusdmCore) DapiPrivateGetAdlQuantile(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetAdlQuantile", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetCommissionRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetCommissionRate", args...)
+func (this *BinanceusdmCore) DapiPrivateGetCommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetCommissionRate", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetIncomeAsyn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetIncomeAsyn", args...)
+func (this *BinanceusdmCore) DapiPrivateGetIncomeAsyn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetIncomeAsyn", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetIncomeAsynId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetIncomeAsynId", args...)
+func (this *BinanceusdmCore) DapiPrivateGetIncomeAsynId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetIncomeAsynId", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetTradeAsyn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetTradeAsyn", args...)
+func (this *BinanceusdmCore) DapiPrivateGetTradeAsyn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetTradeAsyn", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetTradeAsynId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetTradeAsynId", args...)
+func (this *BinanceusdmCore) DapiPrivateGetTradeAsynId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetTradeAsynId", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetOrderAsyn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetOrderAsyn", args...)
+func (this *BinanceusdmCore) DapiPrivateGetOrderAsyn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetOrderAsyn", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetOrderAsynId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetOrderAsynId", args...)
+func (this *BinanceusdmCore) DapiPrivateGetOrderAsynId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetOrderAsynId", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetPmExchangeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetPmExchangeInfo", args...)
+func (this *BinanceusdmCore) DapiPrivateGetPmExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetPmExchangeInfo", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateGetPmAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateGetPmAccountInfo", args...)
+func (this *BinanceusdmCore) DapiPrivateGetPmAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateGetPmAccountInfo", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivatePostPositionSideDual (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivatePostPositionSideDual", args...)
+func (this *BinanceusdmCore) DapiPrivatePostPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivatePostPositionSideDual", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivatePostOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivatePostOrder", args...)
+func (this *BinanceusdmCore) DapiPrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivatePostOrder", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivatePostBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivatePostBatchOrders", args...)
+func (this *BinanceusdmCore) DapiPrivatePostBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivatePostBatchOrders", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivatePostCountdownCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivatePostCountdownCancelAll", args...)
+func (this *BinanceusdmCore) DapiPrivatePostCountdownCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivatePostCountdownCancelAll", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivatePostLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivatePostLeverage", args...)
+func (this *BinanceusdmCore) DapiPrivatePostLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivatePostLeverage", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivatePostMarginType (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivatePostMarginType", args...)
+func (this *BinanceusdmCore) DapiPrivatePostMarginType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivatePostMarginType", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivatePostPositionMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivatePostPositionMargin", args...)
+func (this *BinanceusdmCore) DapiPrivatePostPositionMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivatePostPositionMargin", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivatePostListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivatePostListenKey", args...)
+func (this *BinanceusdmCore) DapiPrivatePostListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivatePostListenKey", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivatePutListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivatePutListenKey", args...)
+func (this *BinanceusdmCore) DapiPrivatePutListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivatePutListenKey", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivatePutOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivatePutOrder", args...)
+func (this *BinanceusdmCore) DapiPrivatePutOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivatePutOrder", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivatePutBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivatePutBatchOrders", args...)
+func (this *BinanceusdmCore) DapiPrivatePutBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivatePutBatchOrders", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateDeleteOrder", args...)
+func (this *BinanceusdmCore) DapiPrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateDeleteOrder", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateDeleteAllOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateDeleteAllOpenOrders", args...)
+func (this *BinanceusdmCore) DapiPrivateDeleteAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateDeleteAllOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateDeleteBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateDeleteBatchOrders", args...)
+func (this *BinanceusdmCore) DapiPrivateDeleteBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateDeleteBatchOrders", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateDeleteListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateDeleteListenKey", args...)
+func (this *BinanceusdmCore) DapiPrivateDeleteListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateDeleteListenKey", args...)
 }
 
-func (this *BinanceusdmCore) DapiPrivateV2GetLeverageBracket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("dapiPrivateV2GetLeverageBracket", args...)
+func (this *BinanceusdmCore) DapiPrivateV2GetLeverageBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("dapiPrivateV2GetLeverageBracket", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetPing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetPing", args...)
+func (this *BinanceusdmCore) FapiPublicGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetPing", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetTime", args...)
+func (this *BinanceusdmCore) FapiPublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetTime", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetExchangeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetExchangeInfo", args...)
+func (this *BinanceusdmCore) FapiPublicGetExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetExchangeInfo", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetDepth", args...)
+func (this *BinanceusdmCore) FapiPublicGetDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetDepth", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetRpiDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetRpiDepth", args...)
+func (this *BinanceusdmCore) FapiPublicGetRpiDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetRpiDepth", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetTrades", args...)
+func (this *BinanceusdmCore) FapiPublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetTrades", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetHistoricalTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetHistoricalTrades", args...)
+func (this *BinanceusdmCore) FapiPublicGetHistoricalTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetHistoricalTrades", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetAggTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetAggTrades", args...)
+func (this *BinanceusdmCore) FapiPublicGetAggTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetAggTrades", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetKlines", args...)
+func (this *BinanceusdmCore) FapiPublicGetKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetKlines", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetContinuousKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetContinuousKlines", args...)
+func (this *BinanceusdmCore) FapiPublicGetContinuousKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetContinuousKlines", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetMarkPriceKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetMarkPriceKlines", args...)
+func (this *BinanceusdmCore) FapiPublicGetMarkPriceKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetMarkPriceKlines", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetIndexPriceKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetIndexPriceKlines", args...)
+func (this *BinanceusdmCore) FapiPublicGetIndexPriceKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetIndexPriceKlines", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetPremiumIndexKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetPremiumIndexKlines", args...)
+func (this *BinanceusdmCore) FapiPublicGetPremiumIndexKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetPremiumIndexKlines", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetFundingRate", args...)
+func (this *BinanceusdmCore) FapiPublicGetFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetFundingRate", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetFundingInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetFundingInfo", args...)
+func (this *BinanceusdmCore) FapiPublicGetFundingInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetFundingInfo", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetPremiumIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetPremiumIndex", args...)
+func (this *BinanceusdmCore) FapiPublicGetPremiumIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetPremiumIndex", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetTicker24hr (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetTicker24hr", args...)
+func (this *BinanceusdmCore) FapiPublicGetTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetTicker24hr", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetTickerPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetTickerPrice", args...)
+func (this *BinanceusdmCore) FapiPublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetTickerPrice", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetTickerBookTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetTickerBookTicker", args...)
+func (this *BinanceusdmCore) FapiPublicGetTickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetTickerBookTicker", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetOpenInterest", args...)
+func (this *BinanceusdmCore) FapiPublicGetOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetOpenInterest", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetIndexInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetIndexInfo", args...)
+func (this *BinanceusdmCore) FapiPublicGetIndexInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetIndexInfo", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetAssetIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetAssetIndex", args...)
+func (this *BinanceusdmCore) FapiPublicGetAssetIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetAssetIndex", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetConstituents (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetConstituents", args...)
+func (this *BinanceusdmCore) FapiPublicGetConstituents(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetConstituents", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetApiTradingStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetApiTradingStatus", args...)
+func (this *BinanceusdmCore) FapiPublicGetApiTradingStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetApiTradingStatus", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetLvtKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetLvtKlines", args...)
+func (this *BinanceusdmCore) FapiPublicGetLvtKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetLvtKlines", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetConvertExchangeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetConvertExchangeInfo", args...)
+func (this *BinanceusdmCore) FapiPublicGetConvertExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetConvertExchangeInfo", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicGetInsuranceBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicGetInsuranceBalance", args...)
+func (this *BinanceusdmCore) FapiPublicGetInsuranceBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetInsuranceBalance", args...)
 }
 
-func (this *BinanceusdmCore) FapiDataGetDeliveryPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiDataGetDeliveryPrice", args...)
+func (this *BinanceusdmCore) FapiPublicGetSymbolAdlRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetSymbolAdlRisk", args...)
 }
 
-func (this *BinanceusdmCore) FapiDataGetOpenInterestHist (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiDataGetOpenInterestHist", args...)
+func (this *BinanceusdmCore) FapiPublicGetTradingSchedule(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetTradingSchedule", args...)
 }
 
-func (this *BinanceusdmCore) FapiDataGetTopLongShortAccountRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiDataGetTopLongShortAccountRatio", args...)
+func (this *BinanceusdmCore) FapiDataGetDeliveryPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiDataGetDeliveryPrice", args...)
 }
 
-func (this *BinanceusdmCore) FapiDataGetTopLongShortPositionRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiDataGetTopLongShortPositionRatio", args...)
+func (this *BinanceusdmCore) FapiDataGetOpenInterestHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiDataGetOpenInterestHist", args...)
 }
 
-func (this *BinanceusdmCore) FapiDataGetGlobalLongShortAccountRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiDataGetGlobalLongShortAccountRatio", args...)
+func (this *BinanceusdmCore) FapiDataGetTopLongShortAccountRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiDataGetTopLongShortAccountRatio", args...)
 }
 
-func (this *BinanceusdmCore) FapiDataGetTakerlongshortRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiDataGetTakerlongshortRatio", args...)
+func (this *BinanceusdmCore) FapiDataGetTopLongShortPositionRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiDataGetTopLongShortPositionRatio", args...)
 }
 
-func (this *BinanceusdmCore) FapiDataGetBasis (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiDataGetBasis", args...)
+func (this *BinanceusdmCore) FapiDataGetGlobalLongShortAccountRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiDataGetGlobalLongShortAccountRatio", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetForceOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetForceOrders", args...)
+func (this *BinanceusdmCore) FapiDataGetTakerlongshortRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiDataGetTakerlongshortRatio", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetAllOrders", args...)
+func (this *BinanceusdmCore) FapiDataGetBasis(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiDataGetBasis", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetOpenOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetOpenOrder", args...)
+func (this *BinanceusdmCore) FapiPrivateGetForceOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetForceOrders", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetOpenOrders", args...)
+func (this *BinanceusdmCore) FapiPrivateGetAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetAllOrders", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetOrder", args...)
+func (this *BinanceusdmCore) FapiPrivateGetOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetOpenOrder", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetAccount", args...)
+func (this *BinanceusdmCore) FapiPrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetBalance", args...)
+func (this *BinanceusdmCore) FapiPrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetOrder", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetLeverageBracket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetLeverageBracket", args...)
+func (this *BinanceusdmCore) FapiPrivateGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetAccount", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetPositionMarginHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetPositionMarginHistory", args...)
+func (this *BinanceusdmCore) FapiPrivateGetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetBalance", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetPositionRisk (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetPositionRisk", args...)
+func (this *BinanceusdmCore) FapiPrivateGetLeverageBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetLeverageBracket", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetPositionSideDual (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetPositionSideDual", args...)
+func (this *BinanceusdmCore) FapiPrivateGetPositionMarginHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetPositionMarginHistory", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetUserTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetUserTrades", args...)
+func (this *BinanceusdmCore) FapiPrivateGetPositionRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetPositionRisk", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetIncome (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetIncome", args...)
+func (this *BinanceusdmCore) FapiPrivateGetPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetPositionSideDual", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetCommissionRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetCommissionRate", args...)
+func (this *BinanceusdmCore) FapiPrivateGetUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetUserTrades", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetRateLimitOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetRateLimitOrder", args...)
+func (this *BinanceusdmCore) FapiPrivateGetIncome(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetIncome", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetApiTradingStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetApiTradingStatus", args...)
+func (this *BinanceusdmCore) FapiPrivateGetCommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetCommissionRate", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetSymbolAdlRisk (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetSymbolAdlRisk", args...)
+func (this *BinanceusdmCore) FapiPrivateGetRateLimitOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetRateLimitOrder", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetMultiAssetsMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetMultiAssetsMargin", args...)
+func (this *BinanceusdmCore) FapiPrivateGetApiTradingStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetApiTradingStatus", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetApiReferralIfNewUser (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetApiReferralIfNewUser", args...)
+func (this *BinanceusdmCore) FapiPrivateGetMultiAssetsMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetMultiAssetsMargin", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetApiReferralCustomization (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetApiReferralCustomization", args...)
+func (this *BinanceusdmCore) FapiPrivateGetApiReferralIfNewUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetApiReferralIfNewUser", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetApiReferralUserCustomization (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetApiReferralUserCustomization", args...)
+func (this *BinanceusdmCore) FapiPrivateGetApiReferralCustomization(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetApiReferralCustomization", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetApiReferralTraderNum (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetApiReferralTraderNum", args...)
+func (this *BinanceusdmCore) FapiPrivateGetApiReferralUserCustomization(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetApiReferralUserCustomization", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetApiReferralOverview (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetApiReferralOverview", args...)
+func (this *BinanceusdmCore) FapiPrivateGetApiReferralTraderNum(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetApiReferralTraderNum", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetApiReferralTradeVol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetApiReferralTradeVol", args...)
+func (this *BinanceusdmCore) FapiPrivateGetApiReferralOverview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetApiReferralOverview", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetApiReferralRebateVol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetApiReferralRebateVol", args...)
+func (this *BinanceusdmCore) FapiPrivateGetApiReferralTradeVol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetApiReferralTradeVol", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetApiReferralTraderSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetApiReferralTraderSummary", args...)
+func (this *BinanceusdmCore) FapiPrivateGetApiReferralRebateVol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetApiReferralRebateVol", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetAdlQuantile (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetAdlQuantile", args...)
+func (this *BinanceusdmCore) FapiPrivateGetApiReferralTraderSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetApiReferralTraderSummary", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetPmAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetPmAccountInfo", args...)
+func (this *BinanceusdmCore) FapiPrivateGetAdlQuantile(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetAdlQuantile", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetOrderAmendment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetOrderAmendment", args...)
+func (this *BinanceusdmCore) FapiPrivateGetPmAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetPmAccountInfo", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetIncomeAsyn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetIncomeAsyn", args...)
+func (this *BinanceusdmCore) FapiPrivateGetOrderAmendment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetOrderAmendment", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetIncomeAsynId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetIncomeAsynId", args...)
+func (this *BinanceusdmCore) FapiPrivateGetIncomeAsyn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetIncomeAsyn", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetOrderAsyn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetOrderAsyn", args...)
+func (this *BinanceusdmCore) FapiPrivateGetIncomeAsynId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetIncomeAsynId", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetOrderAsynId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetOrderAsynId", args...)
+func (this *BinanceusdmCore) FapiPrivateGetOrderAsyn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetOrderAsyn", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetTradeAsyn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetTradeAsyn", args...)
+func (this *BinanceusdmCore) FapiPrivateGetOrderAsynId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetOrderAsynId", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetTradeAsynId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetTradeAsynId", args...)
+func (this *BinanceusdmCore) FapiPrivateGetTradeAsyn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetTradeAsyn", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetFeeBurn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetFeeBurn", args...)
+func (this *BinanceusdmCore) FapiPrivateGetTradeAsynId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetTradeAsynId", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetSymbolConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetSymbolConfig", args...)
+func (this *BinanceusdmCore) FapiPrivateGetFeeBurn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetFeeBurn", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetAccountConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetAccountConfig", args...)
+func (this *BinanceusdmCore) FapiPrivateGetSymbolConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetSymbolConfig", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetConvertOrderStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetConvertOrderStatus", args...)
+func (this *BinanceusdmCore) FapiPrivateGetAccountConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetAccountConfig", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetAlgoOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetAlgoOrder", args...)
+func (this *BinanceusdmCore) FapiPrivateGetConvertOrderStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetConvertOrderStatus", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetOpenAlgoOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetOpenAlgoOrders", args...)
+func (this *BinanceusdmCore) FapiPrivateGetAlgoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetAlgoOrder", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateGetAllAlgoOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateGetAllAlgoOrders", args...)
+func (this *BinanceusdmCore) FapiPrivateGetOpenAlgoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetOpenAlgoOrders", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostBatchOrders", args...)
+func (this *BinanceusdmCore) FapiPrivateGetAllAlgoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetAllAlgoOrders", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostPositionSideDual (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostPositionSideDual", args...)
+func (this *BinanceusdmCore) FapiPrivateGetStockContract(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetStockContract", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostPositionMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostPositionMargin", args...)
+func (this *BinanceusdmCore) FapiPrivatePostBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostBatchOrders", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostMarginType (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostMarginType", args...)
+func (this *BinanceusdmCore) FapiPrivatePostPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostPositionSideDual", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostOrder", args...)
+func (this *BinanceusdmCore) FapiPrivatePostPositionMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostPositionMargin", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostOrderTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostOrderTest", args...)
+func (this *BinanceusdmCore) FapiPrivatePostMarginType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostMarginType", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostLeverage", args...)
+func (this *BinanceusdmCore) FapiPrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostOrder", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostListenKey", args...)
+func (this *BinanceusdmCore) FapiPrivatePostOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostOrderTest", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostCountdownCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostCountdownCancelAll", args...)
+func (this *BinanceusdmCore) FapiPrivatePostLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostLeverage", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostMultiAssetsMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostMultiAssetsMargin", args...)
+func (this *BinanceusdmCore) FapiPrivatePostListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostListenKey", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostApiReferralCustomization (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostApiReferralCustomization", args...)
+func (this *BinanceusdmCore) FapiPrivatePostCountdownCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostCountdownCancelAll", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostApiReferralUserCustomization (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostApiReferralUserCustomization", args...)
+func (this *BinanceusdmCore) FapiPrivatePostMultiAssetsMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostMultiAssetsMargin", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostFeeBurn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostFeeBurn", args...)
+func (this *BinanceusdmCore) FapiPrivatePostApiReferralCustomization(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostApiReferralCustomization", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostConvertGetQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostConvertGetQuote", args...)
+func (this *BinanceusdmCore) FapiPrivatePostApiReferralUserCustomization(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostApiReferralUserCustomization", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostConvertAcceptQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostConvertAcceptQuote", args...)
+func (this *BinanceusdmCore) FapiPrivatePostFeeBurn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostFeeBurn", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePostAlgoOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePostAlgoOrder", args...)
+func (this *BinanceusdmCore) FapiPrivatePostConvertGetQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostConvertGetQuote", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePutListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePutListenKey", args...)
+func (this *BinanceusdmCore) FapiPrivatePostConvertAcceptQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostConvertAcceptQuote", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePutOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePutOrder", args...)
+func (this *BinanceusdmCore) FapiPrivatePostAlgoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostAlgoOrder", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivatePutBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivatePutBatchOrders", args...)
+func (this *BinanceusdmCore) FapiPrivatePutListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePutListenKey", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateDeleteBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateDeleteBatchOrders", args...)
+func (this *BinanceusdmCore) FapiPrivatePutOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePutOrder", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateDeleteOrder", args...)
+func (this *BinanceusdmCore) FapiPrivatePutBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePutBatchOrders", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateDeleteAllOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateDeleteAllOpenOrders", args...)
+func (this *BinanceusdmCore) FapiPrivateDeleteBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteBatchOrders", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateDeleteListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateDeleteListenKey", args...)
+func (this *BinanceusdmCore) FapiPrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteOrder", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateDeleteAlgoOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateDeleteAlgoOrder", args...)
+func (this *BinanceusdmCore) FapiPrivateDeleteAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteAllOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateDeleteAlgoOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateDeleteAlgoOpenOrders", args...)
+func (this *BinanceusdmCore) FapiPrivateDeleteListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteListenKey", args...)
 }
 
-func (this *BinanceusdmCore) FapiPublicV2GetTickerPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPublicV2GetTickerPrice", args...)
+func (this *BinanceusdmCore) FapiPrivateDeleteAlgoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteAlgoOrder", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateV2GetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateV2GetAccount", args...)
+func (this *BinanceusdmCore) FapiPrivateDeleteAlgoOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteAlgoOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateV2GetBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateV2GetBalance", args...)
+func (this *BinanceusdmCore) FapiPublicV2GetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicV2GetTickerPrice", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateV2GetPositionRisk (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateV2GetPositionRisk", args...)
+func (this *BinanceusdmCore) FapiPrivateV2GetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateV2GetAccount", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateV3GetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateV3GetAccount", args...)
+func (this *BinanceusdmCore) FapiPrivateV2GetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateV2GetBalance", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateV3GetBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateV3GetBalance", args...)
+func (this *BinanceusdmCore) FapiPrivateV2GetPositionRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateV2GetPositionRisk", args...)
 }
 
-func (this *BinanceusdmCore) FapiPrivateV3GetPositionRisk (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("fapiPrivateV3GetPositionRisk", args...)
+func (this *BinanceusdmCore) FapiPrivateV3GetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateV3GetAccount", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetPing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetPing", args...)
+func (this *BinanceusdmCore) FapiPrivateV3GetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateV3GetBalance", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetTime", args...)
+func (this *BinanceusdmCore) FapiPrivateV3GetPositionRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateV3GetPositionRisk", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetExchangeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetExchangeInfo", args...)
+func (this *BinanceusdmCore) EapiPublicGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetPing", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetIndex", args...)
+func (this *BinanceusdmCore) EapiPublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetTime", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetTicker", args...)
+func (this *BinanceusdmCore) EapiPublicGetExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetExchangeInfo", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetMark (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetMark", args...)
+func (this *BinanceusdmCore) EapiPublicGetIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetIndex", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetDepth", args...)
+func (this *BinanceusdmCore) EapiPublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetTicker", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetKlines", args...)
+func (this *BinanceusdmCore) EapiPublicGetMark(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetMark", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetTrades", args...)
+func (this *BinanceusdmCore) EapiPublicGetDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetDepth", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetHistoricalTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetHistoricalTrades", args...)
+func (this *BinanceusdmCore) EapiPublicGetKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetKlines", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetExerciseHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetExerciseHistory", args...)
+func (this *BinanceusdmCore) EapiPublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetTrades", args...)
 }
 
-func (this *BinanceusdmCore) EapiPublicGetOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPublicGetOpenInterest", args...)
+func (this *BinanceusdmCore) EapiPublicGetHistoricalTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetHistoricalTrades", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetAccount", args...)
+func (this *BinanceusdmCore) EapiPublicGetExerciseHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetExerciseHistory", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetPosition", args...)
+func (this *BinanceusdmCore) EapiPublicGetOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPublicGetOpenInterest", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetOpenOrders", args...)
+func (this *BinanceusdmCore) EapiPrivateGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetAccount", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetHistoryOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetHistoryOrders", args...)
+func (this *BinanceusdmCore) EapiPrivateGetPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetPosition", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetUserTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetUserTrades", args...)
+func (this *BinanceusdmCore) EapiPrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetExerciseRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetExerciseRecord", args...)
+func (this *BinanceusdmCore) EapiPrivateGetHistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetHistoryOrders", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetBill (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetBill", args...)
+func (this *BinanceusdmCore) EapiPrivateGetUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetUserTrades", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetIncomeAsyn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetIncomeAsyn", args...)
+func (this *BinanceusdmCore) EapiPrivateGetExerciseRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetExerciseRecord", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetIncomeAsynId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetIncomeAsynId", args...)
+func (this *BinanceusdmCore) EapiPrivateGetBill(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetBill", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetMarginAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetMarginAccount", args...)
+func (this *BinanceusdmCore) EapiPrivateGetIncomeAsyn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetIncomeAsyn", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetMmp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetMmp", args...)
+func (this *BinanceusdmCore) EapiPrivateGetIncomeAsynId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetIncomeAsynId", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetCountdownCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetCountdownCancelAll", args...)
+func (this *BinanceusdmCore) EapiPrivateGetMarginAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetMarginAccount", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetOrder", args...)
+func (this *BinanceusdmCore) EapiPrivateGetMmp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetMmp", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetBlockOrderOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetBlockOrderOrders", args...)
+func (this *BinanceusdmCore) EapiPrivateGetCountdownCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetCountdownCancelAll", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetBlockOrderExecute (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetBlockOrderExecute", args...)
+func (this *BinanceusdmCore) EapiPrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetOrder", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetBlockUserTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetBlockUserTrades", args...)
+func (this *BinanceusdmCore) EapiPrivateGetBlockOrderOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetBlockOrderOrders", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateGetBlockTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateGetBlockTrades", args...)
+func (this *BinanceusdmCore) EapiPrivateGetBlockOrderExecute(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetBlockOrderExecute", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivatePostOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivatePostOrder", args...)
+func (this *BinanceusdmCore) EapiPrivateGetBlockUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetBlockUserTrades", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivatePostBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivatePostBatchOrders", args...)
+func (this *BinanceusdmCore) EapiPrivateGetBlockTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetBlockTrades", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivatePostListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivatePostListenKey", args...)
+func (this *BinanceusdmCore) EapiPrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivatePostOrder", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivatePostMmpSet (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivatePostMmpSet", args...)
+func (this *BinanceusdmCore) EapiPrivatePostBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivatePostBatchOrders", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivatePostMmpReset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivatePostMmpReset", args...)
+func (this *BinanceusdmCore) EapiPrivatePostListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivatePostListenKey", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivatePostCountdownCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivatePostCountdownCancelAll", args...)
+func (this *BinanceusdmCore) EapiPrivatePostMmpSet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivatePostMmpSet", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivatePostCountdownCancelAllHeartBeat (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivatePostCountdownCancelAllHeartBeat", args...)
+func (this *BinanceusdmCore) EapiPrivatePostMmpReset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivatePostMmpReset", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivatePostBlockOrderCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivatePostBlockOrderCreate", args...)
+func (this *BinanceusdmCore) EapiPrivatePostCountdownCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivatePostCountdownCancelAll", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivatePostBlockOrderExecute (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivatePostBlockOrderExecute", args...)
+func (this *BinanceusdmCore) EapiPrivatePostCountdownCancelAllHeartBeat(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivatePostCountdownCancelAllHeartBeat", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivatePutListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivatePutListenKey", args...)
+func (this *BinanceusdmCore) EapiPrivatePostBlockOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivatePostBlockOrderCreate", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivatePutBlockOrderCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivatePutBlockOrderCreate", args...)
+func (this *BinanceusdmCore) EapiPrivatePostBlockOrderExecute(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivatePostBlockOrderExecute", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateDeleteOrder", args...)
+func (this *BinanceusdmCore) EapiPrivatePutListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivatePutListenKey", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateDeleteBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateDeleteBatchOrders", args...)
+func (this *BinanceusdmCore) EapiPrivatePutBlockOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivatePutBlockOrderCreate", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateDeleteAllOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateDeleteAllOpenOrders", args...)
+func (this *BinanceusdmCore) EapiPrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateDeleteOrder", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateDeleteAllOpenOrdersByUnderlying (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateDeleteAllOpenOrdersByUnderlying", args...)
+func (this *BinanceusdmCore) EapiPrivateDeleteBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateDeleteBatchOrders", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateDeleteListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateDeleteListenKey", args...)
+func (this *BinanceusdmCore) EapiPrivateDeleteAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateDeleteAllOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) EapiPrivateDeleteBlockOrderCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("eapiPrivateDeleteBlockOrderCreate", args...)
+func (this *BinanceusdmCore) EapiPrivateDeleteAllOpenOrdersByUnderlying(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateDeleteAllOpenOrdersByUnderlying", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetPing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPing", args...)
+func (this *BinanceusdmCore) EapiPrivateDeleteListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateDeleteListenKey", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTime", args...)
+func (this *BinanceusdmCore) EapiPrivateDeleteBlockOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateDeleteBlockOrderCreate", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDepth", args...)
+func (this *BinanceusdmCore) PublicGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPing", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTrades", args...)
+func (this *BinanceusdmCore) PublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetAggTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAggTrades", args...)
+func (this *BinanceusdmCore) PublicGetDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDepth", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetHistoricalTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetHistoricalTrades", args...)
+func (this *BinanceusdmCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetKlines", args...)
+func (this *BinanceusdmCore) PublicGetAggTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAggTrades", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetUiKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetUiKlines", args...)
+func (this *BinanceusdmCore) PublicGetHistoricalTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetHistoricalTrades", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetTicker24hr (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker24hr", args...)
+func (this *BinanceusdmCore) PublicGetKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetKlines", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *BinanceusdmCore) PublicGetUiKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetUiKlines", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetTickerTradingDay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickerTradingDay", args...)
+func (this *BinanceusdmCore) PublicGetTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker24hr", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetTickerPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickerPrice", args...)
+func (this *BinanceusdmCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetTickerBookTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickerBookTicker", args...)
+func (this *BinanceusdmCore) PublicGetTickerTradingDay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerTradingDay", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetExchangeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetExchangeInfo", args...)
+func (this *BinanceusdmCore) PublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerPrice", args...)
 }
 
-func (this *BinanceusdmCore) PublicGetAvgPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAvgPrice", args...)
+func (this *BinanceusdmCore) PublicGetTickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerBookTicker", args...)
 }
 
-func (this *BinanceusdmCore) PublicPutUserDataStream (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPutUserDataStream", args...)
+func (this *BinanceusdmCore) PublicGetExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetExchangeInfo", args...)
 }
 
-func (this *BinanceusdmCore) PublicPostUserDataStream (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostUserDataStream", args...)
+func (this *BinanceusdmCore) PublicGetAvgPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAvgPrice", args...)
 }
 
-func (this *BinanceusdmCore) PublicDeleteUserDataStream (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicDeleteUserDataStream", args...)
+func (this *BinanceusdmCore) PublicPutUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPutUserDataStream", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetAllOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAllOrderList", args...)
+func (this *BinanceusdmCore) PublicPostUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostUserDataStream", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetOpenOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOpenOrderList", args...)
+func (this *BinanceusdmCore) PublicDeleteUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicDeleteUserDataStream", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrderList", args...)
+func (this *BinanceusdmCore) PrivateGetAllOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAllOrderList", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrder", args...)
+func (this *BinanceusdmCore) PrivateGetOpenOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenOrderList", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOpenOrders", args...)
+func (this *BinanceusdmCore) PrivateGetOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderList", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAllOrders", args...)
+func (this *BinanceusdmCore) PrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccount", args...)
+func (this *BinanceusdmCore) PrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetMyTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMyTrades", args...)
+func (this *BinanceusdmCore) PrivateGetAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAllOrders", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetRateLimitOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRateLimitOrder", args...)
+func (this *BinanceusdmCore) PrivateGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccount", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetMyPreventedMatches (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMyPreventedMatches", args...)
+func (this *BinanceusdmCore) PrivateGetMyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMyTrades", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetMyAllocations (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMyAllocations", args...)
+func (this *BinanceusdmCore) PrivateGetRateLimitOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRateLimitOrder", args...)
 }
 
-func (this *BinanceusdmCore) PrivateGetAccountCommission (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountCommission", args...)
+func (this *BinanceusdmCore) PrivateGetMyPreventedMatches(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMyPreventedMatches", args...)
 }
 
-func (this *BinanceusdmCore) PrivatePostOrderOco (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderOco", args...)
+func (this *BinanceusdmCore) PrivateGetMyAllocations(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMyAllocations", args...)
 }
 
-func (this *BinanceusdmCore) PrivatePostOrderListOco (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderListOco", args...)
+func (this *BinanceusdmCore) PrivateGetAccountCommission(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountCommission", args...)
 }
 
-func (this *BinanceusdmCore) PrivatePostOrderListOto (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderListOto", args...)
+func (this *BinanceusdmCore) PrivatePostOrderOco(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderOco", args...)
 }
 
-func (this *BinanceusdmCore) PrivatePostOrderListOtoco (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderListOtoco", args...)
+func (this *BinanceusdmCore) PrivatePostOrderListOco(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderListOco", args...)
 }
 
-func (this *BinanceusdmCore) PrivatePostSorOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSorOrder", args...)
+func (this *BinanceusdmCore) PrivatePostOrderListOto(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderListOto", args...)
 }
 
-func (this *BinanceusdmCore) PrivatePostSorOrderTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSorOrderTest", args...)
+func (this *BinanceusdmCore) PrivatePostOrderListOtoco(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderListOtoco", args...)
 }
 
-func (this *BinanceusdmCore) PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrder", args...)
+func (this *BinanceusdmCore) PrivatePostSorOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSorOrder", args...)
 }
 
-func (this *BinanceusdmCore) PrivatePostOrderCancelReplace (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderCancelReplace", args...)
+func (this *BinanceusdmCore) PrivatePostSorOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSorOrderTest", args...)
 }
 
-func (this *BinanceusdmCore) PrivatePostOrderTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderTest", args...)
+func (this *BinanceusdmCore) PrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *BinanceusdmCore) PrivateDeleteOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOpenOrders", args...)
+func (this *BinanceusdmCore) PrivatePostOrderCancelReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderCancelReplace", args...)
 }
 
-func (this *BinanceusdmCore) PrivateDeleteOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrderList", args...)
+func (this *BinanceusdmCore) PrivatePostOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderTest", args...)
 }
 
-func (this *BinanceusdmCore) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrder", args...)
+func (this *BinanceusdmCore) PrivateDeleteOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetPing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetPing", args...)
+func (this *BinanceusdmCore) PrivateDeleteOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrderList", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmOrder", args...)
+func (this *BinanceusdmCore) PrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmOpenOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmOpenOrder", args...)
+func (this *BinanceusdmCore) PapiGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetPing", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmOpenOrders", args...)
+func (this *BinanceusdmCore) PapiGetUmOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmAllOrders", args...)
+func (this *BinanceusdmCore) PapiGetUmOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmOpenOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmOrder", args...)
+func (this *BinanceusdmCore) PapiGetUmOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmOpenOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmOpenOrder", args...)
+func (this *BinanceusdmCore) PapiGetUmAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmAllOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmOpenOrders", args...)
+func (this *BinanceusdmCore) PapiGetCmOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmAllOrders", args...)
+func (this *BinanceusdmCore) PapiGetCmOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmOpenOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmConditionalOpenOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmConditionalOpenOrder", args...)
+func (this *BinanceusdmCore) PapiGetCmOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmConditionalOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmConditionalOpenOrders", args...)
+func (this *BinanceusdmCore) PapiGetCmAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmAllOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmConditionalOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmConditionalOrderHistory", args...)
+func (this *BinanceusdmCore) PapiGetUmConditionalOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmConditionalOpenOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmConditionalAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmConditionalAllOrders", args...)
+func (this *BinanceusdmCore) PapiGetUmConditionalOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmConditionalOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmConditionalOpenOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmConditionalOpenOrder", args...)
+func (this *BinanceusdmCore) PapiGetUmConditionalOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmConditionalOrderHistory", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmConditionalOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmConditionalOpenOrders", args...)
+func (this *BinanceusdmCore) PapiGetUmConditionalAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmConditionalAllOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmConditionalOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmConditionalOrderHistory", args...)
+func (this *BinanceusdmCore) PapiGetCmConditionalOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmConditionalOpenOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmConditionalAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmConditionalAllOrders", args...)
+func (this *BinanceusdmCore) PapiGetCmConditionalOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmConditionalOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginOrder", args...)
+func (this *BinanceusdmCore) PapiGetCmConditionalOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmConditionalOrderHistory", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginOpenOrders", args...)
+func (this *BinanceusdmCore) PapiGetCmConditionalAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmConditionalAllOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginAllOrders", args...)
+func (this *BinanceusdmCore) PapiGetMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginOrderList", args...)
+func (this *BinanceusdmCore) PapiGetMarginOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginAllOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginAllOrderList", args...)
+func (this *BinanceusdmCore) PapiGetMarginAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginAllOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginOpenOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginOpenOrderList", args...)
+func (this *BinanceusdmCore) PapiGetMarginOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginOrderList", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginMyTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginMyTrades", args...)
+func (this *BinanceusdmCore) PapiGetMarginAllOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginAllOrderList", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetBalance", args...)
+func (this *BinanceusdmCore) PapiGetMarginOpenOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginOpenOrderList", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetAccount", args...)
+func (this *BinanceusdmCore) PapiGetMarginMyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginMyTrades", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginMaxBorrowable (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginMaxBorrowable", args...)
+func (this *BinanceusdmCore) PapiGetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetBalance", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginMaxWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginMaxWithdraw", args...)
+func (this *BinanceusdmCore) PapiGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetAccount", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmPositionRisk (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmPositionRisk", args...)
+func (this *BinanceusdmCore) PapiGetMarginMaxBorrowable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginMaxBorrowable", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmPositionRisk (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmPositionRisk", args...)
+func (this *BinanceusdmCore) PapiGetMarginMaxWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginMaxWithdraw", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmPositionSideDual (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmPositionSideDual", args...)
+func (this *BinanceusdmCore) PapiGetUmPositionRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmPositionRisk", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmPositionSideDual (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmPositionSideDual", args...)
+func (this *BinanceusdmCore) PapiGetCmPositionRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmPositionRisk", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmUserTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmUserTrades", args...)
+func (this *BinanceusdmCore) PapiGetUmPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmPositionSideDual", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmUserTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmUserTrades", args...)
+func (this *BinanceusdmCore) PapiGetCmPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmPositionSideDual", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmLeverageBracket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmLeverageBracket", args...)
+func (this *BinanceusdmCore) PapiGetUmUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmUserTrades", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmLeverageBracket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmLeverageBracket", args...)
+func (this *BinanceusdmCore) PapiGetCmUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmUserTrades", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginForceOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginForceOrders", args...)
+func (this *BinanceusdmCore) PapiGetUmLeverageBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmLeverageBracket", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmForceOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmForceOrders", args...)
+func (this *BinanceusdmCore) PapiGetCmLeverageBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmLeverageBracket", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmForceOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmForceOrders", args...)
+func (this *BinanceusdmCore) PapiGetMarginForceOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginForceOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmApiTradingStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmApiTradingStatus", args...)
+func (this *BinanceusdmCore) PapiGetUmForceOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmForceOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmCommissionRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmCommissionRate", args...)
+func (this *BinanceusdmCore) PapiGetCmForceOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmForceOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmCommissionRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmCommissionRate", args...)
+func (this *BinanceusdmCore) PapiGetUmApiTradingStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmApiTradingStatus", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginMarginLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginMarginLoan", args...)
+func (this *BinanceusdmCore) PapiGetUmCommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmCommissionRate", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginRepayLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginRepayLoan", args...)
+func (this *BinanceusdmCore) PapiGetCmCommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmCommissionRate", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetMarginMarginInterestHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetMarginMarginInterestHistory", args...)
+func (this *BinanceusdmCore) PapiGetMarginMarginLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginMarginLoan", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetPortfolioInterestHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetPortfolioInterestHistory", args...)
+func (this *BinanceusdmCore) PapiGetMarginRepayLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginRepayLoan", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmIncome (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmIncome", args...)
+func (this *BinanceusdmCore) PapiGetMarginMarginInterestHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetMarginMarginInterestHistory", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmIncome (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmIncome", args...)
+func (this *BinanceusdmCore) PapiGetPortfolioInterestHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetPortfolioInterestHistory", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmAccount", args...)
+func (this *BinanceusdmCore) PapiGetUmIncome(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmIncome", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmAccount", args...)
+func (this *BinanceusdmCore) PapiGetCmIncome(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmIncome", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetRepayFuturesSwitch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetRepayFuturesSwitch", args...)
+func (this *BinanceusdmCore) PapiGetUmAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmAccount", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmAdlQuantile (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmAdlQuantile", args...)
+func (this *BinanceusdmCore) PapiGetCmAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmAccount", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmAdlQuantile (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmAdlQuantile", args...)
+func (this *BinanceusdmCore) PapiGetRepayFuturesSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetRepayFuturesSwitch", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmTradeAsyn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmTradeAsyn", args...)
+func (this *BinanceusdmCore) PapiGetUmAdlQuantile(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmAdlQuantile", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmTradeAsynId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmTradeAsynId", args...)
+func (this *BinanceusdmCore) PapiGetCmAdlQuantile(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmAdlQuantile", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmOrderAsyn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmOrderAsyn", args...)
+func (this *BinanceusdmCore) PapiGetUmTradeAsyn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmTradeAsyn", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmOrderAsynId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmOrderAsynId", args...)
+func (this *BinanceusdmCore) PapiGetUmTradeAsynId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmTradeAsynId", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmIncomeAsyn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmIncomeAsyn", args...)
+func (this *BinanceusdmCore) PapiGetUmOrderAsyn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmOrderAsyn", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmIncomeAsynId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmIncomeAsynId", args...)
+func (this *BinanceusdmCore) PapiGetUmOrderAsynId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmOrderAsynId", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmOrderAmendment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmOrderAmendment", args...)
+func (this *BinanceusdmCore) PapiGetUmIncomeAsyn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmIncomeAsyn", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmOrderAmendment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmOrderAmendment", args...)
+func (this *BinanceusdmCore) PapiGetUmIncomeAsynId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmIncomeAsynId", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmFeeBurn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmFeeBurn", args...)
+func (this *BinanceusdmCore) PapiGetUmOrderAmendment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmOrderAmendment", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmAccountConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmAccountConfig", args...)
+func (this *BinanceusdmCore) PapiGetCmOrderAmendment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmOrderAmendment", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetUmSymbolConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetUmSymbolConfig", args...)
+func (this *BinanceusdmCore) PapiGetUmFeeBurn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmFeeBurn", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmAccountConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmAccountConfig", args...)
+func (this *BinanceusdmCore) PapiGetUmAccountConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmAccountConfig", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetCmSymbolConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetCmSymbolConfig", args...)
+func (this *BinanceusdmCore) PapiGetUmSymbolConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetUmSymbolConfig", args...)
 }
 
-func (this *BinanceusdmCore) PapiGetRateLimitOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiGetRateLimitOrder", args...)
+func (this *BinanceusdmCore) PapiGetCmAccountConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmAccountConfig", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostUmOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostUmOrder", args...)
+func (this *BinanceusdmCore) PapiGetCmSymbolConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetCmSymbolConfig", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostUmConditionalOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostUmConditionalOrder", args...)
+func (this *BinanceusdmCore) PapiGetRateLimitOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiGetRateLimitOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostCmOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostCmOrder", args...)
+func (this *BinanceusdmCore) PapiPostUmOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostUmOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostCmConditionalOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostCmConditionalOrder", args...)
+func (this *BinanceusdmCore) PapiPostUmConditionalOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostUmConditionalOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostMarginOrder", args...)
+func (this *BinanceusdmCore) PapiPostCmOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostCmOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostMarginLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostMarginLoan", args...)
+func (this *BinanceusdmCore) PapiPostCmConditionalOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostCmConditionalOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostRepayLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostRepayLoan", args...)
+func (this *BinanceusdmCore) PapiPostMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostMarginOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostMarginOrderOco (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostMarginOrderOco", args...)
+func (this *BinanceusdmCore) PapiPostMarginLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostMarginLoan", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostUmLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostUmLeverage", args...)
+func (this *BinanceusdmCore) PapiPostRepayLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostRepayLoan", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostCmLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostCmLeverage", args...)
+func (this *BinanceusdmCore) PapiPostMarginOrderOco(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostMarginOrderOco", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostUmPositionSideDual (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostUmPositionSideDual", args...)
+func (this *BinanceusdmCore) PapiPostUmLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostUmLeverage", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostCmPositionSideDual (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostCmPositionSideDual", args...)
+func (this *BinanceusdmCore) PapiPostCmLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostCmLeverage", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostAutoCollection (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostAutoCollection", args...)
+func (this *BinanceusdmCore) PapiPostUmPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostUmPositionSideDual", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostBnbTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostBnbTransfer", args...)
+func (this *BinanceusdmCore) PapiPostCmPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostCmPositionSideDual", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostRepayFuturesSwitch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostRepayFuturesSwitch", args...)
+func (this *BinanceusdmCore) PapiPostAutoCollection(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostAutoCollection", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostRepayFuturesNegativeBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostRepayFuturesNegativeBalance", args...)
+func (this *BinanceusdmCore) PapiPostBnbTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostBnbTransfer", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostListenKey", args...)
+func (this *BinanceusdmCore) PapiPostRepayFuturesSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostRepayFuturesSwitch", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostAssetCollection (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostAssetCollection", args...)
+func (this *BinanceusdmCore) PapiPostRepayFuturesNegativeBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostRepayFuturesNegativeBalance", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostMarginRepayDebt (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostMarginRepayDebt", args...)
+func (this *BinanceusdmCore) PapiPostListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostListenKey", args...)
 }
 
-func (this *BinanceusdmCore) PapiPostUmFeeBurn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPostUmFeeBurn", args...)
+func (this *BinanceusdmCore) PapiPostAssetCollection(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostAssetCollection", args...)
 }
 
-func (this *BinanceusdmCore) PapiPutListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPutListenKey", args...)
+func (this *BinanceusdmCore) PapiPostMarginRepayDebt(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostMarginRepayDebt", args...)
 }
 
-func (this *BinanceusdmCore) PapiPutUmOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPutUmOrder", args...)
+func (this *BinanceusdmCore) PapiPostUmFeeBurn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPostUmFeeBurn", args...)
 }
 
-func (this *BinanceusdmCore) PapiPutCmOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiPutCmOrder", args...)
+func (this *BinanceusdmCore) PapiPutListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPutListenKey", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteUmOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteUmOrder", args...)
+func (this *BinanceusdmCore) PapiPutUmOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPutUmOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteUmConditionalOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteUmConditionalOrder", args...)
+func (this *BinanceusdmCore) PapiPutCmOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiPutCmOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteUmAllOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteUmAllOpenOrders", args...)
+func (this *BinanceusdmCore) PapiDeleteUmOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteUmOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteUmConditionalAllOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteUmConditionalAllOpenOrders", args...)
+func (this *BinanceusdmCore) PapiDeleteUmConditionalOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteUmConditionalOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteCmOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteCmOrder", args...)
+func (this *BinanceusdmCore) PapiDeleteUmAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteUmAllOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteCmConditionalOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteCmConditionalOrder", args...)
+func (this *BinanceusdmCore) PapiDeleteUmConditionalAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteUmConditionalAllOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteCmAllOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteCmAllOpenOrders", args...)
+func (this *BinanceusdmCore) PapiDeleteCmOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteCmOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteCmConditionalAllOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteCmConditionalAllOpenOrders", args...)
+func (this *BinanceusdmCore) PapiDeleteCmConditionalOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteCmConditionalOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteMarginOrder", args...)
+func (this *BinanceusdmCore) PapiDeleteCmAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteCmAllOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteMarginAllOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteMarginAllOpenOrders", args...)
+func (this *BinanceusdmCore) PapiDeleteCmConditionalAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteCmConditionalAllOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteMarginOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteMarginOrderList", args...)
+func (this *BinanceusdmCore) PapiDeleteMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteMarginOrder", args...)
 }
 
-func (this *BinanceusdmCore) PapiDeleteListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiDeleteListenKey", args...)
+func (this *BinanceusdmCore) PapiDeleteMarginAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteMarginAllOpenOrders", args...)
 }
 
-func (this *BinanceusdmCore) PapiV2GetUmAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("papiV2GetUmAccount", args...)
+func (this *BinanceusdmCore) PapiDeleteMarginOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteMarginOrderList", args...)
+}
+
+func (this *BinanceusdmCore) PapiDeleteListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiDeleteListenKey", args...)
+}
+
+func (this *BinanceusdmCore) PapiV2GetUmAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("papiV2GetUmAccount", args...)
 }

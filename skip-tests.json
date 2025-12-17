@@ -1082,6 +1082,13 @@
             "fetchBalance": "tmp skip"
         }
     },
+    "dydx": {
+        "skipMethods": {
+            "watchOrderBook": {
+                "timestamp": "not provided"
+            }
+        }
+    },
     "exmo": {
         "skipMethods": {
             "loadMarkets": {
@@ -1434,7 +1441,8 @@
                 "depositForNonCrypto": "not provided",
                 "withdrawForNonCrypto": "not provided",
                 "limits": "is not provided",
-                "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/271028497#L5338"
+                "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/271028497#L5338",
+                "maxInactiveCurrenciesPercentage": 60
             },
             "loadMarkets": {
                 "taker": "temporary, until NFT-TRX appears in https://api.kucoin.com/api/v1/market/allTickers",
@@ -1747,7 +1755,8 @@
             "loadMarkets": "needs fixing",
             "fetchCurrencies": {
                 "limits": "messed",
-                "type": "todo"
+                "type": "todo",
+                "maxInactiveCurrenciesPercentage": 85
             },
             "ticker":  {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
@@ -1888,6 +1897,9 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "fetchOrderBook": {
+                "compareToNextItem": "tmp"
             }
         }
     },
@@ -1896,6 +1908,9 @@
         "skipMethods": {
             "orderBook":{
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6195"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -2122,5 +2137,8 @@
                 "spread": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/19507537406/job/55838385322?pr=25884"
             }
         }
+    },
+    "zebpay": {
+        "skip": "ip whitelist required"
     }
 }

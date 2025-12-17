@@ -90,7 +90,7 @@ class upbit extends \ccxt\async\upbit {
              *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_public_multiple(array( $symbol ), 'ticker'));
         }) ();
@@ -105,7 +105,7 @@ class upbit extends \ccxt\async\upbit {
              *
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $newTickers = Async\await($this->watch_public_multiple($symbols, 'ticker'));
             if ($this->newUpdates) {
@@ -128,7 +128,7 @@ class upbit extends \ccxt\async\upbit {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
@@ -145,7 +145,7 @@ class upbit extends \ccxt\async\upbit {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             $trades = Async\await($this->watch_public_multiple($symbols, 'trade'));
             if ($this->newUpdates) {
@@ -167,7 +167,7 @@ class upbit extends \ccxt\async\upbit {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $orderbook = Async\await($this->watch_public_multiple(array( $symbol ), 'orderbook'));
             return $orderbook->limit ();
@@ -187,7 +187,7 @@ class upbit extends \ccxt\async\upbit {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {OHLCV[]} a list of ~@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV structures~
+             * @return {OHLCV[]} a list of ~@link https://docs.ccxt.com/?id=ohlcv-structure OHLCV structures~
              */
             if ($timeframe !== '1s') {
                 throw new NotSupported($this->id . ' watchOHLCV does not support' . $timeframe . ' candle.');
@@ -433,7 +433,7 @@ class upbit extends \ccxt\async\upbit {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $channel = 'myOrder';
@@ -457,7 +457,7 @@ class upbit extends \ccxt\async\upbit {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $channel = 'myOrder';
@@ -650,7 +650,7 @@ class upbit extends \ccxt\async\upbit {
              *
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $channel = 'myAsset';

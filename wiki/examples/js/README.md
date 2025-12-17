@@ -189,6 +189,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Hybridesmexample](./examples/js/hybridESMExample.md)
 
+- [Hyperliquid Load Hip3 Dexes](./examples/js/hyperliquid-load-hip3-dexes.md)
+
 - [Idex Fetch Balance](./examples/js/idex-fetch-balance.md)
 
 - [Instantiate All At Once](./examples/js/instantiate-all-at-once.md)

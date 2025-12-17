@@ -32,6 +32,7 @@ import { // eslint-disable-line object-curly-newline
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
+import type Client from './ws/Client.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
 // ----------------------------------------------------------------------------
@@ -49,7 +50,6 @@ import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
-import Client from './ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
@@ -2318,10 +2318,8 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object')) {
-            if (!Array.isArray (value)) {
-                return value;
-            }
+        if ((typeof value === 'object') && !Array.isArray (value)) {
+            return value;
         }
         return defaultValue;
     }
@@ -3072,7 +3070,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest change to fetch
          * @param {int} [limit] the maximum amount of changes to fetch
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
          */
         throw new NotSupported (this.id + ' fetchMarginAdjustmentHistory() is not supported yet');
     }
@@ -5467,7 +5465,7 @@ export default class Exchange {
          * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported (this.id + ' fetchPositionsForSymbol() is not supported yet');
     }
@@ -5479,7 +5477,7 @@ export default class Exchange {
          * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported (this.id + ' fetchPositionsForSymbol() is not supported yet');
     }
@@ -5513,8 +5511,8 @@ export default class Exchange {
     }
 
     parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
-        const price = this.safeNumber (bidask, priceKey);
-        const amount = this.safeNumber (bidask, amountKey);
+        const price = this.safeFloat (bidask, priceKey);
+        const amount = this.safeFloat (bidask, amountKey);
         const countOrId = this.safeInteger (bidask, countOrIdKey);
         const bidAsk = [ price, amount ];
         if (countOrId !== undefined) {
@@ -5973,7 +5971,7 @@ export default class Exchange {
      * @param {string} clientOrderId client order Id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrderWithClientOrderId (clientOrderId: string, symbol: Str = undefined, params = {}) {
         const extendedParams = this.extend (params, { 'clientOrderId': clientOrderId });
@@ -6028,7 +6026,7 @@ export default class Exchange {
          * @param {float} trailingAmount the quote amount to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (trailingAmount === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingAmountOrder() requires a trailingAmount argument');
@@ -6056,7 +6054,7 @@ export default class Exchange {
          * @param {float} trailingAmount the quote amount to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (trailingAmount === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingAmountOrderWs() requires a trailingAmount argument');
@@ -6084,7 +6082,7 @@ export default class Exchange {
          * @param {float} trailingPercent the percent to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (trailingPercent === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
@@ -6112,7 +6110,7 @@ export default class Exchange {
          * @param {float} trailingPercent the percent to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (trailingPercent === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingPercentOrderWs() requires a trailingPercent argument');
@@ -6136,7 +6134,7 @@ export default class Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (this.has['createMarketOrderWithCost'] || (this.has['createMarketBuyOrderWithCost'] && this.has['createMarketSellOrderWithCost'])) {
             return await this.createOrder (symbol, 'market', side, cost, 1, params);
@@ -6152,7 +6150,7 @@ export default class Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (this.options['createMarketBuyOrderRequiresPrice'] || this.has['createMarketBuyOrderWithCost']) {
             return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
@@ -6168,7 +6166,7 @@ export default class Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (this.options['createMarketSellOrderRequiresPrice'] || this.has['createMarketSellOrderWithCost']) {
             return await this.createOrder (symbol, 'market', 'sell', cost, 1, params);
@@ -6185,7 +6183,7 @@ export default class Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (this.has['createMarketOrderWithCostWs'] || (this.has['createMarketBuyOrderWithCostWs'] && this.has['createMarketSellOrderWithCostWs'])) {
             return await this.createOrderWs (symbol, 'market', side, cost, 1, params);
@@ -6205,7 +6203,7 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTriggerOrder() requires a triggerPrice argument');
@@ -6229,7 +6227,7 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
@@ -6253,7 +6251,7 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createStopLossOrder() requires a stopLossPrice argument');
@@ -6277,7 +6275,7 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
@@ -6301,7 +6299,7 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
@@ -6325,7 +6323,7 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
@@ -6358,7 +6356,7 @@ export default class Exchange {
          * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
          * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         params = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
         if (this.has['createOrderWithTakeProfitAndStopLoss']) {
@@ -6438,7 +6436,7 @@ export default class Exchange {
          * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
          * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         params = this.setTakeProfitAndStopLossParams (symbol, type, side, amount, price, takeProfit, stopLoss, params);
         if (this.has['createOrderWithTakeProfitAndStopLossWs']) {
@@ -6470,7 +6468,7 @@ export default class Exchange {
      * @param {string} clientOrderId client order Id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWithClientOrderId (clientOrderId: string, symbol: Str = undefined, params = {}) {
         const extendedParams = this.extend (params, { 'clientOrderId': clientOrderId });
@@ -6492,7 +6490,7 @@ export default class Exchange {
      * @param {string[]} clientOrderIds client order Ids
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrdersWithClientOrderIds (clientOrderIds: string[], symbol: Str = undefined, params = {}) {
         const extendedParams = this.extend (params, { 'clientOrderIds': clientOrderIds });
@@ -6627,7 +6625,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         throw new NotSupported (this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -7729,7 +7727,7 @@ export default class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
@@ -7769,7 +7767,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         if (this.has['fetchDepositsWithdrawals']) {
             return await this.fetchDepositsWithdrawals (code, since, limit, params);
@@ -8181,7 +8179,7 @@ export default class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
          */
         const result = [];
         for (let i = 0; i < liquidations.length; i++) {
@@ -8398,7 +8396,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the position
          * @param {int} [limit] the maximum amount of candles to fetch, default=1000
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
         if (this.has['fetchPositionsHistory']) {
             const positions = await this.fetchPositionsHistory ([ symbol ], since, limit, params);
@@ -8417,7 +8415,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the position
          * @param {int} [limit] the maximum amount of candles to fetch, default=1000
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
         throw new NotSupported (this.id + ' fetchPositionsHistory () is not supported yet');
     }
@@ -8447,7 +8445,7 @@ export default class Exchange {
          * @param {string} id transfer id
          * @param {[string]} code unified currency code
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
          */
         throw new NotSupported (this.id + ' fetchTransfer () is not supported yet');
     }
@@ -8461,7 +8459,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest transfer to fetch
          * @param {int} [limit] the maximum amount of transfers to fetch
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
          */
         throw new NotSupported (this.id + ' fetchTransfers () is not supported yet');
     }
@@ -8486,7 +8484,7 @@ export default class Exchange {
          * @description watches a mark price for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
          */
         throw new NotSupported (this.id + ' watchMarkPrice () is not supported yet');
     }
@@ -8498,7 +8496,7 @@ export default class Exchange {
          * @description watches the mark price for all markets
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
          */
         throw new NotSupported (this.id + ' watchMarkPrices () is not supported yet');
     }
@@ -8513,7 +8511,7 @@ export default class Exchange {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         throw new NotSupported (this.id + ' withdrawWs () is not supported yet');
     }
@@ -8525,7 +8523,7 @@ export default class Exchange {
          * @description unWatches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
          */
         throw new NotSupported (this.id + ' unWatchMyTrades () is not supported yet');
     }
@@ -8537,7 +8535,7 @@ export default class Exchange {
          * @description create a list of trade orders
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         throw new NotSupported (this.id + ' createOrdersWs () is not supported yet');
     }
@@ -8550,7 +8548,7 @@ export default class Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
          */
         throw new NotSupported (this.id + ' fetchOrdersByStatusWs () is not supported yet');
     }
@@ -8562,7 +8560,7 @@ export default class Exchange {
          * @description unWatches best bid & ask for symbols
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
          */
         throw new NotSupported (this.id + ' unWatchBidsAsks () is not supported yet');
     }

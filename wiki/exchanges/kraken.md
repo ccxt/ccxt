@@ -80,7 +80,7 @@ kraken.fetchMarkets ([params])
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://docs.kraken.com/api/docs/rest-api/get-system-status/  
 
@@ -120,7 +120,7 @@ kraken.fetchCurrencies ([params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume  
 
@@ -141,7 +141,7 @@ kraken.fetchTradingFee (symbol[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook  
 
@@ -163,7 +163,7 @@ kraken.fetchOrderBook (symbol[, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation  
 
@@ -184,7 +184,7 @@ kraken.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation  
 
@@ -230,7 +230,7 @@ kraken.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
 
 **See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers  
 
@@ -255,7 +255,7 @@ kraken.fetchLedger ([code, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades  
 
@@ -278,7 +278,7 @@ kraken.fetchTrades (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance  
 
@@ -298,7 +298,7 @@ kraken.fetchBalance ([params])
 create a market order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder  
 
@@ -321,7 +321,7 @@ kraken.createMarketOrderWithCost (symbol, side, cost[, params])
 create a market buy order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder  
 
@@ -343,7 +343,7 @@ kraken.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/rest-api/add-order  
 
@@ -378,7 +378,7 @@ kraken.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/rest-api/add-order-batch/  
 
@@ -399,7 +399,7 @@ kraken.createOrders (orders[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/rest-api/amend-order  
 
@@ -434,7 +434,7 @@ kraken.editOrder (id, symbol, type, side[, amount, price, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo  
 
@@ -456,7 +456,7 @@ kraken.fetchOrder (id, symbol[, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo  
 
@@ -480,7 +480,7 @@ kraken.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch orders by the list of order id
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders  
 
@@ -502,7 +502,7 @@ kraken.fetchOrdersByIds ([ids, symbol, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.kraken.com/api/docs/rest-api/get-trade-history  
 
@@ -527,7 +527,7 @@ kraken.fetchMyTrades (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/rest-api/cancel-order  
 
@@ -551,7 +551,7 @@ kraken.cancelOrder (id[, symbol, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch  
 
@@ -573,7 +573,7 @@ kraken.cancelOrders (ids, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders  
 
@@ -615,7 +615,7 @@ kraken.cancelAllOrdersAfter (timeout[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/rest-api/get-open-orders  
 
@@ -640,7 +640,7 @@ kraken.fetchOpenOrders ([symbol, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kraken.com/api/docs/rest-api/get-closed-orders  
 
@@ -666,7 +666,7 @@ kraken.fetchClosedOrders ([symbol, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits  
 
@@ -711,7 +711,7 @@ kraken.fetchTime ([params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals  
 
@@ -737,7 +737,7 @@ kraken.fetchWithdrawals (code[, since, limit, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses  
 
@@ -779,7 +779,7 @@ kraken.fetchDepositMethods (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses  
 
@@ -800,7 +800,7 @@ kraken.fetchDepositAddress (code[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds  
 
@@ -824,7 +824,7 @@ kraken.withdraw (code, amount, address, tag[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions  
 
@@ -845,7 +845,7 @@ kraken.fetchPositions ([symbols, params])
 transfer from spot wallet to futures wallet
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer  
 
@@ -867,7 +867,7 @@ kraken.transferOut (code, amount[, params])
 transfers currencies between sub-accounts (only spot->swap direction is supported)
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer  
 
