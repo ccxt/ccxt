@@ -35,6 +35,7 @@ export default class bitmart extends bitmartRest {
                 'watchOHLCV': true,
                 'watchPosition': 'emulated',
                 'watchPositions': true,
+                'unWatchBidsAsks': false, // the same channel as watchTickers
                 'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': true,
@@ -217,7 +218,7 @@ export default class bitmart extends bitmartRest {
         if (subscribeHash in client.subscriptions) {
             return;
         }
-        const options = this.safeValue (this.options, 'watchBalance');
+        const options = this.safeDict (this.options, 'watchBalance');
         const snapshot = this.safeBool (options, 'fetchBalanceSnapshot', true);
         if (snapshot) {
             const messageHash = type + ':' + 'fetchBalanceSnapshot';
@@ -285,7 +286,7 @@ export default class bitmart extends bitmartRest {
                 const timestamp = this.safeInteger (message, 'event_time');
                 this.balance[type]['timestamp'] = timestamp;
                 this.balance[type]['datetime'] = this.iso8601 (timestamp);
-                const balanceDetails = this.safeValue (data[i], 'balance_details', []);
+                const balanceDetails = this.safeList (data[i], 'balance_details', []);
                 for (let ii = 0; ii < balanceDetails.length; ii++) {
                     const rawBalance = balanceDetails[i];
                     const account = this.account ();
@@ -525,7 +526,7 @@ export default class bitmart extends bitmartRest {
         if (isSpot) {
             rawTickers = this.safeList (message, 'data', []);
         } else {
-            rawTickers = [ this.safeValue (message, 'data', {}) ];
+            rawTickers = [ this.safeDict (message, 'data', {}) ];
         }
         if (!rawTickers.length) {
             return;
@@ -660,7 +661,7 @@ export default class bitmart extends bitmartRest {
         //        ]
         //    }
         //
-        const orders = this.safeValue (message, 'data');
+        const orders = this.safeList (message, 'data');
         if (orders === undefined) {
             return;
         }
@@ -776,13 +777,13 @@ export default class bitmart extends bitmartRest {
                 'trades': undefined,
             }, market);
         } else {
-            const orderInfo = this.safeValue (order, 'order');
+            const orderInfo = this.safeDict (order, 'order');
             const marketId = this.safeString (orderInfo, 'symbol');
             const symbol = this.safeSymbol (marketId, market, '', 'swap');
             const orderId = this.safeString (orderInfo, 'order_id');
             const timestamp = this.safeInteger (orderInfo, 'create_time');
             const updatedTimestamp = this.safeInteger (orderInfo, 'update_time');
-            const lastTrade = this.safeValue (orderInfo, 'last_trade');
+            const lastTrade = this.safeDict (orderInfo, 'last_trade');
             const cachedOrders = this.orders;
             const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
             const cachedOrder = this.safeValue (orders, orderId);
@@ -917,7 +918,7 @@ export default class bitmart extends bitmartRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -1031,7 +1032,7 @@ export default class bitmart extends bitmartRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data');
+        const data = this.safeList (message, 'data');
         if (data === undefined) {
             return;
         }
@@ -1168,7 +1169,7 @@ export default class bitmart extends bitmartRest {
         if (isSpot) {
             rawTickers = this.safeList (message, 'data', []);
         } else {
-            rawTickers = [ this.safeValue (message, 'data', {}) ];
+            rawTickers = [ this.safeDict (message, 'data', {}) ];
         }
         if (!rawTickers.length) {
             return;
@@ -1243,7 +1244,7 @@ export default class bitmart extends bitmartRest {
         const market = this.market (symbol);
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe);
         let name = undefined;
         if (type === 'spot') {
@@ -1275,7 +1276,7 @@ export default class bitmart extends bitmartRest {
         const market = this.market (symbol);
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('unWatchOHLCV', market, params);
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe);
         let name = undefined;
         if (type === 'spot') {
@@ -1336,7 +1337,7 @@ export default class bitmart extends bitmartRest {
         const intervalParts = interval.split (':');
         interval = this.safeString (intervalParts, 0);
         // use a reverse lookup in a static map instead
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (interval, timeframes);
         const duration = this.parseTimeframe (timeframe);
         const durationInMs = duration * 1000;
@@ -1345,7 +1346,7 @@ export default class bitmart extends bitmartRest {
                 const marketId = this.safeString (data[i], 'symbol');
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
-                const rawOHLCV = this.safeValue (data[i], 'candle');
+                const rawOHLCV = this.safeList (data[i], 'candle');
                 const parsed = this.parseOHLCV (rawOHLCV, market);
                 parsed[0] = this.parseToInt (parsed[0] / durationInMs) * durationInMs;
                 this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -1363,7 +1364,7 @@ export default class bitmart extends bitmartRest {
             const marketId = this.safeString (data, 'symbol');
             const market = this.safeMarket (marketId, undefined, undefined, 'swap');
             const symbol = market['symbol'];
-            const items = this.safeValue (data, 'items', []);
+            const items = this.safeList (data, 'items', []);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
@@ -1395,7 +1396,7 @@ export default class bitmart extends bitmartRest {
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         let depth = this.safeString (options, 'depth', 'depth/increase100');
         symbol = this.symbol (symbol);
         const market = this.market (symbol);
@@ -1421,7 +1422,7 @@ export default class bitmart extends bitmartRest {
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         let depth = this.safeString (options, 'depth', 'depth/increase100');
         symbol = this.symbol (symbol);
         const market = this.market (symbol);
