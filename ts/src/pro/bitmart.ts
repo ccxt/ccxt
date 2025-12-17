@@ -40,6 +40,7 @@ export default class bitmart extends bitmartRest {
                 'unWatchTrades': true,
                 'unWatchTradesForSymbols': true,
                 'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -1642,6 +1643,29 @@ export default class bitmart extends bitmartRest {
         }
         const orderbook = await this.subscribeMultiple (channel, type, symbols, params);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name binance#unWatchOrderBookForSymbols
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let type = undefined;
+        [ symbols, type, params ] = this.getParamsForMultipleSub ('unWatchOrderBookForSymbols', symbols, undefined, params);
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'unWatchOrderBookForSymbols', 'depth', 'depth/increase100');
+        if (type === 'swap' && channel === 'depth/increase100') {
+            channel = 'depth50';
+        }
+        params = this.extend (params, { 'unsubscribe': true });
+        return await this.subscribeMultiple (channel, type, symbols, params);
     }
 
     async authenticate (type, params = {}) {
