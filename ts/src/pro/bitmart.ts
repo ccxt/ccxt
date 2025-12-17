@@ -35,6 +35,7 @@ export default class bitmart extends bitmartRest {
                 'watchOHLCV': true,
                 'watchPosition': 'emulated',
                 'watchPositions': true,
+                'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': true,
                 'unWatchTicker': true,
@@ -1280,7 +1281,7 @@ export default class bitmart extends bitmartRest {
         symbol = this.symbol (symbol);
         const market = this.market (symbol);
         let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('unWatchOHLCV', market, params);
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe);
         let name = undefined;
