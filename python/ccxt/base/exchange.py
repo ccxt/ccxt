@@ -148,6 +148,7 @@ from wsgiref.handlers import format_date_time
 import urllib.parse as _urlencode
 from typing import Any, List
 from ccxt.base.types import Int
+from ccxt.async_support.base.ws.client import Client  # TODO: Prevent circular import
 
 # -----------------------------------------------------------------------------
 
