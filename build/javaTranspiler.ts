@@ -55,11 +55,11 @@ const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
-const GENERATED_TESTS_FOLDER = './cs/tests/Generated/Exchange/';
+const GENERATED_TESTS_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const BASE_TESTS_FOLDER = 'java/tests/src/main/java/tests/base/';
-const BASE_TESTS_FILE =  './cs/tests/Generated/TestMethods.cs';
-const EXCHANGE_BASE_FOLDER = './cs/tests/Generated/Exchange/Base/';
-const EXCHANGE_GENERATED_FOLDER = './cs/tests/Generated/Exchange/';
+const BASE_TESTS_FILE =  './java/tests/src/main/java/tests/exchange/TestMain.java';
+const EXCHANGE_BASE_FOLDER = './java/tests/src/main/java/tests/exchange/';
+const EXCHANGE_GENERATED_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/java/examples/';
 const csharpComments: any = {};
@@ -886,7 +886,7 @@ class NewTranspiler {
 
         // create worker
         const piscina = new Piscina({
-            filename: resolve(__dirname, 'csharp-worker.js')
+            filename: resolve(__dirname, 'java-worker.js')
         });
 
         const chunkSize = 20;
@@ -1140,8 +1140,8 @@ class NewTranspiler {
     }
 
     transpileExchangeTest(name: string, path: string): [string, string] {
-        const csharp = this.transpiler.transpileCSharpByPath(path);
-        let content = csharp.content;
+        const java = this.transpiler.transpileJavaByPath(path);
+        let content = java.content;
 
         const parsedName = name.replace('.ts', '');
         const parsedParts = parsedName.split('.');
@@ -1156,22 +1156,21 @@ class NewTranspiler {
         const contentLines = content.split ('\n');
         const contentIdented = contentLines.map (line => '    ' + line).join ('\n');
 
+        const className = 'Test' + this.capitalize(parsedName.replace('test.', ''))
         const file = [
-            'using ccxt;',
-            'namespace Tests;',
-            'using System;',
-            'using System.Collections.Generic;',
+            'package tests.exchange;',
+            'import io.github.ccxt.Helpers;',
+            'import io.github.ccxt.Exchange;',
             '',
             this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
+            `public class ${className} {`,
             contentIdented,
             '}',
         ].join('\n')
         return [finalName, file];
     }
 
-    async transpileExchangeTestsToCsharp() {
+    async transpileExchangeTestsToJava() {
         const inputDir = './ts/src/test/exchange/';
         const outDir = GENERATED_TESTS_FOLDER;
         const ignore = [
@@ -1270,7 +1269,7 @@ class NewTranspiler {
     }
 
     transpileMainTest(files: any) {
-        log.magenta ('[csharp] Transpiling from', files.tsFile.yellow)
+        log.magenta ('[java] Transpiling from', files.tsFile.yellow)
         let ts = fs.readFileSync (files.tsFile).toString ();
 
         ts = this.regexAll (ts, [
@@ -1278,43 +1277,49 @@ class NewTranspiler {
         ])
 
         const mainContent = ts;
-        const csharp = this.transpiler.transpileCSharp(mainContent);
+        const java = this.transpiler.transpileJava(mainContent);
         // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
-        let contentIndentend = csharp.content;
+        let contentIndentend = java.content;
 
 
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
-            [ /object mockedExchange =/g, 'var mockedExchange =' ],
-            [ /public virtual object initOfflineExchange/g, 'public virtual Exchange initOfflineExchange' ],
-            [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
-            [ /object exchange =/g, 'Exchange exchange =' ],
+            [ /Object mockedExchange =/gm, 'var mockedExchange =' ],
+            [ /public Object initOfflineExchange/g, 'public Exchange initOfflineExchange' ],
+            [ /Object exchange(?=[,)])/g, 'Exchange exchange' ],
+            [ /Object exchange =/g, 'Exchange exchange =' ],
             [ /throw new Error/g, 'throw new Exception' ],
-            [/class testMainClass/g, 'public partial class testMainClass'],
+            [ /public class TestMainClass/g, 'public class TestMain extends BaseTest'],
+            [ /assert/gm, 'Assert'],
+            [/TestMainClass.this/, 'TestMain.this']
+
         ])
 
         const file = [
-            'using ccxt;',
-            'namespace Tests;',
+            'package tests.exchange;',
+            'import io.github.ccxt.Helpers;',
+            'import io.github.ccxt.Exchange;',
+            'import tests.BaseTest;',
+            'import io.github.ccxt.errors.*;',
             '',
             this.createGeneratedHeader().join('\n'),
             contentIndentend,
         ].join('\n')
 
-        overwriteFileAndFolder (files.csharpFile, file);
+        overwriteFileAndFolder (files.javaFile, file);
     }
 
     transpileExchangeTests(){
         this.transpileMainTest({
             'tsFile': './ts/src/test/tests.ts',
-            'csharpFile': BASE_TESTS_FILE,
+            'javaFile': BASE_TESTS_FILE,
         });
 
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
-            csharpBase: EXCHANGE_BASE_FOLDER,
-            csharp: EXCHANGE_GENERATED_FOLDER,
+            javaBase: EXCHANGE_BASE_FOLDER,
+            java: EXCHANGE_GENERATED_FOLDER,
         };
 
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -1325,23 +1330,25 @@ class NewTranspiler {
 
         const tests = [] as any;
         baseTests.forEach (baseTest => {
+            const correctedName = 'Test' + this.capitalize(baseTest.replace('test.', ''));
             tests.push({
                 base: true,
                 name:baseTest,
                 tsFile: baseFolders.tsBase + baseTest + '.ts',
-                csharpFile: baseFolders.csharpBase + baseTest + '.cs',
+                javaFile: baseFolders.javaBase + correctedName + '.java',
             });
         });
         exchangeTests.forEach (test => {
+            const correctedName = 'Test' + this.capitalize(test.replace('test.', ''));
             tests.push({
                 base: false,
                 name: test,
                 tsFile: baseFolders.ts + test + '.ts',
-                csharpFile: baseFolders.csharp + test + '.cs',
+                javaFile: baseFolders.java + correctedName + '.java',
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests);
+        this.transpileAndSaveJavaExchangeTests (tests);
     }
 
     transpileWsExchangeTests(){
@@ -1359,57 +1366,58 @@ class NewTranspiler {
             tests.push({
                 name: test,
                 tsFile: baseFolders.ts + test + '.ts',
-                csharpFile: baseFolders.csharp + test + '.cs',
+                javaFile: baseFolders.java + test + '.java',
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests, true);
+        this.transpileAndSaveJavaExchangeTests (tests, true);
     }
 
-    async transpileAndSaveCsharpExchangeTests(tests: any[], isWs = false) {
+    async transpileAndSaveJavaExchangeTests(tests: any[], isWs = false) {
         const paths = tests.map(test => test.tsFile);
         const flatResult = await this.webworkerTranspile (paths, this.getTranspilerConfig());
         flatResult.forEach((file, idx) => {
             let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
 
             let regexes = [
-                [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
+                [/assert/g, 'Assert'],
+                [/testSharedMethods\./gm, 'TestSharedMethods.'],
+                [/async public/gm, 'public'],
+                [ /Object exchange(?=[,)])/g, 'Exchange exchange' ],
                 [ /throw new Error/g, 'throw new Exception' ],
-                [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
+                [/TestSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [ /void function/g, 'void'],
                 [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn($2, new object[] {$3})'],
             ];
 
-            if (isWs) {
-                // add ws-tests specific regeces
-                regexes = regexes.concat([
-                    [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
-                    [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
-                ]);
-            }
-
             contentIndentend = this.regexAll (contentIndentend, regexes)
-            const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
+            // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
+            const filename = tests[idx].name;
+            const parsedName = 'Test' + this.capitalize(filename.replace('test.', '').replace('tests.', ''));
+            const preciseImport = contentIndentend.indexOf('Precise.') >= 0 ? 'import io.github.ccxt.base.Precise;\n' : '';
             const fileHeaders = [
-                namespace,
-                'namespace Tests;',
+                'package tests.exchange;',
+                'import tests.BaseTest;',
+                'import io.github.ccxt.Helpers;',
+                'import io.github.ccxt.Exchange;',
+                'import io.github.ccxt.errors.*;',
+                preciseImport,
                 '',
                 this.createGeneratedHeader().join('\n'),
                 '',
-                'public partial class testMainClass : BaseTest',
-                '{',
+                `public class ${parsedName} extends BaseTest {`,
             ]
-            let csharp: string;
-            const filename = tests[idx].name;
+            let java: string;
             if (filename === 'test.sharedMethods') {
-                const doubleIndented = contentIndentend.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
-                csharp = [
+                contentIndentend = this.regexAll (contentIndentend, [
+                    [/public void /g, 'public static void ' ], // make tests static
+                    [/public Object /g, 'public static Object ']
+                ])
+                // const doubleIndented = contentIndentend.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
+                java = [
                     ...fileHeaders,
-                    `${this.iden(1)}public partial class SharedMethods`,
-                    `${this.iden(1)}{`,
-                    doubleIndented,
-                    `${this.iden(1)}}`,
-                    '}',
+                    contentIndentend,
+                    '}'
                 ].join('\n');
             } else {
                 contentIndentend = this.regexAll (contentIndentend, [
@@ -1417,13 +1425,13 @@ class NewTranspiler {
                     [ /async public Task/g, 'async static public Task' ], // make tests static
                     [ /public object /g, 'public static object ' ],
                 ])
-                csharp = [
+                java = [
                     ...fileHeaders,
                     contentIndentend,
                     '}',
                 ].join('\n');
             }
-            overwriteFileAndFolder (tests[idx].csharpFile, csharp);
+            overwriteFileAndFolder (tests[idx].javaFile, java);
         });
     }
 
@@ -1433,7 +1441,7 @@ class NewTranspiler {
             return;
         }
         this.transpileBaseTestsToJava();
-        // this.transpileExchangeTests();
+        this.transpileExchangeTests();
         // this.transpileWsExchangeTests();
     }
 }
