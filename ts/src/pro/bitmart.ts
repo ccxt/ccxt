@@ -40,6 +40,7 @@ export default class bitmart extends bitmartRest {
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': true,
                 'unWatchOrders': true,
+                'unWatchPositions': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
                 'unWatchTrades': true,
@@ -928,6 +929,32 @@ export default class bitmart extends bitmartRest {
             return newPositions;
         }
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bitmart#unWatchPositions
+     * @description unWatches all open positions
+     * @see https://developer-pro.bitmart.com/en/futures/#private-position-channel
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} status of the unwatch request
+     */
+    async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
+        if (symbols !== undefined) {
+            const length = symbols.length;
+            if (length > 0) {
+                throw new NotSupported (this.id + ' unWatchPositions() does not support a list of symbols, unWatch from all markets only');
+            }
+        }
+        await this.loadMarkets ();
+        const request: Dict = {
+            'action': 'unsubscribe',
+            'args': [ 'futures/position' ],
+        };
+        const messageHash = 'unsubscribe::positions';
+        const url = this.implodeHostname (this.urls['api']['ws']['swap']['private']);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     handlePositions (client: Client, message) {
@@ -1869,6 +1896,7 @@ export default class bitmart extends bitmartRest {
         const subHash = this.safeString (subscription, 'subHash');
         const unsubHash = 'unsubscribe::' + subHash;
         const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
+        // clean up both ways of storing subscription and unsubscription
         this.cleanUnsubscription (client, subHash, unsubHash, subHashIsPrefix);
         this.cleanUnsubscription (client, messageTopic, unSubMessageTopic, subHashIsPrefix);
         this.cleanCache (subscription);
@@ -1941,7 +1969,7 @@ export default class bitmart extends bitmartRest {
             'user/order': 'orders',
             'user/orders': 'orders',
             'order': 'orders',
-            'futures/position': 'positions',
+            'position': 'positions',
         };
         return this.safeString (topics, topic, topic);
     }
