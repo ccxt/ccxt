@@ -357,6 +357,39 @@ export default class bitmart extends bitmartRest {
         return result as Trade[];
     }
 
+    /**
+     * @method
+     * @name bitmart#unWatchTrades
+     * @description unWatches from the stream channel
+     * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name bitmart#unWatchTradesForSymbols
+     * @description unsubscribes from the trades channel
+     * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let marketType = undefined;
+        [ symbols, marketType, params ] = this.getParamsForMultipleSub ('unWatchTradesForSymbols', symbols, undefined, params);
+        const channelName = 'trade';
+        params = this.extend (params, { 'unsubscribe': true });
+        return await this.subscribeMultiple (channelName, marketType, symbols, params);
+    }
+
     getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const length = symbols.length;
