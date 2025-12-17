@@ -256,6 +256,16 @@ export default class cow extends Exchange {
         });
     }
 
+    getPartnerFeeConfig () {
+        // Partner fee configuration
+        // recipient: Ethereum address to receive partner fees
+        // bps: Fee in basis points 0-100 (0-1%)
+        return {
+            'recipient': '0x0000000000000000000000000000000000000001',
+            'bps': 0,
+        };
+    }
+
     resolveOrderbookBaseUrl (network: Str = undefined, env: Str = undefined): string {
         const defaultNetwork = this.safeString (this.options, 'network', 'mainnet');
         const selectedNetwork = (network === undefined) ? defaultNetwork : network;
@@ -944,6 +954,7 @@ export default class cow extends Exchange {
      * @name cow#createOrder
      * @description create a trade order on CoW Protocol
      * @see https://docs.cow.fi/cow-protocol/reference/apis/orderbook
+     * @see https://docs.cow.fi/governance/fees/partner-fee
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -953,7 +964,7 @@ export default class cow extends Exchange {
      * @param {int} [params.validFor] order validity duration in seconds (default 30)
      * @param {int} [params.validTo] unix timestamp when the order expires
      * @param {bool} [params.partiallyFillable] whether the order can be partially filled (default false)
-     * @param {string} [params.appData] app data for the order (32-byte hex string)
+     * @param {string} [params.appData] app data for the order (32-byte hex string, overrides partner fee appData if provided)
      * @param {string} [params.receiver] the address to receive the bought tokens (defaults to sender)
      * @param {string} [params.from] the address placing the order (defaults to walletAddress)
      * @param {object} [params.quoteRequest] override parameters for the quote request
@@ -988,7 +999,17 @@ export default class cow extends Exchange {
         const validFor = this.safeInteger (params, 'validFor', this.safeInteger (this.options, 'defaultValidFor', 30));
         const currentSeconds = this.seconds ();
         const validTo = this.safeInteger (params, 'validTo', currentSeconds + validFor);
-        const appData = this.safeString (params, 'appData', this.safeString (this.options, 'defaultAppData'));
+        const partnerFeeConfig = this.getPartnerFeeConfig ();
+        const partnerFeeBps = this.safeInteger (partnerFeeConfig, 'bps', 0);
+        const partnerFeeRecipient = this.safeString (partnerFeeConfig, 'recipient');
+        let appData = this.safeString (params, 'appData');
+        if (appData === undefined) {
+            if ((partnerFeeBps !== undefined) && (partnerFeeBps > 0) && (partnerFeeRecipient !== undefined)) {
+                appData = this.createPartnerFeeAppData (partnerFeeBps, partnerFeeRecipient);
+            } else {
+                appData = this.safeString (this.options, 'defaultAppData');
+            }
+        }
         const quoteRequestOverrides = this.safeDict (params, 'quoteRequest');
         params = this.omit (params, [ 'kind', 'partiallyFillable', 'validFor', 'validTo', 'appData', 'quoteRequest' ]);
         const isSellOrder = (kind === 'sell');
@@ -1251,6 +1272,35 @@ export default class cow extends Exchange {
         const network = this.safeString (this.options, 'network', 'mainnet');
         const rpcUrls = this.safeValue (this.options, 'rpcUrls', {});
         return this.safeString (rpcUrls, network);
+    }
+
+    validatePartnerFeeBps (bps: Int) {
+        if ((bps < 0) || (bps > 100)) {
+            throw new BadRequest (this.id + ' validatePartnerFeeBps() partner fee must be between 0 and 100 basis points (0-1%)');
+        }
+        return true;
+    }
+
+    createPartnerFeeAppData (feeBps: Int, recipient: Str) {
+        if ((feeBps === undefined) || (feeBps === 0) || (recipient === undefined)) {
+            return this.safeString (this.options, 'defaultAppData', '0x0000000000000000000000000000000000000000000000000000000000000000');
+        }
+        this.validatePartnerFeeBps (feeBps);
+        const recipientAddress = this.addressWith0xPrefix (recipient);
+        const feeBpsHex = feeBps.toString (16).padStart (4, '0');
+        const recipientHex = this.remove0xPrefix (recipientAddress).padStart (40, '0');
+        const appDataContent = feeBpsHex + recipientHex;
+        const appDataPadded = appDataContent.padEnd (64, '0');
+        return '0x' + appDataPadded;
+    }
+
+    calculatePartnerFeeAmount (amount: Str, feeBps: Int) {
+        if ((amount === undefined) || (feeBps === undefined) || (feeBps === 0)) {
+            return '0';
+        }
+        const bpsString = this.numberToString (feeBps);
+        const feeAmount = Precise.stringDiv (Precise.stringMul (amount, bpsString), '10000');
+        return feeAmount;
     }
 
     async fetchERC20Balance (tokenAddress: Str, ownerAddress: Str) {
