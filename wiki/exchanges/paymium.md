@@ -22,7 +22,7 @@
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get  
 
@@ -42,7 +42,7 @@ paymium.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1depth/get  
 
@@ -64,7 +64,7 @@ paymium.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1ticker/get  
 
@@ -85,7 +85,7 @@ paymium.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1trades/get  
 
@@ -108,7 +108,7 @@ paymium.fetchTrades (symbol[, since, limit, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/post  
 
@@ -129,7 +129,7 @@ paymium.createDepositAddress (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses~1%7Baddress%7D/get  
 
@@ -150,7 +150,7 @@ paymium.fetchDepositAddress (code[, params])
 fetch deposit addresses for multiple currencies and chain types
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get  
 
@@ -171,7 +171,7 @@ paymium.fetchDepositAddresses (codes[, params])
 create a trade order
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders/post  
 
@@ -196,7 +196,7 @@ paymium.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -222,7 +222,7 @@ paymium.cancelOrder (id, symbol[, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://paymium.github.io/api-documentation/#tag/Transfer/paths/~1user~1email_transfers/post  
 
