@@ -23,36 +23,51 @@ func (this *ZebpayCore) Describe() interface{} {
 		"certified": false,
 		"pro":       false,
 		"has": map[string]interface{}{
-			"CORS":             nil,
-			"spot":             true,
-			"margin":           false,
-			"swap":             true,
-			"future":           false,
-			"option":           nil,
-			"addMargin":        true,
-			"cancelAllOrders":  true,
-			"cancelOrder":      true,
-			"cancelOrders":     false,
-			"closePosition":    true,
-			"createOrder":      true,
-			"fetchBalance":     true,
-			"fetchCurrencies":  true,
-			"fetchLeverage":    true,
-			"fetchLeverages":   true,
-			"fetchMarkets":     true,
-			"fetchMyTrades":    true,
-			"fetchOHLCV":       true,
-			"fetchOpenOrders":  true,
-			"fetchOrder":       true,
-			"fetchOrderBook":   true,
-			"fetchOrderTrades": true,
-			"fetchPositions":   true,
-			"fetchTicker":      true,
-			"fetchTickers":     true,
-			"fetchTrades":      true,
-			"fetchTradingFee":  true,
-			"reduceMargin":     true,
-			"setLeverage":      true,
+			"CORS":                      nil,
+			"spot":                      true,
+			"margin":                    false,
+			"swap":                      true,
+			"future":                    false,
+			"option":                    nil,
+			"addMargin":                 true,
+			"borrowCrossMargin":         false,
+			"borrowIsolatedMargin":      false,
+			"borrowMargin":              false,
+			"cancelAllOrders":           true,
+			"cancelOrder":               true,
+			"cancelOrders":              false,
+			"closePosition":             true,
+			"createOrder":               true,
+			"fetchBalance":              true,
+			"fetchBorrowInterest":       false,
+			"fetchBorrowRate":           false,
+			"fetchBorrowRateHistories":  false,
+			"fetchBorrowRateHistory":    false,
+			"fetchBorrowRates":          false,
+			"fetchBorrowRatesPerSymbol": false,
+			"fetchCrossBorrowRate":      false,
+			"fetchCrossBorrowRates":     false,
+			"fetchCurrencies":           true,
+			"fetchIsolatedBorrowRate":   false,
+			"fetchIsolatedBorrowRates":  false,
+			"fetchLeverage":             true,
+			"fetchLeverages":            true,
+			"fetchMarkets":              true,
+			"fetchMyTrades":             true,
+			"fetchOHLCV":                true,
+			"fetchOpenOrders":           true,
+			"fetchOrder":                true,
+			"fetchOrderBook":            true,
+			"fetchOrderTrades":          true,
+			"fetchPositions":            true,
+			"fetchTicker":               true,
+			"fetchTickers":              true,
+			"fetchTrades":               true,
+			"fetchTradingFee":           true,
+			"reduceMargin":              true,
+			"repayCrossMargin":          false,
+			"repayIsolatedMargin":       false,
+			"setLeverage":               true,
 		},
 		"timeframes": map[string]interface{}{
 			"1m":  1,
@@ -515,8 +530,8 @@ func (this *ZebpayCore) FetchTradingFee(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes4528 := (<-this.LoadMarkets())
-		PanicOnError(retRes4528)
+		retRes4678 := (<-this.LoadMarkets())
+		PanicOnError(retRes4678)
 		var market interface{} = this.Market(symbol)
 		var response interface{} = nil
 		var data interface{} = nil
@@ -649,8 +664,8 @@ func (this *ZebpayCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes5508 := (<-this.LoadMarkets())
-		PanicOnError(retRes5508)
+		retRes5658 := (<-this.LoadMarkets())
+		PanicOnError(retRes5658)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -709,8 +724,8 @@ func (this *ZebpayCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes5938 := (<-this.LoadMarkets())
-		PanicOnError(retRes5938)
+		retRes6088 := (<-this.LoadMarkets())
+		PanicOnError(retRes6088)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -760,8 +775,8 @@ func (this *ZebpayCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchTickers() does not support "), typeVar), " markets")))
 		}
 
-		retRes6418 := (<-this.LoadMarkets())
-		PanicOnError(retRes6418)
+		retRes6568 := (<-this.LoadMarkets())
+		PanicOnError(retRes6568)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PublicSpotGetV2MarketAllTickers(params))
@@ -821,8 +836,8 @@ func (this *ZebpayCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes6818 := (<-this.LoadMarkets())
-		PanicOnError(retRes6818)
+		retRes6968 := (<-this.LoadMarkets())
+		PanicOnError(retRes6968)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 100 // default is 200
@@ -927,8 +942,8 @@ func (this *ZebpayCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes7668 := (<-this.LoadMarkets())
-		PanicOnError(retRes7668)
+		retRes7818 := (<-this.LoadMarkets())
+		PanicOnError(retRes7818)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -992,8 +1007,8 @@ func (this *ZebpayCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes8088 := (<-this.LoadMarkets())
-		PanicOnError(retRes8088)
+		retRes8238 := (<-this.LoadMarkets())
+		PanicOnError(retRes8238)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1053,8 +1068,8 @@ func (this *ZebpayCore) FetchOrderTrades(id interface{}, optionalArgs ...interfa
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchOrderTrades() does not support "), typeVar), " markets")))
 		}
 
-		retRes8448 := (<-this.LoadMarkets())
-		PanicOnError(retRes8448)
+		retRes8598 := (<-this.LoadMarkets())
+		PanicOnError(retRes8598)
 		var request interface{} = map[string]interface{}{
 			"orderId": id,
 		}
@@ -1165,8 +1180,8 @@ func (this *ZebpayCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes9408 := (<-this.LoadMarkets())
-		PanicOnError(retRes9408)
+		retRes9558 := (<-this.LoadMarkets())
+		PanicOnError(retRes9558)
 		var typeVar interface{} = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
@@ -1237,8 +1252,8 @@ func (this *ZebpayCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes9918 := (<-this.LoadMarkets())
-		PanicOnError(retRes9918)
+		retRes10068 := (<-this.LoadMarkets())
+		PanicOnError(retRes10068)
 		var market interface{} = this.Market(symbol)
 		var upperCaseType interface{} = ToUpper(typeVar)
 		var takeProfitPrice interface{} = this.SafeString(params, "takeProfitPrice")
@@ -1353,8 +1368,8 @@ func (this *ZebpayCore) CancelOrder(id interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes10818 := (<-this.LoadMarkets())
-		PanicOnError(retRes10818)
+		retRes10968 := (<-this.LoadMarkets())
+		PanicOnError(retRes10968)
 		var market interface{} = this.Market(symbol)
 		var response interface{} = nil
 		var request interface{} = map[string]interface{}{}
@@ -1417,8 +1432,8 @@ func (this *ZebpayCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
 			panic(NotSupported(Add(Add(Add(this.Id, " cancelAllOrders() does not support "), typeVar), " markets")))
 		}
 
-		retRes11248 := (<-this.LoadMarkets())
-		PanicOnError(retRes11248)
+		retRes11398 := (<-this.LoadMarkets())
+		PanicOnError(retRes11398)
 
 		response := (<-this.PrivateSpotDeleteV2ExOrdersCancelAll(params))
 		PanicOnError(response)
@@ -1466,8 +1481,8 @@ func (this *ZebpayCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes11528 := (<-this.LoadMarkets())
-		PanicOnError(retRes11528)
+		retRes11678 := (<-this.LoadMarkets())
+		PanicOnError(retRes11678)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1553,8 +1568,8 @@ func (this *ZebpayCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes12208 := (<-this.LoadMarkets())
-		PanicOnError(retRes12208)
+		retRes12358 := (<-this.LoadMarkets())
+		PanicOnError(retRes12358)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{}
 		var response interface{} = nil
@@ -1684,8 +1699,8 @@ func (this *ZebpayCore) ClosePosition(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13318 := (<-this.LoadMarkets())
-		PanicOnError(retRes13318)
+		retRes13468 := (<-this.LoadMarkets())
+		PanicOnError(retRes13468)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1721,8 +1736,8 @@ func (this *ZebpayCore) FetchLeverages(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13518 := (<-this.LoadMarkets())
-		PanicOnError(retRes13518)
+		retRes13668 := (<-this.LoadMarkets())
+		PanicOnError(retRes13668)
 
 		response := (<-this.PrivateSwapGetV1TradeUserLeverages(params))
 		PanicOnError(response)
@@ -1764,8 +1779,8 @@ func (this *ZebpayCore) FetchLeverage(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes13798 := (<-this.LoadMarkets())
-		PanicOnError(retRes13798)
+		retRes13948 := (<-this.LoadMarkets())
+		PanicOnError(retRes13948)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": ToUpper(GetValue(market, "id")),
@@ -1810,8 +1825,8 @@ func (this *ZebpayCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes14088 := (<-this.LoadMarkets())
-		PanicOnError(retRes14088)
+		retRes14238 := (<-this.LoadMarkets())
+		PanicOnError(retRes14238)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"leverage": leverage,
@@ -1850,8 +1865,8 @@ func (this *ZebpayCore) FetchPositions(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14318 := (<-this.LoadMarkets())
-		PanicOnError(retRes14318)
+		retRes14468 := (<-this.LoadMarkets())
+		PanicOnError(retRes14468)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			AddElementToObject(request, "symbols", this.MarketIds(symbols))
@@ -1902,8 +1917,8 @@ func (this *ZebpayCore) AddMargin(symbol interface{}, amount interface{}, option
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes14688 := (<-this.LoadMarkets())
-		PanicOnError(retRes14688)
+		retRes14838 := (<-this.LoadMarkets())
+		PanicOnError(retRes14838)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1962,8 +1977,8 @@ func (this *ZebpayCore) ReduceMargin(symbol interface{}, amount interface{}, opt
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes15138 := (<-this.LoadMarkets())
-		PanicOnError(retRes15138)
+		retRes15288 := (<-this.LoadMarkets())
+		PanicOnError(retRes15288)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
