@@ -1940,11 +1940,12 @@ class hyperliquid(Exchange, ImplicitAPI):
             orderParams['slippage'] = slippage
             stopLoss = self.safe_value(orderParams, 'stopLoss')
             takeProfit = self.safe_value(orderParams, 'takeProfit')
-            isTrigger = (stopLoss or takeProfit)
+            hasStopLoss = (stopLoss is not None)
+            hasTakeProfit = (takeProfit is not None)
             orderParams = self.omit(orderParams, ['stopLoss', 'takeProfit'])
             mainOrderObj: dict = self.create_order_request(symbol, type, side, amount, price, orderParams)
             orderReq.append(mainOrderObj)
-            if isTrigger:
+            if hasStopLoss or hasTakeProfit:
                 # grouping opposed orders for sl/tp
                 stopLossOrderTriggerPrice = self.safe_string_n(stopLoss, ['triggerPrice', 'stopPrice'])
                 stopLossOrderType = self.safe_string(stopLoss, 'type', 'limit')
@@ -1959,13 +1960,13 @@ class hyperliquid(Exchange, ImplicitAPI):
                     triggerOrderSide = 'sell'
                 else:
                     triggerOrderSide = 'buy'
-                if takeProfit is not None:
+                if hasTakeProfit:
                     orderObj: dict = self.create_order_request(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, self.extend(orderParams, {
                         'takeProfitPrice': takeProfitOrderTriggerPrice,
                         'reduceOnly': True,
                     }))
                     orderReq.append(orderObj)
-                if stopLoss is not None:
+                if hasStopLoss:
                     orderObj: dict = self.create_order_request(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, self.extend(orderParams, {
                         'stopLossPrice': stopLossOrderTriggerPrice,
                         'reduceOnly': True,
