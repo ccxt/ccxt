@@ -13,24 +13,24 @@ type TimestampedCost struct {
 }
 
 type Throttler struct {
-	Queue   Queue
-	Running bool
-	Config  map[string]interface{}
+	Queue      Queue
+	Running    bool
+	Config     map[string]interface{}
 	Timestamps []TimestampedCost
 	Mutex      sync.Mutex
 }
 
 func NewThrottler(config map[string]interface{}) *Throttler {
 	defaultConfig := map[string]interface{}{
-		"refillRate":  1.0,					// leaky bucket refill rate in tokens per second
-		"delay":       0.001,				// leaky bucket seconds before checking the queue after waiting
-		"capacity":    1.0,					// leaky bucket
-		"tokens":      0,					// leaky bucket
-		"cost":        1.0,					// leaky bucket and rolling window
-		"algorithm":   "leakyBucket",
-		"rateLimit":   0.0,
-		"windowSize":  60000.0,				// rolling window size in milliseconds
-		"maxWeight":   0.0,					// rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit  
+		"refillRate": 1.0,   // leaky bucket refill rate in tokens per second
+		"delay":      0.001, // leaky bucket seconds before checking the queue after waiting
+		"capacity":   1.0,   // leaky bucket
+		"tokens":     0,     // leaky bucket
+		"cost":       1.0,   // leaky bucket and rolling window
+		"algorithm":  "leakyBucket",
+		"rateLimit":  0.0,
+		"windowSize": 60000.0, // rolling window size in milliseconds
+		"maxWeight":  0.0,     // rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit
 	}
 	config = ExtendMap(defaultConfig, config)
 	if config["windowSize"] != 0.0 {
@@ -38,18 +38,18 @@ func NewThrottler(config map[string]interface{}) *Throttler {
 	}
 
 	return &Throttler{
-		Queue:   NewQueue(),
-		Running: false,
-		Config:  config,
+		Queue:      NewQueue(),
+		Running:    false,
+		Config:     config,
 		Timestamps: []TimestampedCost{},
 	}
 }
 
 func (t *Throttler) Throttle(cost2 interface{}) <-chan bool {
 	if cost2 == nil {
-	  t.Mutex.Lock()
+		t.Mutex.Lock()
 		cost2 = t.Config["cost"]
-    t.Mutex.Unlock()
+		t.Mutex.Unlock()
 	}
 	cost := ToFloat64(cost2)
 	task := make(chan bool)
