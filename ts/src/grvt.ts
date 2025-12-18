@@ -22,7 +22,7 @@ export default class grvt extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'grvt',
             'name': 'GRVT',
-            'countries': [  ], //
+            'countries': [ 'SG' ], // Singapore
             'rateLimit': 10,
             'certified': false,
             'version': 'v1',
@@ -1443,7 +1443,7 @@ export default class grvt extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    convertToBigInt (x) {
+    convertToBigIntCustom (x) {
         return parseInt (x);
     }
 
@@ -1454,22 +1454,22 @@ export default class grvt extends Exchange {
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];
             const market = this.market (leg['instrument']);
-            const bigInt10 = this.convertToBigInt ('10');
-            const size_multiplier = bigInt10 ** this.convertToBigInt (this.precisionFromString (this.safeString (market['precision'], 'amount')).toString ());
+            const bigInt10 = this.convertToBigIntCustom ('10');
+            const size_multiplier = bigInt10 ** this.convertToBigIntCustom (this.precisionFromString (this.safeString (market['precision'], 'amount')).toString ());
             const size = leg['size'];
             const parts = size.split ('.');
             const sizeDec = parts[1];
-            const size_int = ((this.convertToBigInt (size.replace ('.', '')) * size_multiplier) / (bigInt10 ** this.convertToBigInt (sizeDec.length)));
+            const size_int = ((this.convertToBigIntCustom (size.replace ('.', '')) * size_multiplier) / (bigInt10 ** this.convertToBigIntCustom (sizeDec.length)));
             const price = leg['limit_price'];
             const limitParts = price.split ('.');
             const limitDec = this.safeString (limitParts, 1, '');
             const limitDecLength = limitDec.length;
             const limitDecLengthStr = limitDecLength.toString ();
-            const price_int = (this.convertToBigInt (price.replace ('.', '')) * this.convertToBigInt (PRICE_MULTIPLIER) / (bigInt10 ** this.convertToBigInt (limitDecLengthStr)));
+            const price_int = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (PRICE_MULTIPLIER) / (bigInt10 ** this.convertToBigIntCustom (limitDecLengthStr)));
             legs.push ({
                 'assetID': market['info']['instrument_hash'],
-                'contractSize': parseInt (size_int),
-                'limitPrice': parseInt (price_int),
+                'contractSize': this.parseToInt (size_int),
+                'limitPrice': parseToInt (price_int),
                 'isBuyingContract': leg['is_buying_asset'],
             });
         }
