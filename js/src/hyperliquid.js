@@ -2015,11 +2015,12 @@ export default class hyperliquid extends Exchange {
             orderParams['slippage'] = slippage;
             const stopLoss = this.safeValue(orderParams, 'stopLoss');
             const takeProfit = this.safeValue(orderParams, 'takeProfit');
-            const isTrigger = (stopLoss || takeProfit);
+            const hasStopLoss = (stopLoss !== undefined);
+            const hasTakeProfit = (takeProfit !== undefined);
             orderParams = this.omit(orderParams, ['stopLoss', 'takeProfit']);
             const mainOrderObj = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             orderReq.push(mainOrderObj);
-            if (isTrigger) {
+            if (hasStopLoss || hasTakeProfit) {
                 // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeStringN(stopLoss, ['triggerPrice', 'stopPrice']);
                 const stopLossOrderType = this.safeString(stopLoss, 'type', 'limit');
@@ -2036,14 +2037,14 @@ export default class hyperliquid extends Exchange {
                 else {
                     triggerOrderSide = 'buy';
                 }
-                if (takeProfit !== undefined) {
+                if (hasTakeProfit) {
                     const orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend(orderParams, {
                         'takeProfitPrice': takeProfitOrderTriggerPrice,
                         'reduceOnly': true,
                     }));
                     orderReq.push(orderObj);
                 }
-                if (stopLoss !== undefined) {
+                if (hasStopLoss) {
                     const orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend(orderParams, {
                         'stopLossPrice': stopLossOrderTriggerPrice,
                         'reduceOnly': true,
