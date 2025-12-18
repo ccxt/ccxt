@@ -1894,6 +1894,14 @@ export default class Exchange {
         return undefined;  // c# stub
     }
 
+    loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
+        return undefined;
+    }
+
+    signAndCreateLighterOrder (signer, orderRequest) {
+        return [undefined, undefined];
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 

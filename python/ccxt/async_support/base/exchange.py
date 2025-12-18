@@ -204,7 +204,8 @@ class Exchange(BaseExchange):
         # end of proxies & headers
 
         request_body = body
-        encoded_body = body.encode() if body else None
+        # encoded_body = body.encode() if body else None
+        encoded_body = body
         self.open()
         final_session = proxy_session if proxy_session is not None else self.session
         session_method = getattr(final_session, method.lower())

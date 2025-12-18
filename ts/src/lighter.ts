@@ -1,8 +1,8 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/lighter.js';
-import { ExchangeError } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -261,6 +261,182 @@ export default class lighter extends Exchange {
                 'defaultType': 'swap',
             },
         });
+    }
+
+    async loadAccount (chainId, privateKey, apiKeyIndex, accountIndex, params = {}) {
+        let signer = this.safeDict (this.options, 'signer');
+        if (signer !== undefined) {
+            return signer;
+        }
+        let libraryPath = undefined;
+        [ libraryPath, params ] = this.handleOptionAndParams (params, 'test', 'libraryPath');
+        if (libraryPath === undefined) {
+            throw new ArgumentsRequired (this.id + ' required libraryPath in options');
+        }
+        signer = this.loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex);
+        this.options['signer'] = signer;
+        return signer;
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name lighter#createOrderRequest
+         * @description helper function to build the request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        const orderType = type.toUpperCase ();
+        const market = this.market (symbol);
+        const orderSide = side.toUpperCase ();
+        const request: Dict = {
+            'market_index': market['id'],
+        };
+        let nonce = undefined;
+        let apiKeyIndex = undefined;
+        let accountIndex = undefined;
+        [ nonce, params ] = this.handleOptionAndParams (params, 'createOrder', 'nonce', -1);
+        [ apiKeyIndex, params ] = this.handleOptionAndParams (params, 'createOrder', 'apiKeyIndex', 255);
+        [ accountIndex, params ] = this.handleOptionAndParams (params, 'createOrder', 'accountIndex', 0);
+        request['nonce'] = nonce;
+        request['api_key_index'] = apiKeyIndex;
+        request['account_index'] = accountIndex;
+        if (orderType === 'MARKET') {
+            request['order_type'] = 1;
+            request['order_expiry'] = 0; // IOC_EXPIRY
+            request['time_in_force'] = 0; // ORDER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL
+        }
+        if (orderSide === 'BUY') {
+            request['is_ask'] = 0;
+        } else {
+            request['is_ask'] = 1;
+        }
+        if (reduceOnly !== undefined) {
+            request['reduce_only'] = reduceOnly;
+        } else {
+            request['reduce_only'] = false;
+        }
+        request['client_order_index'] = 0;
+        request['base_amount'] = amount;
+        request['avg_execution_price'] = price;
+        // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        // const stopLoss = this.safeValue (params, 'stopLoss');
+        // const takeProfit = this.safeValue (params, 'takeProfit');
+        // const hasStopLoss = (stopLoss !== undefined);
+        // const hasTakeProfit = (takeProfit !== undefined);
+        // const algoType = this.safeString (params, 'algoType');
+        // const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue (params, 'childOrders') !== undefined);
+        // const isMarket = orderType === 'MARKET';
+        // const timeInForce = this.safeStringLower (params, 'timeInForce');
+        // const postOnly = this.isPostOnly (isMarket, undefined, params);
+        // const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
+        // const priceKey = isConditional ? 'price' : 'order_price';
+        // const typeKey = isConditional ? 'type' : 'order_type';
+        // request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        // if (!isConditional) {
+        //     if (postOnly) {
+        //         request['order_type'] = 'POST_ONLY';
+        //     } else if (timeInForce === 'fok') {
+        //         request['order_type'] = 'FOK';
+        //     } else if (timeInForce === 'ioc') {
+        //         request['order_type'] = 'IOC';
+        //     }
+        // }
+        // if (reduceOnly) {
+        //     request['reduce_only'] = reduceOnly;
+        // }
+        // if (price !== undefined) {
+        //     request[priceKey] = this.priceToPrecision (symbol, price);
+        // }
+        // if (isMarket && !isConditional) {
+        //     request[orderQtyKey] = this.amountToPrecision (symbol, amount);
+        // } else if (algoType !== 'POSITIONAL_TP_SL') {
+        //     request[orderQtyKey] = this.amountToPrecision (symbol, amount);
+        // }
+        // const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        // if (clientOrderId !== undefined) {
+        //     request['client_order_id'] = clientOrderId;
+        // }
+        // if (triggerPrice !== undefined) {
+        //     request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+        //     request['algo_type'] = 'STOP';
+        // } else if (hasStopLoss || hasTakeProfit) {
+        //     request['algo_type'] = 'TP_SL';
+        //     const outterOrder: Dict = {
+        //         'symbol': market['id'],
+        //         'reduce_only': false,
+        //         'algo_type': 'POSITIONAL_TP_SL',
+        //         'child_orders': [],
+        //     };
+        //     const childOrders = outterOrder['child_orders'];
+        //     const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
+        //     if (hasStopLoss) {
+        //         const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
+        //         const stopLossOrder: Dict = {
+        //             'side': closeSide,
+        //             'algo_type': 'TP_SL',
+        //             'trigger_price': this.priceToPrecision (symbol, stopLossPrice),
+        //             'type': 'LIMIT',
+        //             'reduce_only': true,
+        //         };
+        //         childOrders.push (stopLossOrder);
+        //     }
+        //     if (hasTakeProfit) {
+        //         const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
+        //         const takeProfitOrder: Dict = {
+        //             'side': closeSide,
+        //             'algo_type': 'TP_SL',
+        //             'trigger_price': this.priceToPrecision (symbol, takeProfitPrice),
+        //             'type': 'LIMIT',
+        //             'reduce_only': true,
+        //         };
+        //         outterOrder.push (takeProfitOrder);
+        //     }
+        //     request['child_orders'] = [ outterOrder ];
+        // }
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex' ]);
+        return this.extend (request, params);
+    }
+
+    /**
+     * @method
+     * @name lighter#createOrder
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const signer = await this.loadAccount (304, this.privateKey, orderRequest['api_key_index'], orderRequest['account_index']);
+        const [ txType, txInfo ] = this.signAndCreateLighterOrder (signer, orderRequest);
+        const request = {
+            'tx_type': txType,
+            'tx_info': txInfo,
+        };
+        const response = await this.publicPostSendTx (request);
+        //
+        // {
+        //     "code": 200,
+        //     "message": "{\"ratelimit\": \"didn't use volume quota\"}",
+        //     "tx_hash": "txhash",
+        //     "predicted_execution_time_ms": 1766088500120
+        // }
+        //
+        return response;
     }
 
     /**
@@ -847,7 +1023,11 @@ export default class lighter extends Exchange {
         }
         if (api === 'public') {
             if (Object.keys (params).length) {
-                url += '?' + this.rawencode (params);
+                if (method === 'POST') {
+                    body = params;
+                } else {
+                    url += '?' + this.rawencode (params);
+                }
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();

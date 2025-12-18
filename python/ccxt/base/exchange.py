@@ -99,6 +99,10 @@ try:
 except ImportError:
     zklink_sdk = None
 
+# lighter
+import os
+from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info
+
 # -----------------------------------------------------------------------------
 
 __all__ = [
@@ -2139,6 +2143,44 @@ class Exchange(object):
 
     def unlock_id(self):
         return None
+    
+    def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
+        if path is None:
+            raise NotSupported(self.id + ' requires absolute path for shared library to send orders')
+
+        if not os.path.isfile(path):
+            raise NotSupported(self.id + ' the library is not existed')
+
+        lighterSigner = load_lighter_library(path)
+
+        url = self.implode_hostname (self.urls['api']['public'])
+        lighterSigner.CreateClient(
+            url.encode("utf-8"),
+            privateKey.encode("utf-8"),
+            chainId,
+            apiKeyIndex,
+            accountIndex,
+        )
+        return lighterSigner
+
+    def sign_and_create_lighter_order(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateOrder(
+            int(request['market_index']),
+            request['client_order_index'],
+            request['base_amount'],
+            request['avg_execution_price'],
+            request['is_ask'],
+            request['order_type'],
+            request['time_in_force'],
+            request['reduce_only'],
+            0, # trigger price
+            request['order_expiry'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        print(tx_type, tx_info, tx_hash, error)
+        return [tx_type, tx_info]
 
     # ########################################################################
     # ########################################################################
