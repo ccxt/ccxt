@@ -1,11 +1,5 @@
 package tests;
 
-import io.github.ccxt.Exchange;
-import io.github.ccxt.Helpers;
-import io.github.ccxt.base.Crypto;
-import io.github.ccxt.base.Functions;
-import io.github.ccxt.base.NumberHelpers;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +12,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+import io.github.ccxt.Exchange;
+import io.github.ccxt.Helpers;
+import io.github.ccxt.base.Crypto;
+import io.github.ccxt.base.Functions;
 import io.github.ccxt.base.JsonHelper;
+import io.github.ccxt.base.NumberHelpers;
 
 public class BaseTest {
 
@@ -339,7 +338,8 @@ public class BaseTest {
 
     public static boolean getCliArgValue(Object option) {
         String optionStr = (String) option;
-        String[] args = Main.getArgs();
+        // String[] args = Main.getArgs();
+        String[] args = {};
         for (String arg : args) {
             if (arg.equals(optionStr)) {
                 return true;

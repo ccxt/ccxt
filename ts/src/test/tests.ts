@@ -93,6 +93,7 @@ class testMainClass {
             dump ('[TEST_FAILURE]'); // tell run-tests.js this is failure
             throw e;
         }
+        return true;
     }
 
     async initInner (exchangeId, symbolArgv, methodArgv) {

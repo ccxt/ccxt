@@ -1291,7 +1291,9 @@ class NewTranspiler {
             [ /throw new Error/g, 'throw new Exception' ],
             [ /public class TestMainClass/g, 'public class TestMain extends BaseTest'],
             [ /assert/gm, 'Assert'],
-            [/TestMainClass.this/, 'TestMain.this']
+            [/TestMainClass\.this/gm, 'TestMain.this'],
+            [ /throw new Exception/g, 'throw new RuntimeException' ],
+            [/throw e/gm, 'throw new RuntimeException(e)'],
 
         ])
 
@@ -1330,7 +1332,8 @@ class NewTranspiler {
 
         const tests = [] as any;
         baseTests.forEach (baseTest => {
-            const correctedName = 'Test' + this.capitalize(baseTest.replace('test.', ''));
+            let correctedName = 'Test' + this.capitalize(baseTest.replace('test.', ''));
+            correctedName = correctedName.replace('Ohlcv', 'OHLCV'); // special case
             tests.push({
                 base: true,
                 name:baseTest,
@@ -1378,22 +1381,39 @@ class NewTranspiler {
         const flatResult = await this.webworkerTranspile (paths, this.getTranspilerConfig());
         flatResult.forEach((file, idx) => {
             let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
+            const filename = tests[idx].name;
 
             let regexes = [
                 [/assert/g, 'Assert'],
                 [/testSharedMethods\./gm, 'TestSharedMethods.'],
                 [/async public/gm, 'public'],
                 [ /Object exchange(?=[,)])/g, 'Exchange exchange' ],
-                [ /throw new Error/g, 'throw new Exception' ],
+                [ /throw new Exception/g, 'throw new RuntimeException' ],
+                [/throw e/gm, 'throw new RuntimeException(e)'],
                 [/TestSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [ /void function/g, 'void'],
                 [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn($2, new object[] {$3})'],
             ];
 
+            if (filename.includes('fetch') || filename.includes('load') || filename.includes('create')) {
+                contentIndentend = this.regexAll (contentIndentend, [
+                    [/test(\w+)\(exchange,/gm, 'Test$1.test$1(exchange,'], // dirty trick recognize outside static functions, check comment below *
+                ]);
+            } else {
+                contentIndentend = this.regexAll (contentIndentend, [
+                    [/testTrade\(exchange\,/, 'TestTrade.testTrade(exchange,'], // quick fix
+                ]);
+            }
+
+            //*
+            // In java everything is class-based so we don't ahve independent functions laying around
+            // so let's say we have the test `testFetchLedger`, it will call the aux function `testledgerEntry`
+            // but that function is part of a different class.
+
             contentIndentend = this.regexAll (contentIndentend, regexes)
             // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
-            const filename = tests[idx].name;
-            const parsedName = 'Test' + this.capitalize(filename.replace('test.', '').replace('tests.', ''));
+            let parsedName = 'Test' + this.capitalize(filename.replace('test.', '').replace('tests.', ''));
+            if (parsedName === 'TestOhlcv') parsedName = 'TestOHLCV'; // special case
             const preciseImport = contentIndentend.indexOf('Precise.') >= 0 ? 'import io.github.ccxt.base.Precise;\n' : '';
             const fileHeaders = [
                 'package tests.exchange;',
@@ -1411,6 +1431,7 @@ class NewTranspiler {
             if (filename === 'test.sharedMethods') {
                 contentIndentend = this.regexAll (contentIndentend, [
                     [/public void /g, 'public static void ' ], // make tests static
+                    [/public java.util.concurrent.CompletableFuture<Object> /g, 'public static java.util.concurrent.CompletableFuture<Object> ' ], // make tests static
                     [/public Object /g, 'public static Object ']
                 ])
                 // const doubleIndented = contentIndentend.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');

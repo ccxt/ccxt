@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -864,5 +865,41 @@ public class Helpers {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize JSON", e);
         }
+    }
+
+    public static Object mathAbs(Object val) {
+        if (val == null) {
+            return null;
+        }
+
+        if (val instanceof Integer) {
+            return Math.abs((Integer) val);
+        }
+
+        if (val instanceof Long) {
+            return Math.abs((Long) val);
+        }
+
+        if (val instanceof Float) {
+            return Math.abs((Float) val);
+        }
+
+        if (val instanceof Double) {
+            return Math.abs((Double) val);
+        }
+
+        if (val instanceof BigDecimal) {
+            return ((BigDecimal) val).abs();
+        }
+
+        // if (val instanceof BigInteger) {
+        //     return ((BigInteger) val).abs();
+        // }
+
+        if (val instanceof Number) {
+            return Math.abs(((Number) val).doubleValue());
+        }
+
+        return null;
     }
 }
