@@ -355,15 +355,24 @@ class Exchange(BaseExchange):
         print(">>>> load_markets(): returned from await self.markets_loading")
         return result
 
-    async def promise_all(tasks: Sequence[Awaitable[TypeVarT]]) -> list[TypeVarT]:
+    async def promise_all(self, tasks: Sequence[Awaitable[TypeVarT]]) -> list[TypeVarT]:
         """
-        Execute multiple coroutines concurrently, cancelling all if any fails.
-        Mimics Promise.all() behavior.
+        Mimic TS Promise.all()
         """
-        async with asyncio.TaskGroup() as tg:
-            task_objects = [tg.create_task(task) for task in tasks]
-        
-        return [task.result() for task in task_objects]
+        try:
+            async with asyncio.TaskGroup() as tg:
+                task_objects = [tg.create_task(task) for task in tasks]
+            
+            return [task.result() for task in task_objects]
+        except BaseException as e:
+            if isinstance(e, ExceptionGroup):
+                # Re-raise the first actual exception instead of ExceptionGroup wrapper
+                raise e.exceptions[0]
+            raise
+
+    async def _wrap_task(task: asyncio.Task):
+        """Helper to await an existing task within TaskGroup"""
+        return await task
 
     async def load_fees(self, reload=False):
         if not reload:
