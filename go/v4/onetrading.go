@@ -354,7 +354,7 @@ func (this *OnetradingCore) Describe() interface{} {
  * @method
  * @name onetrading#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.onetrading.com/#time
+ * @see https://docs.onetrading.com/rest/public/time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -386,7 +386,7 @@ func (this *OnetradingCore) FetchTime(optionalArgs ...interface{}) <-chan interf
  * @method
  * @name onetrading#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://docs.onetrading.com/#currencies
+ * @see https://docs.onetrading.com/rest/public/currencies
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -451,7 +451,7 @@ func (this *OnetradingCore) FetchCurrencies(optionalArgs ...interface{}) <-chan 
  * @method
  * @name onetrading#fetchMarkets
  * @description retrieves data on all markets for onetrading
- * @see https://docs.onetrading.com/#instruments
+ * @see https://docs.onetrading.com/rest/public/instruments
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -594,8 +594,8 @@ func (this *OnetradingCore) ParseMarket(market interface{}) interface{} {
  * @method
  * @name onetrading#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://docs.onetrading.com/#fee-groups
- * @see https://docs.onetrading.com/#fees
+ * @see https://docs.onetrading.com/rest/public/fee-groups
+ * @see https://docs.onetrading.com/rest/trading/fees
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
@@ -876,7 +876,7 @@ func (this *OnetradingCore) ParseTicker(ticker interface{}, optionalArgs ...inte
  * @method
  * @name onetrading#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.onetrading.com/#market-ticker-for-instrument
+ * @see https://docs.onetrading.com/rest/public/market-ticker-instrument
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -928,7 +928,7 @@ func (this *OnetradingCore) FetchTicker(symbol interface{}, optionalArgs ...inte
  * @method
  * @name onetrading#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://docs.onetrading.com/#market-ticker
+ * @see https://docs.onetrading.com/rest/public/market-ticker
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -987,7 +987,7 @@ func (this *OnetradingCore) FetchTickers(optionalArgs ...interface{}) <-chan int
  * @method
  * @name onetrading#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.onetrading.com/#order-book
+ * @see https://docs.onetrading.com/rest/public/orderbook
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1120,7 +1120,7 @@ func (this *OnetradingCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interf
  * @method
  * @name onetrading#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.onetrading.com/#candlesticks
+ * @see https://docs.onetrading.com/rest/public/candlesticks
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1289,7 +1289,7 @@ func (this *OnetradingCore) ParseBalance(response interface{}) interface{} {
  * @method
  * @name onetrading#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.onetrading.com/#balances
+ * @see https://docs.onetrading.com/rest/trading/balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -1472,7 +1472,7 @@ func (this *OnetradingCore) ParseTimeInForce(timeInForce interface{}) interface{
  * @method
  * @name onetrading#createOrder
  * @description create a trade order
- * @see https://docs.onetrading.com/#create-order
+ * @see https://docs.onetrading.com/rest/trading/create-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1558,7 +1558,8 @@ func (this *OnetradingCore) CreateOrder(symbol interface{}, typeVar interface{},
  * @method
  * @name onetrading#cancelOrder
  * @description cancels an open order
- * @see https://docs.onetrading.com/#close-order-by-order-id
+ * @see https://docs.onetrading.com/rest/trading/cancel-order-order-id
+ * @see https://docs.onetrading.com/rest/trading/cancel-order-client-id
  * @param {string} id order id
  * @param {string} symbol not used by bitmex cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1574,8 +1575,8 @@ func (this *OnetradingCore) CancelOrder(id interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14408 := (<-this.LoadMarkets())
-		PanicOnError(retRes14408)
+		retRes14418 := (<-this.LoadMarkets())
+		PanicOnError(retRes14418)
 		var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "client_id")
 		params = this.Omit(params, []interface{}{"clientOrderId", "client_id"})
 		var method interface{} = "privateDeleteAccountOrdersOrderId"
@@ -1611,7 +1612,7 @@ func (this *OnetradingCore) CancelOrder(id interface{}, optionalArgs ...interfac
  * @method
  * @name onetrading#cancelAllOrders
  * @description cancel all open orders
- * @see https://docs.onetrading.com/#close-all-orders
+ * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1626,8 +1627,8 @@ func (this *OnetradingCore) CancelAllOrders(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14738 := (<-this.LoadMarkets())
-		PanicOnError(retRes14738)
+		retRes14748 := (<-this.LoadMarkets())
+		PanicOnError(retRes14748)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			var market interface{} = this.Market(symbol)
@@ -1655,7 +1656,7 @@ func (this *OnetradingCore) CancelAllOrders(optionalArgs ...interface{}) <-chan 
  * @method
  * @name onetrading#cancelOrders
  * @description cancel multiple orders
- * @see https://docs.onetrading.com/#close-all-orders
+ * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1671,8 +1672,8 @@ func (this *OnetradingCore) CancelOrders(ids interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14998 := (<-this.LoadMarkets())
-		PanicOnError(retRes14998)
+		retRes15008 := (<-this.LoadMarkets())
+		PanicOnError(retRes15008)
 		var request interface{} = map[string]interface{}{
 			"ids": Join(ids, ","),
 		}
@@ -1699,7 +1700,7 @@ func (this *OnetradingCore) CancelOrders(ids interface{}, optionalArgs ...interf
  * @method
  * @name onetrading#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.onetrading.com/#get-order
+ * @see https://docs.onetrading.com/rest/trading/get-order-order-id
  * @param {string} id the order id
  * @param {string} symbol not used by onetrading fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1715,8 +1716,8 @@ func (this *OnetradingCore) FetchOrder(id interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15248 := (<-this.LoadMarkets())
-		PanicOnError(retRes15248)
+		retRes15258 := (<-this.LoadMarkets())
+		PanicOnError(retRes15258)
 		var request interface{} = map[string]interface{}{
 			"order_id": id,
 		}
@@ -1776,7 +1777,7 @@ func (this *OnetradingCore) FetchOrder(id interface{}, optionalArgs ...interface
  * @method
  * @name onetrading#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://docs.onetrading.com/#get-orders
+ * @see https://docs.onetrading.com/rest/trading/get-orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1797,8 +1798,8 @@ func (this *OnetradingCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes15858 := (<-this.LoadMarkets())
-		PanicOnError(retRes15858)
+		retRes15868 := (<-this.LoadMarkets())
+		PanicOnError(retRes15868)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1910,7 +1911,7 @@ func (this *OnetradingCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan 
  * @method
  * @name onetrading#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://docs.onetrading.com/#get-orders
+ * @see https://docs.onetrading.com/rest/trading/get-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1934,9 +1935,9 @@ func (this *OnetradingCore) FetchClosedOrders(optionalArgs ...interface{}) <-cha
 			"with_cancelled_and_rejected": true,
 		}
 
-		retRes171015 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes171015)
-		ch <- retRes171015
+		retRes171115 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes171115)
+		ch <- retRes171115
 		return nil
 
 	}()
@@ -1947,7 +1948,7 @@ func (this *OnetradingCore) FetchClosedOrders(optionalArgs ...interface{}) <-cha
  * @method
  * @name onetrading#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://docs.onetrading.com/#trades-for-order
+ * @see https://docs.onetrading.com/rest/trading/get-trades-for-order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1969,8 +1970,8 @@ func (this *OnetradingCore) FetchOrderTrades(id interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17268 := (<-this.LoadMarkets())
-		PanicOnError(retRes17268)
+		retRes17278 := (<-this.LoadMarkets())
+		PanicOnError(retRes17278)
 		var request interface{} = map[string]interface{}{
 			"order_id": id,
 		}
@@ -2027,7 +2028,7 @@ func (this *OnetradingCore) FetchOrderTrades(id interface{}, optionalArgs ...int
  * @method
  * @name onetrading#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.onetrading.com/#all-trades
+ * @see https://docs.onetrading.com/rest/trading/get-trades
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2048,8 +2049,8 @@ func (this *OnetradingCore) FetchMyTrades(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17868 := (<-this.LoadMarkets())
-		PanicOnError(retRes17868)
+		retRes17878 := (<-this.LoadMarkets())
+		PanicOnError(retRes17878)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
