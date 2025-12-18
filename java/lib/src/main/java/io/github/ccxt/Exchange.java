@@ -454,34 +454,7 @@ public class Exchange {
 
 
     public static Exchange dynamicallyCreateInstance(String className, Object args) {
-        if (args == null) {
-            args = new java.util.HashMap<String, Object>();
-        }
-
-        className = className.substring(0, 1).toUpperCase() + className.substring(1); // capitalize first letter
-
-        try {
-            Class<?> clazz;
-            try {
-                String pkg = Exchange.class.getPackage().getName();
-                clazz = Class.forName(pkg + ".exchanges." + className);
-            } catch (ClassNotFoundException e) {
-                throw e;
-            }
-
-            // check this accept constructor with Object arg
-            java.lang.reflect.Constructor<?> ctor = clazz.getConstructor();
-
-            Object instance = ctor.newInstance(); // check args
-
-            return (Exchange) instance;
-        } catch (ClassNotFoundException
-                | NoSuchMethodException
-                | InstantiationException
-                | IllegalAccessException
-                | java.lang.reflect.InvocationTargetException e) {
-            throw new RuntimeException("Failed to create instance for: " + className, e);
-        }
+        return dynamicallyCreateInstance(className, args, false);
     }
 
     private double toDoubleSafe(Object val, double defaultValue) {
@@ -1991,54 +1964,48 @@ public class Exchange {
         this.fetchResponse = response;
     }
 
-        public static Exchange dynamicallyCreateInstance(String className, Object args, boolean isWs) {
-        if (className == null || className.trim().isEmpty()) {
-            return null;
-        }
+    public static Exchange dynamicallyCreateInstance(String className, Object args, boolean isWs) {
+        if (className == null || className.trim().isEmpty()) return null;
 
-        String fqcn = className.trim();
-        if (isWs) {
-            fqcn = "ccxt.pro." + fqcn;
-        }
+        String EXCHANGES_PKG = "io.github.ccxt.exchanges.";
 
-        // default args like the C# code
-        if (args == null) {
-            args = new HashMap<String, Object>();
-        }
+        String name = className.trim();
+
+        name = name.substring(0, 1).toUpperCase() + name.substring(1);
+
+        String fqcn = EXCHANGES_PKG + name;
+
+        if (args == null) args = new HashMap<String, Object>();
 
         try {
             Class<?> clazz = Class.forName(fqcn);
 
-            // must be an Exchange (or subclass)
-            if (!Exchange.class.isAssignableFrom(clazz)) {
-                return null;
-            }
+            if (!Exchange.class.isAssignableFrom(clazz)) return null;
 
+            // Prefer ctor(Object)
             try {
                 Constructor<?> ctor = clazz.getConstructor(Object.class);
-                Object instance = ctor.newInstance(args);
-                return (Exchange) instance;
+                return (Exchange) ctor.newInstance(args);
             } catch (NoSuchMethodException ignored) {}
 
+            // Try ctor(Map)
             if (args instanceof Map) {
                 try {
                     @SuppressWarnings("rawtypes")
                     Constructor<?> ctor = clazz.getConstructor(Map.class);
-                    Object instance = ctor.newInstance(args);
-                    return (Exchange) instance;
+                    return (Exchange) ctor.newInstance(args);
                 } catch (NoSuchMethodException ignored) {}
             }
 
+            // Fallback no-arg ctor
             try {
                 Constructor<?> ctor = clazz.getConstructor();
-                Object instance = ctor.newInstance();
-                return (Exchange) instance;
+                return (Exchange) ctor.newInstance();
             } catch (NoSuchMethodException ignored) {}
 
             return null;
 
         } catch (Exception e) {
-            // swallow like your helpers
             return null;
         }
     }
@@ -2089,7 +2056,7 @@ public class Exchange {
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 public Object describe()
     {
         return new java.util.HashMap<String, Object>() {{
