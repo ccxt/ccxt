@@ -28,6 +28,7 @@ class Throttler {
     public function loop() {
         return Async\async(function () {
             $last_timestamp = microtime(true) * 1000.0;
+            $throttleAlertSent = false;
             while ($this->running) {
                 list($future, $cost) = $this->queue->bottom();
                 $cost = $cost ? $cost : $this->config['cost'];
@@ -40,7 +41,12 @@ class Throttler {
                     if ($this->queue->count() === 0) {
                         $this->running = false;
                     }
+                    $throttleAlertSent = false;
                 } else {
+                    if (!$throttleAlertSent) {
+                        print((string) round(microtime(true) * 1000.0) . ' ccxt rate limit exceeded, throttling requests.');
+                        $throttleAlertSent = true;
+                    }
                     $time = $this->config['delay'];
                     $sleep = new Promise(function ($resolve) use ($time) {
                         Loop::addTimer($time, function () use ($resolve) {
