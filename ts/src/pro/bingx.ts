@@ -773,6 +773,7 @@ export default class bingx extends bingxRest {
         } else {
             snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
         }
+        this.fixSnapshotIntersections (snapshot, symbol);
         const nonce = this.safeInteger (data, 'lastUpdateId');
         snapshot['nonce'] = nonce;
         orderbook.reset (snapshot);
@@ -782,6 +783,22 @@ export default class bingx extends bingxRest {
         if (isAllEndpoint) {
             const messageHashForAll = this.getMessageHash ('orderbook');
             client.resolve (orderbook, messageHashForAll);
+        }
+    }
+
+    fixSnapshotIntersections (snapshot, symbol) {
+        const bids = this.safeList (snapshot, 'bids', []);
+        const asks = this.safeList (snapshot, 'asks', []);
+        if (bids.length && asks.length) {
+            const bestBidPrice = this.safeNumber (bids[0], 0);
+            const bestAskPrice = this.safeNumber (asks[0], 0);
+            if (bestBidPrice !== undefined && bestAskPrice !== undefined && bestBidPrice === bestAskPrice) {
+                const price = bestBidPrice;
+                bids.shift ();
+                asks.shift ();
+                this.log (this.id + ' ' + symbol + ' removed ' + 1 + ' bids with price = ' + price + ' due to intersections');
+                this.log (this.id + ' ' + symbol + ' removed ' + 1 + ' asks with price= ' + price + ' due to intersections');
+            }
         }
     }
 
