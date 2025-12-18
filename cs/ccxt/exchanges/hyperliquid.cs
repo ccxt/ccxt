@@ -2209,11 +2209,12 @@ public partial class hyperliquid : Exchange
             ((IDictionary<string,object>)orderParams)["slippage"] = slippage;
             object stopLoss = this.safeValue(orderParams, "stopLoss");
             object takeProfit = this.safeValue(orderParams, "takeProfit");
-            object isTrigger = (isTrue(stopLoss) || isTrue(takeProfit));
+            object hasStopLoss = (!isEqual(stopLoss, null));
+            object hasTakeProfit = (!isEqual(takeProfit, null));
             orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});
             object mainOrderObj = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ((IList<object>)orderReq).Add(mainOrderObj);
-            if (isTrue(isTrigger))
+            if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
             {
                 // grouping opposed orders for sl/tp
                 object stopLossOrderTriggerPrice = this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice"});
@@ -2232,7 +2233,7 @@ public partial class hyperliquid : Exchange
                 {
                     triggerOrderSide = "buy";
                 }
-                if (isTrue(!isEqual(takeProfit, null)))
+                if (isTrue(hasTakeProfit))
                 {
                     object orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend(orderParams, new Dictionary<string, object>() {
                         { "takeProfitPrice", takeProfitOrderTriggerPrice },
@@ -2240,7 +2241,7 @@ public partial class hyperliquid : Exchange
                     }));
                     ((IList<object>)orderReq).Add(orderObj);
                 }
-                if (isTrue(!isEqual(stopLoss, null)))
+                if (isTrue(hasStopLoss))
                 {
                     object orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend(orderParams, new Dictionary<string, object>() {
                         { "stopLossPrice", stopLossOrderTriggerPrice },
