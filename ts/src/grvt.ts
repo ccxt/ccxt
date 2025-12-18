@@ -1218,12 +1218,6 @@ export default class grvt extends Exchange {
             'transfer_type': 'STANDARD',
             'transfer_metadata': null,
         };
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
-        if (networkId === undefined) {
-            throw new BadRequest (this.id + ' withdraw() requires a network parameter');
-        }
         const signature = {
             'signer': this.safeString (params, 'from_account_id', defaultFromAccountId),
             'r': 'xxxxxxxxxxxxxxxxx',
@@ -1439,6 +1433,66 @@ export default class grvt extends Exchange {
             'order': request,
         };
         const response = await this.privateTradingPostFullV1CreateOrder (this.extend (fullRequest, params));
+        //
+        //    {
+        //        "result": {
+        //            "order_id": "0x00",
+        //            "sub_account_id": "2147050003876484",
+        //            "is_market": false,
+        //            "time_in_force": "GOOD_TILL_TIME",
+        //            "post_only": false,
+        //            "reduce_only": false,
+        //            "legs": [
+        //                {
+        //                    "instrument": "BTC_USDT_Perp",
+        //                    "size": "0.001",
+        //                    "limit_price": "50000.0",
+        //                    "is_buying_asset": true
+        //                }
+        //            ],
+        //            "signature": {
+        //                "signer": "0xbf465e6083a43b170791ea29393f60...",
+        //                "r": "0x161826bc2fc43e07b4c1e4aeb01b3e58901f936af10b399e...",
+        //                "s": "0x1b6d09609430ef73cb53dd87dbe73939824409296b3673719...",
+        //                "v": 27,
+        //                "expiration": "1766076771082000000",
+        //                "nonce": 1766076671,
+        //                "chain_id": "0"
+        //            },
+        //            "metadata": {
+        //                "client_order_id": "1766076671",
+        //                "create_time": "1766076671243762741",
+        //                "trigger": {
+        //                    "trigger_type": "UNSPECIFIED",
+        //                    "tpsl": {
+        //                        "trigger_by": "UNSPECIFIED",
+        //                        "trigger_price": "0.0",
+        //                        "close_position": false
+        //                    }
+        //                },
+        //                "broker": "UNSPECIFIED",
+        //                "is_position_transfer": false,
+        //                "allow_crossing": false
+        //            },
+        //            "state": {
+        //                "status": "PENDING",
+        //                "reject_reason": "UNSPECIFIED",
+        //                "book_size": [
+        //                    "0.001"
+        //                ],
+        //                "traded_size": [
+        //                    "0.0"
+        //                ],
+        //                "update_time": "1766076671243762741",
+        //                "avg_fill_price": [
+        //                    "0.0"
+        //                ]
+        //            },
+        //            "builder": "0x00",
+        //            "builder_fee": "0.0"
+        //        }
+        //    }
+        //
         const data = this.safeDict (response, 'result', {});
         return this.parseOrder (data, market);
     }
@@ -1469,7 +1523,7 @@ export default class grvt extends Exchange {
             legs.push ({
                 'assetID': market['info']['instrument_hash'],
                 'contractSize': this.parseToInt (size_int),
-                'limitPrice': parseToInt (price_int),
+                'limitPrice': this.parseToInt (price_int),
                 'isBuyingContract': leg['is_buying_asset'],
             });
         }
@@ -1998,7 +2052,7 @@ export default class grvt extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        // fetchOrders, fetchOpenOrders, fetchOrder
+        // fetchOrders, fetchOpenOrders, fetchOrder, createOrder
         //
         //           {
         //                "order_id": "0x0101010503e693410000000069530a7d",
@@ -2052,7 +2106,9 @@ export default class grvt extends Exchange {
         //                    "avg_fill_price": [
         //                        "0.0"
         //                    ]
-        //                }
+        //                },
+        //                "builder": "0x00",
+        //                "builder_fee": "0.0"
         //            }
         //
         // cancelOrder, cancelAllOrders
