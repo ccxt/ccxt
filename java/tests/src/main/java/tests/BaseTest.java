@@ -338,8 +338,7 @@ public class BaseTest {
 
     public static boolean getCliArgValue(Object option) {
         String optionStr = (String) option;
-        // String[] args = Main.getArgs();
-        String[] args = {};
+        String[] args = Main.args;
         for (String arg : args) {
             if (arg.equals(optionStr)) {
                 return true;
@@ -513,8 +512,13 @@ public class BaseTest {
     }
 
     public static String getRootDir() {
-        var res = FileSystems.getDefault().getPath("").toAbsolutePath() + "../../../../.." ;
-        return res;
+        var prefix =FileSystems.getDefault().getPath("").toAbsolutePath();
+//        var res = prefix + "/../../../../../" ;
+//        return res;
+        if (prefix.endsWith("java")) {
+            return prefix + "/../";
+        }
+        return prefix +  "/../../../../../";
     }
 
         public static Object ioFileRead(Object path2) {
