@@ -1368,6 +1368,7 @@ public class Exchange {
                 if (this.markets_by_id == null) {
                     return this.setMarkets(this.markets);
                 }
+                return this.markets;
             }
 
             Object currencies = null;
