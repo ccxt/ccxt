@@ -4,10 +4,9 @@ import Exchange from './abstract/cow.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported, BadRequest, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
-import { TypedDataEncoder } from './static_dependencies/ethers/hash/typed-data.js';
-import { getAddress } from './static_dependencies/ethers/address/index.js';
 import type { Balances, Dict, Int, Market, Order, OrderSide, OrderType, Str, Trade } from './base/types.js';
 
 /**
@@ -197,7 +196,7 @@ export default class cow extends Exchange {
                     'mainnet': 'https://eth.llamarpc.com',
                     'xdai': 'https://rpc.gnosischain.com',
                     'arbitrum_one': 'https://arb1.arbitrum.io/rpc',
-                    'base': 'https://mainnet.base.org',
+                    'base': 'https://base.llamarpc.com',
                     'sepolia': 'https://rpc.sepolia.org',
                     'bnb': 'https://bsc-rpc.publicnode.com',
                     'polygon': 'https://polygon-rpc.com',
@@ -205,7 +204,7 @@ export default class cow extends Exchange {
                 },
                 'autoApprove': true, // Automatically approve VaultRelayer if allowance is insufficient
                 'cancellationVerifyingContract': '0x0000000000000000000000000000000000000000',
-                'defaultValidFor': 30,
+                'defaultValidFor': 600,
                 'defaultAppData': '0x0000000000000000000000000000000000000000000000000000000000000000',
                 'defaultSigningScheme': 'ethsign',
                 'tokenBalances': {
@@ -299,7 +298,7 @@ export default class cow extends Exchange {
         if (pathWithParams.length > 0) {
             url = url + '/' + pathWithParams;
         }
-        if ((method === 'GET') || (method === 'DELETE')) {
+        if (method === 'GET') {
             if (!this.isEmpty (query)) {
                 url = url + '?' + this.urlencode (query);
             }
@@ -1058,9 +1057,9 @@ export default class cow extends Exchange {
         const quoteResponse = await this.publicPostApiV1Quote (quoteRequest);
         const quote = this.safeDict (quoteResponse, 'quote', quoteResponse);
         const orderBody: Dict = {
-            'sellToken': this.addressWith0xPrefix (this.safeString (quote, 'sellToken', sellToken)),
-            'buyToken': this.addressWith0xPrefix (this.safeString (quote, 'buyToken', buyToken)),
-            'receiver': this.addressWith0xPrefix (this.safeString (quote, 'receiver', receiverParam)),
+            'sellToken': this.checksumAddress (this.addressWith0xPrefix (this.safeString (quote, 'sellToken', sellToken))),
+            'buyToken': this.checksumAddress (this.addressWith0xPrefix (this.safeString (quote, 'buyToken', buyToken))),
+            'receiver': this.checksumAddress (this.addressWith0xPrefix (this.safeString (quote, 'receiver', receiverParam))),
             'sellAmount': this.safeString (quote, 'sellAmount', sellAmountRaw),
             'buyAmount': this.safeString (quote, 'buyAmount', this.safeString (quoteRequest, 'buyAmountAfterFee')),
             'validTo': this.safeInteger (quote, 'validTo', validTo),
@@ -1074,8 +1073,7 @@ export default class cow extends Exchange {
         const signingScheme = this.safeStringLower (quote, 'signingScheme', 'eip712');
         orderBody['signingScheme'] = signingScheme;
         orderBody['signature'] = this.signOrderPayload (orderBody, signingScheme);
-        const signerAddr = this.deriveWalletAddressFromPrivateKey ();
-        orderBody['from'] = this.addressWith0xPrefix (signerAddr).toLowerCase ();
+        orderBody['from'] = this.addressWith0xPrefix (owner).toLowerCase ();
         const autoApprove = this.safeBool (this.options, 'autoApprove', true);
         if (autoApprove) {
             const sellTokenAddress = this.safeString (orderBody, 'sellToken');
@@ -1085,10 +1083,10 @@ export default class cow extends Exchange {
                 const feeAmount = this.safeString (orderBody, 'feeAmount', '0');
                 const requiredAmount = Precise.stringAdd (sellAmount, feeAmount);
                 try {
-                    const currentAllowance = await this.checkERC20Allowance (sellTokenAddress, this.hexWith0xPrefix (signerAddr), vaultRelayer);
+                    const currentAllowance = await this.checkERC20Allowance (sellTokenAddress, this.hexWith0xPrefix (owner), vaultRelayer);
                     if (Precise.stringLt (currentAllowance, requiredAmount)) {
                         await this.approveERC20 (sellTokenAddress, vaultRelayer);
-                        await this.waitForSufficientAllowance (sellTokenAddress, this.hexWith0xPrefix (signerAddr), vaultRelayer, requiredAmount);
+                        await this.waitForSufficientAllowance (sellTokenAddress, this.hexWith0xPrefix (owner), vaultRelayer, requiredAmount);
                     }
                 } catch (e) {
                     const message = this.safeString (e, 'message', this.json (e));
@@ -1171,22 +1169,16 @@ export default class cow extends Exchange {
     ensureOwnerAddress (params: Dict = {}): any[] {
         let owner = this.safeStringLower2 (params, 'owner', 'walletAddress');
         const modifiedParams = this.omit (params, [ 'owner', 'walletAddress' ]);
-        const derivedOwner = this.deriveWalletAddressFromPrivateKey ();
         if (owner === undefined) {
             const optionOwner = this.safeStringLower (this.options, 'walletAddress');
             if (optionOwner !== undefined) {
                 owner = optionOwner;
             } else if ((this.walletAddress !== undefined) && (typeof this.walletAddress === 'string') && (this.walletAddress !== '')) {
                 owner = this.walletAddress.toLowerCase ();
-            } else if (derivedOwner !== undefined) {
-                owner = derivedOwner;
             }
         }
         if ((owner !== undefined) && !owner.startsWith ('0x')) {
             owner = '0x' + owner;
-        }
-        if ((derivedOwner !== undefined) && (owner !== undefined) && (owner.toLowerCase () !== derivedOwner)) {
-            throw new AuthenticationError (this.id + ' walletAddress mismatch between provided owner and private key');
         }
         if (owner === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a wallet address; set exchange.walletAddress, exchange.options["walletAddress"] or provide params["owner"]');
@@ -1210,23 +1202,6 @@ export default class cow extends Exchange {
             return privateKey;
         }
         return this.hexWith0xPrefix (privateKey);
-    }
-
-    deriveWalletAddressFromPrivateKey (): Str {
-        const normalizedKey = this.normalizePrivateKey (this.privateKey);
-        if ((normalizedKey === undefined) || (normalizedKey === '')) {
-            return undefined;
-        }
-        const keyHex = this.remove0xPrefix (normalizedKey);
-        if (keyHex.length !== 64) {
-            throw new AuthenticationError (this.id + ' privateKey must be a 32-byte hex string');
-        }
-        const privateKeyBytes = this.base16ToBinary (keyHex);
-        const publicKey = secp256k1.getPublicKey (privateKeyBytes, false);
-        const hashBytes = keccak (publicKey.slice (1));
-        const addressBytes = hashBytes.slice (-20);
-        const address = '0x' + this.binaryToBase16 (addressBytes);
-        return address.toLowerCase ();
     }
 
     amountToTokenAmount (amountString: Str, decimals: Str): Str {
@@ -1287,7 +1262,7 @@ export default class cow extends Exchange {
         }
         this.validatePartnerFeeBps (feeBps);
         const recipientAddress = this.addressWith0xPrefix (recipient);
-        const feeBpsHex = feeBps.toString (16).padStart (4, '0');
+        const feeBpsHex = this.intToBase16 (feeBps).padStart (4, '0');
         const recipientHex = this.remove0xPrefix (recipientAddress).padStart (40, '0');
         const appDataContent = feeBpsHex + recipientHex;
         const appDataPadded = appDataContent.padEnd (64, '0');
@@ -1336,7 +1311,7 @@ export default class cow extends Exchange {
         if (hexValue === '') {
             return '0';
         }
-        return BigInt ('0x' + hexValue).toString ();
+        return result;
     }
 
     async checkERC20Allowance (tokenAddress: Str, ownerAddress: Str, spenderAddress: Str) {
@@ -1387,15 +1362,15 @@ export default class cow extends Exchange {
             throw new ExchangeError (this.id + ' approveERC20() requires rpcUrls[' + this.options['network'] + '] to be configured');
         }
         const privateKey = this.normalizePrivateKey (this.privateKey);
-        const ownerAddress = this.deriveWalletAddressFromPrivateKey ();
+        let ownerAddress: Str = undefined;
+        [ ownerAddress ] = this.ensureOwnerAddress ({});
         const approvalAmount = (amount !== undefined) ? amount : '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
         const spenderPadded = this.remove0xPrefix (spenderAddress).padStart (64, '0');
         let amountHex = approvalAmount;
         if (amountHex.startsWith ('0x')) {
             amountHex = '0x' + this.remove0xPrefix (amountHex).padStart (64, '0');
         } else {
-            const numericValue = parseInt (amountHex);
-            amountHex = '0x' + numericValue.toString (16).padStart (64, '0');
+            amountHex = '0x' + this.intToBase16 (amountHex).padStart (64, '0');
         }
         const data = '0x095ea7b3' + spenderPadded + this.remove0xPrefix (amountHex);
         const nonceRequest = {
@@ -1431,19 +1406,17 @@ export default class cow extends Exchange {
             tx['to'],
             tx['value'],
             tx['data'],
-            '0x' + chainId.toString (16),
+            '0x' + this.intToBase16 (chainId),
             '0x',
             '0x',
         ];
         const rlpEncoded = this.encodeRLP (txFields);
-        const txHash = '0x' + this.binaryToBase16 (keccak (this.base16ToBinary (this.remove0xPrefix (rlpEncoded))));
-        const privateKeyBytes = this.base16ToBinary (this.remove0xPrefix (privateKey));
-        const hashBytes = this.base16ToBinary (this.remove0xPrefix (txHash));
-        const signature = secp256k1.sign (hashBytes, privateKeyBytes);
-        const compact = signature.toCompactHex ();
-        const r = compact.slice (0, 64);
-        const s = compact.slice (64);
-        const recovery = signature.recovery;
+        const rlpBytes = this.base16ToBinary (this.remove0xPrefix (rlpEncoded));
+        const txHash = this.hash (rlpBytes, keccak, 'hex');
+        const signature = ecdsa (txHash, this.remove0xPrefix (privateKey), secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
+        const recovery = signature['v'];
         const v = (chainId * 2) + 35 + recovery;
         const signedTxFields = [
             tx['nonce'],
@@ -1452,7 +1425,7 @@ export default class cow extends Exchange {
             tx['to'],
             tx['value'],
             tx['data'],
-            '0x' + v.toString (16),
+            '0x' + this.intToBase16 (v),
             '0x' + r,
             '0x' + s,
         ];
@@ -1496,16 +1469,19 @@ export default class cow extends Exchange {
             return '80';
         }
         const length = hex.length / 2;
-        if (length === 1 && parseInt (hex, 16) < 128) {
+        const hexValue = parseInt (hex);
+        if (length === 1 && hexValue < 128) {
             return hex;
         }
         if (length < 56) {
-            return (128 + length).toString (16).padStart (2, '0') + hex;
+            const prefix = 128 + length;
+            return this.intToBase16 (prefix).padStart (2, '0') + hex;
         }
-        const lengthHex = length.toString (16);
+        const lengthHex = this.intToBase16 (length);
         const lengthOfLength = Math.ceil (lengthHex.length / 2);
         const paddedLengthHex = lengthHex.padStart (lengthOfLength * 2, '0');
-        return (183 + lengthOfLength).toString (16) + paddedLengthHex + hex;
+        const prefixValue = 183 + lengthOfLength;
+        return this.intToBase16 (prefixValue) + paddedLengthHex + hex;
     }
 
     encodeRLP (fields: any[]): string {
@@ -1516,23 +1492,56 @@ export default class cow extends Exchange {
         const concatenated = encoded.join ('');
         const totalLength = concatenated.length / 2;
         if (totalLength < 56) {
-            return '0x' + (192 + totalLength).toString (16).padStart (2, '0') + concatenated;
+            const prefix = 192 + totalLength;
+            return '0x' + this.intToBase16 (prefix).padStart (2, '0') + concatenated;
         }
-        const lengthHex = totalLength.toString (16);
+        const lengthHex = this.intToBase16 (totalLength);
         const lengthOfLength = Math.ceil (lengthHex.length / 2);
         const paddedLengthHex = lengthHex.padStart (lengthOfLength * 2, '0');
-        return '0x' + (247 + lengthOfLength).toString (16) + paddedLengthHex + concatenated;
+        const prefixValue = 247 + lengthOfLength;
+        return '0x' + this.intToBase16 (prefixValue) + paddedLengthHex + concatenated;
     }
 
-    computeTypedDataDigest (domain: Dict, types: Dict, message: Dict) {
-        const encoder: any = TypedDataEncoder;
-        if (typeof encoder.hash === 'function') {
-            return encoder.hash (domain, types, message);
+    decimalToHex (decimal: Str): Str {
+        // Convert decimal string to hex without using BigInt (for Go compatibility)
+        if ((decimal === '0') || (decimal === undefined)) {
+            return '0';
         }
-        const encoded = encoder.encode (domain, types, message);
-        const encodedBinary = this.base16ToBinary (encoded.slice (2));
-        const digestBytes = keccak (encodedBinary);
-        return '0x' + this.binaryToBase16 (digestBytes);
+        let num = decimal;
+        let hex = '';
+        const sixteen = '16';
+        const hexChars = '0123456789abcdef';
+        while (!Precise.stringEq (num, '0')) {
+            const remainder = Precise.stringMod (num, sixteen);
+            const remainderInt = this.parseToInt (remainder);
+            const hexChar = hexChars[remainderInt];
+            hex = hexChar + hex;
+            const quotient = Precise.stringDiv (num, sixteen, 0);
+            num = quotient;
+        }
+        if (hex === '') {
+            hex = '0';
+        }
+        return hex;
+    }
+
+    encodeEIP712Type (name: Str, type: Str, value: any): Str {
+        if (type === 'address') {
+            return this.remove0xPrefix (value).toLowerCase ().padStart (64, '0');
+        } else if (type === 'uint256' || type === 'uint32') {
+            const numStr = this.numberToString (value);
+            const hexValue = this.decimalToHex (numStr);
+            return hexValue.padStart (64, '0');
+        } else if (type === 'bytes32') {
+            return this.remove0xPrefix (value).toLowerCase ().padStart (64, '0');
+        } else if (type === 'string') {
+            const stringBytes = this.encode (value);
+            const stringHash = this.hash (stringBytes, keccak, 'hex');
+            return stringHash;
+        } else if (type === 'bool') {
+            return value ? '0000000000000000000000000000000000000000000000000000000000000001' : '0000000000000000000000000000000000000000000000000000000000000000';
+        }
+        return '';
     }
 
     hashEthereumSignedMessage (messageHex: Str) {
@@ -1548,8 +1557,28 @@ export default class cow extends Exchange {
         const prefixString = "\x19Ethereum Signed Message:\n" + this.numberToString (messageLength);
         const prefixBinary = this.encode (prefixString);
         const prefixed = this.binaryConcat (prefixBinary, binaryMessage);
-        const digestBytes = keccak (prefixed);
-        return '0x' + this.binaryToBase16 (digestBytes);
+        const digestHex = this.hash (prefixed, keccak, 'hex');
+        return '0x' + digestHex;
+    }
+
+    checksumAddress (address: Str): Str {
+        if (address === undefined) {
+            return address;
+        }
+        const addr = this.remove0xPrefix (address).toLowerCase ();
+        const hashHex = this.hash (this.encode (addr), keccak, 'hex');
+        let checksummed = '0x';
+        for (let i = 0; i < addr.length; i++) {
+            const hashChar = hashHex[i];
+            const addressChar = addr[i];
+            const hashInt = parseInt (hashChar); // Parse as hexadecimal
+            if (hashInt >= 8) {
+                checksummed += addressChar.toUpperCase ();
+            } else {
+                checksummed += addressChar;
+            }
+        }
+        return checksummed;
     }
 
     signDigest (digest: Str, privateKey: Str, usePersonalSign: boolean = false) {
@@ -1561,16 +1590,15 @@ export default class cow extends Exchange {
         if (usePersonalSign) {
             hashToSign = this.hashEthereumSignedMessage (digest);
         }
-        const digestBytes = this.base16ToBinary (this.remove0xPrefix (hashToSign));
-        const privateKeyBytes = this.base16ToBinary (this.remove0xPrefix (normalizedKey));
-        const signature = secp256k1.sign (digestBytes, privateKeyBytes);
-        const compact = signature.toCompactHex ();
-        const recovery = signature.recovery;
-        const r = compact.slice (0, 64);
-        const s = compact.slice (64);
-        const vValue = recovery + 27;
-        const vHex = vValue.toString (16).padStart (2, '0');
-        return '0x' + r + s + vHex;
+        const hashHex = this.remove0xPrefix (hashToSign);
+        const keyHex = this.remove0xPrefix (normalizedKey);
+        const signature = ecdsa (hashHex, keyHex, secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
+        const v = signature['v'];
+        const vValue = v + 27;
+        const vHex = this.intToBase16 (vValue).padStart (2, '0');
+        return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + vHex;
     }
 
     signOrderPayload (order: Dict, signingScheme: Str = 'eip712') {
@@ -1586,11 +1614,11 @@ export default class cow extends Exchange {
         const receiverAddress = this.safeString (order, 'receiver');
         let normalizedReceiver = '0x0000000000000000000000000000000000000000';
         if (receiverAddress !== undefined) {
-            normalizedReceiver = getAddress (this.hexWith0xPrefix (receiverAddress));
+            normalizedReceiver = this.checksumAddress (this.hexWith0xPrefix (receiverAddress));
         }
         const message = {
-            'sellToken': getAddress (this.hexWith0xPrefix (order['sellToken'])),
-            'buyToken': getAddress (this.hexWith0xPrefix (order['buyToken'])),
+            'sellToken': this.checksumAddress (this.hexWith0xPrefix (order['sellToken'])),
+            'buyToken': this.checksumAddress (this.hexWith0xPrefix (order['buyToken'])),
             'receiver': normalizedReceiver,
             'sellAmount': this.safeString (order, 'sellAmount'),
             'buyAmount': this.safeString (order, 'buyAmount'),
@@ -1602,30 +1630,37 @@ export default class cow extends Exchange {
             'sellTokenBalance': this.safeStringLower (order, 'sellTokenBalance', 'erc20'),
             'buyTokenBalance': this.safeStringLower (order, 'buyTokenBalance', 'erc20'),
         };
-        const types = {
-            'Order': [
-                { 'name': 'sellToken', 'type': 'address' },
-                { 'name': 'buyToken', 'type': 'address' },
-                { 'name': 'receiver', 'type': 'address' },
-                { 'name': 'sellAmount', 'type': 'uint256' },
-                { 'name': 'buyAmount', 'type': 'uint256' },
-                { 'name': 'validTo', 'type': 'uint32' },
-                { 'name': 'appData', 'type': 'bytes32' },
-                { 'name': 'feeAmount', 'type': 'uint256' },
-                { 'name': 'kind', 'type': 'string' },
-                { 'name': 'partiallyFillable', 'type': 'bool' },
-                { 'name': 'sellTokenBalance', 'type': 'string' },
-                { 'name': 'buyTokenBalance', 'type': 'string' },
-            ],
-        };
-        const typedDataEncoder = new TypedDataEncoder (types);
-        const domainSeparator = TypedDataEncoder.hashDomain (domain);
-        const structHash = typedDataEncoder.hash (message);
-        const prefix = '0x1901';
-        const encoded = prefix + domainSeparator.slice (2) + structHash.slice (2);
-        const digest = '0x' + this.binaryToBase16 (keccak (this.base16ToBinary (encoded.slice (2))));
+        // Manually compute domain separator (same as TypedDataEncoder.hashDomain)
+        const domainTypeString = 'EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)';
+        const domainTypeHash = this.hash (this.encode (domainTypeString), keccak, 'hex');
+        const nameHash = this.hash (this.encode (domain['name']), keccak, 'hex');
+        const versionHash = this.hash (this.encode (domain['version']), keccak, 'hex');
+        const chainIdEncoded = this.encodeEIP712Type ('chainId', 'uint256', domain['chainId']);
+        const verifyingContractEncoded = this.encodeEIP712Type ('verifyingContract', 'address', domain['verifyingContract']);
+        const domainData = domainTypeHash + nameHash + versionHash + chainIdEncoded + verifyingContractEncoded;
+        const domainSeparator = this.hash (this.base16ToBinary (domainData), keccak, 'hex');
+        // Manually compute struct hash (same as TypedDataEncoder.hash)
+        const orderTypeString = 'Order(address sellToken,address buyToken,address receiver,uint256 sellAmount,uint256 buyAmount,uint32 validTo,bytes32 appData,uint256 feeAmount,string kind,bool partiallyFillable,string sellTokenBalance,string buyTokenBalance)';
+        const orderTypeHash = this.hash (this.encode (orderTypeString), keccak, 'hex');
+        const sellTokenEncoded = this.encodeEIP712Type ('sellToken', 'address', message['sellToken']);
+        const buyTokenEncoded = this.encodeEIP712Type ('buyToken', 'address', message['buyToken']);
+        const receiverEncoded = this.encodeEIP712Type ('receiver', 'address', message['receiver']);
+        const sellAmountEncoded = this.encodeEIP712Type ('sellAmount', 'uint256', message['sellAmount']);
+        const buyAmountEncoded = this.encodeEIP712Type ('buyAmount', 'uint256', message['buyAmount']);
+        const validToEncoded = this.encodeEIP712Type ('validTo', 'uint32', message['validTo']);
+        const appDataEncoded = this.encodeEIP712Type ('appData', 'bytes32', message['appData']);
+        const feeAmountEncoded = this.encodeEIP712Type ('feeAmount', 'uint256', message['feeAmount']);
+        const kindEncoded = this.encodeEIP712Type ('kind', 'string', message['kind']);
+        const partiallyFillableEncoded = this.encodeEIP712Type ('partiallyFillable', 'bool', message['partiallyFillable']);
+        const sellTokenBalanceEncoded = this.encodeEIP712Type ('sellTokenBalance', 'string', message['sellTokenBalance']);
+        const buyTokenBalanceEncoded = this.encodeEIP712Type ('buyTokenBalance', 'string', message['buyTokenBalance']);
+        const structData = orderTypeHash + sellTokenEncoded + buyTokenEncoded + receiverEncoded + sellAmountEncoded + buyAmountEncoded + validToEncoded + appDataEncoded + feeAmountEncoded + kindEncoded + partiallyFillableEncoded + sellTokenBalanceEncoded + buyTokenBalanceEncoded;
+        const structHash = this.hash (this.base16ToBinary (structData), keccak, 'hex');
+        const prefix = '1901';
+        const encoded = prefix + domainSeparator + structHash;
+        const digest = this.hash (this.base16ToBinary (encoded), keccak, 'hex');
         const usePersonalSign = (signingScheme === 'ethsign');
-        return this.signDigest (digest, privateKey, usePersonalSign);
+        return this.signDigest ('0x' + digest, privateKey, usePersonalSign);
     }
 
     signOrderCancellation (orderUids: Str[], signingScheme: Str = 'eip712') {
@@ -1638,27 +1673,35 @@ export default class cow extends Exchange {
             'chainId': chainId,
             'verifyingContract': verifyingContract,
         };
+        // Compute domain separator using the same method as signOrderPayload
+        const domainTypeString = 'EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)';
+        const domainTypeHash = this.hash (this.encode (domainTypeString), keccak, 'hex');
+        const nameHash = this.hash (this.encode (domain['name']), keccak, 'hex');
+        const versionHash = this.hash (this.encode (domain['version']), keccak, 'hex');
+        const chainIdEncoded = this.encodeEIP712Type ('chainId', 'uint256', domain['chainId']);
+        const verifyingContractEncoded = this.encodeEIP712Type ('verifyingContract', 'address', domain['verifyingContract']);
+        const domainData = domainTypeHash + nameHash + versionHash + chainIdEncoded + verifyingContractEncoded;
+        const domainSeparator = this.hash (this.base16ToBinary (domainData), keccak, 'hex');
         const typeString = 'OrderCancellations(bytes[] orderUids)';
-        const typeHash = '0x' + this.binaryToBase16 (keccak (typeString));
+        const typeHash = this.hash (this.encode (typeString), keccak, 'hex');
         let concatenatedHashes = '';
         for (let i = 0; i < orderUids.length; i++) {
             const uid = this.hexWith0xPrefix (orderUids[i]);
-            const uidBytes = this.base16ToBinary (uid.slice (2));
-            const uidHash = keccak (uidBytes);
-            concatenatedHashes += this.binaryToBase16 (uidHash);
+            const uidBytes = this.base16ToBinary (uid.slice (2).toLowerCase ());
+            const uidHash = this.hash (uidBytes, keccak, 'hex');
+            concatenatedHashes += uidHash;
         }
-        const arrayHash = '0x' + this.binaryToBase16 (keccak (this.base16ToBinary (concatenatedHashes)));
-        const structHashInput = typeHash.slice (2) + arrayHash.slice (2);
-        const structHash = '0x' + this.binaryToBase16 (keccak (this.base16ToBinary (structHashInput)));
-        const domainSeparator = TypedDataEncoder.hashDomain (domain);
-        const prefix = '0x1901';
-        const encoded = prefix + domainSeparator.slice (2) + structHash.slice (2);
-        const digest = '0x' + this.binaryToBase16 (keccak (this.base16ToBinary (encoded.slice (2))));
+        const arrayHash = this.hash (this.base16ToBinary (concatenatedHashes), keccak, 'hex');
+        const structHashInput = typeHash + arrayHash;
+        const structHash = this.hash (this.base16ToBinary (structHashInput), keccak, 'hex');
+        const prefix = '1901';
+        const encoded = prefix + domainSeparator + structHash;
+        const digest = this.hash (this.base16ToBinary (encoded), keccak, 'hex');
         if (signingScheme === 'ethsign') {
-            const prefixedDigest = this.hashEthereumSignedMessage (digest);
+            const prefixedDigest = this.hashEthereumSignedMessage ('0x' + digest);
             return this.signDigest (prefixedDigest, privateKey, false);
         } else {
-            return this.signDigest (digest, privateKey, false);
+            return this.signDigest ('0x' + digest, privateKey, false);
         }
     }
 
@@ -1721,7 +1764,7 @@ export default class cow extends Exchange {
         const comparisons = [];
         for (let i = 0; i < otherExchanges.length; i++) {
             const exchange = otherExchanges[i];
-            let comparison = {
+            const comparison = {
                 'exchange': undefined,
                 'available': undefined,
                 'cost': undefined,
@@ -1730,66 +1773,8 @@ export default class cow extends Exchange {
                 'error': undefined,
                 'info': undefined,
             };
-            try {
-                if (exchange === undefined) {
-                    continue;
-                }
-                comparison['exchange'] = exchange.id;
-                if ((exchange.has !== undefined) && (exchange.has['fetchOrderBook'] !== undefined) && !exchange.has['fetchOrderBook']) {
-                    comparison['error'] = 'fetchOrderBook not supported';
-                    comparisons.push (comparison);
-                    continue;
-                }
-                await exchange.loadMarkets ();
-                const orderBook = await exchange.fetchOrderBook (symbol);
-                comparison['info'] = orderBook;
-                const asks = this.safeList (orderBook, 'asks', orderBook['asks']);
-                let remaining = amountString;
-                let cost = '0';
-                let filled = '0';
-                for (let j = 0; j < asks.length; j++) {
-                    const level = asks[j];
-                    const price = this.numberToString (level[0]);
-                    const size = this.numberToString (level[1]);
-                    if ((price === undefined) || (size === undefined)) {
-                        continue;
-                    }
-                    if (Precise.stringLe (remaining, '0')) {
-                        break;
-                    }
-                    const tradeAmount = Precise.stringMin (remaining, size);
-                    cost = Precise.stringAdd (cost, Precise.stringMul (tradeAmount, price));
-                    filled = Precise.stringAdd (filled, tradeAmount);
-                    remaining = Precise.stringSub (remaining, tradeAmount);
-                }
-                if (Precise.stringLe (filled, '0')) {
-                    comparison['error'] = 'insufficient liquidity';
-                    comparisons.push (comparison);
-                    continue;
-                }
-                const filledNumber = this.parseNumber (filled);
-                const costNumber = this.parseNumber (cost);
-                let priceNumber = undefined;
-                if (filledNumber !== undefined && filledNumber > 0 && costNumber !== undefined) {
-                    priceNumber = costNumber / filledNumber;
-                }
-                let slippage = undefined;
-                if ((cowPrice !== undefined) && (priceNumber !== undefined) && (cowPrice !== 0)) {
-                    slippage = (priceNumber - cowPrice) / cowPrice;
-                }
-                comparison = this.extend (comparison, {
-                    'available': filledNumber,
-                    'cost': costNumber,
-                    'price': priceNumber,
-                    'slippage': slippage,
-                    'remaining': this.parseNumber (remaining),
-                });
-            } catch (error) {
-                let errorMessage = this.json (error);
-                if (error instanceof Error) {
-                    errorMessage = error.message;
-                }
-                comparison['error'] = errorMessage;
+            if (exchange !== undefined) {
+                comparison['error'] = 'Not implemented';
             }
             comparisons.push (comparison);
         }
@@ -1845,7 +1830,7 @@ export default class cow extends Exchange {
 
     handleErrors (httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errorType = this.safeString (response, 'errorType');
         if (errorType !== undefined) {
@@ -1878,5 +1863,6 @@ export default class cow extends Exchange {
                 }
             }
         }
+        return undefined;
     }
 }
