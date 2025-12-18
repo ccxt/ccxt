@@ -2083,11 +2083,12 @@ class hyperliquid extends Exchange {
             $orderParams['slippage'] = $slippage;
             $stopLoss = $this->safe_value($orderParams, 'stopLoss');
             $takeProfit = $this->safe_value($orderParams, 'takeProfit');
-            $isTrigger = ($stopLoss || $takeProfit);
+            $hasStopLoss = ($stopLoss !== null);
+            $hasTakeProfit = ($takeProfit !== null);
             $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
             $mainOrderObj = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
             $orderReq[] = $mainOrderObj;
-            if ($isTrigger) {
+            if ($hasStopLoss || $hasTakeProfit) {
                 // $grouping opposed $orders for sl/tp
                 $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
                 $stopLossOrderType = $this->safe_string($stopLoss, 'type', 'limit');
@@ -2103,14 +2104,14 @@ class hyperliquid extends Exchange {
                 } else {
                     $triggerOrderSide = 'buy';
                 }
-                if ($takeProfit !== null) {
+                if ($hasTakeProfit) {
                     $orderObj = $this->create_order_request($symbol, $takeProfitOrderType, $triggerOrderSide, $amount, $takeProfitOrderLimitPrice, $this->extend($orderParams, array(
                         'takeProfitPrice' => $takeProfitOrderTriggerPrice,
                         'reduceOnly' => true,
                     )));
                     $orderReq[] = $orderObj;
                 }
-                if ($stopLoss !== null) {
+                if ($hasStopLoss) {
                     $orderObj = $this->create_order_request($symbol, $stopLossOrderType, $triggerOrderSide, $amount, $stopLossOrderLimitPrice, $this->extend($orderParams, array(
                         'stopLossPrice' => $stopLossOrderTriggerPrice,
                         'reduceOnly' => true,
