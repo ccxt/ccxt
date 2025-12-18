@@ -40,7 +40,7 @@ public class Throttler
             config.Algorithm = configInput.TryGetValue("algorithm", out var algorithm) ? Convert.ToString(algorithm) : config.Algorithm;
             config.RateLimit = configInput.TryGetValue("rateLimit", out var rateLimit) ? Convert.ToDouble(rateLimit) : config.RateLimit;
             config.WindowSize = configInput.TryGetValue("windowSize", out var windowSize) ? Convert.ToDouble(windowSize) : config.WindowSize;       // rolling window size in milliseconds
-            if (this.config.WindowSize != 0.0) {
+            if ((this.config.WindowSize != 0.0) && (this.config.RateLimit > 0.0)){
                 this.config.MaxWeight = this.config.WindowSize / this.config.RateLimit;
             }
         }

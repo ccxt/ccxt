@@ -31,10 +31,10 @@ class Throttler {
             'cost': 1.0,                    // leaky bucket and rolling window
             'algorithm': 'leakyBucket',
             'windowSize': 60000.0,          // rolling window size in milliseconds
-            'maxWeight': undefined,         // rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit  
+            'maxWeight': undefined,         // rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit
         };
         Object.assign (this.config, config);
-        if (this.config['windowSize'] !== 0.0) {
+        if ((this.config['windowSize'] !== 0.0) && (this.config["rateLimit"] > 0.0)) {
             this.config['maxWeight'] = this.config.windowSize / this.config.rateLimit;
         }
         this.queue = [];
