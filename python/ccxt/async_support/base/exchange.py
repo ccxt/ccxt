@@ -6,7 +6,6 @@ __version__ = '4.5.28'
 
 # -----------------------------------------------------------------------------
 
-import traceback
 import asyncio
 import concurrent.futures
 import socket
@@ -39,6 +38,7 @@ from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
 from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
+
 
 # -----------------------------------------------------------------------------
 
@@ -109,15 +109,13 @@ class Exchange(BaseExchange):
 
     if sys.version_info >= (3, 5):
         async def __aenter__(self):
-            print("__aenter__ SESS-OPEN !!!!!!!!")
             self.open()
             return self
 
         async def __aexit__(self, exc_type, exc, tb):
-            print("__aexit__ SESS-CLOSE !!!!!!!!")
             await self.close()
 
-    def open(self, info = None):
+    def open(self):
         if self.asyncio_loop is None:
             if sys.version_info >= (3, 7):
                 self.asyncio_loop = asyncio.get_running_loop()
@@ -141,11 +139,8 @@ class Exchange(BaseExchange):
     async def close(self):
         await self.ws_close()
         if self.session is not None:
-            a = 'NOT_OWN'
             if self.own_session:
-                a = 'OWN'
                 await self.session.close()
-            print(">>> close() > SESSION BEING CLOSED: " + a)
             self.session = None
         await self.close_connector()
         await self.close_proxy_sessions()
@@ -213,8 +208,7 @@ class Exchange(BaseExchange):
 
         request_body = body
         encoded_body = body.encode() if body else None
-        print(">>> fetch -> session .open()")  # DEBUG
-        self.open(url)
+        self.open()
         final_session = proxy_session if proxy_session is not None else self.session
         session_method = getattr(final_session, method.lower())
 
@@ -339,20 +333,16 @@ class Exchange(BaseExchange):
             # coroutines can only be awaited once so we wrap it in a task
             self.markets_loading = asyncio.ensure_future(coroutine)
         try:
-            print(">>>> load_markets(): before await self.markets_loading")
             result = await self.markets_loading
         except asyncio.CancelledError as e:  # CancelledError is a base exception so we need to catch it explicitly
             self.reloading_markets = False
             self.markets_loading = None
-            print(">>>> load_markets(): exception CancelError")
             raise e
         except Exception as e:
             self.reloading_markets = False
             self.markets_loading = None
-            print(">>>> load_markets(): exception Exception")
             raise e
         self.reloading_markets = False
-        print(">>>> load_markets(): returned from await self.markets_loading")
         return result
 
     async def promise_all(self, tasks: Sequence[Awaitable[TypeVarT]]) -> list[TypeVarT]:
@@ -1005,15 +995,11 @@ class Exchange(BaseExchange):
         self.last_request_headers = request['headers']
         self.last_request_body = request['body']
         self.last_request_url = request['url']
-        urll = ' ********** ' + path # request['url'][:66]
         for i in range(0, retries + 1):
-            exc = None
             try:
-                print(">>> fetch2 >>> try                    :", urll, i)
                 return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
             except Exception as e:
                 if isinstance(e, OperationFailed):
-                    print (">>> fetch2 >>> caught  OperationFailed:", urll, i)
                     if i < retries:
                         if self.verbose:
                             index = i + 1
@@ -1022,14 +1008,9 @@ class Exchange(BaseExchange):
                             await self.sleep(retryDelay)
                         continue
                     else:
-                        exc = e
+                        raise e
                 else:
-                    print (">>> fetch2 >>> caught NOT OpertFailed :", urll, i)
-                    exc = e
-            if (exc is not None):
-                print (">>> fetch2 >>> RAISE EXC              :", urll, i)
-                traceback.print_exc()           # ←←←←←←←←←←←←←←←←←←←←←←←←←
-                raise exc from None
+                    raise e
         return None  # self line is never reached, but exists for c# value return requirement
 
     async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
