@@ -4,7 +4,8 @@ import ccxt from '../../js/ccxt.js';
 
 async function example () {
     const myex = new ccxt.okx ({
-        'rollingWindowSize': 10000, // switching to rolling window algorithm with 10 seconds window
+        'rateLimiterAlgorithm': 'rollingWindow', // switching to rolling window algorithm
+        'rollingWindowSize': 10000, // setting the rolling window size to 10 seconds
     });
 
     const trades = await myex.fetchOHLCV ('BTC/USDT');

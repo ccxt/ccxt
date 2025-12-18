@@ -2272,7 +2272,7 @@ export default class Exchange {
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
             },
-            'rollingWindowSize': 0.0,  // set to 0.0 to use leaky bucket
+            'rollingWindowSize': 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         };
     }
 

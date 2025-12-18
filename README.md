@@ -619,11 +619,12 @@ Crypto exchanges enforce rate limits to protect their infrastructure, ensure fai
 
 By default, CCXT uses a **leaky bucket** rate limiter to control the pace of outgoing requests. A leaky bucket rate limiter works by queueing requests and releasing them at a steady, fixed rate. Bursts of requests are smoothed out over time rather than executed immediately.
 
-However, if the user provides a `rollingWindowSize` option, ccxt switches from the leaky bucket model to a **window-based rate** limiter. A window-based limiter enforces a maximum number of requests within a fixed time window (for example, N requests per X milliseconds). Once the limit is reached, further requests are delayed until the current window expires.
+However, if the user provides a `rateLimiterAlgorithm': 'rollingWindow'` option, ccxt switches from the leaky bucket model to a **window-based rate** limiter. A window-based limiter enforces a maximum number of requests within a fixed time window (for example, N requests per X milliseconds). Once the limit is reached, further requests are delayed until the current window expires. The window size can be customized by providing `rollingWindowSize: 60 0000` ms.
 
 Example:
 ```Python
 exchange = ccxt.binance({
+    'rateLimiterAlgorithm': 'rollingWindow', # switching to rolling window algorithm
     'rollingWindowSize': 5000 # if binance allows X requests per 5 seconds, those requests can be fired in a burst at any time during this window
 })
 ```
