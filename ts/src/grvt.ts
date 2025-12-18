@@ -34,6 +34,7 @@ export default class grvt extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'fetchCurrencies': true,
             },
             'timeframes': {
                 '1m': 'CI_1_M',
@@ -145,6 +146,18 @@ export default class grvt extends Exchange {
                         { 'name': 'contractSize', 'type': 'uint64' },
                         { 'name': 'limitPrice', 'type': 'uint64' },
                         { 'name': 'isBuyingContract', 'type': 'bool' },
+                    ],
+                },
+                'EIP712_TRANSFER_MESSAGE_TYPE': {
+                    'Transfer': [
+                        { 'name': 'fromAccount', 'type': 'address' },
+                        { 'name': 'fromSubAccount', 'type': 'uint64' },
+                        { 'name': 'toAccount', 'type': 'address' },
+                        { 'name': 'toSubAccount', 'type': 'uint64' },
+                        { 'name': 'tokenCurrency', 'type': 'uint8' },
+                        { 'name': 'numTokens', 'type': 'uint64' },
+                        { 'name': 'nonce', 'type': 'uint32' },
+                        { 'name': 'expiration', 'type': 'int64' },
                     ],
                 },
             },
@@ -260,8 +273,10 @@ export default class grvt extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'min_size'))), // not base_decimals!
                 'price': this.safeNumber (market, 'tick_size'),
+                'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
+                'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_decimals'))),
             },
             'limits': {
                 'leverage': {
@@ -341,6 +356,7 @@ export default class grvt extends Exchange {
             },
             'type': 'crypto', // only crypto for now
             'networks': undefined,
+            'numericId': this.safeInteger (rawCurrency, 'id'),
         });
     }
 
@@ -1208,6 +1224,7 @@ export default class grvt extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const defaultFromAccountId = this.safeString (this.options, 'AuthAccountId');
+        const expiration = this.milliseconds () * 1000000 + 100000000000;
         const request: Dict = {
             'from_account_id': this.safeString (params, 'from_account_id', defaultFromAccountId),
             'from_sub_account_id': this.safeString (params, 'from_sub_account_id', fromAccount),
@@ -1215,19 +1232,28 @@ export default class grvt extends Exchange {
             'to_sub_account_id': this.safeString (params, 'to_sub_account_id', toAccount),
             'currency': currency['id'],
             'num_tokens': this.currencyToPrecision (code, amount),
+            'signature': {
+                'signer': '', // this.apiKey, // this.safeString (this.options, 'AuthAccountId'),
+                'r': '',
+                's': '',
+                'v': 0,
+                'expiration': expiration.toString (),
+                'nonce': this.nonce (),
+                // 'chain_id': '325',
+            },
             'transfer_type': 'STANDARD',
             'transfer_metadata': null,
         };
-        const signature = {
-            'signer': this.safeString (params, 'from_account_id', defaultFromAccountId),
-            'r': 'xxxxxxxxxxxxxxxxx',
-            's': 'xxxxxxxxxxxxxxxxx',
-            'v': 28,
-            'expiration': (this.milliseconds () + 100000) * 1000000,
-            'nonce': this.nonce (),
-            'chain_id': '325',
-        };
-        request['signature'] = signature;
+        const domainData = this.get_EIP712_domain_data ();
+        const messageData = this.build_EIP712_transfer_message_data (request, currency);
+        const privateKey = this.remove0xPrefix (this.secret);
+        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options['EIP712_TRANSFER_MESSAGE_TYPE'], messageData);
+        const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
+        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
+        request['signature']['r'] = '0x' + signature['r'];
+        request['signature']['s'] = '0x' + signature['s'];
+        request['signature']['v'] = this.sum (27, signature['v']);
+        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later, eg. str(account.address)
         const response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
         //
         // {
@@ -1502,24 +1528,26 @@ export default class grvt extends Exchange {
     }
 
     build_EIP712_order_message_data (order) {
-        const PRICE_MULTIPLIER = '1000000000';
+        const priceMultiplier = '1000000000';
         const orderLegs = this.safeList (order, 'legs', []);
         const legs = [];
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];
             const market = this.market (leg['instrument']);
             const bigInt10 = this.convertToBigIntCustom ('10');
-            const size_multiplier = bigInt10 ** this.convertToBigIntCustom (this.precisionFromString (this.safeString (market['precision'], 'amount')).toString ());
+            const size_multiplier = bigInt10 ** this.convertToBigIntCustom (this.precisionFromString (this.safeString (market['precision'], 'base')).toString ());
             const size = leg['size'];
-            const parts = size.split ('.');
-            const sizeDec = parts[1];
-            const size_int = ((this.convertToBigIntCustom (size.replace ('.', '')) * size_multiplier) / (bigInt10 ** this.convertToBigIntCustom (sizeDec.length)));
+            const sizeParts = size.split ('.');
+            const sizeDec = this.safeString (sizeParts, 1, '');
+            const sizeDecLength = sizeDec.length;
+            const sizeDecLengthStr = sizeDecLength.toString ();
+            const size_int = this.convertToBigIntCustom (size.replace ('.', '')) * size_multiplier / (bigInt10 ** this.convertToBigIntCustom (sizeDecLengthStr));
             const price = leg['limit_price'];
             const limitParts = price.split ('.');
             const limitDec = this.safeString (limitParts, 1, '');
             const limitDecLength = limitDec.length;
             const limitDecLengthStr = limitDecLength.toString ();
-            const price_int = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (PRICE_MULTIPLIER) / (bigInt10 ** this.convertToBigIntCustom (limitDecLengthStr)));
+            const price_int = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (bigInt10 ** this.convertToBigIntCustom (limitDecLengthStr)));
             legs.push ({
                 'assetID': market['info']['instrument_hash'],
                 'contractSize': this.parseToInt (size_int),
@@ -1536,6 +1564,21 @@ export default class grvt extends Exchange {
             'legs': legs,
             'nonce': order['signature']['nonce'],
             'expiration': order['signature']['expiration'],
+        };
+    }
+
+    build_EIP712_transfer_message_data (transfer, currency: Currency = undefined) {
+        const amountMultiplier = this.convertToBigIntCustom ('1000000');
+        const amountInt = transfer['num_tokens'] * amountMultiplier;
+        return {
+            'fromAccount': transfer['from_account_id'],
+            'fromSubAccount': transfer['from_sub_account_id'],
+            'toAccount': transfer['to_account_id'],
+            'toSubAccount': transfer['to_sub_account_id'],
+            'tokenCurrency': currency['numericId'],
+            'numTokens': this.parseToInt (amountInt),
+            'nonce': transfer['signature']['nonce'],
+            'expiration': transfer['signature']['expiration'],
         };
     }
 
@@ -2295,6 +2338,9 @@ export default class grvt extends Exchange {
             } else {
                 const accountId = this.safeString (this.options, 'AuthAccountId');
                 const cookieValue = this.safeString (this.options, 'AuthCookieValue');
+                if (cookieValue === undefined || accountId === undefined) {
+                    throw new AuthenticationError (this.id + ' : at first, you need to authenticate with exchange using signIn() method.');
+                }
                 headers['Cookie'] = cookieValue;
                 headers['X-Grvt-Account-Id'] = accountId;
             }
