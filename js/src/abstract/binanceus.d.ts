@@ -557,6 +557,8 @@ interface binance {
     fapiPublicGetLvtKlines(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetConvertExchangeInfo(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetInsuranceBalance(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetSymbolAdlRisk(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetTradingSchedule(params?: {}): Promise<implicitReturnType>;
     fapiDataGetDeliveryPrice(params?: {}): Promise<implicitReturnType>;
     fapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
     fapiDataGetTopLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
@@ -580,7 +582,6 @@ interface binance {
     fapiPrivateGetCommissionRate(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetRateLimitOrder(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiTradingStatus(params?: {}): Promise<implicitReturnType>;
-    fapiPrivateGetSymbolAdlRisk(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetMultiAssetsMargin(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiReferralIfNewUser(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiReferralCustomization(params?: {}): Promise<implicitReturnType>;
@@ -606,6 +607,7 @@ interface binance {
     fapiPrivateGetAlgoOrder(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetOpenAlgoOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetAllAlgoOrders(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetStockContract(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostBatchOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionMargin(params?: {}): Promise<implicitReturnType>;

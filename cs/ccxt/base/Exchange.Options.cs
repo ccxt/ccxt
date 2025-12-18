@@ -96,7 +96,7 @@ public partial class Exchange
     public string twofa { get; set; }
     public string privateKey { get; set; }
     public string walletAddress { get; set; }
-    public string token { get; set; }
+    public object token { get; set; }
     public string login { get; set; }
     public string proxy { get; set; }
     public string agent { get; set; }

@@ -90,7 +90,6 @@
             }
         }
     },
-    "UBTC": null,
     "HPENGU": null,
     "USDH": {
         "info": {
@@ -129,5 +128,6 @@
                 "max": null
             }
         }
-    }
+    },
+    "FLX-CRCL": null
 }

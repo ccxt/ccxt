@@ -68,6 +68,8 @@ export default class Client {
 
     throttle: any
 
+    cookies: Dictionary<any>
+
     decompressBinary = true
 
     constructor (url: string, onMessageCallback: Function | undefined, onErrorCallback: Function | undefined, onCloseCallback: Function | undefined, onConnectedCallback: Function | undefined, config = {}) {

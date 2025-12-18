@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.22';
+$version = '4.5.28';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.22';
+    const VERSION = '4.5.28';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -375,6 +375,7 @@ class Exchange {
         'btcbox',
         'btcmarkets',
         'btcturk',
+        'bullish',
         'bybit',
         'cex',
         'coinbase',
@@ -448,6 +449,7 @@ class Exchange {
         'xt',
         'yobit',
         'zaif',
+        'zebpay',
         'zonda',
     );
 
@@ -2832,10 +2834,8 @@ class Exchange {
         if ($value === null) {
             return $defaultValue;
         }
-        if ((gettype($value) === 'array')) {
-            if ((gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
-                return $value;
-            }
+        if ((gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+            return $value;
         }
         return $defaultValue;
     }
@@ -3575,7 +3575,7 @@ class Exchange {
          * @param {int} [$since] timestamp in ms of the earliest change to fetch
          * @param {int} [$limit] the maximum amount of changes to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=margin-loan-structure margin structures~
          */
         throw new NotSupported($this->id . ' fetchMarginAdjustmentHistory() is not supported yet');
     }
@@ -5961,7 +5961,7 @@ class Exchange {
          * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
          * @param {string} $symbol unified market $symbol
          * @param {array} $params extra parameters specific to the endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported($this->id . ' fetchPositionsForSymbol() is not supported yet');
     }
@@ -5971,7 +5971,7 @@ class Exchange {
          * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
          * @param {string} $symbol unified market $symbol
          * @param {array} $params extra parameters specific to the endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported($this->id . ' fetchPositionsForSymbol() is not supported yet');
     }
@@ -6005,8 +6005,8 @@ class Exchange {
     }
 
     public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
-        $price = $this->safe_number($bidask, $priceKey);
-        $amount = $this->safe_number($bidask, $amountKey);
+        $price = $this->safe_float($bidask, $priceKey);
+        $amount = $this->safe_float($bidask, $amountKey);
         $countOrId = $this->safe_integer($bidask, $countOrIdKey);
         $bidAsk = array( $price, $amount );
         if ($countOrId !== null) {
@@ -6078,7 +6078,7 @@ class Exchange {
         return $this->safe_market_structure(array( 'symbol' => $marketId, 'marketId' => $marketId ));
     }
 
-    public function market_or_null(string $symbol) {
+    public function market_or_null(?string $symbol = null) {
         if ($symbol === null) {
             return null;
         }
@@ -6460,7 +6460,7 @@ class Exchange {
          * @param {string} $clientOrderId client order Id
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
         return $this->fetch_order('', $symbol, $extendedParams);
@@ -6512,7 +6512,7 @@ class Exchange {
          * @param {float} $trailingAmount the quote $amount to trail away from the current market $price
          * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingAmount === null) {
             throw new ArgumentsRequired($this->id . ' createTrailingAmountOrder() requires a $trailingAmount argument');
@@ -6538,7 +6538,7 @@ class Exchange {
          * @param {float} $trailingAmount the quote $amount to trail away from the current market $price
          * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingAmount === null) {
             throw new ArgumentsRequired($this->id . ' createTrailingAmountOrderWs() requires a $trailingAmount argument');
@@ -6564,7 +6564,7 @@ class Exchange {
          * @param {float} $trailingPercent the percent to trail away from the current market $price
          * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingPercent === null) {
             throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingPercent argument');
@@ -6590,7 +6590,7 @@ class Exchange {
          * @param {float} $trailingPercent the percent to trail away from the current market $price
          * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingPercent === null) {
             throw new ArgumentsRequired($this->id . ' createTrailingPercentOrderWs() requires a $trailingPercent argument');
@@ -6612,7 +6612,7 @@ class Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->has['createMarketOrderWithCost'] || ($this->has['createMarketBuyOrderWithCost'] && $this->has['createMarketSellOrderWithCost'])) {
             return $this->create_order($symbol, 'market', $side, $cost, 1, $params);
@@ -6626,7 +6626,7 @@ class Exchange {
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->options['createMarketBuyOrderRequiresPrice'] || $this->has['createMarketBuyOrderWithCost']) {
             return $this->create_order($symbol, 'market', 'buy', $cost, 1, $params);
@@ -6640,7 +6640,7 @@ class Exchange {
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->options['createMarketSellOrderRequiresPrice'] || $this->has['createMarketSellOrderWithCost']) {
             return $this->create_order($symbol, 'market', 'sell', $cost, 1, $params);
@@ -6655,7 +6655,7 @@ class Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->has['createMarketOrderWithCostWs'] || ($this->has['createMarketBuyOrderWithCostWs'] && $this->has['createMarketSellOrderWithCostWs'])) {
             return $this->create_order_ws($symbol, 'market', $side, $cost, 1, $params);
@@ -6673,7 +6673,7 @@ class Exchange {
          * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} $triggerPrice the $price to trigger the stop order, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($triggerPrice === null) {
             throw new ArgumentsRequired($this->id . ' createTriggerOrder() requires a $triggerPrice argument');
@@ -6695,7 +6695,7 @@ class Exchange {
          * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} $triggerPrice the $price to trigger the stop order, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($triggerPrice === null) {
             throw new ArgumentsRequired($this->id . ' createTriggerOrderWs() requires a $triggerPrice argument');
@@ -6717,7 +6717,7 @@ class Exchange {
          * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} $stopLossPrice the $price to trigger the stop loss order, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($stopLossPrice === null) {
             throw new ArgumentsRequired($this->id . ' createStopLossOrder() requires a $stopLossPrice argument');
@@ -6739,7 +6739,7 @@ class Exchange {
          * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} $stopLossPrice the $price to trigger the stop loss order, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($stopLossPrice === null) {
             throw new ArgumentsRequired($this->id . ' createStopLossOrderWs() requires a $stopLossPrice argument');
@@ -6761,7 +6761,7 @@ class Exchange {
          * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} $takeProfitPrice the $price to trigger the take profit order, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($takeProfitPrice === null) {
             throw new ArgumentsRequired($this->id . ' createTakeProfitOrder() requires a $takeProfitPrice argument');
@@ -6783,7 +6783,7 @@ class Exchange {
          * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} $takeProfitPrice the $price to trigger the take profit order, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($takeProfitPrice === null) {
             throw new ArgumentsRequired($this->id . ' createTakeProfitOrderWs() requires a $takeProfitPrice argument');
@@ -6814,7 +6814,7 @@ class Exchange {
          * @param {float} [$params->stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
          * @param {float} [$params->takeProfitAmount] *not available on all exchanges* the $amount for a take profit
          * @param {float} [$params->stopLossAmount] *not available on all exchanges* the $amount for a stop loss
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $params = $this->set_take_profit_and_stop_loss_params($symbol, $type, $side, $amount, $price, $takeProfit, $stopLoss, $params);
         if ($this->has['createOrderWithTakeProfitAndStopLoss']) {
@@ -6892,7 +6892,7 @@ class Exchange {
          * @param {float} [$params->stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
          * @param {float} [$params->takeProfitAmount] *not available on all exchanges* the $amount for a take profit
          * @param {float} [$params->stopLossAmount] *not available on all exchanges* the $amount for a stop loss
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $params = $this->set_take_profit_and_stop_loss_params($symbol, $type, $side, $amount, $price, $takeProfit, $stopLoss, $params);
         if ($this->has['createOrderWithTakeProfitAndStopLossWs']) {
@@ -6923,7 +6923,7 @@ class Exchange {
          * @param {string} $clientOrderId client order Id
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
         return $this->cancel_order('', $symbol, $extendedParams);
@@ -6943,7 +6943,7 @@ class Exchange {
          * @param {string[]} $clientOrderIds client order Ids
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $extendedParams = $this->extend($params, array( 'clientOrderIds' => $clientOrderIds ));
         return $this->cancel_orders(array(), $symbol, $extendedParams);
@@ -7075,7 +7075,7 @@ class Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -8159,7 +8159,7 @@ class Exchange {
          * @param {array} $market ccxt $market
          * @param {int} [$since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [$limit] limits the number of items in the response
-         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
@@ -8197,7 +8197,7 @@ class Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($this->has['fetchDepositsWithdrawals']) {
             return $this->fetch_deposits_withdrawals($code, $since, $limit, $params);
@@ -8606,7 +8606,7 @@ class Exchange {
          * @param {array} $market ccxt $market
          * @param {int} [$since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [$limit] limits the number of items in the response
-         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
         $result = array();
         for ($i = 0; $i < count($liquidations); $i++) {
@@ -8821,7 +8821,7 @@ class Exchange {
          * @param {int} [$since] timestamp in ms of the position
          * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
         if ($this->has['fetchPositionsHistory']) {
             $positions = $this->fetch_positions_history(array( $symbol ), $since, $limit, $params);
@@ -8838,7 +8838,7 @@ class Exchange {
          * @param {int} [$since] timestamp in ms of the position
          * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
         throw new NotSupported($this->id . ' fetchPositionsHistory () is not supported yet');
     }
@@ -8866,7 +8866,7 @@ class Exchange {
          * @param {string} $id transfer $id
          * @param {[string]} $code unified currency $code
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=transfer-structure transfer structure~
          */
         throw new NotSupported($this->id . ' fetchTransfer () is not supported yet');
     }
@@ -8878,7 +8878,7 @@ class Exchange {
          * @param {int} [$since] timestamp in ms of the earliest transfer to fetch
          * @param {int} [$limit] the maximum amount of transfers to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         throw new NotSupported($this->id . ' fetchTransfers () is not supported yet');
     }
@@ -8899,7 +8899,7 @@ class Exchange {
          * watches a mark price for a specific market
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         throw new NotSupported($this->id . ' watchMarkPrice () is not supported yet');
     }
@@ -8909,7 +8909,7 @@ class Exchange {
          * watches the mark price for all markets
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         throw new NotSupported($this->id . ' watchMarkPrices () is not supported yet');
     }
@@ -8922,7 +8922,7 @@ class Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         throw new NotSupported($this->id . ' withdrawWs () is not supported yet');
     }
@@ -8932,7 +8932,7 @@ class Exchange {
          * unWatches information on multiple trades made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         throw new NotSupported($this->id . ' unWatchMyTrades () is not supported yet');
     }
@@ -8942,7 +8942,7 @@ class Exchange {
          * create a list of trade $orders
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         throw new NotSupported($this->id . ' createOrdersWs () is not supported yet');
     }
@@ -8953,7 +8953,7 @@ class Exchange {
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
          */
         throw new NotSupported($this->id . ' fetchOrdersByStatusWs () is not supported yet');
     }
@@ -8963,7 +8963,7 @@ class Exchange {
          * unWatches best bid & ask for $symbols
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         throw new NotSupported($this->id . ' unWatchBidsAsks () is not supported yet');
     }

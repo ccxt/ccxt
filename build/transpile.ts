@@ -158,6 +158,8 @@ class Transpiler {
     getPythonRegexes () {
 
         return [
+            // dict transpilation should be done at first
+            [ /[\(]typeof ([^\s\)]+) === 'object'[\)] && !Array\.isArray \(\1\)/g, 'isinstance($1, dict)' ],
             [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, 'isinstance($1, int)' ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
@@ -338,6 +340,7 @@ class Transpiler {
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
+            [ /.market_or_None/g, '.market_or_null'],
             [ /\/\*\*/, '\"\"\"' ], // Doc strings
             [ / \*\//, '\"\"\"' ], // Doc strings
             [ /\[([^\[\]]*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
@@ -772,7 +775,7 @@ class Transpiler {
             'math': 'math',
             'json.loads': 'json',
             'json.dumps': 'json',
-            'sys': 'sys',
+            'sys.': 'sys',
         }
 
         const imports = this.createPythonClassImports (baseClass, className, async)
@@ -851,6 +854,7 @@ class Transpiler {
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
+            'FundingRateHistory': /-> (?:List\[)?FundingRateHistory/,
             'MarketInterface': /-> (?:List\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
         }
@@ -3098,6 +3102,7 @@ if (isMainEntry(metaFileUrl)) {
     const force = process.argv.includes ('--force')
     const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    const baseClassOnly = process.argv.includes ('--baseClass')
 
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
 
@@ -3113,7 +3118,10 @@ if (isMainEntry(metaFileUrl)) {
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
-    if (test) {
+
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods ()
+    } else if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()

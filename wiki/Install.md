@@ -40,14 +40,14 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.22/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.22/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.28/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.28/dist/ccxt.browser.min.js
 * ccxt: https://cdn.ccxt.com/latest/ccxt.min.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) or the /latest/ on our cdn — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.22/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.28/dist/ccxt.browser.min.js"></script>
 ```
 
 The default entry point for the browser is `window.ccxt` and it creates a global ccxt object:

@@ -133,7 +133,7 @@ func (this *WoofiproCore) Describe() interface{} {
 				"private": "https://testnet-api-evm.orderly.org",
 			},
 			"www":  "https://dex.woo.org",
-			"doc":  []interface{}{"https://orderly.network/docs/build-on-evm/building-on-evm"},
+			"doc":  []interface{}{"https://orderly.network/docs/build-on-omnichain/building-on-evm"},
 			"fees": []interface{}{"https://dex.woo.org/en/orderly"},
 			"referral": map[string]interface{}{
 				"url":      "https://dex.woo.org/en/trade?ref=CCXT",
@@ -423,9 +423,9 @@ func (this *WoofiproCore) SetSandboxMode(enable interface{}) {
  * @method
  * @name woofipro#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *WoofiproCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -474,7 +474,7 @@ func (this *WoofiproCore) FetchStatus(optionalArgs ...interface{}) <-chan interf
  * @method
  * @name woofipro#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -598,7 +598,7 @@ func (this *WoofiproCore) ParseMarket(market interface{}) interface{} {
  * @method
  * @name woofipro#fetchMarkets
  * @description retrieves data on all markets for woofipro
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -854,12 +854,12 @@ func (this *WoofiproCore) ParseTrade(trade interface{}, optionalArgs ...interfac
  * @method
  * @name woofipro#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *WoofiproCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -967,10 +967,10 @@ func (this *WoofiproCore) ParseFundingInterval(interval interface{}) interface{}
  * @method
  * @name woofipro#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *WoofiproCore) FetchFundingInterval(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -993,10 +993,10 @@ func (this *WoofiproCore) FetchFundingInterval(symbol interface{}, optionalArgs 
  * @method
  * @name woofipro#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *WoofiproCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1043,10 +1043,10 @@ func (this *WoofiproCore) FetchFundingRate(symbol interface{}, optionalArgs ...i
  * @method
  * @name woofipro#fetchFundingRates
  * @description fetch the current funding rate for multiple markets
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *WoofiproCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1095,14 +1095,14 @@ func (this *WoofiproCore) FetchFundingRates(optionalArgs ...interface{}) <-chan 
  * @method
  * @name woofipro#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *WoofiproCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1233,7 +1233,7 @@ func (this *WoofiproCore) ParseIncome(income interface{}, optionalArgs ...interf
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1319,9 +1319,9 @@ func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...interface{}) <-cha
  * @method
  * @name woofipro#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *WoofiproCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1390,11 +1390,11 @@ func (this *WoofiproCore) FetchTradingFees(optionalArgs ...interface{}) <-chan i
  * @method
  * @name woofipro#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *WoofiproCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1454,7 +1454,7 @@ func (this *WoofiproCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interfac
 /**
  * @method
  * @name woofipro#fetchOHLCV
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1698,8 +1698,10 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
 	var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss interface{} = this.SafeValue(params, "stopLoss")
 	var takeProfit interface{} = this.SafeValue(params, "takeProfit")
+	var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
+	var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
 	var algoType interface{} = this.SafeString(params, "algoType")
-	var isConditional interface{} = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isConditional interface{} = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
 	var isMarket interface{} = IsEqual(orderType, "MARKET")
 	var timeInForce interface{} = this.SafeStringLower(params, "timeInForce")
 	var postOnly interface{} = this.IsPostOnly(isMarket, nil, params)
@@ -1734,7 +1736,7 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
 	if IsTrue(!IsEqual(triggerPrice, nil)) {
 		AddElementToObject(request, "trigger_price", this.PriceToPrecision(symbol, triggerPrice))
 		AddElementToObject(request, "algo_type", "STOP")
-	} else if IsTrue(IsTrue((!IsEqual(stopLoss, nil))) || IsTrue((!IsEqual(takeProfit, nil)))) {
+	} else if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 		AddElementToObject(request, "algo_type", "TP_SL")
 		var outterOrder interface{} = map[string]interface{}{
 			"symbol":       GetValue(market, "id"),
@@ -1744,7 +1746,7 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
 		}
 		var childOrders interface{} = GetValue(outterOrder, "child_orders")
 		var closeSide interface{} = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), "SELL", "BUY")
-		if IsTrue(!IsEqual(stopLoss, nil)) {
+		if IsTrue(hasStopLoss) {
 			var stopLossPrice interface{} = this.SafeNumber2(stopLoss, "triggerPrice", "price", stopLoss)
 			var stopLossOrder interface{} = map[string]interface{}{
 				"side":          closeSide,
@@ -1755,7 +1757,7 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
 			}
 			AppendToArray(&childOrders, stopLossOrder)
 		}
-		if IsTrue(!IsEqual(takeProfit, nil)) {
+		if IsTrue(hasTakeProfit) {
 			var takeProfitPrice interface{} = this.SafeNumber2(takeProfit, "triggerPrice", "price", takeProfit)
 			var takeProfitOrder interface{} = map[string]interface{}{
 				"side":          closeSide,
@@ -1776,8 +1778,8 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
  * @method
  * @name woofipro#createOrder
  * @description create a trade order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1792,7 +1794,7 @@ func (this *WoofiproCore) CreateOrderRequest(symbol interface{}, typeVar interfa
  * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
  * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1804,8 +1806,8 @@ func (this *WoofiproCore) CreateOrder(symbol interface{}, typeVar interface{}, s
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15908 := (<-this.LoadMarkets())
-		PanicOnError(retRes15908)
+		retRes15928 := (<-this.LoadMarkets())
+		PanicOnError(retRes15928)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
@@ -1838,10 +1840,10 @@ func (this *WoofiproCore) CreateOrder(symbol interface{}, typeVar interface{}, s
  * @method
  * @name woofipro#createOrders
  * @description *contract only* create a list of trade orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1851,8 +1853,8 @@ func (this *WoofiproCore) CreateOrders(orders interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes16478 := (<-this.LoadMarkets())
-		PanicOnError(retRes16478)
+		retRes16498 := (<-this.LoadMarkets())
+		PanicOnError(retRes16498)
 		var ordersRequests interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var rawOrder interface{} = GetValue(orders, i)
@@ -1909,8 +1911,8 @@ func (this *WoofiproCore) CreateOrders(orders interface{}, optionalArgs ...inter
  * @method
  * @name woofipro#editOrder
  * @description edit a trade order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -1921,7 +1923,7 @@ func (this *WoofiproCore) CreateOrders(orders interface{}, optionalArgs ...inter
  * @param {float} [params.triggerPrice] The price a trigger order is triggered at
  * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
  * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1935,8 +1937,8 @@ func (this *WoofiproCore) EditOrder(id interface{}, symbol interface{}, typeVar 
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes17128 := (<-this.LoadMarkets())
-		PanicOnError(retRes17128)
+		retRes17148 := (<-this.LoadMarkets())
+		PanicOnError(retRes17148)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"order_id": id,
@@ -2009,17 +2011,17 @@ func (this *WoofiproCore) EditOrder(id interface{}, symbol interface{}, typeVar 
 /**
  * @method
  * @name woofipro#cancelOrder
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2036,8 +2038,8 @@ func (this *WoofiproCore) CancelOrder(id interface{}, optionalArgs ...interface{
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes17948 := (<-this.LoadMarkets())
-		PanicOnError(retRes17948)
+		retRes17968 := (<-this.LoadMarkets())
+		PanicOnError(retRes17968)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2117,13 +2119,13 @@ func (this *WoofiproCore) CancelOrder(id interface{}, optionalArgs ...interface{
  * @method
  * @name woofipro#cancelOrders
  * @description cancel multiple orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2135,8 +2137,8 @@ func (this *WoofiproCore) CancelOrders(ids interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes18668 := (<-this.LoadMarkets())
-		PanicOnError(retRes18668)
+		retRes18688 := (<-this.LoadMarkets())
+		PanicOnError(retRes18688)
 		var clientOrderIds interface{} = this.SafeListN(params, []interface{}{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 		params = this.Omit(params, []interface{}{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 		var request interface{} = map[string]interface{}{}
@@ -2174,13 +2176,13 @@ func (this *WoofiproCore) CancelOrders(ids interface{}, optionalArgs ...interfac
 /**
  * @method
  * @name woofipro#cancelAllOrders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
  * @description cancel all open orders in a market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2192,8 +2194,8 @@ func (this *WoofiproCore) CancelAllOrders(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes19048 := (<-this.LoadMarkets())
-		PanicOnError(retRes19048)
+		retRes19068 := (<-this.LoadMarkets())
+		PanicOnError(retRes19068)
 		var trigger interface{} = this.SafeBool2(params, "stop", "trigger")
 		params = this.Omit(params, []interface{}{"stop", "trigger"})
 		var request interface{} = map[string]interface{}{}
@@ -2239,17 +2241,17 @@ func (this *WoofiproCore) CancelAllOrders(optionalArgs ...interface{}) <-chan in
 /**
  * @method
  * @name woofipro#fetchOrder
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2261,8 +2263,8 @@ func (this *WoofiproCore) FetchOrder(id interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes19568 := (<-this.LoadMarkets())
-		PanicOnError(retRes19568)
+		retRes19588 := (<-this.LoadMarkets())
+		PanicOnError(retRes19588)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2337,8 +2339,8 @@ func (this *WoofiproCore) FetchOrder(id interface{}, optionalArgs ...interface{}
  * @method
  * @name woofipro#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2348,7 +2350,7 @@ func (this *WoofiproCore) FetchOrder(id interface{}, optionalArgs ...interface{}
  * @param {string} [params.side] 'buy' or 'sell'
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @param {int} params.until timestamp in ms of the latest order to fetch
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2364,8 +2366,8 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20328 := (<-this.LoadMarkets())
-		PanicOnError(retRes20328)
+		retRes20348 := (<-this.LoadMarkets())
+		PanicOnError(retRes20348)
 		var paginate interface{} = false
 		var isTrigger interface{} = this.SafeBool2(params, "stop", "trigger", false)
 		var maxLimit interface{} = Ternary(IsTrue((isTrigger)), 100, 500)
@@ -2374,9 +2376,9 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes203819 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-			PanicOnError(retRes203819)
-			ch <- retRes203819
+			retRes204019 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
+			PanicOnError(retRes204019)
+			ch <- retRes204019
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -2458,8 +2460,8 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
  * @method
  * @name woofipro#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2469,7 +2471,7 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
  * @param {string} [params.side] 'buy' or 'sell'
  * @param {int} params.until timestamp in ms of the latest order to fetch
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2485,15 +2487,15 @@ func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes21228 := (<-this.LoadMarkets())
-		PanicOnError(retRes21228)
+		retRes21248 := (<-this.LoadMarkets())
+		PanicOnError(retRes21248)
 		var extendedParams interface{} = this.Extend(params, map[string]interface{}{
 			"status": "INCOMPLETE",
 		})
 
-		retRes212415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes212415)
-		ch <- retRes212415
+		retRes212615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes212615)
+		ch <- retRes212615
 		return nil
 
 	}()
@@ -2504,8 +2506,8 @@ func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
  * @method
  * @name woofipro#fetchClosedOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2515,7 +2517,7 @@ func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
  * @param {string} [params.side] 'buy' or 'sell'
  * @param {int} params.until timestamp in ms of the latest order to fetch
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2531,15 +2533,15 @@ func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes21458 := (<-this.LoadMarkets())
-		PanicOnError(retRes21458)
+		retRes21478 := (<-this.LoadMarkets())
+		PanicOnError(retRes21478)
 		var extendedParams interface{} = this.Extend(params, map[string]interface{}{
 			"status": "COMPLETED",
 		})
 
-		retRes214715 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes214715)
-		ch <- retRes214715
+		retRes214915 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+		PanicOnError(retRes214915)
+		ch <- retRes214915
 		return nil
 
 	}()
@@ -2550,13 +2552,13 @@ func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
  * @method
  * @name woofipro#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *WoofiproCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2572,8 +2574,8 @@ func (this *WoofiproCore) FetchOrderTrades(id interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes21638 := (<-this.LoadMarkets())
-		PanicOnError(retRes21638)
+		retRes21658 := (<-this.LoadMarkets())
+		PanicOnError(retRes21658)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2618,7 +2620,7 @@ func (this *WoofiproCore) FetchOrderTrades(id interface{}, optionalArgs ...inter
 /**
  * @method
  * @name woofipro#fetchMyTrades
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2626,7 +2628,7 @@ func (this *WoofiproCore) FetchOrderTrades(id interface{}, optionalArgs ...inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
  * @param {int} params.until timestamp in ms of the latest trade to fetch
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *WoofiproCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2642,17 +2644,17 @@ func (this *WoofiproCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes22128 := (<-this.LoadMarkets())
-		PanicOnError(retRes22128)
+		retRes22148 := (<-this.LoadMarkets())
+		PanicOnError(retRes22148)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes221619 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes221619)
-			ch <- retRes221619
+			retRes221819 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+			PanicOnError(retRes221819)
+			ch <- retRes221819
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -2730,9 +2732,9 @@ func (this *WoofiproCore) ParseBalance(response interface{}) interface{} {
  * @method
  * @name woofipro#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *WoofiproCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2742,8 +2744,8 @@ func (this *WoofiproCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22908 := (<-this.LoadMarkets())
-		PanicOnError(retRes22908)
+		retRes22928 := (<-this.LoadMarkets())
+		PanicOnError(retRes22928)
 
 		response := (<-this.V1PrivateGetClientHolding(params))
 		PanicOnError(response)
@@ -2784,8 +2786,8 @@ func (this *WoofiproCore) GetAssetHistoryRows(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes23128 := (<-this.LoadMarkets())
-		PanicOnError(retRes23128)
+		retRes23148 := (<-this.LoadMarkets())
+		PanicOnError(retRes23148)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2880,12 +2882,12 @@ func (this *WoofiproCore) ParseLedgerEntryType(typeVar interface{}) interface{} 
  * @method
  * @name woofipro#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *WoofiproCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2963,12 +2965,12 @@ func (this *WoofiproCore) ParseTransactionStatus(status interface{}) interface{}
  * @method
  * @name woofipro#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *WoofiproCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2987,9 +2989,9 @@ func (this *WoofiproCore) FetchDeposits(optionalArgs ...interface{}) <-chan inte
 			"side": "DEPOSIT",
 		}
 
-		retRes247515 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes247515)
-		ch <- retRes247515
+		retRes247715 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes247715)
+		ch <- retRes247715
 		return nil
 
 	}()
@@ -3000,12 +3002,12 @@ func (this *WoofiproCore) FetchDeposits(optionalArgs ...interface{}) <-chan inte
  * @method
  * @name woofipro#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *WoofiproCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3024,9 +3026,9 @@ func (this *WoofiproCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan i
 			"side": "WITHDRAW",
 		}
 
-		retRes249315 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes249315)
-		ch <- retRes249315
+		retRes249515 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes249515)
+		ch <- retRes249515
 		return nil
 
 	}()
@@ -3037,12 +3039,12 @@ func (this *WoofiproCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan i
  * @method
  * @name woofipro#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *WoofiproCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3126,13 +3128,13 @@ func (this *WoofiproCore) SignMessage(message interface{}, privateKey interface{
  * @method
  * @name woofipro#withdraw
  * @description make a withdrawal
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *WoofiproCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3144,8 +3146,8 @@ func (this *WoofiproCore) Withdraw(code interface{}, amount interface{}, address
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes25708 := (<-this.LoadMarkets())
-		PanicOnError(retRes25708)
+		retRes25728 := (<-this.LoadMarkets())
+		PanicOnError(retRes25728)
 		this.CheckAddress(address)
 		if IsTrue(!IsEqual(code, nil)) {
 			code = ToUpper(code)
@@ -3251,10 +3253,10 @@ func (this *WoofiproCore) ParseLeverage(leverage interface{}, optionalArgs ...in
  * @method
  * @name woofipro#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *WoofiproCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3264,8 +3266,8 @@ func (this *WoofiproCore) FetchLeverage(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes26598 := (<-this.LoadMarkets())
-		PanicOnError(retRes26598)
+		retRes26618 := (<-this.LoadMarkets())
+		PanicOnError(retRes26618)
 		var market interface{} = this.Market(symbol)
 
 		response := (<-this.V1PrivateGetClientInfo(params))
@@ -3310,7 +3312,7 @@ func (this *WoofiproCore) FetchLeverage(symbol interface{}, optionalArgs ...inte
  * @method
  * @name woofipro#setLeverage
  * @description set the level of leverage for a market
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
  * @param {int} [leverage] the rate of leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3326,8 +3328,8 @@ func (this *WoofiproCore) SetLeverage(leverage interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes27048 := (<-this.LoadMarkets())
-		PanicOnError(retRes27048)
+		retRes27068 := (<-this.LoadMarkets())
+		PanicOnError(retRes27068)
 		if IsTrue(IsTrue((IsLessThan(leverage, 1))) || IsTrue((IsGreaterThan(leverage, 50)))) {
 			panic(BadRequest(Add(this.Id, " leverage should be between 1 and 50")))
 		}
@@ -3335,9 +3337,9 @@ func (this *WoofiproCore) SetLeverage(leverage interface{}, optionalArgs ...inte
 			"leverage": leverage,
 		}
 
-		retRes271115 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
-		PanicOnError(retRes271115)
-		ch <- retRes271115
+		retRes271315 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
+		PanicOnError(retRes271315)
+		ch <- retRes271315
 		return nil
 
 	}()
@@ -3419,11 +3421,11 @@ func (this *WoofiproCore) ParsePosition(position interface{}, optionalArgs ...in
 /**
  * @method
  * @name woofipro#fetchPosition
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *WoofiproCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3433,8 +3435,8 @@ func (this *WoofiproCore) FetchPosition(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes27958 := (<-this.LoadMarkets())
-		PanicOnError(retRes27958)
+		retRes27978 := (<-this.LoadMarkets())
+		PanicOnError(retRes27978)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -3481,10 +3483,10 @@ func (this *WoofiproCore) FetchPosition(symbol interface{}, optionalArgs ...inte
  * @method
  * @name woofipro#fetchPositions
  * @description fetch all open positions
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *WoofiproCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3496,8 +3498,8 @@ func (this *WoofiproCore) FetchPositions(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes28418 := (<-this.LoadMarkets())
-		PanicOnError(retRes28418)
+		retRes28438 := (<-this.LoadMarkets())
+		PanicOnError(retRes28438)
 
 		response := (<-this.V1PrivateGetPositions(params))
 		PanicOnError(response)

@@ -73,7 +73,7 @@ luno.fetchMarkets ([params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances  
 
@@ -93,7 +93,7 @@ luno.fetchAccounts ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances  
 
@@ -113,7 +113,7 @@ luno.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -139,7 +139,7 @@ luno.fetchOrderBook (symbol[, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder  
 
@@ -161,7 +161,7 @@ luno.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders  
 
@@ -184,7 +184,7 @@ luno.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders  
 
@@ -207,7 +207,7 @@ luno.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders  
 
@@ -230,7 +230,7 @@ luno.fetchClosedOrders (symbol[, since, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers  
 
@@ -251,7 +251,7 @@ luno.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Market/operation/GetTicker  
 
@@ -272,7 +272,7 @@ luno.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.luno.com/en/developers/api#tag/Market/operation/ListTrades  
 
@@ -319,7 +319,7 @@ luno.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Orders/operation/ListUserTrades  
 
@@ -342,7 +342,7 @@ luno.fetchMyTrades (symbol[, since, limit, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo  
 
@@ -363,7 +363,7 @@ luno.fetchTradingFee (symbol[, params])
 create a trade order
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -392,7 +392,7 @@ luno.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Orders/operation/StopOrder  
 
@@ -414,7 +414,7 @@ luno.cancelOrder (id, symbol[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
 
 **See**: https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions  
 
@@ -437,7 +437,7 @@ luno.fetchLedger ([code, since, limit, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress  
 
@@ -460,7 +460,7 @@ luno.createDepositAddress (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress  
 
@@ -482,7 +482,7 @@ luno.fetchDepositAddress (code[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.luno.com/en/developers/api#tag/Streaming-API  
 
@@ -505,7 +505,7 @@ luno.watchTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>luno</code>](#luno)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |

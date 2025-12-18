@@ -530,7 +530,7 @@ class xt extends xt$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
      * @param {object} params extra parameters specific to the kucoin api endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -552,7 +552,7 @@ class xt extends xt$1["default"] {
      * @see https://doc.xt.com/#websocket_privatebalanceChange
      * @see https://doc.xt.com/#futures_user_websocket_v2balance
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         await this.loadMarkets();

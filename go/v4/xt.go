@@ -2585,7 +2585,7 @@ func (this *XtCore) ParseBalance(response interface{}) interface{} {
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *XtCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4772,7 +4772,7 @@ func (this *XtCore) SetLeverage(leverage interface{}, optionalArgs ...interface{
  * @param {float} amount amount of margin to add
  * @param {object} params extra parameters specific to the xt api endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
 func (this *XtCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4800,7 +4800,7 @@ func (this *XtCore) AddMargin(symbol interface{}, amount interface{}, optionalAr
  * @param {float} amount the amount of margin to remove
  * @param {object} params extra parameters specific to the xt api endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
  */
 func (this *XtCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4890,7 +4890,7 @@ func (this *XtCore) ParseMarginModification(data interface{}, optionalArgs ...in
  * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
  * @param {string} [symbols] a list of unified market symbols
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *XtCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4997,7 +4997,7 @@ func (this *XtCore) ParseLeverageTiers(response interface{}, optionalArgs ...int
  * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *XtCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5217,7 +5217,7 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan 
  * @see https://doc.xt.com/#futures_quotesgetFundingRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *XtCore) FetchFundingInterval(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5243,7 +5243,7 @@ func (this *XtCore) FetchFundingInterval(symbol interface{}, optionalArgs ...int
  * @see https://doc.xt.com/#futures_quotesgetFundingRate
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *XtCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5346,7 +5346,7 @@ func (this *XtCore) ParseFundingRate(contract interface{}, optionalArgs ...inter
  * @param {int} [since] the starting timestamp in milliseconds
  * @param {int} [limit] the number of entries to return
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *XtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5463,7 +5463,7 @@ func (this *XtCore) ParseFundingHistory(contract interface{}, optionalArgs ...in
  * @see https://doc.xt.com/#futures_usergetPosition
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *XtCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5544,7 +5544,7 @@ func (this *XtCore) FetchPosition(symbol interface{}, optionalArgs ...interface{
  * @see https://doc.xt.com/#futures_usergetPosition
  * @param {string} [symbols] list of unified market symbols, not supported with xt
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *XtCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5676,7 +5676,7 @@ func (this *XtCore) ParsePosition(position interface{}, optionalArgs ...interfac
  * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
  * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
  * @param {object} params extra parameters specific to the whitebit api endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *XtCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5825,7 +5825,7 @@ func (this *XtCore) SetMarginMode(marginMode interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.stopLoss] price to set a stop-loss on an open position
  * @param {float} [params.takeProfit] price to set a take-profit on an open position
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *XtCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

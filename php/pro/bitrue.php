@@ -67,7 +67,7 @@ class bitrue extends \ccxt\async\bitrue {
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             $url = Async\await($this->authenticate());
             $messageHash = 'balance';
@@ -187,7 +187,7 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum amount of $orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-structure order structure~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-structure order structure~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {

@@ -507,7 +507,7 @@ class xt(ccxt.async_support.xt):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         name = 'trade'
@@ -527,7 +527,7 @@ class xt(ccxt.async_support.xt):
         https://doc.xt.com/#futures_user_websocket_v2balance
 
         :param dict params: extra parameters specific to the xt api endpoint
-        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         name = 'balance'

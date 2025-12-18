@@ -51,7 +51,7 @@ func (this *Coinbase) FetchTime(params ...interface{}) (int64, error) {
  * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Coinbase) FetchAccounts(params ...interface{}) ([]Account, error) {
 	res := <-this.Core.FetchAccounts(params...)
@@ -81,7 +81,7 @@ func (this *Coinbase) FetchAccountsV3(params ...interface{}) ([]Account, error) 
  * @description fetch all the portfolios
  * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Coinbase) FetchPortfolios(params ...interface{}) ([]Account, error) {
 	res := <-this.Core.FetchPortfolios(params...)
@@ -98,7 +98,7 @@ func (this *Coinbase) FetchPortfolios(params ...interface{}) ([]Account, error) 
  * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Coinbase) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
@@ -129,7 +129,7 @@ func (this *Coinbase) CreateDepositAddress(code string, options ...CreateDeposit
  * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
  * @param {int} [limit] max number of sells to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [list of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a [list of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) FetchMySells(options ...FetchMySellsOptions) ([]Trade, error) {
 
@@ -175,7 +175,7 @@ func (this *Coinbase) FetchMySells(options ...FetchMySellsOptions) ([]Trade, err
  * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
  * @param {int} [limit] max number of buys to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of  [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of  [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) FetchMyBuys(options ...FetchMyBuysOptions) ([]Trade, error) {
 
@@ -254,7 +254,7 @@ func (this *Coinbase) FetchTransactionsWithMethod(method interface{}, options ..
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.currencyType] "fiat" or "crypto"
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinbase) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -300,7 +300,7 @@ func (this *Coinbase) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.currencyType] "fiat" or "crypto"
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinbase) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -345,7 +345,7 @@ func (this *Coinbase) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinbase) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 
@@ -447,7 +447,7 @@ func (this *Coinbase) FetchCurrencies(params ...interface{}) (Currencies, error)
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] use private endpoint for fetching tickers
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Coinbase) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -530,7 +530,7 @@ func (this *Coinbase) FetchTickersV3(options ...FetchTickersV3Options) (Tickers,
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] whether to use the private endpoint for fetching the ticker
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Coinbase) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -598,7 +598,7 @@ func (this *Coinbase) FetchTickerV3(symbol string, options ...FetchTickerV3Optio
  * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
  * @param {string} [params.type] "spot" (default) or "swap" or "future"
  * @param {int} [params.limit] default 250, maximum number of accounts to return
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Coinbase) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -618,7 +618,7 @@ func (this *Coinbase) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *Coinbase) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -662,7 +662,7 @@ func (this *Coinbase) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -709,7 +709,7 @@ func (this *Coinbase) CreateMarketBuyOrderWithCost(symbol string, cost float64, 
  * @param {string} [params.retail_portfolio_id] portfolio uid
  * @param {boolean} [params.is_max] Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
  * @param {string} [params.tradable_balance] amount of tradable balance
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -743,7 +743,7 @@ func (this *Coinbase) CreateOrder(symbol string, typeVar string, side string, am
  * @param {string} id order id
  * @param {string} symbol not used by coinbase cancelOrder()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -777,7 +777,7 @@ func (this *Coinbase) CancelOrder(id string, options ...CancelOrderOptions) (Ord
  * @param {string[]} ids order ids
  * @param {string} symbol not used by coinbase cancelOrders()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -816,7 +816,7 @@ func (this *Coinbase) CancelOrders(ids []string, options ...CancelOrdersOptions)
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -855,7 +855,7 @@ func (this *Coinbase) EditOrder(id string, symbol string, typeVar string, side s
  * @param {string} id the order id
  * @param {string} symbol unified market symbol that the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -892,7 +892,7 @@ func (this *Coinbase) FetchOrder(id string, options ...FetchOrderOptions) (Order
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -972,7 +972,7 @@ func (this *Coinbase) FetchOrdersByStatus(status interface{}, options ...FetchOr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {int} [params.until] the latest time in ms to fetch trades for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -1019,7 +1019,7 @@ func (this *Coinbase) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {int} [params.until] the latest time in ms to fetch trades for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -1064,7 +1064,7 @@ func (this *Coinbase) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of canceled order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coinbase) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
@@ -1159,7 +1159,7 @@ func (this *Coinbase) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
  * @param {int} [limit] the maximum number of trade structures to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the trades
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Coinbase) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -1201,7 +1201,7 @@ func (this *Coinbase) FetchTrades(symbol string, options ...FetchTradesOptions) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Coinbase) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -1246,7 +1246,7 @@ func (this *Coinbase) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Coinbase) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -1279,7 +1279,7 @@ func (this *Coinbase) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
  * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Coinbase) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
 
@@ -1315,7 +1315,7 @@ func (this *Coinbase) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, e
  * @param {string} address the address to withdraw to
  * @param {string} [tag] an optional tag for the withdrawal
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinbase) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -1368,7 +1368,7 @@ func (this *Coinbase) FetchDepositAddressesByNetwork(code string, options ...Fet
  * @param {string} [code] unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountId] the id of the account that the funds were deposited into
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinbase) FetchDeposit(id string, options ...FetchDepositOptions) (Transaction, error) {
 
@@ -1400,7 +1400,7 @@ func (this *Coinbase) FetchDeposit(id string, options ...FetchDepositOptions) (T
  * @description fetch the deposit id for a fiat currency associated with this account
  * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+ * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
  */
 func (this *Coinbase) FetchDepositMethodIds(params ...interface{}) ([]map[string]interface{}, error) {
 	res := <-this.Core.FetchDepositMethodIds(params...)
@@ -1417,7 +1417,7 @@ func (this *Coinbase) FetchDepositMethodIds(params ...interface{}) ([]map[string
  * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
  * @param {string} id the deposit payment method id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+ * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
  */
 func (this *Coinbase) FetchDepositMethodId(id string, options ...FetchDepositMethodIdOptions) (map[string]interface{}, error) {
 
@@ -1450,7 +1450,7 @@ func (this *Coinbase) FetchDepositMethodId(id string, options ...FetchDepositMet
  * @param {object} [params.trade_incentive_metadata] an object to fill in user incentive data
  * @param {string} [params.trade_incentive_metadata.user_incentive_id] the id of the incentive
  * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Coinbase) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
 
@@ -1486,7 +1486,7 @@ func (this *Coinbase) FetchConvertQuote(fromCode string, toCode string, options 
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Coinbase) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 
@@ -1521,7 +1521,7 @@ func (this *Coinbase) CreateConvertTrade(id string, fromCode string, toCode stri
  * @param {string} code the unified currency code that was converted from
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {strng} params.toCode the unified currency code that was converted into
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Coinbase) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
 
@@ -1556,7 +1556,7 @@ func (this *Coinbase) FetchConvertTrade(id string, options ...FetchConvertTradeO
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Coinbase) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1592,7 +1592,7 @@ func (this *Coinbase) FetchPositions(options ...FetchPositionsOptions) ([]Positi
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
  * @param {string} [params.portfolio] *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Coinbase) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -1620,7 +1620,7 @@ func (this *Coinbase) FetchPosition(symbol string, options ...FetchPositionOptio
  * @description fetch the trading fees for multiple markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap'
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Coinbase) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)

@@ -97,7 +97,7 @@ onetrading.fetchMarkets ([params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**
 
@@ -122,7 +122,7 @@ onetrading.fetchTradingFees ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.onetrading.com/#market-ticker-for-instrument  
 
@@ -143,7 +143,7 @@ onetrading.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.onetrading.com/#market-ticker  
 
@@ -164,7 +164,7 @@ onetrading.fetchTickers ([symbols, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.onetrading.com/#order-book  
 
@@ -210,7 +210,7 @@ onetrading.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.onetrading.com/#balances  
 
@@ -230,7 +230,7 @@ onetrading.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.onetrading.com/#create-order  
 
@@ -256,7 +256,7 @@ onetrading.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.onetrading.com/#close-order-by-order-id  
 
@@ -278,7 +278,7 @@ onetrading.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.onetrading.com/#close-all-orders  
 
@@ -299,7 +299,7 @@ onetrading.cancelAllOrders (symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.onetrading.com/#close-all-orders  
 
@@ -321,7 +321,7 @@ onetrading.cancelOrders (ids, symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.onetrading.com/#get-order  
 
@@ -343,7 +343,7 @@ onetrading.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.onetrading.com/#get-orders  
 
@@ -366,7 +366,7 @@ onetrading.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.onetrading.com/#get-orders  
 
@@ -389,7 +389,7 @@ onetrading.fetchClosedOrders (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.onetrading.com/#trades-for-order  
 
@@ -413,7 +413,7 @@ onetrading.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.onetrading.com/#all-trades  
 
@@ -436,7 +436,7 @@ onetrading.fetchMyTrades (symbol[, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://developers.bitpanda.com/exchange/#account-history-channel  
 
@@ -456,7 +456,7 @@ onetrading.watchBalance ([params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://developers.bitpanda.com/exchange/#market-ticker-channel  
 
@@ -477,7 +477,7 @@ onetrading.watchTicker (symbol[, params])
 watches price tickers, a statistical calculation with the information for all markets or those specified.
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - an array of [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - an array of [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://developers.bitpanda.com/exchange/#market-ticker-channel  
 
@@ -498,7 +498,7 @@ onetrading.watchTickers (symbols[, params])
 get the list of trades associated with the user
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://developers.bitpanda.com/exchange/#account-history-channel  
 
@@ -521,7 +521,7 @@ onetrading.watchMyTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://developers.bitpanda.com/exchange/#market-ticker-channel  
 
@@ -543,7 +543,7 @@ onetrading.watchOrderBook (symbol[, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://developers.bitpanda.com/exchange/#account-history-channel  
 

@@ -41,6 +41,7 @@
 	- [btcbox](exchanges/btcbox.md)
 	- [btcmarkets](exchanges/btcmarkets.md)
 	- [btcturk](exchanges/btcturk.md)
+	- [bullish](exchanges/bullish.md)
 	- [bybit](exchanges/bybit.md)
 	- [cex](exchanges/cex.md)
 	- [coinbase](exchanges/coinbase.md)
@@ -108,4 +109,5 @@
 	- [xt](exchanges/xt.md)
 	- [yobit](exchanges/yobit.md)
 	- [zaif](exchanges/zaif.md)
+	- [fetchStatus](exchanges/fetchStatus.md)
 	- [zonda](exchanges/zonda.md)

@@ -30,9 +30,9 @@ func NewWoofiproFromCore(core *WoofiproCore) *Woofipro {
  * @method
  * @name woofipro#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Woofipro) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
 	res := <-this.Core.FetchStatus(params...)
@@ -46,7 +46,7 @@ func (this *Woofipro) FetchStatus(params ...interface{}) (map[string]interface{}
  * @method
  * @name woofipro#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -62,7 +62,7 @@ func (this *Woofipro) FetchTime(params ...interface{}) (int64, error) {
  * @method
  * @name woofipro#fetchMarkets
  * @description retrieves data on all markets for woofipro
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -95,12 +95,12 @@ func (this *Woofipro) FetchCurrencies(params ...interface{}) (Currencies, error)
  * @method
  * @name woofipro#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Woofipro) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -135,10 +135,10 @@ func (this *Woofipro) FetchTrades(symbol string, options ...FetchTradesOptions) 
  * @method
  * @name woofipro#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Woofipro) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
 
@@ -163,10 +163,10 @@ func (this *Woofipro) FetchFundingInterval(symbol string, options ...FetchFundin
  * @method
  * @name woofipro#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Woofipro) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -191,10 +191,10 @@ func (this *Woofipro) FetchFundingRate(symbol string, options ...FetchFundingRat
  * @method
  * @name woofipro#fetchFundingRates
  * @description fetch the current funding rate for multiple markets
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Woofipro) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 
@@ -224,14 +224,14 @@ func (this *Woofipro) FetchFundingRates(options ...FetchFundingRatesOptions) (Fu
  * @method
  * @name woofipro#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Woofipro) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -277,7 +277,7 @@ func (this *Woofipro) FetchFundingRateHistory(options ...FetchFundingRateHistory
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Woofipro) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -317,9 +317,9 @@ func (this *Woofipro) FetchFundingHistory(options ...FetchFundingHistoryOptions)
  * @method
  * @name woofipro#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Woofipro) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -333,11 +333,11 @@ func (this *Woofipro) FetchTradingFees(params ...interface{}) (TradingFees, erro
  * @method
  * @name woofipro#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Woofipro) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -366,7 +366,7 @@ func (this *Woofipro) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 /**
  * @method
  * @name woofipro#fetchOHLCV
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -413,8 +413,8 @@ func (this *Woofipro) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
  * @method
  * @name woofipro#createOrder
  * @description create a trade order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -429,7 +429,7 @@ func (this *Woofipro) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
  * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
  * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woofipro) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -459,10 +459,10 @@ func (this *Woofipro) CreateOrder(symbol string, typeVar string, side string, am
  * @method
  * @name woofipro#createOrders
  * @description *contract only* create a list of trade orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woofipro) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -487,8 +487,8 @@ func (this *Woofipro) CreateOrders(orders []OrderRequest, options ...CreateOrder
  * @method
  * @name woofipro#editOrder
  * @description edit a trade order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -499,7 +499,7 @@ func (this *Woofipro) CreateOrders(orders []OrderRequest, options ...CreateOrder
  * @param {float} [params.triggerPrice] The price a trigger order is triggered at
  * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
  * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woofipro) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -533,17 +533,17 @@ func (this *Woofipro) EditOrder(id string, symbol string, typeVar string, side s
 /**
  * @method
  * @name woofipro#cancelOrder
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woofipro) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -573,13 +573,13 @@ func (this *Woofipro) CancelOrder(id string, options ...CancelOrderOptions) (Ord
  * @method
  * @name woofipro#cancelOrders
  * @description cancel multiple orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woofipro) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -608,13 +608,13 @@ func (this *Woofipro) CancelOrders(ids []string, options ...CancelOrdersOptions)
 /**
  * @method
  * @name woofipro#cancelAllOrders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
  * @description cancel all open orders in a market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woofipro) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -643,17 +643,17 @@ func (this *Woofipro) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Orde
 /**
  * @method
  * @name woofipro#fetchOrder
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woofipro) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -683,8 +683,8 @@ func (this *Woofipro) FetchOrder(id string, options ...FetchOrderOptions) (Order
  * @method
  * @name woofipro#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -694,7 +694,7 @@ func (this *Woofipro) FetchOrder(id string, options ...FetchOrderOptions) (Order
  * @param {string} [params.side] 'buy' or 'sell'
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @param {int} params.until timestamp in ms of the latest order to fetch
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woofipro) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -734,8 +734,8 @@ func (this *Woofipro) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
  * @method
  * @name woofipro#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -745,7 +745,7 @@ func (this *Woofipro) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
  * @param {string} [params.side] 'buy' or 'sell'
  * @param {int} params.until timestamp in ms of the latest order to fetch
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woofipro) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -785,8 +785,8 @@ func (this *Woofipro) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
  * @method
  * @name woofipro#fetchClosedOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -796,7 +796,7 @@ func (this *Woofipro) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
  * @param {string} [params.side] 'buy' or 'sell'
  * @param {int} params.until timestamp in ms of the latest order to fetch
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woofipro) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -836,13 +836,13 @@ func (this *Woofipro) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
  * @method
  * @name woofipro#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Woofipro) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -881,7 +881,7 @@ func (this *Woofipro) FetchOrderTrades(id string, options ...FetchOrderTradesOpt
 /**
  * @method
  * @name woofipro#fetchMyTrades
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -889,7 +889,7 @@ func (this *Woofipro) FetchOrderTrades(id string, options ...FetchOrderTradesOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
  * @param {int} params.until timestamp in ms of the latest trade to fetch
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Woofipro) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -929,9 +929,9 @@ func (this *Woofipro) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @method
  * @name woofipro#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Woofipro) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -945,12 +945,12 @@ func (this *Woofipro) FetchBalance(params ...interface{}) (Balances, error) {
  * @method
  * @name woofipro#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *Woofipro) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -990,12 +990,12 @@ func (this *Woofipro) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
  * @method
  * @name woofipro#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woofipro) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -1035,12 +1035,12 @@ func (this *Woofipro) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
  * @method
  * @name woofipro#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woofipro) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -1080,12 +1080,12 @@ func (this *Woofipro) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @method
  * @name woofipro#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woofipro) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 
@@ -1125,13 +1125,13 @@ func (this *Woofipro) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawa
  * @method
  * @name woofipro#withdraw
  * @description make a withdrawal
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woofipro) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -1161,10 +1161,10 @@ func (this *Woofipro) Withdraw(code string, amount float64, address string, opti
  * @method
  * @name woofipro#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Woofipro) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
 
@@ -1189,7 +1189,7 @@ func (this *Woofipro) FetchLeverage(symbol string, options ...FetchLeverageOptio
  * @method
  * @name woofipro#setLeverage
  * @description set the level of leverage for a market
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
  * @param {int} [leverage] the rate of leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1222,11 +1222,11 @@ func (this *Woofipro) SetLeverage(leverage int64, options ...SetLeverageOptions)
 /**
  * @method
  * @name woofipro#fetchPosition
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Woofipro) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -1251,10 +1251,10 @@ func (this *Woofipro) FetchPosition(symbol string, options ...FetchPositionOptio
  * @method
  * @name woofipro#fetchPositions
  * @description fetch all open positions
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Woofipro) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
