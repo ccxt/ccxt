@@ -59,6 +59,8 @@ type Exchange struct {
 	Timeout                int64
 	MAX_VALUE              float64
 	RateLimit              float64
+	RollingWindowSize      float64 			// set to 0.0 to use leaky bucket rate limiter
+	RateLimiterAlgorithm   string
 	TokenBucket            map[string]interface{}
 	Throttler              *Throttler
 	NewUpdates             bool

@@ -349,6 +349,8 @@ export default class Exchange {
     tokenBucket: Dictionary<number> = undefined;
     throttler: any = undefined;
     enableRateLimit: boolean = undefined;
+    rollingWindowSize: number = 0.0;  // set to 0.0 to use leaky bucket rate limiter
+    rateLimiterAlgorithm: string = 'leakyBucket';
 
     httpExceptions: Dictionary<any> = undefined;
 
@@ -2270,6 +2272,7 @@ export default class Exchange {
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
             },
+            'rollingWindowSize': 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         };
     }
 
@@ -3169,12 +3172,16 @@ export default class Exchange {
         if (this.rateLimit > 0) {
             refillRate = 1 / this.rateLimit;
         }
+        const useLeaky = (this.rollingWindowSize === 0.0) || (this.rateLimiterAlgorithm === 'leakyBucket');
+        const algorithm = useLeaky ? 'leakyBucket' : 'rollingWindow';
         const defaultBucket = {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': this.safeInteger (this.options, 'maxRequestsQueue', 1000),
             'refillRate': refillRate,
+            'algorithm': algorithm,
+            'windowSize': this.rollingWindowSize,
+            'rateLimit': this.rateLimit,
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
         this.tokenBucket = this.extend (defaultBucket, existingBucket);

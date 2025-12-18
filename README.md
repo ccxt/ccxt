@@ -615,6 +615,22 @@ Lastly, just because the signature dictates that some argument like `symbol` is 
 
 You can check different examples in the `examples/go` folder.
 
+## Rate limiting
+
+Crypto exchanges enforce rate limits to protect their infrastructure, ensure fair usage across all clients, and prevent abuse that could degrade performance or availability for other users. That means you can't make an unlimited amount of requests to the exchange, there is a rate that needs to be respected.
+
+By default, CCXT uses a **leaky bucket** rate limiter to control the pace of outgoing requests. A leaky bucket rate limiter works by queueing requests and releasing them at a steady, fixed rate. Bursts of requests are smoothed out over time rather than executed immediately.
+
+However, if the user provides a `rateLimiterAlgorithm': 'rollingWindow'` option, ccxt switches from the leaky bucket model to a **window-based rate** limiter. A window-based limiter enforces a maximum number of requests within a fixed time window (for example, N requests per X milliseconds). Once the limit is reached, further requests are delayed until the current window expires. By default CCXT assumes a 60s window but the window size can be customized by providing `rollingWindowSize: X0000` ms.
+
+Example:
+```Python
+exchange = ccxt.binance({
+    'rateLimiterAlgorithm': 'rollingWindow', # switching to rolling window algorithm
+    'rollingWindowSize': 5000 # if binance allows X requests per 5 seconds, those requests can be fired in a burst at any time during this window
+})
+```
+
 ## CCXT CLI
 
 Read the documentation for more information and details: [docs](https://github.com/ccxt/ccxt/tree/master/cli/README.md)

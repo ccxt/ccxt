@@ -301,6 +301,9 @@ class Exchange {
     public $restRequestQueue = null;
     public $restPollerLoopIsRunning = false;
     public $enableRateLimit = true;
+    // rate limiter properties
+    public $rateLimiterAlgorithm = 'leakyBucket';  // rollingWindow or leakyBucket
+    public $rollingWindowSize = 60000;
     public $enableLastJsonResponse = false;
     public $enableLastHttpResponse = true;
     public $enableLastResponseHeaders = true;
@@ -3675,8 +3678,10 @@ class Exchange {
             'delay' => 0.001,
             'capacity' => 1,
             'cost' => 1,
-            'maxCapacity' => $this->safe_integer($this->options, 'maxRequestsQueue', 1000),
             'refillRate' => $refillRate,
+            'algorithm' => $this->rateLimiterAlgorithm,
+            'windowSize' => $this->rollingWindowSize,
+            'maxWeight' => $this->rollingWindowSize / $this->rateLimit,   // ms_of_window / ms_of_rate_limit
         );
         $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
         $this->tokenBucket = $this->extend($defaultBucket, $existingBucket);
