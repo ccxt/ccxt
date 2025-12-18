@@ -1221,9 +1221,9 @@ export default class grvt extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+        await Promise.all ([ this.loadMarkets (), this.loadAggregatedAccountSummary () ]);
         const currency = this.currency (code);
-        const defaultFromAccountId = this.safeString (this.options, 'AuthAccountId');
+        const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
         const expiration = this.milliseconds () * 1000000 + 100000000000;
         const request: Dict = {
             'from_account_id': this.safeString (params, 'from_account_id', defaultFromAccountId),
@@ -1343,27 +1343,37 @@ export default class grvt extends Exchange {
         this.checkAddress (address);
         await Promise.all ([ this.loadMarkets (), this.loadAggregatedAccountSummary () ]);
         const currency = this.currency (code);
+        const expiration = this.milliseconds () * 1000000 + 100000000000;
         const request: Dict = {
-            'currency': currency['id'],
-            'num_tokens': this.currencyToPrecision (code, amount),
             'to_eth_address': address,
             'from_account_id': this.safeString (this.options, 'userMainAccountId'),
+            'currency': currency['id'],
+            'num_tokens': this.currencyToPrecision (code, amount),
+            'signature': {
+                'signer': '', // this.apiKey, // this.safeString (this.options, 'AuthAccountId'),
+                'r': '',
+                's': '',
+                'v': 0,
+                'expiration': expiration.toString (),
+                'nonce': this.nonce (),
+                // 'chain_id': '325',
+            },
         };
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         const networkId = this.networkCodeToId (networkCode);
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
-        const signature = {
-            "signer": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-            "r": "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
-            "s": "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
-            "v": 28,
-            "expiration": "1697788800000000000",
-            "nonce": 1234567890,
-            "chain_id": "325"
-        };
-        request['signature'] = signature;
+        const domainData = this.get_EIP712_domain_data ();
+        const messageData = this.build_EIP712_withdrawal_message_data (request, currency);
+        const privateKey = this.remove0xPrefix (this.secret);
+        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options['EIP712_TRANSFER_MESSAGE_TYPE'], messageData);
+        const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
+        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
+        request['signature']['r'] = '0x' + signature['r'];
+        request['signature']['s'] = '0x' + signature['s'];
+        request['signature']['v'] = this.sum (27, signature['v']);
+        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later, eg. str(account.address)
         const response = await this.privateTradingPostFullV1Withdrawal (this.extend (request, query));
         //
         // {
@@ -1582,17 +1592,28 @@ export default class grvt extends Exchange {
         };
     }
 
+    build_EIP712_withdrawal_message_data (withdrawal, currency: Currency = undefined) {
+        const amountMultiplier = this.convertToBigIntCustom ('1000000');
+        const amountInt = withdrawal['num_tokens'] * amountMultiplier;
+        return {
+            'fromAccount': withdrawal['from_account_id'],
+            'toEthAddress': withdrawal['to_eth_address'],
+            'tokenCurrency': currency['numericId'],
+            'numTokens': this.parseToInt (amountInt),
+            'nonce': withdrawal['signature']['nonce'],
+            'expiration': withdrawal['signature']['expiration'],
+        };
+    }
+
     get_EIP712_domain_data () {
-        // const CHAIN_IDS = {
         //     GrvtEnv.DEV.value: 327,
         //     GrvtEnv.STAGING.value: 327,
         //     GrvtEnv.TESTNET.value: 326,
         //     GrvtEnv.PROD.value: 325,
-        // };
         return {
             'name': 'GRVT Exchange',
             'version': '0',
-            'chainId': 325, // CHAIN_IDS[env.value],
+            'chainId': 325,
         };
     }
 
