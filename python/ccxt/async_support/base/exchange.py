@@ -1006,7 +1006,6 @@ class Exchange(BaseExchange):
                             self.log('Request failed with the error: ' + str(e) + ', retrying ' + str(index) + ' of ' + str(retries) + '...')
                         if (retryDelay is not None) and (retryDelay != 0):
                             await self.sleep(retryDelay)
-                        continue
                     else:
                         raise e
                 else:
