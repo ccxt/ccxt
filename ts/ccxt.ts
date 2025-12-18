@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.24';
+const version = '4.5.28';
 
 (Exchange as any).ccxtVersion = version
 
@@ -155,6 +155,7 @@ import woofipro from  './src/woofipro.js'
 import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
+import zebpay from  './src/zebpay.js'
 import zonda from  './src/zonda.js'
 
 
@@ -346,6 +347,7 @@ const exchanges = {
     'xt':                     xt,
     'yobit':                  yobit,
     'zaif':                   zaif,
+    'zebpay':                 zebpay,
     'zonda':                  zonda,
 }
 
@@ -679,6 +681,7 @@ export {
     xt,
     yobit,
     zaif,
+    zebpay,
     zonda,    
 }
 

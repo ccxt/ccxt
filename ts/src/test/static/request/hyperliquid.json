@@ -1088,6 +1088,15 @@
         ],
         "fetchPositions": [
             {
+                "description": "fetch positions empty array",
+                "method": "fetchPositions",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    []
+                ],
+                "output": "{\"type\":\"clearinghouseState\",\"user\":\"wallet\"}"
+            },
+            {
                 "description": "fetch hip3 positions",
                 "method": "fetchPositions",
                 "url": "https://api.hyperliquid.xyz/info",

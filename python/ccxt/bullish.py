@@ -911,7 +911,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(not used by bullish)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -954,7 +954,7 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest trade to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         maxLimit = 100
@@ -1002,7 +1002,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.orderId]: the order id to fetch trades for
         :param str [params.clientOrderId]: the client order id to fetch trades for
         :param str [params.tradingAccountId]: the trading account id to fetch trades for
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
@@ -1061,7 +1061,7 @@ class bullish(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: the client order id to fetch trades for
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         clientOrderId = self.safe_string(params, 'clientOrderId')
@@ -1163,7 +1163,7 @@ class bullish(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1377,7 +1377,7 @@ class bullish(Exchange, ImplicitAPI):
         :param int [since]: not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
         :param int [limit]: the maximum amount of funding rate structures to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -1442,7 +1442,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: the client id of the order to fetch for
         :param str [params.status]: filter by order status, 'OPEN', 'CANCELLED', 'CLOSED', 'REJECTED'
         :param bool [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
@@ -1552,7 +1552,7 @@ class bullish(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str params['tradingAccountId']: the trading account id(mandatory parameter)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'status': 'OPEN',
@@ -1570,7 +1570,7 @@ class bullish(Exchange, ImplicitAPI):
         :param int [limit]: the max number of canceled orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.tradingAccountId]: the trading account id(mandatory parameter)
-        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'status': 'CANCELLED',
@@ -1589,7 +1589,7 @@ class bullish(Exchange, ImplicitAPI):
         :param int [limit]: the max number of closed orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str params['tradingAccountId']: the trading account id(mandatory parameter)
-        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'status': 'CLOSED',
@@ -1608,7 +1608,7 @@ class bullish(Exchange, ImplicitAPI):
         :param int [limit]: the max number of closed orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.tradingAccountId]: the trading account id(mandatory parameter)
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'status': 'CLOSED',
@@ -1626,7 +1626,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.traidingAccountId]: the trading account id(mandatory parameter)
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
@@ -1685,7 +1685,7 @@ class bullish(Exchange, ImplicitAPI):
         :param bool [params.allowBorrow]: if True, the order will be allowed to borrow assets to fulfill the order(default is False)
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately(default is False)
         :param str params['traidingAccountId']: the trading account id(mandatory parameter)
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
@@ -1742,7 +1742,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.traidingAccountId]: the trading account id(mandatory parameter)
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately(default is False)
         :param str [params.clientOrderId]: a unique identifier for the order, automatically generated if not sent
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
@@ -1779,7 +1779,7 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str params['commandType']: the command type, default is 'V3CancelOrder'(mandatory parameter)
         :param str [params.traidingAccountId]: the trading account id(mandatory parameter)
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
@@ -1812,7 +1812,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str [symbol]: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str params['traidingAccountId']: the trading account id(mandatory parameter)
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
@@ -1963,7 +1963,7 @@ class bullish(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         [self.load_markets(), self.handle_token()]
         request: dict = {}
@@ -2028,7 +2028,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str params['timestamp']: the timestamp of the withdrawal request(mandatory)
         :param str params['nonce']: the nonce of the withdrawal request(mandatory)
         :param str params['network']: network for withdraw(mandatory)
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         [self.load_markets(), self.handle_token()]
         # todo check self method properly
@@ -2172,7 +2172,7 @@ class bullish(Exchange, ImplicitAPI):
         https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--trading-accounts
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         [self.load_markets(), self.handle_token()]
         response = self.privateGetV1AccountsTradingAccounts(params)
@@ -2274,7 +2274,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: network for deposit address
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         [self.load_markets(), self.handle_token()]
         currency = self.currency(code)
@@ -2336,7 +2336,7 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str params['tradingAccountId']: the trading account id(mandatory parameter)
         :param str [params.code]: unified currency code, default is None
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
@@ -2400,7 +2400,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str params['tradingAccountId']: the trading account id
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
@@ -2507,7 +2507,7 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int params['until']: the latest time in ms to fetch transfers for(default time now)
         :param str params['tradingAccountId']: the trading account id
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
@@ -2562,7 +2562,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str fromAccount: account ID to transfer from
         :param str toAccount: account ID to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         [self.load_markets(), self.handle_token()]
         # todo check self method properly
@@ -2647,11 +2647,11 @@ class bullish(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param int [since]: timestamp for the earliest borrow rate
-        :param int [limit]: the maximum number of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>` to retrieve
+        :param int [limit]: the maximum number of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>` to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int params['until']: the latest time in ms to fetch entries for
         :param str params['tradingAccountId']: the trading account id
-        :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
+        :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
         [self.load_markets(), self.handle_token()]
         tradingAccountId = self.load_account(params)
