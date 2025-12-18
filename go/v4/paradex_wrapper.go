@@ -48,7 +48,7 @@ func (this *Paradex) FetchTime(params ...interface{}) (int64, error) {
  * @description the latest known information on the availability of the exchange API
  * @see https://docs.api.testnet.paradex.trade/#get-system-state
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Paradex) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
 	res := <-this.Core.FetchStatus(params...)
@@ -129,7 +129,7 @@ func (this *Paradex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Paradex) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -162,7 +162,7 @@ func (this *Paradex) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
  * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Paradex) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -191,7 +191,7 @@ func (this *Paradex) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Paradex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -228,7 +228,7 @@ func (this *Paradex) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Paradex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -266,7 +266,7 @@ func (this *Paradex) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Paradex) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
 
@@ -306,7 +306,7 @@ func (this *Paradex) FetchOpenInterest(symbol string, options ...FetchOpenIntere
  * @param {bool} [params.postOnly] true or false
  * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Paradex) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -342,7 +342,7 @@ func (this *Paradex) CreateOrder(symbol string, typeVar string, side string, amo
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Paradex) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -375,7 +375,7 @@ func (this *Paradex) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @see https://docs.api.prod.paradex.trade/#cancel-all-open-orders
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Paradex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -411,7 +411,7 @@ func (this *Paradex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Paradex) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -449,7 +449,7 @@ func (this *Paradex) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @param {string} [params.side] 'buy' or 'sell'
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @param {int} params.until timestamp in ms of the latest order to fetch
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Paradex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -494,7 +494,7 @@ func (this *Paradex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Paradex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -536,7 +536,7 @@ func (this *Paradex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.api.prod.paradex.trade/#list-balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Paradex) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -557,7 +557,7 @@ func (this *Paradex) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Paradex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -600,7 +600,7 @@ func (this *Paradex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
  * @see https://docs.api.prod.paradex.trade/#list-open-positions
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Paradex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -628,7 +628,7 @@ func (this *Paradex) FetchPosition(symbol string, options ...FetchPositionOption
  * @see https://docs.api.prod.paradex.trade/#list-open-positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Paradex) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -664,7 +664,7 @@ func (this *Paradex) FetchPositions(options ...FetchPositionsOptions) ([]Positio
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the huobi api endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Paradex) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
 
@@ -739,7 +739,7 @@ func (this *Paradex) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Paradex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -782,7 +782,7 @@ func (this *Paradex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
  * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *Paradex) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
 
@@ -845,7 +845,7 @@ func (this *Paradex) SetMarginMode(marginMode string, options ...SetMarginModeOp
  * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Paradex) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
 
@@ -908,7 +908,7 @@ func (this *Paradex) SetLeverage(leverage int64, options ...SetLeverageOptions) 
  * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *Paradex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
 
@@ -936,7 +936,7 @@ func (this *Paradex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
  * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
  * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *Paradex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
 
@@ -972,7 +972,7 @@ func (this *Paradex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks,
  * @param {int} [limit] the maximum amount of funding rate structures
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Paradex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 

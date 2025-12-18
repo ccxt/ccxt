@@ -49,7 +49,7 @@ func (this *Oceanex) FetchMarkets(params ...interface{}) ([]MarketInterface, err
  * @see https://api.oceanex.pro/doc/v1/#ticker-post
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Oceanex) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -77,7 +77,7 @@ func (this *Oceanex) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @see https://api.oceanex.pro/doc/v1/#multiple-tickers-post
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Oceanex) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -111,7 +111,7 @@ func (this *Oceanex) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Oceanex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -145,7 +145,7 @@ func (this *Oceanex) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
  * @param {int} [limit] max number of entries per orderbook to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
+ * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
  */
 func (this *Oceanex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 
@@ -185,7 +185,7 @@ func (this *Oceanex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Oceanex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -238,7 +238,7 @@ func (this *Oceanex) FetchTime(params ...interface{}) (int64, error) {
  * @description fetch the trading fees for multiple markets
  * @see https://api.oceanex.pro/doc/v1/#trading-fees-post
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Oceanex) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -261,7 +261,7 @@ func (this *Oceanex) FetchKey(params ...interface{}) (map[string]interface{}, er
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://api.oceanex.pro/doc/v1/#account-info-post
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Oceanex) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -282,7 +282,7 @@ func (this *Oceanex) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oceanex) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -316,7 +316,7 @@ func (this *Oceanex) CreateOrder(symbol string, typeVar string, side string, amo
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oceanex) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -351,7 +351,7 @@ func (this *Oceanex) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oceanex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -396,7 +396,7 @@ func (this *Oceanex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oceanex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -441,7 +441,7 @@ func (this *Oceanex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oceanex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -531,7 +531,7 @@ func (this *Oceanex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @param {string} id order id
  * @param {string} symbol not used by oceanex cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oceanex) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -565,7 +565,7 @@ func (this *Oceanex) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @param {string[]} ids order ids
  * @param {string} symbol not used by oceanex cancelOrders ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oceanex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -598,7 +598,7 @@ func (this *Oceanex) CancelOrders(ids []string, options ...CancelOrdersOptions) 
  * @see https://api.oceanex.pro/doc/v1/#cancel-all-orders-post
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oceanex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -631,7 +631,7 @@ func (this *Oceanex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
  * @see https://api.oceanex.pro/doc/v1/#deposit-addresses-post
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
+ * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
  */
 func (this *Oceanex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 

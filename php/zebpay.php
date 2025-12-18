@@ -205,7 +205,7 @@ class zebpay extends Exchange {
          * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-$status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchStatus', null, $params);
@@ -444,7 +444,7 @@ class zebpay extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->side] side to fetch trading fee
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -498,7 +498,7 @@ class zebpay extends Exchange {
          * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-$fees-all-symbols
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
@@ -542,7 +542,7 @@ class zebpay extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -585,7 +585,7 @@ class zebpay extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -628,7 +628,7 @@ class zebpay extends Exchange {
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
@@ -758,7 +758,7 @@ class zebpay extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -800,7 +800,7 @@ class zebpay extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = null;
@@ -831,7 +831,7 @@ class zebpay extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOrderTrades', null, $params);
@@ -932,7 +932,7 @@ class zebpay extends Exchange {
          * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/wallet.md#get-wallet-balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $type = null;
@@ -983,7 +983,7 @@ class zebpay extends Exchange {
          * @param {boolean} [$params->takeProfit] Takeprofit flag for the order.
          * @param {boolean} [$params->stopLoss] Stop loss flag for the order.
          * @param {string} [$params->positionId] PositionId of the order.
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1073,7 +1073,7 @@ class zebpay extends Exchange {
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->timestamp] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1111,7 +1111,7 @@ class zebpay extends Exchange {
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->timestamp] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
@@ -1144,7 +1144,7 @@ class zebpay extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1212,7 +1212,7 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] cancel order by client order $id
          * @param {string} [$params->timestamp] cancel order by client order $id
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1323,7 +1323,7 @@ class zebpay extends Exchange {
          * @param {string} $side not used by kucoinfutures closePositions
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {string} [$params->positionId] client order id of the order
-         * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+         * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1343,7 +1343,7 @@ class zebpay extends Exchange {
          *
          * @param {string[]} [$symbols] a list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
          */
         $this->load_markets();
         $response = $this->privateSwapGetV1TradeUserLeverages ($params);
@@ -1371,7 +1371,7 @@ class zebpay extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1460,7 +1460,7 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint.
          * @param {string} [$params->positionId] PositionId of the order to add margin.
          * @param {string} [$params->timestamp] Tiemstamp.
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1505,7 +1505,7 @@ class zebpay extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint.
          * @param {string} [$params->positionId] PositionId of the order to add margin.
          * @param {string} [$params->timestamp] Tiemstamp.
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);

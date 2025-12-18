@@ -454,7 +454,7 @@ class cryptomus extends Exchange {
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -522,7 +522,7 @@ class cryptomus extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->level] 0 or 1 or 2 or 3 or 4 or 5 - the $level of volume
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -567,7 +567,7 @@ class cryptomus extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch (maximum value is 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -632,7 +632,7 @@ class cryptomus extends Exchange {
          * @see https://doc.cryptomus.com/personal/converts/balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $request = array();
@@ -690,7 +690,7 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
          * @param {string} [$params->clientOrderId] a unique identifier for the order (optional)
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -755,7 +755,7 @@ class cryptomus extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in (not used in cryptomus)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array();
@@ -784,7 +784,7 @@ class cryptomus extends Exchange {
          * @param {string} [$params->client_order_id] client $order id
          * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
          * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
         $this->load_markets();
         $request = array();
@@ -860,7 +860,7 @@ class cryptomus extends Exchange {
          * @param {string} [$params->client_order_id] client order id
          * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
          * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -1025,7 +1025,7 @@ class cryptomus extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
          */
         $response = $this->privateGetV2UserApiExchangeAccountTariffs ($params);
         //

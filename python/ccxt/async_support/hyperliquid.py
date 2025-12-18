@@ -389,7 +389,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         request: dict = {
             'type': 'exchangeStatus',
@@ -1043,7 +1043,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str [params.dex]: for hip3 markets, the dex name, eg: 'xyz'
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         userAddress = None
         userAddress, params = self.handle_public_address('fetchBalance', params)
@@ -1131,7 +1131,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1181,7 +1181,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap', by default fetches both
         :param boolean [params.hip3]: set to True to fetch hip3 markets only
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1452,7 +1452,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.address]: wallet address that made trades
         :param str [params.user]: wallet address that made trades
         :param str [params.subAccountAddress]: sub account user address
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         userAddress = None
         userAddress, params = self.handle_public_address('fetchTrades', params)
@@ -1790,7 +1790,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.slippage]: the slippage for market order
         :param str [params.vaultAddress]: the vault address for order
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         order, globalParams = self.parse_create_edit_order_args(None, symbol, type, side, amount, price, params)
@@ -1805,7 +1805,7 @@ class hyperliquid(Exchange, ImplicitAPI):
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         await self.initialize_client()
@@ -1904,7 +1904,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         create a list of trade orders
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.check_required_credentials()
         defaultSlippage = self.safe_string(self.options, 'defaultSlippage')
@@ -2008,7 +2008,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :param str [params.vaultAddress]: the vault address for order
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         orders = await self.cancel_orders([id], symbol, params)
         return self.safe_dict(orders, 0)
@@ -2026,7 +2026,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param string|str[] [params.clientOrderId]: client order ids,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :param str [params.vaultAddress]: the vault address
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.check_required_credentials()
         if symbol is None:
@@ -2123,7 +2123,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.vaultAddress]: the vault address
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -2351,7 +2351,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :param str [params.vaultAddress]: the vault address for order
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         if id is None:
@@ -2368,7 +2368,7 @@ class hyperliquid(Exchange, ImplicitAPI):
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         await self.initialize_client()
@@ -2460,10 +2460,10 @@ class hyperliquid(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         await self.load_markets()
         if symbol is None:
@@ -2529,7 +2529,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.method]: 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
         :param str [params.subAccountAddress]: sub account user address
         :param str [params.dex]: perp dex name. default is None
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         userAddress = None
         userAddress, params = self.handle_public_address('fetchOpenOrders', params)
@@ -2578,7 +2578,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         orders = await self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
@@ -2593,7 +2593,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         orders = await self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
@@ -2608,7 +2608,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         orders = await self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
@@ -2625,7 +2625,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.subAccountAddress]: sub account user address
         :param str [params.dex]: perp dex name. default is None
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         userAddress = None
         userAddress, params = self.handle_public_address('fetchOrders', params)
@@ -2669,7 +2669,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         userAddress = None
         userAddress, params = self.handle_public_address('fetchOrder', params)
@@ -2909,7 +2909,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest trade
         :param str [params.subAccountAddress]: sub account user address
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         userAddress = None
         userAddress, params = self.handle_public_address('fetchMyTrades', params)
@@ -3017,7 +3017,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         positions = await self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0, {})
@@ -3051,7 +3051,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.subAccountAddress]: sub account user address
         :param str [params.dex]: perp dex name, eg: XYZ
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         userAddress = None
@@ -3304,7 +3304,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.vaultAddress]: the vault address
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
@@ -3319,7 +3319,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.vaultAddress]: the vault address
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
@@ -3393,7 +3393,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str toAccount: account to transfer to *swap, spot or address*
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.vaultAddress]: the vault address for order
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -3509,7 +3509,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.vaultAddress]: vault address withdraw from
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -3616,7 +3616,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         await self.load_markets()
         userAddress = None
@@ -3723,7 +3723,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
         """
         await self.load_markets()
         userAddress = None
@@ -3812,7 +3812,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch withdrawals for
         :param str [params.subAccountAddress]: sub account user address
         :param str [params.vaultAddress]: vault address
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         userAddress = None
@@ -3869,7 +3869,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch withdrawals for
         :param str [params.subAccountAddress]: sub account user address
         :param str [params.vaultAddress]: vault address
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         userAddress = None
@@ -3919,7 +3919,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         Retrieves the open interest for a list of symbols
         :param str[] [symbols]: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -3931,7 +3931,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         retrieves the open interest of a contract trading pair
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict: an `open interest structure <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         symbol = self.symbol(symbol)
         await self.load_markets()
@@ -3979,7 +3979,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of funding history structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         await self.load_markets()
         market = None

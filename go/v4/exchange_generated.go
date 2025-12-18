@@ -5742,7 +5742,7 @@ func (this *Exchange) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
  * @param {string} clientOrderId client order Id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Exchange) FetchOrderWithClientOrderId(clientOrderId interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5907,7 +5907,7 @@ func (this *Exchange) CreateTrailingAmountOrder(symbol interface{}, typeVar inte
 		 * @param {float} trailingAmount the quote amount to trail away from the current market price
 		 * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -5953,7 +5953,7 @@ func (this *Exchange) CreateTrailingAmountOrderWs(symbol interface{}, typeVar in
 		 * @param {float} trailingAmount the quote amount to trail away from the current market price
 		 * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -5999,7 +5999,7 @@ func (this *Exchange) CreateTrailingPercentOrder(symbol interface{}, typeVar int
 		 * @param {float} trailingPercent the percent to trail away from the current market price
 		 * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -6045,7 +6045,7 @@ func (this *Exchange) CreateTrailingPercentOrderWs(symbol interface{}, typeVar i
 		 * @param {float} trailingPercent the percent to trail away from the current market price
 		 * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -6087,7 +6087,7 @@ func (this *Exchange) CreateMarketOrderWithCost(symbol interface{}, side interfa
 		 * @param {string} side 'buy' or 'sell'
 		 * @param {float} cost how much you want to trade in units of the quote currency
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
@@ -6115,7 +6115,7 @@ func (this *Exchange) CreateMarketBuyOrderWithCost(symbol interface{}, cost inte
 		 * @param {string} symbol unified symbol of the market to create an order in
 		 * @param {float} cost how much you want to trade in units of the quote currency
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
@@ -6143,7 +6143,7 @@ func (this *Exchange) CreateMarketSellOrderWithCost(symbol interface{}, cost int
 		 * @param {string} symbol unified symbol of the market to create an order in
 		 * @param {float} cost how much you want to trade in units of the quote currency
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
@@ -6172,7 +6172,7 @@ func (this *Exchange) CreateMarketOrderWithCostWs(symbol interface{}, side inter
 		 * @param {string} side 'buy' or 'sell'
 		 * @param {float} cost how much you want to trade in units of the quote currency
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
@@ -6204,7 +6204,7 @@ func (this *Exchange) CreateTriggerOrder(symbol interface{}, typeVar interface{}
 		 * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
 		 * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -6244,7 +6244,7 @@ func (this *Exchange) CreateTriggerOrderWs(symbol interface{}, typeVar interface
 		 * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
 		 * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -6284,7 +6284,7 @@ func (this *Exchange) CreateStopLossOrder(symbol interface{}, typeVar interface{
 		 * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
 		 * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -6324,7 +6324,7 @@ func (this *Exchange) CreateStopLossOrderWs(symbol interface{}, typeVar interfac
 		 * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
 		 * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -6364,7 +6364,7 @@ func (this *Exchange) CreateTakeProfitOrder(symbol interface{}, typeVar interfac
 		 * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
 		 * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -6404,7 +6404,7 @@ func (this *Exchange) CreateTakeProfitOrderWs(symbol interface{}, typeVar interf
 		 * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
 		 * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -6453,7 +6453,7 @@ func (this *Exchange) CreateOrderWithTakeProfitAndStopLoss(symbol interface{}, t
 		 * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
 		 * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
 		 * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -6558,7 +6558,7 @@ func (this *Exchange) CreateOrderWithTakeProfitAndStopLossWs(symbol interface{},
 		 * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
 		 * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
 		 * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
@@ -6641,7 +6641,7 @@ func (this *Exchange) CancelOrder(id interface{}, optionalArgs ...interface{}) <
  * @param {string} clientOrderId client order Id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Exchange) CancelOrderWithClientOrderId(clientOrderId interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6700,7 +6700,7 @@ func (this *Exchange) CancelOrders(ids interface{}, optionalArgs ...interface{})
  * @param {string[]} clientOrderIds client order Ids
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Exchange) CancelOrdersWithClientOrderIds(clientOrderIds interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8942,7 +8942,7 @@ func (this *Exchange) ParseIncomes(incomes interface{}, optionalArgs ...interfac
 	 * @param {object} market ccxt market
 	 * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
 	 * @param {int} [limit] limits the number of items in the response
-	 * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+	 * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
 	 */
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
@@ -9003,7 +9003,7 @@ func (this *Exchange) FetchTransactions(optionalArgs ...interface{}) <-chan inte
 		 * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
 		 * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
 		 * @param {object} [params] extra parameters specific to the exchange API endpoint
-		 * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+		 * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
 		 */
 		code := GetArg(optionalArgs, 0, nil)
 		_ = code
@@ -9658,7 +9658,7 @@ func (this *Exchange) ParseLiquidations(liquidations interface{}, optionalArgs .
 	 * @param {object} market ccxt market
 	 * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
 	 * @param {int} [limit] limits the number of items in the response
-	 * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+	 * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
 	 */
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
@@ -9931,7 +9931,7 @@ func (this *Exchange) FetchPositionHistory(symbol interface{}, optionalArgs ...i
 		 * @param {int} [since] timestamp in ms of the position
 		 * @param {int} [limit] the maximum amount of candles to fetch, default=1000
 		 * @param {object} params extra parameters specific to the exchange api endpoint
-		 * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+		 * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
 		 */
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
