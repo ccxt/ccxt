@@ -2790,6 +2790,7 @@ class Exchange {
                 'price' => array( 'min' => null, 'max' => null ),
                 'cost' => array( 'min' => null, 'max' => null ),
             ),
+            'rollingWindowSize' => 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         );
     }
 
@@ -3674,14 +3675,16 @@ class Exchange {
         if ($this->rateLimit > 0) {
             $refillRate = 1 / $this->rateLimit;
         }
+        $useLeaky = ($this->rollingWindowSize === 0.0) || ($this->rateLimiterAlgorithm === 'leakyBucket');
+        $algorithm = $useLeaky ? 'leakyBucket' : 'rollingWindow';
         $defaultBucket = array(
             'delay' => 0.001,
             'capacity' => 1,
             'cost' => 1,
             'refillRate' => $refillRate,
-            'algorithm' => $this->rateLimiterAlgorithm,
+            'algorithm' => $algorithm,
             'windowSize' => $this->rollingWindowSize,
-            'maxWeight' => $this->rollingWindowSize / $this->rateLimit,   // ms_of_window / ms_of_rate_limit
+            'rateLimit' => $this->rateLimit,
         );
         $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
         $this->tokenBucket = $this->extend($defaultBucket, $existingBucket);
