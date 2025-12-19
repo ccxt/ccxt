@@ -3,10 +3,10 @@
 
 import Exchange from './abstract/bydfi.js';
 // import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed, InvalidOrder } from './base/errors.js';
-// import { Precise } from './base/Precise.js';
+import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-// import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { Dict, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -200,7 +200,7 @@ export default class bydfi extends Exchange {
                 'public': {
                     'get': {
                         'v1/public/api_limits': 1, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
-                        'v1/swap/market/exchange_info': 1, // https://developers.bydfi.com/en/swap/market#fetching-trading-rules-and-pairs
+                        'v1/swap/market/exchange_info': 1, // done
                         'v1/swap/market/depth': 1, // https://developers.bydfi.com/en/swap/market#depth-information
                         'v1/swap/market/trades': 1, // https://developers.bydfi.com/en/swap/market#recent-trades
                         'v1/swap/market/klines': 1, // https://developers.bydfi.com/en/swap/market#candlestick-data
@@ -267,5 +267,170 @@ export default class bydfi extends Exchange {
             'options': {
             },
         });
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchMarkets
+     * @description retrieves data on all markets for bydfi
+     * @see
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const response = await this.publicGetV1SwapMarketExchangeInfo (params);
+        //
+        //     {
+        //         "code": "200",
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "CLANKER-USDT",
+        //                 "baseAsset": "CLANKER",
+        //                 "marginAsset": "USDT",
+        //                 "quoteAsset": "USDT",
+        //                 "contractFactor": "0.01",
+        //                 "limitMaxQty": "50000",
+        //                 "limitMinQty": "1",
+        //                 "marketMaxQty": "10000",
+        //                 "marketMinQty": "1",
+        //                 "pricePrecision": "8",
+        //                 "basePrecision": "8",
+        //                 "feeRateTaker": "0.0006",
+        //                 "feeRateMaker": "0.0002",
+        //                 "liqFeeRate": "0.0006",
+        //                 "openBuyLimitRateMax": "0.05",
+        //                 "openSellLimitRateMax": "100",
+        //                 "openBuyLimitRateMin": "0.98",
+        //                 "openSellLimitRateMin": "0.05",
+        //                 "priceOrderPrecision": "2",
+        //                 "baseShowPrecision": "2",
+        //                 "maxLeverageLevel": "20",
+        //                 "volumePrecision": "2",
+        //                 "maxLimitOrderNum": "200",
+        //                 "maxPlanOrderNum": "10",
+        //                 "reverse": false,
+        //                 "onboardTime": "1763373600000",
+        //                 "status": "NORMAL"
+        //             },
+        //             ...
+        //         ],
+        //         "success": true
+        //     }
+        const data = this.safeList (response, 'data', []);
+        return this.parseMarkets (data);
+    }
+
+    parseMarket (market: Dict): Market {
+        //
+        //     {
+        //         "symbol": "CLANKER-USDT",
+        //         "baseAsset": "CLANKER",
+        //         "marginAsset": "USDT",
+        //         "quoteAsset": "USDT",
+        //         "contractFactor": "0.01",
+        //         "limitMaxQty": "50000",
+        //         "limitMinQty": "1",
+        //         "marketMaxQty": "10000",
+        //         "marketMinQty": "1",
+        //         "pricePrecision": "8",
+        //         "basePrecision": "8",
+        //         "feeRateTaker": "0.0006",
+        //         "feeRateMaker": "0.0002",
+        //         "liqFeeRate": "0.0006",
+        //         "openBuyLimitRateMax": "0.05",
+        //         "openSellLimitRateMax": "100",
+        //         "openBuyLimitRateMin": "0.98",
+        //         "openSellLimitRateMin": "0.05",
+        //         "priceOrderPrecision": "2",
+        //         "baseShowPrecision": "2",
+        //         "maxLeverageLevel": "20",
+        //         "volumePrecision": "2",
+        //         "maxLimitOrderNum": "200",
+        //         "maxPlanOrderNum": "10",
+        //         "reverse": false,
+        //         "onboardTime": "1763373600000",
+        //         "status": "NORMAL"
+        //     }
+        //
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const settleId = this.safeString (market, 'marginAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        const symbol = base + '/' + quote + ':' + settle;
+        const inverse = this.safeBool (market, 'reverse');
+        const limitMaxQty = this.safeString (market, 'limitMaxQty');
+        const marketMaxQty = this.safeString (market, 'marketMaxQty');
+        const maxAmountString = Precise.stringMax (limitMaxQty, marketMaxQty); // todo: check which one is correct
+        const marketMinQty = this.safeString (market, 'marketMinQty');
+        const limitMinQty = this.safeString (market, 'limitMinQty');
+        const minAmountString = Precise.stringMin (marketMinQty, limitMinQty); // todo: check which one is correct
+        const pricePrecision = this.parsePrecision (this.safeString (market, 'priceOrderPrecision'));
+        const amountPrecision = this.parsePrecision (this.safeString (market, 'volumePrecision'));
+        const taker = this.safeNumber (market, 'feeRateTaker');
+        const maker = this.safeNumber (market, 'feeRateMaker');
+        const contractSize = this.safeNumber (market, 'contractFactor');
+        const maxLeverage = this.safeNumber (market, 'maxLeverageLevel');
+        const status = this.safeString (market, 'status');
+        return this.safeMarketStructure ({
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': false,
+            'margin': undefined,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'active': status === 'NORMAL',
+            'contract': true,
+            'linear': !inverse,
+            'inverse': inverse,
+            'taker': taker,
+            'maker': maker,
+            'contractSize': contractSize,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': maxLeverage,
+                },
+                'amount': {
+                    'min': this.parseNumber (minAmountString),
+                    'max': this.parseNumber (maxAmountString),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': this.parse8601 (this.safeString (market, 'createdAt')),
+            'info': market,
+        });
+    }
+
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+        let url = this.urls['api'][api];
+        url += '/' + path;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
