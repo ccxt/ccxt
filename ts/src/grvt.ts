@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -114,6 +114,8 @@ export default class grvt extends Exchange {
                         'full/v1/withdrawal_history': 1,
                         'full/v1/cancel_order': 1,
                         'full/v1/set_position_config': 1,
+                        'full/v1/set_initial_leverage': 1,
+                        'full/v1/get_all_initial_leverage': 1,
                     },
                 },
             },
@@ -1270,7 +1272,7 @@ export default class grvt extends Exchange {
             'transfer_type': 'STANDARD',
             'transfer_metadata': null,
         };
-        request = this.createSignedRequest (request, currency);
+        request = this.createSignedRequest (request, currency, 'EIP712_TRANSFER_MESSAGE_TYPE');
         const response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
         //
         // {
@@ -1284,7 +1286,7 @@ export default class grvt extends Exchange {
         return this.parseTransfer (result, currency);
     }
 
-    createSignedRequest (request: Dict, inputMessageData: any, structureType: string): Dict {
+    createSignedRequest (request: any, inputMessageData: any, structureType: string): Dict {
         const domainData = this.get_EIP712_domain_data ();
         let messageData = undefined;
         if (structureType === 'EIP712_TRANSFER_MESSAGE_TYPE') {
@@ -1466,6 +1468,7 @@ export default class grvt extends Exchange {
             // 'order_id': null,
             // 'state': null,
         };
+        // @ts-ignore
         request = this.createSignedRequest (request, market, 'EIP712_ORDER_MESSAGE_TYPE');
         const fullRequest = {
             'order': request,
@@ -1799,25 +1802,29 @@ export default class grvt extends Exchange {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const subAccountId = this.getSubAccountId (params);
-        const subAccountSummary = await this.privateTradingPostFullV1AccountSummary ({ 'sub_account_id': subAccountId });
-        const resultSummary = this.safeDict (subAccountSummary, 'result', {});
-        const marginTypeRaw = this.safeString (resultSummary, 'margin_type');
-        let marginType = 'ISOLATED';
-        if (marginTypeRaw.indexOf ('CROSS') >= 0) {
-            marginType = 'CROSS';
-        }
         const market = this.market (symbol);
         const request: Dict = {
-            'sub_account_id': subAccountId,
+            'sub_account_id': this.getSubAccountId (params),
             'instrument': market['id'],
-            'margin_type': marginType,
             'leverage': this.numberToString (leverage),
-            'signature': this.defaultSignature (),
         };
-        const response = await this.privateTradingPostFullV1SetPositionConfig (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        return data;
+        const response = await this.privateTradingPostFullV1SetInitialLeverage (this.extend (request, params));
+        //
+        //    {
+        //        "success": true
+        //    }
+        //
+        return this.parseLeverage (response, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (undefined, market),
+            'marginMode': undefined,
+            'longLeverage': undefined,
+            'shortLeverage': undefined,
+        } as Leverage;
     }
 
     /**
