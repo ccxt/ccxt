@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Leverage, Leverages, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -1824,7 +1824,8 @@ export default class grvt extends Exchange {
         //                "margin_type": "CROSS"
         //            },
         //
-        return this.parseLeverages (response, symbols);
+        const results = this.safeList (response, 'results', []);
+        return this.parseLeverages (results, symbols);
     }
 
     /**
@@ -1885,6 +1886,45 @@ export default class grvt extends Exchange {
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         } as Leverage;
+    }
+
+    /**
+     * @method
+     * @name grvt#fetchMarginModes
+     * @description fetches margin mode of the user
+     * @see https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginModes (symbols: Str[] = undefined, params = {}): Promise<MarginModes> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'sub_account_id': this.getSubAccountId (params),
+        };
+        const response = await this.privateTradingPostFullV1GetAllInitialLeverage (this.extend (request, params));
+        //
+        //    {
+        //        "results": [
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "leverage": "10.0",
+        //                "min_leverage": "1.0",
+        //                "max_leverage": "50.0",
+        //                "margin_type": "CROSS"
+        //            },
+        //
+        const results = this.safeList (response, 'results', []);
+        return this.parseLeverages (results, symbols);
+    }
+
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        const marketId = this.safeString (marginMode, 'symbol');
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (marginMode, 'margin_type'),
+        } as MarginMode;
     }
 
     /**
