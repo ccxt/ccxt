@@ -113,7 +113,9 @@ export default class grvt extends Exchange {
                         'full/v1/withdrawal': 1,
                         'full/v1/withdrawal_history': 1,
                         'full/v1/cancel_order': 1,
-                        'full/v1/set_position_config': 1,
+                        'full/v1/add_position_margin': 1, // addMargin
+                        'full/v1/get_position_margin_limits': 1,
+                        'full/v1/set_position_config': 1,  // setPositionMode/setMarginMode
                         'full/v1/set_initial_leverage': 1,
                         'full/v1/get_all_initial_leverage': 1,
                         'full/v1/set_derisk_mm_ratio': 1,
