@@ -2514,6 +2514,7 @@ class Exchange(object):
                 'price': {'min': None, 'max': None},
                 'cost': {'min': None, 'max': None},
             },
+            'rollingWindowSize': 60000,  # default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         }
 
     def safe_bool_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: bool = None):
@@ -3211,14 +3212,16 @@ class Exchange(object):
         refillRate = self.MAX_VALUE
         if self.rateLimit > 0:
             refillRate = 1 / self.rateLimit
+        useLeaky = (self.rollingWindowSize == 0.0) or (self.rateLimiterAlgorithm == 'leakyBucket')
+        algorithm = 'leakyBucket' if useLeaky else 'rollingWindow'
         defaultBucket = {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
             'refillRate': refillRate,
-            'algorithm': self.rateLimiterAlgorithm,
+            'algorithm': algorithm,
             'windowSize': self.rollingWindowSize,
-            'maxWeight': self.rollingWindowSize / self.rateLimit,   # ms_of_window / ms_of_rate_limit
+            'rateLimit': self.rateLimit,
         }
         existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
         self.tokenBucket = self.extend(defaultBucket, existingBucket)
