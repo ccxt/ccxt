@@ -352,6 +352,7 @@ public partial class Exchange
                     { "max", null },
                 } },
             } },
+            { "rollingWindowSize", 60000 },
         };
     }
 
@@ -1512,12 +1513,16 @@ public partial class Exchange
         {
             refillRate = divide(1, this.rateLimit);
         }
+        object useLeaky = isTrue((isEqual(this.rollingWindowSize, 0))) || isTrue((isEqual(this.rateLimiterAlgorithm, "leakyBucket")));
+        object algorithm = ((bool) isTrue(useLeaky)) ? "leakyBucket" : "rollingWindow";
         object defaultBucket = new Dictionary<string, object>() {
             { "delay", 0.001 },
             { "capacity", 1 },
             { "cost", 1 },
-            { "maxCapacity", this.safeInteger(this.options, "maxRequestsQueue", 1000) },
             { "refillRate", refillRate },
+            { "algorithm", algorithm },
+            { "windowSize", this.rollingWindowSize },
+            { "rateLimit", this.rateLimit },
         };
         object existingBucket = ((bool) isTrue((isEqual(this.tokenBucket, null)))) ? new Dictionary<string, object>() {} : this.tokenBucket;
         this.tokenBucket = this.extend(defaultBucket, existingBucket);

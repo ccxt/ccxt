@@ -1607,6 +1607,7 @@ public partial class bitget : Exchange
                 { "defaultTimeInForce", "GTC" },
                 { "fiatCurrencies", new List<object>() {"EUR", "VND", "PLN", "CZK", "HUF", "DKK", "AUD", "CAD", "NOK", "SEK", "CHF", "MXN", "COP", "ARS", "GBP", "BRL", "UAH", "ZAR"} },
             } },
+            { "rollingWindowSize", 1000 },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
                     { "sandbox", true },

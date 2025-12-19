@@ -2543,6 +2543,7 @@ public partial class binance : Exchange
                     { "PERCENT_PRICE_BY_SIDE", typeof(InvalidOrder) },
                 } },
             } },
+            { "rollingWindowSize", 60000 },
         });
     }
 
