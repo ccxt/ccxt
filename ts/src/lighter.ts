@@ -2,7 +2,7 @@
 import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -263,7 +263,7 @@ export default class lighter extends Exchange {
         });
     }
 
-    async loadAccount (chainId, privateKey, apiKeyIndex, accountIndex, params = {}) {
+    loadAccount (chainId, privateKey, apiKeyIndex, accountIndex, params = {}) {
         let signer = this.safeDict (this.options, 'signer');
         if (signer !== undefined) {
             return signer;
@@ -276,6 +276,19 @@ export default class lighter extends Exchange {
         signer = this.loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex);
         this.options['signer'] = signer;
         return signer;
+    }
+
+    createAuth () {
+        const privateKey = this.privateKey;
+        const apiKeyIndex = this.handleOption ('createAuth', 'apiKeyIndex');
+        const accountIndex = this.handleOption ('createAuth', 'accountIndex');
+        const signer = this.loadAccount (304, privateKey, apiKeyIndex, accountIndex);
+        const rs = {
+            'deadline': this.seconds () + 60,
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        return this.createLighterAuth (signer, rs);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -421,7 +434,7 @@ export default class lighter extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const signer = await this.loadAccount (304, this.privateKey, orderRequest['api_key_index'], orderRequest['account_index']);
+        const signer = this.loadAccount (304, this.privateKey, orderRequest['api_key_index'], orderRequest['account_index']);
         const [ txType, txInfo ] = this.signAndCreateLighterOrder (signer, orderRequest);
         const request = {
             'tx_type': txType,
@@ -436,7 +449,40 @@ export default class lighter extends Exchange {
         //     "predicted_execution_time_ms": 1766088500120
         // }
         //
-        return response;
+        return this.parseOrder (response, market);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        return this.safeOrder ({
+            'info': order,
+            'id': undefined,
+            'clientOrderId': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'triggerPrice': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'average': undefined,
+            'cost': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+            },
+            'trades': undefined,
+            'reduceOnly': undefined,
+        }, market);
     }
 
     /**
@@ -1021,16 +1067,18 @@ export default class lighter extends Exchange {
         } else {
             url = this.implodeHostname (this.urls['api'][api]) + '/api/' + this.version + '/' + path;
         }
-        if (api === 'public') {
-            if (Object.keys (params).length) {
-                if (method === 'POST') {
-                    body = params;
-                } else {
-                    url += '?' + this.rawencode (params);
-                }
+        if (Object.keys (params).length) {
+            if (method === 'POST') {
+                body = params;
+            } else {
+                url += '?' + this.rawencode (params);
             }
-        } else if (api === 'private') {
-            this.checkRequiredCredentials ();
+        }
+        if (api === 'private') {
+            // this.checkRequiredCredentials ();
+            headers = {
+                'Authorization': this.createAuth (),
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

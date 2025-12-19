@@ -101,7 +101,7 @@ except ImportError:
 
 # lighter
 import os
-from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info
+from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info, decode_auth
 
 # -----------------------------------------------------------------------------
 
@@ -2143,7 +2143,7 @@ class Exchange(object):
 
     def unlock_id(self):
         return None
-    
+
     def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
         if path is None:
             raise NotSupported(self.id + ' requires absolute path for shared library to send orders')
@@ -2153,7 +2153,7 @@ class Exchange(object):
 
         lighterSigner = load_lighter_library(path)
 
-        url = self.implode_hostname (self.urls['api']['public'])
+        url = self.implode_hostname(self.urls['api']['public'])
         lighterSigner.CreateClient(
             url.encode("utf-8"),
             privateKey.encode("utf-8"),
@@ -2173,7 +2173,7 @@ class Exchange(object):
             request['order_type'],
             request['time_in_force'],
             request['reduce_only'],
-            0, # trigger price
+            0,  # trigger price
             request['order_expiry'],
             request['nonce'],
             request['api_key_index'],
@@ -2181,6 +2181,15 @@ class Exchange(object):
         ))
         print(tx_type, tx_info, tx_hash, error)
         return [tx_type, tx_info]
+
+    def create_lighter_auth(self, signer, request):
+        auth, error = decode_auth(signer.CreateAuthToken(
+            request['deadline'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        print(auth, error)
+        return auth
 
     # ########################################################################
     # ########################################################################
