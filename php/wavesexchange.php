@@ -18,6 +18,7 @@ class wavesexchange extends Exchange {
             'certified' => false,
             'pro' => false,
             'dex' => true,
+            'rateLimit' => 10,  // https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -216,74 +217,74 @@ class wavesexchange extends Exchange {
                 ),
                 'node' => array(
                     'get' => array(
-                        'addresses',
-                        'addresses/balance/{address}',
-                        'addresses/balance/{address}/{confirmations}',
-                        'addresses/balance/details/{address}',
-                        'addresses/data/{address}',
-                        'addresses/data/{address}/{key}',
-                        'addresses/effectiveBalance/{address}',
-                        'addresses/effectiveBalance/{address}/{confirmations}',
-                        'addresses/publicKey/{publicKey}',
-                        'addresses/scriptInfo/{address}',
-                        'addresses/scriptInfo/{address}/meta',
-                        'addresses/seed/{address}',
-                        'addresses/seq/{from}/{to}',
-                        'addresses/validate/{address}',
-                        'alias/by-address/{address}',
-                        'alias/by-alias/{alias}',
-                        'assets/{assetId}/distribution/{height}/{limit}',
-                        'assets/balance/{address}',
-                        'assets/balance/{address}/{assetId}',
-                        'assets/details/{assetId}',
-                        'assets/nft/{address}/limit/{limit}',
-                        'blockchain/rewards',
-                        'blockchain/rewards/height',
-                        'blocks/address/{address}/{from}/{to}/',
-                        'blocks/at/{height}',
-                        'blocks/delay/{signature}/{blockNum}',
-                        'blocks/first',
-                        'blocks/headers/last',
-                        'blocks/headers/seq/{from}/{to}',
-                        'blocks/height',
-                        'blocks/height/{signature}',
-                        'blocks/last',
-                        'blocks/seq/{from}/{to}',
-                        'blocks/signature/{signature}',
-                        'consensus/algo',
-                        'consensus/basetarget',
-                        'consensus/basetarget/{blockId}',
-                        'consensus/{generatingbalance}/address',
-                        'consensus/generationsignature',
-                        'consensus/generationsignature/{blockId}',
-                        'debug/balances/history/{address}',
-                        'debug/blocks/{howMany}',
-                        'debug/configInfo',
-                        'debug/historyInfo',
-                        'debug/info',
-                        'debug/minerInfo',
-                        'debug/portfolios/{address}',
-                        'debug/state',
-                        'debug/stateChanges/address/{address}',
-                        'debug/stateChanges/info/{id}',
-                        'debug/stateWaves/{height}',
-                        'leasing/active/{address}',
-                        'node/state',
-                        'node/version',
-                        'peers/all',
-                        'peers/blacklisted',
-                        'peers/connected',
-                        'peers/suspended',
-                        'transactions/address/{address}/limit/{limit}',
-                        'transactions/info/{id}',
-                        'transactions/status',
-                        'transactions/unconfirmed',
-                        'transactions/unconfirmed/info/{id}',
-                        'transactions/unconfirmed/size',
-                        'utils/seed',
-                        'utils/seed/{length}',
-                        'utils/time',
-                        'wallet/seed',
+                        'addresses' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/balance/{address}' => 1,
+                        'addresses/balance/{address}/{confirmations}' => 1,
+                        'addresses/balance/details/{address}' => 1,
+                        'addresses/data/{address}' => 100 / 17,
+                        'addresses/data/{address}/{key}' => 100 / 17,
+                        'addresses/effectiveBalance/{address}' => 5,
+                        'addresses/effectiveBalance/{address}/{confirmations}' => 5,
+                        'addresses/publicKey/{publicKey}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/scriptInfo/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/scriptInfo/{address}/meta' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/seed/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/seq/{from}/{to}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'addresses/validate/{address}' => 5,
+                        'alias/by-address/{address}' => 5,
+                        'alias/by-alias/{alias}' => 5,
+                        'assets/{assetId}/distribution/{height}/{limit}' => 100 / 17,
+                        'assets/balance/{address}' => 100 / 17,
+                        'assets/balance/{address}/{assetId}' => 1,
+                        'assets/details/{assetId}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'assets/nft/{address}/limit/{limit}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blockchain/rewards' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blockchain/rewards/height' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blocks/address/{address}/{from}/{to}/' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blocks/at/{height}' => 100,
+                        'blocks/delay/{signature}/{blockNum}' => 5,
+                        'blocks/first' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blocks/headers/last' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blocks/headers/seq/{from}/{to}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'blocks/height' => 5,
+                        'blocks/height/{signature}' => 5,  // might be incorrect, docs list blocks/height, but not blocks/height/.+
+                        'blocks/last' => 5,
+                        'blocks/seq/{from}/{to}' => 100,
+                        'blocks/signature/{signature}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/algo' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/basetarget' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/basetarget/{blockId}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/{generatingbalance}/address' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/generationsignature' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'consensus/generationsignature/{blockId}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/balances/history/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/blocks/{howMany}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/configInfo' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/historyInfo' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/info' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/minerInfo' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/portfolios/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/state' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/stateChanges/address/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/stateChanges/info/{id}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'debug/stateWaves/{height}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'leasing/active/{address}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'node/state' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'node/version' => 5,
+                        'peers/all' => 5,
+                        'peers/blacklisted' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'peers/connected' => 5,
+                        'peers/suspended' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'transactions/address/{address}/limit/{limit}' => 5,
+                        'transactions/info/{id}' => 5,
+                        'transactions/status' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'transactions/unconfirmed' => 5,
+                        'transactions/unconfirmed/info/{id}' => 5,
+                        'transactions/unconfirmed/size' => 5,
+                        'utils/seed' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'utils/seed/{length}' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'utils/time' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
+                        'wallet/seed' => 5,  // default => using value for / because no other value matched under https://docs.waves.tech/en/waves-node/api-limitations-of-the-pool-of-public-nodes#limitations-on-mainnet-pool
                     ),
                     'post' => array(
                         'addresses',
