@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bydfi.js';
-// import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed, InvalidOrder } from './base/errors.js';
+// import { BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, OrderBook, Trade } from './base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -129,7 +129,7 @@ export default class bydfi extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
@@ -203,7 +203,7 @@ export default class bydfi extends Exchange {
                         'v1/swap/market/exchange_info': 1, // done
                         'v1/swap/market/depth': 1, // done
                         'v1/swap/market/trades': 1, // done
-                        'v1/swap/market/klines': 1, // https://developers.bydfi.com/en/swap/market#candlestick-data
+                        'v1/swap/market/klines': 1, // done
                         'v1/swap/market/ticker/24hr': 1, // https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
                         'v1/swap/market/ticker/price': 1, // https://developers.bydfi.com/en/swap/market#latest-price
                         'v1/swap/market/mark_price': 1, // https://developers.bydfi.com/en/swap/market#mark-price
@@ -256,10 +256,22 @@ export default class bydfi extends Exchange {
             'features': {
             },
             'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    // {"code":600,"message":"The parameter 'startTime' is missing"}
                 },
                 'broad': {
                 },
@@ -569,6 +581,102 @@ export default class bydfi extends Exchange {
             'cost': undefined,
             'fee': undefined,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://developers.bydfi.com/en/swap/market#candlestick-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 500)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        // todo handle with error when timeDelta is more than seven days
+        // todo add pagination support
+        const market = this.market (symbol);
+        const maxLimit = 500; // docs says max 1500, but in practice only 500 works
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const request = {
+            'symbol': market['id'],
+            'interval': interval,
+        };
+        let startTime = since;
+        const numberOfCandles = limit ? limit : maxLimit;
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        const now = this.milliseconds ();
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        const timeDelta = duration * numberOfCandles;
+        if (startTime === undefined && until === undefined) {
+            startTime = now - timeDelta;
+            until = now;
+        } else if (until === undefined) {
+            until = startTime + timeDelta;
+            if (until > now) {
+                until = now;
+            }
+        } else if (startTime === undefined) {
+            startTime = until - timeDelta;
+        }
+        request['startTime'] = startTime;
+        request['endTime'] = until;
+        // if (limit !== undefined) {
+        //     request['limit'] = limit;
+        // }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicGetV1SwapMarketKlines (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "s": "ETH-USDT",
+        //                 "t": "1766166000000",
+        //                 "c": "2964.990000000000000000",
+        //                 "o": "2967.830000000000000000",
+        //                 "h": "2967.830000000000000000",
+        //                 "l": "2964.130000000000000000",
+        //                 "v": "20358.000000000000000000"
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result = this.parseOHLCVs (data, market, timeframe, since, limit);
+        return result;
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "s": "ETH-USDT",
+        //         "t": "1766166000000",
+        //         "c": "2964.990000000000000000",
+        //         "o": "2967.830000000000000000",
+        //         "h": "2967.830000000000000000",
+        //         "l": "2964.130000000000000000",
+        //         "v": "20358.000000000000000000"
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
