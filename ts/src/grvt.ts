@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/grvt.js';
-import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -19,6 +19,8 @@ import { ecdsa } from './base/functions/crypto.js';
  */
 export default class grvt extends Exchange {
     describe (): any {
+        const readTradeOthers = 40;
+        const readTradeOrders = 20;
         return this.deepExtend (super.describe (), {
             'id': 'grvt',
             'name': 'GRVT',
@@ -71,64 +73,65 @@ export default class grvt extends Exchange {
                 'fees': '',
             },
             'api': {
+                // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge': {
                     'post': {
-                        'auth/api_key/login': 1,
+                        'auth/api_key/login': 100,
                     },
                 },
                 'privateMarket': {
                     'post': {
-                        'full/v1/instrument': 1,
-                        'full/v1/all_instruments': 1,
-                        'full/v1/instruments': 1,
-                        'full/v1/currency': 1,
-                        'full/v1/margin_rules': 1,
-                        'full/v1/mini': 1,
-                        'full/v1/ticker': 1,
-                        'full/v1/book': 1,
-                        'full/v1/trade': 1,
-                        'full/v1/trade_history': 1,
-                        'full/v1/kline': 1,
-                        'full/v1/funding': 1,
+                        'full/v1/instrument': 4,
+                        'full/v1/all_instruments': 4,
+                        'full/v1/instruments': 4,
+                        'full/v1/currency': 12,
+                        'full/v1/margin_rules': 12,
+                        'full/v1/mini': 4,
+                        'full/v1/ticker': 4,
+                        'full/v1/book': 12,
+                        'full/v1/trade': 12,
+                        'full/v1/trade_history': 12,
+                        'full/v1/kline': 12,
+                        'full/v1/funding': 12,
                     },
                 },
                 'privateTrading': {
                     'post': {
-                        'full/v1/cancel_all_orders': 1,
-                        'full/v1/order': 1,
-                        'full/v1/cancel_on_disconnect': 1,
-                        'full/v1/order_history': 1,
-                        'full/v1/open_orders': 1,
-                        'full/v1/fill_history': 1,
-                        'full/v1/positions': 1,
-                        'full/v1/funding_payment_history': 1,
-                        'full/v1/create_order': 1,
-                        'full/v1/account_summary': 1,
-                        'full/v1/account_history': 1,
-                        'full/v1/aggregated_account_summary': 1,
-                        'full/v1/funding_account_summary': 1,
-                        'full/v1/transfer': 1,
-                        'full/v1/deposit_history': 1,
-                        'full/v1/transfer_history': 1,
-                        'full/v1/withdrawal': 1,
-                        'full/v1/withdrawal_history': 1,
-                        'full/v1/cancel_order': 1,
-                        'full/v1/add_position_margin': 1, // addMargin
-                        'full/v1/get_position_margin_limits': 1,
-                        'full/v1/set_position_config': 1,  // setPositionMode/setMarginMode
-                        'full/v1/set_initial_leverage': 1,
-                        'full/v1/get_all_initial_leverage': 1,
-                        'full/v1/set_derisk_mm_ratio': 1,
-                        'full/v1/vault_burn_tokens': 1,
-                        'full/v1/vault_invest': 1,
-                        'full/v1/vault_investor_summary': 1,
-                        'full/v1/vault_redeem': 1,
-                        'full/v1/vault_redeem_cancel': 1,
-                        'full/v1/vault_view_redemption_queue': 1,
-                        'full/v1/vault_manager_investor_history': 1,
-                        'full/v1/authorize_builder': 1,
-                        'full/v1/get_authorized_builders': 1,
-                        'full/v1/builder_fill_history': 1,
+                        'full/v1/create_order': 5,
+                        'full/v1/cancel_order': 5,
+                        'full/v1/cancel_on_disconnect': 100,
+                        'full/v1/cancel_all_orders': 50,
+                        'full/v1/order': readTradeOrders,
+                        'full/v1/order_history': readTradeOrders,
+                        'full/v1/open_orders': readTradeOrders,
+                        'full/v1/fill_history': readTradeOrders,
+                        'full/v1/positions': readTradeOrders,
+                        'full/v1/funding_payment_history': readTradeOthers,
+                        'full/v1/account_summary': readTradeOthers,
+                        'full/v1/account_history': readTradeOthers,
+                        'full/v1/aggregated_account_summary': readTradeOthers,
+                        'full/v1/funding_account_summary': readTradeOthers,
+                        'full/v1/transfer': 100,
+                        'full/v1/deposit_history': 100,
+                        'full/v1/transfer_history': 100,
+                        'full/v1/withdrawal': 100,
+                        'full/v1/withdrawal_history': 100,
+                        'full/v1/add_position_margin': readTradeOthers, // addMargin
+                        'full/v1/get_position_margin_limits': readTradeOthers,
+                        'full/v1/set_position_config': readTradeOthers,  // setPositionMode/setMarginMode
+                        'full/v1/set_initial_leverage': readTradeOthers,
+                        'full/v1/get_all_initial_leverage': readTradeOthers,
+                        'full/v1/set_derisk_mm_ratio': readTradeOthers,
+                        'full/v1/vault_burn_tokens': readTradeOthers,
+                        'full/v1/vault_invest': readTradeOthers,
+                        'full/v1/vault_investor_summary': readTradeOthers,
+                        'full/v1/vault_redeem': readTradeOthers,
+                        'full/v1/vault_redeem_cancel': readTradeOthers,
+                        'full/v1/vault_view_redemption_queue': readTradeOthers,
+                        'full/v1/vault_manager_investor_history': readTradeOthers,
+                        'full/v1/authorize_builder': readTradeOthers,
+                        'full/v1/get_authorized_builders': readTradeOthers,
+                        'full/v1/builder_fill_history': readTradeOthers,
                     },
                 },
             },
@@ -194,7 +197,113 @@ export default class grvt extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'exact': {},
+                'exact': {
+                    '1000': AuthenticationError, // "You need to authenticate prior to using this functionality"
+                    '1001': PermissionDenied, // "You are not authorized to access this functionality"
+                    '1002': OperationFailed, // "Internal Server Error"
+                    '1003': BadRequest, // "Request could not be processed due to malformed syntax"
+                    '1004': OperationRejected, // "Data Not Found"
+                    '1005': OperationFailed, // "Unknown Error"
+                    '1006': RateLimitExceeded, // "You have surpassed the allocated rate limit for your tier"
+                    '1008': PermissionDenied, // "Your IP has not been whitelisted for access"
+                    '1009': OperationRejected, // "We are temporarily deactivating this API endpoint, please try again later"
+                    '1012': BadRequest, // "Invalid signature chain ID"
+                    '1400': PermissionDenied, // "Signer does not have trade permission"
+                    '2000': PermissionDenied, // "Signature is from an unauthorized signer"
+                    '2001': InvalidNonce, // "Signature has expired"
+                    '2002': BadRequest, // "Signature does not match payload"
+                    '2003': PermissionDenied, // "Order sub account does not match logged in user"
+                    '2004': InvalidNonce, // "Signature is from an expired session key"
+                    '2005': BadRequest, // "Signature V must be 27/28"
+                    '2006': BadRequest, // "Signature R/S must have exactly 64 characters long without 0x prefix"
+                    '2007': BadRequest, // "Signature S must be in the lower half of the curve"
+                    '2008': BadRequest, // "Signature exceeds maximum allowed duration."
+                    '2010': InvalidOrder, // "Order ID should be empty when creating an order"
+                    '2011': InvalidOrder, // "Client Order ID should be supplied when creating an order"
+                    '2012': InvalidOrder, // "Client Order ID overlaps with existing active order"
+                    '2020': InvalidOrder, // "Market Order must always be supplied without a limit price"
+                    '2021': InvalidOrder, // "Limit Order must always be supplied with a limit price"
+                    '2030': InvalidOrder, // "Orderbook Orders must have a TimeInForce of GTT/IOC/FOK"
+                    '2031': InvalidOrder, // "RFQ Orders must have a TimeInForce of GTT/AON/IOC/FOK"
+                    '2032': InvalidOrder, // "Post Only can only be set to true for GTT/AON orders"
+                    '2040': InvalidOrder, // "Order must contain at least one leg"
+                    '2041': InvalidOrder, // "Order Legs must be sorted by Derivative.Instrument/Underlying/BaseCurrency/Expiration/StrikePrice"
+                    '2042': InvalidOrder, // "Orderbook Orders must contain only one leg"
+                    '2050': InvalidOrder, // "Order state must be empty upon creation"
+                    '2051': InvalidOrder, // "Order execution metadata must be empty upon creation"
+                    '2060': BadSymbol, // "Order Legs contain one or more inactive derivative"
+                    '2061': BadSymbol, // "Unsupported Instrument Requested"
+                    '2062': InvalidOrder, // "Order size smaller than min size"
+                    '2063': InvalidOrder, // "Order size smaller than min block size in block trade venue"
+                    '2064': InvalidOrder, // "Invalid limit price tick"
+                    '2065': InvalidOrder, // "Order size too granular"
+                    '2070': InvalidOrder, // "Liquidation Order is not supported"
+                    '2080': InsufficientFunds, // "Insufficient margin to create order"
+                    '2081': OperationRejected, // "Order Fill would result in exceeding maximum position size"
+                    '2082': InvalidOrder, // "Pre-order check failed"
+                    '2083': OperationRejected, // "Order Fill would result in exceeding maximum position size under current configurable leverage tier"
+                    '2090': RateLimitExceeded, // "Max open orders exceeded"
+                    '2100': BadRequest, // "Invalid initial leverage"
+                    '2101': BadRequest, // "Vaults cannot configure leverage"
+                    '2102': OperationRejected, // "Margin type change failed, has open position for this instrument"
+                    '2103': OperationRejected, // "Margin type change failed, has open orders for this instrument"
+                    '2104': BadRequest, // "Margin type not supported"
+                    '2105': BadRequest, // "Margin type change failed"
+                    '2107': BadRequest, // "Attempted to set leverage below minimum"
+                    '2108': BadRequest, // "Attempted to set leverage above maximum"
+                    '2110': InvalidOrder, // "Invalid trigger by"
+                    '2111': InvalidOrder, // "Unsupported trigger by"
+                    '2112': InvalidOrder, // "Invalid trigger order"
+                    '2113': InvalidOrder, // "Trigger price must be non-zero"
+                    '2114': InvalidOrder, // "Invalid position linked TPSL orders, position linked TPSL must be a reduce-only order"
+                    '2115': InvalidOrder, // "Invalid position linked TPSL orders, position linked TPSL must not have smaller size than the position"
+                    '2116': InvalidOrder, // "Position linked TPSL order for this asset already exists"
+                    '2117': InvalidOrder, // "Position linked TPSL orders must be created from web or mobile clients"
+                    '2300': OperationRejected, // "Order cancel time-to-live settings currently disabled."
+                    '2301': OperationRejected, // "Order cancel time-to-live exceeds maximum allowed value."
+                    '2400': OperationRejected, // "Reduce only order with no position"
+                    '2401': OperationRejected, // "Reduce only order must not increase position size"
+                    '2402': OperationRejected, // "Reduce only order size exceeds maximum allowed value"
+                    '3000': BadSymbol, // "Instrument is invalid"
+                    '3004': OperationRejected, // "Instrument does not have a valid maintenance margin configuration"
+                    '3005': OperationRejected, // "Instrument's underlying currency does not have a valid balance decimal configuration"
+                    '3006': OperationRejected, // "Instrument's quote currency does not have a valid balance decimal configuration"
+                    '3021': BadRequest, // "Either order ID or client order ID must be supplied"
+                    '3031': BadRequest, // "Depth is invalid"
+                    '4000': InsufficientFunds, // "Insufficient balance to complete transfer"
+                    '4002': OperationFailed, // "Transfer failed with an unrefined failure reason, please report to GRVT"
+                    '4010': OperationRejected, // "This wallet is not supported. Please try another wallet."
+                    '5000': OperationRejected, // "Transfer Metadata does not match the expected structure."
+                    '5001': OperationRejected, // "Transfer Provider does not match the expected provider."
+                    '5002': OperationRejected, // "Direction of the transfer does not match the expected direction."
+                    '5003': OperationRejected, // "Endpoint account ID is invalid."
+                    '5004': OperationRejected, // "Funding account does not exist in our system."
+                    '5005': OperationRejected, // "Invalid ChainID for the transfer request."
+                    '6000': OperationRejected, // "Countdown time is bigger than 300s supported"
+                    '6100': OperationRejected, // "Derisk MM Ratio is out of range"
+                    '7000': OperationRejected, // "Vault ID provided is invalid and does not belong to any vault"
+                    '7001': InsufficientFunds, // "Vault does not have sufficient LP token balance"
+                    '7002': OperationFailed, // "User has an ongoing redemption"
+                    '7003': OperationRejected, // "This vault has been delisted/closed."
+                    '7004': OperationRejected, // "This investment would cause the vault to exceed its valuation cap."
+                    '7005': InsufficientFunds, // "You are attempting to burn more vault tokens than you own."
+                    '7006': OperationFailed, // "You are attempting to burn vault tokens whilst having an active redemption request."
+                    '7007': PermissionDenied, // "The investor is not an LP for this vault."
+                    '7100': OperationFailed, // "Unknown transaction type"
+                    '7101': OperationRejected, // "Transfer account not found"
+                    '7102': OperationRejected, // "Transfer sub-account not found"
+                    '7103': OperationRejected, // "Charged trading fee below the config minimum"
+                    '7450': OperationRejected, // "Add margin failed"
+                    '7451': OperationRejected, // "Add margin to empty position"
+                    '7452': OperationRejected, // "Add margin to non isolated position"
+                    '7453': OperationRejected, // "Max addable amount exceeded"
+                    '7454': OperationRejected, // "Max removable amount exceeded"
+                    '7455': OperationRejected, // "Not isolated margin position"
+                    '7500': OperationRejected, // "Builder Fee exceeds the allowed program limit."
+                    '7501': BadRequest, // "Builder Fee can't be negative."
+                    '7502': OperationRejected, // "Builder Account does not exist."
+                    '7503': OperationRejected, // "Builder is already authorized for this account with the given fee."
+                },
                 'broad': {},
             },
         });
