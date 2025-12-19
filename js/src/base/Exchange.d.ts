@@ -145,6 +145,8 @@ export default class Exchange {
     tokenBucket: Dictionary<number>;
     throttler: any;
     enableRateLimit: boolean;
+    rollingWindowSize: number;
+    rateLimiterAlgorithm: string;
     httpExceptions: Dictionary<any>;
     limits: {
         amount?: MinMax;

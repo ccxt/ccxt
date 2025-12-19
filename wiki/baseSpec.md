@@ -6674,6 +6674,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [bingx](/exchanges/bingx.md#unwatchohlcv)
 * [bitfinex](/exchanges/bitfinex.md#unwatchohlcv)
 * [bitget](/exchanges/bitget.md#unwatchohlcv)
+* [bitmart](/exchanges/bitmart.md#unwatchohlcv)
 * [bybit](/exchanges/bybit.md#unwatchohlcv)
 * [coincatch](/exchanges/coincatch.md#unwatchohlcv)
 * [cryptocom](/exchanges/cryptocom.md#unwatchohlcv)
@@ -6731,6 +6732,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 * [binance](/exchanges/binance.md#unwatchorderbook)
 * [bingx](/exchanges/bingx.md#unwatchorderbook)
 * [bitget](/exchanges/bitget.md#unwatchorderbook)
+* [bitmart](/exchanges/bitmart.md#unwatchorderbook)
 * [bybit](/exchanges/bybit.md#unwatchorderbook)
 * [coincatch](/exchanges/coincatch.md#unwatchorderbook)
 * [cryptocom](/exchanges/cryptocom.md#unwatchorderbook)
@@ -6767,6 +6769,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#unwatchorderbookforsymbols)
 * [binance](/exchanges/binance.md#unwatchorderbookforsymbols)
+* [bitmart](/exchanges/bitmart.md#unwatchorderbookforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchorderbookforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#unwatchorderbookforsymbols)
 * [defx](/exchanges/defx.md#unwatchorderbookforsymbols)
@@ -6792,6 +6795,7 @@ unWatches information on multiple orders made by the user
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#unwatchorders)
+* [bitmart](/exchanges/bitmart.md#unwatchorders)
 * [bybit](/exchanges/bybit.md#unwatchorders)
 
 ---
@@ -6812,6 +6816,7 @@ unWatches from the stream channel
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#unwatchpositions)
+* [bitmart](/exchanges/bitmart.md#unwatchpositions)
 * [bybit](/exchanges/bybit.md#unwatchpositions)
 
 ---
@@ -6836,6 +6841,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 * [bingx](/exchanges/bingx.md#unwatchticker)
 * [bitfinex](/exchanges/bitfinex.md#unwatchticker)
 * [bitget](/exchanges/bitget.md#unwatchticker)
+* [bitmart](/exchanges/bitmart.md#unwatchticker)
 * [bybit](/exchanges/bybit.md#unwatchticker)
 * [coincatch](/exchanges/coincatch.md#unwatchticker)
 * [cryptocom](/exchanges/cryptocom.md#unwatchticker)
@@ -6866,6 +6872,7 @@ watches a price ticker, a statistical calculation with the information calculate
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#unwatchtickers)
 * [binance](/exchanges/binance.md#unwatchtickers)
+* [bitmart](/exchanges/bitmart.md#unwatchtickers)
 * [bybit](/exchanges/bybit.md#unwatchtickers)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtickers)
 * [defx](/exchanges/defx.md#unwatchtickers)
@@ -6896,6 +6903,7 @@ unWatches from the stream channel
 * [bingx](/exchanges/bingx.md#unwatchtrades)
 * [bitfinex](/exchanges/bitfinex.md#unwatchtrades)
 * [bitget](/exchanges/bitget.md#unwatchtrades)
+* [bitmart](/exchanges/bitmart.md#unwatchtrades)
 * [bybit](/exchanges/bybit.md#unwatchtrades)
 * [coincatch](/exchanges/coincatch.md#unwatchtrades)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtrades)
@@ -6931,6 +6939,7 @@ unWatches from the stream channel
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#unwatchtradesforsymbols)
 * [binance](/exchanges/binance.md#unwatchtradesforsymbols)
+* [bitmart](/exchanges/bitmart.md#unwatchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchtradesforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtradesforsymbols)
 * [defx](/exchanges/defx.md#unwatchtradesforsymbols)

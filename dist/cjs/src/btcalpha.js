@@ -21,6 +21,7 @@ class btcalpha extends btcalpha$1["default"] {
             'name': 'BTC-Alpha',
             'countries': ['US'],
             'version': 'v1',
+            'rateLimit': 10,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -148,28 +149,28 @@ class btcalpha extends btcalpha$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies/',
-                        'pairs/',
-                        'orderbook/{pair_name}',
-                        'exchanges/',
-                        'charts/{pair}/{type}/chart/',
-                        'ticker/',
-                    ],
+                    'get': {
+                        'currencies/': 1,
+                        'pairs/': 1,
+                        'orderbook/{pair_name}': 1,
+                        'exchanges/': 1,
+                        'charts/{pair}/{type}/chart/': 1,
+                        'ticker/': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'wallets/',
-                        'orders/own/',
-                        'order/{id}/',
-                        'exchanges/own/',
-                        'deposits/',
-                        'withdraws/',
-                    ],
-                    'post': [
-                        'order/',
-                        'order-cancel/',
-                    ],
+                    'get': {
+                        'wallets/': 50,
+                        'orders/own/': 50,
+                        'order/{id}/': 50,
+                        'exchanges/own/': 50,
+                        'deposits/': 50,
+                        'withdraws/': 50,
+                    },
+                    'post': {
+                        'order/': 50,
+                        'order-cancel/': 50,
+                    },
                 },
             },
             'fees': {

@@ -2633,6 +2633,7 @@ class binance extends binance$1["default"] {
                     'PERCENT_PRICE_BY_SIDE': errors.InvalidOrder, // {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
                 },
             },
+            'rollingWindowSize': 60000.0,
         });
     }
     isInverse(type, subType = undefined) {

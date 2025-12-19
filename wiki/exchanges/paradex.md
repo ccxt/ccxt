@@ -56,7 +56,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds  
+**See**: https://docs.paradex.trade/api/prod/system/get-time-unix-milliseconds  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -76,7 +76,7 @@ the latest known information on the availability of the exchange API
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
-**See**: https://docs.api.testnet.paradex.trade/#get-system-state  
+**See**: https://docs.paradex.trade/api/prod/system/get-state  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -96,7 +96,7 @@ retrieves data on all markets for bitget
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://docs.api.testnet.paradex.trade/#list-available-markets  
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -116,7 +116,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.api.testnet.paradex.trade/#ohlcv-for-a-symbol  
+**See**: https://docs.paradex.trade/api/prod/markets/klines  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -142,7 +142,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.api.testnet.paradex.trade/#list-available-markets-summary  
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -163,7 +163,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.api.testnet.paradex.trade/#list-available-markets-summary  
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -184,7 +184,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
-**See**: https://docs.api.testnet.paradex.trade/#get-market-orderbook  
+**See**: https://docs.paradex.trade/api/prod/markets/get-orderbook  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -206,7 +206,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://docs.api.testnet.paradex.trade/#trade-tape  
+**See**: https://docs.paradex.trade/api/prod/trades/trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -231,7 +231,7 @@ retrieves the open interest of a contract trading pair
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
-**See**: https://docs.api.testnet.paradex.trade/#list-available-markets-summary  
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -252,7 +252,7 @@ create a trade order
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.api.prod.paradex.trade/#create-order  
+**See**: https://docs.paradex.trade/api/prod/orders/new  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -287,8 +287,8 @@ cancels an open order
 
 **See**
 
-- https://docs.api.prod.paradex.trade/#cancel-order
-- https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-id
+- https://docs.paradex.trade/api/prod/orders/cancel
+- https://docs.paradex.trade/api/prod/orders/cancel-by-client-id
 
 
 | Param | Type | Required | Description |
@@ -312,7 +312,7 @@ cancel all open orders in a market
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.api.prod.paradex.trade/#cancel-all-open-orders  
+**See**: https://docs.paradex.trade/api/prod/orders/cancel-all  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -335,8 +335,8 @@ fetches information on an order made by the user
 
 **See**
 
-- https://docs.api.prod.paradex.trade/#get-order
-- https://docs.api.prod.paradex.trade/#get-order-by-client-id
+- https://docs.paradex.trade/api/prod/orders/get
+- https://docs.paradex.trade/api/prod/orders/get-by-client-id
 
 
 | Param | Type | Required | Description |
@@ -360,7 +360,7 @@ fetches information on multiple orders made by the user
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.api.prod.paradex.trade/#get-orders  
+**See**: https://docs.paradex.trade/api/prod/orders/get-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -386,7 +386,7 @@ fetches information on multiple orders made by the user
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.api.prod.paradex.trade/#paradex-rest-api-orders  
+**See**: https://docs.paradex.trade/api/prod/orders/get-open-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -409,7 +409,7 @@ query for balance and get the amount of funds available for trading or funds loc
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.api.prod.paradex.trade/#list-balances  
+**See**: https://docs.paradex.trade/api/prod/account/get-balance  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -429,7 +429,7 @@ fetch all trades made by the user
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://docs.api.prod.paradex.trade/#list-fills  
+**See**: https://docs.paradex.trade/api/prod/account/list-fills  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -454,7 +454,7 @@ fetch data on an open position
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://docs.api.prod.paradex.trade/#list-open-positions  
+**See**: https://docs.paradex.trade/api/prod/account/get-positions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -475,7 +475,7 @@ fetch all open positions
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://docs.api.prod.paradex.trade/#list-open-positions  
+**See**: https://docs.paradex.trade/api/prod/account/get-positions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -496,7 +496,7 @@ retrieves the public liquidations of a trading pair
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
-**See**: https://docs.api.prod.paradex.trade/#list-liquidations  
+**See**: https://docs.paradex.trade/api/prod/liquidations/get-liquidations  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -520,7 +520,7 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers  
+**See**: https://docs.paradex.trade/api/prod/transfers/get  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -545,7 +545,7 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers  
+**See**: https://docs.paradex.trade/api/prod/transfers/get  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -570,7 +570,7 @@ fetches the margin mode of a specific symbol
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
-**See**: https://docs.api.testnet.paradex.trade/#get-account-margin-configuration  
+**See**: https://docs.paradex.trade/api/prod/account/get-account-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -591,7 +591,7 @@ set margin mode to 'cross' or 'isolated'
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://docs.api.testnet.paradex.trade/#set-margin-configuration  
+**See**: https://docs.paradex.trade/api/prod/account/upsert-account-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -614,7 +614,7 @@ fetch the set leverage for a market
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
-**See**: https://docs.api.testnet.paradex.trade/#get-account-margin-configuration  
+**See**: https://docs.paradex.trade/api/prod/account/get-account-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -635,7 +635,7 @@ set the level of leverage for a market
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://docs.api.testnet.paradex.trade/#set-margin-configuration  
+**See**: https://docs.paradex.trade/api/prod/account/upsert-account-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -658,7 +658,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
-**See**: https://docs.api.testnet.paradex.trade/#list-available-markets-summary  
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -679,7 +679,7 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
-**See**: https://docs.api.testnet.paradex.trade/#list-available-markets-summary  
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
