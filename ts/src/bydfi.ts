@@ -1,12 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
+import { ArgumentsRequired } from '../ccxt.js';
 import Exchange from './abstract/bydfi.js';
 // import { BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, Int, Market, OHLCV, OrderBook, Strings, Trade, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRate, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -101,7 +102,7 @@ export default class bydfi extends Exchange {
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
@@ -208,7 +209,7 @@ export default class bydfi extends Exchange {
                         'v1/swap/market/ticker/price': 1, // https://developers.bydfi.com/en/swap/market#latest-price
                         'v1/swap/market/mark_price': 1, // https://developers.bydfi.com/en/swap/market#mark-price
                         'v1/swap/market/funding_rate': 1, // done
-                        'v1/swap/market/funding_rate_history': 1, // https://developers.bydfi.com/en/swap/market#historical-funding-rates
+                        'v1/swap/market/funding_rate_history': 1, // done
                         'v1/swap/market/risk_limit': 1, // https://developers.bydfi.com/en/swap/market#risk-limit
                     },
                 },
@@ -820,7 +821,6 @@ export default class bydfi extends Exchange {
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
-        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (contract, 'time');
         const nextFundingTimestamp = this.safeInteger (contract, 'nextFundingTime');
@@ -844,6 +844,78 @@ export default class bydfi extends Exchange {
             'previousFundingDatetime': undefined,
             'interval': undefined,
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://developers.bydfi.com/en/swap/market#historical-funding-rates
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicGetV1SwapMarketFundingRateHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "ETH-USDT",
+        //                 "fundingRate": "0.00000025",
+        //                 "fundingTime": "1765584000000",
+        //                 "markPrice": "3083.2"
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseFundingRateHistories (data, market, since, limit);
+    }
+
+    parseFundingRateHistory (contract, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "ETH-USDT",
+        //         "fundingRate": "0.00000025",
+        //         "fundingTime": "1765584000000",
+        //         "markPrice": "3083.2"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const timestamp = this.safeInteger (contract, 'fundingTime');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
