@@ -21,6 +21,7 @@ func (this *WavesexchangeCore) Describe() interface{} {
 		"certified": false,
 		"pro":       false,
 		"dex":       true,
+		"rateLimit": 10,
 		"has": map[string]interface{}{
 			"CORS":                           nil,
 			"spot":                           true,
@@ -169,7 +170,76 @@ func (this *WavesexchangeCore) Describe() interface{} {
 				"put":    []interface{}{"matcher/settings/rates/{assetId}"},
 			},
 			"node": map[string]interface{}{
-				"get":    []interface{}{"addresses", "addresses/balance/{address}", "addresses/balance/{address}/{confirmations}", "addresses/balance/details/{address}", "addresses/data/{address}", "addresses/data/{address}/{key}", "addresses/effectiveBalance/{address}", "addresses/effectiveBalance/{address}/{confirmations}", "addresses/publicKey/{publicKey}", "addresses/scriptInfo/{address}", "addresses/scriptInfo/{address}/meta", "addresses/seed/{address}", "addresses/seq/{from}/{to}", "addresses/validate/{address}", "alias/by-address/{address}", "alias/by-alias/{alias}", "assets/{assetId}/distribution/{height}/{limit}", "assets/balance/{address}", "assets/balance/{address}/{assetId}", "assets/details/{assetId}", "assets/nft/{address}/limit/{limit}", "blockchain/rewards", "blockchain/rewards/height", "blocks/address/{address}/{from}/{to}/", "blocks/at/{height}", "blocks/delay/{signature}/{blockNum}", "blocks/first", "blocks/headers/last", "blocks/headers/seq/{from}/{to}", "blocks/height", "blocks/height/{signature}", "blocks/last", "blocks/seq/{from}/{to}", "blocks/signature/{signature}", "consensus/algo", "consensus/basetarget", "consensus/basetarget/{blockId}", "consensus/{generatingbalance}/address", "consensus/generationsignature", "consensus/generationsignature/{blockId}", "debug/balances/history/{address}", "debug/blocks/{howMany}", "debug/configInfo", "debug/historyInfo", "debug/info", "debug/minerInfo", "debug/portfolios/{address}", "debug/state", "debug/stateChanges/address/{address}", "debug/stateChanges/info/{id}", "debug/stateWaves/{height}", "leasing/active/{address}", "node/state", "node/version", "peers/all", "peers/blacklisted", "peers/connected", "peers/suspended", "transactions/address/{address}/limit/{limit}", "transactions/info/{id}", "transactions/status", "transactions/unconfirmed", "transactions/unconfirmed/info/{id}", "transactions/unconfirmed/size", "utils/seed", "utils/seed/{length}", "utils/time", "wallet/seed"},
+				"get": map[string]interface{}{
+					"addresses":                   5,
+					"addresses/balance/{address}": 1,
+					"addresses/balance/{address}/{confirmations}":          1,
+					"addresses/balance/details/{address}":                  1,
+					"addresses/data/{address}":                             Divide(100, 17),
+					"addresses/data/{address}/{key}":                       Divide(100, 17),
+					"addresses/effectiveBalance/{address}":                 5,
+					"addresses/effectiveBalance/{address}/{confirmations}": 5,
+					"addresses/publicKey/{publicKey}":                      5,
+					"addresses/scriptInfo/{address}":                       5,
+					"addresses/scriptInfo/{address}/meta":                  5,
+					"addresses/seed/{address}":                             5,
+					"addresses/seq/{from}/{to}":                            5,
+					"addresses/validate/{address}":                         5,
+					"alias/by-address/{address}":                           5,
+					"alias/by-alias/{alias}":                               5,
+					"assets/{assetId}/distribution/{height}/{limit}":       Divide(100, 17),
+					"assets/balance/{address}":                             Divide(100, 17),
+					"assets/balance/{address}/{assetId}":                   1,
+					"assets/details/{assetId}":                             5,
+					"assets/nft/{address}/limit/{limit}":                   5,
+					"blockchain/rewards":                                   5,
+					"blockchain/rewards/height":                            5,
+					"blocks/address/{address}/{from}/{to}/":                5,
+					"blocks/at/{height}":                                   100,
+					"blocks/delay/{signature}/{blockNum}":                  5,
+					"blocks/first":                                         5,
+					"blocks/headers/last":                                  5,
+					"blocks/headers/seq/{from}/{to}":                       5,
+					"blocks/height":                                        5,
+					"blocks/height/{signature}":                            5,
+					"blocks/last":                                          5,
+					"blocks/seq/{from}/{to}":                               100,
+					"blocks/signature/{signature}":                         5,
+					"consensus/algo":                                       5,
+					"consensus/basetarget":                                 5,
+					"consensus/basetarget/{blockId}":                       5,
+					"consensus/{generatingbalance}/address":                5,
+					"consensus/generationsignature":                        5,
+					"consensus/generationsignature/{blockId}":              5,
+					"debug/balances/history/{address}":                     5,
+					"debug/blocks/{howMany}":                               5,
+					"debug/configInfo":                                     5,
+					"debug/historyInfo":                                    5,
+					"debug/info":                                           5,
+					"debug/minerInfo":                                      5,
+					"debug/portfolios/{address}":                           5,
+					"debug/state":                                          5,
+					"debug/stateChanges/address/{address}":                 5,
+					"debug/stateChanges/info/{id}":                         5,
+					"debug/stateWaves/{height}":                            5,
+					"leasing/active/{address}":                             5,
+					"node/state":                                           5,
+					"node/version":                                         5,
+					"peers/all":                                            5,
+					"peers/blacklisted":                                    5,
+					"peers/connected":                                      5,
+					"peers/suspended":                                      5,
+					"transactions/address/{address}/limit/{limit}":         5,
+					"transactions/info/{id}":                               5,
+					"transactions/status":                                  5,
+					"transactions/unconfirmed":                             5,
+					"transactions/unconfirmed/info/{id}":                   5,
+					"transactions/unconfirmed/size":                        5,
+					"utils/seed":                                           5,
+					"utils/seed/{length}":                                  5,
+					"utils/time":                                           5,
+					"wallet/seed":                                          5,
+				},
 				"post":   []interface{}{"addresses", "addresses/data/{address}", "addresses/sign/{address}", "addresses/signText/{address}", "addresses/verify/{address}", "addresses/verifyText/{address}", "debug/blacklist", "debug/print", "debug/rollback", "debug/validate", "node/stop", "peers/clearblacklist", "peers/connect", "transactions/broadcast", "transactions/calculateFee", "tranasctions/sign", "transactions/sign/{signerAddress}", "tranasctions/status", "utils/hash/fast", "utils/hash/secure", "utils/script/compileCode", "utils/script/compileWithImports", "utils/script/decompile", "utils/script/estimate", "utils/sign/{privateKey}", "utils/transactionsSerialize"},
 				"delete": []interface{}{"addresses/{address}", "debug/rollback-to/{signature}"},
 			},
@@ -338,8 +408,8 @@ func (this *WavesexchangeCore) GetFeesForAsset(symbol interface{}, side interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes5018 := (<-this.LoadMarkets())
-		PanicOnError(retRes5018)
+		retRes5028 := (<-this.LoadMarkets())
+		PanicOnError(retRes5028)
 		var market interface{} = this.Market(symbol)
 		amount = this.ToRealSymbolAmount(symbol, amount)
 		price = this.ToRealSymbolPrice(symbol, price)
@@ -351,9 +421,9 @@ func (this *WavesexchangeCore) GetFeesForAsset(symbol interface{}, side interfac
 			"price":     price,
 		}, params)
 
-		retRes51215 := (<-this.MatcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee(request))
-		PanicOnError(retRes51215)
-		ch <- retRes51215
+		retRes51315 := (<-this.MatcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee(request))
+		PanicOnError(retRes51315)
+		ch <- retRes51315
 		return nil
 
 	}()
@@ -625,8 +695,8 @@ func (this *WavesexchangeCore) FetchOrderBook(symbol interface{}, optionalArgs .
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes7308 := (<-this.LoadMarkets())
-		PanicOnError(retRes7308)
+		retRes7318 := (<-this.LoadMarkets())
+		PanicOnError(retRes7318)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = this.Extend(map[string]interface{}{
 			"baseId":  GetValue(market, "baseId"),
@@ -961,8 +1031,8 @@ func (this *WavesexchangeCore) FetchTicker(symbol interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes9918 := (<-this.LoadMarkets())
-		PanicOnError(retRes9918)
+		retRes9928 := (<-this.LoadMarkets())
+		PanicOnError(retRes9928)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"pairs": GetValue(market, "id"),
@@ -1022,8 +1092,8 @@ func (this *WavesexchangeCore) FetchTickers(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes10358 := (<-this.LoadMarkets())
-		PanicOnError(retRes10358)
+		retRes10368 := (<-this.LoadMarkets())
+		PanicOnError(retRes10368)
 
 		response := (<-this.MarketGetTickers(params))
 		PanicOnError(response)
@@ -1090,8 +1160,8 @@ func (this *WavesexchangeCore) FetchOHLCV(symbol interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes10828 := (<-this.LoadMarkets())
-		PanicOnError(retRes10828)
+		retRes10838 := (<-this.LoadMarkets())
+		PanicOnError(retRes10838)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"baseId":   GetValue(market, "baseId"),
@@ -1230,8 +1300,8 @@ func (this *WavesexchangeCore) FetchDepositAddress(code interface{}, optionalArg
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes12148 := (<-this.SignIn())
-		PanicOnError(retRes12148)
+		retRes12158 := (<-this.SignIn())
+		PanicOnError(retRes12158)
 		var networks interface{} = this.SafeValue(this.Options, "networks", map[string]interface{}{})
 		var rawNetwork interface{} = this.SafeStringUpper(params, "network")
 		var network interface{} = this.SafeString(networks, rawNetwork, rawNetwork)
@@ -1489,8 +1559,8 @@ func (this *WavesexchangeCore) CreateOrder(symbol interface{}, typeVar interface
 		this.CheckRequiredDependencies()
 		this.CheckRequiredKeys()
 
-		retRes14428 := (<-this.LoadMarkets())
-		PanicOnError(retRes14428)
+		retRes14438 := (<-this.LoadMarkets())
+		PanicOnError(retRes14438)
 		var market interface{} = this.Market(symbol)
 
 		matcherPublicKey := (<-this.GetMatcherPublicKey())
@@ -1702,8 +1772,8 @@ func (this *WavesexchangeCore) CancelOrder(id interface{}, optionalArgs ...inter
 		this.CheckRequiredDependencies()
 		this.CheckRequiredKeys()
 
-		retRes16248 := (<-this.SignIn())
-		PanicOnError(retRes16248)
+		retRes16258 := (<-this.SignIn())
+		PanicOnError(retRes16258)
 
 		wavesAddress := (<-this.GetWavesAddress())
 		PanicOnError(wavesAddress)
@@ -1771,8 +1841,8 @@ func (this *WavesexchangeCore) FetchOrder(id interface{}, optionalArgs ...interf
 		this.CheckRequiredDependencies()
 		this.CheckRequiredKeys()
 
-		retRes16748 := (<-this.LoadMarkets())
-		PanicOnError(retRes16748)
+		retRes16758 := (<-this.LoadMarkets())
+		PanicOnError(retRes16758)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1828,8 +1898,8 @@ func (this *WavesexchangeCore) FetchOrders(optionalArgs ...interface{}) <-chan i
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
 
-		retRes17138 := (<-this.LoadMarkets())
-		PanicOnError(retRes17138)
+		retRes17148 := (<-this.LoadMarkets())
+		PanicOnError(retRes17148)
 		var market interface{} = this.Market(symbol)
 		var timestamp interface{} = this.Milliseconds()
 		var byteArray interface{} = []interface{}{this.Base58ToBinary(this.ApiKey), this.NumberToBE(timestamp, 8)}
@@ -1894,11 +1964,11 @@ func (this *WavesexchangeCore) FetchOpenOrders(optionalArgs ...interface{}) <-ch
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17618 := (<-this.LoadMarkets())
-		PanicOnError(retRes17618)
-
-		retRes17628 := (<-this.SignIn())
+		retRes17628 := (<-this.LoadMarkets())
 		PanicOnError(retRes17628)
+
+		retRes17638 := (<-this.SignIn())
+		PanicOnError(retRes17638)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1945,11 +2015,11 @@ func (this *WavesexchangeCore) FetchClosedOrders(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17878 := (<-this.LoadMarkets())
-		PanicOnError(retRes17878)
-
-		retRes17888 := (<-this.SignIn())
+		retRes17888 := (<-this.LoadMarkets())
 		PanicOnError(retRes17888)
+
+		retRes17898 := (<-this.SignIn())
+		PanicOnError(retRes17898)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2187,8 +2257,8 @@ func (this *WavesexchangeCore) FetchBalance(optionalArgs ...interface{}) <-chan 
 		this.CheckRequiredDependencies()
 		this.CheckRequiredKeys()
 
-		retRes19998 := (<-this.LoadMarkets())
-		PanicOnError(retRes19998)
+		retRes20008 := (<-this.LoadMarkets())
+		PanicOnError(retRes20008)
 
 		wavesAddress := (<-this.GetWavesAddress())
 		PanicOnError(wavesAddress)
@@ -2359,8 +2429,8 @@ func (this *WavesexchangeCore) FetchMyTrades(optionalArgs ...interface{}) <-chan
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes21448 := (<-this.LoadMarkets())
-		PanicOnError(retRes21448)
+		retRes21458 := (<-this.LoadMarkets())
+		PanicOnError(retRes21458)
 
 		address := (<-this.GetWavesAddress())
 		PanicOnError(address)
@@ -2474,8 +2544,8 @@ func (this *WavesexchangeCore) FetchTrades(symbol interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes22388 := (<-this.LoadMarkets())
-		PanicOnError(retRes22388)
+		retRes22398 := (<-this.LoadMarkets())
+		PanicOnError(retRes22398)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"amountAsset": GetValue(market, "baseId"),
@@ -2766,8 +2836,8 @@ func (this *WavesexchangeCore) FetchDepositWithdrawFees(optionalArgs ...interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes25068 := (<-this.LoadMarkets())
-		PanicOnError(retRes25068)
+		retRes25078 := (<-this.LoadMarkets())
+		PanicOnError(retRes25078)
 		var data interface{} = []interface{}{}
 		var promises interface{} = []interface{}{}
 		AppendToArray(&promises, this.PrivateGetDepositCurrencies(params))
@@ -2902,8 +2972,8 @@ func (this *WavesexchangeCore) Withdraw(code interface{}, amount interface{}, ad
 			}
 		}
 
-		retRes26218 := (<-this.LoadMarkets())
-		PanicOnError(retRes26218)
+		retRes26228 := (<-this.LoadMarkets())
+		PanicOnError(retRes26228)
 		var hexChars interface{} = []interface{}{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
 		var set interface{} = map[string]interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(hexChars)); i++ {
@@ -2922,8 +2992,8 @@ func (this *WavesexchangeCore) Withdraw(code interface{}, amount interface{}, ad
 			}
 		}
 
-		retRes26398 := (<-this.SignIn())
-		PanicOnError(retRes26398)
+		retRes26408 := (<-this.SignIn())
+		PanicOnError(retRes26408)
 		var proxyAddress interface{} = nil
 		if IsTrue(IsTrue(IsEqual(code, "WAVES")) && !IsTrue(isErc20)) {
 			proxyAddress = address
