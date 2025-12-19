@@ -6,7 +6,7 @@ import Exchange from './abstract/bydfi.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Market } from './base/types.js';
+import type { Dict, Int, Market, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ export default class bydfi extends Exchange {
                 'fetchConvertTradeHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': 'emulated',
+                'fetchCurrencies': false,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -201,7 +201,7 @@ export default class bydfi extends Exchange {
                     'get': {
                         'v1/public/api_limits': 1, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
                         'v1/swap/market/exchange_info': 1, // done
-                        'v1/swap/market/depth': 1, // https://developers.bydfi.com/en/swap/market#depth-information
+                        'v1/swap/market/depth': 1, // done
                         'v1/swap/market/trades': 1, // https://developers.bydfi.com/en/swap/market#recent-trades
                         'v1/swap/market/klines': 1, // https://developers.bydfi.com/en/swap/market#candlestick-data
                         'v1/swap/market/ticker/24hr': 1, // https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
@@ -428,9 +428,80 @@ export default class bydfi extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name alpaca#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.loc] crypto location, default: us
+     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = this.getClosestLimit (limit);
+        }
+        const response = await this.publicGetV1SwapMarketDepth (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "lastUpdateId": "221780076",
+        //             "symbol": "ETH-USDT",
+        //             "asks": [
+        //                 {
+        //                     "price": "2958.21",
+        //                     "amount": "39478"
+        //                 },
+        //                 ...
+        //             ],
+        //             "bids": [
+        //                 {
+        //                     "price": "2958.19",
+        //                     "amount": "174498"
+        //                 },
+        //                 ...
+        //             ],
+        //             "e": "221780076"
+        //         },
+        //         "success": true
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.milliseconds ();
+        const orderBook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
+        orderBook['nonce'] = this.safeInteger (data, 'lastUpdateId');
+        return orderBook;
+    }
+
+    getClosestLimit (limit: Int): Int {
+        const limits = [ 5, 10, 20, 50, 100, 500, 1000 ];
+        let result = 1000;
+        for (let i = 0; i < limits.length; i++) {
+            if (limit <= limits[i]) {
+                result = limits[i];
+                break;
+            }
+        }
+        return result;
+    }
+
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api'][api];
-        url += '/' + path;
+        let endpoint = '/' + path;
+        const query = this.urlencode (params);
+        if (query.length !== 0) {
+            endpoint += '?' + query;
+        }
+        url += endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
