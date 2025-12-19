@@ -34,7 +34,7 @@ class Throttler {
             'maxWeight': undefined,         // rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit
         };
         Object.assign (this.config, config);
-        if ((this.config['windowSize'] !== 0.0) && (this.config["rateLimit"] > 0.0)) {
+        if (this.config['algorithm'] !== 'leakyBucket') {
             this.config['maxWeight'] = this.config.windowSize / this.config.rateLimit;
         }
         this.queue = [];

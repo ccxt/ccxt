@@ -33,7 +33,7 @@ func NewThrottler(config map[string]interface{}) *Throttler {
 		"maxWeight":  0.0,     // rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit
 	}
 	config = ExtendMap(defaultConfig, config)
-	if config["windowSize"] != 0.0  && ToFloat64(config["rateLimit"]) > 0.0 {
+	if config["algorithm"] != "leakyBucket" {
 		config["maxWeight"] = config["windowSize"].(float64) / config["rateLimit"].(float64)
 	}
 

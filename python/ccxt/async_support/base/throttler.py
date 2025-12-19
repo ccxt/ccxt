@@ -17,7 +17,7 @@ class Throttler:
             'maxWeight': 0.0,                 # rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit
         }
         self.config.update(config)
-        if self.config['windowSize'] != 0.0 and self.config['rateLimit'] > 0.0:
+        if self.config['algorithm'] != 'leakyBucket':
             self.config['maxWeight'] = self.config['windowSize'] / self.config['rateLimit']
         self.queue = collections.deque()
         self.running = False
