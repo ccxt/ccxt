@@ -6,7 +6,7 @@ import Exchange from './abstract/bydfi.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Trade } from './base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Trade, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -677,6 +677,104 @@ export default class bydfi extends Exchange {
             this.safeNumber (ohlcv, 'c'),
             this.safeNumber (ohlcv, 'v'),
         ];
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchTickers
+     * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        const response = await this.publicGetV1SwapMarketTicker24hr (params);
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC-USDT",
+        //                 "open": "86452.9",
+        //                 "high": "89371.2",
+        //                 "low": "84418.5",
+        //                 "last": "87050.3",
+        //                 "vol": "12938783",
+        //                 "time": 1766169423872
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTickers (data, symbols);
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV1SwapMarketTicker24hr (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        const ticker = this.safeDict (data, 0, {});
+        return this.parseTicker (ticker, market);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        // fetchTicker/fetchTickers
+        //     {
+        //         "symbol": "BTC-USDT",
+        //         "open": "86452.9",
+        //         "high": "89371.2",
+        //         "low": "84418.5",
+        //         "last": "87050.3",
+        //         "vol": "12938783",
+        //         "time": 1766169423872
+        //     }
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (ticker, 'time');
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'vol'),
+            'quoteVolume': undefined,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
