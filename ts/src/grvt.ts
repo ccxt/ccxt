@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Leverage, Leverages, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -1789,9 +1789,38 @@ export default class grvt extends Exchange {
 
     /**
      * @method
+     * @name grvt#fetchLeverages
+     * @description fetch the set leverage for all contract markets
+     * @see https://api-docs.grvt.io/trading_api/#get-all-initial-leverage
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'sub_account_id': this.getSubAccountId (params),
+        };
+        const response = await this.privateTradingPostFullV1GetAllInitialLeverage (this.extend (request, params));
+        //
+        //    {
+        //        "results": [
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "leverage": "10.0",
+        //                "min_leverage": "1.0",
+        //                "max_leverage": "50.0",
+        //                "margin_type": "CROSS"
+        //            },
+        //
+        return this.parseLeverages (response, symbols);
+    }
+
+    /**
+     * @method
      * @name grvt#setLeverage
      * @description set the level of leverage for a market
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+     * @see https://api-docs.grvt.io/trading_api/#set-initial-leverage
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1818,12 +1847,32 @@ export default class grvt extends Exchange {
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        // setLeverage
+        //
+        //    {
+        //        "success": true
+        //    }
+        //
+        // fetchLeverages
+        //
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "leverage": "10.0",
+        //                "min_leverage": "1.0",
+        //                "max_leverage": "50.0",
+        //                "margin_type": "CROSS"
+        //            },
+        //
+        const marketId = this.safeString (leverage, 'instrument');
+        const leverageValue = this.safeNumber (leverage, 'leverage');
+        const marginType = this.safeStringLower (leverage, 'margin_type');
         return {
             'info': leverage,
-            'symbol': this.safeSymbol (undefined, market),
-            'marginMode': undefined,
-            'longLeverage': undefined,
-            'shortLeverage': undefined,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': marginType,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
         } as Leverage;
     }
 
