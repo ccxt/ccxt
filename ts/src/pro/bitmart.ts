@@ -1746,7 +1746,7 @@ export default class bitmart extends bitmartRest {
 
     /**
      * @method
-     * @name binance#unWatchOrderBookForSymbols
+     * @name bitmart#unWatchOrderBookForSymbols
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
      * @param {string[]} symbols unified array of symbols
