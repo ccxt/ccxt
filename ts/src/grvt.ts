@@ -110,6 +110,7 @@ export default class grvt extends Exchange {
                         'full/v1/transfer': 1,
                         'full/v1/deposit_history': 1,
                         'full/v1/transfer_history': 1,
+                        'full/v1/withdrawal': 1,
                         'full/v1/withdrawal_history': 1,
                         'full/v1/cancel_order': 1,
                     },
@@ -118,17 +119,21 @@ export default class grvt extends Exchange {
             // exchange-specific options
             'options': {
                 'sub_account_id': undefined, // needs to be set manually by user
-                'chainIds': {
-                    // https://api.rhino.fi/bridge/configs
-                    '42161': 'ARBONE',
-                    '43114': 'AVAXC',
-                    '8453': 'BASE',
-                    '56': 'BSC',
-                    '1': 'ETH',
-                    '10': 'OP',
-                    '900': 'SOL',
-                    '728126428': 'TRX',
-                    '324': 'ZKSYNCERA',
+                // https://api.rhino.fi/bridge/configs
+                'networks': {
+                    'ARBONE': '42161',
+                    'AVAXC': '43114',
+                    'BASE': '8453',
+                    'BSC': '56',
+                    'ETH': '1',
+                    'ERC20': '1',
+                    'OP': '10',
+                    'SOL': '900',
+                    'TRX': '728126428',
+                    'ZKSYNCERA': '324',
+                },
+                'networksById': {
+                    '1': 'ERC20',
                 },
                 'EIP712_ORDER_MESSAGE_TYPE': {
                     'Order': [
@@ -154,6 +159,16 @@ export default class grvt extends Exchange {
                         { 'name': 'fromSubAccount', 'type': 'uint64' },
                         { 'name': 'toAccount', 'type': 'address' },
                         { 'name': 'toSubAccount', 'type': 'uint64' },
+                        { 'name': 'tokenCurrency', 'type': 'uint8' },
+                        { 'name': 'numTokens', 'type': 'uint64' },
+                        { 'name': 'nonce', 'type': 'uint32' },
+                        { 'name': 'expiration', 'type': 'int64' },
+                    ],
+                },
+                'EIP712_WITHDRAWAL_MESSAGE_TYPE': {
+                    'Withdrawal': [
+                        { 'name': 'fromAccount', 'type': 'address' },
+                        { 'name': 'toEthAddress', 'type': 'address' },
                         { 'name': 'tokenCurrency', 'type': 'uint8' },
                         { 'name': 'numTokens', 'type': 'uint64' },
                         { 'name': 'nonce', 'type': 'uint32' },
@@ -1086,8 +1101,7 @@ export default class grvt extends Exchange {
                 direction = this.safeStringLower (parsedMeta, 'direction');
                 txId = this.safeString (parsedMeta, 'provider_tx_id');
                 const chainId = this.safeString (parsedMeta, 'chainid');
-                const chainIds = this.safeDict (this.options, 'chainIds', {});
-                networkCode = this.safeString (chainIds, chainId, chainId);
+                networkCode = this.networkIdToCode (chainId);
                 if (direction === 'withdrawal') {
                     addressTo = this.safeString (parsedMeta, 'endpoint');
                 } else if (direction === 'deposit') {
@@ -1224,6 +1238,13 @@ export default class grvt extends Exchange {
         await Promise.all ([ this.loadMarkets (), this.loadAggregatedAccountSummary () ]);
         const currency = this.currency (code);
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
+        if (this.inArray (fromAccount, [ 'trading', 'funding' ]) || this.inArray (toAccount, [ 'trading', 'funding' ])) {
+            const tradingAccountId = this.safeString (this.options, 'tradingAccountId');
+            const fundingAccountId = this.safeString (this.options, 'fundingAccountId');
+            if (tradingAccountId === undefined || fundingAccountId === undefined) {
+                throw new ArgumentsRequired (this.id + ' transfer(): you should set .options["tradingAccountId"] and exchange.options["fundingAccountId"] to the corresponding account IDs or directly pass accountIds as fromAccount and toAccount arguments (use "0" as funding account id)');
+            }
+        }
         const expiration = this.milliseconds () * 1000000 + 100000000000;
         const request: Dict = {
             'from_account_id': this.safeString (params, 'from_account_id', defaultFromAccountId),
@@ -1346,7 +1367,7 @@ export default class grvt extends Exchange {
         const expiration = this.milliseconds () * 1000000 + 100000000000;
         const request: Dict = {
             'to_eth_address': address,
-            'from_account_id': this.safeString (this.options, 'userMainAccountId'),
+            'from_account_id': '0xbf465e6083a43b170791ea29393f601381c560be',
             'currency': currency['id'],
             'num_tokens': this.currencyToPrecision (code, amount),
             'signature': {
@@ -1364,10 +1385,11 @@ export default class grvt extends Exchange {
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
+        request['signature']['chainId'] = networkId;
         const domainData = this.get_EIP712_domain_data ();
         const messageData = this.build_EIP712_withdrawal_message_data (request, currency);
         const privateKey = this.remove0xPrefix (this.secret);
-        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options['EIP712_TRANSFER_MESSAGE_TYPE'], messageData);
+        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options['EIP712_WITHDRAWAL_MESSAGE_TYPE'], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
         request['signature']['r'] = '0x' + signature['r'];
