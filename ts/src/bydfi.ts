@@ -6,7 +6,7 @@ import Exchange from './abstract/bydfi.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, OrderBook } from './base/types.js';
+import type { Dict, Int, Market, OrderBook, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -202,7 +202,7 @@ export default class bydfi extends Exchange {
                         'v1/public/api_limits': 1, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
                         'v1/swap/market/exchange_info': 1, // done
                         'v1/swap/market/depth': 1, // done
-                        'v1/swap/market/trades': 1, // https://developers.bydfi.com/en/swap/market#recent-trades
+                        'v1/swap/market/trades': 1, // done
                         'v1/swap/market/klines': 1, // https://developers.bydfi.com/en/swap/market#candlestick-data
                         'v1/swap/market/ticker/24hr': 1, // https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
                         'v1/swap/market/ticker/price': 1, // https://developers.bydfi.com/en/swap/market#latest-price
@@ -252,6 +252,8 @@ export default class bydfi extends Exchange {
                         'v1/agent/internal_withdrawal': 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
                     },
                 },
+            },
+            'features': {
             },
             'timeframes': {
             },
@@ -492,6 +494,81 @@ export default class bydfi extends Exchange {
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://developers.bydfi.com/en/swap/market#recent-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.fromId] retrieve from which trade ID to start. Default to retrieve the most recent trade records
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV1SwapMarketTrades (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "id": "7407825178362667008",
+        //                 "symbol": "ETH-USDT",
+        //                 "price": "2970.49",
+        //                 "quantity": "63",
+        //                 "side": "SELL",
+        //                 "time": 1766163153218
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //     {
+        //         "id": "7407825178362667008",
+        //         "symbol": "ETH-USDT",
+        //         "price": "2970.49",
+        //         "quantity": "63",
+        //         "side": "SELL",
+        //         "time": 1766163153218
+        //     }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (trade, 'time');
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': this.safeString (trade, 'id'),
+            'order': undefined,
+            'type': undefined,
+            'side': this.safeStringLower (trade, 'side'),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'quantity'),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
