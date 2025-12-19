@@ -661,6 +661,16 @@ func (this *Bitmart) WatchOrderBookForSymbols(symbols []string, options ...ccxt.
     }
     return ccxt.NewOrderBookFromWs(res), nil
 }
+/**
+ * @method
+ * @name bitmart#unWatchOrderBookForSymbols
+ * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+ * @param {string[]} symbols unified array of symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ */
 func (this *Bitmart) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
 
     opts := ccxt.UnWatchOrderBookForSymbolsOptionsStruct{}
