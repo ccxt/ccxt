@@ -113,6 +113,7 @@ export default class grvt extends Exchange {
                         'full/v1/withdrawal': 1,
                         'full/v1/withdrawal_history': 1,
                         'full/v1/cancel_order': 1,
+                        'full/v1/set_position_config': 1,
                     },
                 },
             },
@@ -794,7 +795,7 @@ export default class grvt extends Exchange {
         if (subAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' you should set params["sub_account_id"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
         }
-        return subAccountId;
+        return subAccountId.toString ();
     }
 
     /**
@@ -1222,6 +1223,19 @@ export default class grvt extends Exchange {
         return [ matchedResults, nonMatchedResults ];
     }
 
+    defaultSignature () {
+        const expiration = this.milliseconds () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
+        return {
+            'signer': '',
+            'r': '',
+            's': '',
+            'v': 0,
+            'expiration': expiration.toString (),
+            'nonce': this.nonce (),
+            // 'chain_id': '325',
+        };
+    }
+
     /**
      * @method
      * @name grvt#transfer
@@ -1245,36 +1259,18 @@ export default class grvt extends Exchange {
                 throw new ArgumentsRequired (this.id + ' transfer(): you should set .options["tradingAccountId"] and exchange.options["fundingAccountId"] to the corresponding account IDs or directly pass accountIds as fromAccount and toAccount arguments (use "0" as funding account id)');
             }
         }
-        const expiration = this.milliseconds () * 1000000 + 100000000000;
-        const request: Dict = {
+        let request: Dict = {
             'from_account_id': this.safeString (params, 'from_account_id', defaultFromAccountId),
             'from_sub_account_id': this.safeString (params, 'from_sub_account_id', fromAccount),
             'to_account_id': this.safeString (params, 'to_account_id', defaultFromAccountId),
             'to_sub_account_id': this.safeString (params, 'to_sub_account_id', toAccount),
             'currency': currency['id'],
             'num_tokens': this.currencyToPrecision (code, amount),
-            'signature': {
-                'signer': '', // this.apiKey, // this.safeString (this.options, 'AuthAccountId'),
-                'r': '',
-                's': '',
-                'v': 0,
-                'expiration': expiration.toString (),
-                'nonce': this.nonce (),
-                // 'chain_id': '325',
-            },
+            'signature': this.defaultSignature (),
             'transfer_type': 'STANDARD',
             'transfer_metadata': null,
         };
-        const domainData = this.get_EIP712_domain_data ();
-        const messageData = this.build_EIP712_transfer_message_data (request, currency);
-        const privateKey = this.remove0xPrefix (this.secret);
-        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options['EIP712_TRANSFER_MESSAGE_TYPE'], messageData);
-        const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
-        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
-        request['signature']['r'] = '0x' + signature['r'];
-        request['signature']['s'] = '0x' + signature['s'];
-        request['signature']['v'] = this.sum (27, signature['v']);
-        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later, eg. str(account.address)
+        request = this.createSignedRequest (request, currency);
         const response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
         //
         // {
@@ -1286,6 +1282,27 @@ export default class grvt extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         return this.parseTransfer (result, currency);
+    }
+
+    createSignedRequest (request: Dict, inputMessageData: any, structureType: string): Dict {
+        const domainData = this.get_EIP712_domain_data ();
+        let messageData = undefined;
+        if (structureType === 'EIP712_TRANSFER_MESSAGE_TYPE') {
+            messageData = this.build_EIP712_transfer_message_data (request, inputMessageData);
+        } else if (structureType === 'EIP712_WITHDRAWAL_MESSAGE_TYPE') {
+            messageData = this.build_EIP712_withdrawal_message_data (request, inputMessageData);
+        } else if (structureType === 'EIP712_ORDER_MESSAGE_TYPE') {
+            messageData = this.build_EIP712_order_message_data (request, inputMessageData);
+        }
+        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options[structureType], messageData);
+        const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
+        const privateKey = this.remove0xPrefix (this.secret);
+        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
+        request['signature']['r'] = '0x' + signature['r'];
+        request['signature']['s'] = '0x' + signature['s'];
+        request['signature']['v'] = this.sum (27, signature['v']);
+        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later, eg. str(account.address)
+        return request;
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -1364,21 +1381,12 @@ export default class grvt extends Exchange {
         this.checkAddress (address);
         await Promise.all ([ this.loadMarkets (), this.loadAggregatedAccountSummary () ]);
         const currency = this.currency (code);
-        const expiration = this.milliseconds () * 1000000 + 100000000000;
-        const request: Dict = {
+        let request: Dict = {
             'to_eth_address': address,
             'from_account_id': '0xbf465e6083a43b170791ea29393f601381c560be',
             'currency': currency['id'],
             'num_tokens': this.currencyToPrecision (code, amount),
-            'signature': {
-                'signer': '', // this.apiKey, // this.safeString (this.options, 'AuthAccountId'),
-                'r': '',
-                's': '',
-                'v': 0,
-                'expiration': expiration.toString (),
-                'nonce': this.nonce (),
-                // 'chain_id': '325',
-            },
+            'signature': this.defaultSignature (),
         };
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         const networkId = this.networkCodeToId (networkCode);
@@ -1386,16 +1394,7 @@ export default class grvt extends Exchange {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
         request['signature']['chainId'] = networkId;
-        const domainData = this.get_EIP712_domain_data ();
-        const messageData = this.build_EIP712_withdrawal_message_data (request, currency);
-        const privateKey = this.remove0xPrefix (this.secret);
-        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options['EIP712_WITHDRAWAL_MESSAGE_TYPE'], messageData);
-        const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
-        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
-        request['signature']['r'] = '0x' + signature['r'];
-        request['signature']['s'] = '0x' + signature['s'];
-        request['signature']['v'] = this.sum (27, signature['v']);
-        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later, eg. str(account.address)
+        request = this.createSignedRequest (request, currency, 'EIP712_WITHDRAWAL_MESSAGE_TYPE');
         const response = await this.privateTradingPostFullV1Withdrawal (this.extend (request, query));
         //
         // {
@@ -1443,21 +1442,11 @@ export default class grvt extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' createOrder(): order side must be either "buy" or "sell"');
         }
-        const expiration = this.milliseconds () * 1000000 + 100000000000;
-        const subAccountId = this.getSubAccountId (params);
-        const request = {
-            'sub_account_id': subAccountId.toString (),
+        let request = {
+            'sub_account_id': this.getSubAccountId (params),
             'time_in_force': 'GOOD_TILL_TIME',
             'legs': [ orderLeg ],
-            'signature': {
-                'signer': '', // this.apiKey, // this.safeString (this.options, 'AuthAccountId'),
-                'r': '',
-                's': '',
-                'v': 0,
-                'expiration': expiration.toString (),
-                'nonce': this.nonce (),
-                // 'chain_id': '325',
-            },
+            'signature': this.defaultSignature (),
             'metadata': {
                 'client_order_id': this.nonce ().toString (),
                 // 'create_time': (this.milliseconds() * str(1000000)),
@@ -1477,16 +1466,7 @@ export default class grvt extends Exchange {
             // 'order_id': null,
             // 'state': null,
         };
-        const domainData = this.get_EIP712_domain_data ();
-        const messageData = this.build_EIP712_order_message_data (request);
-        const privateKey = this.remove0xPrefix (this.secret);
-        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options['EIP712_ORDER_MESSAGE_TYPE'], messageData);
-        const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
-        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
-        request['signature']['r'] = '0x' + signature['r'];
-        request['signature']['s'] = '0x' + signature['s'];
-        request['signature']['v'] = this.sum (27, signature['v']);
-        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later, eg. str(account.address)
+        request = this.createSignedRequest (request, market, 'EIP712_ORDER_MESSAGE_TYPE');
         const fullRequest = {
             'order': request,
         };
@@ -1559,7 +1539,7 @@ export default class grvt extends Exchange {
         return parseInt (x);
     }
 
-    build_EIP712_order_message_data (order) {
+    build_EIP712_order_message_data (order, params = {}) {
         const priceMultiplier = '1000000000';
         const orderLegs = this.safeList (order, 'legs', []);
         const legs = [];
@@ -1802,6 +1782,42 @@ export default class grvt extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name grvt#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const subAccountId = this.getSubAccountId (params);
+        const subAccountSummary = await this.privateTradingPostFullV1AccountSummary ({ 'sub_account_id': subAccountId });
+        const resultSummary = this.safeDict (subAccountSummary, 'result', {});
+        const marginTypeRaw = this.safeString (resultSummary, 'margin_type');
+        let marginType = 'ISOLATED';
+        if (marginTypeRaw.indexOf ('CROSS') >= 0) {
+            marginType = 'CROSS';
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'sub_account_id': subAccountId,
+            'instrument': market['id'],
+            'margin_type': marginType,
+            'leverage': this.numberToString (leverage),
+            'signature': this.defaultSignature (),
+        };
+        const response = await this.privateTradingPostFullV1SetPositionConfig (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return data;
     }
 
     /**
