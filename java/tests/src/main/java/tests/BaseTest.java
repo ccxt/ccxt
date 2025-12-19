@@ -517,6 +517,8 @@ public class BaseTest {
 //        return res;
         if (prefix.endsWith("java")) {
             return prefix + "/../";
+        } else if (prefix.endsWith("tests")) {
+            return prefix + "/../../";
         }
         return prefix +  "/../../../../../";
     }
