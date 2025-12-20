@@ -15,6 +15,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "createSubAccount": [
+            {
+                "description": "creates subaccount",
+                "method": "createSubAccount",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "test1"
+                ],
+                "output": "{\"nonce\":1766238232898,\"action\":{\"type\":\"createSubAccount\",\"name\":\"test1\"},\"signature\":{\"r\":\"0x3c3850de88df6a8b873b705df22e459c5a8b3807331e7a93bf230e7b7e2f0d6a\",\"s\":\"0x79e8039886b8ee9dbaf317b57c6be5c486d7eedfa499ee1d70696827851b132b\",\"v\":28}}"
+            }
+        ],
         "createOrderWithTakeProfitAndStopLoss": [
             {
                 "description": "create order with tp and sl",
