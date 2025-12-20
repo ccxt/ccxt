@@ -1611,9 +1611,7 @@ export default class hyperliquid extends Exchange {
             data += vaultAddress;
         }
         if (expiresAfter !== undefined) {
-            // data += '00';
-            data += '00000';
-            data += this.intToBase16 (expiresAfter);
+            data += '00000' + this.intToBase16 (expiresAfter);
         }
         return this.hash (this.base16ToBinary (data), keccak, 'binary');
     }
