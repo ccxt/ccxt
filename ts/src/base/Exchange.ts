@@ -7092,6 +7092,10 @@ export default class Exchange {
         return await this.createOrderWs (symbol, 'market', side, amount, undefined, query);
     }
 
+    async createSubAccount (name: string): Promise<{}> {
+        throw new NotSupported (this.id + ' createSubAccount() is not supported yet');
+    }
+
     safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
         currency = this.safeCurrency (currencyId, currency);
         return currency['code'];
