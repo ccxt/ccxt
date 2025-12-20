@@ -1,6 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import hyperliquidRest from '../hyperliquid.js';
+import { NotSupported } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
@@ -27,6 +28,12 @@ export default class hyperliquid extends hyperliquidRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchPosition': false,
+                'unWatchOrderBook': true,
+                'unWatchTickers': true,
+                'unWatchTrades': true,
+                'unWatchOHLCV': true,
+                'unWatchMyTrades': false, // todo
+                'unWatchOrders': true,
             },
             'urls': {
                 'api': {
@@ -432,6 +439,36 @@ export default class hyperliquid extends hyperliquidRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchMyTrades
+     * @description unWatches information on multiple trades made by the user
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            throw new NotSupported (this.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
+        }
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('unWatchMyTrades', params);
+        const messageHash = 'unsubscribe:myTrades';
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'userFills',
+                'user': userAddress,
+            },
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     handleWsTickers (client: Client, message) {
@@ -932,6 +969,36 @@ export default class hyperliquid extends hyperliquidRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
+    /**
+     * @method
+     * @name hyperliquid#unWatchOrders
+     * @description unWatches information on multiple orders made by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            throw new NotSupported (this.id + ' unWatchOrders() does not support a symbol argument, unWatch from all markets only');
+        }
+        const messageHash = 'unsubscribe:order';
+        const url = this.urls['api']['ws']['public'];
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('unWatchOrders', params);
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'orderUpdates',
+                'user': userAddress,
+            },
+        };
+        const message = this.extend (request, params);
+        await this.watch (url, messageHash, message, messageHash);
+    }
+
     handleOrder (client: Client, message) {
         //
         //     {
@@ -1106,6 +1173,26 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
+    handleOrderUnsubscription (client: Client, subscription: Dict) {
+        const subHash = 'order';
+        const unSubHash = 'unsubscribe:' + subHash;
+        this.cleanUnsubscription (client, subHash, unSubHash, true);
+        const topicStructure = {
+            'topic': 'orders',
+        };
+        this.cleanCache (topicStructure);
+    }
+
+    handleMyTradesUnsubscription (client: Client, subscription: Dict) {
+        const subHash = 'myTrades';
+        const unSubHash = 'unsubscribe:' + subHash;
+        this.cleanUnsubscription (client, subHash, unSubHash, true);
+        const topicStructure = {
+            'topic': 'myTrades',
+        };
+        this.cleanCache (topicStructure);
+    }
+
     handleSubscriptionResponse (client: Client, message) {
         // {
         //     "channel":"subscriptionResponse",
@@ -1144,6 +1231,10 @@ export default class hyperliquid extends hyperliquidRest {
                 this.handleTickersUnsubscription (client, subscription);
             } else if (type === 'candle') {
                 this.handleOHLCVUnsubscription (client, subscription);
+            } else if (type === 'orderUpdates') {
+                this.handleOrderUnsubscription (client, subscription);
+            } else if (type === 'userFills') {
+                this.handleMyTradesUnsubscription (client, subscription);
             }
         }
     }
