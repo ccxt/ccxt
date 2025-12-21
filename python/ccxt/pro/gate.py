@@ -1636,34 +1636,6 @@ class gate(ccxt.async_support.gate):
                     self.clean_unsubscription(client, subHash, unsubHash)
                 self.clean_cache(subscription)
 
-    def clean_cache(self, subscription: dict):
-        topic = self.safe_string(subscription, 'topic', '')
-        symbols = self.safe_list(subscription, 'symbols', [])
-        symbolsLength = len(symbols)
-        if topic == 'ohlcv':
-            symbolsAndTimeFrames = self.safe_list(subscription, 'symbolsAndTimeframes', [])
-            for i in range(0, len(symbolsAndTimeFrames)):
-                symbolAndTimeFrame = symbolsAndTimeFrames[i]
-                symbol = self.safe_string(symbolAndTimeFrame, 0)
-                timeframe = self.safe_string(symbolAndTimeFrame, 1)
-                del self.ohlcvs[symbol][timeframe]
-        elif symbolsLength > 0:
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
-                if topic.endswith('trades'):
-                    del self.trades[symbol]
-                elif topic == 'orderbook':
-                    del self.orderbooks[symbol]
-                elif topic == 'ticker':
-                    del self.tickers[symbol]
-        else:
-            if topic.endswith('trades'):
-                # don't reset self.myTrades directly here
-                # because in c# we need to use a different object
-                keys = list(self.trades.keys())
-                for i in range(0, len(keys)):
-                    del self.trades[keys[i]]
-
     def handle_message(self, client: Client, message):
         #
         # subscribe
