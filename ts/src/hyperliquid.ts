@@ -1611,6 +1611,7 @@ export default class hyperliquid extends Exchange {
             data += vaultAddress;
         }
         if (expiresAfter !== undefined) {
+            data += '00';
             data += '00000' + this.intToBase16 (expiresAfter);
         }
         return this.hash (this.base16ToBinary (data), keccak, 'binary');
@@ -4396,7 +4397,10 @@ export default class hyperliquid extends Exchange {
             'name': name,
         };
         const expiresAfter = this.safeInteger (params, 'expiresAfter');
-        params = this.omit (params, 'expiresAfter');
+        if (expiresAfter !== undefined) {
+            params = this.omit (params, 'expiresAfter');
+            request['expiresAfter'] = expiresAfter;
+        }
         const signature = this.signL1Action (action, nonce, undefined, expiresAfter);
         request['action'] = action;
         request['signature'] = signature;

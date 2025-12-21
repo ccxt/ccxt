@@ -17,6 +17,18 @@
     "methods": {
         "createSubAccount": [
             {
+                "description": "create subAccount using expiresAfter",
+                "method": "createSubAccount",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "example124",
+                    {
+                        "expiresAfter": 1766515399000
+                    }
+                ],
+                "output": "{\"nonce\":1766345101913,\"expiresAfter\":1766515399000,\"action\":{\"type\":\"createSubAccount\",\"name\":\"example124\"},\"signature\":{\"r\":\"0xdaffc61e78dcb3fce3622c4fa53eaf660b007e939b9a2b31402d8b59c86dabe6\",\"s\":\"0x11534d5e109dfb1009251d0747dc4068bc45b14b5dde8ac727db1da297f0e8a6\",\"v\":28}}"
+            },
+            {
                 "description": "creates subaccount",
                 "method": "createSubAccount",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
