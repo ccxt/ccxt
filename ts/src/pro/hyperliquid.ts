@@ -32,7 +32,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'unWatchTickers': true,
                 'unWatchTrades': true,
                 'unWatchOHLCV': true,
-                'unWatchMyTrades': false, // todo
+                'unWatchMyTrades': true,
                 'unWatchOrders': true,
             },
             'urls': {
@@ -443,9 +443,9 @@ export default class hyperliquid extends hyperliquidRest {
 
     /**
      * @method
-     * @name bybit#unWatchMyTrades
+     * @name hyperliquid#unWatchMyTrades
      * @description unWatches information on multiple trades made by the user
-     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
@@ -461,7 +461,7 @@ export default class hyperliquid extends hyperliquidRest {
         const messageHash = 'unsubscribe:myTrades';
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
-            'method': 'subscribe',
+            'method': 'unsubscribe',
             'subscription': {
                 'type': 'userFills',
                 'user': userAddress,
@@ -996,7 +996,7 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        await this.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     handleOrder (client: Client, message) {
