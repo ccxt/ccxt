@@ -2293,40 +2293,6 @@ func  (this *GateCore) HandleUnSubscribe(client interface{}, message interface{}
         }
     }
 }
-func  (this *GateCore) CleanCache(subscription interface{})  {
-    var topic interface{} = this.SafeString(subscription, "topic", "")
-    var symbols interface{} = this.SafeList(subscription, "symbols", []interface{}{})
-    var symbolsLength interface{} =     ccxt.GetArrayLength(symbols)
-    if ccxt.IsTrue(ccxt.IsEqual(topic, "ohlcv")) {
-        var symbolsAndTimeFrames interface{} = this.SafeList(subscription, "symbolsAndTimeframes", []interface{}{})
-        for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeFrames)); i++ {
-            var symbolAndTimeFrame interface{} = ccxt.GetValue(symbolsAndTimeFrames, i)
-            var symbol interface{} = this.SafeString(symbolAndTimeFrame, 0)
-            var timeframe interface{} = this.SafeString(symbolAndTimeFrame, 1)
-            ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
-        }
-    } else if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 0)) {
-        for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-            var symbol interface{} = ccxt.GetValue(symbols, i)
-            if ccxt.IsTrue(ccxt.EndsWith(topic, "trades")) {
-                ccxt.Remove(this.Trades, symbol)
-            } else if ccxt.IsTrue(ccxt.IsEqual(topic, "orderbook")) {
-                ccxt.Remove(this.Orderbooks, symbol)
-            } else if ccxt.IsTrue(ccxt.IsEqual(topic, "ticker")) {
-                ccxt.Remove(this.Tickers, symbol)
-            }
-        }
-    } else {
-        if ccxt.IsTrue(ccxt.EndsWith(topic, "trades")) {
-            // don't reset this.myTrades directly here
-            // because in c# we need to use a different object
-            var keys interface{} = ccxt.ObjectKeys(this.Trades)
-            for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
-                ccxt.Remove(this.Trades, ccxt.GetValue(keys, i))
-            }
-        }
-    }
-}
 func  (this *GateCore) HandleMessage(client interface{}, message interface{})  {
     //
     // subscribe
@@ -2542,9 +2508,9 @@ func  (this *GateCore) SubscribePublic(url interface{}, messageHash interface{},
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes202715 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
-                ccxt.PanicOnError(retRes202715)
-                ch <- retRes202715
+                retRes199215 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
+                ccxt.PanicOnError(retRes199215)
+                ch <- retRes199215
                 return nil
         
             }()
@@ -2568,9 +2534,9 @@ func  (this *GateCore) SubscribePublicMultiple(url interface{}, messageHashes in
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes204115 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-                ccxt.PanicOnError(retRes204115)
-                ch <- retRes204115
+                retRes200615 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+                ccxt.PanicOnError(retRes200615)
+                ch <- retRes200615
                 return nil
         
             }()
@@ -2602,9 +2568,9 @@ func  (this *GateCore) UnSubscribePublicMultiple(url interface{}, topic interfac
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes206315 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub))
-                ccxt.PanicOnError(retRes206315)
-                ch <- retRes206315
+                retRes202815 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub))
+                ccxt.PanicOnError(retRes202815)
+                ch <- retRes202815
                 return nil
         
             }()
@@ -2622,9 +2588,9 @@ func  (this *GateCore) Authenticate(url interface{}, messageType interface{}) <-
             var authenticated interface{} = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
             if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
         
-                    retRes207319 :=  (<-this.RequestPrivate(url, map[string]interface{} {}, channel, messageHash))
-                    ccxt.PanicOnError(retRes207319)
-                    ch <- retRes207319
+                    retRes203819 :=  (<-this.RequestPrivate(url, map[string]interface{} {}, channel, messageHash))
+                    ccxt.PanicOnError(retRes203819)
+                    ch <- retRes203819
                     return nil
             }
         
@@ -2678,9 +2644,9 @@ func  (this *GateCore) RequestPrivate(url interface{}, reqParams interface{}, ch
                 "payload": payload,
             }
         
-                retRes211615 :=  (<-this.Watch(url, messageHash, request, messageHash, requestId))
-                ccxt.PanicOnError(retRes211615)
-                ch <- retRes211615
+                retRes208115 :=  (<-this.Watch(url, messageHash, request, messageHash, requestId))
+                ccxt.PanicOnError(retRes208115)
+                ch <- retRes208115
                 return nil
         
             }()
@@ -2734,9 +2700,9 @@ func  (this *GateCore) SubscribePrivate(url interface{}, messageHash interface{}
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes216015 :=  (<-this.Watch(url, messageHash, message, messageHash, messageHash))
-                ccxt.PanicOnError(retRes216015)
-                ch <- retRes216015
+                retRes212515 :=  (<-this.Watch(url, messageHash, message, messageHash, messageHash))
+                ccxt.PanicOnError(retRes212515)
+                ch <- retRes212515
                 return nil
         
             }()
