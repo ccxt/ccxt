@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported, PermissionD
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRate, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -147,8 +147,8 @@ export default class bydfi extends Exchange {
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
-                'fetchPositionsForSymbol': false,
+                'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -224,7 +224,7 @@ export default class bydfi extends Exchange {
                         'v1/swap/trade/history_order': 1, // https://developers.bydfi.com/en/swap/trade#historical-orders-query
                         'v1/swap/trade/history_trade': 1, // https://developers.bydfi.com/en/swap/trade#historical-trades-query
                         'v1/swap/trade/position_history': 1, // https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
-                        'v1/swap/trade/positions': 1, // https://developers.bydfi.com/en/swap/trade#positions-query
+                        'v1/swap/trade/positions': 1, // done
                         'v1/swap/account/balance': 1, // https://developers.bydfi.com/en/swap/user#asset-query
                         'v1/swap/user_data/assets_margin': 1, // https://developers.bydfi.com/en/swap/user#margin-mode-query
                         'v1/swap/user_data/position_side/dual': 1, // https://developers.bydfi.com/en/swap/user#get-position-mode
@@ -1538,6 +1538,134 @@ export default class bydfi extends Exchange {
             'longLeverage': this.safeInteger (leverage, 'leverage'),
             'shortLeverage': this.safeInteger (leverage, 'leverage'),
         } as Leverage;
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchPositions
+     * @description fetch all open positions
+     * @see https://developers.bydfi.com/en/swap/trade#positions-query
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
+     * @param {string} [params.settleCoin] the settlement currency
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        let contractType = 'FUTURE';
+        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'contractType', contractType);
+        const request: Dict = {
+            'contractType': contractType,
+        };
+        const response = await this.privateGetV1SwapTradePositions (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "ETH-USDC",
+        //                 "side": "BUY",
+        //                 "volume": "0.001",
+        //                 "avgPrice": "3032.45",
+        //                 "liqPrice": "0",
+        //                 "markPrice": "3032.37",
+        //                 "unPnl": "-0.00008",
+        //                 "positionMargin": "0",
+        //                 "settleCoin": "USDC",
+        //                 "im": "3.03245",
+        //                 "mm": "0.007581125"
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data, symbols);
+    }
+
+    /**
+     * @method
+     * @description fetch open positions for a single market
+     * @name bydfi#fetchPositionsForSymbol
+     * @see https://developers.bydfi.com/en/swap/trade#positions-query
+     * @description fetch all open positions for specific symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let contractType = 'FUTURE';
+        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'contractType', contractType);
+        const request: Dict = {
+            'contractType': contractType,
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetV1SwapTradePositions (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data, [ market['symbol'] ]);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "ETH-USDC",
+        //         "side": "BUY",
+        //         "volume": "0.001",
+        //         "avgPrice": "3032.45",
+        //         "liqPrice": "0",
+        //         "markPrice": "3032.37",
+        //         "unPnl": "-0.00008",
+        //         "positionMargin": "0",
+        //         "settleCoin": "USDC",
+        //         "im": "3.03245",
+        //         "mm": "0.007581125"
+        //     }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const contractSize = this.safeString (market, 'contractSize');
+        const volume = this.safeString (position, 'volume');
+        const contracts = Precise.stringDiv (volume, contractSize);
+        const side = this.safeString (position, 'side');
+        const timestamp = this.safeInteger (position, 'updatedTime');
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': market['symbol'],
+            'entryPrice': this.parseNumber (this.safeString (position, 'avgPrice')),
+            'markPrice': this.parseNumber (this.safeString (position, 'markPrice')),
+            'notional': undefined,
+            'collateral': undefined,
+            'unrealizedPnl': this.parseNumber (this.safeString (position, 'unPnl')),
+            'side': this.parasePositionSide (side),
+            'contracts': this.parseNumber (contracts),
+            'contractSize': this.parseNumber (contractSize),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'hedged': undefined,
+            'maintenanceMargin': this.parseNumber (this.safeString (position, 'mm')),
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': this.parseNumber (this.safeString (position, 'im')),
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'liquidationPrice': this.parseNumber (this.safeString (position, 'liqPrice')),
+            'marginRatio': undefined,
+            'marginMode': undefined,
+            'percentage': undefined,
+        });
+    }
+
+    parasePositionSide (side: Str): Str {
+        const sides = {
+            'BUY': 'long',
+            'SELL': 'short',
+        };
+        return this.safeString (sides, side, side);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
