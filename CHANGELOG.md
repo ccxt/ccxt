@@ -1,3 +1,66 @@
+<a id="v4.5.29"></a>
+# [v4.5.29](https://github.com/ccxt/ccxt/releases/tag/v4.5.29) - 2025-12-22
+
+## What's Changed
+* fix(exchange-markets): closing tag by [@carlosmiei](https://github.com/carlosmiei) in [#27517](https://github.com/ccxt/ccxt/pull/27517)
+* chore(transpiler): base transpiling * by [@ttodua](https://github.com/ttodua) in [#27529](https://github.com/ccxt/ccxt/pull/27529)
+* chore(transpiler): base transpiling by [@ttodua](https://github.com/ttodua) in [#27533](https://github.com/ccxt/ccxt/pull/27533)
+* refactor(woofipro): hasStopLoss & hasTakeProfit by [@ttodua](https://github.com/ttodua) in [#27526](https://github.com/ccxt/ccxt/pull/27526)
+* refactor(toobit): hasStopLoss & hasTakeProfit by [@ttodua](https://github.com/ttodua) in [#27524](https://github.com/ccxt/ccxt/pull/27524)
+* refactor(woo): hasStopLoss & hasTakeProfit by [@ttodua](https://github.com/ttodua) in [#27525](https://github.com/ccxt/ccxt/pull/27525)
+* refactor(phemex): hasStopLoss & hasTakeProfit by [@ttodua](https://github.com/ttodua) in [#27523](https://github.com/ccxt/ccxt/pull/27523)
+* refactor(okx): hasStopLoss & hasTakeProfit by [@ttodua](https://github.com/ttodua) in [#27522](https://github.com/ccxt/ccxt/pull/27522)
+* refactor(modetrade): hasStopLoss & hasTakeProfit by [@ttodua](https://github.com/ttodua) in [#27521](https://github.com/ccxt/ccxt/pull/27521)
+* refactor(kucoinfutures): hasStopLoss & hasTakeProfit by [@ttodua](https://github.com/ttodua) in [#27520](https://github.com/ccxt/ccxt/pull/27520)
+* zaif.has contract methods by [@samgermain](https://github.com/samgermain) in [#27535](https://github.com/ccxt/ccxt/pull/27535)
+* docs(ccxt): replace ccxt docs link by [@sc0Vu](https://github.com/sc0Vu) in [#27537](https://github.com/ccxt/ccxt/pull/27537)
+* docs(woofipro): update [@see](https://github.com/see) by [@sc0Vu](https://github.com/sc0Vu) in [#27536](https://github.com/ccxt/ccxt/pull/27536)
+* fix: encoding hex binary instead of string by [@sc0Vu](https://github.com/sc0Vu) in [#27531](https://github.com/ccxt/ccxt/pull/27531)
+* refactor(hyperliquid): hasStopLoss & hasTakeProfit by [@ttodua](https://github.com/ttodua) in [#27518](https://github.com/ccxt/ccxt/pull/27518)
+* zebpay.has margin methods by [@samgermain](https://github.com/samgermain) in [#27538](https://github.com/ccxt/ccxt/pull/27538)
+* docs(onetrading): update [@see](https://github.com/see) by [@sc0Vu](https://github.com/sc0Vu) in [#27541](https://github.com/ccxt/ccxt/pull/27541)
+* docs(paymium): update [@see](https://github.com/see) by [@sc0Vu](https://github.com/sc0Vu) in [#27539](https://github.com/ccxt/ccxt/pull/27539)
+* docs(paradex): update [@see](https://github.com/see) by [@sc0Vu](https://github.com/sc0Vu) in [#27540](https://github.com/ccxt/ccxt/pull/27540)
+* feat(bitmart): update with unWatch methods  by [@yzh-pelle](https://github.com/yzh-pelle) in [#27534](https://github.com/ccxt/ccxt/pull/27534)
+* feature(Exchange): rolling window rate limiter by [@caoilainnl](https://github.com/caoilainnl) in [#25423](https://github.com/ccxt/ccxt/pull/25423)
+* Throttler divide by 0 fix by [@caoilainnl](https://github.com/caoilainnl) in [#27547](https://github.com/ccxt/ccxt/pull/27547)
+* bitbank rate limit values by [@caoilainnl](https://github.com/caoilainnl) in [#27546](https://github.com/ccxt/ccxt/pull/27546)
+* btcalpha rate limits by [@caoilainnl](https://github.com/caoilainnl) in [#27548](https://github.com/ccxt/ccxt/pull/27548)
+* bitmart#unWatchOrderBookForSymbols docstring, correct exchange name by [@caoilainnl](https://github.com/caoilainnl) in [#27545](https://github.com/ccxt/ccxt/pull/27545)
+* wavesexchange rate limits by [@caoilainnl](https://github.com/caoilainnl) in [#27549](https://github.com/ccxt/ccxt/pull/27549)
+* xt.has option methods by [@samgermain](https://github.com/samgermain) in [#27550](https://github.com/ccxt/ccxt/pull/27550)
+* woofipro.has margin and option methods by [@samgermain](https://github.com/samgermain) in [#27551](https://github.com/ccxt/ccxt/pull/27551)
+* fix(gate): use base cleanCache and avoid crash by [@carlosmiei](https://github.com/carlosmiei) in [#27562](https://github.com/ccxt/ccxt/pull/27562)
+* feat(hyperliquid): private unWatch methods by [@yzh-pelle](https://github.com/yzh-pelle) in [#27559](https://github.com/ccxt/ccxt/pull/27559)
+* fix(throttlerPerformance.go): use dynamically created exchange by [@carlosmiei](https://github.com/carlosmiei) in [#27564](https://github.com/ccxt/ccxt/pull/27564)
+* feat(hyperliquid): add createSubAccount by [@carlosmiei](https://github.com/carlosmiei) in [#27558](https://github.com/ccxt/ccxt/pull/27558)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.28...v4.5.29
+
+[Changes][v4.5.29]
+
+
+<a id="v4.5.28"></a>
+# [v4.5.28](https://github.com/ccxt/ccxt/releases/tag/v4.5.28) - 2025-12-15
+
+## What's Changed
+* build(deps): bump next from 15.4.9 to 15.4.10 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#27501](https://github.com/ccxt/ccxt/pull/27501)
+* fix(bybit): don't omit 'tpslMode' from params by [@carlosmiei](https://github.com/carlosmiei) in [#27505](https://github.com/ccxt/ccxt/pull/27505)
+* feat(binance): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#27511](https://github.com/ccxt/ccxt/pull/27511)
+* refactor(coincatch): hasTakeProfit/hasStopLoss by [@ttodua](https://github.com/ttodua) in [#27509](https://github.com/ccxt/ccxt/pull/27509)
+* refactor(bingx): hasstoploss/hastakeprofit by [@ttodua](https://github.com/ttodua) in [#27506](https://github.com/ccxt/ccxt/pull/27506)
+* refactor(blofin): hasStopLoss/hasTakeProfit by [@ttodua](https://github.com/ttodua) in [#27508](https://github.com/ccxt/ccxt/pull/27508)
+* refactor(bitget): hasStopLoss/hasTakeProfit by [@ttodua](https://github.com/ttodua) in [#27507](https://github.com/ccxt/ccxt/pull/27507)
+* feat(coinex): editOrders method added by [@yzh-pelle](https://github.com/yzh-pelle) in [#27483](https://github.com/ccxt/ccxt/pull/27483)
+* fix(bitmex): support  FFSCSX markets by [@carlosmiei](https://github.com/carlosmiei) in [#27515](https://github.com/ccxt/ccxt/pull/27515)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.27...v4.5.28
+
+[Changes][v4.5.28]
+
+
 <a id="v4.5.27"></a>
 # [v4.5.27](https://github.com/ccxt/ccxt/releases/tag/v4.5.27) - 2025-12-12
 
@@ -12041,6 +12104,8 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.29]: https://github.com/ccxt/ccxt/compare/v4.5.28...v4.5.29
+[v4.5.28]: https://github.com/ccxt/ccxt/compare/v4.5.27...v4.5.28
 [v4.5.27]: https://github.com/ccxt/ccxt/compare/v4.5.26...v4.5.27
 [v4.5.26]: https://github.com/ccxt/ccxt/compare/v4.5.25...v4.5.26
 [v4.5.25]: https://github.com/ccxt/ccxt/compare/v4.5.24...v4.5.25
