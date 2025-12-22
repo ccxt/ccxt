@@ -31,9 +31,10 @@ export default class grvt extends Exchange {
             'pro': false,
             'has': {
                 'CORS': undefined,
-                'spot': true,
+                'spot': false,
                 'margin': false,
                 'swap': true,
+                'signIn': true,
                 'future': false,
                 'option': false,
                 'fetchCurrencies': true,
@@ -1376,12 +1377,14 @@ export default class grvt extends Exchange {
         await Promise.all ([ this.loadMarkets (), this.loadAggregatedAccountSummary () ]);
         const currency = this.currency (code);
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
-        if (this.inArray (fromAccount, [ 'trading', 'funding' ]) || this.inArray (toAccount, [ 'trading', 'funding' ])) {
+        if (this.inArray (fromAccount, [ 'trading', 'funding' ]) && this.inArray (toAccount, [ 'trading', 'funding' ])) {
             const tradingAccountId = this.safeString (this.options, 'tradingAccountId');
             const fundingAccountId = this.safeString (this.options, 'fundingAccountId');
             if (tradingAccountId === undefined || fundingAccountId === undefined) {
                 throw new ArgumentsRequired (this.id + ' transfer(): you should set .options["tradingAccountId"] and exchange.options["fundingAccountId"] to the corresponding account IDs or directly pass accountIds as fromAccount and toAccount arguments (use "0" as funding account id)');
             }
+            fromAccount = (fromAccount === 'trading') ? tradingAccountId : fundingAccountId;
+            toAccount = (toAccount === 'trading') ? tradingAccountId : fundingAccountId;
         }
         let request: Dict = {
             'from_account_id': this.safeString (params, 'from_account_id', defaultFromAccountId),
@@ -1591,7 +1594,7 @@ export default class grvt extends Exchange {
             // 'state': null,
         };
         // @ts-ignore
-        request = this.createSignedRequest (request, market, 'EIP712_ORDER_MESSAGE_TYPE');
+        request = this.createSignedRequest (request, {}, 'EIP712_ORDER_MESSAGE_TYPE');
         const fullRequest = {
             'order': request,
         };
