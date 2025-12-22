@@ -134,7 +134,7 @@ export default class bydfi extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrder': false,
@@ -218,8 +218,8 @@ export default class bydfi extends Exchange {
                         'v1/account/transfer_records': 1, // https://developers.bydfi.com/en/account#query-wallet-transfer-records
                         'v1/spot/deposit_records': 1, // https://developers.bydfi.com/en/spot/account#query-deposit-records
                         'v1/spot/withdraw_records': 1, // https://developers.bydfi.com/en/spot/account#query-withdrawal-records
-                        'v1/swap/trade/open_order': 1, // https://developers.bydfi.com/en/swap/trade#pending-order-query
-                        'v1/swap/trade/plan_order': 1, // https://developers.bydfi.com/en/swap/trade#planned-order-query
+                        'v1/swap/trade/open_order': 1, // done
+                        'v1/swap/trade/plan_order': 1, // done
                         'v1/swap/trade/leverage': 1, // https://developers.bydfi.com/en/swap/trade#get-leverage-for-single-trading-pair
                         'v1/swap/trade/history_order': 1, // https://developers.bydfi.com/en/swap/trade#historical-orders-query
                         'v1/swap/trade/history_trade': 1, // https://developers.bydfi.com/en/swap/trade#historical-trades-query
@@ -272,8 +272,11 @@ export default class bydfi extends Exchange {
             'exceptions': {
                 'exact': {
                     'Requires transaction permissions': PermissionDenied, // {"code":101107,"message":"Requires transaction permissions"}
+                    // {"code":600,"message":"must have price, stop price and working type;param exception;"}
                     // {"code":600,"message":"The parameter 'startTime' is missing"}
                     // {"code":101001,"message":"Apikey doesn't exist!"}
+                    // {"code":101103,"message":"Invalid API-key, IP, or permissions for action."}
+                    // {"code":100036,"message":"Position does not exist"}
                 },
                 'broad': {
                 },
@@ -957,10 +960,40 @@ export default class bydfi extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let wallet = 'W001'; // todo check if it is mandatory
+        let wallet = 'W001';
         [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
         orderRequest = this.extend (orderRequest, { 'wallet': wallet });
         const response = await this.privatePostV1SwapTradePlaceOrder (orderRequest);
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "wallet": "W001",
+        //             "symbol": "ETH-USDT",
+        //             "orderId": "7408875768086683648",
+        //             "clientOrderId": "7408875768086683648",
+        //             "price": "1000",
+        //             "origQty": "10",
+        //             "avgPrice": null,
+        //             "executedQty": "0",
+        //             "orderType": "LIMIT",
+        //             "side": "BUY",
+        //             "status": "NEW",
+        //             "stopPrice": null,
+        //             "activatePrice": null,
+        //             "timeInForce": null,
+        //             "workingType": "CONTRACT_PRICE",
+        //             "positionSide": "BOTH",
+        //             "priceProtect": false,
+        //             "reduceOnly": false,
+        //             "closePosition": false,
+        //             "createTime": "1766413633367",
+        //             "updateTime": "1766413633367"
+        //         },
+        //         "success": true
+        //     }
+        //
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
@@ -1058,13 +1091,10 @@ export default class bydfi extends Exchange {
             request['timeInForce'] = timeInForce;
             params = this.omit (params, 'timeInForce');
         }
-        const workingType = this.safeString (params, 'triggerPriceType');
-        if (workingType !== undefined) {
-            if ((type === 'MARKET') || (type === 'LIMIT')) {
-                throw new NotSupported (this.id + ' createOrder() triggerPriceType is only supported for stopLoss, takeProfit and trailingStop orders');
-            }
+        if (isStopLossOrder || isTakeProfitOrder || isTailingStopOrder) {
+            let workingType = 'CONTRACT_PRICE';
+            [ workingType, params ] = this.handleOptionAndParams (params, 'createOrder', 'triggerPriceType', workingType);
             request['workingType'] = workingType;
-            params = this.omit (params, 'triggerPriceType');
         }
         return this.extend (request, params);
     }
@@ -1097,7 +1127,7 @@ export default class bydfi extends Exchange {
             const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        let wallet = 'W001'; // todo check if it is mandatory
+        let wallet = 'W001';
         [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
         const request: Dict = {
             'wallet': wallet,
@@ -1127,7 +1157,7 @@ export default class bydfi extends Exchange {
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const request = this.createEditOrderRequest (id, symbol, 'limit', side, amount, price, params);
-        let wallet = 'W001'; // todo check if it is mandatory
+        let wallet = 'W001';
         [ wallet, params ] = this.handleOptionAndParams (params, 'editOrder', 'wallet', wallet);
         request['wallet'] = wallet;
         const response = await this.privatePostV1SwapTradeEditOrder (request);
@@ -1163,7 +1193,7 @@ export default class bydfi extends Exchange {
             const orderRequest = this.createEditOrderRequest (id, symbol, 'limit', side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        let wallet = 'W001'; // todo check if it is mandatory
+        let wallet = 'W001';
         [ wallet, params ] = this.handleOptionAndParams (params, 'editOrder', 'wallet', wallet);
         const request: Dict = {
             'wallet': wallet,
@@ -1212,15 +1242,222 @@ export default class bydfi extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let wallet = 'W001'; // todo check if it is mandatory
+        let wallet = 'W001';
         [ wallet, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'wallet', wallet);
         const request: Dict = {
             'symbol': market['id'],
             'wallet': wallet,
         };
         const response = await this.privatePostV1SwapTradeCancelAllOrder (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "wallet": "W001",
+        //                 "symbol": "ETH-USDT",
+        //                 "orderId": "7408875768086683648",
+        //                 "clientOrderId": "7408875768086683648",
+        //                 "price": "1000",
+        //                 "origQty": "10",
+        //                 "avgPrice": "0",
+        //                 "executedQty": "0",
+        //                 "orderType": "LIMIT",
+        //                 "side": "BUY",
+        //                 "status": "CANCELED",
+        //                 "stopPrice": null,
+        //                 "activatePrice": null,
+        //                 "timeInForce": null,
+        //                 "workingType": "CONTRACT_PRICE",
+        //                 "positionSide": "BOTH",
+        //                 "priceProtect": false,
+        //                 "reduceOnly": false,
+        //                 "closePosition": false,
+        //                 "createTime": "1766413633367",
+        //                 "updateTime": "1766413633370"
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
         const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market);
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] true or false, whether to fetch conditional orders only
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        // todo check with orderId
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let wallet = 'W001';
+        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'wallet', wallet);
+        const request: Dict = {
+            'symbol': market['id'],
+            'wallet': wallet,
+        };
+        let response = undefined;
+        let trigger = false;
+        [ trigger, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'trigger', trigger);
+        if (!trigger) {
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": [
+            //             {
+            //                 "wallet": "W001",
+            //                 "symbol": "ETH-USDC",
+            //                 "orderId": "7408896083240091648",
+            //                 "clientOrderId": "7408896083240091648",
+            //                 "price": "999",
+            //                 "origQty": "1",
+            //                 "avgPrice": "0",
+            //                 "executedQty": "0",
+            //                 "orderType": "LIMIT",
+            //                 "side": "BUY",
+            //                 "status": "NEW",
+            //                 "stopPrice": null,
+            //                 "activatePrice": null,
+            //                 "timeInForce": null,
+            //                 "workingType": "CONTRACT_PRICE",
+            //                 "positionSide": "BOTH",
+            //                 "priceProtect": false,
+            //                 "reduceOnly": false,
+            //                 "closePosition": false,
+            //                 "createTime": "1766418476877",
+            //                 "updateTime": "1766418476880"
+            //             }
+            //         ],
+            //         "success": true
+            //     }
+            //
+            response = await this.privateGetV1SwapTradeOpenOrder (this.extend (request, params));
+        } else {
+            response = await this.privateGetV1SwapTradePlanOrder (this.extend (request, params));
+        }
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //     {
+        //         "wallet": "W001",
+        //         "symbol": "ETH-USDT",
+        //         "orderId": "7408875768086683648",
+        //         "clientOrderId": "7408875768086683648",
+        //         "price": "1000",
+        //         "origQty": "10",
+        //         "avgPrice": "0",
+        //         "executedQty": "0",
+        //         "orderType": "LIMIT",
+        //         "side": "BUY",
+        //         "status": "CANCELED",
+        //         "stopPrice": null,
+        //         "activatePrice": null,
+        //         "timeInForce": null,
+        //         "workingType": "CONTRACT_PRICE",
+        //         "positionSide": "BOTH",
+        //         "priceProtect": false,
+        //         "reduceOnly": false,
+        //         "closePosition": false,
+        //         "createTime": "1766413633367",
+        //         "updateTime": "1766413633370"
+        //     }
+        //
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (order, 'createTime');
+        const rawType = this.safeString (order, 'orderType');
+        const stopPrice = this.safeString2 (order, 'stopPrice', 'activatePrice');
+        const isStopLossOrder = (rawType === 'STOP') || (rawType === 'STOP_MARKET') || (rawType === 'TRAILING_STOP_MARKET');
+        const isTakeProfitOrder = (rawType === 'TAKE_PROFIT') || (rawType === 'TAKE_PROFIT_MARKET');
+        const rawTimeInForce = this.safeString (order, 'timeInForce');
+        const timeInForce = this.parseOrderTimeInForce (rawTimeInForce);
+        const rawStatus = this.safeString (order, 'status');
+        const fee = {};
+        const quoteFee = this.safeNumber (order, 'quoteFee');
+        if (quoteFee !== undefined) {
+            fee['cost'] = quoteFee;
+            fee['currency'] = market['quote'];
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': this.parseOrderStatus (rawStatus),
+            'symbol': market['symbol'],
+            'type': this.parseOrderType (rawType),
+            'timeInForce': timeInForce,
+            'postOnly': timeInForce === 'PO',
+            'side': this.safeStringLower (order, 'side'),
+            'price': this.safeString (order, 'price'),
+            'triggerPrice': stopPrice,
+            'stopLossPrice': isStopLossOrder ? stopPrice : undefined,
+            'takeProfitPrice': isTakeProfitOrder ? stopPrice : undefined,
+            'amount': this.safeString (order, 'origQty'),
+            'filled': this.safeString (order, 'executedQty'),
+            'remaining': undefined,
+            'cost': undefined,
+            'trades': undefined,
+            'fee': fee,
+            'average': this.omitZero (this.safeString (order, 'avgPrice')),
+        }, market);
+    }
+
+    parseOrderType (type: Str): Str {
+        const types = {
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP': 'limit',
+            'STOP_MARKET': 'market',
+            'TAKE_PROFIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
+            'TRAILING_STOP_MARKET': 'market',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseOrderTimeInForce (timeInForce: Str): Str {
+        const timeInForces = {
+            'GTC': 'GTC',
+            'FOK': 'FOK',
+            'IOC': 'IOC',
+            'POST_ONLY': 'PO',
+            'TRAILING_STOP': 'IOC',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
+    parseOrderStatus (status: Str): Str {
+        const statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'EXPIRED': 'canceled',
+            'PART_FILLED_CANCELLED': 'canceled',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
