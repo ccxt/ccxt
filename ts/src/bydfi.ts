@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported, PermissionD
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, FundingRateHistory, Int, int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRate, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -113,7 +113,7 @@ export default class bydfi extends Exchange {
                 'fetchLastPrices': false,
                 'fetchLedger': false,
                 'fetchLedgerEntry': false,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
                 'fetchLeverages': false,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
@@ -175,7 +175,7 @@ export default class bydfi extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -220,7 +220,7 @@ export default class bydfi extends Exchange {
                         'v1/spot/withdraw_records': 1, // https://developers.bydfi.com/en/spot/account#query-withdrawal-records
                         'v1/swap/trade/open_order': 1, // done
                         'v1/swap/trade/plan_order': 1, // done
-                        'v1/swap/trade/leverage': 1, // https://developers.bydfi.com/en/swap/trade#get-leverage-for-single-trading-pair
+                        'v1/swap/trade/leverage': 1, // done
                         'v1/swap/trade/history_order': 1, // https://developers.bydfi.com/en/swap/trade#historical-orders-query
                         'v1/swap/trade/history_trade': 1, // https://developers.bydfi.com/en/swap/trade#historical-trades-query
                         'v1/swap/trade/position_history': 1, // https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
@@ -245,7 +245,7 @@ export default class bydfi extends Exchange {
                         'v1/swap/trade/edit_order': 1, // done
                         'v1/swap/trade/batch_edit_order': 1, // done
                         'v1/swap/trade/cancel_all_order': 1, // done
-                        'v1/swap/trade/leverage': 1, // https://developers.bydfi.com/en/swap/trade#set-leverage-for-single-trading-pair
+                        'v1/swap/trade/leverage': 1, // done
                         'v1/swap/trade/batch_leverage_margin': 1, // https://developers.bydfi.com/en/swap/trade#modify-leverage-and-margin-type-with-one-click
                         'v1/swap/user_data/margin_type': 1, // https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin
                         'v1/swap/user_data/position_side/dual': 1, // https://developers.bydfi.com/en/swap/user#change-position-mode-dual
@@ -1404,6 +1404,7 @@ export default class bydfi extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
             'status': this.parseOrderStatus (rawStatus),
             'symbol': market['symbol'],
             'type': this.parseOrderType (rawType),
@@ -1458,6 +1459,85 @@ export default class bydfi extends Exchange {
             'CANCELED': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name bydfi#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://developers.bydfi.com/en/swap/trade#set-leverage-for-single-trading-pair
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let wallet = 'W001';
+        [ wallet, params ] = this.handleOptionAndParams (params, 'setLeverage', 'wallet', wallet);
+        const request: Dict = {
+            'symbol': market['id'],
+            'leverage': leverage,
+            'wallet': wallet,
+        };
+        const response = await this.privatePostV1SwapTradeLeverage (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return data;
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://developers.bydfi.com/en/swap/trade#get-leverage-for-single-trading-pair
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let wallet = 'W001';
+        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchLeverage', 'wallet', wallet);
+        const request: Dict = {
+            'symbol': market['id'],
+            'wallet': wallet,
+        };
+        const response = await this.privateGetV1SwapTradeLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "symbol": "ETH-USDC",
+        //             "leverage": 1,
+        //             "maxNotionalValue": "100000000"
+        //         },
+        //         "success": true
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': undefined,
+            'longLeverage': this.safeInteger (leverage, 'leverage'),
+            'shortLeverage': this.safeInteger (leverage, 'leverage'),
+        } as Leverage;
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
