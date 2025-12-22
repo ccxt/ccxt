@@ -959,6 +959,10 @@ class NewTranspiler {
         // inject constructor
         const constructor = [
         '',
+        `   public ${this.capitalize(name)} () {`,
+        `       super();`,
+        `   }`,
+        '',
         `   public ${this.capitalize(name)} (Object options) {`,
         `       super(options);`,
         `   }`,
