@@ -35,8 +35,8 @@ export default class bydfi extends Exchange {
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
-                'cancelAllOrders': false,
-                'cancelOrder': true,
+                'cancelAllOrders': true,
+                'cancelOrder': false,
                 'cancelOrders': false,
                 'cancelOrdersWithClientOrderId': false,
                 'cancelOrderWithClientOrderId': false,
@@ -244,7 +244,7 @@ export default class bydfi extends Exchange {
                         'v1/swap/trade/batch_place_order': 1, // done
                         'v1/swap/trade/edit_order': 1, // done
                         'v1/swap/trade/batch_edit_order': 1, // done
-                        'v1/swap/trade/cancel_all_order': 1, // https://developers.bydfi.com/en/swap/trade#complete-order-cancellation
+                        'v1/swap/trade/cancel_all_order': 1, // done
                         'v1/swap/trade/leverage': 1, // https://developers.bydfi.com/en/swap/trade#set-leverage-for-single-trading-pair
                         'v1/swap/trade/batch_leverage_margin': 1, // https://developers.bydfi.com/en/swap/trade#modify-leverage-and-margin-type-with-one-click
                         'v1/swap/user_data/margin_type': 1, // https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin
@@ -1142,6 +1142,7 @@ export default class bydfi extends Exchange {
      * @see https://developers.bydfi.com/en/swap/trade#batch-order-modification
      * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
@@ -1193,6 +1194,33 @@ export default class bydfi extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         return this.extend (request, params);
+    }
+
+    /**
+     * @method
+     * @name bydfi#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://developers.bydfi.com/en/swap/trade#complete-order-cancellation
+     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let wallet = 'W001'; // todo check if it is mandatory
+        [ wallet, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'wallet', wallet);
+        const request: Dict = {
+            'symbol': market['id'],
+            'wallet': wallet,
+        };
+        const response = await this.privatePostV1SwapTradeCancelAllOrder (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
